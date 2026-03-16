@@ -33,8 +33,8 @@ function makeStyles(t: Theme) {
   return StyleSheet.create({
     container:      { flex: 1, backgroundColor: t.bg },
     customHeader:   { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 24, paddingTop: 12, paddingBottom: 4 },
-    customHeaderTitle: { fontSize: 17, fontWeight: '900', color: t.text },
-    headerSaveBtn:  { fontSize: 15, fontWeight: '600', color: t.orange },
+    customHeaderTitle: { fontSize: 18, fontWeight: '900', color: t.text },
+    headerSaveBtn:  { fontSize: 11, fontWeight: '900', color: t.orange, backgroundColor: 'rgba(255,94,0,0.14)', borderRadius: 100, paddingVertical: 5, paddingHorizontal: 12, overflow: 'hidden' },
     scroll:         { flex: 1 },
     scrollContent:  { paddingHorizontal: 24, paddingBottom: 24 },
     heroSection:    { paddingTop: 24, paddingBottom: 8, gap: 12 },

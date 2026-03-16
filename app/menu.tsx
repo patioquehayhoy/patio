@@ -68,11 +68,12 @@ function makeStyles(t: Theme) {
     formScroll:           { flex: 1 },
     formContent:          { padding: 20, paddingTop: 32, paddingBottom: 8 },
     // Header
-    headerTitleContainer: { flex: 1, paddingRight: 180, justifyContent: 'center' },
-    headerSegmented:      { position: 'absolute', right: 16, top: 0, bottom: 0, justifyContent: 'center' },
-    headerName:           { fontSize: 20, fontWeight: '900', color: t.text, lineHeight: 22 },
-    headerDesc:           { fontSize: 11, color: t.gray, lineHeight: 14 },
-    headerDireccion:      { fontSize: 11, fontWeight: '300', color: t.gray, lineHeight: 14 },
+    headerTitleContainer: { flex: 1 },
+    headerRow1:           { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 },
+    headerRow2:           { flexDirection: 'row', alignItems: 'center', gap: 8 },
+    headerName:           { fontSize: 18, fontWeight: '900', color: t.text, letterSpacing: -0.3, flex: 1 },
+    headerDesc:           { fontSize: 11, fontWeight: '300', color: t.gray, lineHeight: 15, flex: 1 },
+    headerDireccion:      { fontSize: 9, fontWeight: '400', color: t.gray, lineHeight: 13 },
     // Section
     section:              { marginBottom: 20 },
     sectionHeader:        { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
@@ -119,25 +120,25 @@ function makeStyles(t: Theme) {
 function SegmentedControl({ value, onChange }: { value: 'menu' | 'carta'; onChange: (v: 'menu' | 'carta') => void }) {
   const { theme } = useTheme();
   return (
-    <View style={[seg.container, { borderColor: 'rgba(255,94,0,0.4)' }]}>
+    <View style={[seg.container, { backgroundColor: theme.surface2 }]}>
       <TouchableOpacity
         style={[seg.btn, value === 'menu' && { backgroundColor: theme.orange }]}
         onPress={() => onChange('menu')}>
-        <Text style={[seg.label, { color: value === 'menu' ? '#fff' : theme.gray }]}>Menú</Text>
+        <Text style={[seg.label, { color: value === 'menu' ? '#FFF7E0' : theme.gray }]}>Menú</Text>
       </TouchableOpacity>
       <TouchableOpacity
         style={[seg.btn, value === 'carta' && { backgroundColor: theme.orange }]}
         onPress={() => onChange('carta')}>
-        <Text style={[seg.label, { color: value === 'carta' ? '#fff' : theme.gray }]}>Carta</Text>
+        <Text style={[seg.label, { color: value === 'carta' ? '#FFF7E0' : theme.gray }]}>Carta</Text>
       </TouchableOpacity>
     </View>
   );
 }
 
 const seg = StyleSheet.create({
-  container: { flexDirection: 'row', width: 160, height: 32, borderRadius: 14, borderWidth: 1, padding: 2, gap: 2 },
-  btn:       { flex: 1, alignItems: 'center', justifyContent: 'center', borderRadius: 14 },
-  label:     { fontSize: 13, fontWeight: '600' },
+  container: { flexDirection: 'row', height: 30, borderRadius: 100, padding: 2, gap: 2 },
+  btn:       { alignItems: 'center', justifyContent: 'center', borderRadius: 100, paddingHorizontal: 14 },
+  label:     { fontSize: 11, fontWeight: '700', letterSpacing: 0.3 },
 });
 
 // ─── ToggleSwitch ─────────────────────────────────────────────────────────────
@@ -591,15 +592,16 @@ export default function MenuScreen() {
           headerTitleContainerStyle: { left: 0, right: 0 },
           headerTitle: () => (
             <View style={s.headerTitleContainer}>
-              <Text style={s.headerName} numberOfLines={1}>{fonditaName}</Text>
-              {(!!fonditaDesc || !!fonditaDireccion) && (
-                <Text style={s.headerDesc} numberOfLines={1}>
-                  {[fonditaDesc, fonditaDireccion].filter(Boolean).join(' · ')}
-                </Text>
-              )}
-              <View style={s.headerSegmented}>
+              <View style={s.headerRow1}>
+                <Text style={s.headerName} numberOfLines={1}>{fonditaName}</Text>
                 <SegmentedControl value={activeTab} onChange={setActiveTab} />
               </View>
+              {(!!fonditaDesc || !!fonditaDireccion) && (
+                <View style={s.headerRow2}>
+                  {!!fonditaDesc && <Text style={s.headerDesc} numberOfLines={1}>{fonditaDesc}</Text>}
+                  {!!fonditaDireccion && <Text style={s.headerDireccion} numberOfLines={1}>{fonditaDireccion}</Text>}
+                </View>
+              )}
             </View>
           ),
           headerLeft: () => null,

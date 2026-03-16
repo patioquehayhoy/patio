@@ -20,7 +20,7 @@ export function BottomTabBar() {
     <View style={[
       styles.container,
       {
-        backgroundColor: theme.bg,
+        backgroundColor: theme.surface,
         borderTopColor: theme.sep,
         paddingBottom: insets.bottom || 10,
       },

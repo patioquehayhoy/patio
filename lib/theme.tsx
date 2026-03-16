@@ -4,32 +4,38 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 // ─── Palettes ─────────────────────────────────────────────────────────────────
 export type Theme = {
   bg: string;
+  surface: string;   // capa sobre bg (bottom bar, cards)
+  surface2: string;  // capa elevada (segmented control, modales)
   text: string;
   orange: string;
   sep: string;
-  gray: string;
-  bone: string;   // always #FFF7E0 — para thumbs y elementos que no invierten
+  gray: string;      // texto secundario / placeholders
+  bone: string;      // always #FFF7E0 — thumbs y elementos que no invierten
   isDark: boolean;
 };
 
 export const lightTheme: Theme = {
-  bg:     '#FFF7E0',
-  text:   '#3D1F00',
-  orange: '#FF5E00',
-  sep:    '#EDE8DC',
-  gray:   '#9E3F00',
-  bone:   '#FFF7E0',
-  isDark: false,
+  bg:       '#FFF7E0',
+  surface:  '#F5EDD0',
+  surface2: '#EDE3C4',
+  text:     '#3D1F00',
+  orange:   '#FF5E00',
+  sep:      '#EDE8DC',
+  gray:     '#9E3F00',
+  bone:     '#FFF7E0',
+  isDark:   false,
 };
 
 export const darkTheme: Theme = {
-  bg:     '#1F1700',
-  text:   '#FFF7E0',
-  orange: '#FF5E00',
-  sep:    '#3D2800',
-  gray:   '#9E3F00',
-  bone:   '#FFF7E0',
-  isDark: true,
+  bg:       '#0E0C09',
+  surface:  '#1A1610',
+  surface2: '#241E16',
+  text:     '#FFF7E0',
+  orange:   '#FF5E00',
+  sep:      'rgba(255,247,224,0.08)',
+  gray:     'rgba(255,247,224,0.55)',
+  bone:     '#FFF7E0',
+  isDark:   true,
 };
 
 export const DARK_MODE_KEY = '@lafondita_dark_mode';

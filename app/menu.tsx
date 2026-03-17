@@ -69,7 +69,7 @@ function makeStyles(t: Theme) {
     formContent:          { paddingHorizontal: 24, paddingTop: 24, paddingBottom: 8 },
     // Header
     headerTitleContainer: { flex: 1 },
-    headerName:           { fontSize: 22, fontWeight: '900', color: t.text, letterSpacing: -0.5, lineHeight: 26 },
+    headerName:           { fontSize: 26, fontWeight: '900', color: t.text, letterSpacing: -0.5, lineHeight: 30 },
     headerDesc:           { fontSize: 14, fontWeight: '300', color: t.gray, lineHeight: 20 },
     tabRow:               { alignItems: 'center', paddingTop: 12, paddingBottom: 4, backgroundColor: t.bg },
     // Section
@@ -85,7 +85,7 @@ function makeStyles(t: Theme) {
     addBtn:               { paddingVertical: 4 },
     addBtnText:           { fontSize: 14, color: t.orange, fontWeight: '500' },
     slashSep:             { fontSize: 15, color: t.gray, paddingHorizontal: 4 },
-    descInput:            { fontSize: 15, fontWeight: '300', color: t.gray, lineHeight: 21, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.sep, paddingVertical: 6, paddingHorizontal: 0, backgroundColor: 'transparent' },
+    descInput:            { fontSize: 15, fontWeight: '300', color: t.gray, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.sep, paddingVertical: 6, paddingHorizontal: 0, backgroundColor: 'transparent', alignSelf: 'center' },
     chipsScroll:          { marginBottom: 8 },
     chipsContent:         { flexDirection: 'row', gap: 6, paddingRight: 4 },
     chip:                 { paddingVertical: 3, paddingHorizontal: 10, borderRadius: 12, borderWidth: 1, borderColor: t.orange, backgroundColor: 'transparent' },
@@ -150,7 +150,7 @@ function ToggleSwitch({ value, onValueChange }: { value: boolean; onValueChange:
   return (
     <TouchableOpacity onPress={() => onValueChange(!value)} activeOpacity={0.85}>
       <Animated.View style={[tog.track, { backgroundColor: trackColor }]}>
-        <Animated.View style={tog.thumb} style={[tog.thumb, { transform: [{ translateX }] }]} />
+        <Animated.View style={[tog.thumb, { transform: [{ translateX }] }]} />
       </Animated.View>
     </TouchableOpacity>
   );
@@ -170,25 +170,32 @@ function OrdTitle({ idx, rest }: { idx: 0 | 1 | 2; rest: string }) {
 }
 
 // ─── DescInput ────────────────────────────────────────────────────────────────
-function DescInput({ value, onChange, selectionColor }: { value: string; onChange: (v: string) => void; selectionColor: string }) {
+function DescInput({
+  value, onChange, selectionColor, inputRef, onSubmitEditing, returnKeyType = 'next',
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  selectionColor: string;
+  inputRef?: (ref: TextInput | null) => void;
+  onSubmitEditing?: () => void;
+  returnKeyType?: 'next' | 'done';
+}) {
   const { theme } = useTheme();
   const s = makeStyles(theme);
-  const opacity = useRef(new Animated.Value(value ? 0.7 : 0.4)).current;
   return (
-    <Animated.View style={{ flex: 1.2, opacity }}>
-      <TextInput
-        style={s.descInput}
-        placeholder="Descripción"
-        placeholderTextColor="rgba(255,94,0,0.2)"
-        value={value}
-        autoCapitalize="none"
-        onChangeText={onChange}
-        onFocus={() => Animated.timing(opacity, { toValue: 1, duration: 150, useNativeDriver: true }).start()}
-        onBlur={() => Animated.timing(opacity, { toValue: value ? 0.7 : 0.4, duration: 150, useNativeDriver: true }).start()}
-        selectionColor={selectionColor}
-        maxLength={40}
-      />
-    </Animated.View>
+    <TextInput
+      ref={inputRef}
+      style={[s.descInput, { flex: 1.2 }]}
+      placeholder="Descripción"
+      placeholderTextColor="rgba(255,94,0,0.2)"
+      value={value}
+      autoCapitalize="none"
+      onChangeText={onChange}
+      selectionColor={selectionColor}
+      maxLength={40}
+      returnKeyType={returnKeyType}
+      onSubmitEditing={onSubmitEditing}
+    />
   );
 }
 
@@ -217,6 +224,8 @@ function DynamicSection({
   const [showContent, setShowContent] = useState(dimOnly || enabled);
   const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
   const blurTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const nameRefs = useRef<Array<TextInput | null>>([]);
+  const descRefs = useRef<Array<TextInput | null>>([]);
 
   useEffect(() => {
     if (dimOnly) {
@@ -261,6 +270,7 @@ function DynamicSection({
               <View key={index}>
                 <View style={s.itemRow}>
                   <TextInput
+                    ref={(el) => { nameRefs.current[index] = el; }}
                     style={s.input}
                     placeholder={placeholder}
                     placeholderTextColor="rgba(255,94,0,0.2)"
@@ -280,12 +290,17 @@ function DynamicSection({
                     autoCapitalize="none"
                     selectionColor={theme.orange}
                     maxLength={40}
+                    returnKeyType="next"
+                    onSubmitEditing={() => descRefs.current[index]?.focus()}
                   />
                   <Text style={s.slashSep}>/</Text>
                   <DescInput
                     value={descPart}
                     onChange={(v) => onChange(index, namePart + (v ? ' / ' + v : ''))}
                     selectionColor={theme.orange}
+                    inputRef={(el) => { descRefs.current[index] = el; }}
+                    returnKeyType={index === items.length - 1 ? 'done' : 'next'}
+                    onSubmitEditing={index === items.length - 1 ? undefined : () => nameRefs.current[index + 1]?.focus()}
                   />
                   {items.length > 1 && (
                     <TouchableOpacity style={s.removeBtn} onPress={() => onRemove(index)}>
@@ -581,8 +596,8 @@ export default function MenuScreen() {
   return (
     <View style={s.container}>
       <Stack.Screen
-        options={{
-          headerStyle: { backgroundColor: theme.bg, borderBottomWidth: 0.5, borderBottomColor: theme.sep },
+        options={({
+          headerStyle: { backgroundColor: theme.bg },
           headerShadowVisible: false,
           headerTintColor: theme.text,
           headerBackVisible: false,
@@ -596,7 +611,7 @@ export default function MenuScreen() {
           ),
           headerLeft: () => null,
           headerRight: () => null,
-        }}
+        }) as any}
       />
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={s.keyboardView}>
         <View style={s.tabRow}>

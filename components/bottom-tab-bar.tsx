@@ -1,15 +1,15 @@
 import { router, usePathname } from 'expo-router';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { SymbolView } from 'expo-symbols';
+import { Ionicons } from '@expo/vector-icons';
 
 import { useTheme } from '@/lib/theme';
 
 const TABS = [
-  { path: '/perfil',  label: 'Perfil',    symbolActive: 'person.fill',         symbolInactive: 'person'                },
-  { path: '/menu',    label: 'Menú',       symbolActive: 'list.bullet',          symbolInactive: 'list.bullet'           },
-  { path: '/preview', label: 'Compartir', symbolActive: 'square.and.arrow.up',  symbolInactive: 'square.and.arrow.up'  },
-] as const;
+  { path: '/perfil',  label: 'Perfil',    iconActive: 'person'        as const, iconInactive: 'person-outline'       as const },
+  { path: '/menu',    label: 'Menú',       iconActive: 'list'          as const, iconInactive: 'list-outline'         as const },
+  { path: '/preview', label: 'Compartir', iconActive: 'share'         as const, iconInactive: 'share-outline'        as const },
+];
 
 export function BottomTabBar() {
   const pathname = usePathname();
@@ -25,20 +25,19 @@ export function BottomTabBar() {
         paddingBottom: insets.bottom || 10,
       },
     ]}>
-      {TABS.map(({ path, label, symbolActive, symbolInactive }) => {
+      {TABS.map(({ path, label, iconActive, iconInactive }) => {
         const active = pathname === path;
         return (
           <TouchableOpacity
             key={path}
             style={styles.tab}
-            onPress={() => router.navigate(path)}>
-            <View style={{ opacity: active ? 1 : 0.4 }}>
-              <SymbolView
-                name={active ? symbolActive : symbolInactive}
-                size={24}
-                tintColor={active ? theme.orange : '#9E3F00'}
-              />
-            </View>
+            onPress={() => router.navigate(path as any)}>
+            <Ionicons
+              name={active ? iconActive : iconInactive}
+              size={22}
+              color={active ? '#FF5E00' : '#9E3F00'}
+              style={{ opacity: active ? 1 : 0.4 }}
+            />
             <Text style={[styles.label, { color: active ? theme.orange : theme.gray }]}>{label}</Text>
           </TouchableOpacity>
         );

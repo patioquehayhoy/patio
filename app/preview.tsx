@@ -13,13 +13,17 @@ import {
   getFonditaDescription,
   getFonditaDireccion,
   getFonditaDireccionVisible,
+  getFonditaHorario,
   getFonditaName,
   getMenuData,
+  getPagosEfectivo,
+  getPagosTarjeta,
+  getPagosTrans,
   getTiempoLabels,
   type MenuData,
 } from '@/lib/menu-store';
 
-function SectionBlock({ data, title, theme }: { data: MenuData; title: string; theme: Theme }) {
+function SectionBlock({ data, title, theme, fecha }: { data: MenuData; title: string; theme: Theme; fecha?: string }) {
   const hasContent =
     (data.primerTiempo.enabled && data.primerTiempo.items.some(Boolean)) ||
     (data.segundoTiempo.enabled && data.segundoTiempo.items.some(Boolean)) ||
@@ -45,7 +49,10 @@ function SectionBlock({ data, title, theme }: { data: MenuData; title: string; t
 
   return (
     <View style={s.block}>
-      <Text style={s.blockTitle}>{title}</Text>
+      <View style={s.blockTitleRow}>
+        <Text style={s.blockTitle}>{title}</Text>
+        {!!fecha && <Text style={s.blockFecha}>{fecha}</Text>}
+      </View>
 
       {data.primerTiempo.enabled && data.primerTiempo.items.some(Boolean) && (
         <View style={s.subsection}>
@@ -65,16 +72,16 @@ function SectionBlock({ data, title, theme }: { data: MenuData; title: string; t
           {data.tercerTiempoGuisado.items.filter(Boolean).map(ri)}
         </View>
       )}
-      {data.postre.enabled && data.postre.items.some(Boolean) && (
-        <View style={s.subsection}>
-          <Text style={s.subsectionLabel}>Postre</Text>
-          {data.postre.items.filter(Boolean).map(ri)}
-        </View>
-      )}
       {data.aguas.enabled && data.aguas.items.some(Boolean) && (
         <View style={s.subsection}>
           <Text style={s.subsectionLabel}>Bebidas</Text>
           {data.aguas.items.filter(Boolean).map(ri)}
+        </View>
+      )}
+      {data.postre.enabled && data.postre.items.some(Boolean) && (
+        <View style={s.subsection}>
+          <Text style={s.subsectionLabel}>Postre</Text>
+          {data.postre.items.filter(Boolean).map(ri)}
         </View>
       )}
       {data.precio.enabled && data.precio.value.trim() && (
@@ -92,6 +99,10 @@ export default function PreviewScreen() {
   const [fonditaDesc, setFonditaDescState] = useState(getFonditaDescription());
   const [fonditaDireccion, setFonditaDireccionState] = useState(getFonditaDireccion());
   const [fonditaDireccionVisible, setFonditaDireccionVisibleState] = useState(getFonditaDireccionVisible());
+  const [fonditaHorario,   setFonditaHorarioState]   = useState(getFonditaHorario());
+  const [pagosEfectivo,    setPagosEfectivoState]    = useState(getPagosEfectivo());
+  const [pagosTrans,       setPagosTransState]       = useState(getPagosTrans());
+  const [pagosTarjeta,     setPagosTarjetaState]     = useState(getPagosTarjeta());
   const { theme } = useTheme();
   const s = makeStyles(theme);
   const viewShotRef = useRef<ViewShot>(null);
@@ -104,6 +115,10 @@ export default function PreviewScreen() {
       setFonditaDescState(getFonditaDescription());
       setFonditaDireccionState(getFonditaDireccion());
       setFonditaDireccionVisibleState(getFonditaDireccionVisible());
+      setFonditaHorarioState(getFonditaHorario());
+      setPagosEfectivoState(getPagosEfectivo());
+      setPagosTransState(getPagosTrans());
+      setPagosTarjetaState(getPagosTarjeta());
     }, [])
   );
 
@@ -132,11 +147,23 @@ export default function PreviewScreen() {
           <Text style={s.fonditaName}>{fonditaName}</Text>
           {!!fonditaDesc && <Text style={s.fonditaDesc}>{fonditaDesc}</Text>}
           {!!fonditaDireccion && <Text style={s.fonditaDireccion}>{fonditaDireccion}</Text>}
-          <Text style={s.fecha}>{new Date().toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' })}</Text>
+          <View style={s.headerDivider} />
 
           {cartaData && <SectionBlock data={cartaData} title="Carta" theme={theme} />}
           {cartaData && menuData && <View style={s.sectionSeparator} />}
           {menuData && <SectionBlock data={menuData} title="Menú del día" theme={theme} />}
+
+          {hasAnything && (
+            <View style={s.infoBlock}>
+              <Text style={s.infoFecha}>{new Date().toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' })}</Text>
+              {!!fonditaHorario && <Text style={s.infoLine}>{fonditaHorario}</Text>}
+              {(pagosEfectivo || pagosTrans || pagosTarjeta) && (
+                <Text style={s.infoLine}>
+                  {[pagosEfectivo && 'Efectivo', pagosTrans && 'Transferencia', pagosTarjeta && 'Tarjeta'].filter(Boolean).join(' · ')}
+                </Text>
+              )}
+            </View>
+          )}
 
           {!hasAnything && (
             <Text style={s.empty}>Aún no hay contenido. Llena tu menú primero.</Text>
@@ -162,21 +189,26 @@ function makeStyles(t: Theme) {
     container:         { flex: 1, backgroundColor: t.bg },
     scroll:            { flex: 1 },
     scrollContent:     { padding: 24, paddingBottom: 16 },
-    fonditaName:       { fontSize: 24, fontWeight: '900', color: t.text, marginBottom: 4 },
-    fonditaDesc:       { fontSize: 13, fontWeight: '300', color: t.gray, marginBottom: 2 },
-    fonditaDireccion:  { fontSize: 11, fontWeight: '300', color: t.gray, marginBottom: 6 },
-    fecha:             { fontSize: 10, fontWeight: '300', color: t.gray, opacity: 0.6, marginBottom: 28 },
-    block:             { marginBottom: 28 },
-    blockTitle:        { fontSize: 13, fontWeight: '900', letterSpacing: 0.6, color: t.orange, textTransform: 'uppercase', marginBottom: 12, paddingBottom: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.sep },
-    subsection:        { marginBottom: 12 },
-    subsectionLabel:   { fontSize: 12, fontWeight: '900', color: t.gray, marginBottom: 4, textTransform: 'uppercase', letterSpacing: 0.4 },
-    item:              { fontSize: 15, fontWeight: '500', color: t.text, marginLeft: 4, marginBottom: 2 },
-    itemDesc:          { fontSize: 11, fontWeight: '300', color: t.gray, opacity: 0.7 },
-    precio:            { fontSize: 20, fontWeight: '900', color: t.orange, marginTop: 8 },
-    sectionSeparator:  { height: 1, backgroundColor: t.sep, marginVertical: 4 },
+    headerDivider:     { height: StyleSheet.hairlineWidth, backgroundColor: t.sep, marginBottom: 20 },
+    fonditaName:       { fontSize: 22, fontWeight: '900', color: t.text, letterSpacing: -0.5, lineHeight: 26, marginBottom: 2 },
+    fonditaDesc:       { fontSize: 14, fontWeight: '300', color: t.gray, lineHeight: 20, marginBottom: 2 },
+    fonditaDireccion:  { fontSize: 12, fontWeight: '300', color: t.gray, lineHeight: 17, opacity: 0.5, marginBottom: 6 },
+    block:             { marginBottom: 0 },
+    blockTitleRow:     { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 0, paddingBottom: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.sep },
+    blockTitle:        { fontSize: 11, fontWeight: '700', letterSpacing: 1.4, color: t.orange, textTransform: 'uppercase' },
+    blockFecha:        { fontSize: 12, fontWeight: '300', color: t.gray },
+    subsection:        { marginBottom: 0 },
+    subsectionLabel:   { fontSize: 11, fontWeight: '700', letterSpacing: 1.0, color: t.text, marginTop: 16, marginBottom: 6, textTransform: 'uppercase', opacity: 0.5 },
+    item:              { fontSize: 16, fontWeight: '800', color: t.text, marginLeft: 4, marginBottom: 8 },
+    itemDesc:          { fontSize: 15, fontWeight: '300', color: t.gray, lineHeight: 21 },
+    precio:            { fontSize: 26, fontWeight: '900', color: t.orange, marginTop: 12, marginBottom: 0 },
+    sectionSeparator:  { height: 1, backgroundColor: t.sep, marginVertical: 16 },
+    infoBlock:         { marginTop: 16, paddingTop: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.sep, alignItems: 'center' },
+    infoFecha:         { fontSize: 12, fontWeight: '300', color: t.gray, opacity: 0.6, lineHeight: 18, textAlign: 'center', marginBottom: 2 },
+    infoLine:          { fontSize: 12, fontWeight: '300', color: t.gray, opacity: 0.6, lineHeight: 18, textAlign: 'center', marginBottom: 2 },
     empty:             { textAlign: 'center', fontWeight: '300', color: t.gray, fontStyle: 'italic', marginTop: 40 },
-    actions:           { padding: 16, paddingTop: 12, paddingBottom: 20, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.sep },
-    whatsappButton:    { backgroundColor: '#FF5E00', paddingVertical: 16, borderRadius: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', shadowColor: '#8B2500', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.25, shadowRadius: 6, elevation: 4 },
-    whatsappButtonText:{ color: '#fff', fontSize: 16, fontWeight: '700' },
+    actions:           { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.sep, paddingTop: 12 },
+    whatsappButton:    { backgroundColor: '#FF5E00', height: 52, borderRadius: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginHorizontal: 24, marginBottom: 24, shadowColor: '#8B2500', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.25, shadowRadius: 6, elevation: 4 },
+    whatsappButtonText:{ color: '#fff', fontSize: 15, fontWeight: '700' },
   });
 }

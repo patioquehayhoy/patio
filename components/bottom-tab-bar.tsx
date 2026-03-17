@@ -1,14 +1,14 @@
 import { router, usePathname } from 'expo-router';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import { SymbolView } from 'expo-symbols';
 
 import { useTheme } from '@/lib/theme';
 
 const TABS = [
-  { path: '/perfil',  label: 'Perfil',       icon: 'person'  },
-  { path: '/menu',    label: 'Menú',          icon: 'list'    },
-  { path: '/preview', label: 'Vista previa',  icon: 'eye'     },
+  { path: '/perfil',  label: 'Perfil',    symbolActive: 'person.fill',         symbolInactive: 'person'                },
+  { path: '/menu',    label: 'Menú',       symbolActive: 'list.bullet',          symbolInactive: 'list.bullet'           },
+  { path: '/preview', label: 'Compartir', symbolActive: 'square.and.arrow.up',  symbolInactive: 'square.and.arrow.up'  },
 ] as const;
 
 export function BottomTabBar() {
@@ -25,20 +25,21 @@ export function BottomTabBar() {
         paddingBottom: insets.bottom || 10,
       },
     ]}>
-      {TABS.map(({ path, label, icon }) => {
+      {TABS.map(({ path, label, symbolActive, symbolInactive }) => {
         const active = pathname === path;
-        const color = active ? theme.orange : theme.gray;
         return (
           <TouchableOpacity
             key={path}
             style={styles.tab}
             onPress={() => router.navigate(path)}>
-            <Ionicons
-              name={active ? icon : `${icon}-outline` as any}
-              size={24}
-              color={color}
-            />
-            <Text style={[styles.label, { color }]}>{label}</Text>
+            <View style={{ opacity: active ? 1 : 0.4 }}>
+              <SymbolView
+                name={active ? symbolActive : symbolInactive}
+                size={24}
+                tintColor={active ? theme.orange : '#9E3F00'}
+              />
+            </View>
+            <Text style={[styles.label, { color: active ? theme.orange : theme.gray }]}>{label}</Text>
           </TouchableOpacity>
         );
       })}

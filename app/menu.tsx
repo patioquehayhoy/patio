@@ -66,34 +66,32 @@ function makeStyles(t: Theme) {
     keyboardView:         { flex: 1 },
     formHalf:             { flex: 1 },
     formScroll:           { flex: 1 },
-    formContent:          { padding: 20, paddingTop: 32, paddingBottom: 8 },
+    formContent:          { paddingHorizontal: 24, paddingTop: 24, paddingBottom: 8 },
     // Header
     headerTitleContainer: { flex: 1 },
-    headerRow1:           { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 },
-    headerRow2:           { flexDirection: 'row', alignItems: 'center', gap: 8 },
-    headerName:           { fontSize: 18, fontWeight: '900', color: t.text, letterSpacing: -0.3, flex: 1 },
-    headerDesc:           { fontSize: 11, fontWeight: '300', color: t.gray, lineHeight: 15, flex: 1 },
-    headerDireccion:      { fontSize: 9, fontWeight: '400', color: t.gray, lineHeight: 13 },
+    headerName:           { fontSize: 22, fontWeight: '900', color: t.text, letterSpacing: -0.5, lineHeight: 26 },
+    headerDesc:           { fontSize: 14, fontWeight: '300', color: t.gray, lineHeight: 20 },
+    tabRow:               { alignItems: 'center', paddingTop: 12, paddingBottom: 4, backgroundColor: t.bg },
     // Section
-    section:              { marginBottom: 20 },
+    section:              { marginBottom: 24 },
     sectionHeader:        { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
     sectionDivider:       { height: 0.5, backgroundColor: 'rgba(255,94,0,0.3)', marginBottom: 12 },
-    secLabel:             { fontSize: 11, fontWeight: '900', letterSpacing: -0.3, color: t.orange, textTransform: 'uppercase' },
+    secLabel:             { fontSize: 11, fontWeight: '700', letterSpacing: 1.4, color: t.orange, textTransform: 'uppercase' },
     // Items
-    itemRow:              { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
-    input:                { flex: 1, fontSize: 15, color: t.text, fontWeight: '400', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.sep, paddingVertical: 6, paddingHorizontal: 0, backgroundColor: 'transparent' },
+    itemRow:              { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
+    input:                { flex: 1, fontSize: 16, color: t.text, fontWeight: '800', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.sep, paddingVertical: 6, paddingHorizontal: 0, backgroundColor: 'transparent' },
     removeBtn:            { width: 28, alignItems: 'center', paddingLeft: 4 },
     removeBtnText:        { fontSize: 13, color: t.gray },
     addBtn:               { paddingVertical: 4 },
     addBtnText:           { fontSize: 14, color: t.orange, fontWeight: '500' },
-    slashSep:             { fontSize: 13, color: t.gray, paddingHorizontal: 4 },
-    descInput:            { fontSize: 11, fontWeight: '200', color: t.gray, letterSpacing: 0.1, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.sep, paddingVertical: 6, paddingHorizontal: 0, backgroundColor: 'transparent' },
+    slashSep:             { fontSize: 15, color: t.gray, paddingHorizontal: 4 },
+    descInput:            { fontSize: 15, fontWeight: '300', color: t.gray, lineHeight: 21, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.sep, paddingVertical: 6, paddingHorizontal: 0, backgroundColor: 'transparent' },
     chipsScroll:          { marginBottom: 8 },
     chipsContent:         { flexDirection: 'row', gap: 6, paddingRight: 4 },
     chip:                 { paddingVertical: 3, paddingHorizontal: 10, borderRadius: 12, borderWidth: 1, borderColor: t.orange, backgroundColor: 'transparent' },
     chipText:             { fontSize: 11, color: t.orange, fontWeight: '500' },
     // Precio
-    precioPrefix:         { fontSize: 16, color: t.text, marginRight: 8, fontWeight: '900' },
+    precioPrefix:         { fontSize: 26, color: t.orange, marginRight: 4, fontWeight: '900' },
     // Preview separator
     previewDividerRow:    { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10 },
     previewDividerLine:   { flex: 1, height: 0.5, backgroundColor: t.orange, opacity: 0.5 },
@@ -106,13 +104,13 @@ function makeStyles(t: Theme) {
     previewEmpty:         { fontSize: 14, color: t.gray, fontStyle: 'italic' },
     previewContent:       { gap: 2 },
     previewTitleRow:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, paddingBottom: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.sep },
-    previewTitle:         { fontSize: 13, fontWeight: '700', letterSpacing: 0.6, color: t.orange, textTransform: 'uppercase' },
+    previewTitle:         { fontSize: 11, fontWeight: '700', letterSpacing: 1.4, color: t.orange, textTransform: 'uppercase' },
     previewTitleDelete:   { fontSize: 10, fontWeight: '300', color: t.orange, opacity: 0.4 },
-    previewSec:           { marginBottom: 12 },
-    previewLabel:         { fontSize: 12, fontWeight: '600', color: t.gray, textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 4 },
-    previewItem:          { fontSize: 15, fontWeight: '500', color: t.text, marginLeft: 4, marginBottom: 2 },
-    previewItemDesc:      { fontSize: 11, fontWeight: '300', color: t.gray, opacity: 0.7 },
-    previewPrice:         { fontSize: 20, fontWeight: '700', color: t.orange, marginTop: 8 },
+    previewSec:           { marginBottom: 0 },
+    previewLabel:         { fontSize: 11, fontWeight: '700', letterSpacing: 1.0, color: t.text, textTransform: 'uppercase', marginTop: 16, marginBottom: 6, opacity: 0.5 },
+    previewItem:          { fontSize: 16, fontWeight: '800', color: t.text, marginLeft: 4, marginBottom: 8 },
+    previewItemDesc:      { fontSize: 15, fontWeight: '300', color: t.gray, lineHeight: 21 },
+    previewPrice:         { fontSize: 26, fontWeight: '900', color: t.orange, marginTop: 12, marginBottom: 4 },
   });
 }
 
@@ -347,7 +345,7 @@ function PrecioSection({ value, onChange }: { value: string; onChange: (value: s
       <View style={s.itemRow}>
         <Text style={[s.precioPrefix, { color: theme.orange }]}>$</Text>
         <TextInput
-          style={[s.input, { flex: 1, fontWeight: '900', color: theme.orange }]}
+          style={[s.input, { flex: 1, fontSize: 26, fontWeight: '900', color: theme.orange }]}
           placeholder="47"
           placeholderTextColor="rgba(255,94,0,0.2)"
           value={value}
@@ -421,16 +419,16 @@ function MenuPreview({ data, title, onDelete }: { data: MenuData; title: string;
           {data.tercerTiempoGuisado.items.filter(Boolean).map(ri)}
         </View>
       )}
-      {data.postre.enabled && data.postre.items.some(Boolean) && (
-        <View style={s.previewSec}>
-          <Text style={s.previewLabel}>Postre</Text>
-          {data.postre.items.filter(Boolean).map(ri)}
-        </View>
-      )}
       {data.aguas.enabled && data.aguas.items.some(Boolean) && (
         <View style={s.previewSec}>
           <Text style={s.previewLabel}>Bebidas</Text>
           {data.aguas.items.filter(Boolean).map(ri)}
+        </View>
+      )}
+      {data.postre.enabled && data.postre.items.some(Boolean) && (
+        <View style={s.previewSec}>
+          <Text style={s.previewLabel}>Postre</Text>
+          {data.postre.items.filter(Boolean).map(ri)}
         </View>
       )}
       {data.precio.enabled && data.precio.value.trim() && (
@@ -592,16 +590,8 @@ export default function MenuScreen() {
           headerTitleContainerStyle: { left: 0, right: 0 },
           headerTitle: () => (
             <View style={s.headerTitleContainer}>
-              <View style={s.headerRow1}>
-                <Text style={s.headerName} numberOfLines={1}>{fonditaName}</Text>
-                <SegmentedControl value={activeTab} onChange={setActiveTab} />
-              </View>
-              {(!!fonditaDesc || !!fonditaDireccion) && (
-                <View style={s.headerRow2}>
-                  {!!fonditaDesc && <Text style={s.headerDesc} numberOfLines={1}>{fonditaDesc}</Text>}
-                  {!!fonditaDireccion && <Text style={s.headerDireccion} numberOfLines={1}>{fonditaDireccion}</Text>}
-                </View>
-              )}
+              <Text style={s.headerName} numberOfLines={1}>{fonditaName}</Text>
+              {!!fonditaDesc && <Text style={s.headerDesc} numberOfLines={1}>{fonditaDesc}</Text>}
             </View>
           ),
           headerLeft: () => null,
@@ -609,13 +599,16 @@ export default function MenuScreen() {
         }}
       />
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={s.keyboardView}>
+        <View style={s.tabRow}>
+          <SegmentedControl value={activeTab} onChange={setActiveTab} />
+        </View>
         <View style={s.formHalf}>
           <ScrollView style={s.formScroll} contentContainerStyle={s.formContent} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
             <DynamicSection title={<OrdTitle idx={0} rest="Tiempo" />} enabled={activeData.primerTiempo.enabled} onToggle={(v) => toggleSection('primerTiempo', v)} items={activeData.primerTiempo.items} maxItems={MAX_PRIMER_TIEMPO} onAdd={() => addItem('primerTiempo')} onRemove={(i) => removeItem('primerTiempo', i)} onChange={(i, v) => updateSection('primerTiempo', i, v)} placeholder="Agregar" suggestions={menuSuggs?.primerTiempo} suggestionDescs={menuDescMaps?.primerTiempo} />
             <DynamicSection title={<OrdTitle idx={1} rest="Tiempo" />} enabled={activeData.segundoTiempo.enabled} onToggle={(v) => toggleSection('segundoTiempo', v)} items={activeData.segundoTiempo.items} maxItems={MAX_SEGUNDO_TIEMPO} onAdd={() => addItem('segundoTiempo')} onRemove={(i) => removeItem('segundoTiempo', i)} onChange={(i, v) => updateSection('segundoTiempo', i, v)} placeholder="Agregar" suggestions={menuSuggs?.segundoTiempo} suggestionDescs={menuDescMaps?.segundoTiempo} />
             <DynamicSection title={<OrdTitle idx={2} rest="Tiempo" />} enabled={activeData.tercerTiempoGuisado.enabled} onToggle={(v) => toggleSection('tercerTiempoGuisado', v)} items={activeData.tercerTiempoGuisado.items} maxItems={MAX_TERCER_TIEMPO} onAdd={() => addItem('tercerTiempoGuisado')} onRemove={(i) => removeItem('tercerTiempoGuisado', i)} onChange={(i, v) => updateSection('tercerTiempoGuisado', i, v)} placeholder="Agregar" suggestions={menuSuggs?.tercerTiempoGuisado} suggestionDescs={menuDescMaps?.tercerTiempoGuisado} />
-            <DynamicSection title={<Text style={s.secLabel}>POSTRE</Text>} enabled={activeData.postre.enabled} onToggle={(v) => toggleSection('postre', v)} items={activeData.postre.items} maxItems={MAX_POSTRE} onAdd={() => addItem('postre')} onRemove={(i) => removeItem('postre', i)} onChange={(i, v) => updateSection('postre', i, v)} placeholder="Agregar" suggestions={menuSuggs?.postre} suggestionDescs={menuDescMaps?.postre} />
             <DynamicSection title={<Text style={s.secLabel}>BEBIDAS</Text>} enabled={activeData.aguas.enabled} onToggle={(v) => toggleSection('aguas', v)} items={activeData.aguas.items} maxItems={MAX_AGUAS} onAdd={() => addItem('aguas')} onRemove={(i) => removeItem('aguas', i)} onChange={(i, v) => updateSection('aguas', i, v)} placeholder="Agregar" suggestions={menuSuggs?.aguas} suggestionDescs={menuDescMaps?.aguas} />
+            <DynamicSection title={<Text style={s.secLabel}>POSTRE</Text>} enabled={activeData.postre.enabled} onToggle={(v) => toggleSection('postre', v)} items={activeData.postre.items} maxItems={MAX_POSTRE} onAdd={() => addItem('postre')} onRemove={(i) => removeItem('postre', i)} onChange={(i, v) => updateSection('postre', i, v)} placeholder="Agregar" suggestions={menuSuggs?.postre} suggestionDescs={menuDescMaps?.postre} />
             <PrecioSection value={activeData.precio.value} onChange={(v) => { const soloNumeros = v.replace(/[^0-9]/g, ''); setActiveData((prev) => ({ ...prev, precio: { ...prev.precio, value: soloNumeros } })); }} />
           </ScrollView>
         </View>

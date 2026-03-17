@@ -111,8 +111,20 @@ export function setFonditaDescription(desc: string) {
 
 let _fonditaDireccion = '';
 let _fonditaDireccionVisible = false;
+let _fonditaHorario = '';
+let _pagosEfectivo = false;
+let _pagosTrans = false;
+let _pagosTarjeta = false;
 
 export function getFonditaDireccion(): string { return _fonditaDireccion; }
 export function setFonditaDireccion(d: string) { _fonditaDireccion = d; }
 export function getFonditaDireccionVisible(): boolean { return _fonditaDireccionVisible; }
 export function setFonditaDireccionVisible(v: boolean) { _fonditaDireccionVisible = v; }
+export function getFonditaHorario(): string { return _fonditaHorario; }
+export function setFonditaHorario(v: string) { _fonditaHorario = v; }
+export function getPagosEfectivo(): boolean { return _pagosEfectivo; }
+export function setPagosEfectivo(v: boolean) { _pagosEfectivo = v; }
+export function getPagosTrans(): boolean { return _pagosTrans; }
+export function setPagosTrans(v: boolean) { _pagosTrans = v; }
+export function getPagosTarjeta(): boolean { return _pagosTarjeta; }
+export function setPagosTarjeta(v: boolean) { _pagosTarjeta = v; }

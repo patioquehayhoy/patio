@@ -97,7 +97,7 @@ function makeStyles(t: Theme) {
     blockHeader:    { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     blockLabel:     { fontSize: 11, fontWeight: '900', color: t.orange, letterSpacing: 1.2, marginBottom: 8 },
     saveInlineBtn:  { fontSize: 15, fontWeight: '700', color: '#FF5E00' },
-    nombreInput:    { fontSize: 26, fontWeight: '900', color: t.text, letterSpacing: -0.5, lineHeight: 30, paddingVertical: 0, paddingHorizontal: 0, backgroundColor: 'transparent', marginBottom: 8 },
+    nombreInput:    { fontSize: 26, fontWeight: '900', color: t.text, letterSpacing: -0.5, lineHeight: 30, paddingVertical: 0, paddingHorizontal: 0, backgroundColor: 'transparent', marginBottom: 4 },
     fieldInput:     { fontSize: 14, fontWeight: '300', color: t.text, paddingVertical: 8, paddingHorizontal: 0, backgroundColor: 'transparent', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.sep, marginBottom: 8 },
     row:            { flexDirection: 'row', alignItems: 'center', minHeight: 44 },
     rowLabel:       { flex: 1, fontSize: 15, fontWeight: '300', color: t.text },
@@ -148,8 +148,8 @@ export default function PerfilScreen() {
 
   const [nombre,        setNombre]        = useState(getFonditaName());
   const [ubicacion,     setUbicacion]     = useState(getFonditaDireccion());
-  const [apertura,      setApertura]      = useState(parsed?.apertura ?? defaultApertura());
-  const [cierre,        setCierre]        = useState(parsed?.cierre ?? defaultCierre());
+  const [apertura,      setApertura]      = useState<Date | null>(parsed?.apertura ?? null);
+  const [cierre,        setCierre]        = useState<Date | null>(parsed?.cierre ?? null);
   const [showApertura,  setShowApertura]  = useState(false);
   const [showCierre,    setShowCierre]    = useState(false);
   const [pagosEfectivo, setPagosEfectivoState] = useState(getPagosEfectivo());
@@ -159,12 +159,12 @@ export default function PerfilScreen() {
   const [ready,         setReady]         = useState(false);
   const [isSaving,      setIsSaving]      = useState(false);
 
-  const horario = buildHorario(apertura, cierre);
+  const horario = apertura && cierre ? buildHorario(apertura, cierre) : '';
 
   const [savedValues, setSavedValues] = useState({
     nombre:        getFonditaName(),
     ubicacion:     getFonditaDireccion(),
-    horario:       getFonditaHorario() || buildHorario(defaultApertura(), defaultCierre()),
+    horario:       getFonditaHorario() || '',
     pagosEfectivo: getPagosEfectivo(),
     pagosTrans:    getPagosTrans(),
     pagosTarjeta:  getPagosTarjeta(),
@@ -237,7 +237,7 @@ export default function PerfilScreen() {
         setPagosEfectivoState(pe);  setPagosEfectivo(pe);
         setPagosTransState(pt);     setPagosTrans(pt);
         setPagosTarjetaState(ptar); setPagosTarjeta(ptar);
-        setSavedValues({ nombre: n, ubicacion: ub, horario: hor || buildHorario(defaultApertura(), defaultCierre()), pagosEfectivo: pe, pagosTrans: pt, pagosTarjeta: ptar });
+        setSavedValues({ nombre: n, ubicacion: ub, horario: hor || '', pagosEfectivo: pe, pagosTrans: pt, pagosTarjeta: ptar });
 
         if (fondita.nombre_updated_at) nombreUpdatedAtRef.current = fondita.nombre_updated_at;
       } finally {
@@ -339,18 +339,18 @@ export default function PerfilScreen() {
           <View style={s.timeRow}>
             <TouchableOpacity style={s.timeBtn} onPress={() => { setShowCierre(false); setShowApertura(v => !v); }} activeOpacity={0.8}>
               <Text style={s.timeBtnLabel}>Apertura</Text>
-              <Text style={s.timeBtnValue}>{formatTime(apertura)}</Text>
+              <Text style={[s.timeBtnValue, !apertura && { color: 'rgba(158,63,0,0.3)' }]}>{apertura ? formatTime(apertura) : '00:00'}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={s.timeBtn} onPress={() => { setShowApertura(false); setShowCierre(v => !v); }} activeOpacity={0.8}>
               <Text style={s.timeBtnLabel}>Cierre</Text>
-              <Text style={s.timeBtnValue}>{formatTime(cierre)}</Text>
+              <Text style={[s.timeBtnValue, !cierre && { color: 'rgba(158,63,0,0.3)' }]}>{cierre ? formatTime(cierre) : '00:00'}</Text>
             </TouchableOpacity>
           </View>
           {showApertura && (
             <DateTimePicker
               mode="time"
               display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-              value={apertura}
+              value={apertura ?? defaultApertura()}
               onChange={(_, d) => { if (d) setApertura(d); }}
               minuteInterval={15}
             />
@@ -359,7 +359,7 @@ export default function PerfilScreen() {
             <DateTimePicker
               mode="time"
               display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-              value={cierre}
+              value={cierre ?? defaultCierre()}
               onChange={(_, d) => { if (d) setCierre(d); }}
               minuteInterval={15}
             />

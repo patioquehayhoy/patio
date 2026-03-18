@@ -192,7 +192,7 @@ function DescInput({
       autoCapitalize="none"
       onChangeText={onChange}
       selectionColor={selectionColor}
-      maxLength={40}
+      maxLength={80}
       returnKeyType={returnKeyType}
       onSubmitEditing={onSubmitEditing}
     />

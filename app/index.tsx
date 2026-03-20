@@ -189,6 +189,7 @@ export default function LoginScreen() {
               value={otp}
               onChangeText={(v) => { setOtp(v.replace(/\D/g, '').slice(0, 6)); setError(''); }}
               keyboardType="number-pad"
+              autoCapitalize="none"
               autoFocus
               selectionColor={WHITE}
             />

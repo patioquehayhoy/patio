@@ -9,6 +9,8 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  TouchableWithoutFeedback,
+  Keyboard,
   UIManager,
   View,
   KeyboardAvoidingView,
@@ -69,8 +71,9 @@ function makeStyles(t: Theme) {
     formContent:          { paddingHorizontal: 24, paddingTop: 24, paddingBottom: 8 },
     // Header
     headerTitleContainer: { flex: 1 },
-    headerName:           { fontSize: 26, fontWeight: '900', color: t.text, letterSpacing: -0.5, lineHeight: 30 },
-    headerDesc:           { fontSize: 14, fontWeight: '300', color: t.gray, lineHeight: 20 },
+    headerName:           { fontSize: 28, fontWeight: '900', color: t.text, letterSpacing: -0.5, lineHeight: 32, marginBottom: 2 },
+    headerDesc:           { fontSize: 14, fontWeight: '300', color: t.gray, lineHeight: 20, marginBottom: 2 },
+    headerDireccion:      { fontSize: 12, fontWeight: '300', color: t.gray, lineHeight: 17, opacity: 0.5, marginBottom: 6 },
     tabRow:               { alignItems: 'center', paddingTop: 12, paddingBottom: 4, backgroundColor: t.bg },
     // Section
     section:              { marginBottom: 24 },
@@ -275,6 +278,7 @@ function DynamicSection({
                     placeholder={placeholder}
                     placeholderTextColor="rgba(255,94,0,0.2)"
                     value={namePart}
+                    autoCapitalize="none"
                     onChangeText={(v) => {
                       onChange(index, v + (descPart ? ' / ' + descPart : ''));
                       if (blurTimer.current) clearTimeout(blurTimer.current);
@@ -366,6 +370,7 @@ function PrecioSection({ value, onChange }: { value: string; onChange: (value: s
           value={value}
           onChangeText={onChange}
           keyboardType="number-pad"
+          autoCapitalize="none"
           selectionColor={theme.orange}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
@@ -607,6 +612,7 @@ export default function MenuScreen() {
             <View style={s.headerTitleContainer}>
               <Text style={s.headerName} numberOfLines={1}>{fonditaName}</Text>
               {!!fonditaDesc && <Text style={s.headerDesc} numberOfLines={1}>{fonditaDesc}</Text>}
+              {!!fonditaDireccion && <Text style={s.headerDireccion} numberOfLines={1}>{fonditaDireccion}</Text>}
             </View>
           ),
           headerLeft: () => null,
@@ -618,6 +624,7 @@ export default function MenuScreen() {
           <SegmentedControl value={activeTab} onChange={setActiveTab} />
         </View>
         <View style={s.formHalf}>
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <ScrollView style={s.formScroll} contentContainerStyle={s.formContent} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
             <DynamicSection title={<OrdTitle idx={0} rest="Tiempo" />} enabled={activeData.primerTiempo.enabled} onToggle={(v) => toggleSection('primerTiempo', v)} items={activeData.primerTiempo.items} maxItems={MAX_PRIMER_TIEMPO} onAdd={() => addItem('primerTiempo')} onRemove={(i) => removeItem('primerTiempo', i)} onChange={(i, v) => updateSection('primerTiempo', i, v)} placeholder="Agregar" suggestions={menuSuggs?.primerTiempo} suggestionDescs={menuDescMaps?.primerTiempo} />
             <DynamicSection title={<OrdTitle idx={1} rest="Tiempo" />} enabled={activeData.segundoTiempo.enabled} onToggle={(v) => toggleSection('segundoTiempo', v)} items={activeData.segundoTiempo.items} maxItems={MAX_SEGUNDO_TIEMPO} onAdd={() => addItem('segundoTiempo')} onRemove={(i) => removeItem('segundoTiempo', i)} onChange={(i, v) => updateSection('segundoTiempo', i, v)} placeholder="Agregar" suggestions={menuSuggs?.segundoTiempo} suggestionDescs={menuDescMaps?.segundoTiempo} />
@@ -626,6 +633,7 @@ export default function MenuScreen() {
             <DynamicSection title={<Text style={s.secLabel}>POSTRE</Text>} enabled={activeData.postre.enabled} onToggle={(v) => toggleSection('postre', v)} items={activeData.postre.items} maxItems={MAX_POSTRE} onAdd={() => addItem('postre')} onRemove={(i) => removeItem('postre', i)} onChange={(i, v) => updateSection('postre', i, v)} placeholder="Agregar" suggestions={menuSuggs?.postre} suggestionDescs={menuDescMaps?.postre} />
             <PrecioSection value={activeData.precio.value} onChange={(v) => { const soloNumeros = v.replace(/[^0-9]/g, ''); setActiveData((prev) => ({ ...prev, precio: { ...prev.precio, value: soloNumeros } })); }} />
           </ScrollView>
+          </TouchableWithoutFeedback>
         </View>
 
         <View style={s.previewDividerRow}>

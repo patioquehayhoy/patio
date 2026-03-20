@@ -24,6 +24,7 @@ import { FONDITA_ID_KEY } from '@/lib/db';
 import { getFonditaId, setFonditaId } from '@/lib/user-store';
 import {
   getFonditaName, setFonditaName,
+  getFonditaDescription, setFonditaDescription,
   getFonditaDireccion, setFonditaDireccion,
   getFonditaHorario, setFonditaHorario,
   getPagosEfectivo, setPagosEfectivo,
@@ -34,8 +35,9 @@ import { useTheme, type Theme } from '@/lib/theme';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const PLACEHOLDER = 'rgba(255,94,0,0.2)';
-const MAX_NOMBRE    = 30;
-const MAX_UBICACION = 80;
+const MAX_NOMBRE      = 30;
+const MAX_DESCRIPCION = 80;
+const MAX_UBICACION   = 80;
 const ICON_COLOR    = '#9E3F00';
 
 function defaultApertura(): Date {
@@ -97,14 +99,16 @@ function makeStyles(t: Theme) {
     blockHeader:    { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     blockLabel:     { fontSize: 11, fontWeight: '900', color: t.orange, letterSpacing: 1.2, marginBottom: 8 },
     saveInlineBtn:  { fontSize: 15, fontWeight: '700', color: '#FF5E00' },
-    nombreInput:    { fontSize: 26, fontWeight: '900', color: t.text, letterSpacing: -0.5, lineHeight: 30, paddingVertical: 0, paddingHorizontal: 0, backgroundColor: 'transparent', marginBottom: 4 },
-    fieldInput:     { fontSize: 14, fontWeight: '300', color: t.text, paddingVertical: 8, paddingHorizontal: 0, backgroundColor: 'transparent', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.sep, marginBottom: 8 },
+    nombreInput:    { fontSize: 28, fontWeight: '900', color: t.text, letterSpacing: -0.5, lineHeight: 32, paddingVertical: 0, paddingHorizontal: 0, backgroundColor: 'transparent', marginBottom: 2 },
+    fieldInput:     { fontWeight: '300', color: t.gray, paddingVertical: 0, paddingHorizontal: 0, backgroundColor: 'transparent' },
     row:            { flexDirection: 'row', alignItems: 'center', minHeight: 44 },
     rowLabel:       { flex: 1, fontSize: 15, fontWeight: '300', color: t.text },
     emailText:      { flex: 1, fontSize: 15, fontWeight: '300', color: t.gray },
     divider:        { height: StyleSheet.hairlineWidth, backgroundColor: t.sep },
+    pickerWrapper:  { backgroundColor: t.surface, borderRadius: 12, overflow: 'hidden' },
     chipsRow:       { flexDirection: 'row', gap: 8, paddingBottom: 16 },
     chip:           { paddingVertical: 8, paddingHorizontal: 16, borderRadius: 20, borderWidth: 1, borderColor: '#EDE8DC' },
+    chipDark:       { backgroundColor: t.surface, borderWidth: 0 },
     chipActive:     { backgroundColor: '#FF5E00', borderColor: '#FF5E00' },
     chipText:       { fontSize: 13, fontWeight: '500', color: '#9E3F00' },
     chipTextActive: { fontSize: 13, fontWeight: '500', color: '#FFF7E0' },
@@ -141,12 +145,14 @@ const tog = StyleSheet.create({
 export default function PerfilScreen() {
   const { theme, toggleTheme } = useTheme();
   const s = makeStyles(theme);
+
   const insets = useSafeAreaInsets();
 
   const existingHorario = getFonditaHorario();
   const parsed = existingHorario ? parseHorario(existingHorario) : null;
 
   const [nombre,        setNombre]        = useState(getFonditaName());
+  const [descripcion,   setDescripcion]   = useState(getFonditaDescription());
   const [ubicacion,     setUbicacion]     = useState(getFonditaDireccion());
   const [apertura,      setApertura]      = useState<Date | null>(parsed?.apertura ?? null);
   const [cierre,        setCierre]        = useState<Date | null>(parsed?.cierre ?? null);
@@ -163,6 +169,7 @@ export default function PerfilScreen() {
 
   const [savedValues, setSavedValues] = useState({
     nombre:        getFonditaName(),
+    descripcion:   getFonditaDescription(),
     ubicacion:     getFonditaDireccion(),
     horario:       getFonditaHorario() || '',
     pagosEfectivo: getPagosEfectivo(),
@@ -172,14 +179,17 @@ export default function PerfilScreen() {
 
   const isDirty =
     nombre        !== savedValues.nombre        ||
+    descripcion   !== savedValues.descripcion   ||
     ubicacion     !== savedValues.ubicacion     ||
     horario       !== savedValues.horario       ||
     pagosEfectivo !== savedValues.pagosEfectivo ||
     pagosTrans    !== savedValues.pagosTrans    ||
     pagosTarjeta  !== savedValues.pagosTarjeta;
 
-  const fonditaIdRef       = useRef<string | null>(getFonditaId());
-  const nombreUpdatedAtRef = useRef<string | null>(null);
+  const fonditaIdRef        = useRef<string | null>(getFonditaId());
+  const nombreUpdatedAtRef  = useRef<string | null>(null);
+  const aperturaTimerRef    = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cierreTimerRef      = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const init = async () => {
@@ -197,7 +207,7 @@ export default function PerfilScreen() {
 
         const selectResult = await supabase
           .from('fonditas')
-          .select('id, nombre, nombre_updated_at, direccion, horario, pagos_efectivo, pagos_transferencia, pagos_tarjeta')
+          .select('id, nombre, nombre_updated_at, descripcion, direccion, horario, pagos_efectivo, pagos_transferencia, pagos_tarjeta')
           .eq('telefono', user.email)
           .maybeSingle();
 
@@ -207,7 +217,7 @@ export default function PerfilScreen() {
           const insertResult = await supabase
             .from('fonditas')
             .insert({ telefono: user.email, nombre: 'Mi Fondita' })
-            .select('id, nombre, nombre_updated_at, direccion, horario, pagos_efectivo, pagos_transferencia, pagos_tarjeta')
+            .select('id, nombre, nombre_updated_at, descripcion, direccion, horario, pagos_efectivo, pagos_transferencia, pagos_tarjeta')
             .single();
           fondita = insertResult.data;
         }
@@ -218,14 +228,16 @@ export default function PerfilScreen() {
         setFonditaId(fondita.id);
 
         const n    = fondita.nombre      ?? getFonditaName();
+        const desc = fondita.descripcion ?? getFonditaDescription();
         const ub   = fondita.direccion   ?? getFonditaDireccion();
         const hor  = fondita.horario     ?? '';
         const pe   = fondita.pagos_efectivo      ?? false;
         const pt   = fondita.pagos_transferencia ?? false;
         const ptar = fondita.pagos_tarjeta       ?? false;
 
-        setNombre(n);     setFonditaName(n);
-        setUbicacion(ub); setFonditaDireccion(ub);
+        setNombre(n);       setFonditaName(n);
+        setDescripcion(desc); setFonditaDescription(desc);
+        setUbicacion(ub);   setFonditaDireccion(ub);
         setFonditaHorario(hor);
 
         if (hor) {
@@ -237,7 +249,7 @@ export default function PerfilScreen() {
         setPagosEfectivoState(pe);  setPagosEfectivo(pe);
         setPagosTransState(pt);     setPagosTrans(pt);
         setPagosTarjetaState(ptar); setPagosTarjeta(ptar);
-        setSavedValues({ nombre: n, ubicacion: ub, horario: hor || '', pagosEfectivo: pe, pagosTrans: pt, pagosTarjeta: ptar });
+        setSavedValues({ nombre: n, descripcion: desc, ubicacion: ub, horario: hor || '', pagosEfectivo: pe, pagosTrans: pt, pagosTarjeta: ptar });
 
         if (fondita.nombre_updated_at) nombreUpdatedAtRef.current = fondita.nombre_updated_at;
       } finally {
@@ -268,6 +280,7 @@ export default function PerfilScreen() {
         }
       }
 
+      if (descripcion !== savedValues.descripcion) { payload['descripcion'] = descripcion.trim(); newSaved.descripcion = descripcion.trim(); }
       if (ubicacion !== savedValues.ubicacion) { payload['direccion'] = ubicacion.trim(); newSaved.ubicacion = ubicacion.trim(); }
       if (horario   !== savedValues.horario)   { payload['horario']   = horario;           newSaved.horario   = horario; }
       if (pagosEfectivo !== savedValues.pagosEfectivo) { payload['pagos_efectivo']      = pagosEfectivo; newSaved.pagosEfectivo = pagosEfectivo; }
@@ -277,6 +290,7 @@ export default function PerfilScreen() {
       if (Object.keys(payload).length > 0) {
         if (fonditaId) await supabase.from('fonditas').update(payload).eq('id', fonditaId);
         if ('nombre' in payload)              { setFonditaName(nombre.trim()); nombreUpdatedAtRef.current = new Date().toISOString(); }
+        if ('descripcion' in payload)         setFonditaDescription(descripcion.trim());
         if ('direccion' in payload)           setFonditaDireccion(ubicacion.trim());
         if ('horario' in payload)             setFonditaHorario(horario);
         if ('pagos_efectivo' in payload)      setPagosEfectivo(pagosEfectivo);
@@ -316,17 +330,29 @@ export default function PerfilScreen() {
             placeholder="Nombre"
             placeholderTextColor={PLACEHOLDER}
             selectionColor={theme.orange}
+            autoCapitalize="none"
             editable={ready}
             returnKeyType="next"
           />
           <TextInput
-            style={s.fieldInput}
+            style={[s.fieldInput, { fontSize: 14, lineHeight: 20, marginBottom: 2 }]}
+            value={descripcion}
+            onChangeText={(v) => setDescripcion(v.slice(0, MAX_DESCRIPCION))}
+            placeholder="Comida casera con sazón de abuela"
+            placeholderTextColor={PLACEHOLDER}
+            selectionColor={theme.orange}
+            autoCapitalize="none"
+            editable={ready}
+            returnKeyType="next"
+          />
+          <TextInput
+            style={[s.fieldInput, { fontSize: 12, lineHeight: 17, opacity: 0.5, marginBottom: 6 }]}
             value={ubicacion}
             onChangeText={(v) => setUbicacion(v.slice(0, MAX_UBICACION))}
             placeholder="Av. Principal 123, Col. Centro"
             placeholderTextColor={PLACEHOLDER}
             selectionColor={theme.orange}
-            autoCapitalize="sentences"
+            autoCapitalize="none"
             editable={ready}
             returnKeyType="done"
           />
@@ -347,22 +373,38 @@ export default function PerfilScreen() {
             </TouchableOpacity>
           </View>
           {showApertura && (
-            <DateTimePicker
-              mode="time"
-              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-              value={apertura ?? defaultApertura()}
-              onChange={(_, d) => { if (d) setApertura(d); }}
-              minuteInterval={15}
-            />
+            <View style={s.pickerWrapper}>
+              <DateTimePicker
+                mode="time"
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                value={apertura ?? defaultApertura()}
+                onChange={(_, d) => {
+                  if (d) setApertura(d);
+                  if (aperturaTimerRef.current) clearTimeout(aperturaTimerRef.current);
+                  aperturaTimerRef.current = setTimeout(() => setShowApertura(false), 600);
+                }}
+                minuteInterval={15}
+                textColor="#3D1F00"
+                accentColor="#FF5E00"
+              />
+            </View>
           )}
           {showCierre && (
-            <DateTimePicker
-              mode="time"
-              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-              value={cierre ?? defaultCierre()}
-              onChange={(_, d) => { if (d) setCierre(d); }}
-              minuteInterval={15}
-            />
+            <View style={s.pickerWrapper}>
+              <DateTimePicker
+                mode="time"
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                value={cierre ?? defaultCierre()}
+                onChange={(_, d) => {
+                  if (d) setCierre(d);
+                  if (cierreTimerRef.current) clearTimeout(cierreTimerRef.current);
+                  cierreTimerRef.current = setTimeout(() => setShowCierre(false), 600);
+                }}
+                minuteInterval={15}
+                textColor="#3D1F00"
+                accentColor="#FF5E00"
+              />
+            </View>
           )}
           <View style={s.divider} />
         </View>
@@ -374,7 +416,7 @@ export default function PerfilScreen() {
             {([['Efectivo', pagosEfectivo, setPagosEfectivoState], ['Transferencia', pagosTrans, setPagosTransState], ['Tarjeta', pagosTarjeta, setPagosTarjetaState]] as const).map(([label, active, toggle]) => (
               <TouchableOpacity
                 key={label}
-                style={[s.chip, active && s.chipActive]}
+                style={[s.chip, !active && theme.isDark && s.chipDark, active && s.chipActive]}
                 onPress={() => toggle(!active)}
                 activeOpacity={0.75}>
                 <Text style={[s.chipText, active && s.chipTextActive]}>{label}</Text>

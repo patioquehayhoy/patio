@@ -190,7 +190,7 @@ function makeStyles(t: Theme) {
     scroll:            { flex: 1 },
     scrollContent:     { padding: 24, paddingBottom: 16 },
     headerDivider:     { height: StyleSheet.hairlineWidth, backgroundColor: t.sep, marginBottom: 20 },
-    fonditaName:       { fontSize: 22, fontWeight: '900', color: t.text, letterSpacing: -0.5, lineHeight: 26, marginBottom: 2 },
+    fonditaName:       { fontSize: 28, fontWeight: '900', color: t.text, letterSpacing: -0.5, lineHeight: 32, marginBottom: 2 },
     fonditaDesc:       { fontSize: 14, fontWeight: '300', color: t.gray, lineHeight: 20, marginBottom: 2 },
     fonditaDireccion:  { fontSize: 12, fontWeight: '300', color: t.gray, lineHeight: 17, opacity: 0.5, marginBottom: 6 },
     block:             { marginBottom: 0 },

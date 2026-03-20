@@ -13,6 +13,13 @@
 - `gap` entre elementos: `4` (compacto) o `8` (normal)
 - `borderRadius` estándar: `14` para botones y cápsulas
 
+## Campos de texto agrupados
+Cuando varios campos de texto forman un bloque semántico
+(nombre + descripción + ubicación), tratarlos como unidad:
+- marginBottom entre ellos: 2 máximo
+- Sin separadores visuales dentro del bloque
+- Referencia: densidad tipográfica de Apple Music (título/artista)
+
 ## Paleta
 
 | Token   | Hex       | Uso                                      |

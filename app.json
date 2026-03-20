@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "lafondita",
+    "name": "Patio",
     "slug": "lafondita",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -10,7 +10,7 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.parcomx.lafondita",
+      "bundleIdentifier": "com.parcomx.patio",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
@@ -54,6 +54,7 @@
       "eas": {
         "projectId": "2594b27c-9b35-4a52-8fc0-6367d3bfa59f"
       }
-    }
+    },
+    "owner": "parcomx"
   }
 }

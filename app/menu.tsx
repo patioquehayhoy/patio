@@ -40,6 +40,7 @@ import {
 import { loadMenuHoy, saveMenuHoy, deleteMenuHoy, loadCarta, saveCarta, deleteCarta, upsertFondita } from '@/lib/db';
 import { getFonditaId, setFonditaId } from '@/lib/user-store';
 import { supabase } from '@/lib/supabase';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme, type Theme } from '@/lib/theme';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -68,13 +69,13 @@ function makeStyles(t: Theme) {
     keyboardView:         { flex: 1 },
     formHalf:             { flex: 1 },
     formScroll:           { flex: 1 },
-    formContent:          { paddingHorizontal: 24, paddingTop: 24, paddingBottom: 8 },
+    formContent:          { paddingHorizontal: 24, paddingTop: 8, paddingBottom: 8 },
     // Header
     headerTitleContainer: { flex: 1 },
     headerName:           { fontSize: 28, fontWeight: '900', color: t.text, letterSpacing: -0.5, lineHeight: 32, marginBottom: 2 },
     headerDesc:           { fontSize: 14, fontWeight: '300', color: t.gray, lineHeight: 20, marginBottom: 2 },
     headerDireccion:      { fontSize: 12, fontWeight: '300', color: t.gray, lineHeight: 17, opacity: 0.5, marginBottom: 6 },
-    tabRow:               { alignItems: 'center', paddingTop: 12, paddingBottom: 4, backgroundColor: t.bg },
+    tabRow:               { alignItems: 'center', paddingVertical: 16, backgroundColor: t.bg },
     // Section
     section:              { marginBottom: 24 },
     sectionHeader:        { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
@@ -96,7 +97,7 @@ function makeStyles(t: Theme) {
     // Precio
     precioPrefix:         { fontSize: 26, color: t.orange, marginRight: 4, fontWeight: '900' },
     // Preview separator
-    previewDividerRow:    { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10 },
+    previewDividerRow:    { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10, marginTop: 32 },
     previewDividerLine:   { flex: 1, height: 0.5, backgroundColor: t.orange, opacity: 0.5 },
     previewDividerLabel:  { fontSize: 9, fontWeight: '900', letterSpacing: 2, color: t.orange, textTransform: 'uppercase', opacity: 0.5, marginHorizontal: 10 },
     // Preview
@@ -465,6 +466,7 @@ type SectionKey = 'primerTiempo' | 'segundoTiempo' | 'tercerTiempoGuisado' | 'po
 export default function MenuScreen() {
   const { theme } = useTheme();
   const s = makeStyles(theme);
+  const insets = useSafeAreaInsets();
 
   const [activeTab, setActiveTab] = useState<'carta' | 'menu'>('menu');
   const [menuData, setMenuData] = useState<MenuData>(() => getMenuData() ?? { ...EMPTY_MENU });
@@ -600,27 +602,9 @@ export default function MenuScreen() {
 
   return (
     <View style={s.container}>
-      <Stack.Screen
-        options={({
-          headerStyle: { backgroundColor: theme.bg },
-          headerShadowVisible: false,
-          headerTintColor: theme.text,
-          headerBackVisible: false,
-          headerTitleAlign: 'left',
-          headerTitleContainerStyle: { left: 0, right: 0 },
-          headerTitle: () => (
-            <View style={s.headerTitleContainer}>
-              <Text style={s.headerName} numberOfLines={1}>{fonditaName}</Text>
-              {!!fonditaDesc && <Text style={s.headerDesc} numberOfLines={1}>{fonditaDesc}</Text>}
-              {!!fonditaDireccion && <Text style={s.headerDireccion} numberOfLines={1}>{fonditaDireccion}</Text>}
-            </View>
-          ),
-          headerLeft: () => null,
-          headerRight: () => null,
-        }) as any}
-      />
+      <Stack.Screen options={{ headerShown: false }} />
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={s.keyboardView}>
-        <View style={s.tabRow}>
+        <View style={[s.tabRow, { paddingTop: insets.top + 16 }]}>
           <SegmentedControl value={activeTab} onChange={setActiveTab} />
         </View>
         <View style={s.formHalf}>

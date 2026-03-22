@@ -13,6 +13,8 @@ import {
   View,
 } from 'react-native';
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 import { ThemedText } from '@/components/themed-text';
 import { supabase } from '@/lib/supabase';
 import { upsertFondita } from '@/lib/db';
@@ -71,10 +73,15 @@ export default function LoginScreen() {
 
   useEffect(() => {
     supabase.auth.getSession()
-      .then(({ data }) => {
+      .then(async ({ data }) => {
         if (data.session?.user?.email) {
           initFondita(data.session.user.email);
           router.replace('/menu');
+          return;
+        }
+        const seen = await AsyncStorage.getItem('onboarding_done');
+        if (!seen) {
+          router.replace('/onboarding');
           return;
         }
         setCheckingSession(false);
@@ -142,7 +149,7 @@ export default function LoginScreen() {
 
         <View style={styles.hero}>
           <Text style={styles.logo}>Patio</Text>
-          <Text style={styles.tagline}>¿Qué hay hoy? Saaaaaaabes… y haz que tu cliente también.</Text>
+          <Text style={styles.tagline}>¿Qué hay hoy? Saaaaaaabes.</Text>
         </View>
 
         {step === 'email' ? (

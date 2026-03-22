@@ -1,5 +1,5 @@
 import { router, usePathname } from 'expo-router';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Keyboard, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -31,7 +31,7 @@ export function BottomTabBar() {
           <TouchableOpacity
             key={path}
             style={styles.tab}
-            onPress={() => router.navigate(path as any)}>
+            onPress={() => { Keyboard.dismiss(); router.replace(path as any); }}>
             <Ionicons
               name={active ? iconActive : iconInactive}
               size={22}

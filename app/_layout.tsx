@@ -19,6 +19,7 @@ function RootStack() {
           contentStyle: { backgroundColor: theme.bg },
         }}>
         <Stack.Screen name="index" options={{ title: 'Login / Registro' }} />
+        <Stack.Screen name="onboarding" options={{ headerShown: false }} />
         <Stack.Screen name="menu" options={{ title: '' }} />
         <Stack.Screen name="share" options={{ title: 'Compartir' }} />
         <Stack.Screen name="preview" options={{ headerShown: false }} />

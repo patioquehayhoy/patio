@@ -1,10 +1,8 @@
 import { useFocusEffect } from 'expo-router';
-import { useCallback, useRef, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useCallback, useState } from 'react';
+import { ScrollView, Share, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import ViewShot from 'react-native-view-shot';
-import * as Sharing from 'expo-sharing';
 
 import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { useTheme, type Theme } from '@/lib/theme';
@@ -39,10 +37,10 @@ function SectionBlock({ data, title, theme, fecha }: { data: MenuData; title: st
 
   const ri = (item: string, i: number) => {
     const si = item.indexOf(' / ');
-    if (si === -1) return <Text key={i} style={s.item}>• {item}</Text>;
+    if (si === -1) return <Text key={i} style={s.item} allowFontScaling={true}>• {item}</Text>;
     return (
-      <Text key={i} style={s.item}>
-        {'• ' + item.slice(0, si)}<Text style={s.itemDesc}>{' / ' + item.slice(si + 3)}</Text>
+      <Text key={i} style={s.item} allowFontScaling={true}>
+        {'• ' + item.slice(0, si)}<Text style={s.itemDesc} allowFontScaling={true}>{' / ' + item.slice(si + 3)}</Text>
       </Text>
     );
   };
@@ -50,42 +48,42 @@ function SectionBlock({ data, title, theme, fecha }: { data: MenuData; title: st
   return (
     <View style={s.block}>
       <View style={s.blockTitleRow}>
-        <Text style={s.blockTitle}>{title}</Text>
-        {!!fecha && <Text style={s.blockFecha}>{fecha}</Text>}
+        <Text style={s.blockTitle} allowFontScaling={true}>{title}</Text>
+        {!!fecha && <Text style={s.blockFecha} allowFontScaling={true}>{fecha}</Text>}
       </View>
 
       {data.primerTiempo.enabled && data.primerTiempo.items.some(Boolean) && (
         <View style={s.subsection}>
-          <Text style={s.subsectionLabel}>{primerLabel}</Text>
+          <Text style={s.subsectionLabel} allowFontScaling={true}>{primerLabel}</Text>
           {data.primerTiempo.items.filter(Boolean).map(ri)}
         </View>
       )}
       {data.segundoTiempo.enabled && data.segundoTiempo.items.some(Boolean) && (
         <View style={s.subsection}>
-          <Text style={s.subsectionLabel}>{segundoLabel}</Text>
+          <Text style={s.subsectionLabel} allowFontScaling={true}>{segundoLabel}</Text>
           {data.segundoTiempo.items.filter(Boolean).map(ri)}
         </View>
       )}
       {data.tercerTiempoGuisado.enabled && data.tercerTiempoGuisado.items.some(Boolean) && (
         <View style={s.subsection}>
-          <Text style={s.subsectionLabel}>{tercerLabel}</Text>
+          <Text style={s.subsectionLabel} allowFontScaling={true}>{tercerLabel}</Text>
           {data.tercerTiempoGuisado.items.filter(Boolean).map(ri)}
         </View>
       )}
       {data.aguas.enabled && data.aguas.items.some(Boolean) && (
         <View style={s.subsection}>
-          <Text style={s.subsectionLabel}>Bebidas</Text>
+          <Text style={s.subsectionLabel} allowFontScaling={true}>Bebidas</Text>
           {data.aguas.items.filter(Boolean).map(ri)}
         </View>
       )}
       {data.postre.enabled && data.postre.items.some(Boolean) && (
         <View style={s.subsection}>
-          <Text style={s.subsectionLabel}>Postre</Text>
+          <Text style={s.subsectionLabel} allowFontScaling={true}>Postre</Text>
           {data.postre.items.filter(Boolean).map(ri)}
         </View>
       )}
       {data.precio.enabled && data.precio.value.trim() && (
-        <Text style={s.precio}>${data.precio.value}</Text>
+        <Text style={s.precio} allowFontScaling={true}>${data.precio.value}</Text>
       )}
     </View>
   );
@@ -94,7 +92,6 @@ function SectionBlock({ data, title, theme, fecha }: { data: MenuData; title: st
 export default function PreviewScreen() {
   const [menuData, setMenuData] = useState<MenuData | null>(null);
   const [cartaData, setCartaData] = useState<MenuData | null>(null);
-  const [generating, setGenerating] = useState(false);
   const [fonditaName, setFonditaNameState] = useState(getFonditaName());
   const [fonditaDesc, setFonditaDescState] = useState(getFonditaDescription());
   const [fonditaDireccion, setFonditaDireccionState] = useState(getFonditaDireccion());
@@ -105,7 +102,6 @@ export default function PreviewScreen() {
   const [pagosTarjeta,     setPagosTarjetaState]     = useState(getPagosTarjeta());
   const { theme } = useTheme();
   const s = makeStyles(theme);
-  const viewShotRef = useRef<ViewShot>(null);
   const insets = useSafeAreaInsets();
   useFocusEffect(
     useCallback(() => {
@@ -125,16 +121,40 @@ export default function PreviewScreen() {
   const hasAnything = menuData !== null || cartaData !== null;
 
   const handleShare = async () => {
-    if (!viewShotRef.current) return;
-    setGenerating(true);
-    try {
-      const uri = await viewShotRef.current.capture!();
-      if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(uri, { mimeType: 'image/png', UTI: 'public.png' });
-      }
-    } finally {
-      setGenerating(false);
-    }
+    const lines: string[] = [];
+    if (fonditaName) lines.push(fonditaName);
+    if (fonditaDesc) lines.push(fonditaDesc);
+    if (fonditaDireccion) lines.push(fonditaDireccion);
+
+    const addSection = (data: MenuData, title: string) => {
+      const { primerLabel, segundoLabel, tercerLabel } = getTiempoLabels(data);
+      lines.push('', title.toUpperCase());
+      const addItems = (label: string, items: string[], enabled: boolean) => {
+        if (!enabled || !items.some(Boolean)) return;
+        lines.push(label);
+        items.filter(Boolean).forEach(item => {
+          const si = item.indexOf(' / ');
+          lines.push('• ' + (si !== -1 ? item.slice(0, si) : item));
+        });
+      };
+      addItems(primerLabel, data.primerTiempo.items, data.primerTiempo.enabled);
+      addItems(segundoLabel, data.segundoTiempo.items, data.segundoTiempo.enabled);
+      addItems(tercerLabel, data.tercerTiempoGuisado.items, data.tercerTiempoGuisado.enabled);
+      addItems('Bebidas', data.aguas.items, data.aguas.enabled);
+      addItems('Postre', data.postre.items, data.postre.enabled);
+      if (data.precio.enabled && data.precio.value.trim()) lines.push('$' + data.precio.value);
+    };
+
+    if (cartaData) addSection(cartaData, 'Carta');
+    if (menuData) addSection(menuData, 'Menú del día');
+
+    lines.push('');
+    lines.push(new Date().toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' }));
+    if (fonditaHorario) lines.push(fonditaHorario);
+    const pagos = [pagosEfectivo && 'Efectivo', pagosTrans && 'Transferencia', pagosTarjeta && 'Tarjeta'].filter(Boolean).join(' · ');
+    if (pagos) lines.push(pagos);
+
+    await Share.share({ message: lines.join('\n') });
   };
 
   return (
@@ -143,10 +163,10 @@ export default function PreviewScreen() {
         style={s.scroll}
         contentContainerStyle={s.scrollContent}
         showsVerticalScrollIndicator={false}>
-        <ViewShot ref={viewShotRef} style={{ backgroundColor: theme.bg, padding: 20 }}>
-          <Text style={s.fonditaName}>{fonditaName}</Text>
-          {!!fonditaDesc && <Text style={s.fonditaDesc}>{fonditaDesc}</Text>}
-          {!!fonditaDireccion && <Text style={s.fonditaDireccion}>{fonditaDireccion}</Text>}
+        <View>
+          <Text style={s.fonditaName} allowFontScaling={true}>{fonditaName}</Text>
+          {!!fonditaDesc && <Text style={s.fonditaDesc} allowFontScaling={true}>{fonditaDesc}</Text>}
+          {!!fonditaDireccion && <Text style={s.fonditaDireccion} allowFontScaling={true}>{fonditaDireccion}</Text>}
           <View style={s.headerDivider} />
 
           {cartaData && <SectionBlock data={cartaData} title="Carta" theme={theme} />}
@@ -155,10 +175,10 @@ export default function PreviewScreen() {
 
           {hasAnything && (
             <View style={s.infoBlock}>
-              <Text style={s.infoFecha}>{new Date().toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' })}</Text>
-              {!!fonditaHorario && <Text style={s.infoLine}>{fonditaHorario}</Text>}
+              <Text style={s.infoFecha} allowFontScaling={true}>{new Date().toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' })}</Text>
+              {!!fonditaHorario && <Text style={s.infoLine} allowFontScaling={true}>{fonditaHorario}</Text>}
               {(pagosEfectivo || pagosTrans || pagosTarjeta) && (
-                <Text style={s.infoLine}>
+                <Text style={s.infoLine} allowFontScaling={true}>
                   {[pagosEfectivo && 'Efectivo', pagosTrans && 'Transferencia', pagosTarjeta && 'Tarjeta'].filter(Boolean).join(' · ')}
                 </Text>
               )}
@@ -166,16 +186,16 @@ export default function PreviewScreen() {
           )}
 
           {!hasAnything && (
-            <Text style={s.empty}>Aún no hay contenido. Llena tu menú primero.</Text>
+            <Text style={s.empty} allowFontScaling={true}>Aún no hay contenido. Llena tu menú primero.</Text>
           )}
-        </ViewShot>
+        </View>
       </ScrollView>
 
       {hasAnything && (
         <View style={s.actions}>
-          <TouchableOpacity style={[s.whatsappButton, generating && { opacity: 0.7 }]} onPress={handleShare} activeOpacity={0.85} disabled={generating}>
-            <Ionicons name="logo-whatsapp" size={20} color="#fff" style={{ marginRight: 8 }} />
-            <Text style={s.whatsappButtonText}>{generating ? 'Generando imagen...' : 'Compartir por WhatsApp'}</Text>
+          <TouchableOpacity style={s.whatsappButton} onPress={handleShare} activeOpacity={0.85}>
+            <Ionicons name="share-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
+            <Text style={s.whatsappButtonText} allowFontScaling={true}>Compartir</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -190,18 +210,18 @@ function makeStyles(t: Theme) {
     scroll:            { flex: 1 },
     scrollContent:     { padding: 24, paddingBottom: 16 },
     headerDivider:     { height: StyleSheet.hairlineWidth, backgroundColor: t.sep, marginBottom: 20 },
-    fonditaName:       { fontSize: 28, fontWeight: '900', color: t.text, letterSpacing: -0.5, lineHeight: 32, marginBottom: 2 },
-    fonditaDesc:       { fontSize: 14, fontWeight: '300', color: t.gray, lineHeight: 20, marginBottom: 2 },
+    fonditaName:       { fontSize: 28, fontWeight: '900', color: t.text, letterSpacing: -0.5, lineHeight: 34, marginBottom: 2 },
+    fonditaDesc:       { fontSize: 15, fontWeight: '300', color: t.gray, lineHeight: 22, marginBottom: 2 },
     fonditaDireccion:  { fontSize: 12, fontWeight: '300', color: t.gray, lineHeight: 17, opacity: 0.5, marginBottom: 6 },
     block:             { marginBottom: 0 },
     blockTitleRow:     { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 0, paddingBottom: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.sep },
-    blockTitle:        { fontSize: 11, fontWeight: '700', letterSpacing: 1.4, color: t.orange, textTransform: 'uppercase' },
+    blockTitle:        { fontSize: 12, fontWeight: '700', letterSpacing: 1.4, color: t.orange, textTransform: 'uppercase' },
     blockFecha:        { fontSize: 12, fontWeight: '300', color: t.gray },
     subsection:        { marginBottom: 0 },
-    subsectionLabel:   { fontSize: 11, fontWeight: '700', letterSpacing: 1.0, color: t.text, marginTop: 16, marginBottom: 6, textTransform: 'uppercase', opacity: 0.5 },
-    item:              { fontSize: 16, fontWeight: '800', color: t.text, marginLeft: 4, marginBottom: 8 },
-    itemDesc:          { fontSize: 15, fontWeight: '300', color: t.gray, lineHeight: 21 },
-    precio:            { fontSize: 26, fontWeight: '900', color: t.orange, marginTop: 12, marginBottom: 0 },
+    subsectionLabel:   { fontSize: 12, fontWeight: '700', letterSpacing: 1.0, color: t.text, marginTop: 16, marginBottom: 6, textTransform: 'uppercase', opacity: 0.5 },
+    item:              { fontSize: 17, fontWeight: '800', color: t.text, marginLeft: 4, marginBottom: 8 },
+    itemDesc:          { fontSize: 15, fontWeight: '300', color: t.gray, lineHeight: 22 },
+    precio:            { fontSize: 22, fontWeight: '900', color: t.orange, marginTop: 12, marginBottom: 0 },
     sectionSeparator:  { height: 1, backgroundColor: t.sep, marginVertical: 16 },
     infoBlock:         { marginTop: 16, paddingTop: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.sep, alignItems: 'center' },
     infoFecha:         { fontSize: 12, fontWeight: '300', color: t.gray, opacity: 0.6, lineHeight: 18, textAlign: 'center', marginBottom: 2 },

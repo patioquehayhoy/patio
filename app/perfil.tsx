@@ -97,12 +97,12 @@ function makeStyles(t: Theme) {
     scrollContent:  { paddingHorizontal: 24, paddingBottom: 40 },
     block:          { paddingTop: 24 },
     blockHeader:    { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-    blockLabel:     { fontSize: 11, fontWeight: '900', color: t.orange, letterSpacing: 1.2, marginBottom: 8 },
+    blockLabel:     { fontSize: 12, fontWeight: '900', color: t.orange, letterSpacing: 1.2, marginBottom: 8 },
     saveInlineBtn:  { fontSize: 15, fontWeight: '700', color: '#FF5E00' },
-    nombreInput:    { fontSize: 28, fontWeight: '900', color: t.text, letterSpacing: -0.5, lineHeight: 32, paddingVertical: 0, paddingHorizontal: 0, backgroundColor: 'transparent', marginBottom: 2 },
+    nombreInput:    { fontSize: 28, fontWeight: '900', color: t.text, letterSpacing: -0.5, lineHeight: 34, paddingVertical: 0, paddingHorizontal: 0, backgroundColor: 'transparent', marginBottom: 2 },
     fieldInput:     { fontWeight: '300', color: t.gray, paddingVertical: 0, paddingHorizontal: 0, backgroundColor: 'transparent' },
     row:            { flexDirection: 'row', alignItems: 'center', minHeight: 44 },
-    rowLabel:       { flex: 1, fontSize: 15, fontWeight: '300', color: t.text },
+    rowLabel:       { flex: 1, fontSize: 17, fontWeight: '300', color: t.text },
     emailText:      { flex: 1, fontSize: 15, fontWeight: '300', color: t.gray },
     divider:        { height: StyleSheet.hairlineWidth, backgroundColor: t.sep },
     pickerWrapper:  { backgroundColor: t.surface, borderRadius: 12, overflow: 'hidden' },
@@ -110,12 +110,12 @@ function makeStyles(t: Theme) {
     chip:           { paddingVertical: 8, paddingHorizontal: 16, borderRadius: 20, borderWidth: 1, borderColor: '#EDE8DC' },
     chipDark:       { backgroundColor: t.surface, borderWidth: 0 },
     chipActive:     { backgroundColor: '#FF5E00', borderColor: '#FF5E00' },
-    chipText:       { fontSize: 13, fontWeight: '500', color: '#9E3F00' },
-    chipTextActive: { fontSize: 13, fontWeight: '500', color: '#FFF7E0' },
+    chipText:       { fontSize: 15, fontWeight: '500', color: '#9E3F00' },
+    chipTextActive: { fontSize: 15, fontWeight: '500', color: '#FFF7E0' },
     timeRow:        { flexDirection: 'row', gap: 16, marginBottom: 8 },
     timeBtn:        { flex: 1, paddingVertical: 10, paddingHorizontal: 14, borderRadius: 12, backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.sep },
-    timeBtnLabel:   { fontSize: 10, fontWeight: '700', color: ICON_COLOR, letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 2, opacity: 0.6 },
-    timeBtnValue:   { fontSize: 20, fontWeight: '900', color: t.text, letterSpacing: -0.3 },
+    timeBtnLabel:   { fontSize: 12, fontWeight: '700', color: ICON_COLOR, letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 2, opacity: 0.6 },
+    timeBtnValue:   { fontSize: 22, fontWeight: '900', color: t.text, letterSpacing: -0.3 },
   });
 }
 
@@ -316,10 +316,10 @@ export default function PerfilScreen() {
         {/* ── TU NEGOCIO ── */}
         <View style={s.block}>
           <View style={s.blockHeader}>
-            <Text style={s.blockLabel}>TU NEGOCIO</Text>
+            <Text style={s.blockLabel} allowFontScaling={true}>TU NEGOCIO</Text>
             {isDirty && (
               <TouchableOpacity onPress={handleSaveAll} disabled={isSaving} activeOpacity={0.5}>
-                <Text style={[s.saveInlineBtn, isSaving && { opacity: 0.4 }]}>{isSaving ? 'Guardando…' : 'Guardar'}</Text>
+                <Text style={[s.saveInlineBtn, isSaving && { opacity: 0.4 }]} allowFontScaling={true}>{isSaving ? 'Guardando…' : 'Guardar'}</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -361,15 +361,15 @@ export default function PerfilScreen() {
 
         {/* ── HORARIO ── */}
         <View style={s.block}>
-          <Text style={s.blockLabel}>HORARIO</Text>
+          <Text style={s.blockLabel} allowFontScaling={true}>HORARIO</Text>
           <View style={s.timeRow}>
             <TouchableOpacity style={s.timeBtn} onPress={() => { setShowCierre(false); setShowApertura(v => !v); }} activeOpacity={0.8}>
-              <Text style={s.timeBtnLabel}>Apertura</Text>
-              <Text style={[s.timeBtnValue, !apertura && { color: 'rgba(158,63,0,0.3)' }]}>{apertura ? formatTime(apertura) : '00:00'}</Text>
+              <Text style={s.timeBtnLabel} allowFontScaling={true}>Apertura</Text>
+              <Text style={[s.timeBtnValue, !apertura && { color: 'rgba(158,63,0,0.3)' }]} allowFontScaling={true}>{apertura ? formatTime(apertura) : '00:00'}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={s.timeBtn} onPress={() => { setShowApertura(false); setShowCierre(v => !v); }} activeOpacity={0.8}>
-              <Text style={s.timeBtnLabel}>Cierre</Text>
-              <Text style={[s.timeBtnValue, !cierre && { color: 'rgba(158,63,0,0.3)' }]}>{cierre ? formatTime(cierre) : '00:00'}</Text>
+              <Text style={s.timeBtnLabel} allowFontScaling={true}>Cierre</Text>
+              <Text style={[s.timeBtnValue, !cierre && { color: 'rgba(158,63,0,0.3)' }]} allowFontScaling={true}>{cierre ? formatTime(cierre) : '00:00'}</Text>
             </TouchableOpacity>
           </View>
           {showApertura && (
@@ -411,7 +411,7 @@ export default function PerfilScreen() {
 
         {/* ── PAGOS ── */}
         <View style={s.block}>
-          <Text style={s.blockLabel}>PAGOS</Text>
+          <Text style={s.blockLabel} allowFontScaling={true}>PAGOS</Text>
           <View style={s.chipsRow}>
             {([['Efectivo', pagosEfectivo, setPagosEfectivoState], ['Transferencia', pagosTrans, setPagosTransState], ['Tarjeta', pagosTarjeta, setPagosTarjetaState]] as const).map(([label, active, toggle]) => (
               <TouchableOpacity
@@ -419,7 +419,7 @@ export default function PerfilScreen() {
                 style={[s.chip, !active && theme.isDark && s.chipDark, active && s.chipActive]}
                 onPress={() => toggle(!active)}
                 activeOpacity={0.75}>
-                <Text style={[s.chipText, active && s.chipTextActive]}>{label}</Text>
+                <Text style={[s.chipText, active && s.chipTextActive]} allowFontScaling={true}>{label}</Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -428,20 +428,20 @@ export default function PerfilScreen() {
 
         {/* ── CUENTA ── */}
         <View style={s.block}>
-          <Text style={s.blockLabel}>CUENTA</Text>
+          <Text style={s.blockLabel} allowFontScaling={true}>CUENTA</Text>
           <View style={s.row}>
             <Ionicons name="mail-outline" size={22} color={ICON_COLOR} style={{ marginRight: 10, opacity: 0.4 }} />
-            <Text style={s.emailText}>{email || '—'}</Text>
+            <Text style={s.emailText} allowFontScaling={true}>{email || '—'}</Text>
           </View>
           <View style={s.divider} />
         </View>
 
         {/* ── PREFERENCIAS ── */}
         <View style={s.block}>
-          <Text style={s.blockLabel}>PREFERENCIAS</Text>
+          <Text style={s.blockLabel} allowFontScaling={true}>PREFERENCIAS</Text>
           <View style={s.row}>
             <Ionicons name="moon-outline" size={22} color={ICON_COLOR} style={{ marginRight: 10, opacity: 0.4 }} />
-            <Text style={s.rowLabel}>Modo oscuro</Text>
+            <Text style={s.rowLabel} allowFontScaling={true}>Modo oscuro</Text>
             <ToggleSwitch value={theme.isDark} onValueChange={toggleTheme} />
           </View>
           <View style={s.divider} />
@@ -449,25 +449,25 @@ export default function PerfilScreen() {
 
         {/* ── SOPORTE ── */}
         <View style={s.block}>
-          <Text style={s.blockLabel}>SOPORTE</Text>
+          <Text style={s.blockLabel} allowFontScaling={true}>SOPORTE</Text>
           <TouchableOpacity style={s.row} onPress={() => Linking.openURL('mailto:contacto.parco@gmail.com?subject=Problema%20en%20La%20Fondita')} activeOpacity={0.7}>
             <Ionicons name="chatbubble-outline" size={22} color={ICON_COLOR} style={{ marginRight: 10, opacity: 0.4 }} />
-            <Text style={s.rowLabel}>Contactar con soporte</Text>
+            <Text style={s.rowLabel} allowFontScaling={true}>Contactar con soporte</Text>
           </TouchableOpacity>
           <View style={s.divider} />
           <TouchableOpacity style={s.row} onPress={() => Linking.openURL('https://apple.com')} activeOpacity={0.7}>
             <Ionicons name="star-outline" size={22} color={ICON_COLOR} style={{ marginRight: 10, opacity: 0.4 }} />
-            <Text style={s.rowLabel}>Calificar la app</Text>
+            <Text style={s.rowLabel} allowFontScaling={true}>Calificar la app</Text>
           </TouchableOpacity>
           <View style={s.divider} />
         </View>
 
         {/* ── SESIÓN ── */}
         <View style={s.block}>
-          <Text style={s.blockLabel}>SESIÓN</Text>
+          <Text style={s.blockLabel} allowFontScaling={true}>SESIÓN</Text>
           <TouchableOpacity style={s.row} onPress={handleSignOut} activeOpacity={0.7}>
             <Ionicons name="log-out-outline" size={22} color={ICON_COLOR} style={{ marginRight: 10, opacity: 0.4 }} />
-            <Text style={s.rowLabel}>Cerrar sesión</Text>
+            <Text style={s.rowLabel} allowFontScaling={true}>Cerrar sesión</Text>
           </TouchableOpacity>
           <View style={s.divider} />
         </View>

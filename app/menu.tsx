@@ -72,49 +72,49 @@ function makeStyles(t: Theme) {
     formContent:          { paddingHorizontal: 24, paddingTop: 8, paddingBottom: 8 },
     // Header
     headerTitleContainer: { flex: 1 },
-    headerName:           { fontSize: 28, fontWeight: '900', color: t.text, letterSpacing: -0.5, lineHeight: 32, marginBottom: 2 },
-    headerDesc:           { fontSize: 14, fontWeight: '300', color: t.gray, lineHeight: 20, marginBottom: 2 },
+    headerName:           { fontSize: 28, fontWeight: '900', color: t.text, letterSpacing: -0.5, lineHeight: 34, marginBottom: 2 },
+    headerDesc:           { fontSize: 15, fontWeight: '300', color: t.gray, lineHeight: 22, marginBottom: 2 },
     headerDireccion:      { fontSize: 12, fontWeight: '300', color: t.gray, lineHeight: 17, opacity: 0.5, marginBottom: 6 },
     tabRow:               { alignItems: 'center', paddingVertical: 16, backgroundColor: t.bg },
     // Section
     section:              { marginBottom: 24 },
     sectionHeader:        { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
     sectionDivider:       { height: 0.5, backgroundColor: 'rgba(255,94,0,0.3)', marginBottom: 12 },
-    secLabel:             { fontSize: 11, fontWeight: '700', letterSpacing: 1.4, color: t.orange, textTransform: 'uppercase' },
+    secLabel:             { fontSize: 12, fontWeight: '700', letterSpacing: 1.4, color: t.orange, textTransform: 'uppercase' },
     // Items
     itemRow:              { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
-    input:                { flex: 1, fontSize: 16, color: t.text, fontWeight: '800', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.sep, paddingVertical: 6, paddingHorizontal: 0, backgroundColor: 'transparent' },
+    input:                { flex: 1, fontSize: 17, color: t.text, fontWeight: '800', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.sep, paddingVertical: 6, paddingHorizontal: 0, backgroundColor: 'transparent' },
     removeBtn:            { width: 28, alignItems: 'center', paddingLeft: 4 },
-    removeBtnText:        { fontSize: 13, color: t.gray },
+    removeBtnText:        { fontSize: 15, color: t.gray },
     addBtn:               { paddingVertical: 4 },
-    addBtnText:           { fontSize: 14, color: t.orange, fontWeight: '500' },
-    slashSep:             { fontSize: 15, color: t.gray, paddingHorizontal: 4 },
-    descInput:            { fontSize: 15, fontWeight: '300', color: t.gray, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.sep, paddingVertical: 6, paddingHorizontal: 0, backgroundColor: 'transparent', alignSelf: 'center' },
+    addBtnText:           { fontSize: 15, color: t.orange, fontWeight: '500' },
+    slashSep:             { fontSize: 15, color: t.gray, paddingHorizontal: 4, paddingVertical: 6 },
+    descInput:            { fontSize: 15, fontWeight: '300', color: t.gray, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.sep, paddingVertical: 6, paddingHorizontal: 0, backgroundColor: 'transparent' },
     chipsScroll:          { marginBottom: 8 },
     chipsContent:         { flexDirection: 'row', gap: 6, paddingRight: 4 },
     chip:                 { paddingVertical: 3, paddingHorizontal: 10, borderRadius: 12, borderWidth: 1, borderColor: t.orange, backgroundColor: 'transparent' },
-    chipText:             { fontSize: 11, color: t.orange, fontWeight: '500' },
+    chipText:             { fontSize: 12, color: t.orange, fontWeight: '500' },
     // Precio
-    precioPrefix:         { fontSize: 26, color: t.orange, marginRight: 4, fontWeight: '900' },
+    precioPrefix:         { fontSize: 22, color: t.orange, marginRight: 4, fontWeight: '900', paddingVertical: 6 },
     // Preview separator
     previewDividerRow:    { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10, marginTop: 32 },
     previewDividerLine:   { flex: 1, height: 0.5, backgroundColor: t.orange, opacity: 0.5 },
-    previewDividerLabel:  { fontSize: 9, fontWeight: '900', letterSpacing: 2, color: t.orange, textTransform: 'uppercase', opacity: 0.5, marginHorizontal: 10 },
+    previewDividerLabel:  { fontSize: 12, fontWeight: '900', letterSpacing: 2, color: t.orange, textTransform: 'uppercase', opacity: 0.5, marginHorizontal: 10 },
     // Preview
     previewContainer:     { flex: 1, minHeight: 180, backgroundColor: t.bg, paddingHorizontal: 16, paddingBottom: 14 },
-    previewHeader:        { fontSize: 10, fontWeight: '900', letterSpacing: 2, color: t.gray, textTransform: 'uppercase', marginBottom: 10 },
+    previewHeader:        { fontSize: 12, fontWeight: '900', letterSpacing: 2, color: t.gray, textTransform: 'uppercase', marginBottom: 10 },
     previewScroll:        { flex: 1 },
     previewScrollContent: { paddingBottom: 8 },
-    previewEmpty:         { fontSize: 14, color: t.gray, fontStyle: 'italic' },
+    previewEmpty:         { fontSize: 15, color: t.gray, fontStyle: 'italic' },
     previewContent:       { gap: 2 },
     previewTitleRow:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, paddingBottom: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.sep },
-    previewTitle:         { fontSize: 11, fontWeight: '700', letterSpacing: 1.4, color: t.orange, textTransform: 'uppercase' },
-    previewTitleDelete:   { fontSize: 10, fontWeight: '300', color: t.orange, opacity: 0.4 },
+    previewTitle:         { fontSize: 12, fontWeight: '700', letterSpacing: 1.4, color: t.orange, textTransform: 'uppercase' },
+    previewTitleDelete:   { fontSize: 12, fontWeight: '300', color: t.orange, opacity: 0.4 },
     previewSec:           { marginBottom: 0 },
-    previewLabel:         { fontSize: 11, fontWeight: '700', letterSpacing: 1.0, color: t.text, textTransform: 'uppercase', marginTop: 16, marginBottom: 6, opacity: 0.5 },
-    previewItem:          { fontSize: 16, fontWeight: '800', color: t.text, marginLeft: 4, marginBottom: 8 },
-    previewItemDesc:      { fontSize: 15, fontWeight: '300', color: t.gray, lineHeight: 21 },
-    previewPrice:         { fontSize: 26, fontWeight: '900', color: t.orange, marginTop: 12, marginBottom: 4 },
+    previewLabel:         { fontSize: 12, fontWeight: '700', letterSpacing: 1.0, color: t.text, textTransform: 'uppercase', marginTop: 16, marginBottom: 6, opacity: 0.5 },
+    previewItem:          { fontSize: 17, fontWeight: '800', color: t.text, marginLeft: 4, marginBottom: 8 },
+    previewItemDesc:      { fontSize: 15, fontWeight: '300', color: t.gray, lineHeight: 22 },
+    previewPrice:         { fontSize: 22, fontWeight: '900', color: t.orange, marginTop: 12, marginBottom: 4 },
   });
 }
 
@@ -126,12 +126,12 @@ function SegmentedControl({ value, onChange }: { value: 'menu' | 'carta'; onChan
       <TouchableOpacity
         style={[seg.btn, value === 'menu' && { backgroundColor: theme.orange }]}
         onPress={() => onChange('menu')}>
-        <Text style={[seg.label, { color: value === 'menu' ? '#FFF7E0' : theme.gray }]}>Menú</Text>
+        <Text style={[seg.label, { color: value === 'menu' ? '#FFF7E0' : theme.gray }]} allowFontScaling={true}>Menú</Text>
       </TouchableOpacity>
       <TouchableOpacity
         style={[seg.btn, value === 'carta' && { backgroundColor: theme.orange }]}
         onPress={() => onChange('carta')}>
-        <Text style={[seg.label, { color: value === 'carta' ? '#FFF7E0' : theme.gray }]}>Carta</Text>
+        <Text style={[seg.label, { color: value === 'carta' ? '#FFF7E0' : theme.gray }]} allowFontScaling={true}>Carta</Text>
       </TouchableOpacity>
     </View>
   );
@@ -170,7 +170,7 @@ function OrdTitle({ idx, rest }: { idx: 0 | 1 | 2; rest: string }) {
   const { theme } = useTheme();
   const s = makeStyles(theme);
   const [n, sf] = ORD_PARTS[idx];
-  return <Text style={s.secLabel}>{n}{sf.toUpperCase()} {rest.toUpperCase()}</Text>;
+  return <Text style={s.secLabel} allowFontScaling={true}>{n}{sf.toUpperCase()} {rest.toUpperCase()}</Text>;
 }
 
 // ─── DescInput ────────────────────────────────────────────────────────────────
@@ -307,11 +307,9 @@ function DynamicSection({
                     returnKeyType={index === items.length - 1 ? 'done' : 'next'}
                     onSubmitEditing={index === items.length - 1 ? undefined : () => nameRefs.current[index + 1]?.focus()}
                   />
-                  {items.length > 1 && (
-                    <TouchableOpacity style={s.removeBtn} onPress={() => onRemove(index)}>
-                      <Text style={s.removeBtnText}>✕</Text>
-                    </TouchableOpacity>
-                  )}
+                  <TouchableOpacity style={s.removeBtn} onPress={() => onRemove(index)}>
+                    <Text style={s.removeBtnText} allowFontScaling={true}>✕</Text>
+                  </TouchableOpacity>
                 </View>
                 {showChips && (
                   <ScrollView
@@ -332,7 +330,7 @@ function DynamicSection({
                           setFocusedIndex(null);
                         }}
                       >
-                        <Text style={s.chipText}>{chip}</Text>
+                        <Text style={s.chipText} allowFontScaling={true}>{chip}</Text>
                       </TouchableOpacity>
                     ))}
                   </ScrollView>
@@ -342,7 +340,7 @@ function DynamicSection({
           })}
           {items.length < maxItems && (
             <TouchableOpacity style={s.addBtn} onPress={onAdd}>
-              <Text style={s.addBtnText}>+</Text>
+              <Text style={s.addBtnText} allowFontScaling={true}>+</Text>
             </TouchableOpacity>
           )}
         </Animated.View>
@@ -359,13 +357,13 @@ function PrecioSection({ value, onChange }: { value: string; onChange: (value: s
   return (
     <View style={s.section}>
       <View style={s.sectionHeader}>
-        <Text style={s.secLabel}>PRECIO</Text>
+        <Text style={s.secLabel} allowFontScaling={true}>PRECIO</Text>
       </View>
       <View style={s.sectionDivider} />
       <View style={s.itemRow}>
-        <Text style={[s.precioPrefix, { color: theme.orange }]}>$</Text>
+        <Text style={[s.precioPrefix, { color: theme.orange }]} allowFontScaling={true}>$</Text>
         <TextInput
-          style={[s.input, { flex: 1, fontSize: 26, fontWeight: '900', color: theme.orange }]}
+          style={[s.input, { flex: 1, fontSize: 22, fontWeight: '900', color: theme.orange }]}
           placeholder="47"
           placeholderTextColor="rgba(255,94,0,0.2)"
           value={value}
@@ -394,7 +392,7 @@ function MenuPreview({ data, title, onDelete }: { data: MenuData; title: string;
     (data.aguas.enabled && data.aguas.items.some(Boolean)) ||
     (data.precio.enabled && data.precio.value.trim());
 
-  if (!hasContent) return <Text style={s.previewEmpty}>El menú se mostrará aquí mientras escribes…</Text>;
+  if (!hasContent) return <Text style={s.previewEmpty} allowFontScaling={true}>El menú se mostrará aquí mientras escribes…</Text>;
 
   const p = data.primerTiempo.enabled ? 1 : 0;
   const sv = data.segundoTiempo.enabled ? 1 : 0;
@@ -404,10 +402,10 @@ function MenuPreview({ data, title, onDelete }: { data: MenuData; title: string;
 
   const ri = (item: string, i: number) => {
     const si = item.indexOf(' / ');
-    if (si === -1) return <Text key={i} style={s.previewItem}>• {item}</Text>;
+    if (si === -1) return <Text key={i} style={s.previewItem} allowFontScaling={true}>• {item}</Text>;
     return (
-      <Text key={i} style={s.previewItem}>
-        {'• ' + item.slice(0, si)}<Text style={s.previewItemDesc}>{' / ' + item.slice(si + 3)}</Text>
+      <Text key={i} style={s.previewItem} allowFontScaling={true}>
+        {'• ' + item.slice(0, si)}<Text style={s.previewItemDesc} allowFontScaling={true}>{' / ' + item.slice(si + 3)}</Text>
       </Text>
     );
   };
@@ -415,45 +413,45 @@ function MenuPreview({ data, title, onDelete }: { data: MenuData; title: string;
   return (
     <View style={s.previewContent}>
       <View style={s.previewTitleRow}>
-        <Text style={s.previewTitle}>{title}</Text>
+        <Text style={s.previewTitle} allowFontScaling={true}>{title}</Text>
         {onDelete && (
           <TouchableOpacity onPress={onDelete}>
-            <Text style={s.previewTitleDelete}>Borrar</Text>
+            <Text style={s.previewTitleDelete} allowFontScaling={true}>Borrar</Text>
           </TouchableOpacity>
         )}
       </View>
       {data.primerTiempo.enabled && data.primerTiempo.items.some(Boolean) && (
         <View style={s.previewSec}>
-          <Text style={s.previewLabel}>{primerLabel}</Text>
+          <Text style={s.previewLabel} allowFontScaling={true}>{primerLabel}</Text>
           {data.primerTiempo.items.filter(Boolean).map(ri)}
         </View>
       )}
       {data.segundoTiempo.enabled && data.segundoTiempo.items.some(Boolean) && (
         <View style={s.previewSec}>
-          <Text style={s.previewLabel}>{segundoLabel}</Text>
+          <Text style={s.previewLabel} allowFontScaling={true}>{segundoLabel}</Text>
           {data.segundoTiempo.items.filter(Boolean).map(ri)}
         </View>
       )}
       {data.tercerTiempoGuisado.enabled && data.tercerTiempoGuisado.items.some(Boolean) && (
         <View style={s.previewSec}>
-          <Text style={s.previewLabel}>{tercerLabel}</Text>
+          <Text style={s.previewLabel} allowFontScaling={true}>{tercerLabel}</Text>
           {data.tercerTiempoGuisado.items.filter(Boolean).map(ri)}
         </View>
       )}
       {data.aguas.enabled && data.aguas.items.some(Boolean) && (
         <View style={s.previewSec}>
-          <Text style={s.previewLabel}>Bebidas</Text>
+          <Text style={s.previewLabel} allowFontScaling={true}>Bebidas</Text>
           {data.aguas.items.filter(Boolean).map(ri)}
         </View>
       )}
       {data.postre.enabled && data.postre.items.some(Boolean) && (
         <View style={s.previewSec}>
-          <Text style={s.previewLabel}>Postre</Text>
+          <Text style={s.previewLabel} allowFontScaling={true}>Postre</Text>
           {data.postre.items.filter(Boolean).map(ri)}
         </View>
       )}
       {data.precio.enabled && data.precio.value.trim() && (
-        <Text style={s.previewPrice}>${data.precio.value}</Text>
+        <Text style={s.previewPrice} allowFontScaling={true}>${data.precio.value}</Text>
       )}
     </View>
   );
@@ -608,30 +606,31 @@ export default function MenuScreen() {
           <SegmentedControl value={activeTab} onChange={setActiveTab} />
         </View>
         <View style={s.formHalf}>
-          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <ScrollView style={s.formScroll} contentContainerStyle={s.formContent} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-            <DynamicSection title={<OrdTitle idx={0} rest="Tiempo" />} enabled={activeData.primerTiempo.enabled} onToggle={(v) => toggleSection('primerTiempo', v)} items={activeData.primerTiempo.items} maxItems={MAX_PRIMER_TIEMPO} onAdd={() => addItem('primerTiempo')} onRemove={(i) => removeItem('primerTiempo', i)} onChange={(i, v) => updateSection('primerTiempo', i, v)} placeholder="Agregar" suggestions={menuSuggs?.primerTiempo} suggestionDescs={menuDescMaps?.primerTiempo} />
-            <DynamicSection title={<OrdTitle idx={1} rest="Tiempo" />} enabled={activeData.segundoTiempo.enabled} onToggle={(v) => toggleSection('segundoTiempo', v)} items={activeData.segundoTiempo.items} maxItems={MAX_SEGUNDO_TIEMPO} onAdd={() => addItem('segundoTiempo')} onRemove={(i) => removeItem('segundoTiempo', i)} onChange={(i, v) => updateSection('segundoTiempo', i, v)} placeholder="Agregar" suggestions={menuSuggs?.segundoTiempo} suggestionDescs={menuDescMaps?.segundoTiempo} />
-            <DynamicSection title={<OrdTitle idx={2} rest="Tiempo" />} enabled={activeData.tercerTiempoGuisado.enabled} onToggle={(v) => toggleSection('tercerTiempoGuisado', v)} items={activeData.tercerTiempoGuisado.items} maxItems={MAX_TERCER_TIEMPO} onAdd={() => addItem('tercerTiempoGuisado')} onRemove={(i) => removeItem('tercerTiempoGuisado', i)} onChange={(i, v) => updateSection('tercerTiempoGuisado', i, v)} placeholder="Agregar" suggestions={menuSuggs?.tercerTiempoGuisado} suggestionDescs={menuDescMaps?.tercerTiempoGuisado} />
-            <DynamicSection title={<Text style={s.secLabel}>BEBIDAS</Text>} enabled={activeData.aguas.enabled} onToggle={(v) => toggleSection('aguas', v)} items={activeData.aguas.items} maxItems={MAX_AGUAS} onAdd={() => addItem('aguas')} onRemove={(i) => removeItem('aguas', i)} onChange={(i, v) => updateSection('aguas', i, v)} placeholder="Agregar" suggestions={menuSuggs?.aguas} suggestionDescs={menuDescMaps?.aguas} />
-            <DynamicSection title={<Text style={s.secLabel}>POSTRE</Text>} enabled={activeData.postre.enabled} onToggle={(v) => toggleSection('postre', v)} items={activeData.postre.items} maxItems={MAX_POSTRE} onAdd={() => addItem('postre')} onRemove={(i) => removeItem('postre', i)} onChange={(i, v) => updateSection('postre', i, v)} placeholder="Agregar" suggestions={menuSuggs?.postre} suggestionDescs={menuDescMaps?.postre} />
-            <PrecioSection value={activeData.precio.value} onChange={(v) => { const soloNumeros = v.replace(/[^0-9]/g, ''); setActiveData((prev) => ({ ...prev, precio: { ...prev.precio, value: soloNumeros } })); }} />
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+              <View>
+                <DynamicSection title={<OrdTitle idx={0} rest="Tiempo" />} enabled={activeData.primerTiempo.enabled} onToggle={(v) => toggleSection('primerTiempo', v)} items={activeData.primerTiempo.items} maxItems={MAX_PRIMER_TIEMPO} onAdd={() => addItem('primerTiempo')} onRemove={(i) => removeItem('primerTiempo', i)} onChange={(i, v) => updateSection('primerTiempo', i, v)} placeholder="Agregar" suggestions={menuSuggs?.primerTiempo} suggestionDescs={menuDescMaps?.primerTiempo} />
+                <DynamicSection title={<OrdTitle idx={1} rest="Tiempo" />} enabled={activeData.segundoTiempo.enabled} onToggle={(v) => toggleSection('segundoTiempo', v)} items={activeData.segundoTiempo.items} maxItems={MAX_SEGUNDO_TIEMPO} onAdd={() => addItem('segundoTiempo')} onRemove={(i) => removeItem('segundoTiempo', i)} onChange={(i, v) => updateSection('segundoTiempo', i, v)} placeholder="Agregar" suggestions={menuSuggs?.segundoTiempo} suggestionDescs={menuDescMaps?.segundoTiempo} />
+                <DynamicSection title={<OrdTitle idx={2} rest="Tiempo" />} enabled={activeData.tercerTiempoGuisado.enabled} onToggle={(v) => toggleSection('tercerTiempoGuisado', v)} items={activeData.tercerTiempoGuisado.items} maxItems={MAX_TERCER_TIEMPO} onAdd={() => addItem('tercerTiempoGuisado')} onRemove={(i) => removeItem('tercerTiempoGuisado', i)} onChange={(i, v) => updateSection('tercerTiempoGuisado', i, v)} placeholder="Agregar" suggestions={menuSuggs?.tercerTiempoGuisado} suggestionDescs={menuDescMaps?.tercerTiempoGuisado} />
+                <DynamicSection title={<Text style={s.secLabel} allowFontScaling={true}>BEBIDAS</Text>} enabled={activeData.aguas.enabled} onToggle={(v) => toggleSection('aguas', v)} items={activeData.aguas.items} maxItems={MAX_AGUAS} onAdd={() => addItem('aguas')} onRemove={(i) => removeItem('aguas', i)} onChange={(i, v) => updateSection('aguas', i, v)} placeholder="Agregar" suggestions={menuSuggs?.aguas} suggestionDescs={menuDescMaps?.aguas} />
+                <DynamicSection title={<Text style={s.secLabel} allowFontScaling={true}>POSTRE</Text>} enabled={activeData.postre.enabled} onToggle={(v) => toggleSection('postre', v)} items={activeData.postre.items} maxItems={MAX_POSTRE} onAdd={() => addItem('postre')} onRemove={(i) => removeItem('postre', i)} onChange={(i, v) => updateSection('postre', i, v)} placeholder="Agregar" suggestions={menuSuggs?.postre} suggestionDescs={menuDescMaps?.postre} />
+                <PrecioSection value={activeData.precio.value} onChange={(v) => { const soloNumeros = v.replace(/[^0-9]/g, ''); setActiveData((prev) => ({ ...prev, precio: { ...prev.precio, value: soloNumeros } })); }} />
+                {activeTab === 'menu' && (
+                  <TouchableOpacity onPress={handleBorrarMenu} style={{ marginTop: 32, marginBottom: 32, alignItems: 'center' }}>
+                    <Text style={{ fontSize: 15, fontWeight: '300', color: '#9E3F00', opacity: 0.5 }}>Borrar menú del día</Text>
+                  </TouchableOpacity>
+                )}
+                {activeTab === 'carta' && (
+                  <TouchableOpacity onPress={handleBorrarCarta} style={{ marginTop: 32, marginBottom: 32, alignItems: 'center' }}>
+                    <Text style={{ fontSize: 15, fontWeight: '300', color: '#9E3F00', opacity: 0.5 }}>Borrar carta</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            </TouchableWithoutFeedback>
           </ScrollView>
-          </TouchableWithoutFeedback>
         </View>
-
-        <View style={s.previewDividerRow}>
-          <View style={s.previewDividerLine} />
-          <Text style={s.previewDividerLabel}>Vista previa</Text>
-          <View style={s.previewDividerLine} />
-        </View>
-        <View style={s.previewContainer}>
-          <ScrollView style={s.previewScroll} contentContainerStyle={s.previewScrollContent} showsVerticalScrollIndicator={false}>
-            <MenuPreview data={activeData} title={previewTitle} onDelete={activeTab === 'menu' ? handleBorrarMenu : handleBorrarCarta} />
-          </ScrollView>
-        </View>
+        <BottomTabBar />
       </KeyboardAvoidingView>
-      <BottomTabBar />
     </View>
   );
 }

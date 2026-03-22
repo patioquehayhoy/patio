@@ -5,6 +5,7 @@ import {
   Alert,
   ActivityIndicator,
   KeyboardAvoidingView,
+  Linking,
   Platform,
   StyleSheet,
   Text,
@@ -95,7 +96,27 @@ export default function LoginScreen() {
       }
     });
 
-    return () => listener.subscription.unsubscribe();
+    const handleDeepLink = async ({ url }: { url: string }) => {
+      if (!url.startsWith('lafondita://')) return;
+      const params = new URLSearchParams(url.split('#')[1] ?? url.split('?')[1] ?? '');
+      const accessToken  = params.get('access_token');
+      const refreshToken = params.get('refresh_token');
+      if (accessToken && refreshToken) {
+        const { data, error } = await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
+        if (!error && data.session?.user?.email) {
+          initFondita(data.session.user.email);
+          router.replace('/menu');
+        }
+      }
+    };
+
+    Linking.getInitialURL().then(url => { if (url) handleDeepLink({ url }); });
+    const linkingSub = Linking.addEventListener('url', handleDeepLink);
+
+    return () => {
+      listener.subscription.unsubscribe();
+      linkingSub.remove();
+    };
   }, []);
 
   const handleSendOtp = async () => {
@@ -107,7 +128,7 @@ export default function LoginScreen() {
       email: trimmed,
       options: {
         shouldCreateUser: true,
-        emailRedirectTo: Platform.OS === 'web' ? window.location.origin : undefined,
+        emailRedirectTo: Platform.OS === 'web' ? window.location.origin : 'lafondita://login-callback',
       },
     });
     setLoading(false);

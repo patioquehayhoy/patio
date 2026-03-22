@@ -37,6 +37,14 @@ Cuando varios campos de texto forman un bloque semántico
 - **Separadores**: `StyleSheet.hairlineWidth`, color `t.sep`
 - **Placeholders**: `rgba(255,94,0,0.2)`
 
+## Precio en menu.tsx — NO TOCAR
+El bloque del precio tiene esta estructura exacta que NO debe modificarse:
+- Contenedor: `flexDirection row`, `alignItems center`, sin `paddingVertical`
+- `$` (Text): `fontSize 22`, `fontWeight 900`, `lineHeight 22`, sin padding
+- TextInput: `fontSize 22`, `fontWeight 900`, `height 44`, `paddingVertical 0`
+
+Si se edita menu.tsx por cualquier razón, verificar que este bloque no haya cambiado antes de guardar.
+
 ## Convenciones de código
 
 - Estilos en `makeStyles(t: Theme)` que recibe el tema — nunca hardcodear colores fuera de paleta

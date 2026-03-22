@@ -83,19 +83,19 @@ function makeStyles(t: Theme) {
     secLabel:             { fontSize: 12, fontWeight: '700', letterSpacing: 1.4, color: t.orange, textTransform: 'uppercase' },
     // Items
     itemRow:              { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
-    input:                { flex: 1, fontSize: 17, color: t.text, fontWeight: '800', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.sep, paddingVertical: 6, paddingHorizontal: 0, backgroundColor: 'transparent' },
+    input:                { flex: 1, fontSize: 17, lineHeight: 22, height: 34, color: t.text, fontWeight: '800', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.sep, paddingVertical: 6, paddingHorizontal: 0, backgroundColor: 'transparent' },
     removeBtn:            { width: 28, alignItems: 'center', paddingLeft: 4 },
     removeBtnText:        { fontSize: 15, color: t.gray },
     addBtn:               { paddingVertical: 4 },
     addBtnText:           { fontSize: 15, color: t.orange, fontWeight: '500' },
-    slashSep:             { fontSize: 15, color: t.gray, paddingHorizontal: 4, paddingVertical: 6 },
-    descInput:            { fontSize: 15, fontWeight: '300', color: t.gray, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.sep, paddingVertical: 6, paddingHorizontal: 0, backgroundColor: 'transparent' },
+    slashSep:             { fontSize: 15, lineHeight: 22, color: t.gray, paddingHorizontal: 4, paddingVertical: 6 },
+    descInput:            { fontSize: 17, lineHeight: 22, height: 34, fontWeight: '300', color: t.gray, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.sep, paddingVertical: 6, paddingHorizontal: 0, backgroundColor: 'transparent' },
     chipsScroll:          { marginBottom: 8 },
     chipsContent:         { flexDirection: 'row', gap: 6, paddingRight: 4 },
     chip:                 { paddingVertical: 3, paddingHorizontal: 10, borderRadius: 12, borderWidth: 1, borderColor: t.orange, backgroundColor: 'transparent' },
     chipText:             { fontSize: 12, color: t.orange, fontWeight: '500' },
     // Precio
-    precioPrefix:         { fontSize: 22, color: t.orange, marginRight: 4, fontWeight: '900', paddingVertical: 6 },
+    precioPrefix:         { fontSize: 22, fontWeight: '900', color: t.orange, paddingVertical: 8 },
     // Preview separator
     previewDividerRow:    { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10, marginTop: 32 },
     previewDividerLine:   { flex: 1, height: 0.5, backgroundColor: t.orange, opacity: 0.5 },
@@ -279,7 +279,7 @@ function DynamicSection({
                     placeholder={placeholder}
                     placeholderTextColor="rgba(255,94,0,0.2)"
                     value={namePart}
-                    autoCapitalize="none"
+                    autoCapitalize="words"
                     onChangeText={(v) => {
                       onChange(index, v + (descPart ? ' / ' + descPart : ''));
                       if (blurTimer.current) clearTimeout(blurTimer.current);
@@ -292,7 +292,6 @@ function DynamicSection({
                     onBlur={() => {
                       blurTimer.current = setTimeout(() => setFocusedIndex(null), 200);
                     }}
-                    autoCapitalize="none"
                     selectionColor={theme.orange}
                     maxLength={40}
                     returnKeyType="next"
@@ -360,11 +359,11 @@ function PrecioSection({ value, onChange }: { value: string; onChange: (value: s
         <Text style={s.secLabel} allowFontScaling={true}>PRECIO</Text>
       </View>
       <View style={s.sectionDivider} />
-      <View style={s.itemRow}>
-        <Text style={[s.precioPrefix, { color: theme.orange }]} allowFontScaling={true}>$</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <Text style={s.precioPrefix} allowFontScaling={true}>$</Text>
         <TextInput
-          style={[s.input, { flex: 1, fontSize: 22, fontWeight: '900', color: theme.orange }]}
-          placeholder="47"
+          style={{ fontSize: 22, fontWeight: '900', color: theme.orange, paddingTop: 0, paddingBottom: 0, paddingHorizontal: 0, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.sep, backgroundColor: 'transparent', minWidth: 60 }}
+          placeholder="74"
           placeholderTextColor="rgba(255,94,0,0.2)"
           value={value}
           onChangeText={onChange}

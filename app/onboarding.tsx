@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import {
   Dimensions,
   FlatList,
@@ -7,7 +7,6 @@ import {
   Text,
   TouchableOpacity,
   View,
-  ViewToken,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -76,7 +75,7 @@ const styles = StyleSheet.create({
   },
   startBtn: {
     position: 'absolute',
-    bottom: 60,
+    bottom: 80,
     alignSelf: 'center',
     backgroundColor: '#FF5E00',
     borderRadius: 12,
@@ -90,11 +89,13 @@ const styles = StyleSheet.create({
   },
   // Dots
   dotsRow: {
+    position: 'absolute',
+    bottom: 48,
+    left: 0,
+    right: 0,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingBottom: 48,
-    paddingTop: 16,
     gap: 8,
   },
   dot: {
@@ -157,16 +158,7 @@ export default function OnboardingScreen() {
   // TODO: quitar antes de release
   AsyncStorage.removeItem(ONBOARDING_KEY);
 
-  const [activeIndex, setActiveIndex] = useState(0);
   const flatRef = useRef<FlatList>(null);
-
-  const onViewableItemsChanged = useRef(({ viewableItems }: { viewableItems: ViewToken[] }) => {
-    if (viewableItems.length > 0 && viewableItems[0].index != null) {
-      setActiveIndex(viewableItems[0].index);
-    }
-  }).current;
-
-  const viewabilityConfig = useRef({ viewAreaCoveragePercentThreshold: 50 }).current;
 
   return (
     <View style={styles.root}>
@@ -177,27 +169,25 @@ export default function OnboardingScreen() {
         pagingEnabled
         showsHorizontalScrollIndicator={false}
         keyExtractor={(_, i) => String(i)}
-        onViewableItemsChanged={onViewableItemsChanged}
-        viewabilityConfig={viewabilityConfig}
-        renderItem={({ item }) => (
+        renderItem={({ item, index }) => (
           <View style={[styles.slide, { backgroundColor: item.bg }]}>
             {item.content}
+            <View style={styles.dotsRow}>
+              {SLIDES.map((_, i) => (
+                <View
+                  key={i}
+                  style={[
+                    styles.dot,
+                    i === index ? styles.dotActive : styles.dotInactive,
+                    { borderColor: item.bg === '#FFF7E0' ? '#3D1F00' : '#FFF7E0' },
+                    i === index && { backgroundColor: item.bg === '#FFF7E0' ? '#3D1F00' : '#FFF7E0' },
+                  ]}
+                />
+              ))}
+            </View>
           </View>
         )}
       />
-      <View style={[styles.dotsRow, { backgroundColor: SLIDES[activeIndex].bg }]}>
-        {SLIDES.map((_, i) => (
-          <View
-            key={i}
-            style={[
-              styles.dot,
-              i === activeIndex ? styles.dotActive : styles.dotInactive,
-              { borderColor: activeIndex === 1 ? '#3D1F00' : '#FFF7E0' },
-              i === activeIndex && { backgroundColor: activeIndex === 1 ? '#3D1F00' : '#FFF7E0' },
-            ]}
-          />
-        ))}
-      </View>
     </View>
   );
 }

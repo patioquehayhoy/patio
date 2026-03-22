@@ -74,16 +74,16 @@ export default function LoginScreen() {
   useEffect(() => {
     supabase.auth.getSession()
       .then(async ({ data }) => {
-        if (data.session?.user?.email) {
-          initFondita(data.session.user.email);
-          router.replace('/menu');
-          return;
-        }
-        const seen = await AsyncStorage.getItem('onboarding_done');
-        if (!seen) {
-          router.replace('/onboarding');
-          return;
-        }
+        // if (data.session?.user?.email) {
+        //   initFondita(data.session.user.email);
+        //   router.replace('/menu');
+        //   return;
+        // }
+        // const seen = await AsyncStorage.getItem('onboarding_done');
+        // if (!seen) {
+        //   router.replace('/onboarding');
+        //   return;
+        // }
         setCheckingSession(false);
       })
       .catch(() => setCheckingSession(false));
@@ -178,9 +178,6 @@ export default function LoginScreen() {
             </TouchableOpacity>
             <TouchableOpacity style={styles.createAccountLink} onPress={handleSendOtp}>
               <ThemedText style={styles.createAccountText}>Crear cuenta</ThemedText>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.devButton} onPress={() => router.replace('/menu')}>
-              <ThemedText style={styles.devButtonText}>Entrar sin cuenta</ThemedText>
             </TouchableOpacity>
           </View>
         ) : (

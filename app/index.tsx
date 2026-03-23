@@ -76,7 +76,8 @@ export default function LoginScreen() {
     });
 
     const handleDeepLink = async (url: string) => {
-      if (!url.startsWith('lafondita://')) return;
+      console.log('=== DEEP LINK URL:', url);
+      if (!url || (!url.startsWith('lafondita://') && !url.includes('login-callback'))) return;
       const { data, error } = await supabase.auth.getSessionFromUrl({ url } as any);
       if (!error && data?.session?.user?.email) {
         initFondita(data.session.user.email);
@@ -101,8 +102,8 @@ export default function LoginScreen() {
     const { error: err } = await supabase.auth.signInWithOtp({
       email: trimmed,
       options: {
+        emailRedirectTo: 'lafondita://login-callback',
         shouldCreateUser: true,
-        emailRedirectTo: Platform.OS === 'web' ? window.location.origin : 'lafondita://login-callback',
       },
     });
     setLoading(false);

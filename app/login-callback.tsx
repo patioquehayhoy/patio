@@ -1,26 +1,22 @@
 import { useEffect } from 'react'
 import { router } from 'expo-router'
 import { supabase } from '@/lib/supabase'
-import { View, Text, ActivityIndicator, Linking } from 'react-native'
+import { View, Text, ActivityIndicator } from 'react-native'
+import { upsertFondita } from '@/lib/db'
 
 export default function LoginCallback() {
   useEffect(() => {
-    const processUrl = async (url: string | null) => {
-      if (!url) {
+    const check = async () => {
+      await new Promise(r => setTimeout(r, 1500))
+      const { data } = await supabase.auth.getSession()
+      if (data.session?.user?.email) {
+        await upsertFondita(data.session.user.email)
+        router.replace('/menu')
+      } else {
         router.replace('/')
-        return
       }
-      const code = new URL(url).searchParams.get('code')
-      if (code) {
-        const { data, error } = await supabase.auth.exchangeCodeForSession(code)
-        if (!error && data.session?.user?.email) {
-          router.replace('/menu')
-          return
-        }
-      }
-      router.replace('/')
     }
-    Linking.getInitialURL().then(processUrl)
+    check()
   }, [])
 
   return (

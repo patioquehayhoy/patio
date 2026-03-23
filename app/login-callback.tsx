@@ -10,19 +10,15 @@ export default function LoginCallback() {
         router.replace('/')
         return
       }
-      const { data, error } = await supabase.auth.getSessionFromUrl({ url } as any)
-      if (data?.session?.user?.email) {
-        router.replace('/menu')
-      } else {
-        setTimeout(async () => {
-          const { data: s } = await supabase.auth.getSession()
-          if (s.session?.user?.email) {
-            router.replace('/menu')
-          } else {
-            router.replace('/')
-          }
-        }, 3000)
+      const code = new URL(url).searchParams.get('code')
+      if (code) {
+        const { data, error } = await supabase.auth.exchangeCodeForSession(code)
+        if (!error && data.session?.user?.email) {
+          router.replace('/menu')
+          return
+        }
       }
+      router.replace('/')
     }
     Linking.getInitialURL().then(processUrl)
   }, [])

@@ -1,19 +1,30 @@
 import { useEffect } from 'react'
 import { router } from 'expo-router'
 import { supabase } from '@/lib/supabase'
-import { View, Text, ActivityIndicator } from 'react-native'
+import { View, Text, ActivityIndicator, Linking } from 'react-native'
 
 export default function LoginCallback() {
   useEffect(() => {
-    console.log('=== LOGIN CALLBACK MONTADO ===')
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('=== AUTH EVENT:', event)
-      console.log('=== SESSION:', session?.user?.email)
-      if (event === 'SIGNED_IN' && session?.user?.email) {
-        router.replace('/menu')
+    const processUrl = async (url: string | null) => {
+      if (!url) {
+        router.replace('/')
+        return
       }
-    })
-    return () => subscription.unsubscribe()
+      const { data, error } = await supabase.auth.getSessionFromUrl({ url } as any)
+      if (data?.session?.user?.email) {
+        router.replace('/menu')
+      } else {
+        setTimeout(async () => {
+          const { data: s } = await supabase.auth.getSession()
+          if (s.session?.user?.email) {
+            router.replace('/menu')
+          } else {
+            router.replace('/')
+          }
+        }, 3000)
+      }
+    }
+    Linking.getInitialURL().then(processUrl)
   }, [])
 
   return (

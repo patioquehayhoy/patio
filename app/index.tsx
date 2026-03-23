@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
-  Linking,
   Platform,
   StyleSheet,
   Text,
@@ -75,22 +74,8 @@ export default function LoginScreen() {
       }
     });
 
-    const handleDeepLink = async (url: string) => {
-      console.log('=== DEEP LINK URL:', url);
-      if (!url || (!url.startsWith('lafondita://') && !url.includes('login-callback'))) return;
-      const { data, error } = await supabase.auth.getSessionFromUrl({ url } as any);
-      if (!error && data?.session?.user?.email) {
-        initFondita(data.session.user.email);
-        router.replace('/menu');
-      }
-    };
-
-    Linking.getInitialURL().then(url => { if (url) handleDeepLink(url); });
-    const linkingSub = Linking.addEventListener('url', ({ url }) => handleDeepLink(url));
-
     return () => {
       listener.subscription.unsubscribe();
-      linkingSub.remove();
     };
   }, []);
 

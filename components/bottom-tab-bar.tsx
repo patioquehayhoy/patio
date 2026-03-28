@@ -35,7 +35,7 @@ export function BottomTabBar() {
             <Ionicons
               name={active ? iconActive : iconInactive}
               size={22}
-              color={active ? '#FF5E00' : '#9E3F00'}
+              color={active ? theme.text : theme.text}
               style={{ opacity: active ? 1 : 0.4 }}
             />
             <Text style={[styles.label, { color: active ? theme.orange : theme.gray }]}>{label}</Text>

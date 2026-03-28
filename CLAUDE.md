@@ -24,18 +24,19 @@ Cuando varios campos de texto forman un bloque semántico
 
 | Token   | Hex       | Uso                                      |
 |---------|-----------|------------------------------------------|
-| ORANGE  | `#FF5E00` | Acento principal, CTAs, labels de sección |
-| BONE    | `#FFF7E0` | Fondo claro, thumb del toggle            |
-| DARK    | `#3D1F00` | Fondo oscuro (dark mode), texto principal |
-| GRAY    | `#9E3F00` | Texto secundario, placeholders, iconos   |
+| BG      | `#EFEFEF` | Fondo principal de la app                |
+| BLACK   | `#292929` | Texto principal, botones primarios       |
+| WHITE   | `#FFFFFF` | Superficie, cards, inputs                |
+| BLACK60 | `rgba(41,41,41,0.5)` | Texto secundario, placeholders, iconos |
 
 ## Componentes
 
-- **Botones primarios**: `borderRadius 14`, fondo `ORANGE`, texto blanco `fontWeight '900'`
-- **Botones de contorno**: `borderWidth 1.5`, `borderColor` blanco o ORANGE, fondo transparente
-- **Segmented control**: `borderRadius 14`, `borderWidth 1`, `borderColor rgba(255,94,0,0.4)`, `overflow hidden`
+- **Botones primarios**: `borderRadius 14`, fondo `BLACK (#292929)`, texto blanco `fontWeight '600'`
+- **Botones de contorno**: `borderWidth 1.5`, `borderColor BLACK`, fondo transparente
+- **Segmented control**: `borderRadius 14`, `borderWidth 1`, `overflow hidden`
 - **Separadores**: `StyleSheet.hairlineWidth`, color `t.sep`
-- **Placeholders**: `rgba(255,94,0,0.2)`
+- **Placeholders**: `BLACK60`
+- **Cards / inputs**: fondo `WHITE`, `borderRadius 14`
 
 ## Precio en menu.tsx — NO TOCAR
 El bloque del precio tiene esta estructura exacta que NO debe modificarse:

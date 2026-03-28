@@ -1,8 +1,9 @@
 import { router } from 'expo-router';
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
+  Animated,
   Dimensions,
-  FlatList,
+  Image,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -10,84 +11,143 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const { width, height } = Dimensions.get('window');
+const { height } = Dimensions.get('window');
 const ONBOARDING_KEY = 'onboarding_done';
+
+const SLIDES = [
+  {
+    title: '¿Qué hay hoy?',
+    sub:   'Saaaaaaabes.',
+  },
+  {
+    title: 'Tu menú del día, a tiempo.',
+    sub:   'Hecho para compartir.',
+  },
+  {
+    title: 'Haz que tus clientes lo sepan.',
+    sub:   null,
+    last:  true,
+  },
+];
+
+function finish() {
+  AsyncStorage.setItem(ONBOARDING_KEY, '1');
+  router.replace('/');
+}
+
+export default function OnboardingScreen() {
+  // TODO: quitar antes de release
+  AsyncStorage.removeItem(ONBOARDING_KEY);
+
+  const [index, setIndex] = useState(0);
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+
+  const advance = () => {
+    if (index === SLIDES.length - 1) { finish(); return; }
+    Animated.timing(fadeAnim, { toValue: 0, duration: 150, useNativeDriver: true }).start(() => {
+      setIndex(i => i + 1);
+      Animated.timing(fadeAnim, { toValue: 1, duration: 200, useNativeDriver: true }).start();
+    });
+  };
+
+  useEffect(() => {
+    fadeAnim.setValue(1);
+  }, []);
+
+  const slide = SLIDES[index];
+
+  return (
+    <TouchableOpacity style={styles.root} activeOpacity={1} onPress={advance}>
+      {/* Logo fijo */}
+      <View style={styles.logoContainer}>
+        <Image
+          source={require('../assets/images/logo-negro.png')}
+          style={styles.logo}
+          resizeMode="contain"
+        />
+      </View>
+
+      {/* Texto con fade */}
+      <Animated.View style={[styles.textBlock, { opacity: fadeAnim }]}>
+        <Text style={styles.title} allowFontScaling={true}>{slide.title}</Text>
+        {!!slide.sub && <Text style={styles.sub} allowFontScaling={true}>{slide.sub}</Text>}
+        {slide.last && (
+          <TouchableOpacity style={styles.startBtn} onPress={finish} activeOpacity={0.85}>
+            <Text style={styles.startBtnText} allowFontScaling={true}>Empezar</Text>
+          </TouchableOpacity>
+        )}
+      </Animated.View>
+
+      {/* Dots */}
+      <View style={styles.dotsRow}>
+        {SLIDES.map((_, i) => (
+          <View
+            key={i}
+            style={[
+              styles.dot,
+              i === index ? styles.dotActive : styles.dotInactive,
+            ]}
+          />
+        ))}
+      </View>
+    </TouchableOpacity>
+  );
+}
+
 const styles = StyleSheet.create({
   root: {
     flex: 1,
+    backgroundColor: '#EFEFEF',
   },
-  slide: {
-    width,
-    flex: 1,
-    justifyContent: 'flex-start',
+  logoContainer: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
     alignItems: 'center',
-    paddingTop: height * 0.42,
-    paddingHorizontal: 40,
+    justifyContent: 'center',
   },
-  slideCenter: {
+  logo: {
+    width: 320,
+    height: 120,
+    marginLeft: -7,
+  },
+  textBlock: {
+    position: 'absolute',
+    top: height * 0.56,
+    left: 40,
+    right: 40,
     alignItems: 'center',
-    gap: 4,
+    gap: 6,
   },
-  // Slide 1
-  s1Logo: {
-    fontSize: 34,
+  title: {
+    fontSize: 22,
     fontWeight: '900',
-    color: '#FFF7E0',
-    letterSpacing: -1,
+    color: '#292929',
     textAlign: 'center',
+    letterSpacing: -0.5,
+    lineHeight: 28,
   },
-  s1Sub: {
-    fontSize: 17,
-    fontWeight: '300',
-    color: '#FFF7E0',
-    textAlign: 'center',
-  },
-  s1Tag: {
+  sub: {
     fontSize: 15,
     fontWeight: '300',
-    color: '#FFF7E0',
-    opacity: 0.8,
+    color: '#292929',
+    opacity: 0.6,
     textAlign: 'center',
-  },
-  // Slide 2
-  s2Title: {
-    fontSize: 24,
-    fontWeight: '900',
-    color: '#3D1F00',
-    letterSpacing: -0.5,
-    textAlign: 'center',
-    lineHeight: 30,
-  },
-  s2Sub: {
-    fontSize: 15,
-    fontWeight: '300',
-    color: '#9E3F00',
-    textAlign: 'center',
-  },
-  // Slide 3
-  s3Title: {
-    fontSize: 28,
-    fontWeight: '900',
-    color: '#FFF7E0',
-    letterSpacing: -0.5,
-    textAlign: 'center',
-    lineHeight: 36,
   },
   startBtn: {
-    position: 'absolute',
-    bottom: 80,
-    alignSelf: 'center',
-    backgroundColor: '#FF5E00',
-    borderRadius: 12,
-    paddingVertical: 16,
+    marginTop: 16,
+    backgroundColor: '#292929',
+    borderRadius: 14,
+    paddingVertical: 14,
     paddingHorizontal: 48,
   },
   startBtnText: {
-    color: '#FFF7E0',
+    color: '#FFFFFF',
     fontWeight: '700',
     fontSize: 15,
   },
-  // Dots
   dotsRow: {
     position: 'absolute',
     bottom: 48,
@@ -103,91 +163,15 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
     borderWidth: 1.5,
+    borderColor: '#292929',
   },
   dotActive: {
     width: 10,
     height: 10,
     borderRadius: 5,
+    backgroundColor: '#292929',
   },
   dotInactive: {
     backgroundColor: 'transparent',
   },
 });
-
-const SLIDES = [
-  {
-    bg: '#FF5E00',
-    content: (
-      <View style={styles.slideCenter}>
-        <Text style={styles.s1Logo} allowFontScaling={true}>PATIO</Text>
-        <Text style={styles.s1Sub} allowFontScaling={true}>¿Qué hay hoy?</Text>
-        <Text style={styles.s1Tag} allowFontScaling={true}>Saaaaaaabes.</Text>
-      </View>
-    ),
-  },
-  {
-    bg: '#FFF7E0',
-    content: (
-      <View style={styles.slideCenter}>
-        <Text style={styles.s2Title} allowFontScaling={true} numberOfLines={1} adjustsFontSizeToFit>Tu menú del día, a tiempo.</Text>
-        <Text style={styles.s2Sub} allowFontScaling={true}>Hecho para compartir.</Text>
-      </View>
-    ),
-  },
-  {
-    bg: '#3D1F00',
-    content: (
-      <>
-        <View style={styles.slideCenter}>
-          <Text style={styles.s3Title} allowFontScaling={true} numberOfLines={1} adjustsFontSizeToFit={true}>Haz que tus clientes lo sepan.</Text>
-        </View>
-        <TouchableOpacity style={styles.startBtn} onPress={finish} activeOpacity={0.85}>
-          <Text style={styles.startBtnText} allowFontScaling={true}>Empezar</Text>
-        </TouchableOpacity>
-      </>
-    ),
-  },
-];
-
-function finish() {
-  AsyncStorage.setItem(ONBOARDING_KEY, '1');
-  router.replace('/');
-}
-
-export default function OnboardingScreen() {
-  // TODO: quitar antes de release
-  AsyncStorage.removeItem(ONBOARDING_KEY);
-
-  const flatRef = useRef<FlatList>(null);
-
-  return (
-    <View style={styles.root}>
-      <FlatList
-        ref={flatRef}
-        data={SLIDES}
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-        keyExtractor={(_, i) => String(i)}
-        renderItem={({ item, index }) => (
-          <View style={[styles.slide, { backgroundColor: item.bg }]}>
-            {item.content}
-            <View style={styles.dotsRow}>
-              {SLIDES.map((_, i) => (
-                <View
-                  key={i}
-                  style={[
-                    styles.dot,
-                    i === index ? styles.dotActive : styles.dotInactive,
-                    { borderColor: item.bg === '#FFF7E0' ? '#3D1F00' : '#FFF7E0' },
-                    i === index && { backgroundColor: item.bg === '#FFF7E0' ? '#3D1F00' : '#FFF7E0' },
-                  ]}
-                />
-              ))}
-            </View>
-          </View>
-        )}
-      />
-    </View>
-  );
-}

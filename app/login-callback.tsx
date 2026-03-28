@@ -1,28 +1,72 @@
-import { useEffect } from 'react'
-import { router } from 'expo-router'
-import { supabase } from '@/lib/supabase'
-import { View, Text, ActivityIndicator } from 'react-native'
-import { upsertFondita } from '@/lib/db'
+import { useEffect } from 'react';
+import { View, ActivityIndicator } from 'react-native';
+import { useRouter } from 'expo-router';
+import * as Linking from 'expo-linking';
+import { supabase } from '../lib/supabase';
 
 export default function LoginCallback() {
+  const router = useRouter();
+
   useEffect(() => {
-    const check = async () => {
-      await new Promise(r => setTimeout(r, 1500))
-      const { data } = await supabase.auth.getSession()
-      if (data.session?.user?.email) {
-        await upsertFondita(data.session.user.email)
-        router.replace('/menu')
-      } else {
-        router.replace('/')
+    handleDeepLink();
+  }, []);
+
+  async function handleDeepLink() {
+    try {
+      // Obtener la URL que abrió la app
+      const url = await Linking.getInitialURL();
+      if (!url) {
+        router.replace('/');
+        return;
       }
+
+      // Extraer los query params
+      const parsed = Linking.parse(url);
+      const token = parsed.queryParams?.token as string;
+      const type = parsed.queryParams?.type as string;
+
+      if (!token || type !== 'magiclink') {
+        router.replace('/');
+        return;
+      }
+
+      // Intercambiar el token por una sesión real
+      const { error } = await supabase.auth.verifyOtp({
+        token_hash: token,
+        type: 'magiclink',
+      });
+
+      if (error) {
+        console.error('Error verificando OTP:', error.message);
+        router.replace('/');
+        return;
+      }
+
+      // Sesión creada — upsert fondita y navegar
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        await upsertFondita(session.user);
+        router.replace('/menu');
+      } else {
+        router.replace('/');
+      }
+    } catch (e) {
+      console.error('Error en login-callback:', e);
+      router.replace('/');
     }
-    check()
-  }, [])
+  }
+
+  async function upsertFondita(user: any) {
+    await supabase.from('fonditas').upsert({
+      id: user.id,
+      telefono: user.email,
+      nombre: user.email,
+    }, { onConflict: 'id' });
+  }
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#FF5E00', justifyContent: 'center', alignItems: 'center' }}>
-      <Text style={{ color: '#FFF7E0', fontSize: 28, fontWeight: '900' }}>PATIO</Text>
-      <ActivityIndicator color="#FFF7E0" style={{ marginTop: 24 }} />
+    <View style={{ flex: 1, backgroundColor: '#EFEFEF', justifyContent: 'center', alignItems: 'center' }}>
+      <ActivityIndicator size="large" color="#292929" />
     </View>
-  )
+  );
 }

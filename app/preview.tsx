@@ -228,7 +228,7 @@ function makeStyles(t: Theme) {
     infoLine:          { fontSize: 12, fontWeight: '300', color: t.gray, opacity: 0.6, lineHeight: 18, textAlign: 'center', marginBottom: 2 },
     empty:             { textAlign: 'center', fontWeight: '300', color: t.gray, fontStyle: 'italic', marginTop: 40 },
     actions:           { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.sep, paddingTop: 12 },
-    whatsappButton:    { backgroundColor: '#FF5E00', height: 52, borderRadius: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginHorizontal: 24, marginBottom: 24, shadowColor: '#8B2500', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.25, shadowRadius: 6, elevation: 4 },
+    whatsappButton:    { backgroundColor: '#292929', height: 52, borderRadius: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginHorizontal: 24, marginBottom: 24, shadowColor: '#000000', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.15, shadowRadius: 6, elevation: 4 },
     whatsappButtonText:{ color: '#fff', fontSize: 15, fontWeight: '700' },
   });
 }

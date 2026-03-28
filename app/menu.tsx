@@ -79,7 +79,7 @@ function makeStyles(t: Theme) {
     // Section
     section:              { marginBottom: 24 },
     sectionHeader:        { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
-    sectionDivider:       { height: 0.5, backgroundColor: 'rgba(255,94,0,0.3)', marginBottom: 12 },
+    sectionDivider:       { height: 0.5, backgroundColor: t.accentLight, marginBottom: 12 },
     secLabel:             { fontSize: 12, fontWeight: '700', letterSpacing: 1.4, color: t.orange, textTransform: 'uppercase' },
     // Items
     itemRow:              { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
@@ -126,12 +126,12 @@ function SegmentedControl({ value, onChange }: { value: 'menu' | 'carta'; onChan
       <TouchableOpacity
         style={[seg.btn, value === 'menu' && { backgroundColor: theme.orange }]}
         onPress={() => onChange('menu')}>
-        <Text style={[seg.label, { color: value === 'menu' ? '#FFF7E0' : theme.gray }]} allowFontScaling={true}>Menú</Text>
+        <Text style={[seg.label, { color: value === 'menu' ? theme.surface : theme.gray }]} allowFontScaling={true}>Menú</Text>
       </TouchableOpacity>
       <TouchableOpacity
         style={[seg.btn, value === 'carta' && { backgroundColor: theme.orange }]}
         onPress={() => onChange('carta')}>
-        <Text style={[seg.label, { color: value === 'carta' ? '#FFF7E0' : theme.gray }]} allowFontScaling={true}>Carta</Text>
+        <Text style={[seg.label, { color: value === 'carta' ? theme.surface : theme.gray }]} allowFontScaling={true}>Carta</Text>
       </TouchableOpacity>
     </View>
   );
@@ -145,16 +145,17 @@ const seg = StyleSheet.create({
 
 // ─── ToggleSwitch ─────────────────────────────────────────────────────────────
 function ToggleSwitch({ value, onValueChange }: { value: boolean; onValueChange: (v: boolean) => void }) {
+  const { theme } = useTheme();
   const anim = useRef(new Animated.Value(value ? 1 : 0)).current;
   useEffect(() => {
     Animated.spring(anim, { toValue: value ? 1 : 0, useNativeDriver: false, speed: 20, bounciness: 0 }).start();
   }, [value]);
   const translateX = anim.interpolate({ inputRange: [0, 1], outputRange: [2, 20] });
-  const trackColor = anim.interpolate({ inputRange: [0, 1], outputRange: ['rgba(255,94,0,0.2)', '#FF5E00'] });
+  const trackColor = anim.interpolate({ inputRange: [0, 1], outputRange: [theme.accentLight, theme.accent] });
   return (
     <TouchableOpacity onPress={() => onValueChange(!value)} activeOpacity={0.85}>
       <Animated.View style={[tog.track, { backgroundColor: trackColor }]}>
-        <Animated.View style={[tog.thumb, { transform: [{ translateX }] }]} />
+        <Animated.View style={[tog.thumb, { backgroundColor: theme.surface, transform: [{ translateX }] }]} />
       </Animated.View>
     </TouchableOpacity>
   );
@@ -162,7 +163,7 @@ function ToggleSwitch({ value, onValueChange }: { value: boolean; onValueChange:
 
 const tog = StyleSheet.create({
   track: { width: 44, height: 26, borderRadius: 13, justifyContent: 'center' },
-  thumb: { width: 22, height: 22, borderRadius: 11, backgroundColor: '#FFF7E0' },
+  thumb: { width: 22, height: 22, borderRadius: 11 },
 });
 
 // ─── OrdTitle ─────────────────────────────────────────────────────────────────
@@ -191,7 +192,7 @@ function DescInput({
       ref={inputRef}
       style={[s.descInput, { flex: 1.2 }]}
       placeholder="Descripción"
-      placeholderTextColor="rgba(255,94,0,0.2)"
+      placeholderTextColor={theme.border}
       value={value}
       autoCapitalize="none"
       onChangeText={onChange}
@@ -277,7 +278,7 @@ function DynamicSection({
                     ref={(el) => { nameRefs.current[index] = el; }}
                     style={s.input}
                     placeholder={placeholder}
-                    placeholderTextColor="rgba(255,94,0,0.2)"
+                    placeholderTextColor={theme.border}
                     value={namePart}
                     autoCapitalize="words"
                     onChangeText={(v) => {
@@ -364,7 +365,7 @@ function PrecioSection({ value, onChange }: { value: string; onChange: (value: s
         <TextInput
           style={{ fontSize: 22, fontWeight: '900', color: theme.orange, paddingTop: 0, paddingBottom: 0, paddingHorizontal: 0, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.sep, backgroundColor: 'transparent', minWidth: 60 }}
           placeholder="74"
-          placeholderTextColor="rgba(255,94,0,0.2)"
+          placeholderTextColor={theme.border}
           value={value}
           onChangeText={onChange}
           keyboardType="number-pad"
@@ -616,12 +617,12 @@ export default function MenuScreen() {
                 <PrecioSection value={activeData.precio.value} onChange={(v) => { const soloNumeros = v.replace(/[^0-9]/g, ''); setActiveData((prev) => ({ ...prev, precio: { ...prev.precio, value: soloNumeros } })); }} />
                 {activeTab === 'menu' && (
                   <TouchableOpacity onPress={handleBorrarMenu} style={{ marginTop: 32, marginBottom: 32, alignItems: 'center' }}>
-                    <Text style={{ fontSize: 15, fontWeight: '300', color: '#9E3F00', opacity: 0.5 }}>Borrar menú del día</Text>
+                    <Text style={{ fontSize: 15, fontWeight: '300', color: theme.textSecondary }}>Borrar menú del día</Text>
                   </TouchableOpacity>
                 )}
                 {activeTab === 'carta' && (
                   <TouchableOpacity onPress={handleBorrarCarta} style={{ marginTop: 32, marginBottom: 32, alignItems: 'center' }}>
-                    <Text style={{ fontSize: 15, fontWeight: '300', color: '#9E3F00', opacity: 0.5 }}>Borrar carta</Text>
+                    <Text style={{ fontSize: 15, fontWeight: '300', color: theme.textSecondary }}>Borrar carta</Text>
                   </TouchableOpacity>
                 )}
               </View>

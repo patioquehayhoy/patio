@@ -34,11 +34,9 @@ import {
 import { useTheme, type Theme } from '@/lib/theme';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-const PLACEHOLDER = 'rgba(255,94,0,0.2)';
 const MAX_NOMBRE      = 30;
 const MAX_DESCRIPCION = 80;
 const MAX_UBICACION   = 80;
-const ICON_COLOR    = '#9E3F00';
 
 function defaultApertura(): Date {
   const d = new Date(); d.setHours(8, 0, 0, 0); return d;
@@ -98,7 +96,7 @@ function makeStyles(t: Theme) {
     block:          { paddingTop: 24 },
     blockHeader:    { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     blockLabel:     { fontSize: 12, fontWeight: '900', color: t.orange, letterSpacing: 1.2, marginBottom: 8 },
-    saveInlineBtn:  { fontSize: 15, fontWeight: '700', color: '#FF5E00' },
+    saveInlineBtn:  { fontSize: 15, fontWeight: '700', color: t.accent },
     nombreInput:    { fontSize: 28, fontWeight: '900', color: t.text, letterSpacing: -0.5, lineHeight: 34, paddingVertical: 0, paddingHorizontal: 0, backgroundColor: 'transparent', marginBottom: 2 },
     fieldInput:     { fontWeight: '300', color: t.gray, paddingVertical: 0, paddingHorizontal: 0, backgroundColor: 'transparent' },
     row:            { flexDirection: 'row', alignItems: 'center', minHeight: 44 },
@@ -107,30 +105,31 @@ function makeStyles(t: Theme) {
     divider:        { height: StyleSheet.hairlineWidth, backgroundColor: t.sep },
     pickerWrapper:  { backgroundColor: t.surface, borderRadius: 12, overflow: 'hidden' },
     chipsRow:       { flexDirection: 'row', gap: 8, paddingBottom: 16 },
-    chip:           { paddingVertical: 8, paddingHorizontal: 16, borderRadius: 20, borderWidth: 1, borderColor: '#EDE8DC' },
+    chip:           { paddingVertical: 8, paddingHorizontal: 16, borderRadius: 20, borderWidth: 1, borderColor: t.border },
     chipDark:       { backgroundColor: t.surface, borderWidth: 0 },
-    chipActive:     { backgroundColor: '#FF5E00', borderColor: '#FF5E00' },
-    chipText:       { fontSize: 15, fontWeight: '500', color: '#9E3F00' },
-    chipTextActive: { fontSize: 15, fontWeight: '500', color: '#FFF7E0' },
+    chipActive:     { backgroundColor: t.accent, borderColor: t.accent },
+    chipText:       { fontSize: 15, fontWeight: '500', color: t.text },
+    chipTextActive: { fontSize: 15, fontWeight: '500', color: t.surface },
     timeRow:        { flexDirection: 'row', gap: 16, marginBottom: 8 },
     timeBtn:        { flex: 1, paddingVertical: 10, paddingHorizontal: 14, borderRadius: 12, backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.sep },
-    timeBtnLabel:   { fontSize: 12, fontWeight: '700', color: ICON_COLOR, letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 2, opacity: 0.6 },
+    timeBtnLabel:   { fontSize: 12, fontWeight: '700', color: t.text, letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 2, opacity: 0.6 },
     timeBtnValue:   { fontSize: 22, fontWeight: '900', color: t.text, letterSpacing: -0.3 },
   });
 }
 
 // ─── ToggleSwitch ─────────────────────────────────────────────────────────────
 function ToggleSwitch({ value, onValueChange }: { value: boolean; onValueChange: (v: boolean) => void }) {
+  const { theme } = useTheme();
   const anim = useRef(new Animated.Value(value ? 1 : 0)).current;
   useEffect(() => {
     Animated.spring(anim, { toValue: value ? 1 : 0, useNativeDriver: false, speed: 20, bounciness: 0 }).start();
   }, [value]);
   const translateX = anim.interpolate({ inputRange: [0, 1], outputRange: [2, 20] });
-  const trackColor = anim.interpolate({ inputRange: [0, 1], outputRange: ['rgba(255,94,0,0.2)', '#FF5E00'] });
+  const trackColor = anim.interpolate({ inputRange: [0, 1], outputRange: [theme.accentLight, theme.accent] });
   return (
     <TouchableOpacity onPress={() => onValueChange(!value)} activeOpacity={0.85}>
       <Animated.View style={[tog.track, { backgroundColor: trackColor }]}>
-        <Animated.View style={[tog.thumb, { transform: [{ translateX }] }]} />
+        <Animated.View style={[tog.thumb, { backgroundColor: theme.surface, transform: [{ translateX }] }]} />
       </Animated.View>
     </TouchableOpacity>
   );
@@ -138,7 +137,7 @@ function ToggleSwitch({ value, onValueChange }: { value: boolean; onValueChange:
 
 const tog = StyleSheet.create({
   track: { width: 44, height: 26, borderRadius: 13, justifyContent: 'center' },
-  thumb: { width: 22, height: 22, borderRadius: 11, backgroundColor: '#FFF7E0' },
+  thumb: { width: 22, height: 22, borderRadius: 11 },
 });
 
 // ─── Main Screen ──────────────────────────────────────────────────────────────
@@ -328,7 +327,7 @@ export default function PerfilScreen() {
             value={nombre}
             onChangeText={(v) => setNombre(v.slice(0, MAX_NOMBRE))}
             placeholder="Nombre"
-            placeholderTextColor={PLACEHOLDER}
+            placeholderTextColor={theme.border}
             selectionColor={theme.orange}
             autoCapitalize="none"
             editable={ready}
@@ -339,7 +338,7 @@ export default function PerfilScreen() {
             value={descripcion}
             onChangeText={(v) => setDescripcion(v.slice(0, MAX_DESCRIPCION))}
             placeholder="Comida casera con sazón de abuela"
-            placeholderTextColor={PLACEHOLDER}
+            placeholderTextColor={theme.border}
             selectionColor={theme.orange}
             autoCapitalize="none"
             editable={ready}
@@ -350,7 +349,7 @@ export default function PerfilScreen() {
             value={ubicacion}
             onChangeText={(v) => setUbicacion(v.slice(0, MAX_UBICACION))}
             placeholder="Av. Principal 123, Col. Centro"
-            placeholderTextColor={PLACEHOLDER}
+            placeholderTextColor={theme.border}
             selectionColor={theme.orange}
             autoCapitalize="none"
             editable={ready}
@@ -365,11 +364,11 @@ export default function PerfilScreen() {
           <View style={s.timeRow}>
             <TouchableOpacity style={s.timeBtn} onPress={() => { setShowCierre(false); setShowApertura(v => !v); }} activeOpacity={0.8}>
               <Text style={s.timeBtnLabel} allowFontScaling={true}>Apertura</Text>
-              <Text style={[s.timeBtnValue, !apertura && { color: 'rgba(158,63,0,0.3)' }]} allowFontScaling={true}>{apertura ? formatTime(apertura) : '00:00'}</Text>
+              <Text style={[s.timeBtnValue, !apertura && { color: theme.textSecondary }]} allowFontScaling={true}>{apertura ? formatTime(apertura) : '00:00'}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={s.timeBtn} onPress={() => { setShowApertura(false); setShowCierre(v => !v); }} activeOpacity={0.8}>
               <Text style={s.timeBtnLabel} allowFontScaling={true}>Cierre</Text>
-              <Text style={[s.timeBtnValue, !cierre && { color: 'rgba(158,63,0,0.3)' }]} allowFontScaling={true}>{cierre ? formatTime(cierre) : '00:00'}</Text>
+              <Text style={[s.timeBtnValue, !cierre && { color: theme.textSecondary }]} allowFontScaling={true}>{cierre ? formatTime(cierre) : '00:00'}</Text>
             </TouchableOpacity>
           </View>
           {showApertura && (
@@ -384,8 +383,8 @@ export default function PerfilScreen() {
                   aperturaTimerRef.current = setTimeout(() => setShowApertura(false), 600);
                 }}
                 minuteInterval={15}
-                textColor="#3D1F00"
-                accentColor="#FF5E00"
+                textColor={theme.text}
+                accentColor={theme.accent}
               />
             </View>
           )}
@@ -401,8 +400,8 @@ export default function PerfilScreen() {
                   cierreTimerRef.current = setTimeout(() => setShowCierre(false), 600);
                 }}
                 minuteInterval={15}
-                textColor="#3D1F00"
-                accentColor="#FF5E00"
+                textColor={theme.text}
+                accentColor={theme.accent}
               />
             </View>
           )}
@@ -430,7 +429,7 @@ export default function PerfilScreen() {
         <View style={s.block}>
           <Text style={s.blockLabel} allowFontScaling={true}>CUENTA</Text>
           <View style={s.row}>
-            <Ionicons name="mail-outline" size={22} color={ICON_COLOR} style={{ marginRight: 10, opacity: 0.4 }} />
+            <Ionicons name="mail-outline" size={22} color={theme.text} style={{ marginRight: 10, opacity: 0.4 }} />
             <Text style={s.emailText} allowFontScaling={true}>{email || '—'}</Text>
           </View>
           <View style={s.divider} />
@@ -440,7 +439,7 @@ export default function PerfilScreen() {
         <View style={s.block}>
           <Text style={s.blockLabel} allowFontScaling={true}>PREFERENCIAS</Text>
           <View style={s.row}>
-            <Ionicons name="moon-outline" size={22} color={ICON_COLOR} style={{ marginRight: 10, opacity: 0.4 }} />
+            <Ionicons name="moon-outline" size={22} color={theme.text} style={{ marginRight: 10, opacity: 0.4 }} />
             <Text style={s.rowLabel} allowFontScaling={true}>Modo oscuro</Text>
             <ToggleSwitch value={theme.isDark} onValueChange={toggleTheme} />
           </View>
@@ -451,12 +450,12 @@ export default function PerfilScreen() {
         <View style={s.block}>
           <Text style={s.blockLabel} allowFontScaling={true}>SOPORTE</Text>
           <TouchableOpacity style={s.row} onPress={() => Linking.openURL('mailto:contacto.parco@gmail.com?subject=Problema%20en%20La%20Fondita')} activeOpacity={0.7}>
-            <Ionicons name="chatbubble-outline" size={22} color={ICON_COLOR} style={{ marginRight: 10, opacity: 0.4 }} />
+            <Ionicons name="chatbubble-outline" size={22} color={theme.text} style={{ marginRight: 10, opacity: 0.4 }} />
             <Text style={s.rowLabel} allowFontScaling={true}>Contactar con soporte</Text>
           </TouchableOpacity>
           <View style={s.divider} />
           <TouchableOpacity style={s.row} onPress={() => Linking.openURL('https://apple.com')} activeOpacity={0.7}>
-            <Ionicons name="star-outline" size={22} color={ICON_COLOR} style={{ marginRight: 10, opacity: 0.4 }} />
+            <Ionicons name="star-outline" size={22} color={theme.text} style={{ marginRight: 10, opacity: 0.4 }} />
             <Text style={s.rowLabel} allowFontScaling={true}>Calificar la app</Text>
           </TouchableOpacity>
           <View style={s.divider} />
@@ -466,7 +465,7 @@ export default function PerfilScreen() {
         <View style={s.block}>
           <Text style={s.blockLabel} allowFontScaling={true}>SESIÓN</Text>
           <TouchableOpacity style={s.row} onPress={handleSignOut} activeOpacity={0.7}>
-            <Ionicons name="log-out-outline" size={22} color={ICON_COLOR} style={{ marginRight: 10, opacity: 0.4 }} />
+            <Ionicons name="log-out-outline" size={22} color={theme.text} style={{ marginRight: 10, opacity: 0.4 }} />
             <Text style={s.rowLabel} allowFontScaling={true}>Cerrar sesión</Text>
           </TouchableOpacity>
           <View style={s.divider} />

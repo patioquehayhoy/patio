@@ -11,19 +11,17 @@ import {
   TouchableOpacity,
   View,
   Alert,
+  Image,
 } from 'react-native';
 
-import { ThemedText } from '@/components/themed-text';
 import { supabase } from '@/lib/supabase';
 import { upsertFondita } from '@/lib/db';
 import { setFonditaId } from '@/lib/user-store';
 
-// ─── Auth error handler ───────────────────────────────────────────────────────
 function showAuthError(err: { message?: string; code?: string } | null) {
   if (!err) return;
   const code = err.code ?? '';
   const msg  = (err.message ?? '').toLowerCase();
-
   let texto: string;
   if (code === 'over_email_send_rate_limit' || msg.includes('rate limit')) {
     texto = 'Demasiados intentos. Tómate un respiro e inténtalo en unos minutos.';
@@ -34,14 +32,13 @@ function showAuthError(err: { message?: string; code?: string } | null) {
   } else {
     texto = 'Algo salió mal. Inténtalo de nuevo.';
   }
-
   Alert.alert('Oops', texto, [{ text: 'Entendido' }]);
 }
 
-// ─── Design System ────────────────────────────────────────────────────────────
-const ORANGE = '#FF5E00';
+const BG = '#EFEFEF';
+const BLACK = '#292929';
+const BLACK60 = 'rgba(41,41,41,0.5)';
 const WHITE = '#FFFFFF';
-const WHITE60 = 'rgba(255,255,255,0.6)';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -74,9 +71,7 @@ export default function LoginScreen() {
       }
     });
 
-    return () => {
-      listener.subscription.unsubscribe();
-    };
+    return () => { listener.subscription.unsubscribe(); };
   }, []);
 
   const handleSend = async () => {
@@ -99,7 +94,7 @@ export default function LoginScreen() {
   if (checkingSession) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color={WHITE} />
+        <ActivityIndicator size="large" color={BLACK} />
       </View>
     );
   }
@@ -112,46 +107,54 @@ export default function LoginScreen() {
         style={styles.keyboardView}>
 
         <View style={styles.hero}>
-          <Text style={styles.logo}>Patio</Text>
-          <Text style={styles.tagline}>¿Qué hay hoy? Saaaaaaabes.</Text>
+          <Image
+            source={require('../assets/images/logo-negro.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+          <Text style={styles.tagline}>¿Qué hay hoy?</Text>
+          <Text style={styles.tagline}>Saaaaaaabes.</Text>
         </View>
 
         {!sent ? (
           <View style={styles.form}>
-            <ThemedText style={styles.label}>Ingresa tu correo para continuar</ThemedText>
-            <TextInput
-              style={styles.input}
-              placeholder="correo@ejemplo.com"
-              placeholderTextColor={WHITE60}
-              value={email}
-              onChangeText={(v) => { setEmail(v); setError(''); }}
-              autoCapitalize="none"
-              keyboardType="email-address"
-              autoComplete="email"
-              autoFocus
-              selectionColor={WHITE}
-            />
-            {error ? <ThemedText style={styles.error}>{error}</ThemedText> : null}
+            <Text style={styles.label}>Tu correo para entrar</Text>
+            <View style={styles.inputWrapper}>
+              <TextInput
+                style={styles.input}
+                placeholder="correo@ejemplo.com"
+                placeholderTextColor={BLACK60}
+                value={email}
+                onChangeText={(v) => { setEmail(v); setError(''); }}
+                autoCapitalize="none"
+                keyboardType="email-address"
+                autoComplete="email"
+                autoFocus
+                selectionColor={BLACK}
+              />
+            </View>
+            {error ? <Text style={styles.error}>{error}</Text> : null}
             <TouchableOpacity
               style={[styles.button, loading && styles.buttonDisabled]}
               onPress={handleSend}
               disabled={loading}>
               {loading
                 ? <ActivityIndicator color={WHITE} />
-                : <ThemedText style={styles.buttonText}>Entrar</ThemedText>}
+                : <Text style={styles.buttonText}>Enviar link</Text>}
             </TouchableOpacity>
+            <Text style={styles.hint}>Sin contraseña — te mandamos un link directo</Text>
           </View>
         ) : (
           <View style={styles.form}>
-            <ThemedText style={styles.label}>
-              Te enviamos un link a{'\n'}
-              <ThemedText style={styles.emailHighlight}>{email}</ThemedText>
-            </ThemedText>
-            <ThemedText style={styles.sublabel}>
-              Ábrelo para entrar a Patio.
-            </ThemedText>
+            <Text style={styles.label}>
+              Revisá tu correo
+            </Text>
+            <Text style={styles.emailHighlight}>{email}</Text>
+            <Text style={styles.sublabel}>
+              Te mandamos un link. Ábrelo para entrar a Patio.
+            </Text>
             <TouchableOpacity style={styles.backLink} onPress={() => { setSent(false); setError(''); }}>
-              <ThemedText style={styles.backLinkText}>Cambiar correo</ThemedText>
+              <Text style={styles.backLinkText}>Cambiar correo</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -163,102 +166,98 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   centered: {
     flex: 1,
-    backgroundColor: ORANGE,
+    backgroundColor: BG,
     alignItems: 'center',
     justifyContent: 'center',
   },
   container: {
     flex: 1,
-    backgroundColor: ORANGE,
-    padding: 28,
+    backgroundColor: BG,
+    padding: 32,
   },
   keyboardView: {
     flex: 1,
     justifyContent: 'center',
   },
   hero: {
-    marginBottom: 48,
+    marginBottom: 56,
     alignItems: 'center',
-    gap: 8,
   },
   logo: {
-    textAlign: 'center',
-    color: WHITE,
-    fontSize: 48,
-    fontWeight: '900',
-    lineHeight: 52,
+    width: 320,
+    height: 120,
+    marginBottom: 16,
+    marginLeft: -7,
   },
   tagline: {
+    color: BLACK60,
+    fontSize: 16,
+    fontWeight: '400',
     textAlign: 'center',
-    color: WHITE60,
-    fontSize: 14,
-    fontWeight: '300',
-    lineHeight: 20,
   },
   form: {
-    gap: 20,
+    gap: 16,
   },
   label: {
-    fontSize: 15,
-    fontWeight: '300',
-    lineHeight: 22,
-    color: WHITE,
+    fontSize: 22,
+    fontWeight: '600',
+    color: BLACK,
     marginBottom: 4,
+    textAlign: 'center',
   },
   sublabel: {
     fontSize: 15,
-    fontWeight: '300',
+    color: BLACK60,
     lineHeight: 22,
-    color: WHITE60,
   },
   emailHighlight: {
-    fontWeight: '900',
-    fontSize: 15,
-    color: WHITE,
+    fontSize: 16,
+    fontWeight: '600',
+    color: BLACK,
+  },
+  inputWrapper: {
+    backgroundColor: WHITE,
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
   },
   input: {
-    color: WHITE,
+    color: BLACK,
     fontSize: 16,
-    fontWeight: '300',
-    letterSpacing: 0,
-    borderBottomWidth: 0.5,
-    borderBottomColor: WHITE60,
-    paddingVertical: 10,
-    paddingHorizontal: 0,
-    backgroundColor: 'transparent',
+    fontWeight: '400',
   },
   error: {
-    color: WHITE,
-    fontSize: 14,
-    fontWeight: '300',
-    opacity: 0.85,
+    color: '#CC0000',
+    fontSize: 13,
   },
   button: {
-    borderWidth: 1.5,
-    borderColor: WHITE,
-    paddingVertical: 10,
-    paddingHorizontal: 24,
+    backgroundColor: BLACK,
+    paddingVertical: 16,
     borderRadius: 14,
     alignItems: 'center',
     marginTop: 4,
-    backgroundColor: 'transparent',
   },
   buttonDisabled: {
-    opacity: 0.5,
+    opacity: 0.4,
   },
   buttonText: {
     color: WHITE,
-    fontSize: 14,
-    fontWeight: '900',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  hint: {
+    color: BLACK60,
+    fontSize: 13,
+    textAlign: 'center',
   },
   backLink: {
     alignItems: 'center',
     paddingVertical: 8,
   },
   backLinkText: {
-    color: WHITE,
+    color: BLACK,
     fontSize: 14,
-    fontWeight: '300',
-    opacity: 0.75,
+    fontWeight: '400',
+    textDecorationLine: 'underline',
   },
 });

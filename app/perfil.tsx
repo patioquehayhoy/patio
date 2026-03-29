@@ -338,7 +338,7 @@ export default function PerfilScreen() {
             value={descripcion}
             onChangeText={(v) => setDescripcion(v.slice(0, MAX_DESCRIPCION))}
             placeholder="Comida casera con sazón de abuela"
-            placeholderTextColor={theme.border}
+            placeholderTextColor="rgba(41,41,41,0.45)"
             selectionColor={theme.orange}
             autoCapitalize="none"
             editable={ready}
@@ -349,7 +349,7 @@ export default function PerfilScreen() {
             value={ubicacion}
             onChangeText={(v) => setUbicacion(v.slice(0, MAX_UBICACION))}
             placeholder="Av. Principal 123, Col. Centro"
-            placeholderTextColor={theme.border}
+            placeholderTextColor="rgba(41,41,41,0.55)"
             selectionColor={theme.orange}
             autoCapitalize="none"
             editable={ready}

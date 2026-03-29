@@ -95,7 +95,7 @@ function makeStyles(t: Theme) {
     chip:                 { paddingVertical: 3, paddingHorizontal: 10, borderRadius: 12, borderWidth: 1, borderColor: t.orange, backgroundColor: 'transparent' },
     chipText:             { fontSize: 12, color: t.orange, fontWeight: '500' },
     // Precio
-    precioPrefix:         { fontSize: 22, fontWeight: '900', color: t.orange, paddingVertical: 8 },
+    precioPrefix:         { fontSize: 22, fontWeight: '900', color: t.orange, lineHeight: 28 },
     // Preview separator
     previewDividerRow:    { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10, marginTop: 32 },
     previewDividerLine:   { flex: 1, height: 0.5, backgroundColor: t.orange, opacity: 0.5 },
@@ -280,7 +280,7 @@ function DynamicSection({
                     placeholder={placeholder}
                     placeholderTextColor={theme.border}
                     value={namePart}
-                    autoCapitalize="words"
+                    autoCapitalize="sentences"
                     onChangeText={(v) => {
                       onChange(index, v + (descPart ? ' / ' + descPart : ''));
                       if (blurTimer.current) clearTimeout(blurTimer.current);
@@ -360,10 +360,10 @@ function PrecioSection({ value, onChange }: { value: string; onChange: (value: s
         <Text style={s.secLabel} allowFontScaling={true}>PRECIO</Text>
       </View>
       <View style={s.sectionDivider} />
-      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+      <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
         <Text style={s.precioPrefix} allowFontScaling={true}>$</Text>
         <TextInput
-          style={{ fontSize: 22, fontWeight: '900', color: theme.orange, paddingTop: 0, paddingBottom: 0, paddingHorizontal: 0, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.sep, backgroundColor: 'transparent', minWidth: 60 }}
+          style={{ fontSize: 22, fontWeight: '900', lineHeight: 28, color: theme.orange, paddingTop: 0, paddingBottom: 0, paddingHorizontal: 0, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.sep, backgroundColor: 'transparent', minWidth: 60 }}
           placeholder="74"
           placeholderTextColor={theme.border}
           value={value}

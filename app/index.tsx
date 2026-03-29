@@ -143,6 +143,12 @@ export default function LoginScreen() {
                 : <Text style={styles.buttonText}>Enviar link</Text>}
             </TouchableOpacity>
             <Text style={styles.hint}>Sin contraseña — te mandamos un link directo</Text>
+            <TouchableOpacity onPress={() => router.replace('/menu')} style={styles.devButton}>
+              <Text style={styles.devButtonText}>Entrar sin cuenta (dev)</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => router.replace('/onboarding')} style={styles.devButton}>
+              <Text style={styles.devButtonText}>Ver onboarding (dev)</Text>
+            </TouchableOpacity>
           </View>
         ) : (
           <View style={styles.form}>
@@ -249,6 +255,15 @@ const styles = StyleSheet.create({
     color: BLACK60,
     fontSize: 13,
     textAlign: 'center',
+  },
+  devButton: {
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  devButtonText: {
+    color: BLACK60,
+    fontSize: 12,
+    fontWeight: '300',
   },
   backLink: {
     alignItems: 'center',

@@ -194,7 +194,7 @@ export default function PreviewScreen() {
       {hasAnything && (
         <View style={s.actions}>
           <TouchableOpacity style={s.whatsappButton} onPress={handleShare} activeOpacity={0.85}>
-            <Ionicons name="share-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
+            <Ionicons name="share-outline" size={20} color="#FFFFFF" style={{ marginRight: 8 }} />
             <Text style={s.whatsappButtonText} allowFontScaling={true}>Compartir</Text>
           </TouchableOpacity>
         </View>
@@ -228,7 +228,7 @@ function makeStyles(t: Theme) {
     infoLine:          { fontSize: 12, fontWeight: '300', color: t.gray, opacity: 0.6, lineHeight: 18, textAlign: 'center', marginBottom: 2 },
     empty:             { textAlign: 'center', fontWeight: '300', color: t.gray, fontStyle: 'italic', marginTop: 40 },
     actions:           { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.sep, paddingTop: 12 },
-    whatsappButton:    { backgroundColor: '#292929', height: 52, borderRadius: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginHorizontal: 24, marginBottom: 24, shadowColor: '#000000', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.15, shadowRadius: 6, elevation: 4 },
-    whatsappButtonText:{ color: '#fff', fontSize: 15, fontWeight: '700' },
+    whatsappButton:    { backgroundColor: '#292929', height: 52, borderRadius: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginHorizontal: 24, marginBottom: 24, shadowColor: '#292929', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.15, shadowRadius: 6, elevation: 4 },
+    whatsappButtonText:{ color: '#FFFFFF', fontSize: 15, fontWeight: '700' },
   });
 }

@@ -82,7 +82,7 @@ export default function LoginScreen() {
     const { error: err } = await supabase.auth.signInWithOtp({
       email: trimmed,
       options: {
-        emailRedirectTo: 'lafondita://login-callback',
+        emailRedirectTo: 'patio://login-callback',
         shouldCreateUser: true,
       },
     });

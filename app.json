@@ -1,11 +1,11 @@
 {
   "expo": {
     "name": "Patio",
-    "slug": "lafondita",
+    "slug": "patio",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "lafondita",
+    "scheme": "patio",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {

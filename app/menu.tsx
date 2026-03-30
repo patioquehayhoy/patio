@@ -80,26 +80,26 @@ function makeStyles(t: Theme) {
     section:              { marginBottom: 24 },
     sectionHeader:        { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
     sectionDivider:       { height: 0.5, backgroundColor: t.accentLight, marginBottom: 12 },
-    secLabel:             { fontSize: 12, fontWeight: '700', letterSpacing: 1.4, color: t.orange, textTransform: 'uppercase' },
+    secLabel:             { fontSize: 12, fontWeight: '700', letterSpacing: 1.4, color: t.accent, textTransform: 'uppercase' },
     // Items
     itemRow:              { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
     input:                { flex: 1, fontSize: 17, lineHeight: 22, height: 34, color: t.text, fontWeight: '800', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.sep, paddingVertical: 6, paddingHorizontal: 0, backgroundColor: 'transparent' },
     removeBtn:            { width: 28, alignItems: 'center', paddingLeft: 4 },
     removeBtnText:        { fontSize: 15, color: t.gray },
     addBtn:               { paddingVertical: 4 },
-    addBtnText:           { fontSize: 15, color: t.orange, fontWeight: '500' },
+    addBtnText:           { fontSize: 15, color: t.accent, fontWeight: '500' },
     slashSep:             { fontSize: 15, lineHeight: 22, color: t.gray, paddingHorizontal: 4, paddingVertical: 6 },
     descInput:            { fontSize: 17, lineHeight: 22, height: 34, fontWeight: '300', color: t.gray, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.sep, paddingVertical: 6, paddingHorizontal: 0, backgroundColor: 'transparent' },
     chipsScroll:          { marginBottom: 8 },
     chipsContent:         { flexDirection: 'row', gap: 6, paddingRight: 4 },
-    chip:                 { paddingVertical: 3, paddingHorizontal: 10, borderRadius: 12, borderWidth: 1, borderColor: t.orange, backgroundColor: 'transparent' },
-    chipText:             { fontSize: 12, color: t.orange, fontWeight: '500' },
+    chip:                 { paddingVertical: 3, paddingHorizontal: 10, borderRadius: 12, borderWidth: 1, borderColor: t.accent, backgroundColor: 'transparent' },
+    chipText:             { fontSize: 12, color: t.accent, fontWeight: '500' },
     // Precio
-    precioPrefix:         { fontSize: 22, fontWeight: '900', color: t.orange, lineHeight: 28 },
+    precioPrefix:         { fontSize: 22, fontWeight: '900', color: t.accent, lineHeight: 28 },
     // Preview separator
     previewDividerRow:    { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10, marginTop: 32 },
-    previewDividerLine:   { flex: 1, height: 0.5, backgroundColor: t.orange, opacity: 0.5 },
-    previewDividerLabel:  { fontSize: 12, fontWeight: '900', letterSpacing: 2, color: t.orange, textTransform: 'uppercase', opacity: 0.5, marginHorizontal: 10 },
+    previewDividerLine:   { flex: 1, height: 0.5, backgroundColor: t.accent, opacity: 0.5 },
+    previewDividerLabel:  { fontSize: 12, fontWeight: '900', letterSpacing: 2, color: t.accent, textTransform: 'uppercase', opacity: 0.5, marginHorizontal: 10 },
     // Preview
     previewContainer:     { flex: 1, minHeight: 180, backgroundColor: t.bg, paddingHorizontal: 16, paddingBottom: 14 },
     previewHeader:        { fontSize: 12, fontWeight: '900', letterSpacing: 2, color: t.gray, textTransform: 'uppercase', marginBottom: 10 },
@@ -108,39 +108,67 @@ function makeStyles(t: Theme) {
     previewEmpty:         { fontSize: 15, color: t.gray, fontStyle: 'italic' },
     previewContent:       { gap: 2 },
     previewTitleRow:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, paddingBottom: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.sep },
-    previewTitle:         { fontSize: 12, fontWeight: '700', letterSpacing: 1.4, color: t.orange, textTransform: 'uppercase' },
-    previewTitleDelete:   { fontSize: 12, fontWeight: '300', color: t.orange, opacity: 0.4 },
+    previewTitle:         { fontSize: 12, fontWeight: '700', letterSpacing: 1.4, color: t.accent, textTransform: 'uppercase' },
+    previewTitleDelete:   { fontSize: 12, fontWeight: '300', color: t.accent, opacity: 0.4 },
     previewSec:           { marginBottom: 0 },
     previewLabel:         { fontSize: 12, fontWeight: '700', letterSpacing: 1.0, color: t.text, textTransform: 'uppercase', marginTop: 16, marginBottom: 6, opacity: 0.5 },
     previewItem:          { fontSize: 17, fontWeight: '800', color: t.text, marginLeft: 4, marginBottom: 8 },
     previewItemDesc:      { fontSize: 15, fontWeight: '300', color: t.gray, lineHeight: 22 },
-    previewPrice:         { fontSize: 22, fontWeight: '900', color: t.orange, marginTop: 12, marginBottom: 4 },
+    previewPrice:         { fontSize: 22, fontWeight: '900', color: t.accent, marginTop: 12, marginBottom: 4 },
   });
 }
 
 // ─── SegmentedControl ─────────────────────────────────────────────────────────
+const SEG_BTN_WIDTH = 80;
+
 function SegmentedControl({ value, onChange }: { value: 'menu' | 'carta'; onChange: (v: 'menu' | 'carta') => void }) {
   const { theme } = useTheme();
+  const anim = useRef(new Animated.Value(value === 'menu' ? 0 : 1)).current;
+
+  useEffect(() => {
+    Animated.spring(anim, { toValue: value === 'menu' ? 0 : 1, useNativeDriver: true, speed: 22, bounciness: 0 }).start();
+  }, [value]);
+
+  const translateX = anim.interpolate({ inputRange: [0, 1], outputRange: [3, SEG_BTN_WIDTH + 3] });
+
   return (
-    <View style={[seg.container, { backgroundColor: theme.surface2 }]}>
-      <TouchableOpacity
-        style={[seg.btn, value === 'menu' && { backgroundColor: theme.orange }]}
-        onPress={() => onChange('menu')}>
-        <Text style={[seg.label, { color: value === 'menu' ? theme.surface : theme.gray }]} allowFontScaling={true}>Menú</Text>
+    <View style={[seg.container, { backgroundColor: theme.isDark ? theme.surface : 'rgba(0,0,0,0.07)' }]}>
+      {/* Píldora deslizante */}
+      <Animated.View style={[seg.pill, { backgroundColor: '#F5E9D6', transform: [{ translateX }] }]} pointerEvents="none" />
+      {/* Labels */}
+      <TouchableOpacity style={seg.btn} onPress={() => onChange('menu')} activeOpacity={0.75}>
+        <Text style={[seg.label, { color: value === 'menu' ? (theme.isDark ? '#030E9C' : theme.text) : theme.textSecondary }]} allowFontScaling={true}>Menú</Text>
       </TouchableOpacity>
-      <TouchableOpacity
-        style={[seg.btn, value === 'carta' && { backgroundColor: theme.orange }]}
-        onPress={() => onChange('carta')}>
-        <Text style={[seg.label, { color: value === 'carta' ? theme.surface : theme.gray }]} allowFontScaling={true}>Carta</Text>
+      <TouchableOpacity style={seg.btn} onPress={() => onChange('carta')} activeOpacity={0.75}>
+        <Text style={[seg.label, { color: value === 'carta' ? (theme.isDark ? '#030E9C' : theme.text) : theme.textSecondary }]} allowFontScaling={true}>Carta</Text>
       </TouchableOpacity>
     </View>
   );
 }
 
 const seg = StyleSheet.create({
-  container: { flexDirection: 'row', height: 30, borderRadius: 100, padding: 2, gap: 2 },
-  btn:       { alignItems: 'center', justifyContent: 'center', borderRadius: 100, paddingHorizontal: 14 },
-  label:     { fontSize: 11, fontWeight: '700', letterSpacing: 0.3 },
+  container: {
+    flexDirection: 'row',
+    alignSelf: 'center',
+    borderRadius: 100,
+    backgroundColor: 'rgba(0,0,0,0.07)',
+    padding: 3,
+    overflow: 'hidden',
+  },
+  pill: {
+    position: 'absolute',
+    top: 3,
+    bottom: 3,
+    width: SEG_BTN_WIDTH,
+    borderRadius: 100,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.10,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  btn:   { width: SEG_BTN_WIDTH, alignItems: 'center', justifyContent: 'center', paddingVertical: 7, zIndex: 1 },
+  label: { fontSize: 13, fontWeight: '700', letterSpacing: 0.1 },
 });
 
 // ─── ToggleSwitch ─────────────────────────────────────────────────────────────
@@ -151,11 +179,16 @@ function ToggleSwitch({ value, onValueChange }: { value: boolean; onValueChange:
     Animated.spring(anim, { toValue: value ? 1 : 0, useNativeDriver: false, speed: 20, bounciness: 0 }).start();
   }, [value]);
   const translateX = anim.interpolate({ inputRange: [0, 1], outputRange: [2, 20] });
-  const trackColor = anim.interpolate({ inputRange: [0, 1], outputRange: [theme.accentLight, theme.accent] });
+  const trackOff  = theme.isDark ? 'rgba(10,29,181,1)' : 'rgba(26,26,26,0.18)';
+  const trackOn   = theme.isDark ? 'rgba(245,233,217,1)' : 'rgba(26,26,26,1)';
+  const thumbOff  = theme.isDark ? 'rgba(245,233,217,1)' : 'rgba(245,233,217,1)';
+  const thumbOn   = theme.isDark ? 'rgba(3,14,156,1)' : 'rgba(245,233,217,1)';
+  const trackBg    = anim.interpolate({ inputRange: [0, 1], outputRange: [trackOff, trackOn] });
+  const thumbColor = anim.interpolate({ inputRange: [0, 1], outputRange: [thumbOff, thumbOn] });
   return (
     <TouchableOpacity onPress={() => onValueChange(!value)} activeOpacity={0.85}>
-      <Animated.View style={[tog.track, { backgroundColor: trackColor }]}>
-        <Animated.View style={[tog.thumb, { backgroundColor: theme.surface, transform: [{ translateX }] }]} />
+      <Animated.View style={[tog.track, { backgroundColor: trackBg }]}>
+        <Animated.View style={[tog.thumb, { backgroundColor: thumbColor, transform: [{ translateX }] }]} />
       </Animated.View>
     </TouchableOpacity>
   );
@@ -293,7 +326,7 @@ function DynamicSection({
                     onBlur={() => {
                       blurTimer.current = setTimeout(() => setFocusedIndex(null), 200);
                     }}
-                    selectionColor={theme.orange}
+                    selectionColor={theme.accent}
                     maxLength={40}
                     returnKeyType="next"
                     onSubmitEditing={() => descRefs.current[index]?.focus()}
@@ -302,7 +335,7 @@ function DynamicSection({
                   <DescInput
                     value={descPart}
                     onChange={(v) => onChange(index, namePart + (v ? ' / ' + v : ''))}
-                    selectionColor={theme.orange}
+                    selectionColor={theme.accent}
                     inputRef={(el) => { descRefs.current[index] = el; }}
                     returnKeyType={index === items.length - 1 ? 'done' : 'next'}
                     onSubmitEditing={index === items.length - 1 ? undefined : () => nameRefs.current[index + 1]?.focus()}
@@ -363,14 +396,14 @@ function PrecioSection({ value, onChange }: { value: string; onChange: (value: s
       <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
         <Text style={s.precioPrefix} allowFontScaling={true}>$</Text>
         <TextInput
-          style={{ fontSize: 22, fontWeight: '900', lineHeight: 28, color: theme.orange, paddingTop: 0, paddingBottom: 0, paddingHorizontal: 0, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.sep, backgroundColor: 'transparent', minWidth: 60 }}
+          style={{ fontSize: 22, fontWeight: '900', lineHeight: 28, color: theme.accent, paddingTop: 0, paddingBottom: 0, paddingHorizontal: 0, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.sep, backgroundColor: 'transparent', minWidth: 60 }}
           placeholder="74"
           placeholderTextColor={theme.border}
           value={value}
           onChangeText={onChange}
           keyboardType="number-pad"
           autoCapitalize="none"
-          selectionColor={theme.orange}
+          selectionColor={theme.accent}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
         />
@@ -608,7 +641,7 @@ export default function MenuScreen() {
         <View style={s.formHalf}>
           <ScrollView style={s.formScroll} contentContainerStyle={s.formContent} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-              <View>
+              <View key={activeTab}>
                 <DynamicSection title={<OrdTitle idx={0} rest="Tiempo" />} enabled={activeData.primerTiempo.enabled} onToggle={(v) => toggleSection('primerTiempo', v)} items={activeData.primerTiempo.items} maxItems={MAX_PRIMER_TIEMPO} onAdd={() => addItem('primerTiempo')} onRemove={(i) => removeItem('primerTiempo', i)} onChange={(i, v) => updateSection('primerTiempo', i, v)} placeholder="Agregar" suggestions={menuSuggs?.primerTiempo} suggestionDescs={menuDescMaps?.primerTiempo} />
                 <DynamicSection title={<OrdTitle idx={1} rest="Tiempo" />} enabled={activeData.segundoTiempo.enabled} onToggle={(v) => toggleSection('segundoTiempo', v)} items={activeData.segundoTiempo.items} maxItems={MAX_SEGUNDO_TIEMPO} onAdd={() => addItem('segundoTiempo')} onRemove={(i) => removeItem('segundoTiempo', i)} onChange={(i, v) => updateSection('segundoTiempo', i, v)} placeholder="Agregar" suggestions={menuSuggs?.segundoTiempo} suggestionDescs={menuDescMaps?.segundoTiempo} />
                 <DynamicSection title={<OrdTitle idx={2} rest="Tiempo" />} enabled={activeData.tercerTiempoGuisado.enabled} onToggle={(v) => toggleSection('tercerTiempoGuisado', v)} items={activeData.tercerTiempoGuisado.items} maxItems={MAX_TERCER_TIEMPO} onAdd={() => addItem('tercerTiempoGuisado')} onRemove={(i) => removeItem('tercerTiempoGuisado', i)} onChange={(i, v) => updateSection('tercerTiempoGuisado', i, v)} placeholder="Agregar" suggestions={menuSuggs?.tercerTiempoGuisado} suggestionDescs={menuDescMaps?.tercerTiempoGuisado} />

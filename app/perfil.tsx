@@ -95,7 +95,7 @@ function makeStyles(t: Theme) {
     scrollContent:  { paddingHorizontal: 24, paddingBottom: 40 },
     block:          { paddingTop: 24 },
     blockHeader:    { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-    blockLabel:     { fontSize: 12, fontWeight: '900', color: t.orange, letterSpacing: 1.2, marginBottom: 8 },
+    blockLabel:     { fontSize: 12, fontWeight: '900', color: t.text, letterSpacing: 1.2, marginBottom: 8 },
     saveInlineBtn:  { fontSize: 15, fontWeight: '700', color: t.accent },
     nombreInput:    { fontSize: 28, fontWeight: '900', color: t.text, letterSpacing: -0.5, lineHeight: 34, paddingVertical: 0, paddingHorizontal: 0, backgroundColor: 'transparent', marginBottom: 2 },
     fieldInput:     { fontWeight: '300', color: t.gray, paddingVertical: 0, paddingHorizontal: 0, backgroundColor: 'transparent' },
@@ -105,10 +105,11 @@ function makeStyles(t: Theme) {
     divider:        { height: StyleSheet.hairlineWidth, backgroundColor: t.sep },
     pickerWrapper:  { backgroundColor: t.surface, borderRadius: 12, overflow: 'hidden' },
     chipsRow:       { flexDirection: 'row', gap: 8, paddingBottom: 16 },
-    chip:           { paddingVertical: 8, paddingHorizontal: 16, borderRadius: 20, borderWidth: 1, borderColor: t.border },
-    chipDark:       { backgroundColor: t.surface, borderWidth: 0 },
-    chipActive:     { backgroundColor: t.accent, borderColor: t.accent },
+    chip:           { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 12, backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.sep },
+    chipDark:       {},
+    chipActive:     { backgroundColor: t.text, borderWidth: 0 },
     chipText:       { fontSize: 15, fontWeight: '500', color: t.text },
+    chipTextDark:   {},
     chipTextActive: { fontSize: 15, fontWeight: '500', color: t.surface },
     timeRow:        { flexDirection: 'row', gap: 16, marginBottom: 8 },
     timeBtn:        { flex: 1, paddingVertical: 10, paddingHorizontal: 14, borderRadius: 12, backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.sep },
@@ -125,11 +126,16 @@ function ToggleSwitch({ value, onValueChange }: { value: boolean; onValueChange:
     Animated.spring(anim, { toValue: value ? 1 : 0, useNativeDriver: false, speed: 20, bounciness: 0 }).start();
   }, [value]);
   const translateX = anim.interpolate({ inputRange: [0, 1], outputRange: [2, 20] });
-  const trackColor = anim.interpolate({ inputRange: [0, 1], outputRange: [theme.accentLight, theme.accent] });
+  const trackOff  = theme.isDark ? 'rgba(10,29,181,1)' : 'rgba(26,26,26,0.18)';
+  const trackOn   = theme.isDark ? 'rgba(245,233,217,1)' : 'rgba(26,26,26,1)';
+  const thumbOff  = theme.isDark ? 'rgba(245,233,217,1)' : 'rgba(245,233,217,1)';
+  const thumbOn   = theme.isDark ? 'rgba(3,14,156,1)' : 'rgba(245,233,217,1)';
+  const trackBg    = anim.interpolate({ inputRange: [0, 1], outputRange: [trackOff, trackOn] });
+  const thumbColor = anim.interpolate({ inputRange: [0, 1], outputRange: [thumbOff, thumbOn] });
   return (
     <TouchableOpacity onPress={() => onValueChange(!value)} activeOpacity={0.85}>
-      <Animated.View style={[tog.track, { backgroundColor: trackColor }]}>
-        <Animated.View style={[tog.thumb, { backgroundColor: theme.surface, transform: [{ translateX }] }]} />
+      <Animated.View style={[tog.track, { backgroundColor: trackBg }]}>
+        <Animated.View style={[tog.thumb, { backgroundColor: thumbColor, transform: [{ translateX }] }]} />
       </Animated.View>
     </TouchableOpacity>
   );
@@ -328,7 +334,7 @@ export default function PerfilScreen() {
             onChangeText={(v) => setNombre(v.slice(0, MAX_NOMBRE))}
             placeholder="Nombre"
             placeholderTextColor={theme.border}
-            selectionColor={theme.orange}
+            selectionColor={theme.accent}
             autoCapitalize="none"
             editable={ready}
             returnKeyType="next"
@@ -338,8 +344,8 @@ export default function PerfilScreen() {
             value={descripcion}
             onChangeText={(v) => setDescripcion(v.slice(0, MAX_DESCRIPCION))}
             placeholder="Comida casera con sazón de abuela"
-            placeholderTextColor="rgba(41,41,41,0.45)"
-            selectionColor={theme.orange}
+            placeholderTextColor={theme.textSecondary}
+            selectionColor={theme.accent}
             autoCapitalize="none"
             editable={ready}
             returnKeyType="next"
@@ -349,8 +355,8 @@ export default function PerfilScreen() {
             value={ubicacion}
             onChangeText={(v) => setUbicacion(v.slice(0, MAX_UBICACION))}
             placeholder="Av. Principal 123, Col. Centro"
-            placeholderTextColor="rgba(41,41,41,0.55)"
-            selectionColor={theme.orange}
+            placeholderTextColor={theme.textSecondary}
+            selectionColor={theme.accent}
             autoCapitalize="none"
             editable={ready}
             returnKeyType="done"
@@ -418,7 +424,7 @@ export default function PerfilScreen() {
                 style={[s.chip, !active && theme.isDark && s.chipDark, active && s.chipActive]}
                 onPress={() => toggle(!active)}
                 activeOpacity={0.75}>
-                <Text style={[s.chipText, active && s.chipTextActive]} allowFontScaling={true}>{label}</Text>
+                <Text style={[s.chipText, !active && theme.isDark && s.chipTextDark, active && s.chipTextActive]} allowFontScaling={true}>{label}</Text>
               </TouchableOpacity>
             ))}
           </View>

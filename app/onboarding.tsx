@@ -97,7 +97,7 @@ export default function OnboardingScreen() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#EFEFEF',
+    backgroundColor: '#F5E9D9',
   },
   logoContainer: {
     position: 'absolute',
@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 22,
     fontWeight: '900',
-    color: '#292929',
+    color: '#1A1A1A',
     textAlign: 'center',
     letterSpacing: -0.5,
     lineHeight: 28,
@@ -132,13 +132,13 @@ const styles = StyleSheet.create({
   sub: {
     fontSize: 15,
     fontWeight: '300',
-    color: '#292929',
+    color: '#1A1A1A',
     opacity: 0.6,
     textAlign: 'center',
   },
   startBtn: {
     marginTop: 16,
-    backgroundColor: '#292929',
+    backgroundColor: '#1A1A1A',
     borderRadius: 14,
     paddingVertical: 14,
     paddingHorizontal: 48,
@@ -163,13 +163,13 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
     borderWidth: 1.5,
-    borderColor: '#292929',
+    borderColor: '#1A1A1A',
   },
   dotActive: {
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: '#292929',
+    backgroundColor: '#1A1A1A',
   },
   dotInactive: {
     backgroundColor: 'transparent',

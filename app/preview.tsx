@@ -194,7 +194,7 @@ export default function PreviewScreen() {
       {hasAnything && (
         <View style={s.actions}>
           <TouchableOpacity style={s.whatsappButton} onPress={handleShare} activeOpacity={0.85}>
-            <Ionicons name="share-outline" size={20} color="#FFFFFF" style={{ marginRight: 8 }} />
+            <Ionicons name="share-outline" size={20} color={theme.surface} style={{ marginRight: 8 }} />
             <Text style={s.whatsappButtonText} allowFontScaling={true}>Compartir</Text>
           </TouchableOpacity>
         </View>
@@ -215,20 +215,20 @@ function makeStyles(t: Theme) {
     fonditaDireccion:  { fontSize: 12, fontWeight: '300', color: t.gray, lineHeight: 17, opacity: 0.5, marginBottom: 6 },
     block:             { marginBottom: 0 },
     blockTitleRow:     { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 0, paddingBottom: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.sep },
-    blockTitle:        { fontSize: 12, fontWeight: '700', letterSpacing: 1.4, color: t.orange, textTransform: 'uppercase' },
+    blockTitle:        { fontSize: 12, fontWeight: '700', letterSpacing: 1.4, color: t.accent, textTransform: 'uppercase' },
     blockFecha:        { fontSize: 12, fontWeight: '300', color: t.gray },
     subsection:        { marginBottom: 0 },
     subsectionLabel:   { fontSize: 12, fontWeight: '700', letterSpacing: 1.0, color: t.text, marginTop: 16, marginBottom: 6, textTransform: 'uppercase', opacity: 0.5 },
     item:              { fontSize: 17, fontWeight: '800', color: t.text, marginLeft: 4, marginBottom: 8 },
     itemDesc:          { fontSize: 15, fontWeight: '300', color: t.gray, lineHeight: 22 },
-    precio:            { fontSize: 22, fontWeight: '900', color: t.orange, marginTop: 12, marginBottom: 0 },
+    precio:            { fontSize: 22, fontWeight: '900', color: t.accent, marginTop: 12, marginBottom: 0 },
     sectionSeparator:  { height: 1, backgroundColor: t.sep, marginVertical: 16 },
     infoBlock:         { marginTop: 16, paddingTop: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.sep, alignItems: 'center' },
     infoFecha:         { fontSize: 12, fontWeight: '300', color: t.gray, opacity: 0.6, lineHeight: 18, textAlign: 'center', marginBottom: 2 },
     infoLine:          { fontSize: 12, fontWeight: '300', color: t.gray, opacity: 0.6, lineHeight: 18, textAlign: 'center', marginBottom: 2 },
     empty:             { textAlign: 'center', fontWeight: '300', color: t.gray, fontStyle: 'italic', marginTop: 40 },
     actions:           { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.sep, paddingTop: 12 },
-    whatsappButton:    { backgroundColor: '#292929', height: 52, borderRadius: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginHorizontal: 24, marginBottom: 24, shadowColor: '#292929', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.15, shadowRadius: 6, elevation: 4 },
-    whatsappButtonText:{ color: '#FFFFFF', fontSize: 15, fontWeight: '700' },
+    whatsappButton:    { backgroundColor: t.text, height: 52, borderRadius: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginHorizontal: 24, marginBottom: 24, shadowColor: t.text, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.15, shadowRadius: 6, elevation: 4 },
+    whatsappButtonText:{ color: t.surface, fontSize: 15, fontWeight: '700' },
   });
 }

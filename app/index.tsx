@@ -35,10 +35,11 @@ function showAuthError(err: { message?: string; code?: string } | null) {
   Alert.alert('Oops', texto, [{ text: 'Entendido' }]);
 }
 
-const BG = '#EFEFEF';
-const BLACK = '#292929';
-const BLACK60 = 'rgba(41,41,41,0.5)';
+const BG = '#F5E9D9';
+const BLACK = '#1A1A1A';
+const BLACK60 = '#8C7B6B';
 const WHITE = '#FFFFFF';
+const ACCENT = '#D31D0F';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');

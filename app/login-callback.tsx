@@ -46,7 +46,7 @@ export default function LoginCallback() {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         await upsertFondita(session.user);
-        router.replace('/menu');
+        router.replace('/perfil');
       } else {
         router.replace('/');
       }

@@ -58,7 +58,7 @@ export default function LoginScreen() {
       .then(async ({ data }) => {
         if (data.session?.user?.email) {
           initFondita(data.session.user.email);
-          router.replace('/menu');
+          router.replace('/perfil');
           return;
         }
         setCheckingSession(false);
@@ -68,7 +68,7 @@ export default function LoginScreen() {
     const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session?.user?.email) {
         initFondita(session.user.email);
-        router.replace('/menu');
+        router.replace('/perfil');
       }
     });
 

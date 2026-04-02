@@ -1,76 +1,37 @@
 import { useEffect } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
-import * as Linking from 'expo-linking';
 import { supabase } from '../lib/supabase';
 
 export default function LoginCallback() {
   const router = useRouter();
 
   useEffect(() => {
-    handleDeepLink();
+    checkSession();
   }, []);
 
-  async function handleDeepLink() {
+  async function checkSession() {
     try {
-      // Obtener la URL que abrió la app
-      let url = await Linking.getInitialURL();
-      if (url && url.includes('google.com/url')) {
-        const match = url.match(/[?&]q=([^&]+)/);
-        if (match) url = decodeURIComponent(match[1]);
-      }
-      if (!url) {
-        router.replace('/');
-        return;
-      }
-
-      // Extraer los query params
-      const parsed = Linking.parse(url);
-      const token = parsed.queryParams?.token as string;
-      const type = parsed.queryParams?.type as string;
-
-      if (!token || type !== 'magiclink') {
-        router.replace('/');
-        return;
-      }
-
-      // Intercambiar el token por una sesión real
-      const { error } = await supabase.auth.verifyOtp({
-        token_hash: token,
-        type: 'magiclink',
-      });
-
-      if (error) {
-        console.error('Error verificando OTP:', error.message);
-        router.replace('/');
-        return;
-      }
-
-      // Sesión creada — upsert fondita y navegar
+      await new Promise(r => setTimeout(r, 1000));
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        await upsertFondita(session.user);
+        await supabase.from('fonditas').upsert({
+          id: session.user.id,
+          telefono: session.user.email,
+          nombre: session.user.email,
+        }, { onConflict: 'id' });
         router.replace('/perfil');
       } else {
         router.replace('/');
       }
     } catch (e) {
-      console.error('Error en login-callback:', e);
       router.replace('/');
     }
   }
 
-  async function upsertFondita(user: any) {
-    await supabase.from('fonditas').upsert({
-      id: user.id,
-      telefono: user.email,
-      nombre: user.email,
-    }, { onConflict: 'id' });
-  }
-
   return (
-    <View style={{ flex: 1, backgroundColor: '#EFEFEF', justifyContent: 'center', alignItems: 'center' }}>
-      <ActivityIndicator size="large" color="#292929" />
+    <View style={{ flex: 1, backgroundColor: '#F5E9D9', justifyContent: 'center', alignItems: 'center' }}>
+      <ActivityIndicator size="large" color="#1A1A1A" />
     </View>
   );
 }

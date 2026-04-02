@@ -14,7 +14,11 @@ export default function LoginCallback() {
   async function handleDeepLink() {
     try {
       // Obtener la URL que abrió la app
-      const url = await Linking.getInitialURL();
+      let url = await Linking.getInitialURL();
+      if (url && url.includes('google.com/url')) {
+        const match = url.match(/[?&]q=([^&]+)/);
+        if (match) url = decodeURIComponent(match[1]);
+      }
       if (!url) {
         router.replace('/');
         return;

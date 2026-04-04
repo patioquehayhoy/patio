@@ -65,14 +65,6 @@ export default function LoginScreen() {
       })
       .catch(() => setCheckingSession(false));
 
-    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session?.user?.email) {
-        initFondita(session.user.email);
-        router.replace('/perfil');
-      }
-    });
-
-    return () => { listener.subscription.unsubscribe(); };
   }, []);
 
   const handleSend = async () => {

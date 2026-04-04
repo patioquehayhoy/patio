@@ -1,18 +1,41 @@
 import { useEffect } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
+import * as Linking from 'expo-linking';
 import { supabase } from '../lib/supabase';
 
 export default function LoginCallback() {
   const router = useRouter();
 
   useEffect(() => {
-    checkSession();
+    handleDeepLink();
   }, []);
 
-  async function checkSession() {
+  async function handleDeepLink() {
     try {
-      await new Promise(r => setTimeout(r, 1000));
+      const url = await Linking.getInitialURL();
+      if (!url) { router.replace('/'); return; }
+
+      const parsed = Linking.parse(url);
+      const token = parsed.queryParams?.token as string;
+      const type = parsed.queryParams?.type as string;
+
+      console.log('token:', token);
+      console.log('type:', type);
+
+      if (!token) { router.replace('/'); return; }
+
+      const { error } = await supabase.auth.verifyOtp({
+        token_hash: token,
+        type: 'magiclink',
+      });
+
+      if (error) {
+        console.log('verifyOtp error:', error.message);
+        router.replace('/');
+        return;
+      }
+
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         await supabase.from('fonditas').upsert({
@@ -25,6 +48,7 @@ export default function LoginCallback() {
         router.replace('/');
       }
     } catch (e) {
+      console.log('Error:', e);
       router.replace('/');
     }
   }

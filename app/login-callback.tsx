@@ -1,38 +1,46 @@
 import { useEffect } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
+import * as Linking from 'expo-linking';
 import { supabase } from '../lib/supabase';
 
 export default function LoginCallback() {
   const router = useRouter();
 
   useEffect(() => {
-    let redirected = false;
+    async function handle() {
+      const url = await Linking.getInitialURL();
+      console.log('URL:', url);
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (redirected) return;
-      if (event === 'SIGNED_IN' && session) {
-        redirected = true;
+      if (!url) { router.replace('/'); return; }
+
+      const parsed = new URL(url);
+      const token = parsed.searchParams.get('token');
+      console.log('token:', token);
+
+      if (!token) { router.replace('/'); return; }
+
+      const { data, error } = await supabase.auth.verifyOtp({
+        token_hash: token,
+        type: 'magiclink',
+      });
+
+      console.log('verifyOtp data:', JSON.stringify(data));
+      console.log('verifyOtp error:', JSON.stringify(error));
+
+      if (data?.session) {
         await supabase.from('fonditas').upsert({
-          id: session.user.id,
-          telefono: session.user.email,
-          nombre: session.user.email,
+          id: data.session.user.id,
+          telefono: data.session.user.email,
+          nombre: data.session.user.email,
         }, { onConflict: 'id' });
         router.replace('/perfil');
-      }
-    });
-
-    const timeout = setTimeout(() => {
-      if (!redirected) {
-        redirected = true;
+      } else {
         router.replace('/');
       }
-    }, 10000);
+    }
 
-    return () => {
-      subscription.unsubscribe();
-      clearTimeout(timeout);
-    };
+    handle();
   }, []);
 
   return (

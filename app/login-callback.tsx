@@ -1,12 +1,15 @@
 import { useEffect } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
+import * as Linking from 'expo-linking';
 import { supabase } from '../lib/supabase';
 
 export default function LoginCallback() {
   const router = useRouter();
 
   useEffect(() => {
+    Linking.getInitialURL().then(url => console.log('URL en callback:', url));
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session) {
         await supabase.from('fonditas').upsert({

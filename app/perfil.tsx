@@ -96,7 +96,7 @@ function makeStyles(t: Theme) {
     block:          { paddingTop: 24 },
     blockHeader:    { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     blockLabel:     { fontSize: 12, fontWeight: '900', color: t.text, letterSpacing: 1.2, marginBottom: 8 },
-    saveInlineBtn:  { fontSize: 15, fontWeight: '700', color: t.accent },
+    saveInlineBtn:  { fontSize: 15, fontWeight: '900', color: t.accent },
     nombreInput:    { fontSize: 28, fontWeight: '900', color: t.text, letterSpacing: -0.5, lineHeight: 34, paddingVertical: 0, paddingHorizontal: 0, backgroundColor: 'transparent', marginBottom: 2 },
     fieldInput:     { fontWeight: '300', color: t.gray, paddingVertical: 0, paddingHorizontal: 0, backgroundColor: 'transparent' },
     row:            { flexDirection: 'row', alignItems: 'center', minHeight: 44 },
@@ -108,12 +108,12 @@ function makeStyles(t: Theme) {
     chip:           { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 12, backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.sep },
     chipDark:       {},
     chipActive:     { backgroundColor: t.text, borderWidth: 0 },
-    chipText:       { fontSize: 15, fontWeight: '500', color: t.text },
+    chipText:       { fontSize: 15, fontWeight: '900', color: t.text },
     chipTextDark:   {},
-    chipTextActive: { fontSize: 15, fontWeight: '500', color: t.surface },
+    chipTextActive: { fontSize: 15, fontWeight: '900', color: t.surface },
     timeRow:        { flexDirection: 'row', gap: 16, marginBottom: 8 },
     timeBtn:        { flex: 1, paddingVertical: 10, paddingHorizontal: 14, borderRadius: 12, backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.sep },
-    timeBtnLabel:   { fontSize: 12, fontWeight: '700', color: t.text, letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 2, opacity: 0.6 },
+    timeBtnLabel:   { fontSize: 12, fontWeight: '900', color: t.text, letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 2, opacity: 0.6 },
     timeBtnValue:   { fontSize: 22, fontWeight: '900', color: t.text, letterSpacing: -0.3 },
   });
 }
@@ -126,10 +126,10 @@ function ToggleSwitch({ value, onValueChange }: { value: boolean; onValueChange:
     Animated.spring(anim, { toValue: value ? 1 : 0, useNativeDriver: false, speed: 20, bounciness: 0 }).start();
   }, [value]);
   const translateX = anim.interpolate({ inputRange: [0, 1], outputRange: [2, 20] });
-  const trackOff  = theme.isDark ? 'rgba(10,29,181,1)' : 'rgba(26,26,26,0.18)';
-  const trackOn   = theme.isDark ? 'rgba(245,233,217,1)' : 'rgba(26,26,26,1)';
-  const thumbOff  = theme.isDark ? 'rgba(245,233,217,1)' : 'rgba(245,233,217,1)';
-  const thumbOn   = theme.isDark ? 'rgba(3,14,156,1)' : 'rgba(245,233,217,1)';
+  const trackOff  = theme.isDark ? 'rgba(245,245,240,0.22)' : '#E2E2DC';
+  const trackOn   = theme.isDark ? theme.accent : theme.accent;
+  const thumbOff  = '#FFFFFF';
+  const thumbOn   = '#FFFFFF';
   const trackBg    = anim.interpolate({ inputRange: [0, 1], outputRange: [trackOff, trackOn] });
   const thumbColor = anim.interpolate({ inputRange: [0, 1], outputRange: [thumbOff, thumbOn] });
   return (
@@ -142,8 +142,8 @@ function ToggleSwitch({ value, onValueChange }: { value: boolean; onValueChange:
 }
 
 const tog = StyleSheet.create({
-  track: { width: 44, height: 26, borderRadius: 13, justifyContent: 'center' },
-  thumb: { width: 22, height: 22, borderRadius: 11 },
+  track: { width: 46, height: 28, borderRadius: 14, justifyContent: 'center', paddingHorizontal: 1 },
+  thumb: { width: 24, height: 24, borderRadius: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.14, shadowRadius: 4, elevation: 2 },
 });
 
 // ─── Main Screen ──────────────────────────────────────────────────────────────
@@ -455,6 +455,11 @@ export default function PerfilScreen() {
         {/* ── SOPORTE ── */}
         <View style={s.block}>
           <Text style={s.blockLabel} allowFontScaling={true}>SOPORTE</Text>
+          <TouchableOpacity style={s.row} onPress={() => router.push('/manifiesto')} activeOpacity={0.7}>
+            <Ionicons name="sparkles-outline" size={22} color={theme.text} style={{ marginRight: 10, opacity: 0.4 }} />
+            <Text style={s.rowLabel} allowFontScaling={true}>Manifiesto</Text>
+          </TouchableOpacity>
+          <View style={s.divider} />
           <TouchableOpacity style={s.row} onPress={() => Linking.openURL('mailto:contacto.parco@gmail.com?subject=Problema%20en%20La%20Fondita')} activeOpacity={0.7}>
             <Ionicons name="chatbubble-outline" size={22} color={theme.text} style={{ marginRight: 10, opacity: 0.4 }} />
             <Text style={s.rowLabel} allowFontScaling={true}>Contactar con soporte</Text>

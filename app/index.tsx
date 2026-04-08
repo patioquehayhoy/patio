@@ -1,5 +1,4 @@
-import { router } from 'expo-router';
-import { Stack } from 'expo-router';
+import { router, Stack } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -14,9 +13,9 @@ import {
   Image,
 } from 'react-native';
 
+import { initializeSignedInUser, LOGIN_CALLBACK_URL } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
-import { upsertFondita } from '@/lib/db';
-import { setFonditaId } from '@/lib/user-store';
+import { useTheme } from '@/lib/theme';
 
 function showAuthError(err: { message?: string; code?: string } | null) {
   if (!err) return;
@@ -35,29 +34,21 @@ function showAuthError(err: { message?: string; code?: string } | null) {
   Alert.alert('Oops', texto, [{ text: 'Entendido' }]);
 }
 
-const BG = '#F5E9D9';
-const BLACK = '#1A1A1A';
-const BLACK60 = '#8C7B6B';
-const WHITE = '#FFFFFF';
-const ACCENT = '#D31D0F';
+const LIGHT_BG = '#F3F3F0';
 
 export default function LoginScreen() {
+  const { theme } = useTheme();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState('');
   const [checkingSession, setCheckingSession] = useState(true);
 
-  async function initFondita(email: string) {
-    const id = await upsertFondita(email);
-    if (id) setFonditaId(id);
-  }
-
   useEffect(() => {
     supabase.auth.getSession()
       .then(async ({ data }) => {
-        if (data.session?.user?.email) {
-          initFondita(data.session.user.email);
+        if (data.session) {
+          await initializeSignedInUser(data.session);
           router.replace('/perfil');
           return;
         }
@@ -72,10 +63,11 @@ export default function LoginScreen() {
     if (!trimmed) { setError('Ingresa tu correo.'); return; }
     setError('');
     setLoading(true);
+    console.log('[auth] sending magic link', { emailRedirectTo: LOGIN_CALLBACK_URL });
     const { error: err } = await supabase.auth.signInWithOtp({
       email: trimmed,
       options: {
-        emailRedirectTo: 'patio://login-callback',
+        emailRedirectTo: LOGIN_CALLBACK_URL,
         shouldCreateUser: true,
       },
     });
@@ -86,14 +78,14 @@ export default function LoginScreen() {
 
   if (checkingSession) {
     return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color={BLACK} />
+      <View style={[styles.centered, { backgroundColor: theme.bg }]}>
+        <ActivityIndicator size="large" color={theme.text} />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.bg }]}>
       <Stack.Screen options={{ headerShown: false }} />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -101,53 +93,52 @@ export default function LoginScreen() {
 
         <View style={styles.hero}>
           <Image
-            source={require('../assets/images/logo-negro.png')}
+            source={theme.isDark ? require('../assets/images/logo-blanco.png') : require('../assets/images/logo-negro.png')}
             style={styles.logo}
             resizeMode="contain"
           />
-          <Text style={styles.tagline}>¿Qué hay hoy?</Text>
-          <Text style={styles.tagline}>Saaaaaaabes.</Text>
+          <Text style={[styles.tagline, { color: theme.textSecondary }]}>¿Qué hay hoy?</Text>
+          <Text style={[styles.tagline, { color: theme.textSecondary }]}>Saaaaaaabes.</Text>
         </View>
 
         {!sent ? (
-          <View style={styles.form}>
-            <Text style={styles.label}>Tu correo para entrar</Text>
-            <View style={styles.inputWrapper}>
+          <View style={[styles.formCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <View style={[styles.inputWrapper, theme.isDark ? styles.inputWrapperDark : styles.inputWrapperLight]}>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { color: theme.text }]}
                 placeholder="correo@ejemplo.com"
-                placeholderTextColor={BLACK60}
+                placeholderTextColor={theme.textSecondary}
                 value={email}
                 onChangeText={(v) => { setEmail(v); setError(''); }}
                 autoCapitalize="none"
                 keyboardType="email-address"
                 autoComplete="email"
                 autoFocus
-                selectionColor={BLACK}
+                selectionColor={theme.accent}
               />
             </View>
             {error ? <Text style={styles.error}>{error}</Text> : null}
             <TouchableOpacity
-              style={[styles.button, loading && styles.buttonDisabled]}
+              style={[styles.button, { backgroundColor: theme.text }, loading && styles.buttonDisabled]}
               onPress={handleSend}
               disabled={loading}>
               {loading
-                ? <ActivityIndicator color={WHITE} />
-                : <Text style={styles.buttonText}>Enviar link</Text>}
+                ? <ActivityIndicator color={theme.surface} />
+                : <Text style={[styles.buttonText, { color: theme.surface }]} numberOfLines={1}>Entrar</Text>}
             </TouchableOpacity>
-            <Text style={styles.hint}>Sin contraseña — te mandamos un link directo</Text>
+            <Text style={[styles.hint, { color: theme.textSecondary }]}>Sin contraseña. Ingresa con un link directo a tu correo.</Text>
           </View>
         ) : (
-          <View style={styles.form}>
-            <Text style={styles.label}>
+          <View style={[styles.formCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <Text style={[styles.label, { color: theme.text }]}>
               Revisá tu correo
             </Text>
-            <Text style={styles.emailHighlight}>{email}</Text>
-            <Text style={styles.sublabel}>
+            <Text style={[styles.emailHighlight, { color: theme.text }]}>{email}</Text>
+            <Text style={[styles.sublabel, { color: theme.textSecondary }]}>
               Te mandamos un link. Ábrelo para entrar a Patio.
             </Text>
             <TouchableOpacity style={styles.backLink} onPress={() => { setSent(false); setError(''); }}>
-              <Text style={styles.backLinkText}>Cambiar correo</Text>
+              <Text style={[styles.backLinkText, { color: theme.text }]}>Cambiar correo</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -159,13 +150,11 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   centered: {
     flex: 1,
-    backgroundColor: BG,
     alignItems: 'center',
     justifyContent: 'center',
   },
   container: {
     flex: 1,
-    backgroundColor: BG,
     padding: 32,
   },
   keyboardView: {
@@ -173,58 +162,75 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   hero: {
-    marginBottom: 56,
+    marginBottom: 40,
     alignItems: 'center',
   },
   logo: {
     width: 320,
     height: 120,
-    marginBottom: 16,
+    marginBottom: 20,
     marginLeft: -7,
   },
   tagline: {
-    color: BLACK60,
     fontSize: 16,
-    fontWeight: '400',
+    fontWeight: '300',
     textAlign: 'center',
   },
-  form: {
+  formCard: {
     gap: 16,
+    borderRadius: 24,
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 20,
+    paddingVertical: 22,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.06,
+    shadowRadius: 20,
+    elevation: 3,
   },
   label: {
-    fontSize: 22,
-    fontWeight: '600',
-    color: BLACK,
-    marginBottom: 4,
+    fontSize: 24,
+    fontWeight: '900',
+    marginBottom: 2,
     textAlign: 'center',
+    letterSpacing: -0.4,
   },
   sublabel: {
     fontSize: 15,
-    color: BLACK60,
     lineHeight: 22,
+    textAlign: 'center',
   },
   emailHighlight: {
     fontSize: 16,
-    fontWeight: '600',
-    color: BLACK,
+    fontWeight: '900',
+    textAlign: 'center',
   },
   inputWrapper: {
-    backgroundColor: WHITE,
     borderRadius: 14,
+    borderWidth: StyleSheet.hairlineWidth,
     paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingVertical: 12,
+  },
+  inputWrapperLight: {
+    backgroundColor: LIGHT_BG,
+    borderColor: 'transparent',
+  },
+  inputWrapperDark: {
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderColor: 'rgba(255,255,255,0.08)',
   },
   input: {
-    color: BLACK,
+    minHeight: 24,
     fontSize: 16,
-    fontWeight: '400',
+    lineHeight: 22,
+    fontWeight: '300',
+    paddingVertical: 0,
   },
   error: {
     color: '#CC0000',
     fontSize: 13,
   },
   button: {
-    backgroundColor: BLACK,
     paddingVertical: 16,
     borderRadius: 14,
     alignItems: 'center',
@@ -234,23 +240,22 @@ const styles = StyleSheet.create({
     opacity: 0.4,
   },
   buttonText: {
-    color: WHITE,
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '900',
   },
   hint: {
-    color: BLACK60,
     fontSize: 13,
     textAlign: 'center',
+    lineHeight: 18,
   },
   backLink: {
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingTop: 4,
+    paddingBottom: 2,
   },
   backLinkText: {
-    color: BLACK,
     fontSize: 14,
-    fontWeight: '400',
+    fontWeight: '300',
     textDecorationLine: 'underline',
   },
 });

@@ -132,15 +132,15 @@ function SegmentedControl({ value, onChange }: { value: 'menu' | 'carta'; onChan
   const translateX = anim.interpolate({ inputRange: [0, 1], outputRange: [3, SEG_BTN_WIDTH + 3] });
 
   return (
-    <View style={[seg.container, { backgroundColor: theme.isDark ? theme.surface : 'rgba(0,0,0,0.07)' }]}>
+    <View style={[seg.container, { backgroundColor: theme.surface2 }]}>
       {/* Píldora deslizante */}
-      <Animated.View style={[seg.pill, { backgroundColor: '#F5E9D6', transform: [{ translateX }] }]} pointerEvents="none" />
+      <Animated.View style={[seg.pill, { backgroundColor: theme.surface, transform: [{ translateX }] }]} pointerEvents="none" />
       {/* Labels */}
       <TouchableOpacity style={seg.btn} onPress={() => onChange('menu')} activeOpacity={0.75}>
-        <Text style={[seg.label, { color: value === 'menu' ? (theme.isDark ? '#030E9C' : theme.text) : theme.textSecondary }]} allowFontScaling={true}>Menú</Text>
+        <Text style={[seg.label, { color: value === 'menu' ? theme.text : theme.textSecondary, fontWeight: value === 'menu' ? '600' : '400' }]} allowFontScaling={true}>Menú</Text>
       </TouchableOpacity>
       <TouchableOpacity style={seg.btn} onPress={() => onChange('carta')} activeOpacity={0.75}>
-        <Text style={[seg.label, { color: value === 'carta' ? (theme.isDark ? '#030E9C' : theme.text) : theme.textSecondary }]} allowFontScaling={true}>Carta</Text>
+        <Text style={[seg.label, { color: value === 'carta' ? theme.text : theme.textSecondary, fontWeight: value === 'carta' ? '600' : '400' }]} allowFontScaling={true}>Carta</Text>
       </TouchableOpacity>
     </View>
   );
@@ -150,8 +150,7 @@ const seg = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignSelf: 'center',
-    borderRadius: 100,
-    backgroundColor: 'rgba(0,0,0,0.07)',
+    borderRadius: 20,
     padding: 3,
     overflow: 'hidden',
   },
@@ -160,15 +159,15 @@ const seg = StyleSheet.create({
     top: 3,
     bottom: 3,
     width: SEG_BTN_WIDTH,
-    borderRadius: 100,
+    borderRadius: 17,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.10,
-    shadowRadius: 6,
-    elevation: 3,
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   btn:   { width: SEG_BTN_WIDTH, alignItems: 'center', justifyContent: 'center', paddingVertical: 7, zIndex: 1 },
-  label: { fontSize: 13, fontWeight: '700', letterSpacing: 0.1 },
+  label: { fontSize: 13, letterSpacing: 0.1 },
 });
 
 // ─── ToggleSwitch ─────────────────────────────────────────────────────────────
@@ -179,10 +178,10 @@ function ToggleSwitch({ value, onValueChange }: { value: boolean; onValueChange:
     Animated.spring(anim, { toValue: value ? 1 : 0, useNativeDriver: false, speed: 20, bounciness: 0 }).start();
   }, [value]);
   const translateX = anim.interpolate({ inputRange: [0, 1], outputRange: [2, 20] });
-  const trackOff  = theme.isDark ? 'rgba(10,29,181,1)' : 'rgba(26,26,26,0.18)';
-  const trackOn   = theme.isDark ? 'rgba(245,233,217,1)' : 'rgba(26,26,26,1)';
-  const thumbOff  = theme.isDark ? 'rgba(245,233,217,1)' : 'rgba(245,233,217,1)';
-  const thumbOn   = theme.isDark ? 'rgba(3,14,156,1)' : 'rgba(245,233,217,1)';
+  const trackOff  = theme.surface2;
+  const trackOn   = theme.accent;
+  const thumbOff  = '#FFFFFF';
+  const thumbOn   = '#FFFFFF';
   const trackBg    = anim.interpolate({ inputRange: [0, 1], outputRange: [trackOff, trackOn] });
   const thumbColor = anim.interpolate({ inputRange: [0, 1], outputRange: [thumbOff, thumbOn] });
   return (

@@ -13,9 +13,15 @@ import {
   Image,
 } from 'react-native';
 
+<<<<<<< Updated upstream
 import { initializeSignedInUser, LOGIN_CALLBACK_URL } from '@/lib/auth';
+=======
+import { initializeSignedInUser, LOGIN_CALLBACK_URL } from '../lib/auth';
+import { setFonditaName } from '@/lib/menu-store';
+>>>>>>> Stashed changes
 import { supabase } from '@/lib/supabase';
 import { useTheme } from '@/lib/theme';
+import { setFonditaId } from '@/lib/user-store';
 
 function showAuthError(err: { message?: string; code?: string } | null) {
   if (!err) return;
@@ -57,6 +63,12 @@ export default function LoginScreen() {
       .catch(() => setCheckingSession(false));
 
   }, []);
+
+  const handleDevLogin = () => {
+    setFonditaId('dev-123');
+    setFonditaName('La Fondita');
+    router.replace('/menu');
+  };
 
   const handleSend = async () => {
     const trimmed = email.trim().toLowerCase();
@@ -143,6 +155,11 @@ export default function LoginScreen() {
           </View>
         )}
       </KeyboardAvoidingView>
+      {__DEV__ && (
+        <TouchableOpacity style={styles.devButton} onPress={handleDevLogin}>
+          <Text style={[styles.devButtonText, { color: theme.textSecondary }]}>Entrar como dev</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
@@ -257,5 +274,14 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '300',
     textDecorationLine: 'underline',
+  },
+  devButton: {
+    position: 'absolute',
+    bottom: 32,
+    alignSelf: 'center',
+  },
+  devButtonText: {
+    fontSize: 13,
+    fontWeight: '300',
   },
 });

@@ -20,8 +20,8 @@ export function BottomTabBar() {
     <View style={[
       styles.container,
       {
-        backgroundColor: theme.isDark ? '#F5E9D6' : theme.accent,
-        borderTopColor: 'transparent',
+        backgroundColor: theme.bg,
+        borderTopColor: theme.border,
         paddingBottom: insets.bottom || 10,
       },
     ]}>
@@ -35,10 +35,10 @@ export function BottomTabBar() {
             <Ionicons
               name={active ? iconActive : iconInactive}
               size={22}
-              color={theme.isDark ? (active ? theme.accent : '#030E9C') : (active ? '#FFFFFF' : theme.text)}
+              color={active ? theme.accent : theme.textSecondary}
               style={{ opacity: active ? 1 : 0.6 }}
             />
-            <Text style={[styles.label, { color: theme.isDark ? (active ? theme.accent : '#030E9C') : (active ? '#FFFFFF' : theme.text) }]}>{label}</Text>
+            <Text style={[styles.label, { color: active ? theme.accent : theme.textSecondary }]}>{label}</Text>
           </TouchableOpacity>
         );
       })}

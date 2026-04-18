@@ -13,7 +13,7 @@ import {
   Image,
 } from 'react-native';
 
-import { initializeSignedInUser, LOGIN_CALLBACK_URL } from '@/lib/auth';
+import { initializeSignedInUser, LOGIN_CALLBACK_URL } from '../lib/auth';
 import { supabase } from '@/lib/supabase';
 import { useTheme } from '@/lib/theme';
 

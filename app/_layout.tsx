@@ -26,8 +26,6 @@ function RootStack() {
           name="manifiesto"
           options={{
             title: 'Manifiesto',
-            headerBackTitleVisible: false,
-            headerBackButtonDisplayMode: 'minimal',
           }}
         />
         <Stack.Screen name="share" options={{ title: 'Compartir' }} />

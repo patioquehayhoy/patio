@@ -1,4 +1,4 @@
-import { Stack, useFocusEffect } from 'expo-router';
+import { Stack, useFocusEffect, router } from 'expo-router';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Alert,
@@ -641,6 +641,24 @@ export default function MenuScreen() {
           <ScrollView style={s.formScroll} contentContainerStyle={s.formContent} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
               <View key={activeTab}>
+                <TouchableOpacity
+                  style={{
+                    backgroundColor: theme.accent,
+                    borderRadius: 14,
+                    padding: 14,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    marginBottom: 16,
+                  }}
+                  onPress={() => router.push('/foto-menu')}
+                >
+                  <Text style={{ fontSize: 18 }}>📷</Text>
+                  <Text style={{ color: '#fff', fontSize: 15, fontWeight: '700' }}>
+                    Foto de tu menú
+                  </Text>
+                </TouchableOpacity>
                 <DynamicSection title={<OrdTitle idx={0} rest="Tiempo" />} enabled={activeData.primerTiempo.enabled} onToggle={(v) => toggleSection('primerTiempo', v)} items={activeData.primerTiempo.items} maxItems={MAX_PRIMER_TIEMPO} onAdd={() => addItem('primerTiempo')} onRemove={(i) => removeItem('primerTiempo', i)} onChange={(i, v) => updateSection('primerTiempo', i, v)} placeholder="Agregar" suggestions={menuSuggs?.primerTiempo} suggestionDescs={menuDescMaps?.primerTiempo} />
                 <DynamicSection title={<OrdTitle idx={1} rest="Tiempo" />} enabled={activeData.segundoTiempo.enabled} onToggle={(v) => toggleSection('segundoTiempo', v)} items={activeData.segundoTiempo.items} maxItems={MAX_SEGUNDO_TIEMPO} onAdd={() => addItem('segundoTiempo')} onRemove={(i) => removeItem('segundoTiempo', i)} onChange={(i, v) => updateSection('segundoTiempo', i, v)} placeholder="Agregar" suggestions={menuSuggs?.segundoTiempo} suggestionDescs={menuDescMaps?.segundoTiempo} />
                 <DynamicSection title={<OrdTitle idx={2} rest="Tiempo" />} enabled={activeData.tercerTiempoGuisado.enabled} onToggle={(v) => toggleSection('tercerTiempoGuisado', v)} items={activeData.tercerTiempoGuisado.items} maxItems={MAX_TERCER_TIEMPO} onAdd={() => addItem('tercerTiempoGuisado')} onRemove={(i) => removeItem('tercerTiempoGuisado', i)} onChange={(i, v) => updateSection('tercerTiempoGuisado', i, v)} placeholder="Agregar" suggestions={menuSuggs?.tercerTiempoGuisado} suggestionDescs={menuDescMaps?.tercerTiempoGuisado} />

@@ -13,12 +13,8 @@ import {
   Image,
 } from 'react-native';
 
-<<<<<<< Updated upstream
 import { initializeSignedInUser, LOGIN_CALLBACK_URL } from '@/lib/auth';
-=======
-import { initializeSignedInUser, LOGIN_CALLBACK_URL } from '../lib/auth';
 import { setFonditaName } from '@/lib/menu-store';
->>>>>>> Stashed changes
 import { supabase } from '@/lib/supabase';
 import { useTheme } from '@/lib/theme';
 import { setFonditaId } from '@/lib/user-store';

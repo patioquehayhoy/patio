@@ -1,6 +1,6 @@
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
-import { Alert, Platform, ScrollView, Share, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Linking, Platform, ScrollView, Share, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { SymbolView } from 'expo-symbols';
@@ -13,6 +13,7 @@ import {
   getCartaData,
   getFonditaDescription,
   getFonditaDireccion,
+  getFonditaDireccionVisible,
   getFonditaHorario,
   getFonditaName,
   getMenuData,
@@ -102,6 +103,7 @@ export default function PreviewScreen() {
   const [fonditaName, setFonditaNameState] = useState(getFonditaName());
   const [fonditaDesc, setFonditaDescState] = useState(getFonditaDescription());
   const [fonditaDireccion, setFonditaDireccionState] = useState(getFonditaDireccion());
+  const [fonditaDireccionVisible, setFonditaDireccionVisibleState] = useState(getFonditaDireccionVisible());
   const [fonditaHorario,   setFonditaHorarioState]   = useState(getFonditaHorario());
   const [pagosEfectivo,    setPagosEfectivoState]    = useState(getPagosEfectivo());
   const [pagosTrans,       setPagosTransState]       = useState(getPagosTrans());
@@ -118,6 +120,7 @@ export default function PreviewScreen() {
       setFonditaNameState(getFonditaName());
       setFonditaDescState(getFonditaDescription());
       setFonditaDireccionState(getFonditaDireccion());
+      setFonditaDireccionVisibleState(getFonditaDireccionVisible());
       setFonditaHorarioState(getFonditaHorario());
       setPagosEfectivoState(getPagosEfectivo());
       setPagosTransState(getPagosTrans());
@@ -130,6 +133,20 @@ export default function PreviewScreen() {
   const hasAnything = hasMenuItems || hasCartaItems;
   const fecha = new Date().toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' });
   const pagos = [pagosEfectivo && 'Efectivo', pagosTrans && 'Transferencia', pagosTarjeta && 'Tarjeta'].filter(Boolean).join(' · ');
+  const showMaps = fonditaDireccionVisible && !!fonditaDireccion.trim();
+
+  const handleOpenMaps = async () => {
+    if (!fonditaDireccion.trim()) return;
+    const query = encodeURIComponent(fonditaDireccion.trim());
+    const url = Platform.OS === 'ios'
+      ? `http://maps.apple.com/?q=${query}`
+      : `https://www.google.com/maps/search/?api=1&query=${query}`;
+    try {
+      await Linking.openURL(url);
+    } catch {
+      Alert.alert('No se pudo abrir Maps', 'Intentemos de nuevo.');
+    }
+  };
 
   const shareFile = async (uri: string, mimeType: string, dialogTitle: string, uti?: string) => {
     if (Platform.OS !== 'web' && (await Sharing.isAvailableAsync())) {
@@ -165,7 +182,7 @@ export default function PreviewScreen() {
               <View>
                 <Text style={s.fonditaName} allowFontScaling={true}>{fonditaName}</Text>
                 {!!fonditaDesc && <Text style={s.fonditaDesc} allowFontScaling={true}>{fonditaDesc}</Text>}
-                {!!fonditaDireccion && <Text style={s.fonditaDireccion} allowFontScaling={true}>{fonditaDireccion}</Text>}
+                {showMaps && <Text style={s.fonditaDireccion} allowFontScaling={true}>{fonditaDireccion}</Text>}
                 <View style={s.headerDivider} />
 
                 {hasCartaItems && cartaData && <SectionBlock data={cartaData} title="Carta" theme={theme} />}
@@ -182,6 +199,12 @@ export default function PreviewScreen() {
                       <Text style={s.infoLine} allowFontScaling={true}>
                         {[pagosEfectivo && 'Efectivo', pagosTrans && 'Transferencia', pagosTarjeta && 'Tarjeta'].filter(Boolean).join(' · ')}
                       </Text>
+                    )}
+                    {showMaps && (
+                      <TouchableOpacity style={s.mapsButton} onPress={handleOpenMaps} activeOpacity={0.82}>
+                        <SymbolView name="map" size={14} tintColor={theme.accent} weight="medium" />
+                        <Text style={s.mapsButtonText} allowFontScaling={true}>Abrir en Maps</Text>
+                      </TouchableOpacity>
                     )}
                   </View>
                 )}
@@ -216,7 +239,7 @@ export default function PreviewScreen() {
             <View style={s.landscapeHeader}>
               <Text style={s.landscapeName}>{fonditaName}</Text>
               {!!fonditaDesc && <Text style={s.landscapeDesc}>{fonditaDesc}</Text>}
-              {!!fonditaDireccion && <Text style={s.landscapeDireccion}>{fonditaDireccion}</Text>}
+              {showMaps && <Text style={s.landscapeDireccion}>{fonditaDireccion}</Text>}
             </View>
             <View style={s.landscapeColumns}>
               <View style={s.landscapeColumnPrimary}>
@@ -272,6 +295,8 @@ function makeStyles(t: Theme) {
     infoBlock:         { marginTop: 24, paddingTop: 16, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.sep, alignItems: 'center' },
     infoFecha:         { fontSize: 12, fontWeight: '300', color: t.gray, opacity: 0.6, lineHeight: 18, textAlign: 'center', marginBottom: 2 },
     infoLine:          { fontSize: 12, fontWeight: '300', color: t.gray, opacity: 0.6, lineHeight: 18, textAlign: 'center', marginBottom: 2 },
+    mapsButton:        { marginTop: 10, flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 8, paddingHorizontal: 12, borderRadius: 999, backgroundColor: t.accentLight },
+    mapsButtonText:    { fontSize: 13, fontWeight: '700', color: t.accent },
     emptyWrap:         { alignItems: 'center', paddingVertical: 36, gap: 10 },
     emptyTitle:        { fontSize: 17, fontWeight: '700', color: t.text, textAlign: 'center' },
     emptySub:          { fontSize: 14, fontWeight: '300', color: t.textSecondary, textAlign: 'center', lineHeight: 20, maxWidth: 280 },

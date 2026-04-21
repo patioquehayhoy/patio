@@ -420,25 +420,25 @@ export default function FotoMenuScreen() {
               activeOpacity={0.85}
             >
               <Ionicons name="camera" size={42} color={theme.accent} style={s.cameraBtnIcon} />
-              <Text style={s.cameraBtnLabel}>Foto de tu menú</Text>
-              <Text style={s.cameraBtnSub}>Patio lo lee y llena todo solo</Text>
+              <Text style={s.cameraBtnLabel}>Tomar foto</Text>
+              <Text style={s.cameraBtnSub}>Patio lee tu menú y llena la base al instante</Text>
             </TouchableOpacity>
           </View>
 
           <View style={s.dividerRow}>
             <View style={s.dividerLine} />
-            <Text style={s.dividerText}>o elige de galería</Text>
+            <Text style={s.dividerText}>o elige una imagen</Text>
             <View style={s.dividerLine} />
           </View>
 
           <TouchableOpacity style={s.btnSecondary} onPress={seleccionarDeGaleria}>
-            <Text style={s.btnSecondaryText}>Seleccionar imagen</Text>
+            <Text style={s.btnSecondaryText}>Elegir imagen</Text>
           </TouchableOpacity>
 
           <View style={s.tipBox}>
             <Text style={s.tipAccent}>✦ Nuevo en Patio V2</Text>
             <Text style={s.tipText}>
-              Toma foto de tu menú y Patio llena todo automáticamente.
+              Toma una foto o sube una imagen y luego revisa los platillos antes de guardar.
             </Text>
           </View>
         </View>

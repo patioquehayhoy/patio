@@ -26,6 +26,7 @@ import {
   getFonditaName, setFonditaName,
   getFonditaDescription, setFonditaDescription,
   getFonditaDireccion, setFonditaDireccion,
+  getFonditaDireccionVisible, setFonditaDireccionVisible,
   getFonditaHorario, setFonditaHorario,
   getPagosEfectivo, setPagosEfectivo,
   getPagosTrans, setPagosTrans,
@@ -166,6 +167,7 @@ export default function PerfilScreen() {
   const [nombre,        setNombre]        = useState(getFonditaName());
   const [descripcion,   setDescripcion]   = useState(getFonditaDescription());
   const [ubicacion,     setUbicacion]     = useState(getFonditaDireccion());
+  const [ubicacionVisible, setUbicacionVisible] = useState(getFonditaDireccionVisible());
   const [apertura,      setApertura]      = useState<Date | null>(parsed?.apertura ?? null);
   const [cierre,        setCierre]        = useState<Date | null>(parsed?.cierre ?? null);
   const [showApertura,  setShowApertura]  = useState(false);
@@ -184,6 +186,7 @@ export default function PerfilScreen() {
     nombre:        getFonditaName(),
     descripcion:   getFonditaDescription(),
     ubicacion:     getFonditaDireccion(),
+    ubicacionVisible: getFonditaDireccionVisible(),
     horario:       getFonditaHorario() || '',
     pagosEfectivo: getPagosEfectivo(),
     pagosTrans:    getPagosTrans(),
@@ -195,6 +198,7 @@ export default function PerfilScreen() {
     nombre        !== savedValues.nombre        ||
     descripcion   !== savedValues.descripcion   ||
     ubicacion     !== savedValues.ubicacion     ||
+    ubicacionVisible !== savedValues.ubicacionVisible ||
     horario       !== savedValues.horario       ||
     pagosEfectivo !== savedValues.pagosEfectivo ||
     pagosTrans    !== savedValues.pagosTrans    ||
@@ -222,7 +226,7 @@ export default function PerfilScreen() {
 
         const selectResult = await supabase
           .from('fonditas')
-          .select('id, nombre, nombre_updated_at, descripcion, direccion, horario, pagos_efectivo, pagos_transferencia, pagos_tarjeta, tipo_negocio')
+          .select('id, nombre, nombre_updated_at, descripcion, direccion, direccion_visible, horario, pagos_efectivo, pagos_transferencia, pagos_tarjeta, tipo_negocio')
           .eq('telefono', user.email)
           .maybeSingle();
 
@@ -232,7 +236,7 @@ export default function PerfilScreen() {
           const insertResult = await supabase
             .from('fonditas')
             .insert({ telefono: user.email, nombre: 'Mi Fondita' })
-            .select('id, nombre, nombre_updated_at, descripcion, direccion, horario, pagos_efectivo, pagos_transferencia, pagos_tarjeta, tipo_negocio')
+            .select('id, nombre, nombre_updated_at, descripcion, direccion, direccion_visible, horario, pagos_efectivo, pagos_transferencia, pagos_tarjeta, tipo_negocio')
             .single();
           fondita = insertResult.data;
         }
@@ -245,6 +249,7 @@ export default function PerfilScreen() {
         const n    = fondita.nombre      ?? getFonditaName();
         const desc = fondita.descripcion ?? getFonditaDescription();
         const ub   = fondita.direccion   ?? getFonditaDireccion();
+        const ubv  = fondita.direccion_visible ?? getFonditaDireccionVisible();
         const hor  = fondita.horario     ?? '';
         const pe   = fondita.pagos_efectivo      ?? false;
         const pt   = fondita.pagos_transferencia ?? false;
@@ -253,6 +258,7 @@ export default function PerfilScreen() {
         setNombre(n);       setFonditaName(n);
         setDescripcion(desc); setFonditaDescription(desc);
         setUbicacion(ub);   setFonditaDireccion(ub);
+        setUbicacionVisible(ubv); setFonditaDireccionVisible(ubv);
         setFonditaHorario(hor);
 
         if (hor) {
@@ -266,7 +272,7 @@ export default function PerfilScreen() {
         setPagosTransState(pt);     setPagosTrans(pt);
         setPagosTarjetaState(ptar); setPagosTarjeta(ptar);
         setTipoNegocioState(tn);    setTipoNegocio(tn);
-        setSavedValues({ nombre: n, descripcion: desc, ubicacion: ub, horario: hor || '', pagosEfectivo: pe, pagosTrans: pt, pagosTarjeta: ptar, tipoNegocio: tn });
+        setSavedValues({ nombre: n, descripcion: desc, ubicacion: ub, ubicacionVisible: ubv, horario: hor || '', pagosEfectivo: pe, pagosTrans: pt, pagosTarjeta: ptar, tipoNegocio: tn });
 
         if (fondita.nombre_updated_at) nombreUpdatedAtRef.current = fondita.nombre_updated_at;
       } finally {
@@ -299,6 +305,7 @@ export default function PerfilScreen() {
 
       if (descripcion !== savedValues.descripcion) { payload['descripcion'] = descripcion.trim(); newSaved.descripcion = descripcion.trim(); }
       if (ubicacion !== savedValues.ubicacion) { payload['direccion'] = ubicacion.trim(); newSaved.ubicacion = ubicacion.trim(); }
+      if (ubicacionVisible !== savedValues.ubicacionVisible) { payload['direccion_visible'] = ubicacionVisible; newSaved.ubicacionVisible = ubicacionVisible; }
       if (horario   !== savedValues.horario)   { payload['horario']   = horario;           newSaved.horario   = horario; }
       if (pagosEfectivo !== savedValues.pagosEfectivo) { payload['pagos_efectivo']      = pagosEfectivo; newSaved.pagosEfectivo = pagosEfectivo; }
       if (pagosTrans    !== savedValues.pagosTrans)    { payload['pagos_transferencia'] = pagosTrans;    newSaved.pagosTrans    = pagosTrans; }
@@ -310,6 +317,7 @@ export default function PerfilScreen() {
         if ('nombre' in payload)              { setFonditaName(nombre.trim()); nombreUpdatedAtRef.current = new Date().toISOString(); }
         if ('descripcion' in payload)         setFonditaDescription(descripcion.trim());
         if ('direccion' in payload)           setFonditaDireccion(ubicacion.trim());
+        if ('direccion_visible' in payload)   setFonditaDireccionVisible(ubicacionVisible);
         if ('horario' in payload)             setFonditaHorario(horario);
         if ('pagos_efectivo' in payload)      setPagosEfectivo(pagosEfectivo);
         if ('pagos_transferencia' in payload) setPagosTrans(pagosTrans);
@@ -375,6 +383,10 @@ export default function PerfilScreen() {
             editable={ready}
             returnKeyType="done"
           />
+          <View style={s.row}>
+            <Text style={s.rowLabel} allowFontScaling={true}>Mostrar ubicación</Text>
+            <ToggleSwitch value={ubicacionVisible} onValueChange={setUbicacionVisible} />
+          </View>
           <View style={s.divider} />
         </View>
 

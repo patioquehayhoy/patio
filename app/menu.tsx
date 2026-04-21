@@ -47,7 +47,7 @@ import { getFonditaId, setFonditaId } from '@/lib/user-store';
 import { supabase } from '@/lib/supabase';
 import { useTheme, type Theme } from '@/lib/theme';
 
-type TemplateKey = 'fondita' | 'taqueria' | 'reposteria' | 'mariscos' | 'personalizado';
+type TemplateKey = 'fondita' | 'taqueria' | 'reposteria' | 'mariscos';
 
 const SECTION_TEMPLATES: Record<TemplateKey, { label: string; sections: string[] }> = {
   fondita: {
@@ -66,19 +66,14 @@ const SECTION_TEMPLATES: Record<TemplateKey, { label: string; sections: string[]
     label: 'Mariscos',
     sections: ['ENTRADAS', 'CALDOS', 'PLATOS FUERTES', 'BEBIDAS'],
   },
-  personalizado: {
-    label: 'Personalizado',
-    sections: ['PLATILLOS', 'BEBIDAS'],
-  },
 };
 
-const TEMPLATE_ORDER: TemplateKey[] = ['fondita', 'taqueria', 'reposteria', 'mariscos', 'personalizado'];
+const TEMPLATE_ORDER: TemplateKey[] = ['fondita', 'taqueria', 'reposteria', 'mariscos'];
 
 function resolveTemplateFromTipo(tipo: string | null | undefined): TemplateKey {
   if (tipo === 'taqueria') return 'taqueria';
   if (tipo === 'reposteria') return 'reposteria';
   if (tipo === 'mariscos') return 'mariscos';
-  if (tipo === 'otro') return 'personalizado';
   return 'fondita';
 }
 
@@ -460,7 +455,7 @@ export default function MenuScreen() {
   }, []);
 
   const handleBorrar = () => {
-    Alert.alert('¿Borrar menú de hoy?', undefined, [
+    Alert.alert('¿Borrar menú de hoy?', 'Se eliminarán las secciones y platillos actuales.', [
       { text: 'Cancelar', style: 'cancel' },
       { text: 'Borrar', style: 'destructive', onPress: async () => {
         const empty: MenuData = { secciones: [] };
@@ -531,7 +526,7 @@ export default function MenuScreen() {
           <View style={s.presetSheet}>
             <View style={s.sheetGrabber} />
             <Text style={s.presetTitle} allowFontScaling={true}>Plantillas de secciones</Text>
-            <Text style={s.presetSub} allowFontScaling={true}>Elige una base. Luego puedes editar todo.</Text>
+            <Text style={s.presetSub} allowFontScaling={true}>Elige una base rápida. Luego puedes editar todo.</Text>
             <View style={s.templateRow}>
               {TEMPLATE_ORDER.map(key => {
                 const selected = selectedTemplate === key;
@@ -619,27 +614,37 @@ export default function MenuScreen() {
                   <View style={s.emptyStateCard}>
                     <SymbolView name="sparkles" size={30} tintColor={theme.accent} weight="semibold" />
                     <Text style={s.emptyStateTitle} allowFontScaling={true}>Empieza tu menú</Text>
-                    <Text style={s.emptyStateSub} allowFontScaling={true}>Sube una imagen y Patio lo llena al instante.</Text>
-                    <TouchableOpacity
-                      style={s.emptyStatePhotoWrap}
-                      onPress={() => router.push('/foto-menu')}
-                      activeOpacity={0.82}>
-                      <View style={s.emptyStatePhotoFab}>
-                        <SymbolView name="camera.fill" size={28} tintColor="#FFFFFF" weight="semibold" />
-                      </View>
-                      <Text style={s.emptyStatePhotoLabel} allowFontScaling={true}>Tomar o elegir foto</Text>
-                    </TouchableOpacity>
+                    <Text style={s.emptyStateSub} allowFontScaling={true}>Sube una foto y Patio lo llena al instante.</Text>
+                    <View style={s.emptyStatePhotoActions}>
+                      <TouchableOpacity
+                        style={s.emptyStatePhotoWrap}
+                        onPress={() => router.push('/foto-menu')}
+                        activeOpacity={0.82}>
+                        <View style={s.emptyStatePhotoFab}>
+                          <SymbolView name="camera.fill" size={28} tintColor="#FFFFFF" weight="semibold" />
+                        </View>
+                        <Text style={s.emptyStatePhotoLabel} allowFontScaling={true}>Tomar foto</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity style={s.emptyStateSecondaryBtn} onPress={() => router.push('/foto-menu')} activeOpacity={0.82}>
+                        <Text style={s.emptyStateSecondaryBtnText} allowFontScaling={true}>Elegir imagen</Text>
+                      </TouchableOpacity>
+                    </View>
                   </View>
                 </View>
               )}
 
               {!!menuData.secciones.length && (
-                <TouchableOpacity style={s.photoFabWrap} onPress={() => router.push('/foto-menu')} activeOpacity={0.85}>
-                  <View style={s.photoFab}>
-                    <SymbolView name="camera.fill" size={28} tintColor="#FFFFFF" weight="semibold" />
-                  </View>
-                  <Text style={s.photoFabLabel} allowFontScaling={true}>Foto de tu menú</Text>
-                </TouchableOpacity>
+                <View style={s.photoActionsWrap}>
+                  <TouchableOpacity style={s.photoFabWrap} onPress={() => router.push('/foto-menu')} activeOpacity={0.85}>
+                    <View style={s.photoFab}>
+                      <SymbolView name="camera.fill" size={28} tintColor="#FFFFFF" weight="semibold" />
+                    </View>
+                    <Text style={s.photoFabLabel} allowFontScaling={true}>Tomar otra foto</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={s.photoSecondaryBtn} onPress={() => router.push('/foto-menu')} activeOpacity={0.82}>
+                    <Text style={s.photoSecondaryBtnText} allowFontScaling={true}>Elegir otra imagen</Text>
+                  </TouchableOpacity>
+                </View>
               )}
 
               {!menuData.secciones.length && (
@@ -658,9 +663,13 @@ export default function MenuScreen() {
               )}
 
               {!!menuData.secciones.length && (
-                <TouchableOpacity style={s.deleteBtn} onPress={handleBorrar}>
-                  <Text style={s.deleteBtnText} allowFontScaling={true}>Borrar menú del día</Text>
-                </TouchableOpacity>
+                <View style={s.deleteCard}>
+                  <Text style={s.deleteCardTitle} allowFontScaling={true}>Borrar menú de hoy</Text>
+                  <Text style={s.deleteCardSub} allowFontScaling={true}>Esta acción elimina las secciones y platillos actuales.</Text>
+                  <TouchableOpacity style={s.deleteBtn} onPress={handleBorrar} activeOpacity={0.82}>
+                    <Text style={s.deleteBtnText} allowFontScaling={true}>Borrar menú</Text>
+                  </TouchableOpacity>
+                </View>
               )}
             </View>
           </TouchableWithoutFeedback>
@@ -723,7 +732,8 @@ function makeStyles(t: Theme) {
     addSecBtn:       { borderWidth: 1, borderColor: t.border, borderStyle: 'dashed', borderRadius: 10, padding: 12, alignItems: 'center', marginTop: 16, marginBottom: 8, backgroundColor: t.surface },
     addSecText:      { fontSize: 14, color: t.accent, fontWeight: '600' },
     // Camera FAB (HIG-style)
-    photoFabWrap:    { alignItems: 'center', marginTop: 20, marginBottom: 8 },
+    photoActionsWrap:{ alignItems: 'center', marginTop: 20, marginBottom: 8 },
+    photoFabWrap:    { alignItems: 'center' },
     photoFab:        {
       width: 64,
       height: 64,
@@ -737,7 +747,17 @@ function makeStyles(t: Theme) {
       shadowRadius: 12,
       elevation: 7,
     },
-    photoFabLabel:   { marginTop: 8, fontSize: 12, color: t.textSecondary, fontWeight: '300' },
+    photoFabLabel:   { marginTop: 8, fontSize: 13, color: t.textSecondary, fontWeight: '500' },
+    photoSecondaryBtn: {
+      marginTop: 10,
+      backgroundColor: t.surface2,
+      borderRadius: 999,
+      paddingVertical: 10,
+      paddingHorizontal: 16,
+      borderWidth: 1,
+      borderColor: t.border,
+    },
+    photoSecondaryBtnText: { fontSize: 13, fontWeight: '600', color: t.text },
     // Empty onboarding state
     emptyStateWrap:  { flex: 1, justifyContent: 'center', marginBottom: 12 },
     emptyStateCard:  {
@@ -753,7 +773,8 @@ function makeStyles(t: Theme) {
     },
     emptyStateTitle: { fontSize: 20, fontWeight: '900', color: t.text, textAlign: 'center' },
     emptyStateSub:   { maxWidth: 290, fontSize: 14, lineHeight: 20, color: t.textSecondary, textAlign: 'center' },
-    emptyStatePhotoWrap: { alignItems: 'center', marginTop: 8, marginBottom: 2 },
+    emptyStatePhotoActions: { alignItems: 'center', marginTop: 8, marginBottom: 2, width: '100%' },
+    emptyStatePhotoWrap: { alignItems: 'center' },
     emptyStatePhotoFab: {
       width: 76,
       height: 76,
@@ -768,12 +789,40 @@ function makeStyles(t: Theme) {
       elevation: 8,
     },
     emptyStatePhotoLabel: { marginTop: 10, fontSize: 14, fontWeight: '600', color: t.text },
+    emptyStateSecondaryBtn: {
+      marginTop: 12,
+      minWidth: 160,
+      backgroundColor: t.surface2,
+      borderRadius: 999,
+      paddingVertical: 11,
+      paddingHorizontal: 18,
+      borderWidth: 1,
+      borderColor: t.border,
+      alignItems: 'center',
+    },
+    emptyStateSecondaryBtnText: { fontSize: 14, fontWeight: '600', color: t.text },
     templateLinkBtn: { alignSelf: 'center', paddingVertical: 6, paddingHorizontal: 10, marginTop: 0, marginBottom: 8, borderRadius: 10, opacity: 0.88 },
     templateLinkRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
     templateLinkText: { fontSize: 13, fontWeight: '500', color: t.textSecondary },
     // Delete
-    deleteBtn:       { marginTop: 16, marginBottom: 16, alignItems: 'center' },
-    deleteBtnText:   { fontSize: 15, fontWeight: '300', color: t.textSecondary },
+    deleteCard:      {
+      marginTop: 12,
+      marginBottom: 16,
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor: '#F1C7BC',
+      backgroundColor: '#FFF8F5',
+      padding: 14,
+      alignItems: 'flex-start',
+    },
+    deleteCardTitle: { fontSize: 14, fontWeight: '700', color: t.text },
+    deleteCardSub:   { marginTop: 4, fontSize: 13, lineHeight: 18, color: t.textSecondary },
+    deleteBtn:       {
+      marginTop: 12,
+      paddingVertical: 10,
+      paddingHorizontal: 2,
+    },
+    deleteBtnText:   { fontSize: 14, fontWeight: '700', color: '#D9482E' },
     // Modal
     modalOverlay:    { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
     modalSheet:      { backgroundColor: t.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, paddingBottom: 40 },

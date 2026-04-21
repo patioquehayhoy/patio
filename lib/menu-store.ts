@@ -31,7 +31,7 @@ const SECCION_DEFAULTS: Record<string, string[]> = {
   taqueria:   ['TACOS', 'COMPLEMENTOS', 'BEBIDAS'],
   reposteria: ['PASTELES', 'PIEZAS', 'BEBIDAS'],
   mariscos:   ['ENTRADAS', 'CALDOS', 'PLATOS FUERTES', 'BEBIDAS'],
-  otro:       ['PLATILLOS', 'BEBIDAS'],
+  otro:       ['SECCIÓN 1'],
 };
 
 export function makeDefaultMenu(tipo?: string | null): MenuData {

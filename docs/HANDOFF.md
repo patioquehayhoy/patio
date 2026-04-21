@@ -40,19 +40,23 @@
 - En `app/foto-menu.tsx` se limpió ruido textual de Vision (`menu/menú`) antes de persistir nombre/descripción.
 - En `app/preview.tsx` se añadieron sub-bullets automáticos cuando la descripción de un platillo trae variantes separadas.
 - Se corrigieron los refs tipados de `Swipeable` en `app/foto-menu.tsx`; `npx tsc --noEmit` vuelve a pasar.
+- Arrancó V3 MVP de ubicación: `app/perfil.tsx` ya permite decidir si la dirección se muestra.
+- En `app/preview.tsx` la dirección visible ahora tiene CTA `Abrir en Maps`.
+- El deep link de Maps usa Apple Maps en iOS y Google Maps web search en Android.
 
 ## Pendiente
-- Afinar visualmente `app/preview.tsx` para reforzar la noción de grupo cuando hay pocas secciones y validar spacing en dispositivo.
-- Integrar onboarding real de primera ejecución (quitar reset forzado actual).
+- Validar en dispositivo el flujo de ubicación (`perfil` -> `preview` -> `Abrir en Maps`).
+- Definir si V3 seguirá con mapa/listado de fonditas o solo ficha compartible con ubicación.
 - Limpiar warnings de lint del flujo crítico (`onboarding`, `perfil`).
 
 ## Siguiente paso exacto
-Validar en dispositivo `app/preview.tsx` con casos reales de foto (fondita/taquería) y ajustar spacing/jerarquía final del render compartible.
+Probar en dispositivo que `Mostrar ubicación` desde `perfil` controle correctamente el CTA `Abrir en Maps` en `preview`.
 
 ## Archivos tocados
 - app/login-callback.tsx
 - app/_layout.tsx
 - app/menu.tsx
+- app/perfil.tsx
 - app/preview.tsx
 - app/foto-menu.tsx
 - docs/STATE.md

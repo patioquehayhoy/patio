@@ -44,6 +44,9 @@ La app está en una fase funcional avanzada de MVP: ya existe flujo completo de 
 - En `foto-menu` la normalización de Vision limpia ruido textual como `menu/menú` en nombre y descripción antes de guardar en store.
 - En `preview` las descripciones con variantes separadas se muestran como sub-bullets cuando aplica, para que un platillo con varias opciones se lea mejor.
 - `npx tsc --noEmit` volvió a pasar después de corregir refs de `Swipeable` en `foto-menu`.
+- Arrancó V3 MVP de ubicación: en `perfil` ya existe control para `Mostrar ubicación`.
+- En `preview` la dirección solo se muestra si está habilitada y aparece CTA `Abrir en Maps`.
+- El enlace de ubicación usa Apple Maps en iOS y búsqueda de Google Maps en Android.
 
 ## Qué está incompleto o frágil
 - Existen warnings de lint pendientes en `app/onboarding.tsx` y `app/perfil.tsx` (hooks/import order).
@@ -51,8 +54,9 @@ La app está en una fase funcional avanzada de MVP: ya existe flujo completo de 
 - Falta validación manual del flujo de callback en dispositivo real (deep links iOS/Android).
 - Falta aterrizar el rediseño de “grupo grande de secciones” (MENÚ DEL DÍA/CARTA) en `app/menu.tsx`; hoy siguen cards por sección sueltas.
 - No hay suite de tests automatizados.
+- Todavía no existe mapa/listado embebido de negocios; la ubicación por ahora es solo un CTA hacia Maps.
 
 ## Próximos 3 pasos
-1. Afinar visualmente `app/preview.tsx` en dispositivo para validar spacing entre secciones y reforzar aún más la noción de grupo cuando hay pocas secciones.
-2. Limpiar warnings de lint en `app/perfil.tsx` y `app/onboarding.tsx`.
-3. Eliminar el reset forzado de onboarding e integrar un gate real de primera ejecución.
+1. Validar en dispositivo el flujo `perfil -> preview -> Abrir en Maps` y ajustar copy/visibilidad de ubicación si hace falta.
+2. Definir el siguiente escalón de V3: si habrá mapa embebido, listado de fonditas abiertas, o solo ficha de ubicación compartible.
+3. Limpiar warnings de lint en `app/perfil.tsx` y `app/onboarding.tsx`.

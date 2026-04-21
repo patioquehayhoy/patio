@@ -1,6 +1,7 @@
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { ThemeProvider, useTheme } from '@/lib/theme';
 
@@ -26,7 +27,6 @@ function RootStack() {
           name="manifiesto"
           options={{
             title: 'Manifiesto',
-            headerBackTitleVisible: false,
             headerBackButtonDisplayMode: 'minimal',
           }}
         />
@@ -42,7 +42,9 @@ function RootStack() {
 export default function RootLayout() {
   return (
     <ThemeProvider>
-      <RootStack />
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <RootStack />
+      </GestureHandlerRootView>
     </ThemeProvider>
   );
 }

@@ -1,33 +1,36 @@
 import { Stack, useFocusEffect, router } from 'expo-router';
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import {
   Alert,
-  Animated,
-  LayoutAnimation,
+  Keyboard,
+  KeyboardAvoidingView,
+  Modal,
   Platform,
+  Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   TouchableWithoutFeedback,
-  Keyboard,
-  UIManager,
   View,
-  KeyboardAvoidingView,
-  ScrollView,
 } from 'react-native';
-
-if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SymbolView } from 'expo-symbols';
+import Swipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
 
 import { BottomTabBar } from '@/components/bottom-tab-bar';
 import {
   type MenuData,
+  type Seccion,
+  type Platillo,
+  makeSectionId,
+  makePlatilloId,
+  makeDefaultMenu,
+  normalizeMenuData,
   setMenuData as saveMenuData,
   getMenuData,
   setCartaData as saveCartaData,
-  getCartaData,
   getFonditaName,
   setFonditaName,
   getFonditaDescription,
@@ -36,483 +39,304 @@ import {
   setFonditaDireccion,
   getFonditaDireccionVisible,
   setFonditaDireccionVisible,
+  getTipoNegocio,
+  setTipoNegocio,
 } from '@/lib/menu-store';
-import { loadMenuHoy, saveMenuHoy, deleteMenuHoy, loadCarta, saveCarta, deleteCarta, upsertFondita } from '@/lib/db';
+import { loadMenuHoy, saveMenuHoy, deleteMenuHoy, loadCarta, upsertFondita } from '@/lib/db';
 import { getFonditaId, setFonditaId } from '@/lib/user-store';
 import { supabase } from '@/lib/supabase';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme, type Theme } from '@/lib/theme';
 
-// ─── Constants ────────────────────────────────────────────────────────────────
-const MAX_PRIMER_TIEMPO = 7;
-const MAX_SEGUNDO_TIEMPO = 7;
-const MAX_TERCER_TIEMPO = 7;
-const MAX_POSTRE = 7;
-const MAX_AGUAS = 7;
-const ANIM_DURATION = 200;
-const ORD_PARTS: [string, string][] = [['1', 'er'], ['2', 'do'], ['3', 'er']];
+type TemplateKey = 'fondita' | 'taqueria' | 'reposteria' | 'mariscos' | 'personalizado';
 
-
-const EMPTY_MENU: MenuData = {
-  primerTiempo: { enabled: true, items: [''] },
-  segundoTiempo: { enabled: true, items: [''] },
-  tercerTiempoGuisado: { enabled: true, items: [''] },
-  postre: { enabled: false, items: [''] },
-  aguas: { enabled: true, items: [''] },
-  precio: { enabled: true, value: '' },
+const SECTION_TEMPLATES: Record<TemplateKey, { label: string; sections: string[] }> = {
+  fondita: {
+    label: 'Fondita',
+    sections: ['1ER TIEMPO', '2DO TIEMPO', '3ER TIEMPO', 'BEBIDAS'],
+  },
+  taqueria: {
+    label: 'Taquería',
+    sections: ['TACOS', 'COMPLEMENTOS', 'BEBIDAS'],
+  },
+  reposteria: {
+    label: 'Repostería',
+    sections: ['PASTELES', 'PIEZAS', 'BEBIDAS'],
+  },
+  mariscos: {
+    label: 'Mariscos',
+    sections: ['ENTRADAS', 'CALDOS', 'PLATOS FUERTES', 'BEBIDAS'],
+  },
+  personalizado: {
+    label: 'Personalizado',
+    sections: ['PLATILLOS', 'BEBIDAS'],
+  },
 };
 
-// ─── makeStyles ───────────────────────────────────────────────────────────────
-function makeStyles(t: Theme) {
-  return StyleSheet.create({
-    container:            { flex: 1, backgroundColor: t.bg },
-    keyboardView:         { flex: 1 },
-    formHalf:             { flex: 1 },
-    formScroll:           { flex: 1 },
-    formContent:          { paddingHorizontal: 24, paddingTop: 8, paddingBottom: 8 },
-    // Header
-    headerTitleContainer: { flex: 1 },
-    headerName:           { fontSize: 28, fontWeight: '900', color: t.text, letterSpacing: -0.5, lineHeight: 34, marginBottom: 2 },
-    headerDesc:           { fontSize: 15, fontWeight: '300', color: t.gray, lineHeight: 22, marginBottom: 2 },
-    headerDireccion:      { fontSize: 12, fontWeight: '300', color: t.gray, lineHeight: 17, opacity: 0.5, marginBottom: 6 },
-    tabRow:               { alignItems: 'center', paddingVertical: 16, backgroundColor: t.bg },
-    // Section
-    section:              { marginBottom: 24 },
-    sectionHeader:        { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
-    sectionDivider:       { height: 0.5, backgroundColor: t.accentLight, marginBottom: 12 },
-    secLabel:             { fontSize: 12, fontWeight: '700', letterSpacing: 1.4, color: t.accent, textTransform: 'uppercase' },
-    // Items
-    itemRow:              { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
-    input:                { flex: 1, fontSize: 17, lineHeight: 22, height: 34, color: t.text, fontWeight: '800', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.sep, paddingVertical: 6, paddingHorizontal: 0, backgroundColor: 'transparent' },
-    removeBtn:            { width: 28, alignItems: 'center', paddingLeft: 4 },
-    removeBtnText:        { fontSize: 15, color: t.gray },
-    addBtn:               { paddingVertical: 4 },
-    addBtnText:           { fontSize: 15, color: t.accent, fontWeight: '500' },
-    slashSep:             { fontSize: 15, lineHeight: 22, color: t.gray, paddingHorizontal: 4, paddingVertical: 6 },
-    descInput:            { fontSize: 17, lineHeight: 22, height: 34, fontWeight: '300', color: t.gray, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.sep, paddingVertical: 6, paddingHorizontal: 0, backgroundColor: 'transparent' },
-    chipsScroll:          { marginBottom: 8 },
-    chipsContent:         { flexDirection: 'row', gap: 6, paddingRight: 4 },
-    chip:                 { paddingVertical: 3, paddingHorizontal: 10, borderRadius: 12, borderWidth: 1, borderColor: t.accent, backgroundColor: 'transparent' },
-    chipText:             { fontSize: 12, color: t.accent, fontWeight: '500' },
-    // Precio
-    precioPrefix:         { fontSize: 22, fontWeight: '900', color: t.accent, lineHeight: 28 },
-    // Preview separator
-    previewDividerRow:    { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10, marginTop: 32 },
-    previewDividerLine:   { flex: 1, height: 0.5, backgroundColor: t.accent, opacity: 0.5 },
-    previewDividerLabel:  { fontSize: 12, fontWeight: '900', letterSpacing: 2, color: t.accent, textTransform: 'uppercase', opacity: 0.5, marginHorizontal: 10 },
-    // Preview
-    previewContainer:     { flex: 1, minHeight: 180, backgroundColor: t.bg, paddingHorizontal: 16, paddingBottom: 14 },
-    previewHeader:        { fontSize: 12, fontWeight: '900', letterSpacing: 2, color: t.gray, textTransform: 'uppercase', marginBottom: 10 },
-    previewScroll:        { flex: 1 },
-    previewScrollContent: { paddingBottom: 8 },
-    previewEmpty:         { fontSize: 15, color: t.gray, fontStyle: 'italic' },
-    previewContent:       { gap: 2 },
-    previewTitleRow:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, paddingBottom: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.sep },
-    previewTitle:         { fontSize: 12, fontWeight: '700', letterSpacing: 1.4, color: t.accent, textTransform: 'uppercase' },
-    previewTitleDelete:   { fontSize: 12, fontWeight: '300', color: t.accent, opacity: 0.4 },
-    previewSec:           { marginBottom: 0 },
-    previewLabel:         { fontSize: 12, fontWeight: '700', letterSpacing: 1.0, color: t.text, textTransform: 'uppercase', marginTop: 16, marginBottom: 6, opacity: 0.5 },
-    previewItem:          { fontSize: 17, fontWeight: '800', color: t.text, marginLeft: 4, marginBottom: 8 },
-    previewItemDesc:      { fontSize: 15, fontWeight: '300', color: t.gray, lineHeight: 22 },
-    previewPrice:         { fontSize: 22, fontWeight: '900', color: t.accent, marginTop: 12, marginBottom: 4 },
-  });
+const TEMPLATE_ORDER: TemplateKey[] = ['fondita', 'taqueria', 'reposteria', 'mariscos', 'personalizado'];
+
+function resolveTemplateFromTipo(tipo: string | null | undefined): TemplateKey {
+  if (tipo === 'taqueria') return 'taqueria';
+  if (tipo === 'reposteria') return 'reposteria';
+  if (tipo === 'mariscos') return 'mariscos';
+  if (tipo === 'otro') return 'personalizado';
+  return 'fondita';
 }
 
-// ─── SegmentedControl ─────────────────────────────────────────────────────────
-const SEG_BTN_WIDTH = 80;
-
-function SegmentedControl({ value, onChange }: { value: 'menu' | 'carta'; onChange: (v: 'menu' | 'carta') => void }) {
-  const { theme } = useTheme();
-  const anim = useRef(new Animated.Value(value === 'menu' ? 0 : 1)).current;
-
-  useEffect(() => {
-    Animated.spring(anim, { toValue: value === 'menu' ? 0 : 1, useNativeDriver: true, speed: 22, bounciness: 0 }).start();
-  }, [value]);
-
-  const translateX = anim.interpolate({ inputRange: [0, 1], outputRange: [3, SEG_BTN_WIDTH + 3] });
-
-  return (
-    <View style={[seg.container, { backgroundColor: theme.surface2 }]}>
-      {/* Píldora deslizante */}
-      <Animated.View style={[seg.pill, { backgroundColor: theme.surface, transform: [{ translateX }] }]} pointerEvents="none" />
-      {/* Labels */}
-      <TouchableOpacity style={seg.btn} onPress={() => onChange('menu')} activeOpacity={0.75}>
-        <Text style={[seg.label, { color: value === 'menu' ? theme.text : theme.textSecondary, fontWeight: value === 'menu' ? '600' : '400' }]} allowFontScaling={true}>Menú</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={seg.btn} onPress={() => onChange('carta')} activeOpacity={0.75}>
-        <Text style={[seg.label, { color: value === 'carta' ? theme.text : theme.textSecondary, fontWeight: value === 'carta' ? '600' : '400' }]} allowFontScaling={true}>Carta</Text>
-      </TouchableOpacity>
-    </View>
-  );
-}
-
-const seg = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignSelf: 'center',
-    borderRadius: 20,
-    padding: 3,
-    overflow: 'hidden',
-  },
-  pill: {
-    position: 'absolute',
-    top: 3,
-    bottom: 3,
-    width: SEG_BTN_WIDTH,
-    borderRadius: 17,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  btn:   { width: SEG_BTN_WIDTH, alignItems: 'center', justifyContent: 'center', paddingVertical: 7, zIndex: 1 },
-  label: { fontSize: 13, letterSpacing: 0.1 },
-});
-
-// ─── ToggleSwitch ─────────────────────────────────────────────────────────────
-function ToggleSwitch({ value, onValueChange }: { value: boolean; onValueChange: (v: boolean) => void }) {
-  const { theme } = useTheme();
-  const anim = useRef(new Animated.Value(value ? 1 : 0)).current;
-  useEffect(() => {
-    Animated.spring(anim, { toValue: value ? 1 : 0, useNativeDriver: false, speed: 20, bounciness: 0 }).start();
-  }, [value]);
-  const translateX = anim.interpolate({ inputRange: [0, 1], outputRange: [2, 20] });
-  const trackOff  = theme.surface2;
-  const trackOn   = theme.accent;
-  const thumbOff  = '#FFFFFF';
-  const thumbOn   = '#FFFFFF';
-  const trackBg    = anim.interpolate({ inputRange: [0, 1], outputRange: [trackOff, trackOn] });
-  const thumbColor = anim.interpolate({ inputRange: [0, 1], outputRange: [thumbOff, thumbOn] });
-  return (
-    <TouchableOpacity onPress={() => onValueChange(!value)} activeOpacity={0.85}>
-      <Animated.View style={[tog.track, { backgroundColor: trackBg }]}>
-        <Animated.View style={[tog.thumb, { backgroundColor: thumbColor, transform: [{ translateX }] }]} />
-      </Animated.View>
-    </TouchableOpacity>
-  );
-}
-
-const tog = StyleSheet.create({
-  track: { width: 44, height: 26, borderRadius: 13, justifyContent: 'center' },
-  thumb: { width: 22, height: 22, borderRadius: 11 },
-});
-
-// ─── OrdTitle ─────────────────────────────────────────────────────────────────
-function OrdTitle({ idx, rest }: { idx: 0 | 1 | 2; rest: string }) {
-  const { theme } = useTheme();
-  const s = makeStyles(theme);
-  const [n, sf] = ORD_PARTS[idx];
-  return <Text style={s.secLabel} allowFontScaling={true}>{n}{sf.toUpperCase()} {rest.toUpperCase()}</Text>;
-}
-
-// ─── DescInput ────────────────────────────────────────────────────────────────
-function DescInput({
-  value, onChange, selectionColor, inputRef, onSubmitEditing, returnKeyType = 'next',
+// ─── MovePlatilloModal ────────────────────────────────────────────────────────
+function MovePlatilloModal({
+  visible,
+  secciones,
+  currentSecId,
+  onMove,
+  onClose,
 }: {
-  value: string;
-  onChange: (v: string) => void;
-  selectionColor: string;
-  inputRef?: (ref: TextInput | null) => void;
-  onSubmitEditing?: () => void;
-  returnKeyType?: 'next' | 'done';
+  visible: boolean;
+  secciones: Seccion[];
+  currentSecId: string;
+  onMove: (targetSecId: string) => void;
+  onClose: () => void;
 }) {
   const { theme } = useTheme();
   const s = makeStyles(theme);
-  return (
-    <TextInput
-      ref={inputRef}
-      style={[s.descInput, { flex: 1.2 }]}
-      placeholder="Descripción"
-      placeholderTextColor={theme.border}
-      value={value}
-      autoCapitalize="none"
-      onChangeText={onChange}
-      selectionColor={selectionColor}
-      maxLength={80}
-      returnKeyType={returnKeyType}
-      onSubmitEditing={onSubmitEditing}
-    />
-  );
-}
-
-// ─── DynamicSection ───────────────────────────────────────────────────────────
-function DynamicSection({
-  title, enabled, onToggle, items, maxItems, onAdd, onRemove, onChange, placeholder,
-  showToggle = true, dimOnly = false, suggestions, suggestionDescs,
-}: {
-  title: React.ReactNode;
-  enabled: boolean;
-  onToggle: (value: boolean) => void;
-  items: string[];
-  maxItems: number;
-  onAdd: () => void;
-  onRemove: (index: number) => void;
-  onChange: (index: number, value: string) => void;
-  placeholder: string;
-  showToggle?: boolean;
-  dimOnly?: boolean;
-  suggestions?: string[];
-  suggestionDescs?: Record<string, string>;
-}) {
-  const { theme } = useTheme();
-  const s = makeStyles(theme);
-  const opacity = useRef(new Animated.Value(dimOnly ? 1 : (enabled ? 1 : 0))).current;
-  const [showContent, setShowContent] = useState(dimOnly || enabled);
-  const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
-  const blurTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const nameRefs = useRef<Array<TextInput | null>>([]);
-  const descRefs = useRef<Array<TextInput | null>>([]);
-
-  useEffect(() => {
-    if (dimOnly) {
-      Animated.timing(opacity, { toValue: enabled ? 1 : 0.5, duration: ANIM_DURATION, useNativeDriver: true }).start();
-      return;
-    }
-    if (enabled) {
-      setShowContent(true);
-      Animated.timing(opacity, { toValue: 1, duration: ANIM_DURATION, useNativeDriver: true }).start();
-    } else {
-      Animated.timing(opacity, { toValue: 0, duration: ANIM_DURATION, useNativeDriver: true }).start(() => {
-        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-        setShowContent(false);
-      });
-    }
-  }, [enabled]);
+  const targets = secciones.filter(sec => sec.id !== currentSecId);
 
   return (
-    <View style={s.section}>
-      <View style={s.sectionHeader}>
-        {title}
-        {showToggle && <ToggleSwitch value={enabled} onValueChange={onToggle} />}
-      </View>
-      <View style={s.sectionDivider} />
-      {showContent && (
-        <Animated.View style={{ opacity }}>
-          {items.map((item, index) => {
-            const slashIdx = item.indexOf(' / ');
-            const namePart = slashIdx !== -1 ? item.slice(0, slashIdx) : item;
-            const descPart = slashIdx !== -1 ? item.slice(slashIdx + 3) : '';
-
-            const otherNames = items
-              .filter((_, i) => i !== index)
-              .map(it => { const si = it.indexOf(' / '); return (si !== -1 ? it.slice(0, si) : it).toLowerCase(); });
-            const filtered = suggestions
-              ? (namePart ? suggestions.filter(sg => sg.toLowerCase().includes(namePart.toLowerCase())) : suggestions)
-                  .filter(sg => !otherNames.includes(sg.toLowerCase()))
-              : [];
-            const showChips = suggestions && focusedIndex === index && filtered.length > 0;
-
-            return (
-              <View key={index}>
-                <View style={s.itemRow}>
-                  <TextInput
-                    ref={(el) => { nameRefs.current[index] = el; }}
-                    style={s.input}
-                    placeholder={placeholder}
-                    placeholderTextColor={theme.border}
-                    value={namePart}
-                    autoCapitalize="sentences"
-                    onChangeText={(v) => {
-                      onChange(index, v + (descPart ? ' / ' + descPart : ''));
-                      if (blurTimer.current) clearTimeout(blurTimer.current);
-                      setFocusedIndex(index);
-                    }}
-                    onFocus={() => {
-                      if (blurTimer.current) clearTimeout(blurTimer.current);
-                      setFocusedIndex(index);
-                    }}
-                    onBlur={() => {
-                      blurTimer.current = setTimeout(() => setFocusedIndex(null), 200);
-                    }}
-                    selectionColor={theme.accent}
-                    maxLength={40}
-                    returnKeyType="next"
-                    onSubmitEditing={() => descRefs.current[index]?.focus()}
-                  />
-                  <Text style={s.slashSep}>/</Text>
-                  <DescInput
-                    value={descPart}
-                    onChange={(v) => onChange(index, namePart + (v ? ' / ' + v : ''))}
-                    selectionColor={theme.accent}
-                    inputRef={(el) => { descRefs.current[index] = el; }}
-                    returnKeyType={index === items.length - 1 ? 'done' : 'next'}
-                    onSubmitEditing={index === items.length - 1 ? undefined : () => nameRefs.current[index + 1]?.focus()}
-                  />
-                  <TouchableOpacity style={s.removeBtn} onPress={() => onRemove(index)}>
-                    <Text style={s.removeBtnText} allowFontScaling={true}>✕</Text>
-                  </TouchableOpacity>
-                </View>
-                {showChips && (
-                  <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    keyboardShouldPersistTaps="always"
-                    style={s.chipsScroll}
-                    contentContainerStyle={s.chipsContent}
-                  >
-                    {filtered.map(chip => (
-                      <TouchableOpacity
-                        key={chip}
-                        style={s.chip}
-                        onPress={() => {
-                          if (blurTimer.current) clearTimeout(blurTimer.current);
-                          const chipDesc = suggestionDescs?.[chip] ?? '';
-                          onChange(index, chipDesc ? chip + ' / ' + chipDesc : chip);
-                          setFocusedIndex(null);
-                        }}
-                      >
-                        <Text style={s.chipText} allowFontScaling={true}>{chip}</Text>
-                      </TouchableOpacity>
-                    ))}
-                  </ScrollView>
-                )}
-              </View>
-            );
-          })}
-          {items.length < maxItems && (
-            <TouchableOpacity style={s.addBtn} onPress={onAdd}>
-              <Text style={s.addBtnText} allowFontScaling={true}>+</Text>
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <TouchableOpacity style={s.modalOverlay} activeOpacity={1} onPress={onClose}>
+        <View style={s.modalSheet}>
+          <Text style={s.modalTitle} allowFontScaling={true}>Mover a sección</Text>
+          {targets.map(sec => (
+            <TouchableOpacity key={sec.id} style={s.modalOption} onPress={() => onMove(sec.id)}>
+              <Text style={s.modalOptionText} allowFontScaling={true}>{sec.nombre}</Text>
             </TouchableOpacity>
-          )}
-        </Animated.View>
-      )}
-    </View>
+          ))}
+          <TouchableOpacity style={s.modalCancel} onPress={onClose}>
+            <Text style={s.modalCancelText} allowFontScaling={true}>Cancelar</Text>
+          </TouchableOpacity>
+        </View>
+      </TouchableOpacity>
+    </Modal>
   );
 }
 
-// ─── PrecioSection ────────────────────────────────────────────────────────────
-function PrecioSection({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+// ─── PlatilloCard ─────────────────────────────────────────────────────────────
+function PlatilloCard({
+  plat,
+  onNombre,
+  onDesc,
+  onPrecio,
+  onRemove,
+  onMove,
+}: {
+  plat: Platillo;
+  onNombre: (v: string) => void;
+  onDesc: (v: string) => void;
+  onPrecio: (v: string) => void;
+  onRemove: () => void;
+  onMove: () => void;
+}) {
   const { theme } = useTheme();
   const s = makeStyles(theme);
-  const [focused, setFocused] = useState(false);
-  return (
-    <View style={s.section}>
-      <View style={s.sectionHeader}>
-        <Text style={s.secLabel} allowFontScaling={true}>PRECIO</Text>
-      </View>
-      <View style={s.sectionDivider} />
-      <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
-        <Text style={s.precioPrefix} allowFontScaling={true}>$</Text>
-        <TextInput
-          style={{ fontSize: 22, fontWeight: '900', lineHeight: 28, color: theme.accent, paddingTop: 0, paddingBottom: 0, paddingHorizontal: 0, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.sep, backgroundColor: 'transparent', minWidth: 60 }}
-          placeholder="74"
-          placeholderTextColor={theme.border}
-          value={value}
-          onChangeText={onChange}
-          keyboardType="number-pad"
-          autoCapitalize="none"
-          selectionColor={theme.accent}
-          onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
-        />
-      </View>
-    </View>
-  );
-}
+  const swipeRef = useRef<any>(null);
 
-// ─── MenuPreview ──────────────────────────────────────────────────────────────
-function MenuPreview({ data, title, onDelete }: { data: MenuData; title: string; onDelete?: () => void }) {
-  const { theme } = useTheme();
-  const s = makeStyles(theme);
+  const handleMove = () => {
+    swipeRef.current?.close();
+    onMove();
+  };
 
-  const hasContent =
-    (data.primerTiempo.enabled && data.primerTiempo.items.some(Boolean)) ||
-    (data.segundoTiempo.enabled && data.segundoTiempo.items.some(Boolean)) ||
-    (data.tercerTiempoGuisado.enabled && data.tercerTiempoGuisado.items.some(Boolean)) ||
-    (data.postre.enabled && data.postre.items.some(Boolean)) ||
-    (data.aguas.enabled && data.aguas.items.some(Boolean)) ||
-    (data.precio.enabled && data.precio.value.trim());
-
-  if (!hasContent) return <Text style={s.previewEmpty} allowFontScaling={true}>El menú se mostrará aquí mientras escribes…</Text>;
-
-  const p = data.primerTiempo.enabled ? 1 : 0;
-  const sv = data.segundoTiempo.enabled ? 1 : 0;
-  const primerLabel  = `${ORD_PARTS[0][0]}${ORD_PARTS[0][1]} Tiempo`;
-  const segundoLabel = `${ORD_PARTS[p][0]}${ORD_PARTS[p][1]} Tiempo`;
-  const tercerLabel  = `${ORD_PARTS[p + sv][0]}${ORD_PARTS[p + sv][1]} Tiempo`;
-
-  const ri = (item: string, i: number) => {
-    const si = item.indexOf(' / ');
-    if (si === -1) return <Text key={i} style={s.previewItem} allowFontScaling={true}>• {item}</Text>;
-    return (
-      <Text key={i} style={s.previewItem} allowFontScaling={true}>
-        {'• ' + item.slice(0, si)}<Text style={s.previewItemDesc} allowFontScaling={true}>{' / ' + item.slice(si + 3)}</Text>
-      </Text>
-    );
+  const handleDelete = () => {
+    swipeRef.current?.close();
+    onRemove();
   };
 
   return (
-    <View style={s.previewContent}>
-      <View style={s.previewTitleRow}>
-        <Text style={s.previewTitle} allowFontScaling={true}>{title}</Text>
-        {onDelete && (
-          <TouchableOpacity onPress={onDelete}>
-            <Text style={s.previewTitleDelete} allowFontScaling={true}>Borrar</Text>
+    <Swipeable
+      ref={swipeRef}
+      overshootRight={false}
+      rightThreshold={40}
+      renderRightActions={() => (
+        <View style={s.swipeActionsWrap}>
+          <TouchableOpacity style={[s.swipeActionBtn, s.swipeActionMove]} onPress={handleMove} activeOpacity={0.85}>
+            <Text style={s.swipeActionText}>Mover</Text>
           </TouchableOpacity>
-        )}
+          <TouchableOpacity style={[s.swipeActionBtn, s.swipeActionDelete]} onPress={handleDelete} activeOpacity={0.85}>
+            <Text style={s.swipeActionText}>Eliminar</Text>
+          </TouchableOpacity>
+        </View>
+      )}>
+      <View style={s.platCard}>
+        <TouchableOpacity onPress={onMove} style={s.handle} hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}>
+          <Text style={s.handleIcon}>⠿</Text>
+        </TouchableOpacity>
+        <View style={s.platMain}>
+          <View style={s.platTopRow}>
+            <TextInput
+              style={s.platName}
+              value={plat.nombre}
+              onChangeText={onNombre}
+              placeholder="Platillo"
+              placeholderTextColor={theme.border}
+              autoCapitalize="sentences"
+              selectionColor={theme.accent}
+              returnKeyType="next"
+              allowFontScaling={true}
+            />
+            <View style={s.platActions}>
+              <Text style={s.pricePrefixMuted} allowFontScaling={true}>$</Text>
+              <TextInput
+                style={s.platPrecio}
+                value={plat.precio}
+                onChangeText={v => onPrecio(v.replace(/[^0-9.]/g, ''))}
+                placeholder="0"
+                placeholderTextColor={theme.border}
+                keyboardType="decimal-pad"
+                selectionColor={theme.accent}
+                allowFontScaling={true}
+              />
+            </View>
+          </View>
+          <TextInput
+            style={s.platDesc}
+            value={plat.descripcion}
+            onChangeText={onDesc}
+            placeholder="Descripción"
+            placeholderTextColor={theme.border}
+            autoCapitalize="none"
+            selectionColor={theme.accent}
+            returnKeyType="next"
+            allowFontScaling={true}
+          />
+        </View>
       </View>
-      {data.primerTiempo.enabled && data.primerTiempo.items.some(Boolean) && (
-        <View style={s.previewSec}>
-          <Text style={s.previewLabel} allowFontScaling={true}>{primerLabel}</Text>
-          {data.primerTiempo.items.filter(Boolean).map(ri)}
+    </Swipeable>
+  );
+}
+
+// ─── SectionCard ──────────────────────────────────────────────────────────────
+function SectionCard({
+  sec,
+  onNombre,
+  onPrecio,
+  onRemove,
+  onMoveUp,
+  canMoveUp,
+  onAddPlatillo,
+  onUpdatePlatillo,
+  onRemovePlatillo,
+  onMovePlatillo,
+}: {
+  sec: Seccion;
+  onNombre: (v: string) => void;
+  onPrecio: (v: string) => void;
+  onRemove: () => void;
+  onMoveUp: () => void;
+  canMoveUp: boolean;
+  onAddPlatillo: () => void;
+  onUpdatePlatillo: (platId: string, patch: Partial<Platillo>) => void;
+  onRemovePlatillo: (platId: string) => void;
+  onMovePlatillo: (platId: string) => void;
+}) {
+  const { theme } = useTheme();
+  const s = makeStyles(theme);
+  const addLabel = sec.nombre.trim().toUpperCase().includes('BEBIDA') ? '+ agregar bebidas' : '+ agregar platillo';
+  const swipeRef = useRef<any>(null);
+
+  const handleMoveUp = () => {
+    swipeRef.current?.close();
+    onMoveUp();
+  };
+
+  const handleDelete = () => {
+    swipeRef.current?.close();
+    onRemove();
+  };
+
+  return (
+    <Swipeable
+      ref={swipeRef}
+      overshootRight={false}
+      rightThreshold={40}
+      renderRightActions={() => (
+        <View style={s.swipeActionsWrap}>
+          {canMoveUp && (
+            <TouchableOpacity style={[s.swipeActionBtn, s.swipeActionMove]} onPress={handleMoveUp} activeOpacity={0.85}>
+              <Text style={s.swipeActionText}>Subir</Text>
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity style={[s.swipeActionBtn, s.swipeActionDelete]} onPress={handleDelete} activeOpacity={0.85}>
+            <Text style={s.swipeActionText}>Eliminar</Text>
+          </TouchableOpacity>
         </View>
-      )}
-      {data.segundoTiempo.enabled && data.segundoTiempo.items.some(Boolean) && (
-        <View style={s.previewSec}>
-          <Text style={s.previewLabel} allowFontScaling={true}>{segundoLabel}</Text>
-          {data.segundoTiempo.items.filter(Boolean).map(ri)}
+      )}>
+      <View style={s.secCard}>
+        <View style={s.secHeader}>
+          <TextInput
+            style={s.secName}
+            value={sec.nombre}
+            onChangeText={v => onNombre(v.toUpperCase())}
+            autoCapitalize="characters"
+            selectionColor={theme.accent}
+            returnKeyType="done"
+            allowFontScaling={true}
+          />
+          <View style={s.priceWrap}>
+            <Text style={s.pricePrefix} allowFontScaling={true}>$</Text>
+            <TextInput
+              style={s.secPrecio}
+              value={sec.precio}
+              onChangeText={v => onPrecio(v.replace(/[^0-9.]/g, ''))}
+              placeholder="0"
+              placeholderTextColor={theme.border}
+              keyboardType="decimal-pad"
+              selectionColor={theme.accent}
+              allowFontScaling={true}
+            />
+          </View>
         </View>
-      )}
-      {data.tercerTiempoGuisado.enabled && data.tercerTiempoGuisado.items.some(Boolean) && (
-        <View style={s.previewSec}>
-          <Text style={s.previewLabel} allowFontScaling={true}>{tercerLabel}</Text>
-          {data.tercerTiempoGuisado.items.filter(Boolean).map(ri)}
-        </View>
-      )}
-      {data.aguas.enabled && data.aguas.items.some(Boolean) && (
-        <View style={s.previewSec}>
-          <Text style={s.previewLabel} allowFontScaling={true}>Bebidas</Text>
-          {data.aguas.items.filter(Boolean).map(ri)}
-        </View>
-      )}
-      {data.postre.enabled && data.postre.items.some(Boolean) && (
-        <View style={s.previewSec}>
-          <Text style={s.previewLabel} allowFontScaling={true}>Postre</Text>
-          {data.postre.items.filter(Boolean).map(ri)}
-        </View>
-      )}
-      {data.precio.enabled && data.precio.value.trim() && (
-        <Text style={s.previewPrice} allowFontScaling={true}>${data.precio.value}</Text>
-      )}
-    </View>
+
+        {sec.platillos.map(plat => (
+          <PlatilloCard
+            key={plat.id}
+            plat={plat}
+            onNombre={v => onUpdatePlatillo(plat.id, { nombre: v })}
+            onDesc={v => onUpdatePlatillo(plat.id, { descripcion: v })}
+            onPrecio={v => onUpdatePlatillo(plat.id, { precio: v })}
+            onRemove={() => onRemovePlatillo(plat.id)}
+            onMove={() => onMovePlatillo(plat.id)}
+          />
+        ))}
+
+        <Pressable
+          style={({ pressed }) => [s.addPlatilloBtn, pressed && s.addPlatilloBtnPressed]}
+          onPress={onAddPlatillo}>
+          <Text style={s.addPlatilloText} allowFontScaling={true}>{addLabel}</Text>
+        </Pressable>
+      </View>
+    </Swipeable>
   );
 }
 
 // ─── Main Screen ──────────────────────────────────────────────────────────────
-type SectionKey = 'primerTiempo' | 'segundoTiempo' | 'tercerTiempoGuisado' | 'postre' | 'aguas';
-
-
 export default function MenuScreen() {
   const { theme } = useTheme();
   const s = makeStyles(theme);
   const insets = useSafeAreaInsets();
 
-  const [activeTab, setActiveTab] = useState<'carta' | 'menu'>('menu');
-  const [menuData, setMenuData] = useState<MenuData>(() => getMenuData() ?? { ...EMPTY_MENU });
-  const [cartaData, setCartaData] = useState<MenuData>(() => getCartaData() ?? { ...EMPTY_MENU });
+  const [menuData, setMenuData] = useState<MenuData>(
+    () => normalizeMenuData(getMenuData()) ?? { secciones: [] }
+  );
+  const [movingPlatillo, setMovingPlatillo] = useState<{ secId: string; platId: string } | null>(null);
+  const [sectionPickerVisible, setSectionPickerVisible] = useState(false);
+  const [selectedSectionNames, setSelectedSectionNames] = useState<string[]>([]);
+  const [selectedTemplate, setSelectedTemplate] = useState<TemplateKey>('fondita');
+
   const menuSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const cartaSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [fonditaName, setFonditaNameState] = useState(getFonditaName());
-  const [fonditaDesc, setFonditaDescState] = useState(getFonditaDescription());
-  const [fonditaDireccion, setFonditaDireccionState] = useState(getFonditaDireccion());
-  const [fonditaDireccionVisible, setFonditaDireccionVisibleState] = useState(getFonditaDireccionVisible());
 
   useFocusEffect(useCallback(() => {
-    setFonditaNameState(getFonditaName());
-    setFonditaDescState(getFonditaDescription());
-    setFonditaDireccionState(getFonditaDireccion());
-    setFonditaDireccionVisibleState(getFonditaDireccionVisible());
+    setFonditaName(getFonditaName());
+    setFonditaDescription(getFonditaDescription());
+    setFonditaDireccion(getFonditaDireccion());
+    setFonditaDireccionVisible(getFonditaDireccionVisible());
   }, []));
 
   useEffect(() => {
@@ -528,13 +352,25 @@ export default function MenuScreen() {
         fonditaId = id;
       }
       const [menuFromDb, cartaFromDb] = await Promise.all([loadMenuHoy(fonditaId), loadCarta(fonditaId)]);
-      if (menuFromDb) { setMenuData(menuFromDb); saveMenuData(menuFromDb); }
-      if (cartaFromDb) { setCartaData(cartaFromDb); saveCartaData(cartaFromDb); }
-      const { data: fondita } = await supabase.from('fonditas').select('nombre, descripcion, direccion, direccion_visible').eq('id', fonditaId).maybeSingle();
-      if (fondita?.nombre) { setFonditaName(fondita.nombre); setFonditaNameState(fondita.nombre); }
-      if (fondita?.descripcion != null) { setFonditaDescription(fondita.descripcion); setFonditaDescState(fondita.descripcion); }
-      if (fondita?.direccion != null) { setFonditaDireccion(fondita.direccion); setFonditaDireccionState(fondita.direccion); }
-      if (fondita?.direccion_visible != null) { setFonditaDireccionVisible(fondita.direccion_visible); setFonditaDireccionVisibleState(fondita.direccion_visible); }
+      if (menuFromDb) {
+        const m = normalizeMenuData(menuFromDb) ?? { secciones: [] };
+        setMenuData(m);
+        saveMenuData(m);
+      }
+      if (cartaFromDb) {
+        const c = normalizeMenuData(cartaFromDb) ?? makeDefaultMenu(getTipoNegocio());
+        saveCartaData(c);
+      }
+      const { data: fondita } = await supabase
+        .from('fonditas')
+        .select('nombre, descripcion, direccion, direccion_visible, tipo_negocio')
+        .eq('id', fonditaId)
+        .maybeSingle();
+      if (fondita?.nombre)                    setFonditaName(fondita.nombre);
+      if (fondita?.descripcion != null)        setFonditaDescription(fondita.descripcion);
+      if (fondita?.direccion != null)          setFonditaDireccion(fondita.direccion);
+      if (fondita?.direccion_visible != null)  setFonditaDireccionVisible(fondita.direccion_visible);
+      if ((fondita as any)?.tipo_negocio != null) setTipoNegocio((fondita as any).tipo_negocio);
     };
     init();
   }, []);
@@ -548,139 +384,429 @@ export default function MenuScreen() {
     return () => { if (menuSaveTimer.current) clearTimeout(menuSaveTimer.current); };
   }, [menuData]);
 
-  useEffect(() => {
-    saveCartaData(cartaData);
-    const fonditaId = getFonditaId();
-    if (!fonditaId) return;
-    if (cartaSaveTimer.current) clearTimeout(cartaSaveTimer.current);
-    cartaSaveTimer.current = setTimeout(() => saveCarta(fonditaId, cartaData), 1500);
-    return () => { if (cartaSaveTimer.current) clearTimeout(cartaSaveTimer.current); };
-  }, [cartaData]);
+  // ── CRUD helpers ───────────────────────────────────────────────────────────
+  const updateSecNombre = useCallback((secId: string, nombre: string) =>
+    setMenuData(p => ({ ...p, secciones: p.secciones.map(s => s.id === secId ? { ...s, nombre } : s) })), []);
 
-  const activeData = activeTab === 'carta' ? cartaData : menuData;
-  const setActiveData = activeTab === 'carta' ? setCartaData : setMenuData;
-  const previewTitle = activeTab === 'carta' ? 'Carta' : 'Menú del día';
+  const updateSecPrecio = useCallback((secId: string, precio: string) =>
+    setMenuData(p => ({ ...p, secciones: p.secciones.map(s => s.id === secId ? { ...s, precio } : s) })), []);
 
-  const updateSection = (section: SectionKey, index: number, value: string) => {
-    setActiveData((prev) => {
-      const newItems = [...prev[section].items];
-      newItems[index] = value;
-      return { ...prev, [section]: { ...prev[section], items: newItems } };
+  const removeSec = useCallback((secId: string) =>
+    setMenuData(p => ({ ...p, secciones: p.secciones.filter(s => s.id !== secId) })), []);
+
+  const addSec = useCallback(() =>
+    setMenuData(p => ({
+      ...p,
+      secciones: [...p.secciones, { id: makeSectionId(), nombre: `SECCIÓN ${p.secciones.length + 1}`, precio: '', platillos: [] }],
+    })), []);
+
+  const addPlatillo = useCallback((secId: string) =>
+    setMenuData(p => ({
+      ...p,
+      secciones: p.secciones.map(s =>
+        s.id === secId
+          ? { ...s, platillos: [...s.platillos, { id: makePlatilloId(), nombre: '', descripcion: '', precio: '' }] }
+          : s
+      ),
+    })), []);
+
+  const removePlatillo = useCallback((secId: string, platId: string) =>
+    setMenuData(p => ({
+      ...p,
+      secciones: p.secciones.map(s =>
+        s.id === secId ? { ...s, platillos: s.platillos.filter(pl => pl.id !== platId) } : s
+      ),
+    })), []);
+
+  const updatePlatillo = useCallback((secId: string, platId: string, patch: Partial<Platillo>) =>
+    setMenuData(p => ({
+      ...p,
+      secciones: p.secciones.map(s =>
+        s.id === secId
+          ? { ...s, platillos: s.platillos.map(pl => pl.id === platId ? { ...pl, ...patch } : pl) }
+          : s
+      ),
+    })), []);
+
+  const doMove = useCallback((targetSecId: string) => {
+    if (!movingPlatillo) return;
+    const { secId, platId } = movingPlatillo;
+    setMenuData(p => {
+      const srcSec = p.secciones.find(s => s.id === secId);
+      if (!srcSec) return p;
+      const platillo = srcSec.platillos.find(pl => pl.id === platId);
+      if (!platillo) return p;
+      return {
+        ...p,
+        secciones: p.secciones.map(s => {
+          if (s.id === secId)       return { ...s, platillos: s.platillos.filter(pl => pl.id !== platId) };
+          if (s.id === targetSecId) return { ...s, platillos: [...s.platillos, platillo] };
+          return s;
+        }),
+      };
     });
-  };
+    setMovingPlatillo(null);
+  }, [movingPlatillo]);
 
-  const addItem = (section: SectionKey) => {
-    setActiveData((prev) => ({ ...prev, [section]: { ...prev[section], items: [...prev[section].items, ''] } }));
-  };
+  const moveSecUp = useCallback((secId: string) => {
+    setMenuData(prev => {
+      const idx = prev.secciones.findIndex(s => s.id === secId);
+      if (idx <= 0) return prev;
+      const secciones = [...prev.secciones];
+      const [item] = secciones.splice(idx, 1);
+      secciones.splice(idx - 1, 0, item);
+      return { ...prev, secciones };
+    });
+  }, []);
 
-  const removeItem = (section: SectionKey, index: number) => {
-    setActiveData((prev) => ({ ...prev, [section]: { ...prev[section], items: prev[section].items.filter((_, i) => i !== index) } }));
-  };
-
-  const extractName = (it: string) => { const si = it.indexOf(' / '); return si !== -1 ? it.slice(0, si) : it; };
-  const extractDesc = (it: string) => { const si = it.indexOf(' / '); return si !== -1 ? it.slice(si + 3) : ''; };
-  const buildDescMap = (items: string[]) => Object.fromEntries(
-    items.filter(Boolean).map(it => [extractName(it), extractDesc(it)]).filter(([n]) => n)
-  );
-  const menuSuggs = activeTab === 'carta' ? {
-    primerTiempo:        menuData.primerTiempo.items.filter(Boolean).map(extractName).filter(Boolean),
-    segundoTiempo:       menuData.segundoTiempo.items.filter(Boolean).map(extractName).filter(Boolean),
-    tercerTiempoGuisado: menuData.tercerTiempoGuisado.items.filter(Boolean).map(extractName).filter(Boolean),
-    postre:              menuData.postre.items.filter(Boolean).map(extractName).filter(Boolean),
-    aguas:               menuData.aguas.items.filter(Boolean).map(extractName).filter(Boolean),
-  } : null;
-  const menuDescMaps = activeTab === 'carta' ? {
-    primerTiempo:        buildDescMap(menuData.primerTiempo.items),
-    segundoTiempo:       buildDescMap(menuData.segundoTiempo.items),
-    tercerTiempoGuisado: buildDescMap(menuData.tercerTiempoGuisado.items),
-    postre:              buildDescMap(menuData.postre.items),
-    aguas:               buildDescMap(menuData.aguas.items),
-  } : null;
-
-  const handleBorrarMenu = () => {
+  const handleBorrar = () => {
     Alert.alert('¿Borrar menú de hoy?', undefined, [
       { text: 'Cancelar', style: 'cancel' },
       { text: 'Borrar', style: 'destructive', onPress: async () => {
-        const empty: MenuData = JSON.parse(JSON.stringify(EMPTY_MENU));
-        setMenuData(empty);
-        saveMenuData(empty);
+        const empty: MenuData = { secciones: [] };
+        setMenuData(empty); saveMenuData(empty);
         const fonditaId = getFonditaId();
         if (fonditaId) await deleteMenuHoy(fonditaId);
       }},
     ]);
   };
 
-  const handleBorrarCarta = () => {
-    Alert.alert('¿Borrar la carta de hoy?', undefined, [
-      { text: 'Cancelar', style: 'cancel' },
-      { text: 'Borrar', style: 'destructive', onPress: async () => {
-        const empty: MenuData = JSON.parse(JSON.stringify(EMPTY_MENU));
-        setCartaData(empty);
-        saveCartaData(empty);
-        const fonditaId = getFonditaId();
-        if (fonditaId) await deleteCarta(fonditaId);
-      }},
-    ]);
-  };
+  const openSectionPicker = useCallback(() => {
+    const template = resolveTemplateFromTipo(getTipoNegocio());
+    setSelectedTemplate(template);
+    setSelectedSectionNames([...SECTION_TEMPLATES[template].sections]);
+    setSectionPickerVisible(true);
+  }, []);
 
-  const toggleSection = (section: keyof MenuData, value: boolean) => {
-    setActiveData((prev) => {
-      if (section === 'precio') return { ...prev, precio: { ...prev.precio, enabled: value } };
-      return { ...prev, [section]: { ...prev[section], enabled: value } };
+  const applyTemplate = useCallback((template: TemplateKey) => {
+    setSelectedTemplate(template);
+    setSelectedSectionNames([...SECTION_TEMPLATES[template].sections]);
+  }, []);
+
+  const activeTemplateSections = SECTION_TEMPLATES[selectedTemplate].sections;
+  const hasAnySelectedSection = selectedSectionNames.length > 0;
+
+  const toggleSuggestedSection = useCallback((name: string) => {
+    setSelectedSectionNames(prev => (
+      prev.includes(name) ? prev.filter(n => n !== name) : [...prev, name]
+    ));
+  }, []);
+
+  const applySuggestedSections = useCallback(() => {
+    const clean = selectedSectionNames
+      .map(n => n.trim().toUpperCase())
+      .filter(Boolean)
+      .filter((name, idx, arr) => arr.indexOf(name) === idx);
+    if (!clean.length) {
+      setSectionPickerVisible(false);
+      return;
+    }
+    setMenuData({
+      secciones: clean.map(nombre => ({
+        id: makeSectionId(),
+        nombre,
+        precio: '',
+        platillos: [],
+      })),
     });
-  };
+    setSectionPickerVisible(false);
+  }, [selectedSectionNames]);
 
   return (
     <View style={s.container}>
       <Stack.Screen options={{ headerShown: false }} />
+      <MovePlatilloModal
+        visible={!!movingPlatillo}
+        secciones={menuData.secciones}
+        currentSecId={movingPlatillo?.secId ?? ''}
+        onMove={doMove}
+        onClose={() => setMovingPlatillo(null)}
+      />
+      <Modal
+        visible={sectionPickerVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setSectionPickerVisible(false)}>
+        <Pressable style={s.modalOverlay} onPress={() => setSectionPickerVisible(false)}>
+          <View style={s.presetSheet}>
+            <View style={s.sheetGrabber} />
+            <Text style={s.presetTitle} allowFontScaling={true}>Plantillas de secciones</Text>
+            <Text style={s.presetSub} allowFontScaling={true}>Elige una base. Luego puedes editar todo.</Text>
+            <View style={s.templateRow}>
+              {TEMPLATE_ORDER.map(key => {
+                const selected = selectedTemplate === key;
+                return (
+                  <Pressable
+                    key={key}
+                    onPress={() => applyTemplate(key)}
+                    style={({ pressed }) => [
+                      s.templatePill,
+                      selected && s.templatePillSelected,
+                      pressed && s.templatePillPressed,
+                    ]}>
+                    <Text
+                      style={[s.templatePillText, selected && s.templatePillTextSelected]}
+                      allowFontScaling={true}>
+                      {SECTION_TEMPLATES[key].label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+            <Text style={s.presetCaption} allowFontScaling={true}>Secciones incluidas</Text>
+            <View style={s.sectionChecklist}>
+              {activeTemplateSections.map(name => {
+                const selected = selectedSectionNames.includes(name);
+                return (
+                  <Pressable
+                    key={name}
+                    onPress={() => toggleSuggestedSection(name)}
+                    style={({ pressed }) => [s.checkRow, pressed && s.checkRowPressed]}>
+                    <View style={[s.checkDot, selected && s.checkDotSelected]}>
+                      {selected && <Text style={s.checkDotMark}>✓</Text>}
+                    </View>
+                    <Text style={[s.checkLabel, !selected && s.checkLabelOff]} allowFontScaling={true}>{name}</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+            <TouchableOpacity
+              style={[s.btnPrimary, { marginTop: 10 }, !hasAnySelectedSection && s.btnPrimaryDisabled]}
+              onPress={applySuggestedSections}
+              activeOpacity={0.86}
+              disabled={!hasAnySelectedSection}>
+              <Text style={[s.btnPrimaryText, !hasAnySelectedSection && s.btnPrimaryTextDisabled]} allowFontScaling={true}>Crear secciones</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[s.btnSecondary, { marginTop: 8 }]}
+              onPress={() => setSectionPickerVisible(false)}
+              activeOpacity={0.86}>
+              <Text style={s.btnSecondaryText} allowFontScaling={true}>Cancelar</Text>
+            </TouchableOpacity>
+          </View>
+        </Pressable>
+      </Modal>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={s.keyboardView}>
-        <View style={[s.tabRow, { paddingTop: insets.top + 16 }]}>
-          <SegmentedControl value={activeTab} onChange={setActiveTab} />
-        </View>
-        <View style={s.formHalf}>
-          <ScrollView style={s.formScroll} contentContainerStyle={s.formContent} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-              <View key={activeTab}>
-                <TouchableOpacity
-                  style={{
-                    backgroundColor: theme.accent,
-                    borderRadius: 14,
-                    padding: 14,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 8,
-                    marginBottom: 16,
-                  }}
-                  onPress={() => router.push('/foto-menu')}
-                >
-                  <Text style={{ fontSize: 18 }}>📷</Text>
-                  <Text style={{ color: '#fff', fontSize: 15, fontWeight: '700' }}>
-                    Foto de tu menú
-                  </Text>
+        <ScrollView
+          style={s.scroll}
+          contentContainerStyle={[
+            s.scrollContent,
+            { paddingTop: insets.top + 16 },
+            !menuData.secciones.length && s.scrollContentEmpty,
+          ]}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <View>
+              {menuData.secciones.map((sec, idx) => (
+                <SectionCard
+                  key={sec.id}
+                  sec={sec}
+                  onNombre={v => updateSecNombre(sec.id, v)}
+                  onPrecio={v => updateSecPrecio(sec.id, v)}
+                  onRemove={() => removeSec(sec.id)}
+                  onMoveUp={() => moveSecUp(sec.id)}
+                  canMoveUp={idx > 0}
+                  onAddPlatillo={() => addPlatillo(sec.id)}
+                  onUpdatePlatillo={(platId, patch) => updatePlatillo(sec.id, platId, patch)}
+                  onRemovePlatillo={platId => removePlatillo(sec.id, platId)}
+                  onMovePlatillo={platId => setMovingPlatillo({ secId: sec.id, platId })}
+                />
+              ))}
+              {!menuData.secciones.length && (
+                <View style={s.emptyStateWrap}>
+                  <View style={s.emptyStateCard}>
+                    <SymbolView name="sparkles" size={30} tintColor={theme.accent} weight="semibold" />
+                    <Text style={s.emptyStateTitle} allowFontScaling={true}>Empieza tu menú</Text>
+                    <Text style={s.emptyStateSub} allowFontScaling={true}>Sube una imagen y Patio lo llena al instante.</Text>
+                    <TouchableOpacity
+                      style={s.emptyStatePhotoWrap}
+                      onPress={() => router.push('/foto-menu')}
+                      activeOpacity={0.82}>
+                      <View style={s.emptyStatePhotoFab}>
+                        <SymbolView name="camera.fill" size={28} tintColor="#FFFFFF" weight="semibold" />
+                      </View>
+                      <Text style={s.emptyStatePhotoLabel} allowFontScaling={true}>Tomar o elegir foto</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
+
+              {!!menuData.secciones.length && (
+                <TouchableOpacity style={s.photoFabWrap} onPress={() => router.push('/foto-menu')} activeOpacity={0.85}>
+                  <View style={s.photoFab}>
+                    <SymbolView name="camera.fill" size={28} tintColor="#FFFFFF" weight="semibold" />
+                  </View>
+                  <Text style={s.photoFabLabel} allowFontScaling={true}>Foto de tu menú</Text>
                 </TouchableOpacity>
-                <DynamicSection title={<OrdTitle idx={0} rest="Tiempo" />} enabled={activeData.primerTiempo.enabled} onToggle={(v) => toggleSection('primerTiempo', v)} items={activeData.primerTiempo.items} maxItems={MAX_PRIMER_TIEMPO} onAdd={() => addItem('primerTiempo')} onRemove={(i) => removeItem('primerTiempo', i)} onChange={(i, v) => updateSection('primerTiempo', i, v)} placeholder="Agregar" suggestions={menuSuggs?.primerTiempo} suggestionDescs={menuDescMaps?.primerTiempo} />
-                <DynamicSection title={<OrdTitle idx={1} rest="Tiempo" />} enabled={activeData.segundoTiempo.enabled} onToggle={(v) => toggleSection('segundoTiempo', v)} items={activeData.segundoTiempo.items} maxItems={MAX_SEGUNDO_TIEMPO} onAdd={() => addItem('segundoTiempo')} onRemove={(i) => removeItem('segundoTiempo', i)} onChange={(i, v) => updateSection('segundoTiempo', i, v)} placeholder="Agregar" suggestions={menuSuggs?.segundoTiempo} suggestionDescs={menuDescMaps?.segundoTiempo} />
-                <DynamicSection title={<OrdTitle idx={2} rest="Tiempo" />} enabled={activeData.tercerTiempoGuisado.enabled} onToggle={(v) => toggleSection('tercerTiempoGuisado', v)} items={activeData.tercerTiempoGuisado.items} maxItems={MAX_TERCER_TIEMPO} onAdd={() => addItem('tercerTiempoGuisado')} onRemove={(i) => removeItem('tercerTiempoGuisado', i)} onChange={(i, v) => updateSection('tercerTiempoGuisado', i, v)} placeholder="Agregar" suggestions={menuSuggs?.tercerTiempoGuisado} suggestionDescs={menuDescMaps?.tercerTiempoGuisado} />
-                <DynamicSection title={<Text style={s.secLabel} allowFontScaling={true}>BEBIDAS</Text>} enabled={activeData.aguas.enabled} onToggle={(v) => toggleSection('aguas', v)} items={activeData.aguas.items} maxItems={MAX_AGUAS} onAdd={() => addItem('aguas')} onRemove={(i) => removeItem('aguas', i)} onChange={(i, v) => updateSection('aguas', i, v)} placeholder="Agregar" suggestions={menuSuggs?.aguas} suggestionDescs={menuDescMaps?.aguas} />
-                <DynamicSection title={<Text style={s.secLabel} allowFontScaling={true}>POSTRE</Text>} enabled={activeData.postre.enabled} onToggle={(v) => toggleSection('postre', v)} items={activeData.postre.items} maxItems={MAX_POSTRE} onAdd={() => addItem('postre')} onRemove={(i) => removeItem('postre', i)} onChange={(i, v) => updateSection('postre', i, v)} placeholder="Agregar" suggestions={menuSuggs?.postre} suggestionDescs={menuDescMaps?.postre} />
-                <PrecioSection value={activeData.precio.value} onChange={(v) => { const soloNumeros = v.replace(/[^0-9]/g, ''); setActiveData((prev) => ({ ...prev, precio: { ...prev.precio, value: soloNumeros } })); }} />
-                {activeTab === 'menu' && (
-                  <TouchableOpacity onPress={handleBorrarMenu} style={{ marginTop: 32, marginBottom: 32, alignItems: 'center' }}>
-                    <Text style={{ fontSize: 15, fontWeight: '300', color: theme.textSecondary }}>Borrar menú del día</Text>
-                  </TouchableOpacity>
-                )}
-                {activeTab === 'carta' && (
-                  <TouchableOpacity onPress={handleBorrarCarta} style={{ marginTop: 32, marginBottom: 32, alignItems: 'center' }}>
-                    <Text style={{ fontSize: 15, fontWeight: '300', color: theme.textSecondary }}>Borrar carta</Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-            </TouchableWithoutFeedback>
-          </ScrollView>
-        </View>
+              )}
+
+              {!menuData.secciones.length && (
+                <TouchableOpacity style={s.templateLinkBtn} onPress={openSectionPicker} activeOpacity={0.8}>
+                  <View style={s.templateLinkRow}>
+                    <SymbolView name="square.grid.2x2" size={13} tintColor={theme.textSecondary} weight="medium" />
+                    <Text style={s.templateLinkText} allowFontScaling={true}>Usar plantilla</Text>
+                  </View>
+                </TouchableOpacity>
+              )}
+
+              {!!menuData.secciones.length && (
+                <TouchableOpacity style={s.addSecBtn} onPress={addSec}>
+                  <Text style={s.addSecText} allowFontScaling={true}>+ Agregar sección</Text>
+                </TouchableOpacity>
+              )}
+
+              {!!menuData.secciones.length && (
+                <TouchableOpacity style={s.deleteBtn} onPress={handleBorrar}>
+                  <Text style={s.deleteBtnText} allowFontScaling={true}>Borrar menú del día</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </TouchableWithoutFeedback>
+        </ScrollView>
         <BottomTabBar />
       </KeyboardAvoidingView>
     </View>
   );
+}
+
+// ─── makeStyles ───────────────────────────────────────────────────────────────
+function makeStyles(t: Theme) {
+  return StyleSheet.create({
+    container:       { flex: 1, backgroundColor: t.bg },
+    keyboardView:    { flex: 1 },
+    scroll:          { flex: 1 },
+    scrollContent:   { paddingHorizontal: 16, paddingBottom: 48 },
+    scrollContentEmpty: { flexGrow: 1, justifyContent: 'center' },
+    // Section card
+    secCard:         { backgroundColor: t.surface, borderRadius: 14, padding: 12, marginBottom: 12, borderWidth: 1, borderColor: t.sep },
+    secHeader:       { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
+    secName:         { flex: 1, marginRight: 12, fontSize: 11, fontWeight: '700', letterSpacing: 0, color: t.text, textTransform: 'uppercase', paddingVertical: 0, lineHeight: 16 },
+    priceWrap:       { marginLeft: 'auto', flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'flex-end', paddingBottom: 1 },
+    pricePrefix:     { fontSize: 13, fontWeight: '600', color: t.textSecondary, marginRight: 0 },
+    secPrecio:       { minWidth: 10, fontSize: 13, fontWeight: '600', color: t.textSecondary, textAlign: 'left', paddingVertical: 0, paddingHorizontal: 0, backgroundColor: 'transparent' },
+    secRemoveBtn:    { width: 18, height: 18, marginLeft: 8, alignItems: 'center', justifyContent: 'center' },
+    secRemove:       { fontSize: 18, lineHeight: 18, color: t.textSecondary, fontWeight: '300' },
+    // Platillo card
+    platCard:        { backgroundColor: 'transparent', flexDirection: 'row', alignItems: 'flex-start', paddingVertical: 8, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.sep },
+    handle:          { width: 20, marginRight: 8, paddingTop: 2, alignItems: 'center' },
+    handleIcon:      { fontSize: 16, color: t.textSecondary },
+    platMain:        { flex: 1, minWidth: 0 },
+    platTopRow:      { flexDirection: 'row', alignItems: 'baseline' },
+    platActions:     { marginLeft: 8, flexDirection: 'row', alignItems: 'center' },
+    platName:        { flex: 1, fontSize: 17, fontWeight: '700', color: t.text, paddingVertical: 0, lineHeight: 22 },
+    platDesc:        { marginTop: 2, fontSize: 15, color: t.textSecondary, paddingVertical: 0, lineHeight: 20 },
+    pricePrefixMuted:{ fontSize: 13, fontWeight: '600', color: t.textSecondary, marginRight: 0 },
+    platPrecio:      { minWidth: 26, fontSize: 13, fontWeight: '600', color: t.textSecondary, textAlign: 'left', paddingVertical: 0, paddingHorizontal: 0, backgroundColor: 'transparent' },
+    platRemoveBtn:   { width: 18, height: 18, marginLeft: 6, alignItems: 'center', justifyContent: 'center' },
+    platRemove:      { fontSize: 18, lineHeight: 18, color: t.textSecondary, fontWeight: '300' },
+    // Add platillo
+    addPlatilloBtn:  {
+      alignSelf: 'stretch',
+      alignItems: 'flex-start',
+      justifyContent: 'center',
+      minHeight: 40,
+      paddingHorizontal: 12,
+      borderRadius: 10,
+      marginTop: 2,
+    },
+    addPlatilloBtnPressed: { backgroundColor: t.surface2 },
+    addPlatilloText: { fontSize: 14, color: t.accent, fontWeight: '400', opacity: 0.76 },
+    // Swipe actions
+    swipeActionsWrap: { flexDirection: 'row', alignItems: 'stretch', marginBottom: 12 },
+    swipeActionBtn:   { minWidth: 86, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 12, borderRadius: 10, marginLeft: 8 },
+    swipeActionMove:  { backgroundColor: t.accentLight },
+    swipeActionDelete:{ backgroundColor: '#E74C3C' },
+    swipeActionText:  { color: '#fff', fontSize: 13, fontWeight: '700' },
+    // Add section
+    addSecBtn:       { borderWidth: 1, borderColor: t.border, borderStyle: 'dashed', borderRadius: 10, padding: 12, alignItems: 'center', marginTop: 16, marginBottom: 8, backgroundColor: t.surface },
+    addSecText:      { fontSize: 14, color: t.accent, fontWeight: '600' },
+    // Camera FAB (HIG-style)
+    photoFabWrap:    { alignItems: 'center', marginTop: 20, marginBottom: 8 },
+    photoFab:        {
+      width: 64,
+      height: 64,
+      borderRadius: 32,
+      backgroundColor: t.accent,
+      alignItems: 'center',
+      justifyContent: 'center',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: 0.18,
+      shadowRadius: 12,
+      elevation: 7,
+    },
+    photoFabLabel:   { marginTop: 8, fontSize: 12, color: t.textSecondary, fontWeight: '300' },
+    // Empty onboarding state
+    emptyStateWrap:  { flex: 1, justifyContent: 'center', marginBottom: 12 },
+    emptyStateCard:  {
+      backgroundColor: t.surface,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: t.sep,
+      paddingVertical: 24,
+      paddingHorizontal: 18,
+      alignItems: 'center',
+      gap: 8,
+      marginBottom: 18,
+    },
+    emptyStateTitle: { fontSize: 20, fontWeight: '900', color: t.text, textAlign: 'center' },
+    emptyStateSub:   { maxWidth: 290, fontSize: 14, lineHeight: 20, color: t.textSecondary, textAlign: 'center' },
+    emptyStatePhotoWrap: { alignItems: 'center', marginTop: 8, marginBottom: 2 },
+    emptyStatePhotoFab: {
+      width: 76,
+      height: 76,
+      borderRadius: 38,
+      backgroundColor: t.accent,
+      alignItems: 'center',
+      justifyContent: 'center',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.16,
+      shadowRadius: 16,
+      elevation: 8,
+    },
+    emptyStatePhotoLabel: { marginTop: 10, fontSize: 14, fontWeight: '600', color: t.text },
+    templateLinkBtn: { alignSelf: 'center', paddingVertical: 6, paddingHorizontal: 10, marginTop: 0, marginBottom: 8, borderRadius: 10, opacity: 0.88 },
+    templateLinkRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+    templateLinkText: { fontSize: 13, fontWeight: '500', color: t.textSecondary },
+    // Delete
+    deleteBtn:       { marginTop: 16, marginBottom: 16, alignItems: 'center' },
+    deleteBtnText:   { fontSize: 15, fontWeight: '300', color: t.textSecondary },
+    // Modal
+    modalOverlay:    { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
+    modalSheet:      { backgroundColor: t.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, paddingBottom: 40 },
+    modalTitle:      { fontSize: 15, fontWeight: '700', color: t.text, marginBottom: 16 },
+    modalOption:     { paddingVertical: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.sep },
+    modalOptionText: { fontSize: 15, color: t.text },
+    modalCancel:     { paddingVertical: 14, alignItems: 'center', marginTop: 8 },
+    modalCancelText: { fontSize: 15, color: t.textSecondary },
+    // Suggested sections picker
+    sheetGrabber:    { alignSelf: 'center', width: 36, height: 5, borderRadius: 999, backgroundColor: t.border, marginBottom: 14 },
+    presetSheet:     { backgroundColor: t.surface, borderTopLeftRadius: 22, borderTopRightRadius: 22, paddingHorizontal: 18, paddingTop: 18, paddingBottom: 32 },
+    presetTitle:     { fontSize: 17, fontWeight: '800', color: t.text },
+    presetSub:       { marginTop: 4, marginBottom: 14, fontSize: 13, color: t.textSecondary },
+    templateRow:     { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 14 },
+    templatePill:    { borderWidth: 1, borderColor: t.border, borderRadius: 14, backgroundColor: t.surface, paddingVertical: 8, paddingHorizontal: 12 },
+    templatePillSelected: { borderColor: t.accent, backgroundColor: t.accent },
+    templatePillPressed: { opacity: 0.82 },
+    templatePillText: { fontSize: 13, fontWeight: '600', color: t.textSecondary },
+    templatePillTextSelected: { color: '#fff' },
+    presetCaption:   { marginBottom: 8, fontSize: 12, fontWeight: '600', color: t.textSecondary, letterSpacing: 0.1 },
+    sectionChecklist:{ gap: 8, marginBottom: 6 },
+    checkRow:        { flexDirection: 'row', alignItems: 'center', borderRadius: 12, borderWidth: 1, borderColor: t.sep, backgroundColor: t.surface2, paddingVertical: 10, paddingHorizontal: 12 },
+    checkRowPressed: { opacity: 0.82 },
+    checkDot:        { width: 20, height: 20, borderRadius: 10, borderWidth: 1, borderColor: t.border, backgroundColor: t.surface, alignItems: 'center', justifyContent: 'center', marginRight: 10 },
+    checkDotSelected:{ borderColor: t.accent, backgroundColor: t.accent },
+    checkDotMark:    { color: '#fff', fontSize: 12, fontWeight: '700', lineHeight: 12 },
+    checkLabel:      { fontSize: 14, fontWeight: '600', color: t.text },
+    checkLabelOff:   { color: t.textSecondary },
+    btnPrimary:      { backgroundColor: t.accent, borderRadius: 13, padding: 13, alignItems: 'center' },
+    btnPrimaryText:  { color: '#fff', fontSize: 15, fontWeight: '700' },
+    btnPrimaryDisabled: { backgroundColor: t.surface2 },
+    btnPrimaryTextDisabled: { color: t.textSecondary },
+    btnSecondary:    { backgroundColor: t.surface2, borderRadius: 13, padding: 13, alignItems: 'center' },
+    btnSecondaryText:{ color: t.textSecondary, fontSize: 14, fontWeight: '600' },
+  });
 }

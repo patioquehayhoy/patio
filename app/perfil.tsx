@@ -30,7 +30,16 @@ import {
   getPagosEfectivo, setPagosEfectivo,
   getPagosTrans, setPagosTrans,
   getPagosTarjeta, setPagosTarjeta,
+  getTipoNegocio, setTipoNegocio,
 } from '@/lib/menu-store';
+
+const TIPOS_NEGOCIO: { key: string; label: string }[] = [
+  { key: 'fondita',    label: 'Fondita' },
+  { key: 'taqueria',   label: 'Taquería' },
+  { key: 'reposteria', label: 'Repostería' },
+  { key: 'mariscos',   label: 'Mariscos' },
+  { key: 'otro',       label: 'Otro' },
+];
 import { useTheme, type Theme } from '@/lib/theme';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -105,12 +114,10 @@ function makeStyles(t: Theme) {
     divider:        { height: StyleSheet.hairlineWidth, backgroundColor: t.sep },
     pickerWrapper:  { backgroundColor: t.surface, borderRadius: 12, overflow: 'hidden' },
     chipsRow:       { flexDirection: 'row', gap: 8, paddingBottom: 16 },
-    chip:           { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 12, backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.sep },
-    chipDark:       {},
-    chipActive:     { backgroundColor: t.text, borderWidth: 0 },
+    chip:           { height: 40, paddingHorizontal: 16, borderRadius: 12, backgroundColor: t.surface2, alignItems: 'center', justifyContent: 'center' },
+    chipActive:     { backgroundColor: t.accent },
     chipText:       { fontSize: 15, fontWeight: '900', color: t.text },
-    chipTextDark:   {},
-    chipTextActive: { fontSize: 15, fontWeight: '900', color: t.surface },
+    chipTextActive: { color: '#fff' },
     timeRow:        { flexDirection: 'row', gap: 16, marginBottom: 8 },
     timeBtn:        { flex: 1, paddingVertical: 10, paddingHorizontal: 14, borderRadius: 12, backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.sep },
     timeBtnLabel:   { fontSize: 12, fontWeight: '900', color: t.text, letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 2, opacity: 0.6 },
@@ -166,6 +173,7 @@ export default function PerfilScreen() {
   const [pagosEfectivo, setPagosEfectivoState] = useState(getPagosEfectivo());
   const [pagosTrans,    setPagosTransState]    = useState(getPagosTrans());
   const [pagosTarjeta,  setPagosTarjetaState]  = useState(getPagosTarjeta());
+  const [tipoNegocio,   setTipoNegocioState]   = useState<string | null>(getTipoNegocio());
   const [email,         setEmail]         = useState('');
   const [ready,         setReady]         = useState(false);
   const [isSaving,      setIsSaving]      = useState(false);
@@ -180,6 +188,7 @@ export default function PerfilScreen() {
     pagosEfectivo: getPagosEfectivo(),
     pagosTrans:    getPagosTrans(),
     pagosTarjeta:  getPagosTarjeta(),
+    tipoNegocio:   getTipoNegocio() as string | null,
   });
 
   const isDirty =
@@ -189,7 +198,8 @@ export default function PerfilScreen() {
     horario       !== savedValues.horario       ||
     pagosEfectivo !== savedValues.pagosEfectivo ||
     pagosTrans    !== savedValues.pagosTrans    ||
-    pagosTarjeta  !== savedValues.pagosTarjeta;
+    pagosTarjeta  !== savedValues.pagosTarjeta  ||
+    tipoNegocio   !== savedValues.tipoNegocio;
 
   const fonditaIdRef        = useRef<string | null>(getFonditaId());
   const nombreUpdatedAtRef  = useRef<string | null>(null);
@@ -212,7 +222,7 @@ export default function PerfilScreen() {
 
         const selectResult = await supabase
           .from('fonditas')
-          .select('id, nombre, nombre_updated_at, descripcion, direccion, horario, pagos_efectivo, pagos_transferencia, pagos_tarjeta')
+          .select('id, nombre, nombre_updated_at, descripcion, direccion, horario, pagos_efectivo, pagos_transferencia, pagos_tarjeta, tipo_negocio')
           .eq('telefono', user.email)
           .maybeSingle();
 
@@ -222,7 +232,7 @@ export default function PerfilScreen() {
           const insertResult = await supabase
             .from('fonditas')
             .insert({ telefono: user.email, nombre: 'Mi Fondita' })
-            .select('id, nombre, nombre_updated_at, descripcion, direccion, horario, pagos_efectivo, pagos_transferencia, pagos_tarjeta')
+            .select('id, nombre, nombre_updated_at, descripcion, direccion, horario, pagos_efectivo, pagos_transferencia, pagos_tarjeta, tipo_negocio')
             .single();
           fondita = insertResult.data;
         }
@@ -251,10 +261,12 @@ export default function PerfilScreen() {
           setCierre(p.cierre);
         }
 
+        const tn = (fondita as any).tipo_negocio ?? null;
         setPagosEfectivoState(pe);  setPagosEfectivo(pe);
         setPagosTransState(pt);     setPagosTrans(pt);
         setPagosTarjetaState(ptar); setPagosTarjeta(ptar);
-        setSavedValues({ nombre: n, descripcion: desc, ubicacion: ub, horario: hor || '', pagosEfectivo: pe, pagosTrans: pt, pagosTarjeta: ptar });
+        setTipoNegocioState(tn);    setTipoNegocio(tn);
+        setSavedValues({ nombre: n, descripcion: desc, ubicacion: ub, horario: hor || '', pagosEfectivo: pe, pagosTrans: pt, pagosTarjeta: ptar, tipoNegocio: tn });
 
         if (fondita.nombre_updated_at) nombreUpdatedAtRef.current = fondita.nombre_updated_at;
       } finally {
@@ -291,6 +303,7 @@ export default function PerfilScreen() {
       if (pagosEfectivo !== savedValues.pagosEfectivo) { payload['pagos_efectivo']      = pagosEfectivo; newSaved.pagosEfectivo = pagosEfectivo; }
       if (pagosTrans    !== savedValues.pagosTrans)    { payload['pagos_transferencia'] = pagosTrans;    newSaved.pagosTrans    = pagosTrans; }
       if (pagosTarjeta  !== savedValues.pagosTarjeta)  { payload['pagos_tarjeta']       = pagosTarjeta;  newSaved.pagosTarjeta  = pagosTarjeta; }
+      if (tipoNegocio   !== savedValues.tipoNegocio)   { payload['tipo_negocio']         = tipoNegocio ?? ''; newSaved.tipoNegocio = tipoNegocio; }
 
       if (Object.keys(payload).length > 0) {
         if (fonditaId) await supabase.from('fonditas').update(payload).eq('id', fonditaId);
@@ -301,6 +314,7 @@ export default function PerfilScreen() {
         if ('pagos_efectivo' in payload)      setPagosEfectivo(pagosEfectivo);
         if ('pagos_transferencia' in payload) setPagosTrans(pagosTrans);
         if ('pagos_tarjeta' in payload)       setPagosTarjeta(pagosTarjeta);
+        if ('tipo_negocio' in payload)        setTipoNegocio(tipoNegocio);
       }
 
       setSavedValues(newSaved);
@@ -364,6 +378,28 @@ export default function PerfilScreen() {
           <View style={s.divider} />
         </View>
 
+        {/* ── TIPO DE NEGOCIO ── */}
+        <View style={s.block}>
+          <Text style={s.blockLabel} allowFontScaling={true}>TIPO DE NEGOCIO</Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            decelerationRate="fast"
+            contentContainerStyle={s.chipsRow}
+          >
+            {TIPOS_NEGOCIO.map(({ key, label }) => (
+              <TouchableOpacity
+                key={key}
+                style={[s.chip, tipoNegocio === key && s.chipActive]}
+                onPress={() => { setTipoNegocioState(key); setTipoNegocio(key); }}
+                activeOpacity={0.75}>
+                <Text style={[s.chipText, tipoNegocio === key && s.chipTextActive]} allowFontScaling={true}>{label}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+          <View style={s.divider} />
+        </View>
+
         {/* ── HORARIO ── */}
         <View style={s.block}>
           <Text style={s.blockLabel} allowFontScaling={true}>HORARIO</Text>
@@ -421,10 +457,10 @@ export default function PerfilScreen() {
             {([['Efectivo', pagosEfectivo, setPagosEfectivoState], ['Transferencia', pagosTrans, setPagosTransState], ['Tarjeta', pagosTarjeta, setPagosTarjetaState]] as const).map(([label, active, toggle]) => (
               <TouchableOpacity
                 key={label}
-                style={[s.chip, !active && theme.isDark && s.chipDark, active && s.chipActive]}
+                style={[s.chip, active && s.chipActive]}
                 onPress={() => toggle(!active)}
                 activeOpacity={0.75}>
-                <Text style={[s.chipText, !active && theme.isDark && s.chipTextDark, active && s.chipTextActive]} allowFontScaling={true}>{label}</Text>
+                <Text style={[s.chipText, active && s.chipTextActive]} allowFontScaling={true}>{label}</Text>
               </TouchableOpacity>
             ))}
           </View>

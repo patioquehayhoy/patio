@@ -7,7 +7,6 @@ import { ThemedView } from '@/components/themed-view';
 import {
   getFonditaName,
   getMenuData,
-  getTiempoLabels,
   type MenuData,
 } from '@/lib/menu-store';
 
@@ -29,8 +28,6 @@ export default function ShareScreen() {
     );
   }
 
-  const { primerLabel, segundoLabel, tercerLabel } = getTiempoLabels(data);
-
   return (
     <ThemedView style={styles.container}>
       <ScrollView
@@ -44,70 +41,22 @@ export default function ShareScreen() {
           Menú del día
         </ThemedText>
 
-        {data.primerTiempo.enabled && data.primerTiempo.items.some(Boolean) && (
-          <View style={styles.section}>
-            <ThemedText style={styles.sectionLabel}>{primerLabel}</ThemedText>
-            {data.primerTiempo.items.filter(Boolean).map((item, i) => (
-              <ThemedText key={i} style={styles.item}>
-                • {item}
+        {data.secciones.filter(s => s.platillos.some(p => p.nombre)).map(sec => (
+          <View key={sec.id} style={styles.section}>
+            <ThemedText style={styles.sectionLabel}>{sec.nombre}</ThemedText>
+            {sec.platillos.filter(p => p.nombre).map((plat, i) => (
+              <ThemedText key={plat.id ?? i} style={styles.item}>
+                {'• ' + plat.nombre + (plat.descripcion ? ' / ' + plat.descripcion : '') + (plat.precio ? ' ($' + plat.precio + ')' : '')}
               </ThemedText>
             ))}
+            {!!sec.precio?.trim() && (
+              <ThemedText style={styles.precio}>${sec.precio}</ThemedText>
+            )}
           </View>
-        )}
-
-        {data.segundoTiempo.enabled && data.segundoTiempo.items.some(Boolean) && (
-          <View style={styles.section}>
-            <ThemedText style={styles.sectionLabel}>{segundoLabel}</ThemedText>
-            {data.segundoTiempo.items.filter(Boolean).map((item, i) => (
-              <ThemedText key={i} style={styles.item}>
-                • {item}
-              </ThemedText>
-            ))}
-          </View>
-        )}
-
-        {data.tercerTiempoGuisado.enabled && data.tercerTiempoGuisado.items.some(Boolean) && (
-          <View style={styles.section}>
-            <ThemedText style={styles.sectionLabel}>{tercerLabel}</ThemedText>
-            {data.tercerTiempoGuisado.items.filter(Boolean).map((item, i) => (
-              <ThemedText key={i} style={styles.item}>
-                • {item}
-              </ThemedText>
-            ))}
-          </View>
-        )}
-
-        {data.postre.enabled && data.postre.items.some(Boolean) && (
-          <View style={styles.section}>
-            <ThemedText style={styles.sectionLabel}>Postre</ThemedText>
-            {data.postre.items.filter(Boolean).map((item, i) => (
-              <ThemedText key={i} style={styles.item}>
-                • {item}
-              </ThemedText>
-            ))}
-          </View>
-        )}
-
-        {data.aguas.enabled && data.aguas.items.some(Boolean) && (
-          <View style={styles.section}>
-            <ThemedText style={styles.sectionLabel}>Aguas</ThemedText>
-            {data.aguas.items.filter(Boolean).map((item, i) => (
-              <ThemedText key={i} style={styles.item}>
-                • {item}
-              </ThemedText>
-            ))}
-          </View>
-        )}
-
-        {data.precio.enabled && data.precio.value.trim() && (
-          <View style={styles.section}>
-            <ThemedText style={styles.precio}>${data.precio.value}</ThemedText>
-          </View>
-        )}
+        ))}
 
         <ThemedText style={styles.menuDeHoy}>Menú de hoy</ThemedText>
       </ScrollView>
-
     </ThemedView>
   );
 }

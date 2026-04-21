@@ -1,0 +1,73 @@
+# HANDOFF
+
+## Hecho
+- Se auditó el repo completo (rutas, librerías, stores, servicios y scripts).
+- Se documentó objetivo, arquitectura y estado operativo real del proyecto.
+- Se definió una operación de continuidad multi-agente basada en docs dentro del repo.
+- Se refactorizó `app/login-callback.tsx` para soportar `code`, `token_hash` y `token`, con fallback de sesión e inicialización vía `initializeSignedInUser`.
+- Se corrigió el error de typecheck en `app/_layout.tsx`; `npx tsc --noEmit` queda pasando.
+- En `app/menu.tsx` se movió el acceso a foto a un botón redondo centrado estilo HIG (64px, `camera.fill`) y se retiró la cámara inline de la primera sección.
+- En `app/preview.tsx` se corrigió la detección de vacío para basarse en platillos reales y se agregó empty state con icono `doc.text` + CTA “Ir al menú”.
+- En `app/preview.tsx` se evitó mostrar subtítulo duplicado cuando una sección tiene el mismo nombre del grupo (ej. `MENÚ DEL DÍA`).
+- En `app/menu.tsx` y `app/foto-menu.tsx` se agregó prefijo visual `$` en campos de precio de sección y platillo.
+- El botón de agregar en secciones de bebidas ahora muestra `+ agregar bebidas`.
+- En `app/foto-menu.tsx` se eliminó el ícono de cámara dentro de la primera sección en review y se removió el badge `IA`.
+- En `app/menu.tsx` y `app/foto-menu.tsx` las cards de platillo regresaron a fondo blanco y se ajustó alineación visual de precios a la derecha.
+- En `app/preview.tsx` se dejó de destacar `MENÚ DEL DÍA` en naranja y se migró parsing de precios desde descripción a precio de item visible.
+- Se reforzó layout para anclar bloque de precio al extremo derecho y mantener consistencia con botón `×` en cards de sección/platillo.
+- Se añadió empty onboarding state en `app/menu.tsx` para escenario sin secciones (evita pantalla vacía).
+- Se reemplazó iconografía de cámara en `foto-menu` idle por icono de cámara consistente y color accent.
+- Se homologó `+ agregar platillo` en `app/menu.tsx` y `app/foto-menu.tsx` con alineación izquierda y estado presionado gris.
+- Se ajustó el ícono de cámara en `app/foto-menu.tsx` (idle) para usar color accent y mejor consistencia visual/posición.
+- Se limpiaron imports no usados en `app/foto-menu.tsx` (lint).
+- Se cambió `app/menu.tsx` para iniciar vacío/onboarding cuando no hay menú guardado (sin autogenerar secciones).
+- En `app/menu.tsx`, `Crear secciones sugeridas` ahora abre modal de selección por pills (estilo “widgets”) antes de crear secciones.
+- Se compactó el layout del bloque de precio en encabezado/platillo para pegar más el `$` al extremo derecho junto al valor y la `×`.
+- Se aplicó transparencia al CTA `+ agregar platillo / + agregar bebidas`.
+- Se refinó el modal de plantillas con heurística por tipo de negocio y UI HIG (sin copy literal de widgets): plantillas `Fondita`, `Taquería`, `Repostería`, `Mariscos`, `Personalizado`.
+- Se corrigió la selección visual invertida: seleccionado ahora usa fondo accent y texto blanco.
+- En `app/menu.tsx` se eliminó el espacio visual sobrante entre `$` y número, compactando el bloque de precio junto a la `×` (`$0x`).
+- En `app/menu.tsx` el header de sección quedó alineado a base inferior y sin kerning en títulos; además se añadió separación tipo tab entre título y bloque de precio.
+- En `app/menu.tsx` se aplicó rediseño de platillo card estilo referencia (sin slash, nombre+descripción en columna izquierda, precio junto a `×` con color homogéneo).
+- En `app/preview.tsx` se simplificó render de compartir para filas limpias de platillo (sin encabezados de sección), manteniendo precio al lado derecho.
+- En `app/menu.tsx` y `app/foto-menu.tsx` se migró `×` a botón circular para mejorar usabilidad táctil; se retiró la palomita en `menu` y se dejó handle discreto.
+- Se refinó interlineado de tipografía en cards para reducir sensación de “texto suelto” y acercar ritmo visual a HIG.
+- En `app/menu.tsx` se removió el estilo circular de `×` y se reubicó `×` de platillo a esquina superior derecha (clean look, menos ruido).
+- En `app/menu.tsx` y `app/foto-menu.tsx` se compactó la composición de cards a patrón lista (separadores hairline, menos contenedor interno), manteniendo edición inline.
+- En `app/menu.tsx` se reemplazó “secciones incluidas” por checklist estable con checkboxes (no desaparece al deseleccionar) y botón de crear con estado disabled cuando no hay selección.
+- En `app/preview.tsx` se recuperó la jerarquía real de compartir: título de grupo, encabezado de sección y precio de sección visible/alineado a la derecha.
+- En `app/preview.tsx` se dio ancho consistente a la columna de precios para que no salte entre sección y platillo.
+- En `app/foto-menu.tsx` se limpió ruido textual de Vision (`menu/menú`) antes de persistir nombre/descripción.
+- En `app/preview.tsx` se añadieron sub-bullets automáticos cuando la descripción de un platillo trae variantes separadas.
+- Se corrigieron los refs tipados de `Swipeable` en `app/foto-menu.tsx`; `npx tsc --noEmit` vuelve a pasar.
+
+## Pendiente
+- Afinar visualmente `app/preview.tsx` para reforzar la noción de grupo cuando hay pocas secciones y validar spacing en dispositivo.
+- Integrar onboarding real de primera ejecución (quitar reset forzado actual).
+- Limpiar warnings de lint del flujo crítico (`onboarding`, `perfil`).
+
+## Siguiente paso exacto
+Validar en dispositivo `app/preview.tsx` con casos reales de foto (fondita/taquería) y ajustar spacing/jerarquía final del render compartible.
+
+## Archivos tocados
+- app/login-callback.tsx
+- app/_layout.tsx
+- app/menu.tsx
+- app/preview.tsx
+- app/foto-menu.tsx
+- docs/STATE.md
+- docs/GOAL.md
+- docs/ARCHITECTURE.md
+- docs/HANDOFF.md
+- docs/AGENT.md
+
+## Decisiones vigentes
+- Antes de cualquier tarea, leer: `docs/GOAL.md`, `docs/ARCHITECTURE.md`, `docs/STATE.md`, `docs/HANDOFF.md`.
+- No depender del historial de chat para continuar trabajo.
+- No rehacer código existente sin necesidad; extender y corregir de forma incremental.
+- Al cerrar cualquier tarea, actualizar mínimo `docs/HANDOFF.md` y `docs/STATE.md` si cambió el panorama.
+
+## Riesgos / dudas
+- Aunque el callback es más robusto en código, aún falta prueba manual en dispositivo real.
+- Hay cambios locales previos en el working tree que deben respetarse para no pisar trabajo en curso.
+- Hay secretos/configuración sensible en el repo que conviene revisar antes de release.

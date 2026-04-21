@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import * as FileSystem from 'expo-file-system/legacy';
+import { getTipoNegocio } from '@/lib/menu-store';
 
 const client = new Anthropic({
   apiKey: process.env.EXPO_PUBLIC_ANTHROPIC_API_KEY,
@@ -9,6 +10,7 @@ const client = new Anthropic({
 export interface MenuSeccion {
   nombre: string;
   platillos: { nombre: string; descripcion: string }[];
+  precioSeccion?: string;
 }
 
 export interface MenuVisualResult {
@@ -17,10 +19,75 @@ export interface MenuVisualResult {
   error?: string;
 }
 
+const REGLAS = `
+REGLA AGRUPACIÓN: Variantes del mismo platillo van en UN solo item. nombre='Enchiladas' descripcion='Verdes, rojas o enmoladas'. NUNCA repitas el mismo platillo.
+
+REGLA PRECIO: Si hay precio único del menú ponlo en 'precio'. Si cada sección o platillo tiene precio propio ponlo en la descripción del platillo entre paréntesis. Ejemplo: descripcion='De chocolate o zanahoria ($180 entera / $45 porción)'.
+
+Responde SOLO con JSON válido sin texto ni markdown:
+{"secciones":[{"nombre":"1ER TIEMPO","platillos":[{"nombre":"Sopa","descripcion":"De fideo o verduras"}]}],"precio":"$95"}`;
+
+function buildPrompt(tipo: string | null): string {
+  if (tipo === 'fondita') {
+    return `Eres un experto en menús de fonditas y cocinas económicas mexicanas. Analiza la imagen y estructura el menú con estas secciones exactas:
+
+- 1ER TIEMPO: siempre sopa o caldo (sopa de fideo, sopa de lima, consomé, caldo tlalpeño, crema, lentejas). NUNCA guisados.
+- 2DO TIEMPO: arroz o pasta como acompañamiento (arroz rojo, arroz blanco, espagueti). NUNCA guisados.
+- 3ER TIEMPO: el guisado o platillo principal (pechuga, bistec, milanesa, enchiladas, mole, picadillo, chicharrón, chiles rellenos, higado, puntas de res).
+- BEBIDAS: aguas frescas, refrescos, jugos.
+${REGLAS}`;
+  }
+
+  if (tipo === 'taqueria') {
+    return `Eres un experto en taquerías mexicanas. Analiza la imagen y estructura el menú con estas secciones:
+
+- TACOS: todos los tipos de tacos con variantes en descripción.
+- COMPLEMENTOS: quesadillas, gringas, tortas, alambres, volcanes, etc.
+- BEBIDAS: aguas, refrescos, etc.
+${REGLAS}`;
+  }
+
+  if (tipo === 'reposteria') {
+    return `Eres un experto en repostería y pastelería mexicana. Analiza la imagen y estructura el menú con estas secciones:
+
+- PASTELES: pasteles con sabores, tamaños y precios por pieza o porción en la descripción.
+- PIEZAS: galletas, pays, polvorones, pan, conchas, etc. con precio por pieza si hay.
+- BEBIDAS: café, té, chocolate, etc.
+${REGLAS}`;
+  }
+
+  if (tipo === 'mariscos') {
+    return `Eres un experto en marisquerías mexicanas. Analiza la imagen y estructura el menú con estas secciones:
+
+- ENTRADAS: cocteles, tostadas, aguachile, ceviche, ostiones.
+- CALDOS: caldo de camarón, de pescado, siete mares, etc.
+- PLATOS FUERTES: filete, camarones, pulpo, mojarra, brochetas, etc.
+- BEBIDAS: aguas, cervezas, micheladas, etc.
+${REGLAS}`;
+  }
+
+  if (tipo === 'otro') {
+    return `Eres un experto en menús de negocios de comida en México. Analiza la imagen, detecta el tipo de negocio y crea secciones con sentido para ese negocio específico.
+${REGLAS}`;
+  }
+
+  // null / undefined — fondita como default
+  return `Eres un experto en menús de fonditas y cocinas económicas mexicanas. Analiza la imagen y estructura el menú con estas secciones exactas:
+
+- 1ER TIEMPO: siempre sopa o caldo (sopa de fideo, sopa de lima, consomé, caldo tlalpeño, crema, lentejas). NUNCA guisados.
+- 2DO TIEMPO: arroz o pasta como acompañamiento (arroz rojo, arroz blanco, espagueti). NUNCA guisados.
+- 3ER TIEMPO: el guisado o platillo principal (pechuga, bistec, milanesa, enchiladas, mole, picadillo, chicharrón, chiles rellenos, higado, puntas de res).
+- BEBIDAS: aguas frescas, refrescos, jugos.
+${REGLAS}`;
+}
+
 export async function leerMenuDeFoto(imageUri: string): Promise<MenuVisualResult> {
   const base64 = await FileSystem.readAsStringAsync(imageUri, {
     encoding: FileSystem.EncodingType.Base64,
   });
+
+  const tipo = getTipoNegocio();
+  const prompt = buildPrompt(tipo);
 
   const response = await client.messages.create({
     model: 'claude-sonnet-4-6',
@@ -39,27 +106,7 @@ export async function leerMenuDeFoto(imageUri: string): Promise<MenuVisualResult
           },
           {
             type: 'text',
-            text: `Eres un asistente para negocios de comida en México. Lee esta imagen de un menú escrito a mano, en pizarrón, o impreso.
-
-Extrae toda la información del menú y responde SOLO con un JSON válido, sin texto adicional, sin markdown, sin explicaciones.
-
-Estructura requerida:
-{
-  "secciones": [
-    {
-      "nombre": "1ER TIEMPO",
-      "platillos": [
-        { "nombre": "Sopa de fideo", "descripcion": "Con verduras" }
-      ]
-    }
-  ],
-  "precio": "$75"
-}
-
-Nombres de secciones comunes: 1ER TIEMPO, 2DO TIEMPO, 3ER TIEMPO, BEBIDAS, POSTRES, ENTRADAS.
-Si no hay descripción para un platillo, usa descripcion: "".
-Si no hay precio visible, usa precio: "".
-Si la imagen no es un menú, devuelve: {"secciones":[],"precio":"","error":"No se detectó un menú en la imagen"}`,
+            text: prompt,
           },
         ],
       },

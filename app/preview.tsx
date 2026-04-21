@@ -1,8 +1,9 @@
-import { useFocusEffect } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
 import { Alert, Platform, ScrollView, Share, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { SymbolView } from 'expo-symbols';
 import * as Sharing from 'expo-sharing';
 import { captureRef } from 'react-native-view-shot';
 
@@ -18,74 +19,79 @@ import {
   getPagosEfectivo,
   getPagosTarjeta,
   getPagosTrans,
-  getTiempoLabels,
   type MenuData,
 } from '@/lib/menu-store';
 
-function SectionBlock({ data, title, theme, fecha }: { data: MenuData; title: string; theme: Theme; fecha?: string }) {
-  const hasContent =
-    (data.primerTiempo.enabled && data.primerTiempo.items.some(Boolean)) ||
-    (data.segundoTiempo.enabled && data.segundoTiempo.items.some(Boolean)) ||
-    (data.tercerTiempoGuisado.enabled && data.tercerTiempoGuisado.items.some(Boolean)) ||
-    (data.postre.enabled && data.postre.items.some(Boolean)) ||
-    (data.aguas.enabled && data.aguas.items.some(Boolean)) ||
-    (data.precio.enabled && data.precio.value.trim());
+function SectionBlock({ data, title, theme }: { data: MenuData; title: string; theme: Theme }) {
+  const hasContent = data.secciones.some(s => s.platillos.some(p => p.nombre));
 
   if (!hasContent) return null;
 
-  const { primerLabel, segundoLabel, tercerLabel } = getTiempoLabels(data);
   const s = makeStyles(theme);
-
-  const ri = (item: string, i: number) => {
-    const si = item.indexOf(' / ');
-    if (si === -1) return <Text key={i} style={s.item} allowFontScaling={true}>• {item}</Text>;
-    return (
-      <Text key={i} style={s.item} allowFontScaling={true}>
-        {'• ' + item.slice(0, si)}<Text style={s.itemDesc} allowFontScaling={true}>{' / ' + item.slice(si + 3)}</Text>
-      </Text>
-    );
+  const normalizePrice = (value: string): string => value.replace(/[^0-9.]/g, '');
+  const cleanDescriptionAndPrice = (description: string, explicitPrice?: string) => {
+    const fromParens = description.match(/\(\s*\$?\s*([0-9]+(?:\.[0-9]+)?)\s*\)/i);
+    const fromRaw = description.match(/\$\s*([0-9]+(?:\.[0-9]+)?)/i);
+    const extracted = explicitPrice || normalizePrice(fromParens?.[1] ?? fromRaw?.[1] ?? '');
+    const cleaned = description
+      .replace(/\(\s*\$?\s*[0-9]+(?:\.[0-9]+)?\s*\)/gi, '')
+      .replace(/\$\s*[0-9]+(?:\.[0-9]+)?/gi, '')
+      .replace(/\((?:men[uú]|menu)\)/gi, '')
+      .replace(/\b(?:men[uú]|menu)\b/gi, '')
+      .replace(/\s{2,}/g, ' ')
+      .trim();
+    return { cleaned, extracted };
+  };
+  const toVariantBullets = (description: string): string[] => {
+    if (!description) return [];
+    if (description.includes(' / ')) {
+      return description.split(' / ').map(part => part.trim()).filter(Boolean);
+    }
+    if (description.includes('•')) {
+      return description.split('•').map(part => part.trim()).filter(Boolean);
+    }
+    return [];
   };
 
   return (
     <View style={s.block}>
-      <View style={s.blockTitleRow}>
-        <Text style={s.blockTitle} allowFontScaling={true}>{title}</Text>
-        {!!fecha && <Text style={s.blockFecha} allowFontScaling={true}>{fecha}</Text>}
-      </View>
-
-      {data.primerTiempo.enabled && data.primerTiempo.items.some(Boolean) && (
-        <View style={s.subsection}>
-          <Text style={s.subsectionLabel} allowFontScaling={true}>{primerLabel}</Text>
-          {data.primerTiempo.items.filter(Boolean).map(ri)}
-        </View>
-      )}
-      {data.segundoTiempo.enabled && data.segundoTiempo.items.some(Boolean) && (
-        <View style={s.subsection}>
-          <Text style={s.subsectionLabel} allowFontScaling={true}>{segundoLabel}</Text>
-          {data.segundoTiempo.items.filter(Boolean).map(ri)}
-        </View>
-      )}
-      {data.tercerTiempoGuisado.enabled && data.tercerTiempoGuisado.items.some(Boolean) && (
-        <View style={s.subsection}>
-          <Text style={s.subsectionLabel} allowFontScaling={true}>{tercerLabel}</Text>
-          {data.tercerTiempoGuisado.items.filter(Boolean).map(ri)}
-        </View>
-      )}
-      {data.aguas.enabled && data.aguas.items.some(Boolean) && (
-        <View style={s.subsection}>
-          <Text style={s.subsectionLabel} allowFontScaling={true}>Bebidas</Text>
-          {data.aguas.items.filter(Boolean).map(ri)}
-        </View>
-      )}
-      {data.postre.enabled && data.postre.items.some(Boolean) && (
-        <View style={s.subsection}>
-          <Text style={s.subsectionLabel} allowFontScaling={true}>Postre</Text>
-          {data.postre.items.filter(Boolean).map(ri)}
-        </View>
-      )}
-      {data.precio.enabled && data.precio.value.trim() && (
-        <Text style={s.precio} allowFontScaling={true}>${data.precio.value}</Text>
-      )}
+      <Text style={s.groupTitle} allowFontScaling={true}>{title}</Text>
+      {data.secciones.filter(sec => sec.platillos.some(p => p.nombre)).map(sec => {
+        const hasSectionPrice = !!sec.precio?.trim();
+        return (
+          <View key={sec.id} style={s.subsection}>
+            <View style={s.sectionHeader}>
+              <Text style={s.sectionTitle} allowFontScaling={true}>{sec.nombre}</Text>
+              {hasSectionPrice ? <Text style={s.sectionPrice} allowFontScaling={true}>${sec.precio}</Text> : <View style={s.sectionPriceSpacer} />}
+            </View>
+            {sec.platillos.filter(p => p.nombre).map((plat, i) => {
+              const { cleaned, extracted } = cleanDescriptionAndPrice(plat.descripcion ?? '', plat.precio ?? '');
+              const variantBullets = toVariantBullets(cleaned);
+              const showBullets = variantBullets.length > 1;
+              return (
+                <View key={plat.id ?? i} style={s.itemCard}>
+                  <View style={s.itemLeft}>
+                    <Text style={s.itemName} allowFontScaling={true}>{plat.nombre}</Text>
+                    {!showBullets && !!cleaned && <Text style={s.itemDesc} allowFontScaling={true}>{cleaned}</Text>}
+                    {showBullets && (
+                      <View style={s.variantList}>
+                        {variantBullets.map((line, bulletIndex) => (
+                          <Text key={`${plat.id ?? i}-${bulletIndex}`} style={s.variantItem} allowFontScaling={true}>
+                            {'\u2022'} {line}
+                          </Text>
+                        ))}
+                      </View>
+                    )}
+                  </View>
+                  <View style={s.itemPriceWrap}>
+                    {!!extracted && <Text style={s.itemPrice} allowFontScaling={true}>${extracted}</Text>}
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+        );
+      })}
     </View>
   );
 }
@@ -119,7 +125,9 @@ export default function PreviewScreen() {
     }, [])
   );
 
-  const hasAnything = menuData !== null || cartaData !== null;
+  const hasMenuItems = !!menuData?.secciones?.some(sec => sec.platillos.some(p => p.nombre?.trim()));
+  const hasCartaItems = !!cartaData?.secciones?.some(sec => sec.platillos.some(p => p.nombre?.trim()));
+  const hasAnything = hasMenuItems || hasCartaItems;
   const fecha = new Date().toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' });
   const pagos = [pagosEfectivo && 'Efectivo', pagosTrans && 'Transferencia', pagosTarjeta && 'Tarjeta'].filter(Boolean).join(' · ');
 
@@ -160,9 +168,9 @@ export default function PreviewScreen() {
                 {!!fonditaDireccion && <Text style={s.fonditaDireccion} allowFontScaling={true}>{fonditaDireccion}</Text>}
                 <View style={s.headerDivider} />
 
-                {cartaData && <SectionBlock data={cartaData} title="Carta" theme={theme} />}
-                {cartaData && menuData && <View style={s.sectionSeparator} />}
-                {menuData && <SectionBlock data={menuData} title="Menú del día" theme={theme} />}
+                {hasCartaItems && cartaData && <SectionBlock data={cartaData} title="Carta" theme={theme} />}
+                {hasCartaItems && hasMenuItems && <View style={s.sectionSeparator} />}
+                {hasMenuItems && menuData && <SectionBlock data={menuData} title="Menú del día" theme={theme} />}
               </View>
 
               <View>
@@ -179,7 +187,14 @@ export default function PreviewScreen() {
                 )}
 
                 {!hasAnything && (
-                  <Text style={s.empty} allowFontScaling={true}>Aún no hay contenido. Llena tu menú primero.</Text>
+                  <View style={s.emptyWrap}>
+                    <SymbolView name="doc.text" size={48} tintColor={theme.textSecondary} weight="regular" />
+                    <Text style={s.emptyTitle} allowFontScaling={true}>Tu menú está vacío</Text>
+                    <Text style={s.emptySub} allowFontScaling={true}>Ve a Menú para agregar platillos o toma una foto</Text>
+                    <TouchableOpacity style={s.emptyCta} onPress={() => router.push('/menu')} activeOpacity={0.82}>
+                      <Text style={s.emptyCtaText} allowFontScaling={true}>Ir al menú</Text>
+                    </TouchableOpacity>
+                  </View>
                 )}
               </View>
             </View>
@@ -238,19 +253,30 @@ function makeStyles(t: Theme) {
     fonditaDesc:       { fontSize: 15, fontWeight: '300', color: t.gray, lineHeight: 22, marginBottom: 2 },
     fonditaDireccion:  { fontSize: 12, fontWeight: '300', color: t.gray, lineHeight: 17, opacity: 0.5, marginBottom: 6 },
     block:             { marginBottom: 0 },
-    blockTitleRow:     { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 0, paddingBottom: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.sep },
-    blockTitle:        { fontSize: 12, fontWeight: '900', letterSpacing: 1.4, color: t.accent, textTransform: 'uppercase' },
-    blockFecha:        { fontSize: 12, fontWeight: '300', color: t.gray },
-    subsection:        { marginBottom: 0 },
-    subsectionLabel:   { fontSize: 12, fontWeight: '900', letterSpacing: 1.0, color: t.text, marginTop: 16, marginBottom: 6, textTransform: 'uppercase', opacity: 0.5 },
-    item:              { fontSize: 17, fontWeight: '900', color: t.text, marginLeft: 4, marginBottom: 8 },
-    itemDesc:          { fontSize: 15, fontWeight: '300', color: t.gray, lineHeight: 22 },
+    groupTitle:        { fontSize: 16, fontWeight: '800', color: t.accent, letterSpacing: 0, marginBottom: 12, textTransform: 'uppercase' },
+    subsection:        { marginBottom: 18 },
+    sectionHeader:     { minHeight: 24, flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 6 },
+    sectionTitle:      { flex: 1, fontSize: 15, fontWeight: '800', color: t.text, textTransform: 'uppercase' },
+    sectionPrice:      { width: 64, textAlign: 'right', fontSize: 15, fontWeight: '700', color: t.textSecondary },
+    sectionPriceSpacer:{ width: 64 },
+    itemCard:          { flexDirection: 'row', alignItems: 'flex-start', paddingVertical: 8, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.sep },
+    itemLeft:          { flex: 1, minWidth: 0, paddingRight: 12 },
+    itemName:          { fontSize: 17, fontWeight: '800', color: t.text, lineHeight: 22 },
+    itemDesc:          { marginTop: 2, fontSize: 14, fontWeight: '300', color: t.gray, lineHeight: 20 },
+    variantList:       { marginTop: 4, gap: 2 },
+    variantItem:       { fontSize: 13, fontWeight: '300', color: t.gray, lineHeight: 18 },
+    itemPriceWrap:     { width: 64, alignItems: 'flex-end', justifyContent: 'flex-start', paddingTop: 2 },
+    itemPrice:         { fontSize: 15, fontWeight: '600', color: t.textSecondary, lineHeight: 20, textAlign: 'right' },
     precio:            { fontSize: 22, fontWeight: '900', color: t.accent, marginTop: 12, marginBottom: 0 },
     sectionSeparator:  { height: StyleSheet.hairlineWidth, backgroundColor: t.sep, marginVertical: 24 },
     infoBlock:         { marginTop: 24, paddingTop: 16, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.sep, alignItems: 'center' },
     infoFecha:         { fontSize: 12, fontWeight: '300', color: t.gray, opacity: 0.6, lineHeight: 18, textAlign: 'center', marginBottom: 2 },
     infoLine:          { fontSize: 12, fontWeight: '300', color: t.gray, opacity: 0.6, lineHeight: 18, textAlign: 'center', marginBottom: 2 },
-    empty:             { textAlign: 'center', fontWeight: '300', color: t.gray, fontStyle: 'italic', marginTop: 40 },
+    emptyWrap:         { alignItems: 'center', paddingVertical: 36, gap: 10 },
+    emptyTitle:        { fontSize: 17, fontWeight: '700', color: t.text, textAlign: 'center' },
+    emptySub:          { fontSize: 14, fontWeight: '300', color: t.textSecondary, textAlign: 'center', lineHeight: 20, maxWidth: 280 },
+    emptyCta:          { marginTop: 4, paddingVertical: 10, paddingHorizontal: 18, borderRadius: 12, backgroundColor: t.accentLight },
+    emptyCtaText:      { fontSize: 14, fontWeight: '700', color: t.accent },
     actions:           { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.sep, paddingTop: 12 },
     shareButton:       { backgroundColor: t.text, height: 52, borderRadius: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginHorizontal: 24, marginBottom: 24, shadowColor: t.text, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.15, shadowRadius: 6, elevation: 4 },
     shareButtonText:   { color: t.surface, fontSize: 15, fontWeight: '700' },

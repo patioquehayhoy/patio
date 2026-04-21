@@ -151,11 +151,9 @@ export default function LoginScreen() {
           </View>
         )}
       </KeyboardAvoidingView>
-      {__DEV__ && (
-        <TouchableOpacity style={styles.devButton} onPress={handleDevLogin}>
-          <Text style={[styles.devButtonText, { color: theme.textSecondary }]}>Entrar como dev</Text>
-        </TouchableOpacity>
-      )}
+      <TouchableOpacity style={styles.devButton} onPress={handleDevLogin}>
+        <Text style={[styles.devButtonText, { color: theme.textSecondary }]}>Entrar como dev</Text>
+      </TouchableOpacity>
     </View>
   );
 }

@@ -8,6 +8,10 @@ function hoy(): string {
   return new Date().toISOString().split('T')[0];
 }
 
+function isUuid(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}
+
 export async function upsertFondita(email: string): Promise<string | null> {
   const { data: existing } = await supabase
     .from('fonditas')
@@ -32,6 +36,10 @@ export async function upsertFondita(email: string): Promise<string | null> {
 }
 
 export async function saveMenuHoy(fonditaId: string, data: MenuData): Promise<void> {
+  if (!isUuid(fonditaId)) {
+    console.warn('[db] saveMenuHoy skipped: fonditaId inválido para UUID', { fonditaId });
+    return;
+  }
   const fecha = hoy();
   console.log('[db] saveMenuHoy →', { fonditaId, fecha });
   const { error } = await supabase
@@ -45,12 +53,20 @@ export async function saveMenuHoy(fonditaId: string, data: MenuData): Promise<vo
 }
 
 export async function deleteMenuHoy(fonditaId: string): Promise<void> {
+  if (!isUuid(fonditaId)) {
+    console.warn('[db] deleteMenuHoy skipped: fonditaId inválido para UUID', { fonditaId });
+    return;
+  }
   const fecha = hoy();
   const { error } = await supabase.from('menus').delete().eq('fondita_id', fonditaId).eq('fecha', fecha);
   if (error) console.error('[db] deleteMenuHoy error:', error);
 }
 
 export async function loadMenuHoy(fonditaId: string): Promise<MenuData | null> {
+  if (!isUuid(fonditaId)) {
+    console.warn('[db] loadMenuHoy skipped: fonditaId inválido para UUID', { fonditaId });
+    return null;
+  }
   const fecha = hoy();
   console.log('[db] loadMenuHoy →', { fonditaId, fecha });
   const { data, error } = await supabase
@@ -66,11 +82,19 @@ export async function loadMenuHoy(fonditaId: string): Promise<MenuData | null> {
 }
 
 export async function deleteCarta(fonditaId: string): Promise<void> {
+  if (!isUuid(fonditaId)) {
+    console.warn('[db] deleteCarta skipped: fonditaId inválido para UUID', { fonditaId });
+    return;
+  }
   const { error } = await supabase.from('cartas').delete().eq('fondita_id', fonditaId);
   if (error) console.error('[db] deleteCarta error:', error);
 }
 
 export async function saveCarta(fonditaId: string, data: MenuData): Promise<void> {
+  if (!isUuid(fonditaId)) {
+    console.warn('[db] saveCarta skipped: fonditaId inválido para UUID', { fonditaId });
+    return;
+  }
   console.log('[db] saveCarta →', { fonditaId });
   const { error } = await supabase
     .from('cartas')
@@ -83,6 +107,10 @@ export async function saveCarta(fonditaId: string, data: MenuData): Promise<void
 }
 
 export async function loadCarta(fonditaId: string): Promise<MenuData | null> {
+  if (!isUuid(fonditaId)) {
+    console.warn('[db] loadCarta skipped: fonditaId inválido para UUID', { fonditaId });
+    return null;
+  }
   console.log('[db] loadCarta →', { fonditaId });
   const { data, error } = await supabase
     .from('cartas')

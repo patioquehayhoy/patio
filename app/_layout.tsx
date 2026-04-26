@@ -20,6 +20,7 @@ function RootStack() {
           contentStyle: { backgroundColor: theme.bg },
         }}>
         <Stack.Screen name="index" options={{ title: 'Login / Registro' }} />
+        <Stack.Screen name="explorar" options={{ headerShown: false }} />
         <Stack.Screen name="onboarding" options={{ headerShown: false }} />
         <Stack.Screen name="login-callback" options={{ headerShown: false }} />
         <Stack.Screen name="menu" options={{ title: '' }} />

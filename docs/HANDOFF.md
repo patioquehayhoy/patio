@@ -43,11 +43,25 @@
 - Arrancó V3 MVP de ubicación: `app/perfil.tsx` ya permite decidir si la dirección se muestra.
 - En `app/preview.tsx` la dirección visible ahora tiene CTA `Abrir en Maps`.
 - El deep link de Maps usa Apple Maps en iOS y Google Maps web search en Android.
+- En `app/perfil.tsx` se pulió jerarquía/espaciado de la sección de negocio.
+- En `app/perfil.tsx` el giro del negocio dejó de ser una fila de pastillas y ahora es una ruleta vertical tipo picker con snap al centro.
+- En `app/perfil.tsx` la sección `Operación` quedó como bloque minimalista tipo Settings: apertura, cierre y métodos de pago agrupados.
+- `app/perfil.tsx` quedó sin warnings de lint; queda pendiente solo el warning conocido de `app/onboarding.tsx`.
+- Se actualizó `docs/GOAL.md` con filosofía V3: Patio debe hacer evidente la siguiente acción, no entregar datos para que el usuario piense de más.
+- Dirección de producto V3: experiencia principal tipo foodie/exploración, con acceso de negocio discreto tipo Uber; evitar un switch visible permanente Foodie/Fondero.
+- Ratings iniciales: 5 estrellas con feedback estructurado si baja de 5; no iniciar con reseñas abiertas ni señales complejas.
+- Se añadió principio de eficiencia: IA por lote con salida estructurada, validaciones determinísticas en código/backend y cache cuando no cambió el input.
+- Se añadió principio de mapa eficiente: evaluar H3/geohash/S2, usar celdas/zonas y precisión bajo demanda en vez de tracking fino permanente.
+- Se creó `app/explorar.tsx`: home Foodie inicial con mapa liviano, pins seleccionables, filtros simples y Top 10 curado/mock.
+- `app/explorar.tsx` fue rediseñado a estructura full-bleed tipo dashboard logístico: mapa como superficie principal, controles flotantes y bottom sheet inferior.
+- Se actualizó `app/index.tsx`: `Busco comida` entra a Explorar; `Tengo un negocio` revela el login de fondero. Desde Explorar el acceso de negocio es discreto.
+- Se limpió `app/onboarding.tsx`: fuera reset forzado de AsyncStorage y warning de hook. `npm run lint` queda limpio.
 
 ## Pendiente
 - Validar en dispositivo el flujo de ubicación (`perfil` -> `preview` -> `Abrir en Maps`).
-- Definir si V3 seguirá con mapa/listado de fonditas o solo ficha compartible con ubicación.
-- Limpiar warnings de lint del flujo crítico (`onboarding`, `perfil`).
+- Probar en simulador `Busco comida -> Explorar` y `Tengo un negocio -> login fondero`.
+- Crear ficha pública de Patio desde selección en mapa/lista.
+- Conectar Explorar a Supabase y ubicación real por zona/celda.
 
 ## Siguiente paso exacto
 Probar en dispositivo que `Mostrar ubicación` desde `perfil` controle correctamente el CTA `Abrir en Maps` en `preview`.

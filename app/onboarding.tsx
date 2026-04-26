@@ -36,9 +36,6 @@ function finish() {
 }
 
 export default function OnboardingScreen() {
-  // TODO: quitar antes de release
-  AsyncStorage.removeItem(ONBOARDING_KEY);
-
   const [index, setIndex] = useState(0);
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
@@ -52,7 +49,7 @@ export default function OnboardingScreen() {
 
   useEffect(() => {
     fadeAnim.setValue(1);
-  }, []);
+  }, [fadeAnim]);
 
   const slide = SLIDES[index];
 

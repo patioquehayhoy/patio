@@ -47,16 +47,21 @@ La app está en una fase funcional avanzada de MVP: ya existe flujo completo de 
 - Arrancó V3 MVP de ubicación: en `perfil` ya existe control para `Mostrar ubicación`.
 - En `preview` la dirección solo se muestra si está habilitada y aparece CTA `Abrir en Maps`.
 - El enlace de ubicación usa Apple Maps en iOS y búsqueda de Google Maps en Android.
+- En `perfil` se refinó la sección de negocio y se reemplazó el selector de giro por una ruleta vertical tipo picker con snap al centro.
+- En `perfil` se reestructuró `Operación` como bloque minimalista tipo Settings: apertura, cierre y métodos de pago en una sola jerarquía.
+- `app/perfil.tsx` quedó sin warnings de lint; persiste solo el warning conocido de `app/onboarding.tsx`.
+- Arrancó base V3 Foodie: `app/explorar.tsx` funciona como home de exploración con mapa liviano, pins seleccionables, filtros simples y Top 10 curado.
+- `app/explorar.tsx` se rediseñó siguiendo referencias de dashboard logístico: mapa full-bleed, controles flotantes y bottom sheet con selección/lista.
+- `app/index.tsx` ahora separa intención inicial: `Busco comida` lleva a Explorar y `Tengo un negocio` revela el acceso de fondero.
+- Se quitó el reset forzado de `app/onboarding.tsx`; `npm run lint` queda sin warnings.
 
 ## Qué está incompleto o frágil
-- Existen warnings de lint pendientes en `app/onboarding.tsx` y `app/perfil.tsx` (hooks/import order).
-- `app/onboarding.tsx` contiene reset forzado (`AsyncStorage.removeItem`) con comentario de TODO, lo que impide comportamiento real de onboarding persistente.
 - Falta validación manual del flujo de callback en dispositivo real (deep links iOS/Android).
 - Falta aterrizar el rediseño de “grupo grande de secciones” (MENÚ DEL DÍA/CARTA) en `app/menu.tsx`; hoy siguen cards por sección sueltas.
 - No hay suite de tests automatizados.
-- Todavía no existe mapa/listado embebido de negocios; la ubicación por ahora es solo un CTA hacia Maps.
+- El mapa/listado de Foodie usa datos mock; falta conectarlo a Supabase, ubicación real y ficha pública.
 
 ## Próximos 3 pasos
-1. Validar en dispositivo el flujo `perfil -> preview -> Abrir en Maps` y ajustar copy/visibilidad de ubicación si hace falta.
-2. Definir el siguiente escalón de V3: si habrá mapa embebido, listado de fonditas abiertas, o solo ficha de ubicación compartible.
-3. Limpiar warnings de lint en `app/perfil.tsx` y `app/onboarding.tsx`.
+1. Probar en simulador el flujo `Busco comida -> Explorar` y `Tengo un negocio -> acceso fondero`.
+2. Crear ficha pública de Patio desde la selección del mapa/lista.
+3. Conectar `Explorar` a datos reales de Supabase y ubicación por zona/celda.

@@ -233,7 +233,7 @@ function SectionCard({
 }) {
   const { theme } = useTheme();
   const s = makeStyles(theme);
-  const addLabel = sec.nombre.trim().toUpperCase().includes('BEBIDA') ? '+ agregar bebidas' : '+ agregar platillo';
+  const addLabel = '+ agregar';
   const swipeRef = useRef<any>(null);
 
   const handleMoveUp = () => {
@@ -324,6 +324,7 @@ export default function MenuScreen() {
   const [sectionPickerVisible, setSectionPickerVisible] = useState(false);
   const [selectedSectionNames, setSelectedSectionNames] = useState<string[]>([]);
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateKey>('fondita');
+  const [menuActionsVisible, setMenuActionsVisible] = useState(false);
 
   const menuSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -507,6 +508,20 @@ export default function MenuScreen() {
     setSectionPickerVisible(false);
   }, [selectedSectionNames]);
 
+  const startFromScratch = useCallback(() => {
+    setMenuData({
+      secciones: [
+        {
+          id: makeSectionId(),
+          nombre: 'SECCIÓN 1',
+          precio: '',
+          platillos: [],
+        },
+      ],
+    });
+    setSectionPickerVisible(false);
+  }, []);
+
   return (
     <View style={s.container}>
       <Stack.Screen options={{ headerShown: false }} />
@@ -541,6 +556,9 @@ export default function MenuScreen() {
                     ]}>
                     <Text
                       style={[s.templatePillText, selected && s.templatePillTextSelected]}
+                      numberOfLines={1}
+                      adjustsFontSizeToFit={true}
+                      minimumFontScale={0.82}
                       allowFontScaling={true}>
                       {SECTION_TEMPLATES[key].label}
                     </Text>
@@ -566,6 +584,13 @@ export default function MenuScreen() {
               })}
             </View>
             <TouchableOpacity
+              style={[s.btnTertiary, { marginTop: 2 }]}
+              onPress={startFromScratch}
+              activeOpacity={0.82}>
+              <Text style={s.btnTertiaryText} allowFontScaling={true}>Empezar desde cero</Text>
+              <Text style={s.btnTertiarySub} allowFontScaling={true}>Crea tus propias secciones manualmente.</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
               style={[s.btnPrimary, { marginTop: 10 }, !hasAnySelectedSection && s.btnPrimaryDisabled]}
               onPress={applySuggestedSections}
               activeOpacity={0.86}
@@ -577,6 +602,52 @@ export default function MenuScreen() {
               onPress={() => setSectionPickerVisible(false)}
               activeOpacity={0.86}>
               <Text style={s.btnSecondaryText} allowFontScaling={true}>Cancelar</Text>
+            </TouchableOpacity>
+          </View>
+        </Pressable>
+      </Modal>
+      <Modal
+        visible={menuActionsVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setMenuActionsVisible(false)}>
+        <Pressable style={s.modalOverlay} onPress={() => setMenuActionsVisible(false)}>
+          <View style={s.actionSheetWrap}>
+            <View style={s.actionSheet}>
+              <View style={s.sheetGrabber} />
+              <TouchableOpacity
+                style={s.actionSheetItem}
+                onPress={() => {
+                  setMenuActionsVisible(false);
+                  router.push('/foto-menu');
+                }}
+                activeOpacity={0.82}>
+                <Text style={s.actionSheetItemText} allowFontScaling={true}>Usar foto</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={s.actionSheetItem}
+                onPress={() => {
+                  setMenuActionsVisible(false);
+                  openSectionPicker();
+                }}
+                activeOpacity={0.82}>
+                <Text style={s.actionSheetItemText} allowFontScaling={true}>Elegir otra plantilla</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={s.actionSheetItem}
+                onPress={() => {
+                  setMenuActionsVisible(false);
+                  handleBorrar();
+                }}
+                activeOpacity={0.82}>
+                <Text style={s.actionSheetDeleteText} allowFontScaling={true}>Borrar menú</Text>
+              </TouchableOpacity>
+            </View>
+            <TouchableOpacity
+              style={s.actionSheetCancel}
+              onPress={() => setMenuActionsVisible(false)}
+              activeOpacity={0.82}>
+              <Text style={s.actionSheetCancelText} allowFontScaling={true}>Cancelar</Text>
             </TouchableOpacity>
           </View>
         </Pressable>
@@ -633,20 +704,6 @@ export default function MenuScreen() {
                 </View>
               )}
 
-              {!!menuData.secciones.length && (
-                <View style={s.photoActionsWrap}>
-                  <TouchableOpacity style={s.photoFabWrap} onPress={() => router.push('/foto-menu')} activeOpacity={0.85}>
-                    <View style={s.photoFab}>
-                      <SymbolView name="camera.fill" size={28} tintColor="#FFFFFF" weight="semibold" />
-                    </View>
-                    <Text style={s.photoFabLabel} allowFontScaling={true}>Tomar otra foto</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={s.photoSecondaryBtn} onPress={() => router.push('/foto-menu')} activeOpacity={0.82}>
-                    <Text style={s.photoSecondaryBtnText} allowFontScaling={true}>Elegir otra imagen</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
-
               {!menuData.secciones.length && (
                 <TouchableOpacity style={s.templateLinkBtn} onPress={openSectionPicker} activeOpacity={0.8}>
                   <View style={s.templateLinkRow}>
@@ -663,11 +720,18 @@ export default function MenuScreen() {
               )}
 
               {!!menuData.secciones.length && (
-                <View style={s.deleteCard}>
-                  <Text style={s.deleteCardTitle} allowFontScaling={true}>Borrar menú de hoy</Text>
-                  <Text style={s.deleteCardSub} allowFontScaling={true}>Esta acción elimina las secciones y platillos actuales.</Text>
-                  <TouchableOpacity style={s.deleteBtn} onPress={handleBorrar} activeOpacity={0.82}>
-                    <Text style={s.deleteBtnText} allowFontScaling={true}>Borrar menú</Text>
+                <View style={s.optionsWrap}>
+                  <TouchableOpacity
+                    style={s.optionsToggle}
+                    onPress={() => setMenuActionsVisible(true)}
+                    activeOpacity={0.82}>
+                    <SymbolView
+                      name="ellipsis"
+                      size={14}
+                      tintColor={theme.textSecondary}
+                      weight="medium"
+                    />
+                    <Text style={s.optionsToggleText} allowFontScaling={true}>Más opciones</Text>
                   </TouchableOpacity>
                 </View>
               )}
@@ -689,23 +753,23 @@ function makeStyles(t: Theme) {
     scrollContent:   { paddingHorizontal: 16, paddingBottom: 48 },
     scrollContentEmpty: { flexGrow: 1, justifyContent: 'center' },
     // Section card
-    secCard:         { backgroundColor: t.surface, borderRadius: 14, padding: 12, marginBottom: 12, borderWidth: 1, borderColor: t.sep },
-    secHeader:       { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
-    secName:         { flex: 1, marginRight: 12, fontSize: 11, fontWeight: '700', letterSpacing: 0, color: t.text, textTransform: 'uppercase', paddingVertical: 0, lineHeight: 16 },
+    secCard:         { backgroundColor: t.surface, borderRadius: 18, padding: 14, marginBottom: 14, borderWidth: 1, borderColor: t.sep, shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.04, shadowRadius: 18, elevation: 2 },
+    secHeader:       { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
+    secName:         { flex: 1, marginRight: 12, fontSize: 12, fontWeight: '700', letterSpacing: 0.2, color: t.text, textTransform: 'uppercase', paddingVertical: 0, lineHeight: 16 },
     priceWrap:       { marginLeft: 'auto', flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'flex-end', paddingBottom: 1 },
     pricePrefix:     { fontSize: 13, fontWeight: '600', color: t.textSecondary, marginRight: 0 },
     secPrecio:       { minWidth: 10, fontSize: 13, fontWeight: '600', color: t.textSecondary, textAlign: 'left', paddingVertical: 0, paddingHorizontal: 0, backgroundColor: 'transparent' },
     secRemoveBtn:    { width: 18, height: 18, marginLeft: 8, alignItems: 'center', justifyContent: 'center' },
     secRemove:       { fontSize: 18, lineHeight: 18, color: t.textSecondary, fontWeight: '300' },
     // Platillo card
-    platCard:        { backgroundColor: 'transparent', flexDirection: 'row', alignItems: 'flex-start', paddingVertical: 8, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.sep },
+    platCard:        { backgroundColor: 'transparent', flexDirection: 'row', alignItems: 'flex-start', paddingVertical: 10, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.sep },
     handle:          { width: 20, marginRight: 8, paddingTop: 2, alignItems: 'center' },
     handleIcon:      { fontSize: 16, color: t.textSecondary },
     platMain:        { flex: 1, minWidth: 0 },
     platTopRow:      { flexDirection: 'row', alignItems: 'baseline' },
     platActions:     { marginLeft: 8, flexDirection: 'row', alignItems: 'center' },
-    platName:        { flex: 1, fontSize: 17, fontWeight: '700', color: t.text, paddingVertical: 0, lineHeight: 22 },
-    platDesc:        { marginTop: 2, fontSize: 15, color: t.textSecondary, paddingVertical: 0, lineHeight: 20 },
+    platName:        { flex: 1, fontSize: 17, fontWeight: '700', color: t.text, paddingVertical: 0, lineHeight: 23 },
+    platDesc:        { marginTop: 3, fontSize: 15, color: t.textSecondary, paddingVertical: 0, lineHeight: 21 },
     pricePrefixMuted:{ fontSize: 13, fontWeight: '600', color: t.textSecondary, marginRight: 0 },
     platPrecio:      { minWidth: 26, fontSize: 13, fontWeight: '600', color: t.textSecondary, textAlign: 'left', paddingVertical: 0, paddingHorizontal: 0, backgroundColor: 'transparent' },
     platRemoveBtn:   { width: 18, height: 18, marginLeft: 6, alignItems: 'center', justifyContent: 'center' },
@@ -721,7 +785,7 @@ function makeStyles(t: Theme) {
       marginTop: 2,
     },
     addPlatilloBtnPressed: { backgroundColor: t.surface2 },
-    addPlatilloText: { fontSize: 14, color: t.accent, fontWeight: '400', opacity: 0.76 },
+    addPlatilloText: { fontSize: 14, color: t.accent, fontWeight: '500', opacity: 0.82 },
     // Swipe actions
     swipeActionsWrap: { flexDirection: 'row', alignItems: 'stretch', marginBottom: 12 },
     swipeActionBtn:   { minWidth: 86, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 12, borderRadius: 10, marginLeft: 8 },
@@ -729,50 +793,28 @@ function makeStyles(t: Theme) {
     swipeActionDelete:{ backgroundColor: '#E74C3C' },
     swipeActionText:  { color: '#fff', fontSize: 13, fontWeight: '700' },
     // Add section
-    addSecBtn:       { borderWidth: 1, borderColor: t.border, borderStyle: 'dashed', borderRadius: 10, padding: 12, alignItems: 'center', marginTop: 16, marginBottom: 8, backgroundColor: t.surface },
-    addSecText:      { fontSize: 14, color: t.accent, fontWeight: '600' },
-    // Camera FAB (HIG-style)
-    photoActionsWrap:{ alignItems: 'center', marginTop: 20, marginBottom: 8 },
-    photoFabWrap:    { alignItems: 'center' },
-    photoFab:        {
-      width: 64,
-      height: 64,
-      borderRadius: 32,
-      backgroundColor: t.accent,
-      alignItems: 'center',
-      justifyContent: 'center',
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 6 },
-      shadowOpacity: 0.18,
-      shadowRadius: 12,
-      elevation: 7,
-    },
-    photoFabLabel:   { marginTop: 8, fontSize: 13, color: t.textSecondary, fontWeight: '500' },
-    photoSecondaryBtn: {
-      marginTop: 10,
-      backgroundColor: t.surface2,
-      borderRadius: 999,
-      paddingVertical: 10,
-      paddingHorizontal: 16,
-      borderWidth: 1,
-      borderColor: t.border,
-    },
-    photoSecondaryBtnText: { fontSize: 13, fontWeight: '600', color: t.text },
+    addSecBtn:       { alignSelf: 'center', minWidth: 220, borderWidth: 1, borderColor: t.border, borderStyle: 'dashed', borderRadius: 999, paddingVertical: 11, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center', marginTop: 18, marginBottom: 18, backgroundColor: t.surface },
+    addSecText:      { fontSize: 14, color: t.accent, fontWeight: '700' },
     // Empty onboarding state
     emptyStateWrap:  { flex: 1, justifyContent: 'center', marginBottom: 12 },
     emptyStateCard:  {
       backgroundColor: t.surface,
-      borderRadius: 16,
+      borderRadius: 22,
       borderWidth: 1,
       borderColor: t.sep,
-      paddingVertical: 24,
-      paddingHorizontal: 18,
+      paddingVertical: 28,
+      paddingHorizontal: 22,
       alignItems: 'center',
-      gap: 8,
+      gap: 10,
       marginBottom: 18,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 10 },
+      shadowOpacity: 0.05,
+      shadowRadius: 24,
+      elevation: 2,
     },
-    emptyStateTitle: { fontSize: 20, fontWeight: '900', color: t.text, textAlign: 'center' },
-    emptyStateSub:   { maxWidth: 290, fontSize: 14, lineHeight: 20, color: t.textSecondary, textAlign: 'center' },
+    emptyStateTitle: { fontSize: 22, fontWeight: '800', color: t.text, textAlign: 'center', letterSpacing: -0.3 },
+    emptyStateSub:   { maxWidth: 290, fontSize: 15, lineHeight: 21, color: t.textSecondary, textAlign: 'center' },
     emptyStatePhotoActions: { alignItems: 'center', marginTop: 8, marginBottom: 2, width: '100%' },
     emptyStatePhotoWrap: { alignItems: 'center' },
     emptyStatePhotoFab: {
@@ -784,16 +826,16 @@ function makeStyles(t: Theme) {
       justifyContent: 'center',
       shadowColor: '#000',
       shadowOffset: { width: 0, height: 8 },
-      shadowOpacity: 0.16,
-      shadowRadius: 16,
-      elevation: 8,
+      shadowOpacity: 0.14,
+      shadowRadius: 20,
+      elevation: 7,
     },
-    emptyStatePhotoLabel: { marginTop: 10, fontSize: 14, fontWeight: '600', color: t.text },
+    emptyStatePhotoLabel: { marginTop: 10, fontSize: 15, fontWeight: '700', color: t.text },
     emptyStateSecondaryBtn: {
       marginTop: 12,
       minWidth: 160,
       backgroundColor: t.surface2,
-      borderRadius: 999,
+      borderRadius: 16,
       paddingVertical: 11,
       paddingHorizontal: 18,
       borderWidth: 1,
@@ -801,28 +843,20 @@ function makeStyles(t: Theme) {
       alignItems: 'center',
     },
     emptyStateSecondaryBtnText: { fontSize: 14, fontWeight: '600', color: t.text },
-    templateLinkBtn: { alignSelf: 'center', paddingVertical: 6, paddingHorizontal: 10, marginTop: 0, marginBottom: 8, borderRadius: 10, opacity: 0.88 },
+    templateLinkBtn: { alignSelf: 'center', paddingVertical: 8, paddingHorizontal: 12, marginTop: 2, marginBottom: 8, borderRadius: 999, backgroundColor: t.surface2 },
     templateLinkRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
     templateLinkText: { fontSize: 13, fontWeight: '500', color: t.textSecondary },
-    // Delete
-    deleteCard:      {
-      marginTop: 12,
-      marginBottom: 16,
-      borderRadius: 14,
-      borderWidth: 1,
-      borderColor: '#F1C7BC',
-      backgroundColor: '#FFF8F5',
-      padding: 14,
-      alignItems: 'flex-start',
-    },
-    deleteCardTitle: { fontSize: 14, fontWeight: '700', color: t.text },
-    deleteCardSub:   { marginTop: 4, fontSize: 13, lineHeight: 18, color: t.textSecondary },
-    deleteBtn:       {
-      marginTop: 12,
-      paddingVertical: 10,
-      paddingHorizontal: 2,
-    },
-    deleteBtnText:   { fontSize: 14, fontWeight: '700', color: '#D9482E' },
+    // Secondary actions
+    optionsWrap:       { marginTop: 6, marginBottom: 22, alignItems: 'center' },
+    optionsToggle:     { minWidth: 220, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, paddingVertical: 11, paddingHorizontal: 16, borderRadius: 999, backgroundColor: t.surface2, borderWidth: 1, borderColor: t.border },
+    optionsToggleText: { fontSize: 13, fontWeight: '600', color: t.textSecondary, letterSpacing: -0.1 },
+    actionSheetWrap:   { marginTop: 'auto', paddingHorizontal: 12, paddingBottom: 12 },
+    actionSheet:       { borderRadius: 20, backgroundColor: t.surface, overflow: 'hidden', borderWidth: 1, borderColor: t.border, shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.08, shadowRadius: 24, elevation: 8 },
+    actionSheetItem:   { paddingVertical: 17, paddingHorizontal: 18, alignItems: 'center', borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.sep },
+    actionSheetItemText: { fontSize: 16, fontWeight: '500', color: t.text },
+    actionSheetDeleteText: { fontSize: 16, fontWeight: '600', color: '#C65A45' },
+    actionSheetCancel: { marginTop: 8, borderRadius: 18, backgroundColor: t.surface, paddingVertical: 16, alignItems: 'center', borderWidth: 1, borderColor: t.border },
+    actionSheetCancelText: { fontSize: 16, fontWeight: '700', color: t.text },
     // Modal
     modalOverlay:    { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
     modalSheet:      { backgroundColor: t.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, paddingBottom: 40 },
@@ -832,30 +866,33 @@ function makeStyles(t: Theme) {
     modalCancel:     { paddingVertical: 14, alignItems: 'center', marginTop: 8 },
     modalCancelText: { fontSize: 15, color: t.textSecondary },
     // Suggested sections picker
-    sheetGrabber:    { alignSelf: 'center', width: 36, height: 5, borderRadius: 999, backgroundColor: t.border, marginBottom: 14 },
-    presetSheet:     { backgroundColor: t.surface, borderTopLeftRadius: 22, borderTopRightRadius: 22, paddingHorizontal: 18, paddingTop: 18, paddingBottom: 32 },
-    presetTitle:     { fontSize: 17, fontWeight: '800', color: t.text },
-    presetSub:       { marginTop: 4, marginBottom: 14, fontSize: 13, color: t.textSecondary },
-    templateRow:     { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 14 },
-    templatePill:    { borderWidth: 1, borderColor: t.border, borderRadius: 14, backgroundColor: t.surface, paddingVertical: 8, paddingHorizontal: 12 },
+    sheetGrabber:    { alignSelf: 'center', width: 42, height: 5, borderRadius: 999, backgroundColor: t.border, marginBottom: 16, opacity: 0.9 },
+    presetSheet:     { backgroundColor: t.surface, borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: 20, paddingTop: 18, paddingBottom: 34, shadowColor: '#000', shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.05, shadowRadius: 18, elevation: 8 },
+    presetTitle:     { fontSize: 18, fontWeight: '800', color: t.text, letterSpacing: -0.2 },
+    presetSub:       { marginTop: 5, marginBottom: 16, fontSize: 14, lineHeight: 20, color: t.textSecondary },
+    templateRow:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', columnGap: 8, marginBottom: 16 },
+    templatePill:    { flex: 1, minWidth: 0, borderWidth: 1, borderColor: t.border, borderRadius: 16, backgroundColor: t.surface, paddingVertical: 10, paddingHorizontal: 6, alignItems: 'center' },
     templatePillSelected: { borderColor: t.accent, backgroundColor: t.accent },
     templatePillPressed: { opacity: 0.82 },
-    templatePillText: { fontSize: 13, fontWeight: '600', color: t.textSecondary },
+    templatePillText: { fontSize: 12, fontWeight: '600', color: t.textSecondary },
     templatePillTextSelected: { color: '#fff' },
-    presetCaption:   { marginBottom: 8, fontSize: 12, fontWeight: '600', color: t.textSecondary, letterSpacing: 0.1 },
-    sectionChecklist:{ gap: 8, marginBottom: 6 },
-    checkRow:        { flexDirection: 'row', alignItems: 'center', borderRadius: 12, borderWidth: 1, borderColor: t.sep, backgroundColor: t.surface2, paddingVertical: 10, paddingHorizontal: 12 },
+    presetCaption:   { marginBottom: 10, fontSize: 12, fontWeight: '700', color: t.textSecondary, letterSpacing: 0.1 },
+    sectionChecklist:{ gap: 10, marginBottom: 6, height: 266, justifyContent: 'flex-start' },
+    checkRow:        { flexDirection: 'row', alignItems: 'center', borderRadius: 16, borderWidth: 1, borderColor: t.sep, backgroundColor: t.surface2, paddingVertical: 13, paddingHorizontal: 14 },
     checkRowPressed: { opacity: 0.82 },
-    checkDot:        { width: 20, height: 20, borderRadius: 10, borderWidth: 1, borderColor: t.border, backgroundColor: t.surface, alignItems: 'center', justifyContent: 'center', marginRight: 10 },
+    checkDot:        { width: 24, height: 24, borderRadius: 12, borderWidth: 1, borderColor: t.border, backgroundColor: t.surface, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
     checkDotSelected:{ borderColor: t.accent, backgroundColor: t.accent },
     checkDotMark:    { color: '#fff', fontSize: 12, fontWeight: '700', lineHeight: 12 },
-    checkLabel:      { fontSize: 14, fontWeight: '600', color: t.text },
+    checkLabel:      { fontSize: 15, fontWeight: '600', color: t.text },
     checkLabelOff:   { color: t.textSecondary },
-    btnPrimary:      { backgroundColor: t.accent, borderRadius: 13, padding: 13, alignItems: 'center' },
+    btnPrimary:      { backgroundColor: t.accent, borderRadius: 17, padding: 15, alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.08, shadowRadius: 20, elevation: 3 },
     btnPrimaryText:  { color: '#fff', fontSize: 15, fontWeight: '700' },
     btnPrimaryDisabled: { backgroundColor: t.surface2 },
     btnPrimaryTextDisabled: { color: t.textSecondary },
-    btnSecondary:    { backgroundColor: t.surface2, borderRadius: 13, padding: 13, alignItems: 'center' },
-    btnSecondaryText:{ color: t.textSecondary, fontSize: 14, fontWeight: '600' },
+    btnTertiary:     { borderRadius: 16, borderWidth: 1, borderColor: t.border, backgroundColor: t.surface, paddingVertical: 13, paddingHorizontal: 14, alignItems: 'flex-start' },
+    btnTertiaryText: { fontSize: 14, fontWeight: '700', color: t.text },
+    btnTertiarySub:  { marginTop: 3, fontSize: 12, lineHeight: 17, color: t.textSecondary },
+    btnSecondary:    { backgroundColor: t.surface2, borderRadius: 17, padding: 14, alignItems: 'center', opacity: 0.78 },
+    btnSecondaryText:{ color: t.textSecondary, fontSize: 14, fontWeight: '500' },
   });
 }

@@ -1,4 +1,4 @@
-import { router, Stack } from 'expo-router';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -14,7 +14,17 @@ import {
 } from 'react-native';
 
 import { initializeSignedInUser, LOGIN_CALLBACK_URL } from '@/lib/auth';
-import { setFonditaName } from '@/lib/menu-store';
+import {
+  setFonditaDescription,
+  setFonditaDireccion,
+  setFonditaDireccionVisible,
+  setFonditaHorario,
+  setFonditaName,
+  setPagosEfectivo,
+  setPagosTarjeta,
+  setPagosTrans,
+  setTipoNegocio,
+} from '@/lib/menu-store';
 import { supabase } from '@/lib/supabase';
 import { useTheme } from '@/lib/theme';
 import { setFonditaId } from '@/lib/user-store';
@@ -40,11 +50,19 @@ const LIGHT_BG = '#F3F3F0';
 
 export default function LoginScreen() {
   const { theme } = useTheme();
+  const params = useLocalSearchParams<{ intent?: string }>();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState('');
   const [checkingSession, setCheckingSession] = useState(true);
+  const [intent, setIntent] = useState<'choice' | 'business'>('choice');
+
+  useEffect(() => {
+    if (params.intent === 'business') {
+      setIntent('business');
+    }
+  }, [params.intent]);
 
   useEffect(() => {
     supabase.auth.getSession()
@@ -60,10 +78,22 @@ export default function LoginScreen() {
 
   }, []);
 
-  const handleDevLogin = () => {
+  const handleDevFondero = () => {
     setFonditaId('dev-123');
     setFonditaName('La Fondita');
-    router.replace('/menu');
+    setFonditaDescription('Comida casera con sazón de abuela');
+    setFonditaDireccion('Av. Principal 123, Col. Centro');
+    setFonditaDireccionVisible(true);
+    setFonditaHorario('8am – 4pm');
+    setPagosEfectivo(true);
+    setPagosTrans(true);
+    setPagosTarjeta(false);
+    setTipoNegocio('fondita');
+    router.replace('/perfil');
+  };
+
+  const handleExplore = () => {
+    router.replace('/explorar');
   };
 
   const handleSend = async () => {
@@ -109,8 +139,26 @@ export default function LoginScreen() {
           <Text style={[styles.tagline, { color: theme.textSecondary }]}>Saaaaaaabes.</Text>
         </View>
 
-        {!sent ? (
+        {intent === 'choice' ? (
+          <View style={[styles.choiceCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <TouchableOpacity
+              style={[styles.primaryChoice, { backgroundColor: theme.text }]}
+              onPress={handleExplore}
+              activeOpacity={0.86}>
+              <Text style={[styles.primaryChoiceText, { color: theme.surface }]}>Busco comida</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.secondaryChoice, { borderColor: theme.border }]}
+              onPress={() => setIntent('business')}
+              activeOpacity={0.76}>
+              <Text style={[styles.secondaryChoiceText, { color: theme.text }]}>Tengo un negocio</Text>
+            </TouchableOpacity>
+          </View>
+        ) : !sent ? (
           <View style={[styles.formCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <TouchableOpacity style={styles.backLink} onPress={() => { setIntent('choice'); setError(''); }}>
+              <Text style={[styles.backLinkText, { color: theme.textSecondary }]}>Busco comida</Text>
+            </TouchableOpacity>
             <View style={[styles.inputWrapper, theme.isDark ? styles.inputWrapperDark : styles.inputWrapperLight]}>
               <TextInput
                 style={[styles.input, { color: theme.text }]}
@@ -121,7 +169,7 @@ export default function LoginScreen() {
                 autoCapitalize="none"
                 keyboardType="email-address"
                 autoComplete="email"
-                autoFocus
+                autoFocus={intent === 'business'}
                 selectionColor={theme.accent}
               />
             </View>
@@ -148,12 +196,20 @@ export default function LoginScreen() {
             <TouchableOpacity style={styles.backLink} onPress={() => { setSent(false); setError(''); }}>
               <Text style={[styles.backLinkText, { color: theme.text }]}>Cambiar correo</Text>
             </TouchableOpacity>
+            <TouchableOpacity style={styles.backLink} onPress={handleExplore}>
+              <Text style={[styles.backLinkText, { color: theme.textSecondary }]}>Busco comida</Text>
+            </TouchableOpacity>
           </View>
         )}
       </KeyboardAvoidingView>
-      <TouchableOpacity style={styles.devButton} onPress={handleDevLogin}>
-        <Text style={[styles.devButtonText, { color: theme.textSecondary }]}>Entrar como dev</Text>
-      </TouchableOpacity>
+      <View style={styles.devBar}>
+        <TouchableOpacity style={[styles.devPill, { borderColor: theme.border }]} onPress={handleExplore}>
+          <Text style={[styles.devButtonText, { color: theme.textSecondary }]}>Dev Foodie</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.devPill, { borderColor: theme.border }]} onPress={handleDevFondero}>
+          <Text style={[styles.devButtonText, { color: theme.textSecondary }]}>Dev Fondero</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -198,6 +254,38 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.06,
     shadowRadius: 20,
     elevation: 3,
+  },
+  choiceCard: {
+    gap: 12,
+    borderRadius: 24,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.06,
+    shadowRadius: 20,
+    elevation: 3,
+  },
+  primaryChoice: {
+    minHeight: 56,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  secondaryChoice: {
+    minHeight: 54,
+    borderRadius: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  primaryChoiceText: {
+    fontSize: 18,
+    fontWeight: '900',
+  },
+  secondaryChoiceText: {
+    fontSize: 16,
+    fontWeight: '900',
   },
   label: {
     fontSize: 24,
@@ -269,10 +357,20 @@ const styles = StyleSheet.create({
     fontWeight: '300',
     textDecorationLine: 'underline',
   },
-  devButton: {
+  devBar: {
     position: 'absolute',
     bottom: 32,
     alignSelf: 'center',
+    flexDirection: 'row',
+    gap: 8,
+  },
+  devPill: {
+    minHeight: 34,
+    borderRadius: 17,
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   devButtonText: {
     fontSize: 13,

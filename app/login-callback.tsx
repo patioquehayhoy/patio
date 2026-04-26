@@ -1,9 +1,10 @@
 import { type EmailOtpType, type Session } from '@supabase/supabase-js';
 import { useEffect } from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import { View } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as Linking from 'expo-linking';
 
+import { AgentSpinner } from '@/components/agent-spinner';
 import { initializeSignedInUser } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 
@@ -100,7 +101,7 @@ export default function LoginCallback() {
 
   return (
     <View style={{ flex: 1, backgroundColor: '#F5E9D9', justifyContent: 'center', alignItems: 'center' }}>
-      <ActivityIndicator size="large" color="#1A1A1A" />
+      <AgentSpinner variant="arc" size={30} color="#1A1A1A" />
     </View>
   );
 }

@@ -1,7 +1,6 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
@@ -13,6 +12,7 @@ import {
   Image,
 } from 'react-native';
 
+import { AgentSpinner } from '@/components/agent-spinner';
 import { initializeSignedInUser, LOGIN_CALLBACK_URL } from '@/lib/auth';
 import {
   setFonditaDescription,
@@ -117,7 +117,7 @@ export default function LoginScreen() {
   if (checkingSession) {
     return (
       <View style={[styles.centered, { backgroundColor: theme.bg }]}>
-        <ActivityIndicator size="large" color={theme.text} />
+        <AgentSpinner variant="arc" size={28} color={theme.text} />
       </View>
     );
   }
@@ -179,7 +179,7 @@ export default function LoginScreen() {
               onPress={handleSend}
               disabled={loading}>
               {loading
-                ? <ActivityIndicator color={theme.surface} />
+                ? <AgentSpinner variant="dots" size={19} color={theme.surface} style={styles.buttonSpinner} />
                 : <Text style={[styles.buttonText, { color: theme.surface }]} numberOfLines={1}>Entrar</Text>}
             </TouchableOpacity>
             <Text style={[styles.hint, { color: theme.textSecondary }]}>Sin contraseña. Ingresa con un link directo a tu correo.</Text>
@@ -337,6 +337,9 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: {
     opacity: 0.4,
+  },
+  buttonSpinner: {
+    height: 22,
   },
   buttonText: {
     fontSize: 16,

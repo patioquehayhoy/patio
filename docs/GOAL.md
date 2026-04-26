@@ -47,7 +47,7 @@ Un usuario foodie puede abrir Patio, entender qué hacer, descubrir lugares cerc
 
 ## Notas para V3
 - Mapa y Top 10 importan porque no solo muestran dónde comer: ayudan a decidir cuál lugar vale la pena.
-- Top 10 debe iniciar simple: zona, categoría y orden editorial/manual. Ratings y reseñas pueden venir después.
+- Top 10/Recomendaciones debe quedar como apartado futuro. El MVP de Foodie debe iniciar más minimalista: mapa, lugares cercanos y señales simples como 5 estrellas.
 - Fotos no son requisito inicial para una ficha pública; primero debe funcionar con nombre, categoría, ubicación, horario, menú, pagos y preview.
 - El sistema de calificación debe evitar texto libre al inicio. Si alguien pone menos de 5 estrellas, Patio debe preguntar una razón estructurada: horario incorrecto, ubicación confusa, menú no disponible, precio distinto, atención, cerrado, otro.
 - IA-first para Patio significa: usar IA para reducir pasos, interpretar fotos/menús, sugerir estructura, detectar omisiones y hacer más evidente la siguiente acción.

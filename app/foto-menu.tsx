@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   ScrollView,
   TextInput,
-  ActivityIndicator,
   Alert,
   Modal,
   SafeAreaView,
@@ -17,6 +16,7 @@ import { router, Stack } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import Swipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
+import { AgentSpinner } from '@/components/agent-spinner';
 import { useTheme, type Theme } from '@/lib/theme';
 import { leerMenuDeFoto, type MenuSeccion } from '@/lib/vision';
 import {
@@ -474,7 +474,7 @@ export default function FotoMenuScreen() {
     return (
       <SafeAreaView style={[s.container, s.centerContent]}>
         <Stack.Screen options={{ headerShown: false }} />
-        <ActivityIndicator size="large" color={theme.accent} />
+        <AgentSpinner variant="dots" size={34} color={theme.accent} />
         <Text style={[s.processingLabel, { marginTop: 16 }]}>
           Patio está leyendo tu menú...
         </Text>

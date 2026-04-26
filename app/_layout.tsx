@@ -20,7 +20,10 @@ function RootStack() {
           contentStyle: { backgroundColor: theme.bg },
         }}>
         <Stack.Screen name="index" options={{ title: 'Login / Registro' }} />
+        <Stack.Screen name="buscar" options={{ headerShown: false }} />
+        <Stack.Screen name="cuenta" options={{ headerShown: false }} />
         <Stack.Screen name="explorar" options={{ headerShown: false }} />
+        <Stack.Screen name="favoritos" options={{ headerShown: false }} />
         <Stack.Screen name="onboarding" options={{ headerShown: false }} />
         <Stack.Screen name="login-callback" options={{ headerShown: false }} />
         <Stack.Screen name="menu" options={{ title: '' }} />
@@ -34,6 +37,7 @@ function RootStack() {
         <Stack.Screen name="share" options={{ title: 'Compartir' }} />
         <Stack.Screen name="preview" options={{ headerShown: false }} />
         <Stack.Screen name="perfil" options={{ headerShown: false }} />
+        <Stack.Screen name="patio/[id]" options={{ headerShown: false }} />
       </Stack>
       <StatusBar style={theme.isDark ? 'light' : 'dark'} />
     </>

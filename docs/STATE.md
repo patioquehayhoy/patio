@@ -1,7 +1,7 @@
 # STATE
 
-## Estado actual (2026-04-19)
-La app está en una fase funcional avanzada de MVP: ya existe flujo completo de producto, pero todavía hay puntos frágiles en autenticación y calidad técnica antes de considerarla estable para operación continua.
+## Estado actual (2026-04-26)
+La app entró en V3 Foodie/Fondero: ya existe flujo fondero para perfil/menú/preview y una base Foodie con mapa mock, búsqueda por platillo, ficha pública de Patio, favoritos y cuenta Foodie. Sigue siendo MVP con datos mock en la parte Foodie; falta mapa real, Supabase para Patios públicos y pruebas en dispositivo.
 
 ## Qué ya funciona
 - Estructura de navegación principal con Expo Router.
@@ -54,14 +54,29 @@ La app está en una fase funcional avanzada de MVP: ya existe flujo completo de 
 - `app/explorar.tsx` se rediseñó siguiendo referencias de dashboard logístico: mapa full-bleed, controles flotantes y bottom sheet con selección/lista.
 - `app/index.tsx` ahora separa intención inicial: `Busco comida` lleva a Explorar y `Tengo un negocio` revela el acceso de fondero.
 - Se quitó el reset forzado de `app/onboarding.tsx`; `npm run lint` queda sin warnings.
+- En `perfil` se quitó el toggle visible de `Mostrar ubicación`; la ubicación pasa a ser dato operativo esperado. Si hay dirección, `preview` puede mostrarla y abrir Maps.
+- `Explorar` ahora usa 5 Patios mock reales de Irrigación/Miguel Hidalgo: Cochitacos, Cíntora Taquería, Don Bonachón, AAATTACO y Restaurante Vianca.
+- El bottom sheet de `Explorar` fue refinado hacia la nueva referencia: cápsula glass de lugar seleccionado y lista más contenida.
+- La lista de `Explorar` se simplificó de `Top 10` a `Cerca de ti`, con rating fake 5.0 y horarios fake para el mock.
+- `Explorar` ahora tiene controles mínimos: menú/cuenta, búsqueda, expandir mapa/lista y favoritos; se quitaron zoom fake y switch visible de fondero.
+- Se creó `lib/patios.ts` como mock compartido con Patios reales de Irrigación/Miguel Hidalgo y menú estructurado por platillos/tags.
+- Se creó `app/patio/[id].tsx` como `Ficha de Patio`: encabezado, mapa mock, menú de hoy y detalles mínimos.
+- Se creó `app/buscar.tsx`: búsqueda por platillo dentro del menú (`mole`, `enchiladas`, `anis`, `tacos`) con resultados por platillo, negocio, sección, horario y precio.
+- Se creó `lib/favorites.ts` con favoritos persistidos en AsyncStorage.
+- Se creó `app/favoritos.tsx`: lista/empty state de lugares guardados.
+- Se creó `app/cuenta.tsx`: cuenta Foodie minimalista con accesos a buscar/favoritos, soporte y sesión.
+- Se agregó `components/agent-spinner.tsx` y se reemplazaron `ActivityIndicator` principales por spinners tipo terminal/agent.
 
 ## Qué está incompleto o frágil
 - Falta validación manual del flujo de callback en dispositivo real (deep links iOS/Android).
 - Falta aterrizar el rediseño de “grupo grande de secciones” (MENÚ DEL DÍA/CARTA) en `app/menu.tsx`; hoy siguen cards por sección sueltas.
 - No hay suite de tests automatizados.
 - El mapa/listado de Foodie usa datos mock; falta conectarlo a Supabase, ubicación real y ficha pública.
+- El mapa sigue siendo mock visual; no usa provider real ni geolocalización real.
+- Favoritos son locales (`AsyncStorage`), no sincronizados.
+- Search es local/determinístico sobre mock; falta backend/indexado real de platillos.
 
 ## Próximos 3 pasos
-1. Probar en simulador el flujo `Busco comida -> Explorar` y `Tengo un negocio -> acceso fondero`.
-2. Crear ficha pública de Patio desde la selección del mapa/lista.
-3. Conectar `Explorar` a datos reales de Supabase y ubicación por zona/celda.
+1. Probar en simulador el flujo Foodie completo: `Explorar -> Buscar -> Resultado -> Ficha`, `Explorar -> Favoritos`, `Explorar -> Cuenta`.
+2. Decidir provider de mapa real y primer contrato de datos para Patios públicos.
+3. Conectar búsqueda/favoritos/Patios a Supabase con menú estructurado por platillo.

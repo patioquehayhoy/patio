@@ -56,15 +56,27 @@
 - `app/explorar.tsx` fue rediseñado a estructura full-bleed tipo dashboard logístico: mapa como superficie principal, controles flotantes y bottom sheet inferior.
 - Se actualizó `app/index.tsx`: `Busco comida` entra a Explorar; `Tengo un negocio` revela el login de fondero. Desde Explorar el acceso de negocio es discreto.
 - Se limpió `app/onboarding.tsx`: fuera reset forzado de AsyncStorage y warning de hook. `npm run lint` queda limpio.
+- Se quitó de `app/perfil.tsx` el toggle `Mostrar ubicación`; `app/preview.tsx` muestra dirección/Maps si existe dirección, sin depender de `direccion_visible`.
+- `app/explorar.tsx` ahora usa 5 Patios mock reales de Irrigación/Miguel Hidalgo: Cochitacos, Cíntora Taquería, Don Bonachón, AAATTACO y Restaurante Vianca.
+- Se refinó el bottom sheet de `Explorar` con cápsula glass de lugar seleccionado, tomando la nueva referencia visual.
+- `Explorar` cambió `Top 10` por `Cerca de ti`, con ratings fake 5.0 y horarios fake; recomendaciones/top queda como apartado futuro.
+- `Explorar` se simplificó: fuera zoom fake, fuera botón tienda/switch visible, fuera contador flotante; queda menú/cuenta, búsqueda, favoritos y expandir mapa/lista.
+- Se creó `lib/patios.ts` con 5 Patios mock de Irrigación/Miguel Hidalgo y menú estructurado por platillos/tags.
+- Se creó `app/patio/[id].tsx` como `Ficha de Patio`: menú de hoy como contenido principal, detalles mínimos y mapa mock.
+- Se creó `app/buscar.tsx` con búsqueda por platillo dentro del menú, no por nombre de negocio. Ejemplos: `mole`, `enchiladas`, `anis`, `tacos`.
+- Se creó `lib/favorites.ts` con persistencia local de favoritos en AsyncStorage.
+- Se creó `app/favoritos.tsx` con lista y empty state.
+- Se creó `app/cuenta.tsx` como cuenta Foodie minimalista: accesos a Buscar/Favoritos, Soporte y Sesión; se quitó `Tengo un negocio` de esta pantalla.
+- Se agregó `components/agent-spinner.tsx` y se sustituyeron spinners principales de login/callback/foto-menú.
 
 ## Pendiente
+- Validar en simulador el flujo Foodie completo: mapa, búsqueda por platillo, ficha pública, favoritos y cuenta.
 - Validar en dispositivo el flujo de ubicación (`perfil` -> `preview` -> `Abrir en Maps`).
-- Probar en simulador `Busco comida -> Explorar` y `Tengo un negocio -> login fondero`.
-- Crear ficha pública de Patio desde selección en mapa/lista.
-- Conectar Explorar a Supabase y ubicación real por zona/celda.
+- Conectar Explorar/Buscar/Favoritos a Supabase y ubicación real por zona/celda.
+- Decidir provider de mapa real y estrategia de geoceldas (H3/geohash/S2) antes de tracking fino.
 
 ## Siguiente paso exacto
-Probar en dispositivo que `Mostrar ubicación` desde `perfil` controle correctamente el CTA `Abrir en Maps` en `preview`.
+Probar en simulador `Busco comida -> Explorar -> Buscar -> Resultado -> Ficha` y `Explorar -> Favoritos/Cuenta`; después elegir provider de mapa real.
 
 ## Archivos tocados
 - app/login-callback.tsx
@@ -73,6 +85,14 @@ Probar en dispositivo que `Mostrar ubicación` desde `perfil` controle correctam
 - app/perfil.tsx
 - app/preview.tsx
 - app/foto-menu.tsx
+- app/explorar.tsx
+- app/buscar.tsx
+- app/cuenta.tsx
+- app/favoritos.tsx
+- app/patio/[id].tsx
+- lib/patios.ts
+- lib/favorites.ts
+- components/agent-spinner.tsx
 - docs/STATE.md
 - docs/GOAL.md
 - docs/ARCHITECTURE.md

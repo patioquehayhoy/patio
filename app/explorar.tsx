@@ -1,74 +1,17 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import { router, Stack } from 'expo-router';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { MOCK_PATIOS as PATIOS } from '@/lib/patios';
+import { getFavoritePatioIds, toggleFavoritePatio } from '@/lib/favorites';
 import { useTheme, type Theme } from '@/lib/theme';
-
-type Patio = {
-  id: string;
-  name: string;
-  category: string;
-  area: string;
-  price: string;
-  open: string;
-  reason: string;
-  x: number;
-  y: number;
-};
-
-const PATIOS: Patio[] = [
-  {
-    id: 'la-fondita',
-    name: 'La Fondita',
-    category: 'Fondita',
-    area: 'Escandón',
-    price: '$95',
-    open: 'Hasta 4pm',
-    reason: 'Menú del día claro',
-    x: 24,
-    y: 29,
-  },
-  {
-    id: 'tacos-don-luis',
-    name: 'Tacos Don Luis',
-    category: 'Taquería',
-    area: 'San Miguel Chapultepec',
-    price: '$80',
-    open: 'Abierto',
-    reason: 'Rápido para comer',
-    x: 68,
-    y: 26,
-  },
-  {
-    id: 'mariscos-lola',
-    name: 'Mariscos Lola',
-    category: 'Mariscos',
-    area: 'Tacubaya',
-    price: '$140',
-    open: 'Hasta 6pm',
-    reason: 'Buena opción de tarde',
-    x: 48,
-    y: 52,
-  },
-  {
-    id: 'cocina-norte',
-    name: 'Cocina Norte',
-    category: 'Comida corrida',
-    area: 'Anzures',
-    price: '$110',
-    open: 'Hasta 5pm',
-    reason: 'Cerca de oficinas',
-    x: 78,
-    y: 61,
-  },
-];
 
 function makeStyles(t: Theme) {
   const route = t.isDark ? 'rgba(245,245,240,0.62)' : 'rgba(28,28,30,0.54)';
   const glass = t.isDark ? 'rgba(27,28,32,0.82)' : 'rgba(255,255,255,0.82)';
-  const mutedGlass = t.isDark ? 'rgba(36,38,44,0.74)' : 'rgba(246,244,238,0.78)';
 
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: t.bg },
@@ -85,47 +28,44 @@ function makeStyles(t: Theme) {
     pinCoreSelected: { backgroundColor: t.text },
     pinDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: t.surface },
     topBar: { position: 'absolute', left: 24, right: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+    topRight: { flexDirection: 'row', gap: 8 },
     closeButton: { width: 48, height: 48, borderRadius: 14, backgroundColor: glass, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, alignItems: 'center', justifyContent: 'center' },
-    titleBlock: { flex: 1, paddingHorizontal: 16 },
-    code: { fontSize: 13, fontWeight: '900', letterSpacing: 1.6, color: t.textSecondary },
-    title: { marginTop: 2, fontSize: 28, lineHeight: 32, fontWeight: '900', color: t.text },
-    toolGroup: { flexDirection: 'row', gap: 8 },
     toolButton: { width: 48, height: 48, borderRadius: 14, backgroundColor: glass, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, alignItems: 'center', justifyContent: 'center' },
-    zoomStack: { position: 'absolute', left: 24, gap: 8 },
-    smallTool: { width: 48, height: 48, borderRadius: 24, backgroundColor: mutedGlass, alignItems: 'center', justifyContent: 'center' },
-    eta: { position: 'absolute', left: 24 },
-    etaLabel: { fontSize: 13, color: t.textSecondary },
-    etaRow: { flexDirection: 'row', alignItems: 'center', gap: 9, marginTop: 2 },
-    etaTime: { fontSize: 38, lineHeight: 42, fontWeight: '300', color: t.text },
-    etaBadge: { minHeight: 30, paddingHorizontal: 12, borderRadius: 10, backgroundColor: t.accentLight, alignItems: 'center', justifyContent: 'center' },
-    etaBadgeText: { fontSize: 13, fontWeight: '900', color: t.accent },
-    sheet: { position: 'absolute', left: 14, right: 14, bottom: 14, maxHeight: '46%', borderRadius: 28, backgroundColor: glass, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, overflow: 'hidden', shadowColor: '#000', shadowOffset: { width: 0, height: 18 }, shadowOpacity: t.isDark ? 0.28 : 0.12, shadowRadius: 30, elevation: 8 },
-    grabber: { alignSelf: 'center', width: 48, height: 4, borderRadius: 2, backgroundColor: t.border, marginTop: 10, marginBottom: 8 },
+    sideActions: { position: 'absolute', right: 24, gap: 10 },
+    sideButton: { width: 52, height: 52, borderRadius: 16, backgroundColor: glass, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, alignItems: 'center', justifyContent: 'center' },
+    sheet: { position: 'absolute', left: 14, right: 14, bottom: 14, maxHeight: '43%', borderRadius: 30, backgroundColor: glass, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, overflow: 'hidden', shadowColor: '#000', shadowOffset: { width: 0, height: 18 }, shadowOpacity: t.isDark ? 0.28 : 0.12, shadowRadius: 30, elevation: 8 },
+    grabber: { alignSelf: 'center', width: 44, height: 4, borderRadius: 2, backgroundColor: t.border, marginTop: 10, marginBottom: 8 },
     selectedPanel: { paddingHorizontal: 18, paddingBottom: 14 },
-    selectedHeader: { flexDirection: 'row', alignItems: 'center', gap: 9, marginBottom: 10 },
-    spark: { width: 30, height: 30, borderRadius: 10, backgroundColor: t.accentLight, alignItems: 'center', justifyContent: 'center' },
-    selectedTitle: { flex: 1, fontSize: 20, fontWeight: '900', color: t.text },
+    selectedHeader: { flexDirection: 'row', alignItems: 'center', gap: 9, marginBottom: 8 },
+    selectedTitle: { flex: 1, fontSize: 24, lineHeight: 28, fontWeight: '900', color: t.text },
+    heartButton: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
     selectedMeta: { fontSize: 13, lineHeight: 18, color: t.textSecondary },
     selectedStats: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginTop: 12 },
-    price: { fontSize: 32, lineHeight: 36, fontWeight: '300', color: t.text },
+    price: { fontSize: 26, lineHeight: 30, fontWeight: '300', color: t.text },
     priceCaption: { marginTop: 1, fontSize: 12, color: t.textSecondary },
-    cta: { minHeight: 42, paddingHorizontal: 16, borderRadius: 15, backgroundColor: t.text, flexDirection: 'row', alignItems: 'center', gap: 6 },
+    ratingRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 8 },
+    ratingText: { fontSize: 13, fontWeight: '900', color: t.text },
+    cta: { minHeight: 46, paddingHorizontal: 18, borderRadius: 23, backgroundColor: t.text, flexDirection: 'row', alignItems: 'center', gap: 6 },
     ctaText: { fontSize: 13, fontWeight: '900', color: t.surface },
     divider: { height: StyleSheet.hairlineWidth, backgroundColor: t.border },
     listHeader: { paddingHorizontal: 18, paddingTop: 14, paddingBottom: 9, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     listTitle: { fontSize: 12, fontWeight: '900', letterSpacing: 1.5, color: t.text },
     listMeta: { fontSize: 12, color: t.textSecondary },
+    listFilter: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, minHeight: 30, borderRadius: 15, backgroundColor: t.accentLight },
+    listFilterText: { fontSize: 12, fontWeight: '900', color: t.accent },
     list: { paddingBottom: 12 },
-    patioRow: { minHeight: 74, marginHorizontal: 8, marginBottom: 8, borderRadius: 18, paddingHorizontal: 12, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', backgroundColor: t.isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.62)' },
+    patioRow: { minHeight: 70, marginHorizontal: 8, marginBottom: 7, borderRadius: 18, paddingHorizontal: 12, paddingVertical: 11, flexDirection: 'row', alignItems: 'center', backgroundColor: t.isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.56)' },
     patioRowActive: { backgroundColor: t.isDark ? 'rgba(255,106,61,0.14)' : 'rgba(242,97,47,0.10)' },
     addBox: { width: 32, height: 32, borderRadius: 9, backgroundColor: t.text, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
     addBoxMuted: { backgroundColor: 'transparent', borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
     patioInfo: { flex: 1, paddingRight: 10 },
-    patioName: { fontSize: 16, fontWeight: '900', color: t.text },
+    patioName: { fontSize: 15, fontWeight: '900', color: t.text },
     patioMeta: { marginTop: 4, fontSize: 12, lineHeight: 16, color: t.textSecondary },
     patioRight: { alignItems: 'flex-end', gap: 3 },
     patioPrice: { fontSize: 15, fontWeight: '900', color: t.text },
     patioOpen: { fontSize: 12, color: t.textSecondary },
+    patioRating: { flexDirection: 'row', alignItems: 'center', gap: 3 },
+    patioRatingText: { fontSize: 12, fontWeight: '900', color: t.text },
   });
 }
 
@@ -135,6 +75,25 @@ export default function ExplorarScreen() {
   const insets = useSafeAreaInsets();
   const [selectedId, setSelectedId] = useState(PATIOS[0].id);
   const selectedPatio = PATIOS.find((patio) => patio.id === selectedId) ?? PATIOS[0];
+  const [mapExpanded, setMapExpanded] = useState(false);
+  const [savedIds, setSavedIds] = useState<string[]>([]);
+
+  const selectedSaved = savedIds.includes(selectedId);
+  useFocusEffect(
+    useCallback(() => {
+      let mounted = true;
+      getFavoritePatioIds().then((ids) => {
+        if (mounted) setSavedIds(ids);
+      });
+
+      return () => { mounted = false; };
+    }, [])
+  );
+
+  const toggleSaved = async () => {
+    const next = await toggleFavoritePatio(selectedId);
+    setSavedIds(next);
+  };
 
   return (
     <View style={s.container}>
@@ -181,61 +140,48 @@ export default function ExplorarScreen() {
       </View>
 
       <View style={[s.topBar, { top: insets.top + 14 }]}>
-        <TouchableOpacity style={s.closeButton} onPress={() => router.replace('/')} activeOpacity={0.76}>
-          <Ionicons name="close" size={20} color={theme.text} />
+        <TouchableOpacity style={s.closeButton} onPress={() => router.push('/cuenta')} activeOpacity={0.76}>
+          <Ionicons name="menu-outline" size={24} color={theme.text} />
         </TouchableOpacity>
-        <View style={s.titleBlock}>
-          <Text style={s.code} allowFontScaling={true}>PATIO</Text>
-          <Text style={s.title} allowFontScaling={true}>Miguel Hidalgo</Text>
-        </View>
-        <View style={s.toolGroup}>
-          <TouchableOpacity style={s.toolButton} onPress={() => router.push('/?intent=business')} activeOpacity={0.76}>
-            <Ionicons name="storefront-outline" size={20} color={theme.text} />
+        <View style={s.topRight}>
+          <TouchableOpacity style={s.toolButton} onPress={() => router.push('/buscar')} activeOpacity={0.76}>
+            <Ionicons name="search-outline" size={21} color={theme.text} />
           </TouchableOpacity>
-          <TouchableOpacity style={s.toolButton} activeOpacity={0.76}>
-            <Ionicons name="expand-outline" size={21} color={theme.text} />
+          <TouchableOpacity style={s.toolButton} onPress={() => setMapExpanded((value) => !value)} activeOpacity={0.76}>
+            <Ionicons name={mapExpanded ? 'list-outline' : 'expand-outline'} size={21} color={theme.text} />
           </TouchableOpacity>
         </View>
       </View>
 
-      <View style={[s.zoomStack, { top: insets.top + 176 }]}>
-        <TouchableOpacity style={s.smallTool} activeOpacity={0.7}>
-          <Ionicons name="add" size={21} color={theme.text} />
-        </TouchableOpacity>
-        <TouchableOpacity style={s.smallTool} activeOpacity={0.7}>
-          <Ionicons name="remove" size={21} color={theme.text} />
+      <View style={[s.sideActions, { top: insets.top + 154 }]}>
+        <TouchableOpacity style={s.sideButton} onPress={() => router.push('/favoritos')} activeOpacity={0.76}>
+          <Ionicons name="star-outline" size={24} color={theme.text} />
         </TouchableOpacity>
       </View>
 
-      <View style={[s.eta, { bottom: insets.bottom + 390 }]}>
-        <Text style={s.etaLabel} allowFontScaling={true}>Cerca de ti</Text>
-        <View style={s.etaRow}>
-          <Text style={s.etaTime} allowFontScaling={true}>10</Text>
-          <View style={s.etaBadge}>
-            <Text style={s.etaBadgeText} allowFontScaling={true}>lugares</Text>
-          </View>
-        </View>
-      </View>
-
+      {!mapExpanded && (
       <View style={[s.sheet, { paddingBottom: insets.bottom ? 4 : 8 }]}>
         <View style={s.grabber} />
         <View style={s.selectedPanel}>
           <View style={s.selectedHeader}>
-            <View style={s.spark}>
-              <Ionicons name="flash-outline" size={17} color={theme.accent} />
-            </View>
             <Text style={s.selectedTitle} allowFontScaling={true}>{selectedPatio.name}</Text>
-            <Ionicons name="ellipsis-vertical" size={18} color={theme.textSecondary} />
+            <TouchableOpacity style={s.heartButton} onPress={toggleSaved} activeOpacity={0.76}>
+              <Ionicons name={selectedSaved ? 'heart' : 'heart-outline'} size={22} color={selectedSaved ? theme.accent : theme.textSecondary} />
+            </TouchableOpacity>
           </View>
           <Text style={s.selectedMeta} allowFontScaling={true}>
             {selectedPatio.category} · {selectedPatio.area} · {selectedPatio.open}
           </Text>
           <View style={s.selectedStats}>
             <View>
-              <Text style={s.price} allowFontScaling={true}>desde {selectedPatio.price}</Text>
+              <Text style={s.price} allowFontScaling={true}>{selectedPatio.price === '$' ? 'Precio pendiente' : selectedPatio.price}</Text>
               <Text style={s.priceCaption} allowFontScaling={true}>{selectedPatio.reason}</Text>
+              <View style={s.ratingRow}>
+                <Ionicons name="star" size={13} color={theme.accent} />
+                <Text style={s.ratingText} allowFontScaling={true}>{selectedPatio.rating}</Text>
+              </View>
             </View>
-            <TouchableOpacity style={s.cta} activeOpacity={0.82}>
+            <TouchableOpacity style={s.cta} onPress={() => router.push(`/patio/${selectedPatio.id}`)} activeOpacity={0.82}>
               <Text style={s.ctaText} allowFontScaling={true}>Ver</Text>
               <Ionicons name="chevron-forward" size={15} color={theme.surface} />
             </TouchableOpacity>
@@ -243,8 +189,11 @@ export default function ExplorarScreen() {
         </View>
         <View style={s.divider} />
         <View style={s.listHeader}>
-          <Text style={s.listTitle} allowFontScaling={true}>TOP 10 MIGUEL HIDALGO</Text>
-          <Text style={s.listMeta} allowFontScaling={true}>Curado</Text>
+          <Text style={s.listTitle} allowFontScaling={true}>CERCA DE TI</Text>
+          <View style={s.listFilter}>
+            <Ionicons name="star" size={12} color={theme.accent} />
+            <Text style={s.listFilterText} allowFontScaling={true}>5.0</Text>
+          </View>
         </View>
         <ScrollView style={s.list} showsVerticalScrollIndicator={false}>
           {PATIOS.map((patio, index) => {
@@ -253,17 +202,23 @@ export default function ExplorarScreen() {
               <TouchableOpacity
                 key={patio.id}
                 style={[s.patioRow, active && s.patioRowActive]}
-                onPress={() => setSelectedId(patio.id)}
+                onPress={() => {
+                  setSelectedId(patio.id);
+                }}
                 activeOpacity={0.76}>
                 <View style={[s.addBox, !active && s.addBoxMuted]}>
                   <Text style={{ color: active ? theme.surface : theme.textSecondary, fontWeight: '900' }}>{index + 1}</Text>
                 </View>
                 <View style={s.patioInfo}>
                   <Text style={s.patioName} allowFontScaling={true}>{patio.name}</Text>
-                  <Text style={s.patioMeta} allowFontScaling={true}>{patio.category} · {patio.area}</Text>
+                  <Text style={s.patioMeta} allowFontScaling={true}>{patio.category} · {patio.address}</Text>
                 </View>
                 <View style={s.patioRight}>
                   <Text style={s.patioPrice} allowFontScaling={true}>{patio.price}</Text>
+                  <View style={s.patioRating}>
+                    <Ionicons name="star" size={11} color={theme.accent} />
+                    <Text style={s.patioRatingText} allowFontScaling={true}>{patio.rating}</Text>
+                  </View>
                   <Text style={s.patioOpen} allowFontScaling={true}>{patio.open}</Text>
                 </View>
               </TouchableOpacity>
@@ -271,6 +226,7 @@ export default function ExplorarScreen() {
           })}
         </ScrollView>
       </View>
+      )}
     </View>
   );
 }

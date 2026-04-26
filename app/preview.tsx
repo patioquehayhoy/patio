@@ -13,7 +13,6 @@ import {
   getCartaData,
   getFonditaDescription,
   getFonditaDireccion,
-  getFonditaDireccionVisible,
   getFonditaHorario,
   getFonditaName,
   getMenuData,
@@ -103,7 +102,6 @@ export default function PreviewScreen() {
   const [fonditaName, setFonditaNameState] = useState(getFonditaName());
   const [fonditaDesc, setFonditaDescState] = useState(getFonditaDescription());
   const [fonditaDireccion, setFonditaDireccionState] = useState(getFonditaDireccion());
-  const [fonditaDireccionVisible, setFonditaDireccionVisibleState] = useState(getFonditaDireccionVisible());
   const [fonditaHorario,   setFonditaHorarioState]   = useState(getFonditaHorario());
   const [pagosEfectivo,    setPagosEfectivoState]    = useState(getPagosEfectivo());
   const [pagosTrans,       setPagosTransState]       = useState(getPagosTrans());
@@ -120,7 +118,6 @@ export default function PreviewScreen() {
       setFonditaNameState(getFonditaName());
       setFonditaDescState(getFonditaDescription());
       setFonditaDireccionState(getFonditaDireccion());
-      setFonditaDireccionVisibleState(getFonditaDireccionVisible());
       setFonditaHorarioState(getFonditaHorario());
       setPagosEfectivoState(getPagosEfectivo());
       setPagosTransState(getPagosTrans());
@@ -133,7 +130,7 @@ export default function PreviewScreen() {
   const hasAnything = hasMenuItems || hasCartaItems;
   const fecha = new Date().toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' });
   const pagos = [pagosEfectivo && 'Efectivo', pagosTrans && 'Transferencia', pagosTarjeta && 'Tarjeta'].filter(Boolean).join(' · ');
-  const showMaps = fonditaDireccionVisible && !!fonditaDireccion.trim();
+  const showMaps = !!fonditaDireccion.trim();
 
   const handleOpenMaps = async () => {
     if (!fonditaDireccion.trim()) return;

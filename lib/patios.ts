@@ -20,6 +20,8 @@ export type Patio = {
   open: string;
   rating: string;
   reason: string;
+  latitude: number;
+  longitude: number;
   x: number;
   y: number;
   menu: PatioMenuSection[];
@@ -52,6 +54,8 @@ export const MOCK_PATIOS: Patio[] = [
     open: '8am-5pm',
     rating: '5.0',
     reason: 'Tacos cerca de Irrigación',
+    latitude: 19.44358,
+    longitude: -99.20564,
     x: 24,
     y: 30,
     menu: [
@@ -77,6 +81,8 @@ export const MOCK_PATIOS: Patio[] = [
     open: '9am-6pm',
     rating: '5.0',
     reason: 'Sobre Legaria',
+    latitude: 19.44578,
+    longitude: -99.20341,
     x: 62,
     y: 27,
     menu: [
@@ -102,6 +108,8 @@ export const MOCK_PATIOS: Patio[] = [
     open: '8am-4pm',
     rating: '5.0',
     reason: 'Comida de barrio',
+    latitude: 19.44226,
+    longitude: -99.20216,
     x: 46,
     y: 48,
     menu: [
@@ -126,6 +134,8 @@ export const MOCK_PATIOS: Patio[] = [
     open: '9am-5pm',
     rating: '5.0',
     reason: 'Guisados para comer rápido',
+    latitude: 19.43986,
+    longitude: -99.20095,
     x: 76,
     y: 60,
     menu: [
@@ -151,6 +161,8 @@ export const MOCK_PATIOS: Patio[] = [
     open: '10am-6pm',
     rating: '5.0',
     reason: 'Opción de comida en la zona',
+    latitude: 19.44116,
+    longitude: -99.20786,
     x: 34,
     y: 64,
     menu: [

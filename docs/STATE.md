@@ -66,17 +66,20 @@ La app entró en V3 Foodie/Fondero: ya existe flujo fondero para perfil/menú/pr
 - Se creó `app/favoritos.tsx`: lista/empty state de lugares guardados.
 - Se creó `app/cuenta.tsx`: cuenta Foodie minimalista con accesos a buscar/favoritos, soporte y sesión.
 - Se agregó `components/agent-spinner.tsx` y se reemplazaron `ActivityIndicator` principales por spinners tipo terminal/agent.
+- Se instaló `react-native-maps@1.20.1` con Expo y `Explorar` ahora usa `MapView` real con markers custom de Patio.
+- Los 5 Patios mock ya tienen coordenadas aproximadas (`latitude`, `longitude`) además de datos de menú.
+- Decisión de costo/mapa MVP: usar mapa nativo simple + pines propios; evitar Places, Directions, geocoding repetido y tracking fino. Navegación externa queda para Apple/Google Maps.
 
 ## Qué está incompleto o frágil
 - Falta validación manual del flujo de callback en dispositivo real (deep links iOS/Android).
 - Falta aterrizar el rediseño de “grupo grande de secciones” (MENÚ DEL DÍA/CARTA) en `app/menu.tsx`; hoy siguen cards por sección sueltas.
 - No hay suite de tests automatizados.
 - El mapa/listado de Foodie usa datos mock; falta conectarlo a Supabase, ubicación real y ficha pública.
-- El mapa sigue siendo mock visual; no usa provider real ni geolocalización real.
+- El mapa ya usa `react-native-maps`, pero sigue alimentado por datos mock y coordenadas aproximadas; falta geolocalización real, backend y configuración final de API keys para Android/Google si se requiere.
 - Favoritos son locales (`AsyncStorage`), no sincronizados.
 - Search es local/determinístico sobre mock; falta backend/indexado real de platillos.
 
 ## Próximos 3 pasos
 1. Probar en simulador el flujo Foodie completo: `Explorar -> Buscar -> Resultado -> Ficha`, `Explorar -> Favoritos`, `Explorar -> Cuenta`.
-2. Decidir provider de mapa real y primer contrato de datos para Patios públicos.
+2. Definir configuración final de mapas por plataforma: iOS puede arrancar con provider nativo; Android/Google requiere API key/billing restringido para build real.
 3. Conectar búsqueda/favoritos/Patios a Supabase con menú estructurado por platillo.

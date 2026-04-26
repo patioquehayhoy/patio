@@ -68,15 +68,19 @@
 - Se creó `app/favoritos.tsx` con lista y empty state.
 - Se creó `app/cuenta.tsx` como cuenta Foodie minimalista: accesos a Buscar/Favoritos, Soporte y Sesión; se quitó `Tengo un negocio` de esta pantalla.
 - Se agregó `components/agent-spinner.tsx` y se sustituyeron spinners principales de login/callback/foto-menú.
+- Se instaló `react-native-maps@1.20.1` con Expo y `app/explorar.tsx` usa `MapView` real con markers custom.
+- `lib/patios.ts` ahora incluye coordenadas aproximadas para los 5 Patios mock.
+- Decisión vigente de costos/mapa: MVP con mapa nativo simple + pines propios, sin Places/Directions/Distance Matrix/geocoding repetido/tracking fino. Si se necesita ruta, abrir app externa de mapas.
 
 ## Pendiente
 - Validar en simulador el flujo Foodie completo: mapa, búsqueda por platillo, ficha pública, favoritos y cuenta.
 - Validar en dispositivo el flujo de ubicación (`perfil` -> `preview` -> `Abrir en Maps`).
 - Conectar Explorar/Buscar/Favoritos a Supabase y ubicación real por zona/celda.
-- Decidir provider de mapa real y estrategia de geoceldas (H3/geohash/S2) antes de tracking fino.
+- Configurar API key de Google Maps restringida para Android/Google provider antes de builds Android reales; iOS puede probar con provider nativo.
+- Definir estrategia de geoceldas (H3/geohash/S2) antes de tracking fino.
 
 ## Siguiente paso exacto
-Probar en simulador `Busco comida -> Explorar -> Buscar -> Resultado -> Ficha` y `Explorar -> Favoritos/Cuenta`; después elegir provider de mapa real.
+Probar en simulador `Busco comida -> Explorar` con `MapView` real; si el mapa no renderiza, revisar si el entorno necesita dev build por `react-native-maps`.
 
 ## Archivos tocados
 - app/login-callback.tsx

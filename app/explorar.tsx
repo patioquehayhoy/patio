@@ -3,6 +3,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { router, Stack } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import MapView, { Marker, type Region } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { MOCK_PATIOS as PATIOS } from '@/lib/patios';
@@ -10,20 +11,13 @@ import { getFavoritePatioIds, toggleFavoritePatio } from '@/lib/favorites';
 import { useTheme, type Theme } from '@/lib/theme';
 
 function makeStyles(t: Theme) {
-  const route = t.isDark ? 'rgba(245,245,240,0.62)' : 'rgba(28,28,30,0.54)';
   const glass = t.isDark ? 'rgba(27,28,32,0.82)' : 'rgba(255,255,255,0.82)';
 
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: t.bg },
     map: { ...StyleSheet.absoluteFillObject, backgroundColor: t.isDark ? '#191A1B' : '#D8D6D0' },
-    mapTint: { ...StyleSheet.absoluteFillObject, backgroundColor: t.isDark ? 'rgba(17,18,20,0.48)' : 'rgba(248,248,245,0.34)' },
-    grid: { ...StyleSheet.absoluteFillObject, opacity: t.isDark ? 0.16 : 0.32 },
-    gridRow: { flex: 1, flexDirection: 'row' },
-    gridCell: { flex: 1, borderRightWidth: StyleSheet.hairlineWidth, borderBottomWidth: StyleSheet.hairlineWidth, borderColor: t.isDark ? 'rgba(255,255,255,0.13)' : 'rgba(255,255,255,0.58)' },
-    avenue: { position: 'absolute', height: 1, backgroundColor: t.isDark ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.68)', transform: [{ rotate: '-22deg' }] },
-    routeSegment: { position: 'absolute', height: 2, borderRadius: 1, backgroundColor: route },
-    routeHot: { backgroundColor: t.accent },
-    pin: { position: 'absolute', width: 42, height: 42, marginLeft: -21, marginTop: -21, borderRadius: 21, backgroundColor: t.isDark ? 'rgba(245,245,240,0.24)' : 'rgba(255,255,255,0.62)', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.16, shadowRadius: 16, elevation: 4 },
+    mapView: { ...StyleSheet.absoluteFillObject },
+    pin: { width: 42, height: 42, borderRadius: 21, backgroundColor: t.isDark ? 'rgba(245,245,240,0.92)' : 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.16, shadowRadius: 16, elevation: 4 },
     pinCore: { width: 22, height: 22, borderRadius: 11, backgroundColor: t.accent, alignItems: 'center', justifyContent: 'center' },
     pinCoreSelected: { backgroundColor: t.text },
     pinDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: t.surface },
@@ -69,6 +63,13 @@ function makeStyles(t: Theme) {
   });
 }
 
+const INITIAL_REGION: Region = {
+  latitude: 19.4429,
+  longitude: -99.2044,
+  latitudeDelta: 0.012,
+  longitudeDelta: 0.012,
+};
+
 export default function ExplorarScreen() {
   const { theme } = useTheme();
   const s = makeStyles(theme);
@@ -100,43 +101,29 @@ export default function ExplorarScreen() {
       <Stack.Screen options={{ headerShown: false }} />
 
       <View style={s.map}>
-        <View style={s.grid}>
-          {Array.from({ length: 10 }).map((_, row) => (
-            <View key={row} style={s.gridRow}>
-              {Array.from({ length: 8 }).map((__, col) => <View key={col} style={s.gridCell} />)}
-            </View>
+        <MapView
+          initialRegion={INITIAL_REGION}
+          loadingEnabled
+          pitchEnabled={false}
+          rotateEnabled={false}
+          showsCompass={false}
+          showsMyLocationButton={false}
+          style={s.mapView}
+          toolbarEnabled={false}>
+          {PATIOS.map((patio) => (
+            <Marker
+              key={patio.id}
+              coordinate={{ latitude: patio.latitude, longitude: patio.longitude }}
+              onPress={() => setSelectedId(patio.id)}
+              tracksViewChanges={false}>
+              <View style={s.pin}>
+                <View style={[s.pinCore, selectedId === patio.id && s.pinCoreSelected]}>
+                  <View style={s.pinDot} />
+                </View>
+              </View>
+            </Marker>
           ))}
-        </View>
-        {Array.from({ length: 7 }).map((_, index) => (
-          <View
-            key={index}
-            style={[
-              s.avenue,
-              {
-                left: `${-18 + index * 19}%`,
-                top: `${12 + index * 9}%`,
-                width: '88%',
-              },
-            ]}
-          />
-        ))}
-        <View style={[s.routeSegment, { left: '18%', top: '34%', width: '32%', transform: [{ rotate: '38deg' }] }]} />
-        <View style={[s.routeSegment, { left: '45%', top: '50%', width: '26%', transform: [{ rotate: '-18deg' }] }]} />
-        <View style={[s.routeSegment, s.routeHot, { left: '58%', top: '43%', width: '20%', transform: [{ rotate: '48deg' }] }]} />
-        <View style={[s.routeSegment, { left: '22%', top: '64%', width: '44%', transform: [{ rotate: '-8deg' }] }]} />
-        <View style={s.mapTint} />
-
-        {PATIOS.map((patio) => (
-          <TouchableOpacity
-            key={patio.id}
-            style={[s.pin, { left: `${patio.x}%`, top: `${patio.y}%` }]}
-            onPress={() => setSelectedId(patio.id)}
-            activeOpacity={0.78}>
-            <View style={[s.pinCore, selectedId === patio.id && s.pinCoreSelected]}>
-              <View style={s.pinDot} />
-            </View>
-          </TouchableOpacity>
-        ))}
+        </MapView>
       </View>
 
       <View style={[s.topBar, { top: insets.top + 14 }]}>

@@ -75,7 +75,7 @@ export default function BuscarScreen() {
         {!hasQuery ? (
           <View style={s.start}>
             <Ionicons name="restaurant-outline" size={30} color={theme.textSecondary} />
-            <Text style={s.startText} allowFontScaling={true}>Escribe un platillo para encontrar quién lo tiene hoy.</Text>
+            <Text style={s.startText} allowFontScaling={true}>Escribe lo que se te antoja y encuentra quién lo tiene hoy.</Text>
           </View>
         ) : results.length === 0 ? (
           <View style={s.empty}>

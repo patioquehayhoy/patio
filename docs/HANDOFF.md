@@ -1,5 +1,18 @@
 # HANDOFF
 
+## 2026-04-26 (sesión 2)
+- `app/explorar.tsx`: mapa vivo — búsqueda inline en topBar (sin navegación a pantalla separada), pins reactivos (punto pequeño neutral → ring completo al seleccionar), `showHeader`/`selectedId` desacoplados (header solo al tocar explícitamente), `tracksViewChanges={true}` con keys estables (resuelve crash al escribir), `MapView.onPress` deselecciona.
+- `app/cuenta.tsx`: rediseño completo — sheet modal con `presentation: 'transparentModal'` + BlurView backdrop (mapa visible/blureado detrás), botón X circular, identidad compacta, sin labels de sección, rows 52pt, "Cerrar sesión" neutral, "Tengo un negocio →" ghost link.
+- `app/buscar.tsx`: texto genérico ("lo que se te antoja") — elimina referencia a "platillo".
+- Filosofía formalizada: 4 principios del producto completados (ver GOAL.md).
+- Decisión de escala de mapa: viewport filtering para MVP → clusters cuando haya 50+ patios por zona.
+
+## 2026-04-26
+- `patio/[id].tsx`: mapa real con `MapView` + pin consistente con `explorar`. Corazón de favoritos funcional (carga estado al abrir, persiste en AsyncStorage).
+- `explorar.tsx`: design pass — `BlurView` en botones flotantes y sheet, `LinearGradient` como velo del mapa, bordes `hairlineWidth` con opacidad baja, sombras reducidas.
+- Instalados `expo-blur` y `expo-linear-gradient` (SDK 54 compatible).
+- `CLAUDE.md` actualizado con specs de implementación: glass, gradientes, líneas finas, jerarquía tipográfica, radios.
+
 ## Hecho
 - Se auditó el repo completo (rutas, librerías, stores, servicios y scripts).
 - Se documentó objetivo, arquitectura y estado operativo real del proyecto.

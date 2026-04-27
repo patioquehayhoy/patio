@@ -1,6 +1,6 @@
 # STATE
 
-## Estado actual (2026-04-26)
+## Estado actual (2026-04-26 — actualizado)
 La app entró en V3 Foodie/Fondero: ya existe flujo fondero para perfil/menú/preview y una base Foodie con mapa mock, búsqueda por platillo, ficha pública de Patio, favoritos y cuenta Foodie. Sigue siendo MVP con datos mock en la parte Foodie; falta mapa real, Supabase para Patios públicos y pruebas en dispositivo.
 
 ## Qué ya funciona
@@ -70,6 +70,17 @@ La app entró en V3 Foodie/Fondero: ya existe flujo fondero para perfil/menú/pr
 - Los 5 Patios mock ya tienen coordenadas aproximadas (`latitude`, `longitude`) además de datos de menú.
 - Decisión de costo/mapa MVP: usar mapa nativo simple + pines propios; evitar Places, Directions, geocoding repetido y tracking fino. Navegación externa queda para Apple/Google Maps.
 
+## Cambios recientes (2026-04-26 sesión 2)
+- `explorar.tsx`: búsqueda inline sin salir del mapa. Pins: punto small accent (neutro) → ring blanco+dot oscuro (seleccionado). `showHeader` separado de `selectedId` — header solo al tocar. `tracksViewChanges={true}` con keys estables resuelve crash al escribir. `MapView.onPress` deselecciona.
+- `cuenta.tsx`: rediseño como sheet modal transparente — BlurView backdrop muestra el mapa detrás, identidad compacta, "Cerrar sesión" neutral, "Tengo un negocio →" discreto al fondo.
+- `buscar.tsx`: texto de estado vacío generalizado (elimina "platillo").
+
+## Cambios recientes (2026-04-26)
+- `patio/[id].tsx`: mapa fake (grid dibujado) reemplazado por `MapView` real con pin y pill de dirección. Botón corazón conectado a favoritos (`AsyncStorage`).
+- `explorar.tsx`: botones flotantes y sheet usan `BlurView` (`expo-blur`). Velo del mapa migrado a `LinearGradient` (`expo-linear-gradient`). Bordes y sombras afinados a valores minimalistas.
+- `CLAUDE.md`: nuevas secciones de Glass, Gradientes, Líneas y Tipografía con valores concretos de implementación.
+- `lib/map-style.ts`: estilo JSON muted gris claro/oscuro para Google Maps provider.
+
 ## Qué está incompleto o frágil
 - Falta validación manual del flujo de callback en dispositivo real (deep links iOS/Android).
 - Falta aterrizar el rediseño de “grupo grande de secciones” (MENÚ DEL DÍA/CARTA) en `app/menu.tsx`; hoy siguen cards por sección sueltas.
@@ -80,6 +91,6 @@ La app entró en V3 Foodie/Fondero: ya existe flujo fondero para perfil/menú/pr
 - Search es local/determinístico sobre mock; falta backend/indexado real de platillos.
 
 ## Próximos 3 pasos
-1. Probar en simulador el flujo Foodie completo: `Explorar -> Buscar -> Resultado -> Ficha`, `Explorar -> Favoritos`, `Explorar -> Cuenta`.
-2. Definir configuración final de mapas por plataforma: iOS puede arrancar con provider nativo; Android/Google requiere API key/billing restringido para build real.
-3. Conectar búsqueda/favoritos/Patios a Supabase con menú estructurado por platillo.
+1. Probar en simulador: búsqueda inline en mapa ("mole", "tacos", "agua"), tap en dot → header, tap en mapa → deselección, sheet modal de cuenta con blur backdrop.
+2. Agregar viewport filtering en `explorar.tsx` (`onRegionChangeComplete` filtra PATIOS al bounding box visible) — base para escalar a cientos de patios sin degradar rendimiento.
+3. Conectar búsqueda/favoritos/Patios a Supabase con menú estructurado por platillo + API key de Google Maps restringida para Android.

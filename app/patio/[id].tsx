@@ -1,8 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import MapView, { Marker } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { getFavoritePatioIds, toggleFavoritePatio } from '@/lib/favorites';
+import { MAP_STYLE_DARK, MAP_STYLE_LIGHT } from '@/lib/map-style';
 import { getPatioById } from '@/lib/patios';
 import { useTheme, type Theme } from '@/lib/theme';
 
@@ -10,28 +14,24 @@ function makeStyles(t: Theme) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: t.bg },
     scrollContent: { paddingHorizontal: 24, paddingBottom: 34 },
-    top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 12, paddingBottom: 22 },
-    iconButton: { width: 48, height: 48, borderRadius: 16, backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, alignItems: 'center', justifyContent: 'center' },
-    hero: { paddingBottom: 18 },
+    top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 10, paddingBottom: 20 },
+    iconButton: { width: 44, height: 44, borderRadius: 14, backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, alignItems: 'center', justifyContent: 'center' },
+    hero: { paddingBottom: 16 },
     eyebrow: { fontSize: 12, fontWeight: '900', letterSpacing: 1.6, color: t.textSecondary, marginBottom: 8 },
-    title: { fontSize: 34, lineHeight: 38, fontWeight: '900', color: t.text, letterSpacing: 0 },
+    title: { fontSize: 32, lineHeight: 36, fontWeight: '900', color: t.text, letterSpacing: 0 },
     meta: { marginTop: 8, fontSize: 15, lineHeight: 21, color: t.textSecondary },
     ratingRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 10 },
     ratingText: { fontSize: 15, fontWeight: '900', color: t.text },
-    mapPanel: { height: 190, borderRadius: 30, backgroundColor: t.isDark ? '#191A1B' : '#D8D6D0', overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, marginBottom: 22 },
-    mapGrid: { ...StyleSheet.absoluteFillObject, opacity: t.isDark ? 0.14 : 0.3 },
-    gridRow: { flex: 1, flexDirection: 'row' },
-    gridCell: { flex: 1, borderRightWidth: StyleSheet.hairlineWidth, borderBottomWidth: StyleSheet.hairlineWidth, borderColor: t.isDark ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.62)' },
-    mapLine: { position: 'absolute', height: 2, borderRadius: 1, backgroundColor: t.textSecondary, opacity: 0.5 },
-    mapLineAccent: { backgroundColor: t.accent, opacity: 0.72 },
-    mapPin: { position: 'absolute', left: '50%', top: '48%', width: 54, height: 54, marginLeft: -27, marginTop: -27, borderRadius: 27, backgroundColor: t.surface, alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.16, shadowRadius: 16, elevation: 4 },
-    mapPinCore: { width: 24, height: 24, borderRadius: 12, backgroundColor: t.accent, alignItems: 'center', justifyContent: 'center' },
-    mapPinDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: t.surface },
+    mapPanel: { height: 176, borderRadius: 26, backgroundColor: t.isDark ? '#191A1B' : '#D8D6D0', overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, marginBottom: 20 },
+    mapView: { ...StyleSheet.absoluteFillObject },
+    mapPin: { width: 38, height: 38, borderRadius: 19, backgroundColor: t.isDark ? 'rgba(245,245,240,0.92)' : 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 7 }, shadowOpacity: 0.14, shadowRadius: 14, elevation: 4 },
+    mapPinCore: { width: 20, height: 20, borderRadius: 10, backgroundColor: t.accent, alignItems: 'center', justifyContent: 'center' },
+    mapPinDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: t.isDark ? 'rgba(245,245,240,0.92)' : 'rgba(255,255,255,0.92)' },
     mapPill: { position: 'absolute', left: 14, right: 14, bottom: 14, minHeight: 52, borderRadius: 18, backgroundColor: t.isDark ? 'rgba(27,28,32,0.82)' : 'rgba(255,255,255,0.82)', borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center' },
     mapPillText: { flex: 1, fontSize: 13, fontWeight: '900', color: t.text },
     panel: { borderRadius: 22, backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, overflow: 'hidden' },
     menuPanel: { borderRadius: 26, backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, overflow: 'hidden', shadowColor: '#000', shadowOffset: { width: 0, height: 12 }, shadowOpacity: t.isDark ? 0.16 : 0.06, shadowRadius: 24, elevation: 3 },
-    menuHeader: { minHeight: 62, paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+    menuHeader: { minHeight: 58, paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
     menuHeaderTitle: { fontSize: 12, fontWeight: '900', letterSpacing: 1.6, color: t.text },
     menuHeaderMeta: { fontSize: 14, fontWeight: '900', color: t.textSecondary },
     menuSectionHeader: { minHeight: 44, paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: t.isDark ? 'rgba(255,255,255,0.03)' : 'rgba(248,248,245,0.68)' },
@@ -45,7 +45,7 @@ function makeStyles(t: Theme) {
     menuDivider: { height: StyleSheet.hairlineWidth, backgroundColor: t.border, marginLeft: 44 },
     section: { paddingTop: 18 },
     sectionTitle: { fontSize: 12, fontWeight: '900', letterSpacing: 1.6, color: t.text, marginBottom: 12 },
-    menuItem: { minHeight: 54, paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center' },
+    menuItem: { minHeight: 52, paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center' },
     bullet: { width: 7, height: 7, borderRadius: 4, backgroundColor: t.accent, marginRight: 12 },
     menuText: { flex: 1, fontSize: 16, fontWeight: '900', color: t.text },
   });
@@ -57,6 +57,18 @@ export default function PatioDetailScreen() {
   const { theme } = useTheme();
   const s = makeStyles(theme);
   const insets = useSafeAreaInsets();
+  const [isSaved, setIsSaved] = useState(false);
+
+  useEffect(() => {
+    if (!patio) return;
+    getFavoritePatioIds().then((ids) => setIsSaved(ids.includes(patio.id)));
+  }, [patio?.id]);
+
+  const handleToggleSaved = async () => {
+    if (!patio) return;
+    const next = await toggleFavoritePatio(patio.id);
+    setIsSaved(next.includes(patio.id));
+  };
 
   if (!patio) {
     return (
@@ -82,8 +94,8 @@ export default function PatioDetailScreen() {
           <TouchableOpacity style={s.iconButton} onPress={() => router.back()} activeOpacity={0.76}>
             <Ionicons name="chevron-back" size={22} color={theme.text} />
           </TouchableOpacity>
-          <TouchableOpacity style={s.iconButton} activeOpacity={0.76}>
-            <Ionicons name="heart-outline" size={22} color={theme.text} />
+          <TouchableOpacity style={s.iconButton} onPress={handleToggleSaved} activeOpacity={0.76}>
+            <Ionicons name={isSaved ? 'heart' : 'heart-outline'} size={22} color={isSaved ? theme.accent : theme.text} />
           </TouchableOpacity>
         </View>
 
@@ -100,21 +112,30 @@ export default function PatioDetailScreen() {
         </View>
 
         <View style={s.mapPanel}>
-          <View style={s.mapGrid}>
-            {Array.from({ length: 5 }).map((_, row) => (
-              <View key={row} style={s.gridRow}>
-                {Array.from({ length: 6 }).map((__, col) => <View key={col} style={s.gridCell} />)}
+          <MapView
+            customMapStyle={theme.isDark ? MAP_STYLE_DARK : MAP_STYLE_LIGHT}
+            initialRegion={{ latitude: patio.latitude, longitude: patio.longitude, latitudeDelta: 0.006, longitudeDelta: 0.006 }}
+            mapType="mutedStandard"
+            pitchEnabled={false}
+            pointerEvents="none"
+            rotateEnabled={false}
+            scrollEnabled={false}
+            showsBuildings={false}
+            showsCompass={false}
+            showsPointsOfInterest={false}
+            showsTraffic={false}
+            style={s.mapView}
+            userInterfaceStyle={theme.isDark ? 'dark' : 'light'}
+            zoomEnabled={false}>
+            <Marker coordinate={{ latitude: patio.latitude, longitude: patio.longitude }} tracksViewChanges={false}>
+              <View style={s.mapPin}>
+                <View style={s.mapPinCore}>
+                  <View style={s.mapPinDot} />
+                </View>
               </View>
-            ))}
-          </View>
-          <View style={[s.mapLine, { left: '12%', top: '34%', width: '58%', transform: [{ rotate: '32deg' }] }]} />
-          <View style={[s.mapLine, s.mapLineAccent, { left: '47%', top: '55%', width: '32%', transform: [{ rotate: '-26deg' }] }]} />
-          <View style={s.mapPin}>
-            <View style={s.mapPinCore}>
-              <View style={s.mapPinDot} />
-            </View>
-          </View>
-          <View style={s.mapPill}>
+            </Marker>
+          </MapView>
+          <View style={s.mapPill} pointerEvents="none">
             <Text style={s.mapPillText} numberOfLines={1} allowFontScaling={true}>{patio.address}</Text>
           </View>
         </View>

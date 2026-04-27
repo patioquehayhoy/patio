@@ -1,45 +1,54 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
+import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router, Stack } from 'expo-router';
-import { useCallback, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useCallback, useMemo, useRef, useState } from 'react';
+import { Keyboard, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker, type Region } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { MOCK_PATIOS as PATIOS } from '@/lib/patios';
 import { getFavoritePatioIds, toggleFavoritePatio } from '@/lib/favorites';
+import { MAP_STYLE_DARK, MAP_STYLE_LIGHT } from '@/lib/map-style';
+import { MOCK_PATIOS as PATIOS, searchPatiosByDish } from '@/lib/patios';
 import { useTheme, type Theme } from '@/lib/theme';
 
 function makeStyles(t: Theme) {
-  const glass = t.isDark ? 'rgba(27,28,32,0.82)' : 'rgba(255,255,255,0.82)';
+  const btnBorder = t.isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.06)';
+  const btnShadowOpacity = t.isDark ? 0.20 : 0.06;
 
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: t.bg },
     map: { ...StyleSheet.absoluteFillObject, backgroundColor: t.isDark ? '#191A1B' : '#D8D6D0' },
     mapView: { ...StyleSheet.absoluteFillObject },
-    pin: { width: 42, height: 42, borderRadius: 21, backgroundColor: t.isDark ? 'rgba(245,245,240,0.92)' : 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.16, shadowRadius: 16, elevation: 4 },
-    pinCore: { width: 22, height: 22, borderRadius: 11, backgroundColor: t.accent, alignItems: 'center', justifyContent: 'center' },
-    pinCoreSelected: { backgroundColor: t.text },
+    pinHitArea: { width: 38, height: 38, alignItems: 'center', justifyContent: 'center' },
+    pinMuted: { opacity: 0.18 },
+    pin: { width: 38, height: 38, borderRadius: 19, backgroundColor: t.isDark ? 'rgba(245,245,240,0.92)' : 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 7 }, shadowOpacity: 0.14, shadowRadius: 14, elevation: 4 },
+    pinCoreSelected: { width: 20, height: 20, borderRadius: 10, backgroundColor: t.text, alignItems: 'center', justifyContent: 'center' },
     pinDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: t.surface },
+    pinSmallDot: { width: 14, height: 14, borderRadius: 7, backgroundColor: t.accent, borderWidth: 2.5, borderColor: t.isDark ? 'rgba(25,26,27,0.70)' : 'rgba(255,255,255,0.85)', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.22, shadowRadius: 3, elevation: 2 },
     topBar: { position: 'absolute', left: 24, right: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
     topRight: { flexDirection: 'row', gap: 8 },
-    closeButton: { width: 48, height: 48, borderRadius: 14, backgroundColor: glass, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, alignItems: 'center', justifyContent: 'center' },
-    toolButton: { width: 48, height: 48, borderRadius: 14, backgroundColor: glass, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, alignItems: 'center', justifyContent: 'center' },
+    closeButton: { width: 44, height: 44, borderRadius: 16, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: btnBorder, alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: btnShadowOpacity, shadowRadius: 16, elevation: 2 },
+    toolButton: { width: 44, height: 44, borderRadius: 16, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: btnBorder, alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: btnShadowOpacity, shadowRadius: 16, elevation: 2 },
+    searchRow: { flex: 1, height: 44, borderRadius: 16, overflow: 'hidden', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, gap: 8, borderWidth: StyleSheet.hairlineWidth, borderColor: btnBorder, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: btnShadowOpacity, shadowRadius: 16, elevation: 2 },
+    searchInput: { flex: 1, fontSize: 15, color: t.text, height: 44, paddingVertical: 0 },
     sideActions: { position: 'absolute', right: 24, gap: 10 },
-    sideButton: { width: 52, height: 52, borderRadius: 16, backgroundColor: glass, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, alignItems: 'center', justifyContent: 'center' },
-    sheet: { position: 'absolute', left: 14, right: 14, bottom: 14, maxHeight: '43%', borderRadius: 30, backgroundColor: glass, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, overflow: 'hidden', shadowColor: '#000', shadowOffset: { width: 0, height: 18 }, shadowOpacity: t.isDark ? 0.28 : 0.12, shadowRadius: 30, elevation: 8 },
-    grabber: { alignSelf: 'center', width: 44, height: 4, borderRadius: 2, backgroundColor: t.border, marginTop: 10, marginBottom: 8 },
+    sideButton: { width: 46, height: 46, borderRadius: 16, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: btnBorder, alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: btnShadowOpacity, shadowRadius: 16, elevation: 2 },
+    sheet: { position: 'absolute', left: 14, right: 14, bottom: 14, maxHeight: '48%', borderRadius: 30, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: t.isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.06)', shadowColor: '#000', shadowOffset: { width: 0, height: 12 }, shadowOpacity: t.isDark ? 0.20 : 0.08, shadowRadius: 32, elevation: 8 },
+    grabber: { alignSelf: 'center', width: 44, height: 4, borderRadius: 2, backgroundColor: t.isDark ? 'rgba(255,255,255,0.16)' : 'rgba(0,0,0,0.10)', marginTop: 10, marginBottom: 8 },
     selectedPanel: { paddingHorizontal: 18, paddingBottom: 14 },
     selectedHeader: { flexDirection: 'row', alignItems: 'center', gap: 9, marginBottom: 8 },
-    selectedTitle: { flex: 1, fontSize: 24, lineHeight: 28, fontWeight: '900', color: t.text },
+    selectedTitle: { flex: 1, fontSize: 22, lineHeight: 26, fontWeight: '900', color: t.text },
     heartButton: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
     selectedMeta: { fontSize: 13, lineHeight: 18, color: t.textSecondary },
     selectedStats: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginTop: 12 },
-    price: { fontSize: 26, lineHeight: 30, fontWeight: '300', color: t.text },
+    price: { fontSize: 24, lineHeight: 28, fontWeight: '300', color: t.text },
+    dishName: { fontSize: 19, lineHeight: 24, fontWeight: '900', color: t.text },
     priceCaption: { marginTop: 1, fontSize: 12, color: t.textSecondary },
     ratingRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 8 },
     ratingText: { fontSize: 13, fontWeight: '900', color: t.text },
-    cta: { minHeight: 46, paddingHorizontal: 18, borderRadius: 23, backgroundColor: t.text, flexDirection: 'row', alignItems: 'center', gap: 6 },
+    cta: { minHeight: 44, paddingHorizontal: 18, borderRadius: 22, backgroundColor: t.text, flexDirection: 'row', alignItems: 'center', gap: 6 },
     ctaText: { fontSize: 13, fontWeight: '900', color: t.surface },
     divider: { height: StyleSheet.hairlineWidth, backgroundColor: t.border },
     listHeader: { paddingHorizontal: 18, paddingTop: 14, paddingBottom: 9, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
@@ -48,7 +57,7 @@ function makeStyles(t: Theme) {
     listFilter: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, minHeight: 30, borderRadius: 15, backgroundColor: t.accentLight },
     listFilterText: { fontSize: 12, fontWeight: '900', color: t.accent },
     list: { paddingBottom: 12 },
-    patioRow: { minHeight: 70, marginHorizontal: 8, marginBottom: 7, borderRadius: 18, paddingHorizontal: 12, paddingVertical: 11, flexDirection: 'row', alignItems: 'center', backgroundColor: t.isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.56)' },
+    patioRow: { minHeight: 66, marginHorizontal: 8, marginBottom: 7, borderRadius: 18, paddingHorizontal: 12, paddingVertical: 10, flexDirection: 'row', alignItems: 'center', backgroundColor: t.isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.56)' },
     patioRowActive: { backgroundColor: t.isDark ? 'rgba(255,106,61,0.14)' : 'rgba(242,97,47,0.10)' },
     addBox: { width: 32, height: 32, borderRadius: 9, backgroundColor: t.text, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
     addBoxMuted: { backgroundColor: 'transparent', borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
@@ -60,6 +69,7 @@ function makeStyles(t: Theme) {
     patioOpen: { fontSize: 12, color: t.textSecondary },
     patioRating: { flexDirection: 'row', alignItems: 'center', gap: 3 },
     patioRatingText: { fontSize: 12, fontWeight: '900', color: t.text },
+    emptyResults: { paddingHorizontal: 18, paddingVertical: 20, alignItems: 'center' },
   });
 }
 
@@ -74,27 +84,79 @@ export default function ExplorarScreen() {
   const { theme } = useTheme();
   const s = makeStyles(theme);
   const insets = useSafeAreaInsets();
-  const [selectedId, setSelectedId] = useState(PATIOS[0].id);
-  const selectedPatio = PATIOS.find((patio) => patio.id === selectedId) ?? PATIOS[0];
+
+  // selectedId: which pin is highlighted. showHeader: user explicitly tapped a pin/row.
+  // These two are always moved together via selectPatio/deselect — never set independently.
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [showHeader, setShowHeader] = useState(false);
   const [mapExpanded, setMapExpanded] = useState(false);
   const [savedIds, setSavedIds] = useState<string[]>([]);
+  const [searchActive, setSearchActive] = useState(false);
+  const [query, setQuery] = useState('');
+  const searchInputRef = useRef<TextInput>(null);
 
-  const selectedSaved = savedIds.includes(selectedId);
+  const searchResults = useMemo(() => searchPatiosByDish(query), [query]);
+  const matchingPatioIds = useMemo(() => new Set(searchResults.map((r) => r.patio.id)), [searchResults]);
+  const isFiltering = query.trim().length > 0;
+
+  const topMatchPerPatio = useMemo(() => {
+    const seen = new Set<string>();
+    return searchResults.filter((r) => {
+      if (seen.has(r.patio.id)) return false;
+      seen.add(r.patio.id);
+      return true;
+    });
+  }, [searchResults]);
+
+  const selectedPatio = selectedId ? (PATIOS.find((p) => p.id === selectedId) ?? null) : null;
+  const featuredMatch = showHeader && isFiltering && selectedId
+    ? (searchResults.find((r) => r.patio.id === selectedId) ?? null)
+    : null;
+  const selectedSaved = selectedId ? savedIds.includes(selectedId) : false;
+
   useFocusEffect(
     useCallback(() => {
       let mounted = true;
-      getFavoritePatioIds().then((ids) => {
-        if (mounted) setSavedIds(ids);
-      });
-
+      getFavoritePatioIds().then((ids) => { if (mounted) setSavedIds(ids); });
       return () => { mounted = false; };
     }, [])
   );
 
+  // Explicit user selection — shows the header panel
+  const selectPatio = useCallback((id: string) => {
+    setSelectedId(id);
+    setShowHeader(true);
+  }, []);
+
+  // Explicit deselect — hides the header panel
+  const deselect = useCallback(() => {
+    setSelectedId(null);
+    setShowHeader(false);
+  }, []);
+
   const toggleSaved = async () => {
+    if (!selectedId) return;
     const next = await toggleFavoritePatio(selectedId);
     setSavedIds(next);
   };
+
+  const openSearch = useCallback(() => {
+    setSearchActive(true);
+    setTimeout(() => searchInputRef.current?.focus(), 80);
+  }, []);
+
+  const closeSearch = useCallback(() => {
+    Keyboard.dismiss();
+    setSearchActive(false);
+    setQuery('');
+    deselect();
+  }, [deselect]);
+
+  const handleQueryChange = useCallback((text: string) => {
+    setQuery(text);
+    // Clearing the query returns to neutral — no selection
+    if (!text.trim()) deselect();
+  }, [deselect]);
 
   return (
     <View style={s.container}>
@@ -103,116 +165,242 @@ export default function ExplorarScreen() {
       <View style={s.map}>
         <MapView
           initialRegion={INITIAL_REGION}
+          customMapStyle={theme.isDark ? MAP_STYLE_DARK : MAP_STYLE_LIGHT}
           loadingEnabled
+          mapType="mutedStandard"
           pitchEnabled={false}
           rotateEnabled={false}
+          showsBuildings={false}
           showsCompass={false}
           showsMyLocationButton={false}
+          showsPointsOfInterest={false}
+          showsTraffic={false}
           style={s.mapView}
-          toolbarEnabled={false}>
-          {PATIOS.map((patio) => (
-            <Marker
-              key={patio.id}
-              coordinate={{ latitude: patio.latitude, longitude: patio.longitude }}
-              onPress={() => setSelectedId(patio.id)}
-              tracksViewChanges={false}>
-              <View style={s.pin}>
-                <View style={[s.pinCore, selectedId === patio.id && s.pinCoreSelected]}>
-                  <View style={s.pinDot} />
+          toolbarEnabled={false}
+          userInterfaceStyle={theme.isDark ? 'dark' : 'light'}
+          onPress={deselect}>
+          {PATIOS.map((patio) => {
+            const isSelected = patio.id === selectedId && showHeader;
+            const isMuted = isFiltering && !matchingPatioIds.has(patio.id);
+            return (
+              <Marker
+                key={patio.id}
+                coordinate={{ latitude: patio.latitude, longitude: patio.longitude }}
+                onPress={() => selectPatio(patio.id)}
+                tracksViewChanges={true}>
+                <View style={[s.pinHitArea, isMuted && s.pinMuted]}>
+                  {isSelected ? (
+                    <View style={s.pin}>
+                      <View style={s.pinCoreSelected}>
+                        <View style={s.pinDot} />
+                      </View>
+                    </View>
+                  ) : (
+                    <View style={s.pinSmallDot} />
+                  )}
                 </View>
-              </View>
-            </Marker>
-          ))}
+              </Marker>
+            );
+          })}
         </MapView>
+        <LinearGradient
+          colors={theme.isDark ? ['rgba(0,0,0,0)', 'rgba(0,0,0,0.22)'] : ['rgba(239,239,239,0)', 'rgba(239,239,239,0.30)']}
+          locations={[0.45, 1]}
+          pointerEvents="none"
+          style={StyleSheet.absoluteFillObject}
+        />
       </View>
 
+      {/* Top bar */}
       <View style={[s.topBar, { top: insets.top + 14 }]}>
-        <TouchableOpacity style={s.closeButton} onPress={() => router.push('/cuenta')} activeOpacity={0.76}>
-          <Ionicons name="menu-outline" size={24} color={theme.text} />
-        </TouchableOpacity>
-        <View style={s.topRight}>
-          <TouchableOpacity style={s.toolButton} onPress={() => router.push('/buscar')} activeOpacity={0.76}>
-            <Ionicons name="search-outline" size={21} color={theme.text} />
-          </TouchableOpacity>
-          <TouchableOpacity style={s.toolButton} onPress={() => setMapExpanded((value) => !value)} activeOpacity={0.76}>
-            <Ionicons name={mapExpanded ? 'list-outline' : 'expand-outline'} size={21} color={theme.text} />
-          </TouchableOpacity>
-        </View>
+        {searchActive ? (
+          <View style={s.searchRow}>
+            <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
+            <TouchableOpacity onPress={closeSearch} activeOpacity={0.76} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+              <Ionicons name="chevron-back" size={20} color={theme.text} />
+            </TouchableOpacity>
+            <TextInput
+              ref={searchInputRef}
+              style={s.searchInput}
+              value={query}
+              onChangeText={handleQueryChange}
+              placeholder="mole, enchiladas, agua de jamaica…"
+              placeholderTextColor={theme.textSecondary}
+              autoCorrect={false}
+              autoCapitalize="none"
+              returnKeyType="search"
+              selectionColor={theme.accent}
+            />
+            {query.length > 0 && (
+              <TouchableOpacity onPress={() => handleQueryChange('')} activeOpacity={0.76} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                <Ionicons name="close-circle" size={18} color={theme.textSecondary} />
+              </TouchableOpacity>
+            )}
+          </View>
+        ) : (
+          <>
+            <TouchableOpacity style={s.closeButton} onPress={() => router.push('/cuenta')} activeOpacity={0.76}>
+              <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
+              <Ionicons name="menu-outline" size={22} color={theme.text} />
+            </TouchableOpacity>
+            <View style={s.topRight}>
+              <TouchableOpacity style={s.toolButton} onPress={openSearch} activeOpacity={0.76}>
+                <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
+                <Ionicons name="search-outline" size={20} color={theme.text} />
+              </TouchableOpacity>
+              <TouchableOpacity style={s.toolButton} onPress={() => setMapExpanded((v) => !v)} activeOpacity={0.76}>
+                <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
+                <Ionicons name={mapExpanded ? 'list-outline' : 'expand-outline'} size={20} color={theme.text} />
+              </TouchableOpacity>
+            </View>
+          </>
+        )}
       </View>
 
-      <View style={[s.sideActions, { top: insets.top + 154 }]}>
+      <View style={[s.sideActions, { top: insets.top + 150 }]}>
         <TouchableOpacity style={s.sideButton} onPress={() => router.push('/favoritos')} activeOpacity={0.76}>
-          <Ionicons name="star-outline" size={24} color={theme.text} />
+          <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
+          <Ionicons name="star-outline" size={22} color={theme.text} />
         </TouchableOpacity>
       </View>
 
       {!mapExpanded && (
-      <View style={[s.sheet, { paddingBottom: insets.bottom ? 4 : 8 }]}>
-        <View style={s.grabber} />
-        <View style={s.selectedPanel}>
-          <View style={s.selectedHeader}>
-            <Text style={s.selectedTitle} allowFontScaling={true}>{selectedPatio.name}</Text>
-            <TouchableOpacity style={s.heartButton} onPress={toggleSaved} activeOpacity={0.76}>
-              <Ionicons name={selectedSaved ? 'heart' : 'heart-outline'} size={22} color={selectedSaved ? theme.accent : theme.textSecondary} />
-            </TouchableOpacity>
-          </View>
-          <Text style={s.selectedMeta} allowFontScaling={true}>
-            {selectedPatio.category} · {selectedPatio.area} · {selectedPatio.open}
-          </Text>
-          <View style={s.selectedStats}>
-            <View>
-              <Text style={s.price} allowFontScaling={true}>{selectedPatio.price === '$' ? 'Precio pendiente' : selectedPatio.price}</Text>
-              <Text style={s.priceCaption} allowFontScaling={true}>{selectedPatio.reason}</Text>
-              <View style={s.ratingRow}>
-                <Ionicons name="star" size={13} color={theme.accent} />
-                <Text style={s.ratingText} allowFontScaling={true}>{selectedPatio.rating}</Text>
-              </View>
-            </View>
-            <TouchableOpacity style={s.cta} onPress={() => router.push(`/patio/${selectedPatio.id}`)} activeOpacity={0.82}>
-              <Text style={s.ctaText} allowFontScaling={true}>Ver</Text>
-              <Ionicons name="chevron-forward" size={15} color={theme.surface} />
-            </TouchableOpacity>
-          </View>
-        </View>
-        <View style={s.divider} />
-        <View style={s.listHeader}>
-          <Text style={s.listTitle} allowFontScaling={true}>CERCA DE TI</Text>
-          <View style={s.listFilter}>
-            <Ionicons name="star" size={12} color={theme.accent} />
-            <Text style={s.listFilterText} allowFontScaling={true}>5.0</Text>
-          </View>
-        </View>
-        <ScrollView style={s.list} showsVerticalScrollIndicator={false}>
-          {PATIOS.map((patio, index) => {
-            const active = patio.id === selectedId;
-            return (
-              <TouchableOpacity
-                key={patio.id}
-                style={[s.patioRow, active && s.patioRowActive]}
-                onPress={() => {
-                  setSelectedId(patio.id);
-                }}
-                activeOpacity={0.76}>
-                <View style={[s.addBox, !active && s.addBoxMuted]}>
-                  <Text style={{ color: active ? theme.surface : theme.textSecondary, fontWeight: '900' }}>{index + 1}</Text>
+        <View style={[s.sheet, { paddingBottom: insets.bottom ? 4 : 8 }]}>
+          <BlurView intensity={theme.isDark ? 16 : 22} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
+          <View style={s.grabber} />
+
+          {/* Header panel — only on explicit selection */}
+          {showHeader && selectedPatio && (
+            <>
+              <View style={s.selectedPanel}>
+                <View style={s.selectedHeader}>
+                  <Text style={s.selectedTitle} allowFontScaling={true}>{selectedPatio.name}</Text>
+                  <TouchableOpacity style={s.heartButton} onPress={toggleSaved} activeOpacity={0.76}>
+                    <Ionicons name={selectedSaved ? 'heart' : 'heart-outline'} size={22} color={selectedSaved ? theme.accent : theme.textSecondary} />
+                  </TouchableOpacity>
                 </View>
-                <View style={s.patioInfo}>
-                  <Text style={s.patioName} allowFontScaling={true}>{patio.name}</Text>
-                  <Text style={s.patioMeta} allowFontScaling={true}>{patio.category} · {patio.address}</Text>
-                </View>
-                <View style={s.patioRight}>
-                  <Text style={s.patioPrice} allowFontScaling={true}>{patio.price}</Text>
-                  <View style={s.patioRating}>
-                    <Ionicons name="star" size={11} color={theme.accent} />
-                    <Text style={s.patioRatingText} allowFontScaling={true}>{patio.rating}</Text>
+                <Text style={s.selectedMeta} allowFontScaling={true}>
+                  {featuredMatch
+                    ? `${featuredMatch.section} · ${selectedPatio.area} · ${selectedPatio.open}`
+                    : `${selectedPatio.category} · ${selectedPatio.area} · ${selectedPatio.open}`}
+                </Text>
+                <View style={s.selectedStats}>
+                  <View>
+                    {featuredMatch ? (
+                      <>
+                        <Text style={s.dishName} allowFontScaling={true}>{featuredMatch.item.name}</Text>
+                        <Text style={s.priceCaption} allowFontScaling={true}>
+                          {featuredMatch.item.price ?? selectedPatio.price}
+                        </Text>
+                      </>
+                    ) : (
+                      <>
+                        <Text style={s.price} allowFontScaling={true}>
+                          {selectedPatio.price === '$' ? 'Precio pendiente' : selectedPatio.price}
+                        </Text>
+                        <Text style={s.priceCaption} allowFontScaling={true}>{selectedPatio.reason}</Text>
+                      </>
+                    )}
+                    <View style={s.ratingRow}>
+                      <Ionicons name="star" size={13} color={theme.accent} />
+                      <Text style={s.ratingText} allowFontScaling={true}>{selectedPatio.rating}</Text>
+                    </View>
                   </View>
-                  <Text style={s.patioOpen} allowFontScaling={true}>{patio.open}</Text>
+                  <TouchableOpacity style={s.cta} onPress={() => router.push(`/patio/${selectedPatio.id}`)} activeOpacity={0.82}>
+                    <Text style={s.ctaText} allowFontScaling={true}>Ver</Text>
+                    <Ionicons name="chevron-forward" size={15} color={theme.surface} />
+                  </TouchableOpacity>
                 </View>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
-      </View>
+              </View>
+              <View style={s.divider} />
+            </>
+          )}
+
+          {/* List */}
+          <View style={s.listHeader}>
+            {isFiltering ? (
+              <>
+                <Text style={s.listTitle} allowFontScaling={true}>
+                  {topMatchPerPatio.length > 0
+                    ? `${topMatchPerPatio.length} RESULTADO${topMatchPerPatio.length !== 1 ? 'S' : ''}`
+                    : 'SIN RESULTADOS'}
+                </Text>
+                <TouchableOpacity style={s.listFilter} onPress={closeSearch} activeOpacity={0.76}>
+                  <Ionicons name="close" size={12} color={theme.accent} />
+                  <Text style={s.listFilterText} allowFontScaling={true}>Limpiar</Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <>
+                <Text style={s.listTitle} allowFontScaling={true}>CERCA DE TI</Text>
+                <View style={s.listFilter}>
+                  <Ionicons name="star" size={12} color={theme.accent} />
+                  <Text style={s.listFilterText} allowFontScaling={true}>5.0</Text>
+                </View>
+              </>
+            )}
+          </View>
+
+          <ScrollView style={s.list} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+            {isFiltering ? (
+              topMatchPerPatio.length === 0 ? (
+                <View style={s.emptyResults}>
+                  <Text style={s.listMeta} allowFontScaling={true}>Ningún lugar tiene eso hoy</Text>
+                </View>
+              ) : (
+                topMatchPerPatio.map((match) => {
+                  const active = match.patio.id === selectedId && showHeader;
+                  return (
+                    <TouchableOpacity
+                      key={`${match.patio.id}-${match.item.name}`}
+                      style={[s.patioRow, active && s.patioRowActive]}
+                      onPress={() => selectPatio(match.patio.id)}
+                      activeOpacity={0.76}>
+                      <View style={[s.addBox, !active && s.addBoxMuted]}>
+                        <Ionicons name="restaurant" size={14} color={active ? theme.surface : theme.textSecondary} />
+                      </View>
+                      <View style={s.patioInfo}>
+                        <Text style={s.patioName} allowFontScaling={true}>{match.item.name}</Text>
+                        <Text style={s.patioMeta} allowFontScaling={true}>{match.patio.name} · {match.patio.category}</Text>
+                      </View>
+                      <View style={s.patioRight}>
+                        <Text style={s.patioPrice} allowFontScaling={true}>{match.item.price ?? match.patio.price}</Text>
+                        <Text style={s.patioOpen} allowFontScaling={true}>{match.patio.open}</Text>
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })
+              )
+            ) : (
+              PATIOS.map((patio, index) => {
+                const active = patio.id === selectedId && showHeader;
+                return (
+                  <TouchableOpacity
+                    key={patio.id}
+                    style={[s.patioRow, active && s.patioRowActive]}
+                    onPress={() => selectPatio(patio.id)}
+                    activeOpacity={0.76}>
+                    <View style={[s.addBox, !active && s.addBoxMuted]}>
+                      <Text style={{ color: active ? theme.surface : theme.textSecondary, fontWeight: '900' }}>{index + 1}</Text>
+                    </View>
+                    <View style={s.patioInfo}>
+                      <Text style={s.patioName} allowFontScaling={true}>{patio.name}</Text>
+                      <Text style={s.patioMeta} allowFontScaling={true}>{patio.category} · {patio.address}</Text>
+                    </View>
+                    <View style={s.patioRight}>
+                      <Text style={s.patioPrice} allowFontScaling={true}>{patio.price}</Text>
+                      <View style={s.patioRating}>
+                        <Ionicons name="star" size={11} color={theme.accent} />
+                        <Text style={s.patioRatingText} allowFontScaling={true}>{patio.rating}</Text>
+                      </View>
+                      <Text style={s.patioOpen} allowFontScaling={true}>{patio.open}</Text>
+                    </View>
+                  </TouchableOpacity>
+                );
+              })
+            )}
+          </ScrollView>
+        </View>
       )}
     </View>
   );

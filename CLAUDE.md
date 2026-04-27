@@ -46,8 +46,46 @@ El bloque del precio tiene esta estructura exacta que NO debe modificarse:
 
 Si se edita menu.tsx por cualquier razón, verificar que este bloque no haya cambiado antes de guardar.
 
+## Glass y superficies flotantes
+
+Panels flotantes (sheets, bottom bars, overlays, controles sobre mapa) deben usar `BlurView` de `expo-blur`, nunca fondo sólido:
+- `intensity`: `20` (claro) / `16` (oscuro)
+- `tint`: `"light"` o `"dark"` según tema
+- Borde encima del blur: `borderWidth StyleSheet.hairlineWidth`, `borderColor rgba(255,255,255,0.18)` en claro — `rgba(255,255,255,0.10)` en oscuro
+- Sombra: `shadowOpacity 0.08` claro / `0.20` oscuro, `shadowRadius 32`, `shadowOffset { width:0, height:12 }`
+- Cards de contenido (menú, lista) NO usan blur — fondo `t.surface` normal
+
+## Gradientes
+
+Usar `LinearGradient` de `expo-linear-gradient` para:
+- Overlay de velo sobre mapa: de `rgba(0,0,0,0)` a `rgba(0,0,0,0.18)` (bottom-to-top)
+- Fondos de hero/header en fichas: mismo color del bg ± 6% luminosidad
+- Nunca gradiente visible en cards de contenido ni en inputs
+
+## Líneas y separadores
+
+- **Todos** los bordes internos: `StyleSheet.hairlineWidth` sin excepción
+- Color de borde en claro: `rgba(0,0,0,0.08)` — en oscuro: `rgba(255,255,255,0.10)`
+- `borderWidth 1` solo en botones de contorno primarios
+- Separadores de lista: `StyleSheet.hairlineWidth`, nunca `height 1`
+
+## Tipografía — jerarquía visual
+
+- Títulos de pantalla: `fontSize 32`, `fontWeight '900'`, `letterSpacing -0.5`
+- Labels de sección: `fontSize 11`, `fontWeight '900'`, `letterSpacing 1.8`, `UPPERCASE`
+- Metadata/subtítulo: `fontSize 13`, `fontWeight '300'`, `opacity 0.6`
+- El contraste 900 vs 300 es el mecanismo principal de jerarquía — evitar pesos intermedios
+
+## Radios y geometría
+
+- Sheets y panels grandes: `borderRadius 28-32` (solo esquinas superiores cuando están pegados al borde)
+- Botones de acción flotantes (cuadrados): `borderRadius 16`
+- Pills y cápsulas de estado: `borderRadius 100`
+- Cards de contenido: `borderRadius 20`
+
 ## Convenciones de código
 
 - Estilos en `makeStyles(t: Theme)` que recibe el tema — nunca hardcodear colores fuera de paleta
 - Nombres de sección en `UPPERCASE` con `letterSpacing`
 - Animaciones con `Animated` de React Native, duración estándar `200ms`
+- Importar `BlurView` de `expo-blur` y `LinearGradient` de `expo-linear-gradient` cuando aplique

@@ -1,13 +1,16 @@
 # GOAL
 
 ## Filosofía de producto
-Patio no debe sentirse como una herramienta que le entrega datos a las personas para que ellas los interpreten. Debe convertir datos dispersos en una acción evidente.
 
-No es hacer que las personas piensen qué decidir, sino darles una siguiente acción clara.
+No es entregar datos a las personas para que los usen — sino hacer que la acción correcta sea obvia antes de que la necesiten.
 
-No es ofrecer una solución clara en abstracto, sino construir una experiencia donde el uso correcto se vuelva obvio.
+No es hacer que las personas piensen qué decidir — sino darles la siguiente acción directamente, ya resuelta.
+
+No es ofrecer una solución clara — sino eliminar la necesidad de que la busquen.
 
 Si algo no es evidente para las personas, no se asume que el usuario falló: se reduce fricción y se mejora la forma en que se comunica.
+
+Patio no debe sentirse como una herramienta que le entrega datos a las personas para que ellas los interpreten. Debe convertir datos dispersos en una acción evidente.
 
 La meta de Patio es hacer evidente el valor de cada paso:
 - Para quien vende: menos captura, más negocio publicado.
@@ -60,6 +63,22 @@ Un usuario foodie puede abrir Patio, entender qué hacer, descubrir lugares cerc
 - Evitar consultas IA para tareas determinísticas: validaciones simples, filtros, ordenamientos, horarios y checks de campos deben vivir en código/backend.
 - Cachear resultados cuando el menú/foto/perfil no cambió.
 - Usar IA al final de un flujo para detectar problemas reales, no como asistente permanente.
+
+## El mapa como superficie principal de decisión
+
+El mapa no es un directorio georeferenciado. Es la respuesta visual a la pregunta del usuario, renderizada en el espacio.
+
+- El estado neutro del mapa es un campo abierto de puntos iguales — sin jerarquía impuesta, sin selección por defecto.
+- La búsqueda colapsa el problema de zoom: escribir "mole" filtra pins directamente, sin necesidad de navegar niveles del mapa.
+- La selección es siempre un acto explícito del usuario. El sistema no pre-selecciona ni asume intención.
+- El header de detalle de un lugar aparece solo cuando el usuario toca un pin o una fila — nunca como consecuencia de búsqueda automática.
+
+### Escala progresiva (MVP → producción)
+1. **Viewport filtering** (inmediato): renderizar solo los patios visibles en la región actual del mapa. Costo mínimo, escalabilidad a miles de pins.
+2. **Clusters** (cuando haya 50+ patios por zona): número de lugares agrupados → usuario hace zoom → pins individuales aparecen.
+3. **H3/geohash por zona** (largo plazo): dividir la ciudad en celdas; zoom alejado muestra densidad por zona, zoom cercano muestra pins. Mismo principio que INEGI: agregar al nivel correcto, no volcar todo el dataset.
+
+La búsqueda por platillo reemplaza la necesidad de navegar por zoom: el usuario no necesita explorar el mapa si ya sabe lo que quiere.
 
 ## Mapa y ubicación eficiente
 - Inspiración tipo Uber: no mostrar ni procesar toda la precisión todo el tiempo. Agregar ubicaciones en celdas o zonas cuando baste.

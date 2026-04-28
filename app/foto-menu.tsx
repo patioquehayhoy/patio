@@ -408,8 +408,8 @@ export default function FotoMenuScreen() {
     return (
       <SafeAreaView style={s.container}>
         <Stack.Screen options={{ headerShown: false }} />
-        <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
-          <Text style={s.backText}>← Volver</Text>
+        <TouchableOpacity style={s.backIconBtn} onPress={() => router.back()} activeOpacity={0.76}>
+          <Ionicons name="chevron-back" size={20} color={theme.text} />
         </TouchableOpacity>
 
         <View style={s.idleContent}>
@@ -436,9 +436,8 @@ export default function FotoMenuScreen() {
           </TouchableOpacity>
 
           <View style={s.tipBox}>
-            <Text style={s.tipAccent}>✦ Nuevo en Patio V2</Text>
             <Text style={s.tipText}>
-              Toma una foto o sube una imagen y luego revisa los platillos antes de guardar.
+              Toma una foto o sube una imagen y revisa los platillos antes de guardar.
             </Text>
           </View>
         </View>
@@ -454,10 +453,11 @@ export default function FotoMenuScreen() {
         <CameraView ref={cameraRef} style={{ flex: 1 }} facing={'back' as CameraType}>
           <SafeAreaView style={s.cameraOverlay}>
             <TouchableOpacity
-              style={s.backBtnWhite}
+              style={s.backIconBtnWhite}
               onPress={() => setEstado('idle')}
+              activeOpacity={0.76}
             >
-              <Text style={{ color: '#fff', fontSize: 16 }}>← Volver</Text>
+              <Ionicons name="chevron-back" size={20} color="#fff" />
             </TouchableOpacity>
             <Text style={s.cameraHint}>Enfoca tu menú completo</Text>
             <TouchableOpacity style={s.shutterBtn} onPress={capturar}>
@@ -553,7 +553,7 @@ export default function FotoMenuScreen() {
         <Text style={{ color: '#fff', fontSize: 24 }}>✓</Text>
       </View>
       <Text style={s.savedTitle}>¡Menú guardado!</Text>
-      <Text style={s.savedSub}>Listo para compartir por WhatsApp</Text>
+      <Text style={s.savedSub}>Listo para compartir</Text>
       <TouchableOpacity
         style={[s.btnPrimary, { marginTop: 32, paddingHorizontal: 32 }]}
         onPress={() => router.push('/preview')}
@@ -612,9 +612,8 @@ function makeStyles(t: Theme) {
   return StyleSheet.create({
     container:       { flex: 1, backgroundColor: t.bg },
     centerContent:   { alignItems: 'center', justifyContent: 'center', padding: 24 },
-    backBtn:         { padding: 16, paddingBottom: 0 },
-    backText:        { fontSize: 15, color: t.textSecondary },
-    backBtnWhite:    { padding: 16 },
+    backIconBtn:     { width: 44, height: 44, borderRadius: 16, marginLeft: 12, marginTop: 8, alignItems: 'center', justifyContent: 'center', backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
+    backIconBtnWhite:{ width: 44, height: 44, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.22)', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.25)' },
     idleContent:     { flex: 1, padding: 24 },
     cameraBtn: {
       borderWidth: 1.5,
@@ -669,9 +668,8 @@ function makeStyles(t: Theme) {
       borderColor: t.border,
       padding: 16,
       marginTop: 22,
-      gap: 6,
+      gap: 0,
     },
-    tipAccent:       { fontSize: 13, fontWeight: '700', color: t.accent },
     tipText:         { fontSize: 13, color: t.textSecondary, lineHeight: 19 },
     cameraOverlay: {
       flex: 1,

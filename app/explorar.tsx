@@ -23,9 +23,9 @@ function makeStyles(t: Theme) {
     mapView: { ...StyleSheet.absoluteFillObject },
     pinHitArea: { width: 38, height: 38, alignItems: 'center', justifyContent: 'center' },
     pinMuted: { opacity: 0.18 },
-    pin: { width: 38, height: 38, borderRadius: 19, backgroundColor: t.isDark ? 'rgba(245,245,240,0.92)' : 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 7 }, shadowOpacity: 0.14, shadowRadius: 14, elevation: 4 },
-    pinCoreSelected: { width: 20, height: 20, borderRadius: 10, backgroundColor: t.text, alignItems: 'center', justifyContent: 'center' },
-    pinDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: t.surface },
+    pin: { width: 28, height: 28, borderRadius: 14, backgroundColor: t.isDark ? 'rgba(255,255,255,0.34)' : 'rgba(255,255,255,0.62)', borderWidth: 1, borderColor: t.isDark ? 'rgba(255,255,255,0.18)' : 'rgba(0,0,0,0.06)', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.08, shadowRadius: 7, elevation: 2 },
+    pinCoreSelected: { width: 12, height: 12, borderRadius: 6, backgroundColor: t.text, alignItems: 'center', justifyContent: 'center' },
+    pinDot: { width: 3, height: 3, borderRadius: 2, backgroundColor: t.surface },
     pinSmallDot: { width: 14, height: 14, borderRadius: 7, backgroundColor: t.accent, borderWidth: 2.5, borderColor: t.isDark ? 'rgba(25,26,27,0.70)' : 'rgba(255,255,255,0.85)', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.22, shadowRadius: 3, elevation: 2 },
     topBar: { position: 'absolute', left: 24, right: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
     topRight: { flexDirection: 'row', gap: 8 },
@@ -33,8 +33,6 @@ function makeStyles(t: Theme) {
     toolButton: { width: 44, height: 44, borderRadius: 16, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: btnBorder, alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: btnShadowOpacity, shadowRadius: 16, elevation: 2 },
     searchRow: { flex: 1, height: 44, borderRadius: 16, overflow: 'hidden', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, gap: 8, borderWidth: StyleSheet.hairlineWidth, borderColor: btnBorder, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: btnShadowOpacity, shadowRadius: 16, elevation: 2 },
     searchInput: { flex: 1, fontSize: 15, color: t.text, height: 44, paddingVertical: 0 },
-    sideActions: { position: 'absolute', right: 24, gap: 10 },
-    sideButton: { width: 46, height: 46, borderRadius: 16, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: btnBorder, alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: btnShadowOpacity, shadowRadius: 16, elevation: 2 },
     sheet: { position: 'absolute', left: 14, right: 14, bottom: 14, maxHeight: '48%', borderRadius: 30, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: t.isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.06)', shadowColor: '#000', shadowOffset: { width: 0, height: 12 }, shadowOpacity: t.isDark ? 0.20 : 0.08, shadowRadius: 32, elevation: 8 },
     grabber: { alignSelf: 'center', width: 44, height: 4, borderRadius: 2, backgroundColor: t.isDark ? 'rgba(255,255,255,0.16)' : 'rgba(0,0,0,0.10)', marginTop: 10, marginBottom: 8 },
     selectedPanel: { paddingHorizontal: 18, paddingBottom: 14 },
@@ -241,9 +239,13 @@ export default function ExplorarScreen() {
           <>
             <TouchableOpacity style={s.closeButton} onPress={() => router.push('/cuenta')} activeOpacity={0.76}>
               <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
-              <Ionicons name="menu-outline" size={22} color={theme.text} />
+              <Ionicons name="person-circle-outline" size={22} color={theme.text} />
             </TouchableOpacity>
             <View style={s.topRight}>
+              <TouchableOpacity style={s.toolButton} onPress={() => router.push('/favoritos')} activeOpacity={0.76}>
+                <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
+                <Ionicons name="heart-outline" size={20} color={theme.text} />
+              </TouchableOpacity>
               <TouchableOpacity style={s.toolButton} onPress={openSearch} activeOpacity={0.76}>
                 <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
                 <Ionicons name="search-outline" size={20} color={theme.text} />
@@ -255,13 +257,6 @@ export default function ExplorarScreen() {
             </View>
           </>
         )}
-      </View>
-
-      <View style={[s.sideActions, { top: insets.top + 150 }]}>
-        <TouchableOpacity style={s.sideButton} onPress={() => router.push('/favoritos')} activeOpacity={0.76}>
-          <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
-          <Ionicons name="star-outline" size={22} color={theme.text} />
-        </TouchableOpacity>
       </View>
 
       {!mapExpanded && (

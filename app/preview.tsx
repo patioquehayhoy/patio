@@ -1,6 +1,6 @@
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
-import { Alert, Linking, Platform, ScrollView, Share, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Platform, ScrollView, Share, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { SymbolView } from 'expo-symbols';
@@ -132,19 +132,6 @@ export default function PreviewScreen() {
   const pagos = [pagosEfectivo && 'Efectivo', pagosTrans && 'Transferencia', pagosTarjeta && 'Tarjeta'].filter(Boolean).join(' · ');
   const showMaps = !!fonditaDireccion.trim();
 
-  const handleOpenMaps = async () => {
-    if (!fonditaDireccion.trim()) return;
-    const query = encodeURIComponent(fonditaDireccion.trim());
-    const url = Platform.OS === 'ios'
-      ? `http://maps.apple.com/?q=${query}`
-      : `https://www.google.com/maps/search/?api=1&query=${query}`;
-    try {
-      await Linking.openURL(url);
-    } catch {
-      Alert.alert('No se pudo abrir Maps', 'Intentemos de nuevo.');
-    }
-  };
-
   const shareFile = async (uri: string, mimeType: string, dialogTitle: string, uti?: string) => {
     if (Platform.OS !== 'web' && (await Sharing.isAvailableAsync())) {
       await Sharing.shareAsync(uri, { mimeType, dialogTitle, UTI: uti });
@@ -173,14 +160,17 @@ export default function PreviewScreen() {
         style={s.scroll}
         contentContainerStyle={s.scrollContent}
         showsVerticalScrollIndicator={false}>
-        <View ref={shareCardRef} collapsable={false} style={s.shareFrame}>
-          <View style={s.shareCard}>
-            <View style={s.scrollBody}>
+        <View ref={shareCardRef} collapsable={false} style={[s.shareFrame, !hasAnything && s.shareFrameEmpty]}>
+          <View style={[s.shareCard, !hasAnything && s.shareCardEmpty]}>
+            <View style={[s.scrollBody, !hasAnything && s.scrollBodyEmpty]}>
               <View>
-                <Text style={s.fonditaName} allowFontScaling={true}>{fonditaName}</Text>
-                {!!fonditaDesc && <Text style={s.fonditaDesc} allowFontScaling={true}>{fonditaDesc}</Text>}
-                {showMaps && <Text style={s.fonditaDireccion} allowFontScaling={true}>{fonditaDireccion}</Text>}
-                <View style={s.headerDivider} />
+                {hasAnything && (
+                  <>
+                    {!!fonditaDesc && <Text style={s.fonditaDesc} allowFontScaling={true}>{fonditaDesc}</Text>}
+                    {showMaps && <Text style={s.fonditaDireccion} allowFontScaling={true}>{fonditaDireccion}</Text>}
+                    {(!!fonditaDesc || showMaps) && <View style={s.headerDivider} />}
+                  </>
+                )}
 
                 {hasCartaItems && cartaData && <SectionBlock data={cartaData} title="Carta" theme={theme} />}
                 {hasCartaItems && hasMenuItems && <View style={s.sectionSeparator} />}
@@ -197,23 +187,14 @@ export default function PreviewScreen() {
                         {[pagosEfectivo && 'Efectivo', pagosTrans && 'Transferencia', pagosTarjeta && 'Tarjeta'].filter(Boolean).join(' · ')}
                       </Text>
                     )}
-                    {showMaps && (
-                      <TouchableOpacity style={s.mapsButton} onPress={handleOpenMaps} activeOpacity={0.82}>
-                        <SymbolView name="map" size={14} tintColor={theme.accent} weight="medium" />
-                        <Text style={s.mapsButtonText} allowFontScaling={true}>Abrir en Maps</Text>
-                      </TouchableOpacity>
-                    )}
                   </View>
                 )}
 
                 {!hasAnything && (
                   <View style={s.emptyWrap}>
-                    <SymbolView name="doc.text" size={48} tintColor={theme.textSecondary} weight="regular" />
-                    <Text style={s.emptyTitle} allowFontScaling={true}>Tu menú está vacío</Text>
-                    <Text style={s.emptySub} allowFontScaling={true}>Ve a Menú para agregar platillos o toma una foto</Text>
-                    <TouchableOpacity style={s.emptyCta} onPress={() => router.push('/menu')} activeOpacity={0.82}>
-                      <Text style={s.emptyCtaText} allowFontScaling={true}>Ir al menú</Text>
-                    </TouchableOpacity>
+                    <SymbolView name="sparkles" size={30} tintColor={theme.accent} weight="semibold" />
+                    <Text style={s.emptyTitle} allowFontScaling={true}>Llena tu menú</Text>
+                    <Text style={s.emptySub} allowFontScaling={true}>Cuando tengas platillos, aquí verás la vista para compartir.</Text>
                   </View>
                 )}
               </View>
@@ -234,7 +215,6 @@ export default function PreviewScreen() {
         <View ref={landscapeShareRef} collapsable={false} style={s.landscapeCanvas}>
           <View style={s.landscapeCard}>
             <View style={s.landscapeHeader}>
-              <Text style={s.landscapeName}>{fonditaName}</Text>
               {!!fonditaDesc && <Text style={s.landscapeDesc}>{fonditaDesc}</Text>}
               {showMaps && <Text style={s.landscapeDireccion}>{fonditaDireccion}</Text>}
             </View>
@@ -264,13 +244,16 @@ function makeStyles(t: Theme) {
   return StyleSheet.create({
     container:         { flex: 1, backgroundColor: t.bg },
     scroll:            { flex: 1 },
-    scrollContent:     { flexGrow: 1, padding: 24, paddingBottom: 6 },
-    shareFrame:        { backgroundColor: t.bg, paddingHorizontal: 0, paddingVertical: 18 },
-    shareCard:         { backgroundColor: t.surface, borderRadius: 24, paddingHorizontal: 24, paddingVertical: 26, shadowColor: '#000', shadowOffset: { width: 0, height: 12 }, shadowOpacity: 0.05, shadowRadius: 24, elevation: 3 },
+    scrollContent:     { flexGrow: 1, padding: 16, paddingBottom: 6 },
+    shareFrame:        { backgroundColor: t.bg, paddingHorizontal: 0, paddingVertical: 8 },
+    shareFrameEmpty:   { flexGrow: 1, justifyContent: 'center' },
+    shareCard:         { backgroundColor: t.surface, borderRadius: 22, borderWidth: 1, borderColor: t.sep, paddingHorizontal: 22, paddingVertical: 24, shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.05, shadowRadius: 24, elevation: 2 },
+    shareCardEmpty:    { minHeight: 360, justifyContent: 'center' },
     scrollBody:        { flexGrow: 1, justifyContent: 'space-between' },
-    headerDivider:     { height: StyleSheet.hairlineWidth, backgroundColor: t.sep, marginBottom: 24, opacity: 0.72 },
+    scrollBodyEmpty:   { minHeight: 300, justifyContent: 'center' },
+    headerDivider:     { height: StyleSheet.hairlineWidth, backgroundColor: t.sep, marginBottom: 20, opacity: 0.72 },
     fonditaName:       { fontSize: 30, fontWeight: '800', color: t.text, letterSpacing: -0.6, lineHeight: 36, marginBottom: 3 },
-    fonditaDesc:       { fontSize: 15, fontWeight: '400', color: t.gray, lineHeight: 22, marginBottom: 3 },
+    fonditaDesc:       { fontSize: 16, fontWeight: '500', color: t.gray, lineHeight: 22, marginBottom: 3, textAlign: 'center' },
     fonditaDireccion:  { fontSize: 12, fontWeight: '400', color: t.gray, lineHeight: 17, opacity: 0.62, marginBottom: 6 },
     block:             { marginBottom: 0 },
     groupTitle:        { fontSize: 16, fontWeight: '800', color: t.accent, letterSpacing: 0.1, marginBottom: 14, textTransform: 'uppercase' },
@@ -292,22 +275,18 @@ function makeStyles(t: Theme) {
     infoBlock:         { marginTop: 24, paddingTop: 16, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.sep, alignItems: 'center' },
     infoFecha:         { fontSize: 12, fontWeight: '400', color: t.gray, opacity: 0.7, lineHeight: 18, textAlign: 'center', marginBottom: 2 },
     infoLine:          { fontSize: 12, fontWeight: '400', color: t.gray, opacity: 0.7, lineHeight: 18, textAlign: 'center', marginBottom: 2 },
-    mapsButton:        { marginTop: 12, flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 9, paddingHorizontal: 13, borderRadius: 999, backgroundColor: t.accentLight },
-    mapsButtonText:    { fontSize: 13, fontWeight: '700', color: t.accent },
-    emptyWrap:         { alignItems: 'center', paddingVertical: 36, gap: 10 },
-    emptyTitle:        { fontSize: 18, fontWeight: '700', color: t.text, textAlign: 'center' },
-    emptySub:          { fontSize: 14, fontWeight: '400', color: t.textSecondary, textAlign: 'center', lineHeight: 20, maxWidth: 280 },
-    emptyCta:          { marginTop: 10, paddingVertical: 12, paddingHorizontal: 20, borderRadius: 14, backgroundColor: '#FCE5DC' },
-    emptyCtaText:      { fontSize: 14, fontWeight: '800', color: t.accent },
+    emptyWrap:         { alignItems: 'center', justifyContent: 'center', paddingVertical: 4, gap: 8 },
+    emptyTitle:        { fontSize: 22, fontWeight: '800', color: t.text, textAlign: 'center', letterSpacing: -0.3 },
+    emptySub:          { maxWidth: 290, fontSize: 15, lineHeight: 21, color: t.textSecondary, textAlign: 'center' },
     actions:           { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.sep, paddingTop: 12 },
     shareButton:       { backgroundColor: t.text, height: 54, borderRadius: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginHorizontal: 24, marginBottom: 24, shadowColor: t.text, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.12, shadowRadius: 18, elevation: 4 },
     shareButtonText:   { color: t.surface, fontSize: 15, fontWeight: '700' },
     captureRoot:       { position: 'absolute', left: -2000, top: 0, opacity: 1 },
     landscapeCanvas:   { width: 767, backgroundColor: t.bg, paddingVertical: 10, paddingHorizontal: 10 },
     landscapeCard:     { backgroundColor: t.surface, borderRadius: 20, paddingTop: 22, paddingBottom: 18, paddingHorizontal: 14 },
-    landscapeHeader:   { width: 522, alignSelf: 'center', alignItems: 'center', marginBottom: 14, paddingBottom: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.sep },
+    landscapeHeader:   { width: 522, alignSelf: 'center', alignItems: 'center', marginBottom: 10, paddingBottom: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.sep },
     landscapeName:     { fontSize: 36, fontWeight: '900', color: t.text, lineHeight: 40, marginBottom: 4, textAlign: 'center' },
-    landscapeDesc:     { fontSize: 15, fontWeight: '300', color: t.gray, lineHeight: 22, marginBottom: 2, textAlign: 'center' },
+    landscapeDesc:     { fontSize: 16, fontWeight: '500', color: t.gray, lineHeight: 22, marginBottom: 2, textAlign: 'center' },
     landscapeDireccion:{ fontSize: 12, fontWeight: '300', color: t.gray, lineHeight: 17, opacity: 0.5, marginBottom: 2, textAlign: 'center' },
     landscapeColumns:  { width: 522, alignSelf: 'center', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'center' },
     landscapeColumnPrimary:{ width: 307, flexShrink: 0 },

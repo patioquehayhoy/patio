@@ -525,6 +525,9 @@ export default function MenuScreen() {
   return (
     <View style={s.container}>
       <Stack.Screen options={{ headerShown: false }} />
+      <TouchableOpacity style={[s.backIconBtn, { top: insets.top + 6 }]} onPress={() => router.back()} activeOpacity={0.76}>
+        <SymbolView name="chevron.left" size={17} tintColor={theme.text} weight="semibold" />
+      </TouchableOpacity>
       <MovePlatilloModal
         visible={!!movingPlatillo}
         secciones={menuData.secciones}
@@ -657,7 +660,7 @@ export default function MenuScreen() {
           style={s.scroll}
           contentContainerStyle={[
             s.scrollContent,
-            { paddingTop: insets.top + 16 },
+            { paddingTop: insets.top + 56 },
             !menuData.secciones.length && s.scrollContentEmpty,
           ]}
           keyboardShouldPersistTaps="handled"
@@ -748,6 +751,7 @@ export default function MenuScreen() {
 function makeStyles(t: Theme) {
   return StyleSheet.create({
     container:       { flex: 1, backgroundColor: t.bg },
+    backIconBtn:     { position: 'absolute', left: 16, width: 44, height: 44, borderRadius: 16, backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, alignItems: 'center', justifyContent: 'center', zIndex: 30 },
     keyboardView:    { flex: 1 },
     scroll:          { flex: 1 },
     scrollContent:   { paddingHorizontal: 16, paddingBottom: 48 },

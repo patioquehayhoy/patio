@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -403,6 +403,14 @@ export default function FotoMenuScreen() {
     setEstado('saved');
   }
 
+  useEffect(() => {
+    if (estado !== 'saved') return;
+    const id = setTimeout(() => {
+      router.replace('/preview');
+    }, 800);
+    return () => clearTimeout(id);
+  }, [estado]);
+
   // ── Idle ──────────────────────────────────────────────────────────────────
   if (estado === 'idle') {
     return (
@@ -421,7 +429,7 @@ export default function FotoMenuScreen() {
             >
               <Ionicons name="camera" size={42} color={theme.accent} style={s.cameraBtnIcon} />
               <Text style={s.cameraBtnLabel}>Tomar foto</Text>
-              <Text style={s.cameraBtnSub}>Patio lee tu menú y llena la base al instante</Text>
+              <Text style={s.cameraBtnSub}>Captura tu menú y revísalo antes de guardar</Text>
             </TouchableOpacity>
           </View>
 
@@ -476,9 +484,9 @@ export default function FotoMenuScreen() {
         <Stack.Screen options={{ headerShown: false }} />
         <AgentSpinner variant="dots" size={34} color={theme.accent} />
         <Text style={[s.processingLabel, { marginTop: 16 }]}>
-          Patio está leyendo tu menú...
+          Patio está leyendo tu contenido...
         </Text>
-        <Text style={s.processingSub}>Identificando platillos y precios</Text>
+        <Text style={s.processingSub}>Identificando productos y precios</Text>
       </SafeAreaView>
     );
   }
@@ -552,20 +560,8 @@ export default function FotoMenuScreen() {
       <View style={s.successIcon}>
         <Text style={{ color: '#fff', fontSize: 24 }}>✓</Text>
       </View>
-      <Text style={s.savedTitle}>¡Menú guardado!</Text>
-      <Text style={s.savedSub}>Listo para compartir</Text>
-      <TouchableOpacity
-        style={[s.btnPrimary, { marginTop: 32, paddingHorizontal: 32 }]}
-        onPress={() => router.push('/preview')}
-      >
-        <Text style={s.btnPrimaryText}>Ver vista previa</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[s.btnSecondary, { marginTop: 8, paddingHorizontal: 32 }]}
-        onPress={() => setEstado('idle')}
-      >
-        <Text style={s.btnSecondaryText}>Nuevo menú</Text>
-      </TouchableOpacity>
+      <Text style={s.savedTitle}>Guardado</Text>
+      <Text style={s.savedSub}>Abriendo compartir...</Text>
     </SafeAreaView>
   );
 }

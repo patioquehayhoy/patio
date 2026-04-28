@@ -1,5 +1,19 @@
 # HANDOFF
 
+## 2026-04-28 (cierre)
+- Push realizado a `origin/v2-menu-vivo` con commit `36fb33c`.
+- `app/preview.tsx`: estado vacío de `Compartir` quedó sin CTAs (solo icono + leyenda), con composición más compacta.
+- Se redujo alto/padding vertical para evitar card gigante.
+- Verificación de perfiles: Foodie (`app/cuenta.tsx`) y Fondero (`app/perfil.tsx`) siguen activos.
+- `npx tsc --noEmit` en verde al cierre.
+
+## Siguiente paso exacto
+- Abrir simulador en `Compartir` con menú vacío y hacer microajuste final si aún se percibe descentrado:
+  - `shareCardEmpty.minHeight`
+  - `scrollBodyEmpty.minHeight`
+  - `emptyWrap.paddingVertical`
+- Si hay ajuste, volver a correr `npx tsc --noEmit`, commit y push.
+
 ## 2026-04-26 (sesión 2)
 - `app/explorar.tsx`: mapa vivo — búsqueda inline en topBar (sin navegación a pantalla separada), pins reactivos (punto pequeño neutral → ring completo al seleccionar), `showHeader`/`selectedId` desacoplados (header solo al tocar explícitamente), `tracksViewChanges={true}` con keys estables (resuelve crash al escribir), `MapView.onPress` deselecciona.
 - `app/cuenta.tsx`: rediseño completo — sheet modal con `presentation: 'transparentModal'` + BlurView backdrop (mapa visible/blureado detrás), botón X circular, identidad compacta, sin labels de sección, rows 52pt, "Cerrar sesión" neutral, "Tengo un negocio →" ghost link.

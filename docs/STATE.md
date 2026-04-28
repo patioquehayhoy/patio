@@ -1,5 +1,16 @@
 # STATE
 
+## Estado actual (2026-04-28 — actualizado cierre)
+- Se hizo push de pulido UI en `v2-menu-vivo` (`36fb33c`).
+- `Compartir` en estado vacío quedó sin botones/CTAs: solo icono + leyenda, como pidió producto.
+- Se compactó layout vertical en `app/preview.tsx` (menos padding/alto mínimo), pero sigue pendiente microajuste visual fino en simulador para dejarlo “pixel-perfect”.
+- Se confirmó que el perfil Foodie no se borró: `app/cuenta.tsx` mantiene `Explorador / Patio Foodie`, `Manifiesto` y `Modo oscuro`.
+
+## Próximos 2–3 pasos
+1. Abrir simulador y validar centrado óptico final del empty state en `Compartir`.
+2. Si hace falta, ajustar `4–8px` vertical/horizontal en `preview.tsx` y volver a push.
+3. Cerrar bloque de UI y preparar siguiente ciclo (QA + build).
+
 ## Estado actual (2026-04-26 — actualizado)
 La app entró en V3 Foodie/Fondero: ya existe flujo fondero para perfil/menú/preview y una base Foodie con mapa mock, búsqueda por platillo, ficha pública de Patio, favoritos y cuenta Foodie. Sigue siendo MVP con datos mock en la parte Foodie; falta mapa real, Supabase para Patios públicos y pruebas en dispositivo.
 

@@ -1,4 +1,4 @@
-import { router, useFocusEffect } from 'expo-router';
+import { useFocusEffect } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
 import { Alert, Platform, ScrollView, Share, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -14,7 +14,6 @@ import {
   getFonditaDescription,
   getFonditaDireccion,
   getFonditaHorario,
-  getFonditaName,
   getMenuData,
   getPagosEfectivo,
   getPagosTarjeta,
@@ -99,7 +98,6 @@ function SectionBlock({ data, title, theme }: { data: MenuData; title: string; t
 export default function PreviewScreen() {
   const [menuData, setMenuData] = useState<MenuData | null>(null);
   const [cartaData, setCartaData] = useState<MenuData | null>(null);
-  const [fonditaName, setFonditaNameState] = useState(getFonditaName());
   const [fonditaDesc, setFonditaDescState] = useState(getFonditaDescription());
   const [fonditaDireccion, setFonditaDireccionState] = useState(getFonditaDireccion());
   const [fonditaHorario,   setFonditaHorarioState]   = useState(getFonditaHorario());
@@ -115,7 +113,6 @@ export default function PreviewScreen() {
     useCallback(() => {
       setMenuData(getMenuData());
       setCartaData(getCartaData());
-      setFonditaNameState(getFonditaName());
       setFonditaDescState(getFonditaDescription());
       setFonditaDireccionState(getFonditaDireccion());
       setFonditaHorarioState(getFonditaHorario());

@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Linking, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -27,8 +27,10 @@ function makeStyles(t: Theme) {
     mapPin: { width: 38, height: 38, borderRadius: 19, backgroundColor: t.isDark ? 'rgba(245,245,240,0.92)' : 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 7 }, shadowOpacity: 0.14, shadowRadius: 14, elevation: 4 },
     mapPinCore: { width: 20, height: 20, borderRadius: 10, backgroundColor: t.accent, alignItems: 'center', justifyContent: 'center' },
     mapPinDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: t.isDark ? 'rgba(245,245,240,0.92)' : 'rgba(255,255,255,0.92)' },
-    mapPill: { position: 'absolute', left: 14, right: 14, bottom: 14, minHeight: 52, borderRadius: 18, backgroundColor: t.isDark ? 'rgba(27,28,32,0.82)' : 'rgba(255,255,255,0.82)', borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center' },
+    mapPill: { position: 'absolute', left: 14, right: 14, bottom: 14, minHeight: 52, borderRadius: 18, backgroundColor: t.isDark ? 'rgba(27,28,32,0.82)' : 'rgba(255,255,255,0.82)', borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 8 },
     mapPillText: { flex: 1, fontSize: 13, fontWeight: '900', color: t.text },
+    mapPillBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 6, paddingHorizontal: 10, borderRadius: 12, backgroundColor: t.isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.07)' },
+    mapPillBtnText: { fontSize: 12, fontWeight: '900', color: t.text },
     panel: { borderRadius: 22, backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, overflow: 'hidden' },
     menuPanel: { borderRadius: 26, backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, overflow: 'hidden', shadowColor: '#000', shadowOffset: { width: 0, height: 12 }, shadowOpacity: t.isDark ? 0.16 : 0.06, shadowRadius: 24, elevation: 3 },
     menuHeader: { minHeight: 58, paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
@@ -58,11 +60,27 @@ export default function PatioDetailScreen() {
   const s = makeStyles(theme);
   const insets = useSafeAreaInsets();
   const [isSaved, setIsSaved] = useState(false);
+  const patioId = patio?.id;
 
   useEffect(() => {
+    if (!patioId) return;
+    getFavoritePatioIds().then((ids) => setIsSaved(ids.includes(patioId)));
+  }, [patioId]);
+
+  const handleBack = () => {
+    if (router.canGoBack()) router.back();
+    else router.replace('/');
+  };
+
+  const handleComoLlegar = () => {
     if (!patio) return;
-    getFavoritePatioIds().then((ids) => setIsSaved(ids.includes(patio.id)));
-  }, [patio?.id]);
+    const { latitude, longitude } = patio;
+    const url = Platform.select({
+      ios: `maps://maps.apple.com/?daddr=${latitude},${longitude}&dirflg=d`,
+      android: `google.navigation:q=${latitude},${longitude}`,
+    });
+    if (url) Linking.openURL(url);
+  };
 
   const handleToggleSaved = async () => {
     if (!patio) return;
@@ -76,7 +94,7 @@ export default function PatioDetailScreen() {
         <Stack.Screen options={{ headerShown: false }} />
         <View style={s.scrollContent}>
           <View style={s.top}>
-            <TouchableOpacity style={s.iconButton} onPress={() => router.back()} activeOpacity={0.76}>
+            <TouchableOpacity style={s.iconButton} onPress={handleBack} activeOpacity={0.76}>
               <Ionicons name="chevron-back" size={22} color={theme.text} />
             </TouchableOpacity>
           </View>
@@ -91,7 +109,7 @@ export default function PatioDetailScreen() {
       <Stack.Screen options={{ headerShown: false }} />
       <ScrollView contentContainerStyle={s.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={s.top}>
-          <TouchableOpacity style={s.iconButton} onPress={() => router.back()} activeOpacity={0.76}>
+          <TouchableOpacity style={s.iconButton} onPress={handleBack} activeOpacity={0.76}>
             <Ionicons name="chevron-back" size={22} color={theme.text} />
           </TouchableOpacity>
           <TouchableOpacity style={s.iconButton} onPress={handleToggleSaved} activeOpacity={0.76}>
@@ -135,8 +153,12 @@ export default function PatioDetailScreen() {
               </View>
             </Marker>
           </MapView>
-          <View style={s.mapPill} pointerEvents="none">
+          <View style={s.mapPill}>
             <Text style={s.mapPillText} numberOfLines={1} allowFontScaling={true}>{patio.address}</Text>
+            <TouchableOpacity style={s.mapPillBtn} onPress={handleComoLlegar} activeOpacity={0.76}>
+              <Ionicons name="navigate-outline" size={13} color={theme.text} />
+              <Text style={s.mapPillBtnText}>Cómo llegar</Text>
+            </TouchableOpacity>
           </View>
         </View>
 

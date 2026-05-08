@@ -1,4 +1,7 @@
-import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { router, Stack } from 'expo-router';
+import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useTheme, type Theme } from '@/lib/theme';
 
@@ -79,19 +82,33 @@ function makeStyles(t: Theme) {
       backgroundColor: t.sep,
       marginTop: 2,
     },
+    top: { flexDirection: 'row', alignItems: 'center', paddingBottom: 20 },
+    backBtn: { width: 44, height: 44, borderRadius: 14, backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, alignItems: 'center', justifyContent: 'center' },
   });
 }
 
 export default function ManifiestoScreen() {
   const { theme } = useTheme();
   const s = makeStyles(theme);
+  const insets = useSafeAreaInsets();
+
+  const handleBack = () => {
+    if (router.canGoBack()) router.back();
+    else router.replace('/');
+  };
 
   return (
-    <View style={s.container}>
+    <View style={[s.container, { paddingTop: insets.top }]}>
+      <Stack.Screen options={{ headerShown: false }} />
       <ScrollView
         style={s.scroll}
         contentContainerStyle={s.content}
         showsVerticalScrollIndicator={false}>
+        <View style={s.top}>
+          <TouchableOpacity style={s.backBtn} onPress={handleBack} activeOpacity={0.76}>
+            <Ionicons name="chevron-back" size={22} color={theme.text} />
+          </TouchableOpacity>
+        </View>
         <View style={s.hero}>
           <Image
             source={theme.isDark ? require('../assets/images/logo-blanco.png') : require('../assets/images/logo-negro.png')}
@@ -105,7 +122,15 @@ export default function ManifiestoScreen() {
         <View style={s.block}>
           <Text style={s.blockLabel} allowFontScaling={true}>Qué es Patio</Text>
           <Text style={s.body} allowFontScaling={true}>
-            Patio nace para ayudar a negocios de comida a comunicar mejor lo que hacen con tanto esfuerzo todos los días.
+            Patio conecta a quien busca dónde comer con negocios locales que merecen más visibilidad. Busca por platillo, explora el mapa y guarda tus favoritos.
+          </Text>
+          <View style={s.divider} />
+        </View>
+
+        <View style={s.block}>
+          <Text style={s.blockLabel} allowFontScaling={true}>Para fonderos</Text>
+          <Text style={s.body} allowFontScaling={true}>
+            Sube el menú del día en segundos — escríbelo o toma una foto y lo procesamos automáticamente. Tu platillo de hoy aparece en el mapa para que te encuentren quienes buscan exactamente lo que cocinas.
           </Text>
           <View style={s.divider} />
         </View>
@@ -113,21 +138,7 @@ export default function ManifiestoScreen() {
         <View style={s.block}>
           <Text style={s.blockLabel} allowFontScaling={true}>Gracias por llegar temprano</Text>
           <Text style={s.body} allowFontScaling={true}>
-            Si estás probando Patio desde estos primeros días, gracias de verdad. Eres de las primeras personas en conocer la app y en ayudarnos a darle forma con tus comentarios y tu experiencia.
-          </Text>
-          <Text style={s.body} allowFontScaling={true}>
-            Queremos construir esto cerca de quienes sí viven este trabajo todos los días.
-          </Text>
-          <View style={s.divider} />
-        </View>
-
-        <View style={s.block}>
-          <Text style={s.blockLabel} allowFontScaling={true}>Lo que viene</Text>
-          <Text style={s.body} allowFontScaling={true}>
-            Estamos trabajando para que compartir tu menú sea todavía más útil para tu negocio y te ayude a tener mayor exposición.
-          </Text>
-          <Text style={s.body} allowFontScaling={true}>
-            La idea es que también puedas aparecer en un mapa de negocios abiertos, y que ahí mismo se vea reflejado tu menú para ayudarte a atraer más clientes.
+            Si estás en esta versión beta, eres de las primeras personas en darle forma a Patio. Cada comentario y cada uso nos ayuda a construirlo mejor.
           </Text>
           <Text style={s.closing} allowFontScaling={true}>Gracias por ser parte de Patio.</Text>
         </View>

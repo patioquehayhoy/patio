@@ -12,7 +12,10 @@
       "supportsTablet": false,
       "bundleIdentifier": "com.parcomx.patio",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSCameraUsageDescription": "Toma foto del menú para subirlo automáticamente",
+        "NSPhotoLibraryUsageDescription": "Elige una foto del menú desde tu galería",
+        "NSLocationWhenInUseUsageDescription": "Usamos tu ubicación para mostrarte patios cercanos"
       }
     },
     "android": {
@@ -32,6 +35,19 @@
     },
     "plugins": [
       "expo-router",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Elige una foto del menú desde tu galería",
+          "cameraPermission": "Toma foto del menú para subirlo automáticamente"
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Toma foto del menú para subirlo automáticamente"
+        }
+      ],
       [
         "expo-splash-screen",
         {

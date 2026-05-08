@@ -1,5 +1,30 @@
 # HANDOFF
 
+## 2026-05-07 (cierre)
+
+### Qué se hizo hoy
+- `app.json`: permisos iOS de cámara/galería en `infoPlist` + plugins `expo-image-picker` y `expo-camera` — esto desbloqueará la función de foto en el próximo build
+- `app/patio/[id].tsx`: botón "Cómo llegar" en pill del mapa (abre Apple Maps en iOS, Google Navigation en Android), back button robusto con `router.canGoBack()` + fallback a `/`
+- `app/manifiesto.tsx`: botón de regreso propio (ya no dependía del header nativo que fallaba), `headerShown: false` en `_layout.tsx`, tagline `"Saaaaaaabes."` restaurado
+- `CLAUDE.md`: bloque "Leer primero" con referencia a `docs/` y reglas de economía de builds EAS
+- `lib/patios.ts` + `app/preview.tsx`: mejoras de búsqueda multi-token y limpieza de imports
+
+### Decisiones importantes hoy
+- **"Saaaaaaabes."** es el tagline oficial de Patio — posible registro de marca. No tocar
+- **EAS builds son recurso limitado**: simulador primero, build solo cuando el sim no alcanza (permisos nativos, módulos nativos)
+- **docs/ es la fuente de verdad del producto** — CLAUDE.md ahora lo referencia explícitamente
+
+### Siguiente paso exacto
+1. Probar en simulador (ya corriendo): back button en manifiesto, botón "Cómo llegar" visual, búsqueda multi-palabra
+2. Cuando esté validado en sim → un solo build EAS que incluya: permisos de cámara/galería + todos los fixes de hoy
+3. TestFlight build 42 sigue activo para QA de flujo general
+
+### Pendiente que viene del historial
+- Viewport filtering en `explorar.tsx` (`onRegionChangeComplete`)
+- Permisos de cámara/galería (requieren build — no sirve hot reload)
+- Conectar Patios/Buscar/Favoritos a Supabase
+- API key Google Maps para Android
+
 ## 2026-04-28 (cierre)
 - Push realizado a `origin/v2-menu-vivo` con commit `36fb33c`.
 - `app/preview.tsx`: estado vacío de `Compartir` quedó sin CTAs (solo icono + leyenda), con composición más compacta.

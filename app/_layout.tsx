@@ -27,13 +27,7 @@ function RootStack() {
         <Stack.Screen name="onboarding" options={{ headerShown: false }} />
         <Stack.Screen name="login-callback" options={{ headerShown: false }} />
         <Stack.Screen name="menu" options={{ title: '' }} />
-        <Stack.Screen
-          name="manifiesto"
-          options={{
-            title: 'Manifiesto',
-            headerBackButtonDisplayMode: 'minimal',
-          }}
-        />
+        <Stack.Screen name="manifiesto" options={{ headerShown: false }} />
         <Stack.Screen name="share" options={{ title: 'Compartir' }} />
         <Stack.Screen name="preview" options={{ headerShown: false }} />
         <Stack.Screen name="perfil" options={{ headerShown: false }} />

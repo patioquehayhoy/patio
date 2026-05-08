@@ -1,5 +1,20 @@
 # La Fondita — Reglas de diseño
 
+## Contexto de producto — LEER PRIMERO
+
+Antes de cualquier cambio de UI, copy o flujo, leer los siguientes documentos en este orden:
+
+1. `docs/GOAL.md` — filosofía de producto, principios de experiencia, objetivos técnicos
+2. `docs/PATIO_DESIGN_PRINCIPLES.md` — reglas de interacción, layout, copy y rol Fondero/Foodie
+3. `docs/design/foundations/IDENTITY_AND_TYPE.md` — identidad de marca y sistema tipográfico
+4. `docs/HANDOFF.md` — estado actual y decisiones recientes
+5. `docs/STATE.md` — estado de features y flujos
+
+**Reglas de marca no negociables:**
+- `"Saaaaaaabes."` es el tagline oficial de Patio — no modificar, no parafrasear, no "mejorar"
+- El tono es humano, local, editorial — nunca genérico ni de marketing
+- Fondero y Foodie son roles distintos con JTBDs distintos — no mezclar ni contaminar sus flujos
+
 ## Tipografía
 
 - **SF Pro Display** para textos ≥ 20pt (títulos, nombre de fondita, precios)
@@ -89,3 +104,16 @@ Usar `LinearGradient` de `expo-linear-gradient` para:
 - Nombres de sección en `UPPERCASE` con `letterSpacing`
 - Animaciones con `Animated` de React Native, duración estándar `200ms`
 - Importar `BlurView` de `expo-blur` y `LinearGradient` de `expo-linear-gradient` cuando aplique
+
+## Economía de builds EAS
+
+Los builds de EAS son un recurso limitado. Antes de proponer o ejecutar un build:
+
+1. **Simulador primero** — todo cambio de UI, navegación, copy y lógica JS va al simulador antes de ir a build. Comando: `npx expo run:ios` (primera vez instala nativo) → después `npx expo start --ios`.
+2. **Build solo cuando el simulador no alcanza** — casos válidos para build real:
+   - Permisos nativos nuevos (cámara, galería, ubicación) agregados en `app.json`
+   - Módulos nativos que no funcionan en simulador (mapas en producción, notificaciones push, biometría)
+   - QA final antes de release o cuando ya se acumularon varios cambios testeados en simulador
+3. **Agrupar cambios** — nunca hacer build por un solo ajuste de UI. Acumular en simulador hasta que haya un bloque de funcionalidad completo y probado.
+4. **Antes de proponer un build** — mencionar explícitamente qué no se puede probar en simulador y por qué justifica quemar un build.
+5. **Rama correcta** — confirmar que estamos en la rama activa (`v2-menu-vivo` o la que corresponda) antes de hacer build o submit.

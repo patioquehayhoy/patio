@@ -194,6 +194,7 @@ export function getPatioById(id: string | string[] | undefined): Patio | null {
 export function searchPatiosByDish(query: string): PatioDishMatch[] {
   const normalizedQuery = normalizeSearch(query);
   if (!normalizedQuery) return [];
+  const queryTokens = normalizedQuery.split(/\s+/).filter(Boolean);
 
   const matches: PatioDishMatch[] = [];
 
@@ -204,6 +205,7 @@ export function searchPatiosByDish(query: string): PatioDishMatch[] {
         const sectionName = normalizeSearch(section.section);
         const tags = (item.tags ?? []).map(normalizeSearch);
         const haystack = [itemName, sectionName, patio.category, patio.reason, ...tags].map(normalizeSearch);
+        const haystackText = haystack.join(' ');
 
         let score = 0;
         if (itemName === normalizedQuery) score += 100;
@@ -211,6 +213,7 @@ export function searchPatiosByDish(query: string): PatioDishMatch[] {
         if (tags.some((tag) => tag === normalizedQuery)) score += 55;
         if (tags.some((tag) => tag.includes(normalizedQuery))) score += 35;
         if (haystack.some((value) => value.includes(normalizedQuery))) score += 12;
+        if (queryTokens.length > 1 && queryTokens.every((token) => haystackText.includes(token))) score += 28;
 
         if (score > 0) {
           matches.push({ patio, section: section.section, item, score });

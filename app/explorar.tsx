@@ -91,7 +91,19 @@ export default function ExplorarScreen() {
   const [savedIds, setSavedIds] = useState<string[]>([]);
   const [searchActive, setSearchActive] = useState(false);
   const [query, setQuery] = useState('');
+  const [visibleRegion, setVisibleRegion] = useState<Region>(INITIAL_REGION);
   const searchInputRef = useRef<TextInput>(null);
+
+  const visiblePatios = useMemo(() => {
+    const { latitude, longitude, latitudeDelta, longitudeDelta } = visibleRegion;
+    const minLat = latitude - latitudeDelta / 2;
+    const maxLat = latitude + latitudeDelta / 2;
+    const minLng = longitude - longitudeDelta / 2;
+    const maxLng = longitude + longitudeDelta / 2;
+    return PATIOS.filter(
+      (p) => p.latitude >= minLat && p.latitude <= maxLat && p.longitude >= minLng && p.longitude <= maxLng
+    );
+  }, [visibleRegion]);
 
   const searchResults = useMemo(() => searchPatiosByDish(query), [query]);
   const matchingPatioIds = useMemo(() => new Set(searchResults.map((r) => r.patio.id)), [searchResults]);
@@ -176,8 +188,9 @@ export default function ExplorarScreen() {
           style={s.mapView}
           toolbarEnabled={false}
           userInterfaceStyle={theme.isDark ? 'dark' : 'light'}
-          onPress={deselect}>
-          {PATIOS.map((patio) => {
+          onPress={deselect}
+          onRegionChangeComplete={setVisibleRegion}>
+          {visiblePatios.map((patio) => {
             const isSelected = patio.id === selectedId && showHeader;
             const isMuted = isFiltering && !matchingPatioIds.has(patio.id);
             return (
@@ -367,7 +380,7 @@ export default function ExplorarScreen() {
                 })
               )
             ) : (
-              PATIOS.map((patio, index) => {
+              visiblePatios.map((patio, index) => {
                 const active = patio.id === selectedId && showHeader;
                 return (
                   <TouchableOpacity

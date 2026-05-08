@@ -11,7 +11,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getFavoritePatioIds, toggleFavoritePatio } from '@/lib/favorites';
 import { MAP_STYLE_DARK, MAP_STYLE_LIGHT } from '@/lib/map-style';
 import { MOCK_PATIOS as PATIOS, searchPatiosByDish } from '@/lib/patios';
-import { useTheme, type Theme } from '@/lib/theme';
+import { Fonts, useTheme, type Theme } from '@/lib/theme';
 
 function makeStyles(t: Theme) {
   const btnBorder = t.isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.06)';
@@ -37,12 +37,12 @@ function makeStyles(t: Theme) {
     grabber: { alignSelf: 'center', width: 44, height: 4, borderRadius: 2, backgroundColor: t.isDark ? 'rgba(255,255,255,0.16)' : 'rgba(0,0,0,0.10)', marginTop: 10, marginBottom: 8 },
     selectedPanel: { paddingHorizontal: 18, paddingBottom: 14 },
     selectedHeader: { flexDirection: 'row', alignItems: 'center', gap: 9, marginBottom: 8 },
-    selectedTitle: { flex: 1, fontSize: 22, lineHeight: 26, fontWeight: '900', color: t.text },
+    selectedTitle: { flex: 1, fontSize: 22, lineHeight: 26, fontWeight: '900', fontFamily: Fonts.brand, color: t.text },
     heartButton: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
     selectedMeta: { fontSize: 13, lineHeight: 18, color: t.textSecondary },
     selectedStats: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginTop: 12 },
     price: { fontSize: 24, lineHeight: 28, fontWeight: '300', color: t.text },
-    dishName: { fontSize: 19, lineHeight: 24, fontWeight: '900', color: t.text },
+    dishName: { fontSize: 19, lineHeight: 24, fontWeight: '900', fontFamily: Fonts.brand, color: t.text },
     priceCaption: { marginTop: 1, fontSize: 12, color: t.textSecondary },
     ratingRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 8 },
     ratingText: { fontSize: 13, fontWeight: '900', color: t.text },
@@ -60,7 +60,7 @@ function makeStyles(t: Theme) {
     addBox: { width: 32, height: 32, borderRadius: 9, backgroundColor: t.text, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
     addBoxMuted: { backgroundColor: 'transparent', borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
     patioInfo: { flex: 1, paddingRight: 10 },
-    patioName: { fontSize: 15, fontWeight: '900', color: t.text },
+    patioName: { fontSize: 15, fontWeight: '900', fontFamily: Fonts.brand, color: t.text },
     patioMeta: { marginTop: 4, fontSize: 12, lineHeight: 16, color: t.textSecondary },
     patioRight: { alignItems: 'flex-end', gap: 3 },
     patioPrice: { fontSize: 15, fontWeight: '900', color: t.text },

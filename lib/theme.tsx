@@ -54,6 +54,10 @@ export const darkTheme: Theme = {
 
 export const DARK_MODE_KEY = '@lafondita_dark_mode';
 
+export const Fonts = {
+  brand: 'PlusJakartaSans_800ExtraBold',
+} as const;
+
 // ─── Context ──────────────────────────────────────────────────────────────────
 type ThemeCtx = {
   theme: Theme;

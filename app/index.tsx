@@ -26,7 +26,7 @@ import {
   setTipoNegocio,
 } from '@/lib/menu-store';
 import { supabase } from '@/lib/supabase';
-import { useTheme } from '@/lib/theme';
+import { Fonts, useTheme } from '@/lib/theme';
 import { setFonditaId } from '@/lib/user-store';
 
 function showAuthError(err: { message?: string; code?: string } | null) {
@@ -241,6 +241,7 @@ const styles = StyleSheet.create({
   tagline: {
     fontSize: 16,
     fontWeight: '300',
+    fontFamily: Fonts.brand,
     textAlign: 'center',
   },
   formCard: {

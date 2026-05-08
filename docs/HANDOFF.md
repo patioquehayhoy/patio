@@ -1,5 +1,38 @@
 # HANDOFF
 
+## 2026-05-08 (cierre)
+
+### Qué se hizo hoy
+- Instalado `@expo-google-fonts/plus-jakarta-sans` como fuente de marca (alternativa a Stabil Grotesk, que es comercial y no está en Google Fonts)
+- `app/_layout.tsx`: carga de `PlusJakartaSans_800ExtraBold` con `useFonts` + `SplashScreen.preventAutoHideAsync` — splash se mantiene hasta que la fuente cargue
+- `lib/theme.tsx`: exportado `Fonts.brand = 'PlusJakartaSans_800ExtraBold'` como token de fuente de marca
+- Aplicado `fontFamily: Fonts.brand` en:
+  - `app/index.tsx` — taglines "¿Qué hay hoy?" / "Saaaaaaabes."
+  - `app/manifiesto.tsx` — `intro` e `introSub` del hero
+  - `app/explorar.tsx` — `selectedTitle`, `dishName`, `patioName`
+  - `app/patio/[id].tsx` — `title` (nombre del patio)
+- `npx tsc --noEmit` en verde al cierre
+
+### Decisiones importantes hoy
+- **Plus Jakarta Sans** en lugar de Stabil Grotesk — editorial grotesca moderna, libre, feel muy similar al spec original
+- Solo se carga `800ExtraBold` por ahora — suficiente para todos los usos de marca actuales
+- La fuente se aplica solo a elementos con identidad de marca o nombre de negocio — UI (inputs, labels, metadata) sigue en SF Pro
+
+### Siguiente paso exacto
+Abrir simulador y validar visualmente que la fuente carga y se ve bien en:
+1. Pantalla de entrada (`index.tsx`) — taglines bajo el logo
+2. `Explorar` — nombre del patio en bottom sheet y en lista
+3. `Ficha de Patio` — título principal
+4. `Manifiesto` — hero "¿Qué hay hoy?" / "Saaaaaaabes."
+
+Si todo se ve bien → commit y push.
+
+### Pendiente que viene del historial
+- Viewport filtering en `explorar.tsx` (`onRegionChangeComplete`)
+- Permisos de cámara/galería (requieren build — no sirve hot reload)
+- Conectar Patios/Buscar/Favoritos a Supabase
+- API key Google Maps para Android
+
 ## 2026-05-07 (cierre)
 
 ### Qué se hizo hoy

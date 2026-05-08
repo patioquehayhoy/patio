@@ -8,7 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getFavoritePatioIds, toggleFavoritePatio } from '@/lib/favorites';
 import { MAP_STYLE_DARK, MAP_STYLE_LIGHT } from '@/lib/map-style';
 import { getPatioById } from '@/lib/patios';
-import { useTheme, type Theme } from '@/lib/theme';
+import { Fonts, useTheme, type Theme } from '@/lib/theme';
 
 function makeStyles(t: Theme) {
   return StyleSheet.create({
@@ -18,7 +18,7 @@ function makeStyles(t: Theme) {
     iconButton: { width: 44, height: 44, borderRadius: 14, backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, alignItems: 'center', justifyContent: 'center' },
     hero: { paddingBottom: 16 },
     eyebrow: { fontSize: 12, fontWeight: '900', letterSpacing: 1.6, color: t.textSecondary, marginBottom: 8 },
-    title: { fontSize: 32, lineHeight: 36, fontWeight: '900', color: t.text, letterSpacing: 0 },
+    title: { fontSize: 32, lineHeight: 36, fontWeight: '900', fontFamily: Fonts.brand, color: t.text, letterSpacing: 0 },
     meta: { marginTop: 8, fontSize: 15, lineHeight: 21, color: t.textSecondary },
     ratingRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 10 },
     ratingText: { fontSize: 15, fontWeight: '900', color: t.text },

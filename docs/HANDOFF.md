@@ -14,10 +14,21 @@
 - **EAS builds son recurso limitado**: simulador primero, build solo cuando el sim no alcanza (permisos nativos, módulos nativos)
 - **docs/ es la fuente de verdad del producto** — CLAUDE.md ahora lo referencia explícitamente
 
-### Siguiente paso exacto
-1. Probar en simulador (ya corriendo): back button en manifiesto, botón "Cómo llegar" visual, búsqueda multi-palabra
-2. Cuando esté validado en sim → un solo build EAS que incluya: permisos de cámara/galería + todos los fixes de hoy
-3. TestFlight build 42 sigue activo para QA de flujo general
+### Siguiente paso exacto — TAREA OVERNIGHT
+Implementar fuente Stabil Grotesk como fuente de marca en toda la app.
+
+Referencia: `docs/design/foundations/IDENTITY_AND_TYPE.md` (sección 2 y 4)
+Fuente: Kometa — Stabil Grotesk (descargar o usar via expo-font si está disponible en Google Fonts / licencia libre; si no, buscar alternativa editorial de peso similar como DM Sans o Plus Jakarta Sans)
+
+Regla operativa:
+- Títulos de pantalla, nombre de negocio, hero text → Stabil Grotesk Bold
+- UI general (labels, inputs, botones, metadata) → SF Pro (sistema, sin cambio)
+- Fallback automático a SF Pro si la fuente no carga en runtime
+- Implementar en `lib/theme.ts` como token `font.brand`
+- Aplicar en: `app/explorar.tsx` (título selected), `app/patio/[id].tsx` (nombre del patio), `app/manifiesto.tsx` (intro), `app/index.tsx` (pantalla de entrada)
+- NO aplicar en formularios, inputs ni metadata secundaria
+
+Criterio de éxito: `npx tsc --noEmit` en verde, la fuente carga sin crash en simulador, fallback funciona si se comenta el import de la fuente.
 
 ### Pendiente que viene del historial
 - Viewport filtering en `explorar.tsx` (`onRegionChangeComplete`)

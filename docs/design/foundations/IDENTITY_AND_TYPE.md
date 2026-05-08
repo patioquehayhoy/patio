@@ -13,15 +13,21 @@ Principio visual: limpiar ruido, priorizar jerarquía y ritmo.
 ## 2) Sistema tipográfico base
 
 ## Fuente primaria
-- `Stabil Grotesk` (Kometa) para marca, encabezados y acentos editoriales.
+- `Plus Jakarta Sans 800ExtraBold` — implementada via `@expo-google-fonts/plus-jakarta-sans`
+- Token en código: `Fonts.brand` (exportado desde `lib/theme.tsx`)
+- Cargada en `app/_layout.tsx` con `useFonts` + `SplashScreen.preventAutoHideAsync`
 
-## Fuente de sistema (fallback multiplataforma)
-- iOS: `SF Pro`
-- Android: `Roboto`
+> **Nota:** Stabil Grotesk (Kometa) es la fuente de spec original pero es comercial y no está en Google Fonts. Plus Jakarta Sans 800ExtraBold es la alternativa activa — editorial grotesca moderna, carácter similar.
+
+## Fuente de sistema (UI)
+- iOS: `SF Pro` (automático, sin declarar)
+- Android: `Roboto` (automático, sin declarar)
+- No declarar fuente en elementos de UI — dejar caer al sistema.
 
 ## Regla operativa
-- Si `Stabil Grotesk` no carga en runtime, caer automáticamente a fuente de sistema.
-- Mantener métricas consistentes (line-height y tracking neutral) para evitar saltos entre iOS y Android.
+- `Fonts.brand` → solo en elementos de identidad de marca: nombre de negocio, taglines, hero text, título de pantalla principal
+- UI (labels, inputs, botones, metadata, body) → fuente de sistema, sin `fontFamily`
+- Si `Fonts.brand` no carga en runtime, el splash se mantiene hasta que cargue (`SplashScreen.preventAutoHideAsync`)
 
 ## 3) Escala tipográfica recomendada (v1)
 

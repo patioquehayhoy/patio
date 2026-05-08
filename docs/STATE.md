@@ -1,5 +1,18 @@
 # STATE
 
+## Estado actual (2026-05-08 — actualizado cierre)
+- Dos features nuevos listos y commiteados en `v2-menu-vivo`, pendientes de validar en simulador y pushear:
+  - **Share de lugar**: botón en `patio/[id].tsx` (top bar) y en `explorar.tsx` (bottom sheet). Genera mensaje nativo con nombre, categoría, horario, dirección y link de Maps.
+  - **Rating 5 estrellas**: estrellas interactivas en `patio/[id].tsx`. 5 → guarda directo (AsyncStorage). < 5 → modal bottom sheet con 7 razones estructuradas. `lib/ratings.ts` creado para persistencia.
+- **Fuente de marca**: Plus Jakarta Sans 800ExtraBold activa en index, explorar, patio detail y manifiesto via `Fonts.brand` en `lib/theme.tsx`.
+- **Viewport filtering**: ya estaba implementado en `explorar.tsx` (descubierto en auditoría) — quitado de pendientes.
+- `npx tsc --noEmit` pasa en verde.
+
+## Próximos 2–3 pasos
+1. Abrir simulador (`npx expo start --ios`) y validar fuente, share y rating.
+2. Push a `origin/v2-menu-vivo` una vez validado.
+3. Siguiente bloque: conectar datos reales (Supabase) o avanzar en onboarding/auth real.
+
 ## Estado actual (2026-04-28 — actualizado cierre)
 - Se hizo push de pulido UI en `v2-menu-vivo` (`36fb33c`).
 - `Compartir` en estado vacío quedó sin botones/CTAs: solo icono + leyenda, como pidió producto.

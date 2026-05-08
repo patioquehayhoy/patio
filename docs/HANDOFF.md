@@ -1,34 +1,36 @@
 # HANDOFF
 
-## 2026-05-08 (cierre)
+## 2026-05-08 (cierre — sesión 2)
 
 ### Qué se hizo hoy
-- Instalado `@expo-google-fonts/plus-jakarta-sans` como fuente de marca (alternativa a Stabil Grotesk, que es comercial y no está en Google Fonts)
-- `app/_layout.tsx`: carga de `PlusJakartaSans_800ExtraBold` con `useFonts` + `SplashScreen.preventAutoHideAsync` — splash se mantiene hasta que la fuente cargue
+- **Share de lugar sin fricción**: botón de compartir en `app/patio/[id].tsx` (top bar junto al corazón) y en `app/explorar.tsx` (bottom sheet cuando hay lugar seleccionado). Usa `Share.share()` nativo de React Native — abre el share sheet del SO con mensaje pre-compuesto: nombre, categoría, zona, horario, dirección y link a Apple Maps.
+- **Rating 5 estrellas con feedback estructurado**: en `app/patio/[id].tsx` se reemplazó el rating estático por estrellas interactivas. 5 estrellas → guarda directo. Menos de 5 → abre `Modal` bottom sheet con pills de razones estructuradas (Horario incorrecto, Ubicación confusa, Menú no disponible, Precio distinto, Atención, Estaba cerrado, Otro).
+- **`lib/ratings.ts`** creado: `PatioRating`, `getPatioRating`, `savePatioRating` — mismo patrón que `lib/favorites.ts`, persiste en AsyncStorage.
+- `npx tsc --noEmit` en verde al cierre.
+
+### Qué se hizo hoy (sesión 1)
+- Instalado `@expo-google-fonts/plus-jakarta-sans` como fuente de marca (alternativa a Stabil Grotesk, que es comercial)
+- `app/_layout.tsx`: carga de `PlusJakartaSans_800ExtraBold` con `useFonts` + `SplashScreen.preventAutoHideAsync`
 - `lib/theme.tsx`: exportado `Fonts.brand = 'PlusJakartaSans_800ExtraBold'` como token de fuente de marca
-- Aplicado `fontFamily: Fonts.brand` en:
-  - `app/index.tsx` — taglines "¿Qué hay hoy?" / "Saaaaaaabes."
-  - `app/manifiesto.tsx` — `intro` e `introSub` del hero
-  - `app/explorar.tsx` — `selectedTitle`, `dishName`, `patioName`
-  - `app/patio/[id].tsx` — `title` (nombre del patio)
-- `npx tsc --noEmit` en verde al cierre
+- Aplicado `fontFamily: Fonts.brand` en: `app/index.tsx`, `app/manifiesto.tsx`, `app/explorar.tsx`, `app/patio/[id].tsx`
+- Viewport filtering en `explorar.tsx` ya estaba implementado (descubierto durante auditoría): `useMemo` + `onRegionChangeComplete={setVisibleRegion}` — quitado de pendientes.
 
 ### Decisiones importantes hoy
-- **Plus Jakarta Sans** en lugar de Stabil Grotesk — editorial grotesca moderna, libre, feel muy similar al spec original
-- Solo se carga `800ExtraBold` por ahora — suficiente para todos los usos de marca actuales
-- La fuente se aplica solo a elementos con identidad de marca o nombre de negocio — UI (inputs, labels, metadata) sigue en SF Pro
+- **Plus Jakarta Sans** en lugar de Stabil Grotesk — editorial grotesca moderna, libre, feel similar al spec original
+- **Share nativo**: usar `Share.share()` de React Native (sin deps extra) — cero fricción, mensaje pre-compuesto con Maps link
+- **Ratings estructurados**: feedback por categorías concretas en lugar de texto libre — más accionable, menor fricción para el usuario
 
 ### Siguiente paso exacto
-Abrir simulador y validar visualmente que la fuente carga y se ve bien en:
-1. Pantalla de entrada (`index.tsx`) — taglines bajo el logo
-2. `Explorar` — nombre del patio en bottom sheet y en lista
-3. `Ficha de Patio` — título principal
-4. `Manifiesto` — hero "¿Qué hay hoy?" / "Saaaaaaabes."
+Abrir simulador y validar:
+1. Fuente carga en index, explorar, patio detail y manifiesto
+2. Botón de share en patio detail y en bottom sheet de explorar → abre share sheet nativo
+3. 5 estrellas → guarda sin abrir modal; 1–4 → abre modal con pills; seleccionar razones y enviar; re-abrir patio y confirmar que rating persistió
 
-Si todo se ve bien → commit y push.
+Comando: `npx expo start --ios`
+
+Una vez validado → push a `origin/v2-menu-vivo`.
 
 ### Pendiente que viene del historial
-- Viewport filtering en `explorar.tsx` (`onRegionChangeComplete`)
 - Permisos de cámara/galería (requieren build — no sirve hot reload)
 - Conectar Patios/Buscar/Favoritos a Supabase
 - API key Google Maps para Android

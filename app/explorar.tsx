@@ -4,7 +4,7 @@ import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, Stack } from 'expo-router';
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { Keyboard, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Keyboard, ScrollView, Share, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker, type Region } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -150,6 +150,14 @@ export default function ExplorarScreen() {
     setSavedIds(next);
   };
 
+  const handleShareSelected = () => {
+    if (!selectedPatio) return;
+    const mapsUrl = `https://maps.apple.com/?q=${selectedPatio.latitude},${selectedPatio.longitude}`;
+    Share.share({
+      message: `${selectedPatio.name}\n${selectedPatio.category} · ${selectedPatio.area}\n${selectedPatio.open}\n\n📍 ${selectedPatio.address}\n${mapsUrl}`,
+    });
+  };
+
   const openSearch = useCallback(() => {
     setSearchActive(true);
     setTimeout(() => searchInputRef.current?.focus(), 80);
@@ -283,9 +291,14 @@ export default function ExplorarScreen() {
               <View style={s.selectedPanel}>
                 <View style={s.selectedHeader}>
                   <Text style={s.selectedTitle} allowFontScaling={true}>{selectedPatio.name}</Text>
-                  <TouchableOpacity style={s.heartButton} onPress={toggleSaved} activeOpacity={0.76}>
-                    <Ionicons name={selectedSaved ? 'heart' : 'heart-outline'} size={22} color={selectedSaved ? theme.accent : theme.textSecondary} />
-                  </TouchableOpacity>
+                  <View style={{ flexDirection: 'row', gap: 4 }}>
+                    <TouchableOpacity style={s.heartButton} onPress={handleShareSelected} activeOpacity={0.76}>
+                      <Ionicons name="share-outline" size={20} color={theme.textSecondary} />
+                    </TouchableOpacity>
+                    <TouchableOpacity style={s.heartButton} onPress={toggleSaved} activeOpacity={0.76}>
+                      <Ionicons name={selectedSaved ? 'heart' : 'heart-outline'} size={22} color={selectedSaved ? theme.accent : theme.textSecondary} />
+                    </TouchableOpacity>
+                  </View>
                 </View>
                 <Text style={s.selectedMeta} allowFontScaling={true}>
                   {featuredMatch

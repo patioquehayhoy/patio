@@ -1,13 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Linking, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Linking, Modal, Platform, ScrollView, Share, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { getFavoritePatioIds, toggleFavoritePatio } from '@/lib/favorites';
 import { MAP_STYLE_DARK, MAP_STYLE_LIGHT } from '@/lib/map-style';
 import { getPatioById } from '@/lib/patios';
+import { getPatioRating, savePatioRating } from '@/lib/ratings';
 import { Fonts, useTheme, type Theme } from '@/lib/theme';
 
 function makeStyles(t: Theme) {
@@ -50,6 +51,21 @@ function makeStyles(t: Theme) {
     menuItem: { minHeight: 52, paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center' },
     bullet: { width: 7, height: 7, borderRadius: 4, backgroundColor: t.accent, marginRight: 12 },
     menuText: { flex: 1, fontSize: 16, fontWeight: '900', color: t.text },
+    starsRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 10 },
+    ratingDone: { fontSize: 13, fontWeight: '300', color: t.textSecondary, marginLeft: 4 },
+    overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.32)' },
+    ratingSheet: { backgroundColor: t.surface, borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingTop: 12, paddingBottom: 36, paddingHorizontal: 24 },
+    sheetHandle: { alignSelf: 'center', width: 44, height: 4, borderRadius: 2, backgroundColor: t.border, marginBottom: 20 },
+    sheetTitle: { fontSize: 22, fontWeight: '900', fontFamily: Fonts.brand, color: t.text, marginBottom: 4 },
+    sheetSub: { fontSize: 14, fontWeight: '300', color: t.textSecondary, marginBottom: 20 },
+    sheetStars: { flexDirection: 'row', gap: 10, justifyContent: 'center', marginBottom: 24 },
+    reasonsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 28 },
+    reasonPill: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 100, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
+    reasonPillActive: { backgroundColor: t.accentLight, borderColor: t.accent },
+    reasonText: { fontSize: 13, fontWeight: '300', color: t.text },
+    reasonTextActive: { color: t.accent, fontWeight: '900' },
+    submitBtn: { minHeight: 52, borderRadius: 14, backgroundColor: t.text, alignItems: 'center', justifyContent: 'center' },
+    submitText: { fontSize: 16, fontWeight: '900', color: t.surface },
   });
 }
 
@@ -60,11 +76,16 @@ export default function PatioDetailScreen() {
   const s = makeStyles(theme);
   const insets = useSafeAreaInsets();
   const [isSaved, setIsSaved] = useState(false);
+  const [userRating, setUserRating] = useState<number | null>(null);
+  const [showRatingSheet, setShowRatingSheet] = useState(false);
+  const [pendingStars, setPendingStars] = useState(0);
+  const [selectedReasons, setSelectedReasons] = useState<string[]>([]);
   const patioId = patio?.id;
 
   useEffect(() => {
     if (!patioId) return;
     getFavoritePatioIds().then((ids) => setIsSaved(ids.includes(patioId)));
+    getPatioRating(patioId).then((r) => { if (r) setUserRating(r.stars); });
   }, [patioId]);
 
   const handleBack = () => {
@@ -86,6 +107,39 @@ export default function PatioDetailScreen() {
     if (!patio) return;
     const next = await toggleFavoritePatio(patio.id);
     setIsSaved(next.includes(patio.id));
+  };
+
+  const handleShare = () => {
+    if (!patio) return;
+    const mapsUrl = `https://maps.apple.com/?q=${patio.latitude},${patio.longitude}`;
+    Share.share({
+      message: `${patio.name}\n${patio.category} · ${patio.area}\n${patio.open}\n\n📍 ${patio.address}\n${mapsUrl}`,
+    });
+  };
+
+  const handleStarPress = (n: number) => {
+    if (!patio) return;
+    setPendingStars(n);
+    setSelectedReasons([]);
+    if (n === 5) {
+      savePatioRating(patio.id, 5);
+      setUserRating(5);
+    } else {
+      setShowRatingSheet(true);
+    }
+  };
+
+  const toggleReason = (r: string) => {
+    setSelectedReasons((prev) =>
+      prev.includes(r) ? prev.filter((x) => x !== r) : [...prev, r]
+    );
+  };
+
+  const submitRating = async () => {
+    if (!patio) return;
+    await savePatioRating(patio.id, pendingStars, selectedReasons);
+    setUserRating(pendingStars);
+    setShowRatingSheet(false);
   };
 
   if (!patio) {
@@ -112,9 +166,14 @@ export default function PatioDetailScreen() {
           <TouchableOpacity style={s.iconButton} onPress={handleBack} activeOpacity={0.76}>
             <Ionicons name="chevron-back" size={22} color={theme.text} />
           </TouchableOpacity>
-          <TouchableOpacity style={s.iconButton} onPress={handleToggleSaved} activeOpacity={0.76}>
-            <Ionicons name={isSaved ? 'heart' : 'heart-outline'} size={22} color={isSaved ? theme.accent : theme.text} />
-          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            <TouchableOpacity style={s.iconButton} onPress={handleShare} activeOpacity={0.76}>
+              <Ionicons name="share-outline" size={20} color={theme.text} />
+            </TouchableOpacity>
+            <TouchableOpacity style={s.iconButton} onPress={handleToggleSaved} activeOpacity={0.76}>
+              <Ionicons name={isSaved ? 'heart' : 'heart-outline'} size={22} color={isSaved ? theme.accent : theme.text} />
+            </TouchableOpacity>
+          </View>
         </View>
 
         <View style={s.hero}>
@@ -123,9 +182,19 @@ export default function PatioDetailScreen() {
           <Text style={s.meta} allowFontScaling={true}>
             {patio.category} · {patio.area} · {patio.open}
           </Text>
-          <View style={s.ratingRow}>
-            <Ionicons name="star" size={15} color={theme.accent} />
-            <Text style={s.ratingText} allowFontScaling={true}>{patio.rating}</Text>
+          <View style={s.starsRow}>
+            {[1, 2, 3, 4, 5].map((n) => (
+              <TouchableOpacity key={n} onPress={() => handleStarPress(n)} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}>
+                <Ionicons
+                  name={userRating !== null && n <= userRating ? 'star' : 'star-outline'}
+                  size={22}
+                  color={theme.accent}
+                />
+              </TouchableOpacity>
+            ))}
+            {userRating !== null && (
+              <Text style={s.ratingDone}>Tu calificación</Text>
+            )}
           </View>
         </View>
 
@@ -203,6 +272,43 @@ export default function PatioDetailScreen() {
           </View>
         </View>
       </ScrollView>
+
+      <Modal visible={showRatingSheet} transparent animationType="slide" onRequestClose={() => setShowRatingSheet(false)}>
+        <View style={{ flex: 1, justifyContent: 'flex-end' }}>
+          <TouchableWithoutFeedback onPress={() => setShowRatingSheet(false)}>
+            <View style={s.overlay} />
+          </TouchableWithoutFeedback>
+          <View style={[s.ratingSheet, { paddingBottom: insets.bottom + 24 }]}>
+            <View style={s.sheetHandle} />
+            <Text style={s.sheetTitle}>¿Qué pasó?</Text>
+            <Text style={s.sheetSub}>Ayúdanos a mejorar — elige lo que no estuvo bien.</Text>
+            <View style={s.sheetStars}>
+              {[1, 2, 3, 4, 5].map((n) => (
+                <TouchableOpacity key={n} onPress={() => setPendingStars(n)} activeOpacity={0.7}>
+                  <Ionicons
+                    name={n <= pendingStars ? 'star' : 'star-outline'}
+                    size={28}
+                    color={theme.accent}
+                  />
+                </TouchableOpacity>
+              ))}
+            </View>
+            <View style={s.reasonsWrap}>
+              {['Horario incorrecto', 'Ubicación confusa', 'Menú no disponible', 'Precio distinto', 'Atención', 'Estaba cerrado', 'Otro'].map((r) => {
+                const active = selectedReasons.includes(r);
+                return (
+                  <TouchableOpacity key={r} style={[s.reasonPill, active && s.reasonPillActive]} onPress={() => toggleReason(r)} activeOpacity={0.76}>
+                    <Text style={[s.reasonText, active && s.reasonTextActive]}>{r}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+            <TouchableOpacity style={s.submitBtn} onPress={submitRating} activeOpacity={0.86}>
+              <Text style={s.submitText}>Enviar calificación</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }

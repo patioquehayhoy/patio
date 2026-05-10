@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Linking, Modal, Platform, ScrollView, Share, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
@@ -28,7 +29,7 @@ function makeStyles(t: Theme) {
     mapPin: { width: 38, height: 38, borderRadius: 19, backgroundColor: t.isDark ? 'rgba(245,245,240,0.92)' : 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 7 }, shadowOpacity: 0.14, shadowRadius: 14, elevation: 4 },
     mapPinCore: { width: 20, height: 20, borderRadius: 10, backgroundColor: t.accent, alignItems: 'center', justifyContent: 'center' },
     mapPinDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: t.isDark ? 'rgba(245,245,240,0.92)' : 'rgba(255,255,255,0.92)' },
-    mapPill: { position: 'absolute', left: 14, right: 14, bottom: 14, minHeight: 52, borderRadius: 18, backgroundColor: t.isDark ? 'rgba(27,28,32,0.82)' : 'rgba(255,255,255,0.82)', borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 8 },
+    mapPill: { position: 'absolute', left: 14, right: 14, bottom: 14, minHeight: 52, borderRadius: 18, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: t.isDark ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.22)', paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 8 },
     mapPillText: { flex: 1, fontSize: 13, fontWeight: '900', color: t.text },
     mapPillBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 6, paddingHorizontal: 10, borderRadius: 12, backgroundColor: t.isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.07)' },
     mapPillBtnText: { fontSize: 12, fontWeight: '900', color: t.text },
@@ -223,6 +224,7 @@ export default function PatioDetailScreen() {
             </Marker>
           </MapView>
           <View style={s.mapPill}>
+            <BlurView intensity={theme.isDark ? 10 : 14} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
             <Text style={s.mapPillText} numberOfLines={1} allowFontScaling={true}>{patio.address}</Text>
             <TouchableOpacity style={s.mapPillBtn} onPress={handleComoLlegar} activeOpacity={0.76}>
               <Ionicons name="navigate-outline" size={13} color={theme.text} />

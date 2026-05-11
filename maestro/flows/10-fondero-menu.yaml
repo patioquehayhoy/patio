@@ -5,4 +5,4 @@ appId: com.parcomx.patio
 - waitForAnimationToEnd
 - tapOn: "Menú"
 - waitForAnimationToEnd
-- takeScreenshot: ../screenshots/10-fondero-menu
+- takeScreenshot: maestro/screenshots/10-fondero-menu

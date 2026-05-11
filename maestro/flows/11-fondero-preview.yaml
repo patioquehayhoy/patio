@@ -5,4 +5,4 @@ appId: com.parcomx.patio
 - waitForAnimationToEnd
 - tapOn: "Compartir"
 - waitForAnimationToEnd
-- takeScreenshot: ../screenshots/11-fondero-preview
+- takeScreenshot: maestro/screenshots/11-fondero-preview

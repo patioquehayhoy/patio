@@ -2,10 +2,10 @@ appId: com.parcomx.patio
 ---
 - launchApp
 - tapOn: "Dev Foodie"
-- waitForAnimationToEnd
+- assertVisible: "CERCA DE TI"
 - tapOn:
     point: "12%,12%"
 - waitForAnimationToEnd
 - tapOn: "Buscar"
 - waitForAnimationToEnd
-- takeScreenshot: ../screenshots/07-foodie-buscar
+- takeScreenshot: maestro/screenshots/07-foodie-buscar

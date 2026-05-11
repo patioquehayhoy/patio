@@ -2,4 +2,4 @@ appId: com.parcomx.patio
 ---
 - launchApp
 - waitForAnimationToEnd
-- takeScreenshot: ../screenshots/01-index
+- takeScreenshot: maestro/screenshots/01-index

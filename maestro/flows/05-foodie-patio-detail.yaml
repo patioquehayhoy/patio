@@ -2,9 +2,9 @@ appId: com.parcomx.patio
 ---
 - launchApp
 - tapOn: "Dev Foodie"
-- waitForAnimationToEnd
+- assertVisible: "CERCA DE TI"
 - tapOn: "Cochitacos"
 - waitForAnimationToEnd
 - tapOn: "Ver"
 - waitForAnimationToEnd
-- takeScreenshot: ../screenshots/05-foodie-patio-detail
+- takeScreenshot: maestro/screenshots/05-foodie-patio-detail

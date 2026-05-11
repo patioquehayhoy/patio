@@ -3,4 +3,4 @@ appId: com.parcomx.patio
 - launchApp
 - tapOn: "Dev Onboarding"
 - waitForAnimationToEnd
-- takeScreenshot: ../screenshots/02-onboarding
+- takeScreenshot: maestro/screenshots/02-onboarding

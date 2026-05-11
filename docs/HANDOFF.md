@@ -1,5 +1,47 @@
 # HANDOFF
 
+## 2026-05-11 (cierre — hints + Supabase completo)
+
+### Qué se hizo hoy
+
+**Sistema de hints contextuales** — implementado desde cero (los agentes nocturnos no commitaron):
+- `lib/hints.ts` — AsyncStorage, `shouldShowHint` / `markHintSeen`, one-time por key
+- `components/hint-sheet.tsx` — Modal bottom sheet con spring animation, backdrop dismiss, X button
+- Wired en 4 pantallas: `perfil.tsx` (🏪 enfoca el TextInput de nombre), `menu.tsx` (📋 navega a foto-menu), `share.tsx` (✉️ dismiss simple), `explorar.tsx` (🍽️ dismiss simple)
+
+**buscar.tsx — fonditas reales de Supabase**:
+- Carga fonditas reales al montar con `fetchPublicFonditas()`
+- Búsqueda por nombre/categoría normalizada (parallel a búsqueda de platillos en MOCK_PATIOS)
+- Resultados mergeados sin duplicados, ordenados por score
+
+**patio/[id].tsx — Supabase fallback**:
+- `getPatioById` → si null → `fetchFonditaById` (nueva función en `lib/patios.ts`)
+- Loading state con `AgentSpinner` mientras fetchea
+- MapView oculto si `patio.latitude === 0`
+- `fetchFonditaById` intenta con lat/lng; fallback sin ellos si migración no corrió
+
+### ⚠️ Problema en Dev Fondero (Unmatched Route)
+- Al presionar Dev Fondero puede aparecer "Unmatched Route" en `patio:///`
+- **Causa**: hot reload de Metro confundido por los nuevos archivos añadidos
+- **Fix**: presionar `r` en la terminal de Metro para forzar reload completo del bundle
+
+### ⚠️ Migración Supabase PENDIENTE
+```sql
+ALTER TABLE fonditas ADD COLUMN IF NOT EXISTS latitude float8;
+ALTER TABLE fonditas ADD COLUMN IF NOT EXISTS longitude float8;
+```
+
+### Decisiones importantes
+- Hints son one-time via AsyncStorage — `markHintSeen` se llama síncronamente en el callback, el write a AsyncStorage es fire-and-forget (async, no bloqueante)
+- `fetchFonditaById` tiene doble fallback: primero con lat/lng, si falla sin ellos — robusto vs migración pendiente
+
+### Siguiente paso exacto
+1. Reload Metro (`r`) para resolver Unmatched Route
+2. Ejecutar migración Supabase (ALTER TABLE) para habilitar lat/lng
+3. `npx expo run:ios` — rebuild nativo por expo-location
+
+---
+
 ## 2026-05-10 (cierre — sesión Supabase + ubicación)
 
 ### Qué se hizo hoy

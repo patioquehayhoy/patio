@@ -1,5 +1,50 @@
 # STATE
 
+## Estado actual (2026-05-11 — sesión diseño completo)
+
+### Sistema de diseño — CONSOLIDADO ✅
+- **fontWeight**: solo `'900'` / `'300'` en todo el codebase (auditoría completa)
+- **letterSpacing**: cero en todos los archivos, sin excepción
+- **Fonts.brand** (Plus Jakarta Sans 800ExtraBold): aplicada en onboarding, index y toda tipografía de marca
+- **Paleta y tokens**: todos via `makeStyles(t: Theme)`, ningún color hardcodeado fuera de paleta
+
+### Pantallas — estado por pantalla
+| Pantalla | Estado |
+|----------|--------|
+| `index.tsx` | ✅ Rediseñado — layout centrado, tagline 900/300 en dos líneas |
+| `onboarding.tsx` | ✅ Rediseñado — Fonts.brand, tagline canónico, sin letterSpacing |
+| `perfil.tsx` | ✅ Rediseñado — pills, un card operacional, labels secundarios |
+| `menu.tsx` | ✅ Auditado — fontWeight y letterSpacing corregidos |
+| `foto-menu.tsx` | ✅ Auditado — fontWeight y letterSpacing corregidos |
+| `preview.tsx` | ✅ Auditado — fontWeight y letterSpacing corregidos |
+| `share.tsx` | ✅ Auditado |
+| `explorar.tsx` | ✅ Auditado (letterSpacing) — visual pendiente de revisión profunda |
+| `buscar.tsx` | ✅ Auditado (letterSpacing) |
+| `cuenta.tsx` | ✅ Auditado |
+| `patio/[id].tsx` | ✅ Auditado (letterSpacing) |
+
+### En vuelo — agente programado (corre 2am / 08:00 UTC 2026-05-11)
+- **Hints contextuales**: `lib/hints.ts` + `components/hint-sheet.tsx`
+- Bottom sheets one-time en: perfil (fondero), menú (fondero), share (fondero), explorar (foodie)
+- Verificar mañana: commit `feat: contextual onboarding hints` en GitHub
+
+### Assets nativos — pendientes de build
+- `app.json` actualizado: icon y splash con P transparente
+- Requiere `npx expo run:ios` o EAS build para verse (cambio nativo)
+
+### TypeScript
+- `npx tsc --noEmit` en verde ✅
+
+## Próximos 2–3 pasos
+1. Verificar commit del agente de hints en GitHub (mañana ~2am)
+2. `npx expo run:ios` — ver icono/splash nuevo + validar hints visualmente
+3. Push a `origin/v2-menu-vivo`
+
+### Pendiente estructural
+- Conectar Patios/Buscar/Favoritos a Supabase (datos reales foodie)
+- API key Google Maps para Android
+- Revisión visual profunda de `explorar.tsx` (mapa, pins, bottom sheet)
+
 ## Estado actual (2026-05-08 — actualizado cierre)
 - Dos features nuevos listos y commiteados en `v2-menu-vivo`, pendientes de validar en simulador y pushear:
   - **Share de lugar**: botón en `patio/[id].tsx` (top bar) y en `explorar.tsx` (bottom sheet). Genera mensaje nativo con nombre, categoría, horario, dirección y link de Maps.

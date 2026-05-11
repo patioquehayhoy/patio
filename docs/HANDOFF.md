@@ -1,5 +1,62 @@
 # HANDOFF
 
+## 2026-05-10/11 (cierre — sesión diseño completo)
+
+### Qué se hizo hoy
+
+**Auditoría tipográfica global** — limpieza de todo el codebase:
+- `fontWeight`: solo `'900'` y `'300'` en todos los archivos (excepción documentada: `'500'` en `itemName` de preview, `'700'` en botón WhatsApp)
+- `letterSpacing`: eliminado de todos los archivos sin excepción
+- Archivos corregidos: `menu.tsx`, `foto-menu.tsx`, `preview.tsx`, `explorar.tsx`, `buscar.tsx`, `cuenta.tsx`, `share.tsx`, `patio/[id].tsx`, `loading-indicator.tsx`
+
+**Onboarding rediseñado** (`app/onboarding.tsx`):
+- Tagline canónico en dos elementos separados: `"¿Qué hay hoy?"` (900) + `"Saaaaaaabes."` (300) — contraste de peso
+- Toda la tipografía migrada a `Fonts.brand` (Plus Jakarta Sans)
+- Sin letterSpacing en ningún texto
+
+**Index rediseñado** (`app/index.tsx`):
+- Layout centrado verticalmente (HIG optical centering) — ya no pegado al fondo
+- Tagline en dos líneas separadas con peso diferenciado
+- Botones en zona óptica natural, `paddingBottom: insets.bottom + 32`
+- DevBar sigue presente (se eliminará en release)
+
+**Perfil fondero rediseñado** (`app/perfil.tsx`):
+- Ruleta de categoría eliminada → **pills horizontales** tapables
+- `TU NEGOCIO` label eliminado — nombre editable directo (placeholder: "Nombre de tu negocio")
+- Horario simplificado: Apertura/Cierre sin hints de texto
+- TIPO + HORARIO + PAGOS fusionados en **un solo card** (Apple HIG)
+- Block labels → `textSecondary` (gris, rol organizador)
+- Guardar aparece solo cuando hay cambios pendientes
+
+**Assets y app.json**:
+- Añadidos: `p-icon-transparent.png`, `p-icon-transparent-blanco.png`, android variants
+- `app.json` actualizado: icon y splash usan la P transparente
+
+**Agente scheduled programado** — corre a las 2am (08:00 UTC 2026-05-11):
+- Implementa sistema de hints contextuales (bottom sheets, one-time, AsyncStorage)
+- Fondero: perfil → menú → share
+- Foodie: explorar
+- Archivos a crear: `lib/hints.ts`, `components/hint-sheet.tsx`
+- URL: https://claude.ai/code/routines/trig_01GactQsWZuPYcVwPesNq4Gh
+
+### Decisiones importantes
+- **No letterSpacing en ningún texto** — ley absoluta, sin excepciones
+- **fontWeight solo '900' / '300'** — contraste tipográfico como mecanismo de jerarquía
+- **Perfil fondero**: un solo card operacional (tipo + horario + pagos) — más limpio que 3 cards
+- **Hints onboarding**: bottom sheet (Apple HIG), no spotlight/coach marks
+- **Repo público**: `patioquehayhoy/patio` hecho público para acceso de agentes remotos
+
+### Siguiente paso exacto
+1. Mañana verificar commit del agente de hints en GitHub (`feat: contextual onboarding hints`)
+2. `npx expo run:ios` para ver icono/splash con P transparente (requiere build nativo)
+3. Validar visualmente hints en simulador
+4. Push a `origin/v2-menu-vivo`
+
+### Pendiente estructural (no bloqueante)
+- Conectar Patios/Buscar/Favoritos a Supabase (datos reales foodie)
+- API key Google Maps para Android
+- EAS build para release
+
 ## 2026-05-08 (cierre — sesión 2)
 
 ### Qué se hizo hoy

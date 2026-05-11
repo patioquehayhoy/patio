@@ -4,7 +4,7 @@
     "slug": "lafondita",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/p-icon-transparent.png",
     "scheme": "patio",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -51,11 +51,13 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/icon.png",
-          "imageWidth": 180,
+          "image": "./assets/images/p-icon-transparent.png",
+          "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#F3F3F0",
           "dark": {
+            "image": "./assets/images/p-icon-transparent-blanco.png",
+            "imageWidth": 200,
             "backgroundColor": "#111214"
           }
         }

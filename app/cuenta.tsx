@@ -28,16 +28,16 @@ function makeStyles(t: Theme) {
     avatar: { width: 48, height: 48, borderRadius: 24, backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, alignItems: 'center', justifyContent: 'center' },
     identityLabel: { fontSize: 18, fontWeight: '900', color: t.text },
     identitySub: { marginTop: 2, fontSize: 13, fontWeight: '300', color: t.textSecondary },
-    sectionLabel: { marginTop: 10, marginBottom: 8, paddingHorizontal: 2, fontSize: 12, fontWeight: '700', letterSpacing: 0.2, color: t.textSecondary },
+    sectionLabel: { marginTop: 10, marginBottom: 8, paddingHorizontal: 2, fontSize: 12, fontWeight: '900', color: t.textSecondary },
     card: { borderRadius: 20, backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, overflow: 'hidden' },
     gap: { height: 12 },
     row: { minHeight: 54, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 14 },
     rowBody: { flex: 1 },
-    rowText: { fontSize: 17, lineHeight: 22, fontWeight: '700', color: t.text },
-    rowSub: { marginTop: 1, fontSize: 13, lineHeight: 17, fontWeight: '400', color: t.textSecondary },
+    rowText: { fontSize: 17, lineHeight: 22, fontWeight: '900', color: t.text },
+    rowSub: { marginTop: 1, fontSize: 13, lineHeight: 17, fontWeight: '300', color: t.textSecondary },
     divider: { height: StyleSheet.hairlineWidth, backgroundColor: t.border, marginLeft: 54 },
     fonderoLink: { alignItems: 'center', paddingTop: 12, paddingBottom: 4 },
-    fonderoLinkText: { fontSize: 13, fontWeight: '400', color: t.textSecondary },
+    fonderoLinkText: { fontSize: 13, fontWeight: '300', color: t.textSecondary },
   });
 }
 

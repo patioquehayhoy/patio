@@ -69,7 +69,6 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.ui,
     fontSize: FontSize.meta,
     fontWeight: FontWeight.medium,
-    letterSpacing: 0,
   },
 });
 

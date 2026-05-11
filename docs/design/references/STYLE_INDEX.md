@@ -68,6 +68,26 @@ Ejemplos: `mapa_glass-bottomsheet_behance_v01.png`, `tipografia_editorial-numero
 
 ---
 
+### REF-005
+- Archivo: `composicion_modular.png`
+- Fuente: Dashboard de productividad modular (concepto Behance/Dribbble)
+- Qué nos gustó:
+  - Fondo crema cálido (`#F5EDE0` aprox.) — da calidez sin perder legibilidad
+  - Cards modulares flotantes: fondo blanco, borderRadius grande (~20pt), sombra muy sutil
+  - Acento naranja/teja solo en datos clave (gráfica, número resaltado) — nunca decorativo
+  - Bottom tab: pill redondeada, ícono activo con fondo de acento — no tab bar genérico
+  - Tipografía: número grande 900 + label 300 debajo — patrón dato-principal/contexto
+  - Separación entre módulos por espacio, no por líneas visibles
+  - El calendario integrado como módulo — misma jerarquía que el resto del contenido
+- Aplicación en Patio:
+  - Referencia de composición modular para futura pantalla de perfil fondero (cards de stats)
+  - El acento cálido como dato único confirma el uso de `#F5C842` solo en horario/selección
+  - Modelo de bottom tab como pill activa (no tab bar plano) — revisar cuando hagamos tab nav real
+  - Temperatura general de la UI: más cálida que gris frío — refuerza el off-white `#EFEFEF` de bg
+- Prioridad: Media
+
+---
+
 ## Cómo agregar una nueva referencia
 
 1. Guarda la imagen en `docs/design/references/` con el nombre correcto

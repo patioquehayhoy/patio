@@ -17,7 +17,7 @@ function makeStyles(t: Theme) {
     spacer: { width: 44 },
     searchBox: { minHeight: 58, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, backgroundColor: t.surface, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, marginTop: 18 },
     input: { flex: 1, minHeight: 42, paddingHorizontal: 12, fontSize: 18, color: t.text, fontWeight: '300' },
-    sectionTitle: { marginTop: 28, marginBottom: 12, fontSize: 12, fontWeight: '900', letterSpacing: 1.5, color: t.text },
+    sectionTitle: { marginTop: 28, marginBottom: 12, fontSize: 12, fontWeight: '900', color: t.text },
     result: { minHeight: 104, borderRadius: 22, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, backgroundColor: t.surface, padding: 16, marginBottom: 10 },
     resultTop: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
     dot: { width: 10, height: 10, borderRadius: 5, backgroundColor: t.accent, marginTop: 8 },

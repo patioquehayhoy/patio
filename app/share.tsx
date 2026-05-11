@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: '900',
     marginBottom: 4,
   },
   item: {
@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
   },
   precio: {
     fontSize: 20,
-    fontWeight: '700',
+    fontWeight: '900',
     textAlign: 'center',
     marginTop: 4,
   },

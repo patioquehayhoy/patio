@@ -50,7 +50,7 @@ function makeStyles(t: Theme) {
     ctaText: { fontSize: 13, fontWeight: '900', color: t.surface },
     divider: { height: StyleSheet.hairlineWidth, backgroundColor: t.border },
     listHeader: { paddingHorizontal: 18, paddingTop: 14, paddingBottom: 9, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-    listTitle: { fontSize: 12, fontWeight: '900', letterSpacing: 1.5, color: t.text },
+    listTitle: { fontSize: 12, fontWeight: '900', color: t.text },
     listMeta: { fontSize: 12, color: t.textSecondary },
     listFilter: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, minHeight: 30, borderRadius: 15, backgroundColor: t.accentLight },
     listFilterText: { fontSize: 12, fontWeight: '900', color: t.accent },

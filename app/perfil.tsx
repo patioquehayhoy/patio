@@ -1,11 +1,9 @@
 import { router } from 'expo-router';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Animated,
   Linking,
-  NativeScrollEvent,
-  NativeSyntheticEvent,
   Platform,
   ScrollView,
   StyleSheet,
@@ -44,12 +42,9 @@ const TIPOS_NEGOCIO: { key: string; label: string }[] = [
   { key: 'otro',       label: 'Otro' },
 ];
 
-// ─── Constants ────────────────────────────────────────────────────────────────
 const MAX_NOMBRE      = 30;
 const MAX_DESCRIPCION = 80;
 const MAX_UBICACION   = 80;
-const CATEGORY_ITEM_HEIGHT = 48;
-const CATEGORY_WHEEL_HEIGHT = 144;
 
 function defaultApertura(): Date {
   const d = new Date(); d.setHours(8, 0, 0, 0); return d;
@@ -80,10 +75,8 @@ function parseTime(str: string): Date {
 }
 
 function parseHorario(horario: string): { apertura: Date; cierre: Date } {
-  // New format: "8am – 4pm"
   let dashIdx = horario.indexOf(' – ');
   if (dashIdx === -1) {
-    // Old format with dias: "Lun–Vie · 8am – 4pm"
     const dotIdx = horario.indexOf(' · ');
     if (dotIdx !== -1) {
       const times = horario.slice(dotIdx + 3);
@@ -103,49 +96,44 @@ function buildHorario(apertura: Date, cierre: Date): string {
 
 function makeStyles(t: Theme) {
   return StyleSheet.create({
-    container:      { flex: 1, backgroundColor: t.bg },
-    scroll:         { flex: 1 },
-    scrollContent:  { paddingHorizontal: 20, paddingBottom: 64 },
-    heroBlock:      { paddingTop: 18, paddingBottom: 6 },
-    heroHeader:     { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 },
-    block:          { paddingTop: 26 },
-    blockLabel:     { fontSize: 12, fontWeight: '900', color: t.text, marginBottom: 10 },
-    saveInlineBtn:  { fontSize: 16, fontWeight: '900', color: t.accent, paddingTop: 2 },
-    nombreInput:    { fontSize: 34, fontWeight: '900', color: t.text, lineHeight: 40, paddingVertical: 0, paddingHorizontal: 0, backgroundColor: 'transparent', marginBottom: 8 },
-    fieldInput:     { fontWeight: '300', color: t.textSecondary, paddingVertical: 0, paddingHorizontal: 0, backgroundColor: 'transparent' },
-    heroMeta:       { fontSize: 13, lineHeight: 18, color: t.textSecondary, opacity: 0.66 },
-    row:            { flexDirection: 'row', alignItems: 'center', minHeight: 58 },
-    rowLabel:       { flex: 1, fontSize: 17, fontWeight: '300', color: t.text },
-    emailText:      { flex: 1, fontSize: 16, fontWeight: '300', color: t.textSecondary },
-    divider:        { height: StyleSheet.hairlineWidth, backgroundColor: t.border },
-    pickerWrapper:  { backgroundColor: t.surface, borderRadius: 12, overflow: 'hidden' },
-    categoryHeader: { marginBottom: 8 },
-    categoryHint:   { fontSize: 13, lineHeight: 19, color: t.textSecondary, maxWidth: 250 },
-    categoryWheelWrap: { marginTop: 12, alignItems: 'center' },
-    categoryWheelSelection: { position: 'absolute', top: (CATEGORY_WHEEL_HEIGHT - CATEGORY_ITEM_HEIGHT) / 2, width: 216, height: CATEGORY_ITEM_HEIGHT, borderRadius: 16, backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: t.isDark ? 0.16 : 0.05, shadowRadius: 18, elevation: 3 },
-    categoryWheel:  { width: 240, height: CATEGORY_WHEEL_HEIGHT },
-    categoryWheelContent: { alignItems: 'center', paddingVertical: (CATEGORY_WHEEL_HEIGHT - CATEGORY_ITEM_HEIGHT) / 2 },
-    categoryWheelFrame: { height: CATEGORY_ITEM_HEIGHT, alignItems: 'center', justifyContent: 'center' },
-    categoryWheelText: { fontSize: 18, fontWeight: '300', color: t.textSecondary, opacity: 0.5 },
-    categoryWheelTextActive: { color: t.text, fontSize: 20, fontWeight: '900', opacity: 1 },
-    categoryWheelMarker: { width: 28, height: 3, borderRadius: 2, backgroundColor: t.accent, marginTop: 4 },
-    operationGroup: { marginTop: 2, backgroundColor: t.surface, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, overflow: 'hidden' },
-    operationRow:   { minHeight: 62, paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center' },
-    operationText:  { flex: 1, paddingRight: 12 },
-    operationTitle: { fontSize: 17, fontWeight: '300', color: t.text },
-    operationHint:  { fontSize: 12, lineHeight: 17, color: t.textSecondary, marginTop: 2 },
-    operationValue: { fontSize: 17, fontWeight: '900', color: t.text },
-    paymentRow:     { paddingHorizontal: 14, paddingVertical: 14 },
-    paymentLabel:   { fontSize: 12, lineHeight: 17, color: t.textSecondary, marginBottom: 10 },
-    paymentChips:   { flexDirection: 'row', gap: 8 },
-    paymentChip:    { flex: 1, minHeight: 36, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, alignItems: 'center', justifyContent: 'center', backgroundColor: t.bg },
-    paymentChipActive: { backgroundColor: t.text, borderColor: t.text },
-    paymentChipText: { fontSize: 12, fontWeight: '900', color: t.text },
+    container:          { flex: 1, backgroundColor: t.bg },
+    scroll:             { flex: 1 },
+    scrollContent:      { paddingHorizontal: 20, paddingBottom: 64 },
+    // Hero
+    heroBlock:          { paddingTop: 18, paddingBottom: 6 },
+    saveRow:            { flexDirection: 'row', justifyContent: 'flex-end', marginBottom: 8 },
+    saveInlineBtn:      { fontSize: 16, fontWeight: '900', color: t.accent },
+    nombreInput:        { fontSize: 34, fontWeight: '900', color: t.text, lineHeight: 40, paddingVertical: 0, paddingHorizontal: 0, backgroundColor: 'transparent', marginBottom: 8 },
+    fieldInput:         { fontWeight: '300', color: t.textSecondary, paddingVertical: 0, paddingHorizontal: 0, backgroundColor: 'transparent' },
+    // Sections
+    block:              { paddingTop: 26 },
+    blockLabel:         { fontSize: 11, fontWeight: '900', color: t.text, marginBottom: 10 },
+    // Type pills
+    typePills:          { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4 },
+    typePill:           { paddingHorizontal: 16, paddingVertical: 9, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, backgroundColor: t.surface },
+    typePillActive:     { backgroundColor: t.text, borderColor: t.text },
+    typePillText:       { fontSize: 14, fontWeight: '300', color: t.text },
+    typePillTextActive: { color: t.surface, fontWeight: '900' },
+    // Groups
+    divider:            { height: StyleSheet.hairlineWidth, backgroundColor: t.border },
+    pickerWrapper:      { backgroundColor: t.surface, borderRadius: 12, overflow: 'hidden' },
+    operationGroup:     { marginTop: 2, backgroundColor: t.surface, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, overflow: 'hidden' },
+    operationRow:       { minHeight: 54, paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center' },
+    operationTitle:     { flex: 1, fontSize: 17, fontWeight: '300', color: t.text },
+    operationValue:     { fontSize: 17, fontWeight: '900', color: t.text },
+    // Payments
+    paymentRow:         { paddingHorizontal: 14, paddingVertical: 14 },
+    paymentChips:       { flexDirection: 'row', gap: 8 },
+    paymentChip:        { flex: 1, minHeight: 36, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, alignItems: 'center', justifyContent: 'center', backgroundColor: t.bg },
+    paymentChipActive:  { backgroundColor: t.text, borderColor: t.text },
+    paymentChipText:    { fontSize: 12, fontWeight: '900', color: t.text },
     paymentChipTextActive: { color: t.surface },
-    settingGroup:   { marginTop: 2, backgroundColor: t.surface, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, overflow: 'hidden' },
-    settingRow:     { flexDirection: 'row', alignItems: 'center', minHeight: 62, paddingHorizontal: 14 },
-    settingTextWrap:{ flex: 1 },
-    settingIcon:    { marginRight: 12, opacity: 0.42 },
+    // Settings
+    settingGroup:       { marginTop: 2, backgroundColor: t.surface, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, overflow: 'hidden' },
+    settingRow:         { flexDirection: 'row', alignItems: 'center', minHeight: 62, paddingHorizontal: 14 },
+    rowLabel:           { flex: 1, fontSize: 17, fontWeight: '300', color: t.text },
+    emailText:          { flex: 1, fontSize: 16, fontWeight: '300', color: t.textSecondary },
+    settingIcon:        { marginRight: 12, opacity: 0.42 },
   });
 }
 
@@ -158,15 +146,12 @@ function ToggleSwitch({ value, onValueChange }: { value: boolean; onValueChange:
   }, [anim, value]);
   const translateX = anim.interpolate({ inputRange: [0, 1], outputRange: [2, 20] });
   const trackOff  = theme.isDark ? 'rgba(245,245,240,0.22)' : '#E2E2DC';
-  const trackOn   = theme.isDark ? theme.accent : theme.accent;
-  const thumbOff  = '#FFFFFF';
-  const thumbOn   = '#FFFFFF';
+  const trackOn   = theme.accent;
   const trackBg    = anim.interpolate({ inputRange: [0, 1], outputRange: [trackOff, trackOn] });
-  const thumbColor = anim.interpolate({ inputRange: [0, 1], outputRange: [thumbOff, thumbOn] });
   return (
     <TouchableOpacity onPress={() => onValueChange(!value)} activeOpacity={0.85}>
       <Animated.View style={[tog.track, { backgroundColor: trackBg }]}>
-        <Animated.View style={[tog.thumb, { backgroundColor: thumbColor, transform: [{ translateX }] }]} />
+        <Animated.View style={[tog.thumb, { transform: [{ translateX }] }]} />
       </Animated.View>
     </TouchableOpacity>
   );
@@ -174,14 +159,13 @@ function ToggleSwitch({ value, onValueChange }: { value: boolean; onValueChange:
 
 const tog = StyleSheet.create({
   track: { width: 46, height: 28, borderRadius: 14, justifyContent: 'center', paddingHorizontal: 1 },
-  thumb: { width: 24, height: 24, borderRadius: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.14, shadowRadius: 4, elevation: 2 },
+  thumb: { width: 24, height: 24, borderRadius: 12, backgroundColor: '#FFFFFF', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.14, shadowRadius: 4, elevation: 2 },
 });
 
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 export default function PerfilScreen() {
   const { theme, toggleTheme } = useTheme();
   const s = makeStyles(theme);
-
   const insets = useSafeAreaInsets();
 
   const existingHorario = getFonditaHorario();
@@ -225,37 +209,10 @@ export default function PerfilScreen() {
     pagosTarjeta  !== savedValues.pagosTarjeta  ||
     tipoNegocio   !== savedValues.tipoNegocio;
 
-  const fonditaIdRef        = useRef<string | null>(getFonditaId());
-  const nombreUpdatedAtRef  = useRef<string | null>(null);
-  const aperturaTimerRef    = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const cierreTimerRef      = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const categoryScrollRef   = useRef<ScrollView>(null);
-
-  const scrollToCategory = useCallback((index: number, animated = true) => {
-    categoryScrollRef.current?.scrollTo({
-      x: 0,
-      y: index * CATEGORY_ITEM_HEIGHT,
-      animated,
-    });
-  }, []);
-
-  const selectCategory = useCallback((key: string, index: number, animated = true) => {
-    setTipoNegocioState(key);
-    setTipoNegocio(key);
-    scrollToCategory(index, animated);
-  }, [scrollToCategory]);
-
-  const handleCategoryMomentumEnd = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const nextIndex = Math.max(
-      0,
-      Math.min(TIPOS_NEGOCIO.length - 1, Math.round(event.nativeEvent.contentOffset.y / CATEGORY_ITEM_HEIGHT))
-    );
-    const next = TIPOS_NEGOCIO[nextIndex];
-    if (next && next.key !== tipoNegocio) {
-      setTipoNegocioState(next.key);
-      setTipoNegocio(next.key);
-    }
-  }, [tipoNegocio]);
+  const fonditaIdRef       = useRef<string | null>(getFonditaId());
+  const nombreUpdatedAtRef = useRef<string | null>(null);
+  const aperturaTimerRef   = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cierreTimerRef     = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const init = async () => {
@@ -301,9 +258,9 @@ export default function PerfilScreen() {
         const pt   = fondita.pagos_transferencia ?? false;
         const ptar = fondita.pagos_tarjeta       ?? false;
 
-        setNombre(n);       setFonditaName(n);
+        setNombre(n);         setFonditaName(n);
         setDescripcion(desc); setFonditaDescription(desc);
-        setUbicacion(ub);   setFonditaDireccion(ub);
+        setUbicacion(ub);     setFonditaDireccion(ub);
         setFonditaHorario(hor);
 
         if (hor) {
@@ -327,13 +284,6 @@ export default function PerfilScreen() {
     init();
   }, []);
 
-  useEffect(() => {
-    const index = TIPOS_NEGOCIO.findIndex((item) => item.key === tipoNegocio);
-    if (index >= 0) {
-      requestAnimationFrame(() => scrollToCategory(index, false));
-    }
-  }, [scrollToCategory, tipoNegocio]);
-
   const handleSaveAll = async () => {
     if (isSaving) return;
     setIsSaving(true);
@@ -356,8 +306,8 @@ export default function PerfilScreen() {
       }
 
       if (descripcion !== savedValues.descripcion) { payload['descripcion'] = descripcion.trim(); newSaved.descripcion = descripcion.trim(); }
-      if (ubicacion !== savedValues.ubicacion) { payload['direccion'] = ubicacion.trim(); newSaved.ubicacion = ubicacion.trim(); }
-      if (horario   !== savedValues.horario)   { payload['horario']   = horario;           newSaved.horario   = horario; }
+      if (ubicacion   !== savedValues.ubicacion)   { payload['direccion']   = ubicacion.trim();   newSaved.ubicacion   = ubicacion.trim(); }
+      if (horario     !== savedValues.horario)     { payload['horario']     = horario;             newSaved.horario     = horario; }
       if (pagosEfectivo !== savedValues.pagosEfectivo) { payload['pagos_efectivo']      = pagosEfectivo; newSaved.pagosEfectivo = pagosEfectivo; }
       if (pagosTrans    !== savedValues.pagosTrans)    { payload['pagos_transferencia'] = pagosTrans;    newSaved.pagosTrans    = pagosTrans; }
       if (pagosTarjeta  !== savedValues.pagosTarjeta)  { payload['pagos_tarjeta']       = pagosTarjeta;  newSaved.pagosTarjeta  = pagosTarjeta; }
@@ -386,27 +336,26 @@ export default function PerfilScreen() {
     router.replace('/');
   };
 
-  const categoryLabel = TIPOS_NEGOCIO.find((item) => item.key === tipoNegocio)?.label ?? 'Sin definir';
-
   return (
     <View style={[s.container, { paddingTop: insets.top }]}>
       <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
 
-        {/* ── TU NEGOCIO ── */}
+        {/* ── NEGOCIO ── */}
         <View style={s.heroBlock}>
-          <View style={s.heroHeader}>
-            <Text style={s.blockLabel} allowFontScaling={true}>TU NEGOCIO</Text>
-            {isDirty && (
+          {isDirty && (
+            <View style={s.saveRow}>
               <TouchableOpacity onPress={handleSaveAll} disabled={isSaving} activeOpacity={0.5}>
-                <Text style={[s.saveInlineBtn, isSaving && { opacity: 0.4 }]} allowFontScaling={true}>{isSaving ? 'Guardando…' : 'Guardar'}</Text>
+                <Text style={[s.saveInlineBtn, isSaving && { opacity: 0.4 }]} allowFontScaling={true}>
+                  {isSaving ? 'Guardando…' : 'Guardar'}
+                </Text>
               </TouchableOpacity>
-            )}
-          </View>
+            </View>
+          )}
           <TextInput
             style={s.nombreInput}
             value={nombre}
             onChangeText={(v) => setNombre(v.slice(0, MAX_NOMBRE))}
-            placeholder="Nombre"
+            placeholder="Nombre de tu negocio"
             placeholderTextColor={theme.border}
             selectionColor={theme.accent}
             autoCapitalize="none"
@@ -417,7 +366,7 @@ export default function PerfilScreen() {
             style={[s.fieldInput, { fontSize: 14, lineHeight: 20, marginBottom: 2 }]}
             value={descripcion}
             onChangeText={(v) => setDescripcion(v.slice(0, MAX_DESCRIPCION))}
-            placeholder="Comida casera con sazón de abuela"
+            placeholder="Describe tu negocio"
             placeholderTextColor={theme.textSecondary}
             selectionColor={theme.accent}
             autoCapitalize="none"
@@ -428,7 +377,7 @@ export default function PerfilScreen() {
             style={[s.fieldInput, { fontSize: 12, lineHeight: 17, opacity: 0.5, marginBottom: 6 }]}
             value={ubicacion}
             onChangeText={(v) => setUbicacion(v.slice(0, MAX_UBICACION))}
-            placeholder="Av. Principal 123, Col. Centro"
+            placeholder="Dirección"
             placeholderTextColor={theme.textSecondary}
             selectionColor={theme.accent}
             autoCapitalize="none"
@@ -437,60 +386,40 @@ export default function PerfilScreen() {
           />
         </View>
 
-        {/* ── CATEGORÍA ── */}
+        {/* ── TIPO ── */}
         <View style={s.block}>
-          <View style={s.categoryHeader}>
-            <Text style={s.blockLabel} allowFontScaling={true}>CATEGORÍA</Text>
-            <Text style={s.categoryHint} allowFontScaling={true}>Se usa para organizar resultados en el mapa.</Text>
+          <Text style={s.blockLabel} allowFontScaling={true}>TIPO</Text>
+          <View style={s.typePills}>
+            {TIPOS_NEGOCIO.map(({ key, label }) => (
+              <TouchableOpacity
+                key={key}
+                style={[s.typePill, tipoNegocio === key && s.typePillActive]}
+                onPress={() => { setTipoNegocioState(key); setTipoNegocio(key); }}
+                activeOpacity={0.75}>
+                <Text style={[s.typePillText, tipoNegocio === key && s.typePillTextActive]} allowFontScaling={true}>
+                  {label}
+                </Text>
+              </TouchableOpacity>
+            ))}
           </View>
-          <View style={s.categoryWheelWrap}>
-            <View pointerEvents="none" style={s.categoryWheelSelection} />
-            <ScrollView
-              ref={categoryScrollRef}
-              showsVerticalScrollIndicator={false}
-              snapToInterval={CATEGORY_ITEM_HEIGHT}
-              snapToAlignment="start"
-              decelerationRate="fast"
-              bounces={false}
-              nestedScrollEnabled
-              onMomentumScrollEnd={handleCategoryMomentumEnd}
-              onScrollEndDrag={handleCategoryMomentumEnd}
-              contentContainerStyle={s.categoryWheelContent}
-              style={s.categoryWheel}
-            >
-              {TIPOS_NEGOCIO.map(({ key, label }, index) => (
-                <TouchableOpacity
-                  key={key}
-                  style={s.categoryWheelFrame}
-                  onPress={() => selectCategory(key, index)}
-                  activeOpacity={0.75}>
-                  <Text style={[s.categoryWheelText, tipoNegocio === key && s.categoryWheelTextActive]} allowFontScaling={true}>{label}</Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-            <View style={s.categoryWheelMarker} />
-          </View>
-          <Text style={[s.heroMeta, { opacity: 0.9, marginTop: 8, textAlign: 'center' }]} allowFontScaling={true}>{categoryLabel}</Text>
         </View>
 
-        {/* ── OPERACIÓN ── */}
+        {/* ── HORARIO ── */}
         <View style={s.block}>
-          <Text style={s.blockLabel} allowFontScaling={true}>OPERACIÓN</Text>
+          <Text style={s.blockLabel} allowFontScaling={true}>HORARIO</Text>
           <View style={s.operationGroup}>
             <TouchableOpacity style={s.operationRow} onPress={() => { setShowCierre(false); setShowApertura(v => !v); }} activeOpacity={0.72}>
-              <View style={s.operationText}>
-                <Text style={s.operationTitle} allowFontScaling={true}>Apertura</Text>
-                <Text style={s.operationHint} allowFontScaling={true}>Hora en que empiezas a vender.</Text>
-              </View>
-              <Text style={[s.operationValue, !apertura && { color: theme.textSecondary }]} allowFontScaling={true}>{apertura ? formatTime(apertura) : 'Definir'}</Text>
+              <Text style={s.operationTitle} allowFontScaling={true}>Apertura</Text>
+              <Text style={[s.operationValue, !apertura && { color: theme.textSecondary }]} allowFontScaling={true}>
+                {apertura ? formatTime(apertura) : 'Definir'}
+              </Text>
             </TouchableOpacity>
             <View style={s.divider} />
             <TouchableOpacity style={s.operationRow} onPress={() => { setShowApertura(false); setShowCierre(v => !v); }} activeOpacity={0.72}>
-              <View style={s.operationText}>
-                <Text style={s.operationTitle} allowFontScaling={true}>Cierre</Text>
-                <Text style={s.operationHint} allowFontScaling={true}>Se muestra junto a tu menú.</Text>
-              </View>
-              <Text style={[s.operationValue, !cierre && { color: theme.textSecondary }]} allowFontScaling={true}>{cierre ? formatTime(cierre) : 'Definir'}</Text>
+              <Text style={s.operationTitle} allowFontScaling={true}>Cierre</Text>
+              <Text style={[s.operationValue, !cierre && { color: theme.textSecondary }]} allowFontScaling={true}>
+                {cierre ? formatTime(cierre) : 'Definir'}
+              </Text>
             </TouchableOpacity>
             {(showApertura || showCierre) && <View style={s.divider} />}
             {showApertura && (
@@ -527,9 +456,14 @@ export default function PerfilScreen() {
                 />
               </View>
             )}
-            <View style={s.divider} />
+          </View>
+        </View>
+
+        {/* ── PAGOS ── */}
+        <View style={s.block}>
+          <Text style={s.blockLabel} allowFontScaling={true}>PAGOS</Text>
+          <View style={s.operationGroup}>
             <View style={s.paymentRow}>
-              <Text style={s.paymentLabel} allowFontScaling={true}>Métodos de pago</Text>
               <View style={s.paymentChips}>
                 {([['Efectivo', pagosEfectivo, setPagosEfectivoState], ['Transferencia', pagosTrans, setPagosTransState], ['Tarjeta', pagosTarjeta, setPagosTarjetaState]] as const).map(([label, active, toggle]) => (
                   <TouchableOpacity

@@ -124,15 +124,13 @@ export default function LoginScreen() {
       <Stack.Screen options={{ headerShown: false }} />
 
       {intent === 'choice' ? (
-        <>
-          {/* Hero: logo centrado, toma todo el espacio disponible */}
-          <View style={styles.hero}>
+        <View style={[styles.choiceRoot, { paddingBottom: insets.bottom + 32 }]}>
+          <View style={styles.logoArea}>
             <Image source={logo} style={styles.logo} resizeMode="contain" />
-            <Text style={[styles.tagline, { color: theme.textSecondary }]}>¿Qué hay hoy? Saaaaaaabes.</Text>
+            <Text style={[styles.taglineBold, { color: theme.text }]}>¿Qué hay hoy?</Text>
+            <Text style={[styles.tagline, { color: theme.textSecondary }]}>Saaaaaaabes.</Text>
           </View>
-
-          {/* Botones al fondo, sin tarjeta */}
-          <View style={[styles.choiceActions, { paddingBottom: Math.max(insets.bottom, 20) + 54 }]}>
+          <View style={styles.choiceActions}>
             <TouchableOpacity
               style={[styles.primaryBtn, { backgroundColor: theme.text }]}
               onPress={handleExplore}
@@ -146,14 +144,15 @@ export default function LoginScreen() {
               <Text style={[styles.secondaryBtnText, { color: theme.textSecondary }]}>Tengo un negocio</Text>
             </TouchableOpacity>
           </View>
-        </>
+        </View>
       ) : (
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.keyboardView}>
           <View style={styles.heroCompact}>
             <Image source={logo} style={styles.logo} resizeMode="contain" />
-            <Text style={[styles.tagline, { color: theme.textSecondary }]}>¿Qué hay hoy? Saaaaaaabes.</Text>
+            <Text style={[styles.taglineBold, { color: theme.text }]}>¿Qué hay hoy?</Text>
+            <Text style={[styles.tagline, { color: theme.textSecondary }]}>Saaaaaaabes.</Text>
           </View>
 
           {!sent ? (
@@ -224,8 +223,10 @@ const styles = StyleSheet.create({
   root: { flex: 1, paddingHorizontal: 24 },
 
   // Choice layout
-  hero: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  choiceRoot: { flex: 1, justifyContent: 'center' },
+  logoArea: { alignItems: 'center', marginBottom: 48 },
   logo: { width: 300, height: 112, marginLeft: -7, marginBottom: 10 },
+  taglineBold: { fontSize: 15, fontWeight: '900', fontFamily: Fonts.brand, textAlign: 'center' },
   tagline: { fontSize: 15, fontWeight: '300', fontFamily: Fonts.brand, textAlign: 'center' },
   choiceActions: { gap: 14 },
   primaryBtn: { minHeight: 60, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },

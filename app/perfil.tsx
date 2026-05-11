@@ -106,11 +106,12 @@ function makeStyles(t: Theme) {
     nombreInput:        { fontSize: 34, fontWeight: '900', color: t.text, lineHeight: 40, paddingVertical: 0, paddingHorizontal: 0, backgroundColor: 'transparent', marginBottom: 8 },
     fieldInput:         { fontWeight: '300', color: t.textSecondary, paddingVertical: 0, paddingHorizontal: 0, backgroundColor: 'transparent' },
     // Sections
-    block:              { paddingTop: 26 },
-    blockLabel:         { fontSize: 11, fontWeight: '900', color: t.text, marginBottom: 10 },
-    // Type pills
-    typePills:          { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4 },
-    typePill:           { paddingHorizontal: 16, paddingVertical: 9, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, backgroundColor: t.surface },
+    block:              { paddingTop: 24 },
+    blockFirst:         { paddingTop: 32 },
+    blockLabel:         { fontSize: 11, fontWeight: '900', color: t.textSecondary, marginBottom: 8, paddingLeft: 2 },
+    // Type pills (inside card)
+    tipoRow:            { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: 14, paddingVertical: 14 },
+    typePill:           { paddingHorizontal: 16, paddingVertical: 9, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, backgroundColor: t.bg },
     typePillActive:     { backgroundColor: t.text, borderColor: t.text },
     typePillText:       { fontSize: 14, fontWeight: '300', color: t.text },
     typePillTextActive: { color: t.surface, fontWeight: '900' },
@@ -386,28 +387,23 @@ export default function PerfilScreen() {
           />
         </View>
 
-        {/* ── TIPO ── */}
-        <View style={s.block}>
-          <Text style={s.blockLabel} allowFontScaling={true}>TIPO</Text>
-          <View style={s.typePills}>
-            {TIPOS_NEGOCIO.map(({ key, label }) => (
-              <TouchableOpacity
-                key={key}
-                style={[s.typePill, tipoNegocio === key && s.typePillActive]}
-                onPress={() => { setTipoNegocioState(key); setTipoNegocio(key); }}
-                activeOpacity={0.75}>
-                <Text style={[s.typePillText, tipoNegocio === key && s.typePillTextActive]} allowFontScaling={true}>
-                  {label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-
-        {/* ── HORARIO ── */}
-        <View style={s.block}>
-          <Text style={s.blockLabel} allowFontScaling={true}>HORARIO</Text>
+        {/* ── TIPO · HORARIO · PAGOS — un solo card ── */}
+        <View style={s.blockFirst}>
           <View style={s.operationGroup}>
+            <View style={s.tipoRow}>
+              {TIPOS_NEGOCIO.map(({ key, label }) => (
+                <TouchableOpacity
+                  key={key}
+                  style={[s.typePill, tipoNegocio === key && s.typePillActive]}
+                  onPress={() => { setTipoNegocioState(key); setTipoNegocio(key); }}
+                  activeOpacity={0.75}>
+                  <Text style={[s.typePillText, tipoNegocio === key && s.typePillTextActive]} allowFontScaling={true}>
+                    {label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            <View style={s.divider} />
             <TouchableOpacity style={s.operationRow} onPress={() => { setShowCierre(false); setShowApertura(v => !v); }} activeOpacity={0.72}>
               <Text style={s.operationTitle} allowFontScaling={true}>Apertura</Text>
               <Text style={[s.operationValue, !apertura && { color: theme.textSecondary }]} allowFontScaling={true}>
@@ -456,13 +452,7 @@ export default function PerfilScreen() {
                 />
               </View>
             )}
-          </View>
-        </View>
-
-        {/* ── PAGOS ── */}
-        <View style={s.block}>
-          <Text style={s.blockLabel} allowFontScaling={true}>PAGOS</Text>
-          <View style={s.operationGroup}>
+            <View style={s.divider} />
             <View style={s.paymentRow}>
               <View style={s.paymentChips}>
                 {([['Efectivo', pagosEfectivo, setPagosEfectivoState], ['Transferencia', pagosTrans, setPagosTransState], ['Tarjeta', pagosTarjeta, setPagosTarjetaState]] as const).map(([label, active, toggle]) => (

@@ -1,3 +1,5 @@
+import { supabase } from './supabase';
+
 export type PatioMenuItem = {
   name: string;
   price?: string;
@@ -185,6 +187,49 @@ export const MOCK_PATIOS: Patio[] = [
     payments: ['Efectivo', 'Tarjeta'],
   },
 ];
+
+function tipoLabel(tipo: string | null): string {
+  const map: Record<string, string> = {
+    fondita: 'Fondita',
+    taqueria: 'Taquería',
+    reposteria: 'Repostería',
+    mariscos: 'Mariscos',
+    otro: 'Fondita',
+  };
+  return (tipo && map[tipo]) || 'Fondita';
+}
+
+export async function fetchPublicFonditas(): Promise<Patio[]> {
+  const { data, error } = await supabase
+    .from('fonditas')
+    .select('id, nombre, descripcion, direccion, horario, tipo_negocio, pagos_efectivo, pagos_transferencia, pagos_tarjeta')
+    .not('nombre', 'is', null)
+    .neq('nombre', 'Mi Fondita');
+
+  if (error || !data) return [];
+
+  return data.map((row): Patio => ({
+    id: row.id,
+    name: row.nombre ?? 'Sin nombre',
+    category: tipoLabel(row.tipo_negocio),
+    area: 'CDMX',
+    price: '$',
+    address: row.direccion ?? '',
+    open: row.horario ?? '',
+    rating: '5.0',
+    reason: row.descripcion ?? '',
+    latitude: 0,
+    longitude: 0,
+    x: 0,
+    y: 0,
+    menu: [],
+    payments: [
+      ...(row.pagos_efectivo ? ['Efectivo'] : []),
+      ...(row.pagos_transferencia ? ['Transferencia'] : []),
+      ...(row.pagos_tarjeta ? ['Tarjeta'] : []),
+    ],
+  }));
+}
 
 export function getPatioById(id: string | string[] | undefined): Patio | null {
   const cleanId = Array.isArray(id) ? id[0] : id;

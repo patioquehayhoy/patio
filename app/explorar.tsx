@@ -3,14 +3,14 @@ import { useFocusEffect } from '@react-navigation/native';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, Stack } from 'expo-router';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Keyboard, ScrollView, Share, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker, type Region } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { getFavoritePatioIds, toggleFavoritePatio } from '@/lib/favorites';
 import { MAP_STYLE_DARK, MAP_STYLE_LIGHT } from '@/lib/map-style';
-import { MOCK_PATIOS as PATIOS, searchPatiosByDish } from '@/lib/patios';
+import { fetchPublicFonditas, MOCK_PATIOS, searchPatiosByDish, type Patio } from '@/lib/patios';
 import { Fonts, useTheme, type Theme } from '@/lib/theme';
 
 function makeStyles(t: Theme) {
@@ -32,18 +32,18 @@ function makeStyles(t: Theme) {
     closeButton: { width: 44, height: 44, borderRadius: 16, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: btnBorder, alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: btnShadowOpacity, shadowRadius: 16, elevation: 2 },
     toolButton: { width: 44, height: 44, borderRadius: 16, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: btnBorder, alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: btnShadowOpacity, shadowRadius: 16, elevation: 2 },
     searchRow: { flex: 1, height: 44, borderRadius: 16, overflow: 'hidden', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, gap: 8, borderWidth: StyleSheet.hairlineWidth, borderColor: btnBorder, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: btnShadowOpacity, shadowRadius: 16, elevation: 2 },
-    searchInput: { flex: 1, fontSize: 15, color: t.text, height: 44, paddingVertical: 0 },
+    searchInput: { flex: 1, fontSize: 15, fontWeight: '300', color: t.text, height: 44, paddingVertical: 0 },
     sheet: { position: 'absolute', left: 14, right: 14, bottom: 14, maxHeight: '48%', borderRadius: 30, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: t.isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.06)', shadowColor: '#000', shadowOffset: { width: 0, height: 12 }, shadowOpacity: t.isDark ? 0.20 : 0.08, shadowRadius: 32, elevation: 8 },
     grabber: { alignSelf: 'center', width: 36, height: 4, borderRadius: 2, backgroundColor: t.isDark ? 'rgba(255,255,255,0.16)' : 'rgba(0,0,0,0.10)', marginTop: 10, marginBottom: 8 },
     selectedPanel: { paddingHorizontal: 18, paddingBottom: 14 },
     selectedHeader: { flexDirection: 'row', alignItems: 'center', gap: 9, marginBottom: 8 },
     selectedTitle: { flex: 1, fontSize: 22, lineHeight: 26, fontWeight: '900', fontFamily: Fonts.brand, color: t.text },
     heartButton: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
-    selectedMeta: { fontSize: 13, lineHeight: 18, color: t.textSecondary },
+    selectedMeta: { fontSize: 13, lineHeight: 18, fontWeight: '300', color: t.textSecondary },
     selectedStats: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginTop: 12 },
     price: { fontSize: 24, lineHeight: 28, fontWeight: '300', color: t.text },
     dishName: { fontSize: 19, lineHeight: 24, fontWeight: '900', fontFamily: Fonts.brand, color: t.text },
-    priceCaption: { marginTop: 1, fontSize: 12, color: t.textSecondary },
+    priceCaption: { marginTop: 1, fontSize: 12, fontWeight: '300', color: t.textSecondary },
     ratingRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 8 },
     ratingText: { fontSize: 13, fontWeight: '900', color: t.text },
     cta: { minHeight: 44, paddingHorizontal: 18, borderRadius: 22, backgroundColor: t.text, flexDirection: 'row', alignItems: 'center', gap: 6 },
@@ -51,7 +51,7 @@ function makeStyles(t: Theme) {
     divider: { height: StyleSheet.hairlineWidth, backgroundColor: t.border },
     listHeader: { paddingHorizontal: 18, paddingTop: 14, paddingBottom: 9, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     listTitle: { fontSize: 12, fontWeight: '900', color: t.text },
-    listMeta: { fontSize: 12, color: t.textSecondary },
+    listMeta: { fontSize: 12, fontWeight: '300', color: t.textSecondary },
     listFilter: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, minHeight: 30, borderRadius: 15, backgroundColor: t.accentLight },
     listFilterText: { fontSize: 12, fontWeight: '900', color: t.accent },
     list: { paddingBottom: 12 },
@@ -61,12 +61,13 @@ function makeStyles(t: Theme) {
     addBoxMuted: { backgroundColor: 'transparent', borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
     patioInfo: { flex: 1, paddingRight: 10 },
     patioName: { fontSize: 15, fontWeight: '900', fontFamily: Fonts.brand, color: t.text },
-    patioMeta: { marginTop: 4, fontSize: 12, lineHeight: 16, color: t.textSecondary },
+    patioMeta: { marginTop: 4, fontSize: 12, lineHeight: 16, fontWeight: '300', color: t.textSecondary },
     patioRight: { alignItems: 'flex-end', gap: 3 },
     patioPrice: { fontSize: 15, fontWeight: '900', color: t.text },
-    patioOpen: { fontSize: 12, color: t.textSecondary },
+    patioOpen: { fontSize: 12, fontWeight: '300', color: t.textSecondary },
     patioRating: { flexDirection: 'row', alignItems: 'center', gap: 3 },
     patioRatingText: { fontSize: 12, fontWeight: '900', color: t.text },
+    indexNum: { fontSize: 13, fontWeight: '900' },
     emptyResults: { paddingHorizontal: 18, paddingVertical: 20, alignItems: 'center' },
   });
 }
@@ -85,6 +86,7 @@ export default function ExplorarScreen() {
 
   // selectedId: which pin is highlighted. showHeader: user explicitly tapped a pin/row.
   // These two are always moved together via selectPatio/deselect — never set independently.
+  const [allPatios, setAllPatios] = useState<Patio[]>(MOCK_PATIOS);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showHeader, setShowHeader] = useState(false);
   const [mapExpanded, setMapExpanded] = useState(false);
@@ -94,16 +96,24 @@ export default function ExplorarScreen() {
   const [visibleRegion, setVisibleRegion] = useState<Region>(INITIAL_REGION);
   const searchInputRef = useRef<TextInput>(null);
 
+  useEffect(() => {
+    fetchPublicFonditas().then((db) => {
+      const existingIds = new Set(MOCK_PATIOS.map((p) => p.id));
+      const newOnes = db.filter((p) => !existingIds.has(p.id));
+      if (newOnes.length > 0) setAllPatios([...MOCK_PATIOS, ...newOnes]);
+    });
+  }, []);
+
   const visiblePatios = useMemo(() => {
     const { latitude, longitude, latitudeDelta, longitudeDelta } = visibleRegion;
     const minLat = latitude - latitudeDelta / 2;
     const maxLat = latitude + latitudeDelta / 2;
     const minLng = longitude - longitudeDelta / 2;
     const maxLng = longitude + longitudeDelta / 2;
-    return PATIOS.filter(
-      (p) => p.latitude >= minLat && p.latitude <= maxLat && p.longitude >= minLng && p.longitude <= maxLng
+    return allPatios.filter(
+      (p) => p.latitude > 0 && p.latitude >= minLat && p.latitude <= maxLat && p.longitude >= minLng && p.longitude <= maxLng
     );
-  }, [visibleRegion]);
+  }, [visibleRegion, allPatios]);
 
   const searchResults = useMemo(() => searchPatiosByDish(query), [query]);
   const matchingPatioIds = useMemo(() => new Set(searchResults.map((r) => r.patio.id)), [searchResults]);
@@ -118,7 +128,7 @@ export default function ExplorarScreen() {
     });
   }, [searchResults]);
 
-  const selectedPatio = selectedId ? (PATIOS.find((p) => p.id === selectedId) ?? null) : null;
+  const selectedPatio = selectedId ? (allPatios.find((p) => p.id === selectedId) ?? null) : null;
   const featuredMatch = showHeader && isFiltering && selectedId
     ? (searchResults.find((r) => r.patio.id === selectedId) ?? null)
     : null;
@@ -327,10 +337,12 @@ export default function ExplorarScreen() {
                       <Text style={s.ratingText} allowFontScaling={true}>{selectedPatio.rating}</Text>
                     </View>
                   </View>
-                  <TouchableOpacity style={s.cta} onPress={() => router.push(`/patio/${selectedPatio.id}`)} activeOpacity={0.82}>
-                    <Text style={s.ctaText} allowFontScaling={true}>Ver</Text>
-                    <Ionicons name="chevron-forward" size={15} color={theme.surface} />
-                  </TouchableOpacity>
+                  {selectedPatio.latitude > 0 && (
+                    <TouchableOpacity style={s.cta} onPress={() => router.push(`/patio/${selectedPatio.id}`)} activeOpacity={0.82}>
+                      <Text style={s.ctaText} allowFontScaling={true}>Ver</Text>
+                      <Ionicons name="chevron-forward" size={15} color={theme.surface} />
+                    </TouchableOpacity>
+                  )}
                 </View>
               </View>
               <View style={s.divider} />
@@ -393,7 +405,7 @@ export default function ExplorarScreen() {
                 })
               )
             ) : (
-              visiblePatios.map((patio, index) => {
+              allPatios.map((patio, index) => {
                 const active = patio.id === selectedId && showHeader;
                 return (
                   <TouchableOpacity
@@ -402,7 +414,7 @@ export default function ExplorarScreen() {
                     onPress={() => selectPatio(patio.id)}
                     activeOpacity={0.76}>
                     <View style={[s.addBox, !active && s.addBoxMuted]}>
-                      <Text style={{ color: active ? theme.surface : theme.textSecondary, fontWeight: '900' }}>{index + 1}</Text>
+                      <Text style={[s.indexNum, { color: active ? theme.surface : theme.textSecondary }]}>{index + 1}</Text>
                     </View>
                     <View style={s.patioInfo}>
                       <Text style={s.patioName} allowFontScaling={true}>{patio.name}</Text>

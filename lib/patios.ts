@@ -231,6 +231,41 @@ export async function fetchPublicFonditas(): Promise<Patio[]> {
   }));
 }
 
+export async function fetchFonditaById(id: string): Promise<Patio | null> {
+  const base = 'id, nombre, descripcion, direccion, horario, tipo_negocio, pagos_efectivo, pagos_transferencia, pagos_tarjeta';
+  let row: Record<string, unknown> | null = null;
+
+  const withLoc = await supabase.from('fonditas').select(`${base}, latitude, longitude`).eq('id', id).maybeSingle();
+  if (!withLoc.error && withLoc.data) {
+    row = withLoc.data as Record<string, unknown>;
+  } else {
+    const noLoc = await supabase.from('fonditas').select(base).eq('id', id).maybeSingle();
+    if (noLoc.error || !noLoc.data) return null;
+    row = noLoc.data as Record<string, unknown>;
+  }
+
+  return {
+    id: row.id as string,
+    name: (row.nombre as string | null) ?? 'Sin nombre',
+    category: tipoLabel(row.tipo_negocio as string | null),
+    area: 'CDMX',
+    price: '$',
+    address: (row.direccion as string | null) ?? '',
+    open: (row.horario as string | null) ?? '',
+    rating: '5.0',
+    reason: (row.descripcion as string | null) ?? '',
+    latitude: (row.latitude as number | null) ?? 0,
+    longitude: (row.longitude as number | null) ?? 0,
+    x: 0, y: 0,
+    menu: [],
+    payments: [
+      ...(row.pagos_efectivo ? ['Efectivo'] : []),
+      ...(row.pagos_transferencia ? ['Transferencia'] : []),
+      ...(row.pagos_tarjeta ? ['Tarjeta'] : []),
+    ],
+  };
+}
+
 export function getPatioById(id: string | string[] | undefined): Patio | null {
   const cleanId = Array.isArray(id) ? id[0] : id;
   return MOCK_PATIOS.find((patio) => patio.id === cleanId) ?? null;

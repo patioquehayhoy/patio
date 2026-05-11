@@ -1,6 +1,9 @@
 import * as Location from 'expo-location';
-import { router } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
+import { router, useFocusEffect } from 'expo-router';
+
+import { HintSheet } from '@/components/hint-sheet';
+import { markHintSeen, shouldShowHint } from '@/lib/hints';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Animated,
@@ -215,10 +218,21 @@ export default function PerfilScreen() {
     pagosTarjeta  !== savedValues.pagosTarjeta  ||
     tipoNegocio   !== savedValues.tipoNegocio;
 
+  const [showPerfilHint, setShowPerfilHint] = useState(false);
+
   const fonditaIdRef       = useRef<string | null>(getFonditaId());
   const nombreUpdatedAtRef = useRef<string | null>(null);
+  const nombreInputRef     = useRef<TextInput>(null);
   const aperturaTimerRef   = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cierreTimerRef     = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useFocusEffect(useCallback(() => {
+    shouldShowHint('fondero_perfil').then((show) => {
+      if (!show) return;
+      const n = getFonditaName();
+      if (!n || n === 'Mi Fondita') setShowPerfilHint(true);
+    });
+  }, []));
 
   useEffect(() => {
     const init = async () => {
@@ -381,6 +395,7 @@ export default function PerfilScreen() {
             </View>
           )}
           <TextInput
+            ref={nombreInputRef}
             style={s.nombreInput}
             value={nombre}
             onChangeText={(v) => setNombre(v.slice(0, MAX_NOMBRE))}
@@ -569,6 +584,19 @@ export default function PerfilScreen() {
       </ScrollView>
 
       <BottomTabBar />
+      <HintSheet
+        visible={showPerfilHint}
+        icon="🏪"
+        title="Ponle nombre a tu negocio"
+        body="Nombre, tipo de negocio, horario y cómo cobras. Dos minutos y tu perfil está listo."
+        primaryLabel="Empezar"
+        onPrimary={() => {
+          markHintSeen('fondero_perfil');
+          setShowPerfilHint(false);
+          setTimeout(() => nombreInputRef.current?.focus(), 300);
+        }}
+        onDismiss={() => { markHintSeen('fondero_perfil'); setShowPerfilHint(false); }}
+      />
     </View>
   );
 }

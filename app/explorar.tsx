@@ -10,6 +10,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { getFavoritePatioIds, toggleFavoritePatio } from '@/lib/favorites';
 import { MAP_STYLE_DARK, MAP_STYLE_LIGHT } from '@/lib/map-style';
+import { HintSheet } from '@/components/hint-sheet';
+import { markHintSeen, shouldShowHint } from '@/lib/hints';
 import { fetchPublicFonditas, MOCK_PATIOS, searchPatiosByDish, type Patio } from '@/lib/patios';
 import { Fonts, useTheme, type Theme } from '@/lib/theme';
 
@@ -87,6 +89,7 @@ export default function ExplorarScreen() {
   // selectedId: which pin is highlighted. showHeader: user explicitly tapped a pin/row.
   // These two are always moved together via selectPatio/deselect — never set independently.
   const [allPatios, setAllPatios] = useState<Patio[]>(MOCK_PATIOS);
+  const [showExplorarHint, setShowExplorarHint] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showHeader, setShowHeader] = useState(false);
   const [mapExpanded, setMapExpanded] = useState(false);
@@ -138,6 +141,7 @@ export default function ExplorarScreen() {
     useCallback(() => {
       let mounted = true;
       getFavoritePatioIds().then((ids) => { if (mounted) setSavedIds(ids); });
+      shouldShowHint('foodie_explorar').then((show) => { if (mounted && show) setShowExplorarHint(true); });
       return () => { mounted = false; };
     }, [])
   );
@@ -435,6 +439,15 @@ export default function ExplorarScreen() {
           </ScrollView>
         </View>
       )}
+      <HintSheet
+        visible={showExplorarHint}
+        icon="🍽️"
+        title="¿Qué se te antoja hoy?"
+        body="Busca un platillo o explora el mapa. Patio muestra qué fonditas tienen menú ahorita."
+        primaryLabel="Ver qué hay"
+        onPrimary={() => { markHintSeen('foodie_explorar'); setShowExplorarHint(false); }}
+        onDismiss={() => { markHintSeen('foodie_explorar'); setShowExplorarHint(false); }}
+      />
     </View>
   );
 }

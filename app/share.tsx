@@ -2,6 +2,9 @@ import { useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
+import { HintSheet } from '@/components/hint-sheet';
+import { markHintSeen, shouldShowHint } from '@/lib/hints';
+
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import {
@@ -12,11 +15,15 @@ import {
 
 export default function ShareScreen() {
   const [data, setData] = useState<MenuData | null>(null);
+  const [showShareHint, setShowShareHint] = useState(false);
   const fonditaName = getFonditaName();
 
   useFocusEffect(
     useCallback(() => {
       setData(getMenuData());
+      let mounted = true;
+      shouldShowHint('fondero_share').then((show) => { if (mounted && show) setShowShareHint(true); });
+      return () => { mounted = false; };
     }, [])
   );
 
@@ -57,6 +64,15 @@ export default function ShareScreen() {
 
         <ThemedText style={styles.menuDeHoy}>Menú de hoy</ThemedText>
       </ScrollView>
+      <HintSheet
+        visible={showShareHint}
+        icon="✉️"
+        title="Ya está, compártelo"
+        body="Mándalo por WhatsApp o donde quieras. Patio ya formateó todo por ti."
+        primaryLabel="Entendido"
+        onPrimary={() => { markHintSeen('fondero_share'); setShowShareHint(false); }}
+        onDismiss={() => { markHintSeen('fondero_share'); setShowShareHint(false); }}
+      />
     </ThemedView>
   );
 }

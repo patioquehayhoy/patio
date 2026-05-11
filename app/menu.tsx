@@ -1,5 +1,8 @@
 import { Stack, useFocusEffect, router } from 'expo-router';
 import { useState, useCallback, useEffect, useRef } from 'react';
+
+import { HintSheet } from '@/components/hint-sheet';
+import { markHintSeen, shouldShowHint } from '@/lib/hints';
 import {
   Alert,
   Keyboard,
@@ -320,6 +323,7 @@ export default function MenuScreen() {
   const [menuData, setMenuData] = useState<MenuData>(
     () => normalizeMenuData(getMenuData()) ?? { secciones: [] }
   );
+  const [showMenuHint, setShowMenuHint] = useState(false);
   const [movingPlatillo, setMovingPlatillo] = useState<{ secId: string; platId: string } | null>(null);
   const [sectionPickerVisible, setSectionPickerVisible] = useState(false);
   const [selectedSectionNames, setSelectedSectionNames] = useState<string[]>([]);
@@ -333,6 +337,13 @@ export default function MenuScreen() {
     setFonditaDescription(getFonditaDescription());
     setFonditaDireccion(getFonditaDireccion());
     setFonditaDireccionVisible(getFonditaDireccionVisible());
+    let mounted = true;
+    shouldShowHint('fondero_menu').then((show) => {
+      if (!mounted || !show) return;
+      const md = normalizeMenuData(getMenuData());
+      if (!md || md.secciones.length === 0) setShowMenuHint(true);
+    });
+    return () => { mounted = false; };
   }, []));
 
   useEffect(() => {
@@ -743,6 +754,17 @@ export default function MenuScreen() {
         </ScrollView>
         <BottomTabBar />
       </KeyboardAvoidingView>
+      <HintSheet
+        visible={showMenuHint}
+        icon="📋"
+        title="¿Qué hay hoy?"
+        body="Toma una foto de tu menú o escríbelo tú mismo. Tus clientes lo ven en segundos."
+        primaryLabel="📷 Tomar foto"
+        onPrimary={() => { markHintSeen('fondero_menu'); setShowMenuHint(false); router.push('/foto-menu'); }}
+        secondaryLabel="Escribirlo yo"
+        onSecondary={() => { markHintSeen('fondero_menu'); setShowMenuHint(false); }}
+        onDismiss={() => { markHintSeen('fondero_menu'); setShowMenuHint(false); }}
+      />
     </View>
   );
 }

@@ -6,9 +6,10 @@ import { Linking, Modal, Platform, ScrollView, Share, StyleSheet, Text, Touchabl
 import MapView, { Marker } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { AgentSpinner } from '@/components/agent-spinner';
 import { getFavoritePatioIds, toggleFavoritePatio } from '@/lib/favorites';
 import { MAP_STYLE_DARK, MAP_STYLE_LIGHT } from '@/lib/map-style';
-import { getPatioById } from '@/lib/patios';
+import { fetchFonditaById, getPatioById, type Patio } from '@/lib/patios';
 import { getPatioRating, savePatioRating } from '@/lib/ratings';
 import { Fonts, useTheme, type Theme } from '@/lib/theme';
 
@@ -72,17 +73,26 @@ function makeStyles(t: Theme) {
 
 export default function PatioDetailScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
-  const patio = getPatioById(id);
   const { theme } = useTheme();
   const s = makeStyles(theme);
   const insets = useSafeAreaInsets();
+  const [patio, setPatio] = useState<Patio | null>(null);
+  const [loading, setLoading] = useState(true);
   const [isSaved, setIsSaved] = useState(false);
   const [userRating, setUserRating] = useState<number | null>(null);
   const [showRatingSheet, setShowRatingSheet] = useState(false);
   const [pendingStars, setPendingStars] = useState(0);
   const [selectedReasons, setSelectedReasons] = useState<string[]>([]);
-  const patioId = patio?.id;
 
+  useEffect(() => {
+    const cleanId = Array.isArray(id) ? id[0] : id;
+    if (!cleanId) { setLoading(false); return; }
+    const mock = getPatioById(cleanId);
+    if (mock) { setPatio(mock); setLoading(false); return; }
+    fetchFonditaById(cleanId).then((found) => { setPatio(found); setLoading(false); });
+  }, [id]);
+
+  const patioId = patio?.id;
   useEffect(() => {
     if (!patioId) return;
     getFavoritePatioIds().then((ids) => setIsSaved(ids.includes(patioId)));
@@ -143,6 +153,22 @@ export default function PatioDetailScreen() {
     setShowRatingSheet(false);
   };
 
+  if (loading) {
+    return (
+      <View style={[s.container, { paddingTop: insets.top }]}>
+        <Stack.Screen options={{ headerShown: false }} />
+        <View style={s.scrollContent}>
+          <View style={s.top}>
+            <TouchableOpacity style={s.iconButton} onPress={handleBack} activeOpacity={0.76}>
+              <Ionicons name="chevron-back" size={22} color={theme.text} />
+            </TouchableOpacity>
+          </View>
+        </View>
+        <AgentSpinner color={theme.text} size={22} style={{ alignSelf: 'center', marginTop: 80 }} />
+      </View>
+    );
+  }
+
   if (!patio) {
     return (
       <View style={[s.container, { paddingTop: insets.top }]}>
@@ -199,7 +225,7 @@ export default function PatioDetailScreen() {
           </View>
         </View>
 
-        <View style={s.mapPanel}>
+        {patio.latitude > 0 && <View style={s.mapPanel}>
           <MapView
             customMapStyle={theme.isDark ? MAP_STYLE_DARK : MAP_STYLE_LIGHT}
             initialRegion={{ latitude: patio.latitude, longitude: patio.longitude, latitudeDelta: 0.006, longitudeDelta: 0.006 }}
@@ -231,7 +257,7 @@ export default function PatioDetailScreen() {
               <Text style={s.mapPillBtnText}>Cómo llegar</Text>
             </TouchableOpacity>
           </View>
-        </View>
+        </View>}
 
         <View style={s.menuPanel}>
           <View style={s.menuHeader}>

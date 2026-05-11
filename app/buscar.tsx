@@ -1,10 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, Stack } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { searchPatiosByDish } from '@/lib/patios';
+import { fetchPublicFonditas, searchPatiosByDish, type Patio, type PatioDishMatch } from '@/lib/patios';
 import { useTheme, type Theme } from '@/lib/theme';
 
 function makeStyles(t: Theme) {
@@ -41,7 +41,28 @@ export default function BuscarScreen() {
   const s = makeStyles(theme);
   const insets = useSafeAreaInsets();
   const [query, setQuery] = useState('');
-  const results = useMemo(() => searchPatiosByDish(query), [query]);
+  const [realFonditas, setRealFonditas] = useState<Patio[]>([]);
+
+  useEffect(() => {
+    fetchPublicFonditas().then(setRealFonditas);
+  }, []);
+
+  const results = useMemo<PatioDishMatch[]>(() => {
+    if (!query.trim()) return [];
+    const dishMatches = searchPatiosByDish(query);
+    const norm = query.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+    const fonditaMatches: PatioDishMatch[] = realFonditas
+      .filter((f) => {
+        const name = f.name.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+        const cat = f.category.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+        return name.includes(norm) || cat.includes(norm);
+      })
+      .map((f) => ({ patio: f, section: f.category, item: { name: f.name, price: f.price }, score: 50 }));
+    const seen = new Set(dishMatches.map((m) => m.patio.id));
+    const merged = [...dishMatches, ...fonditaMatches.filter((m) => !seen.has(m.patio.id))];
+    return merged.sort((a, b) => b.score - a.score || a.patio.name.localeCompare(b.patio.name));
+  }, [query, realFonditas]);
+
   const hasQuery = query.trim().length > 0;
 
   return (

@@ -1,3 +1,4 @@
+import * as Location from 'expo-location';
 import { router } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import {
@@ -105,6 +106,8 @@ function makeStyles(t: Theme) {
     saveInlineBtn:      { fontSize: 16, fontWeight: '900', color: t.accent },
     nombreInput:        { fontSize: 34, fontWeight: '900', color: t.text, lineHeight: 40, paddingVertical: 0, paddingHorizontal: 0, backgroundColor: 'transparent', marginBottom: 8 },
     fieldInput:         { fontWeight: '300', color: t.textSecondary, paddingVertical: 0, paddingHorizontal: 0, backgroundColor: 'transparent' },
+    locationBtn:        { flexDirection: 'row', alignItems: 'center', gap: 5, paddingTop: 8, paddingBottom: 2, alignSelf: 'flex-start' },
+    locationBtnText:    { fontSize: 12, fontWeight: '300', color: t.textSecondary },
     // Sections
     block:              { paddingTop: 24 },
     blockFirst:         { paddingTop: 32 },
@@ -186,6 +189,8 @@ export default function PerfilScreen() {
   const [email,         setEmail]         = useState('');
   const [ready,         setReady]         = useState(false);
   const [isSaving,      setIsSaving]      = useState(false);
+  const [locationSaved,    setLocationSaved]    = useState(false);
+  const [isSavingLocation, setIsSavingLocation] = useState(false);
 
   const horario = apertura && cierre ? buildHorario(apertura, cierre) : '';
 
@@ -231,7 +236,7 @@ export default function PerfilScreen() {
 
         const selectResult = await supabase
           .from('fonditas')
-          .select('id, nombre, nombre_updated_at, descripcion, direccion, direccion_visible, horario, pagos_efectivo, pagos_transferencia, pagos_tarjeta, tipo_negocio')
+          .select('id, nombre, nombre_updated_at, descripcion, direccion, direccion_visible, horario, pagos_efectivo, pagos_transferencia, pagos_tarjeta, tipo_negocio, latitude, longitude')
           .eq('telefono', user.email)
           .maybeSingle();
 
@@ -241,7 +246,7 @@ export default function PerfilScreen() {
           const insertResult = await supabase
             .from('fonditas')
             .insert({ telefono: user.email, nombre: 'Mi Fondita' })
-            .select('id, nombre, nombre_updated_at, descripcion, direccion, direccion_visible, horario, pagos_efectivo, pagos_transferencia, pagos_tarjeta, tipo_negocio')
+            .select('id, nombre, nombre_updated_at, descripcion, direccion, direccion_visible, horario, pagos_efectivo, pagos_transferencia, pagos_tarjeta, tipo_negocio, latitude, longitude')
             .single();
           fondita = insertResult.data;
         }
@@ -278,6 +283,7 @@ export default function PerfilScreen() {
         setSavedValues({ nombre: n, descripcion: desc, ubicacion: ub, horario: hor || '', pagosEfectivo: pe, pagosTrans: pt, pagosTarjeta: ptar, tipoNegocio: tn });
 
         if (fondita.nombre_updated_at) nombreUpdatedAtRef.current = fondita.nombre_updated_at;
+        if ((fondita as any).latitude && (fondita as any).longitude) setLocationSaved(true);
       } finally {
         setReady(true);
       }
@@ -337,6 +343,28 @@ export default function PerfilScreen() {
     router.replace('/');
   };
 
+  const handleMarkLocation = async () => {
+    const fonditaId = fonditaIdRef.current;
+    if (!fonditaId) { Alert.alert('Guarda tu perfil primero'); return; }
+    setIsSavingLocation(true);
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Sin permiso de ubicación', 'Activa la ubicación en Ajustes para aparecer en el mapa.');
+        return;
+      }
+      const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+      const { latitude, longitude } = pos.coords;
+      const { error } = await supabase.from('fonditas').update({ latitude, longitude }).eq('id', fonditaId);
+      if (error) throw error;
+      setLocationSaved(true);
+    } catch {
+      Alert.alert('Error', 'No se pudo guardar la ubicación. Intenta de nuevo.');
+    } finally {
+      setIsSavingLocation(false);
+    }
+  };
+
   return (
     <View style={[s.container, { paddingTop: insets.top }]}>
       <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
@@ -375,7 +403,7 @@ export default function PerfilScreen() {
             returnKeyType="next"
           />
           <TextInput
-            style={[s.fieldInput, { fontSize: 12, lineHeight: 17, opacity: 0.5, marginBottom: 6 }]}
+            style={[s.fieldInput, { fontSize: 12, lineHeight: 17, opacity: 0.5 }]}
             value={ubicacion}
             onChangeText={(v) => setUbicacion(v.slice(0, MAX_UBICACION))}
             placeholder="Dirección"
@@ -385,6 +413,20 @@ export default function PerfilScreen() {
             editable={ready}
             returnKeyType="done"
           />
+          <TouchableOpacity
+            style={s.locationBtn}
+            onPress={handleMarkLocation}
+            disabled={isSavingLocation}
+            activeOpacity={0.7}>
+            <Ionicons
+              name={locationSaved ? 'checkmark-circle' : 'location-outline'}
+              size={13}
+              color={locationSaved ? theme.accent : theme.textSecondary}
+            />
+            <Text style={[s.locationBtnText, locationSaved && { color: theme.accent }]}>
+              {isSavingLocation ? 'Ubicando…' : locationSaved ? 'En el mapa' : 'Marcar en el mapa'}
+            </Text>
+          </TouchableOpacity>
         </View>
 
         {/* ── TIPO · HORARIO · PAGOS — un solo card ── */}

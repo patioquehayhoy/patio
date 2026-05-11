@@ -62,7 +62,13 @@
           }
         }
       ],
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Usamos tu ubicación para mostrarte en el mapa de Patio"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

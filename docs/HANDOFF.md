@@ -1,5 +1,46 @@
 # HANDOFF
 
+## 2026-05-10 (cierre — sesión Supabase + ubicación)
+
+### Qué se hizo hoy
+
+**explorar.tsx — auditoría tipográfica completa**:
+- `fontWeight: '300'` agregado a: `selectedMeta`, `priceCaption`, `searchInput`, `listMeta`, `patioMeta`, `patioOpen`
+- Inline `fontWeight: '900'` en número de índice movido a `s.indexNum` dentro de `makeStyles`
+
+**explorar.tsx + lib/patios.ts — conexión Supabase (lista)**:
+- `fetchPublicFonditas()` en `lib/patios.ts` — query a tabla `fonditas`, mapea a `Patio[]`
+- `allPatios` state en explorar: empieza con MOCK_PATIOS, se expande con fonditas reales al montar
+- Lista muestra `allPatios` (todos los fonditas registrados)
+- Mapa usa solo patios con `latitude > 0` en viewport — MOCK_PATIOS por ahora
+- Botón "Ver" visible solo para patios con coordenadas
+
+**perfil.tsx — captura de ubicación GPS**:
+- `expo-location` instalado y registrado en `app.json` (plugin)
+- Botón "Marcar en el mapa" en campo de dirección
+- `handleMarkLocation()`: pide permiso → GPS → guarda `latitude`/`longitude` en `fonditas`
+- Estado persiste: si DB ya tiene coords, muestra "En el mapa" al cargar
+
+### ⚠️ Migración Supabase PENDIENTE (hacer antes de probar)
+```sql
+ALTER TABLE fonditas ADD COLUMN IF NOT EXISTS latitude float8;
+ALTER TABLE fonditas ADD COLUMN IF NOT EXISTS longitude float8;
+```
+Sin esta migración, el botón de ubicación falla al guardar.
+
+### Decisiones importantes
+- **Lat/lng por registro**: cada fondita marca su ubicación desde su propio dispositivo — no geocoding
+- **MOCK_PATIOS para mapa**: quedan como referencia visual hasta que fonditas reales tengan coords
+- **expo-location**: requiere `npx expo run:ios` para rebuild nativo antes de poder probar GPS
+
+### Siguiente paso exacto
+1. Ejecutar migración Supabase (ALTER TABLE)
+2. `npx expo run:ios` — rebuild por expo-location + ver icono/splash
+3. Verificar commit agente de hints en GitHub (`feat: contextual onboarding hints`)
+4. Probar GPS en simulador (lat/lng ficticio) o dispositivo real
+
+---
+
 ## 2026-05-10/11 (cierre — sesión diseño completo)
 
 ### Qué se hizo hoy

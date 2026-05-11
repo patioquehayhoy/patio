@@ -1,0 +1,10 @@
+appId: com.parcomx.patio
+---
+- launchApp
+- tapOn: "Dev Foodie"
+- waitForAnimationToEnd
+# Ícono de persona — esquina superior izquierda del mapa
+- tapOn:
+    point: "12%,12%"
+- waitForAnimationToEnd
+- takeScreenshot: ../screenshots/06-foodie-cuenta

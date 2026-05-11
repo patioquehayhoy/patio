@@ -1,0 +1,8 @@
+appId: com.parcomx.patio
+---
+- launchApp
+- tapOn: "Dev Foodie"
+- waitForAnimationToEnd
+- tapOn: "Cochitacos"
+- waitForAnimationToEnd
+- takeScreenshot: ../screenshots/04-foodie-explorar-seleccionado

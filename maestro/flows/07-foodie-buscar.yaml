@@ -1,0 +1,11 @@
+appId: com.parcomx.patio
+---
+- launchApp
+- tapOn: "Dev Foodie"
+- waitForAnimationToEnd
+- tapOn:
+    point: "12%,12%"
+- waitForAnimationToEnd
+- tapOn: "Buscar"
+- waitForAnimationToEnd
+- takeScreenshot: ../screenshots/07-foodie-buscar

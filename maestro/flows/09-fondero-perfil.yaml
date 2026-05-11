@@ -1,0 +1,6 @@
+appId: com.parcomx.patio
+---
+- launchApp
+- tapOn: "Dev Fondero"
+- waitForAnimationToEnd
+- takeScreenshot: ../screenshots/09-fondero-perfil

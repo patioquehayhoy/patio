@@ -1,0 +1,6 @@
+appId: com.parcomx.patio
+---
+- launchApp
+- tapOn: "Dev Foodie"
+- waitForAnimationToEnd
+- takeScreenshot: ../screenshots/03-foodie-explorar

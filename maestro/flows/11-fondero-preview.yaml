@@ -1,0 +1,8 @@
+appId: com.parcomx.patio
+---
+- launchApp
+- tapOn: "Dev Fondero"
+- waitForAnimationToEnd
+- tapOn: "Compartir"
+- waitForAnimationToEnd
+- takeScreenshot: ../screenshots/11-fondero-preview

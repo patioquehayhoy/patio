@@ -1,6 +1,6 @@
 # STATE
 
-## Estado actual (2026-05-11 — cierre de sesión)
+## Estado actual (2026-05-12 — cierre de sesión)
 
 ### Sistema de diseño — CONSOLIDADO ✅
 - **fontWeight**: solo `'900'` / `'300'` en todo el codebase (auditoría completa)
@@ -18,8 +18,8 @@
 | `foto-menu.tsx` | ✅ Auditado — fontWeight y letterSpacing corregidos |
 | `preview.tsx` | ✅ Auditado — fontWeight y letterSpacing corregidos |
 | `share.tsx` | ✅ Auditado |
-| `explorar.tsx` | ✅ Auditado + Supabase — fontWeight corregido, lista usa fonditas reales |
-| `buscar.tsx` | ✅ Supabase — busca fonditas reales por nombre/categoría + platillos MOCK |
+| `explorar.tsx` | ✅ Radar de antojo — sheet oculto en estado inicial, aparece solo con intención (search/pin) |
+| `buscar.tsx` | ✅ Redirige a /explorar (pantalla unificada) |
 | `cuenta.tsx` | ✅ Auditado |
 | `patio/[id].tsx` | ✅ Supabase fallback — loading state, fetch por ID si no está en MOCK |
 
@@ -47,14 +47,10 @@
 - `npx tsc --noEmit` en verde ✅
 
 ## Próximos pasos
-1. **Supabase migration** — correr el ALTER TABLE en dashboard para habilitar lat/lng
-2. **`npx expo run:ios`** — rebuild nativo por expo-location + ver icono/splash
-3. **Dev Fondero** — si da "Unmatched Route", presionar `r` en Metro para recargar bundle
-3. **Verificar agente de hints** — revisar commit en GitHub
-4. **patio/[id].tsx real data** — cuando se toca fondita real sin coords, navegar a pantalla con fetch de Supabase
-5. **buscar.tsx** — extender búsqueda a fonditas reales por nombre/categoría
-
-### Pendiente estructural
-- Menu data en Supabase (tabla fonditas no tiene menú → búsqueda por platillo solo en MOCK)
-- API key Google Maps para Android
-- Conectar buscar.tsx y favoritos a Supabase
+1. **`npx expo run:ios`** — rebuild nativo por expo-location + ver icono/splash
+2. **Revisar PRs de agentes nocturnos** — 4 rutinas programadas para 2-5am del 2026-05-12:
+   - 2am: migration SQL lat/lng (correr en Supabase dashboard después)
+   - 3am: favoritos.tsx → Supabase fallback
+   - 4am: explorar.tsx organismo vivo (suggestion pills ambient)
+   - 5am: schema menu_sections + menu_items + lib/menu.ts
+3. **API key Google Maps para Android** — pendiente estructural

@@ -294,7 +294,7 @@ export default function ExplorarScreen() {
         )}
       </View>
 
-      {!mapExpanded && (
+      {!mapExpanded && (showHeader || isFiltering) && (
         <View style={[s.sheet, { paddingBottom: insets.bottom ? 4 : 8 }]}>
           <BlurView intensity={theme.isDark ? 16 : 22} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
           <View style={s.grabber} />

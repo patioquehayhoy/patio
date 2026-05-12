@@ -23,11 +23,17 @@ El stack visual usa:
 ## Documentos que DEBES leer antes de cualquier cambio
 
 En este orden:
-1. `docs/design/VISUAL_SYSTEM.md` — sistema visual completo: filosofía, glass, color, tipografía, geometría
-2. `CLAUDE.md` — reglas de código y diseño no negociables
-3. `docs/design/references/STYLE_INDEX.md` — análisis de las referencias visuales (qué extraer y dónde aplicar)
-4. `docs/HANDOFF.md` — estado actual y decisiones recientes
-5. `docs/STATE.md` — qué está hecho y qué está pendiente
+1. `docs/design/PRODUCT_PRINCIPLES.md` — principios de producto: progressive disclosure, search-first, ambient state, feedback, choice architecture
+2. `docs/design/FLOW_V2.md` — contrato de flujo antes del rediseño visual
+3. `docs/design/SCREENSHOT_INDEX.md` — inventario de pantallas reales y estados del flujo
+4. `docs/design/VISUAL_SYSTEM.md` — sistema visual completo: filosofía, glass, color, tipografía, geometría
+5. `CLAUDE.md` — reglas de código y diseño no negociables
+6. `docs/design/references/STYLE_INDEX.md` — análisis de las referencias visuales (qué extraer y dónde aplicar)
+7. `docs/HANDOFF.md` — estado actual y decisiones recientes
+8. `docs/STATE.md` — qué está hecho y qué está pendiente
+
+> Importante: no rediseñar estilo si el cambio contradice `PRODUCT_PRINCIPLES.md` o `FLOW_V2.md`.
+> Primero preservar o corregir intención/flujo; después intervenir el lenguaje visual.
 
 ---
 
@@ -57,7 +63,7 @@ Auditar todas las pantallas del lado Foodie contra el VISUAL_SYSTEM.md y aplicar
 
 #### 3. `app/index.tsx` — MEDIA prioridad
 - Verificar que el tagline usa `Fonts.brand`
-- Verificar que los botones de entrada (Busco comida / Tengo un negocio) siguen el spec de botón primario (borderRadius 14, fondo #292929)
+- Verificar que los botones de entrada (Explorar comida / Publicar mi menú) siguen el spec de botón primario/secundario definido para el MVP
 - La pantalla de entrada debe sentirse limpia y editorial — no de marketing
 
 #### 4. `app/buscar.tsx` — MEDIA prioridad

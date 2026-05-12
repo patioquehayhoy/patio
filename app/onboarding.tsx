@@ -18,9 +18,9 @@ const { height } = Dimensions.get('window');
 const ONBOARDING_KEY = 'onboarding_done';
 
 const SLIDES: { title: string; sub?: string; last?: boolean }[] = [
-  { title: '¿Qué hay hoy?', sub: 'Saaaaaaabes.' },
-  { title: 'Tu menú del día, a tiempo.', sub: 'Hecho para compartir.' },
-  { title: 'Haz que tus clientes lo sepan.', last: true },
+  { title: 'Encuentra comida local hoy.', sub: 'Mapa, menú y precio en una sola vista.' },
+  { title: 'Publica tu menú rápido.', sub: 'Foto, plantilla o edición manual.' },
+  { title: 'Elige menos. Come mejor.', sub: 'Patio te lleva al siguiente paso.', last: true },
 ];
 
 function makeStyles(t: Theme) {
@@ -137,7 +137,7 @@ export default function OnboardingScreen() {
         {!!slide.sub && <Text style={s.sub} allowFontScaling={true}>{slide.sub}</Text>}
         {slide.last && (
           <TouchableOpacity style={s.startBtn} onPress={finish} activeOpacity={0.85}>
-            <Text style={s.startBtnText} allowFontScaling={true}>Empezar</Text>
+            <Text style={s.startBtnText} allowFontScaling={true}>Entrar</Text>
           </TouchableOpacity>
         )}
       </Animated.View>

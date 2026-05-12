@@ -119,12 +119,6 @@ export default function CuentaScreen() {
 
             <Text style={s.sectionLabel} allowFontScaling={true}>Cuenta</Text>
             <View style={s.card}>
-              <TouchableOpacity style={s.row} onPress={() => router.push('/buscar')} activeOpacity={0.76}>
-                <Ionicons name="search-outline" size={22} color={theme.textSecondary} />
-                <Text style={s.rowText} allowFontScaling={true}>Buscar</Text>
-                <Ionicons name="chevron-forward" size={18} color={theme.textSecondary} />
-              </TouchableOpacity>
-              <View style={s.divider} />
               <TouchableOpacity style={s.row} onPress={() => router.push('/favoritos')} activeOpacity={0.76}>
                 <Ionicons name="heart-outline" size={22} color={theme.textSecondary} />
                 <Text style={s.rowText} allowFontScaling={true}>Favoritos</Text>

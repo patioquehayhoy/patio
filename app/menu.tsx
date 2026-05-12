@@ -531,7 +531,10 @@ export default function MenuScreen() {
       ],
     });
     setSectionPickerVisible(false);
+    setMenuActionsVisible(false);
   }, []);
+
+  const hasMenuSections = menuData.secciones.length > 0;
 
   return (
     <View style={s.container}>
@@ -636,26 +639,58 @@ export default function MenuScreen() {
                   router.push('/foto-menu');
                 }}
                 activeOpacity={0.82}>
-                <Text style={s.actionSheetItemText} allowFontScaling={true}>Usar foto</Text>
+                <Text style={s.actionSheetItemText} allowFontScaling={true}>Tomar foto</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={s.actionSheetItem}
                 onPress={() => {
                   setMenuActionsVisible(false);
-                  openSectionPicker();
+                  router.push('/foto-menu');
                 }}
                 activeOpacity={0.82}>
-                <Text style={s.actionSheetItemText} allowFontScaling={true}>Elegir otra plantilla</Text>
+                <Text style={s.actionSheetItemText} allowFontScaling={true}>Elegir imagen</Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                style={s.actionSheetItem}
-                onPress={() => {
-                  setMenuActionsVisible(false);
-                  handleBorrar();
-                }}
-                activeOpacity={0.82}>
-                <Text style={s.actionSheetDeleteText} allowFontScaling={true}>Borrar menú</Text>
-              </TouchableOpacity>
+              {!hasMenuSections && (
+                <TouchableOpacity
+                  style={s.actionSheetItem}
+                  onPress={() => {
+                    setMenuActionsVisible(false);
+                    openSectionPicker();
+                  }}
+                  activeOpacity={0.82}>
+                  <Text style={s.actionSheetItemText} allowFontScaling={true}>Usar plantilla</Text>
+                </TouchableOpacity>
+              )}
+              {hasMenuSections && (
+                <TouchableOpacity
+                  style={s.actionSheetItem}
+                  onPress={() => {
+                    setMenuActionsVisible(false);
+                    openSectionPicker();
+                  }}
+                  activeOpacity={0.82}>
+                  <Text style={s.actionSheetItemText} allowFontScaling={true}>Elegir otra plantilla</Text>
+                </TouchableOpacity>
+              )}
+              {!hasMenuSections && (
+                <TouchableOpacity
+                  style={s.actionSheetItem}
+                  onPress={startFromScratch}
+                  activeOpacity={0.82}>
+                  <Text style={s.actionSheetItemText} allowFontScaling={true}>Empezar desde cero</Text>
+                </TouchableOpacity>
+              )}
+              {hasMenuSections && (
+                <TouchableOpacity
+                  style={s.actionSheetItem}
+                  onPress={() => {
+                    setMenuActionsVisible(false);
+                    handleBorrar();
+                  }}
+                  activeOpacity={0.82}>
+                  <Text style={s.actionSheetDeleteText} allowFontScaling={true}>Borrar menú</Text>
+                </TouchableOpacity>
+              )}
             </View>
             <TouchableOpacity
               style={s.actionSheetCancel}
@@ -672,7 +707,7 @@ export default function MenuScreen() {
           contentContainerStyle={[
             s.scrollContent,
             { paddingTop: insets.top + 56 },
-            !menuData.secciones.length && s.scrollContentEmpty,
+            !hasMenuSections && s.scrollContentEmpty,
           ]}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
@@ -694,46 +729,29 @@ export default function MenuScreen() {
                   onMovePlatillo={platId => setMovingPlatillo({ secId: sec.id, platId })}
                 />
               ))}
-              {!menuData.secciones.length && (
+              {!hasMenuSections && (
                 <View style={s.emptyStateWrap}>
                   <View style={s.emptyStateCard}>
                     <SymbolView name="sparkles" size={30} tintColor={theme.accent} weight="semibold" />
-                    <Text style={s.emptyStateTitle} allowFontScaling={true}>Empieza tu menú</Text>
-                    <Text style={s.emptyStateSub} allowFontScaling={true}>Sube una foto y Patio lo llena al instante.</Text>
-                    <View style={s.emptyStatePhotoActions}>
-                      <TouchableOpacity
-                        style={s.emptyStatePhotoWrap}
-                        onPress={() => router.push('/foto-menu')}
-                        activeOpacity={0.82}>
-                        <View style={s.emptyStatePhotoFab}>
-                          <SymbolView name="camera.fill" size={28} tintColor="#FFFFFF" weight="semibold" />
-                        </View>
-                        <Text style={s.emptyStatePhotoLabel} allowFontScaling={true}>Tomar foto</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity style={s.emptyStateSecondaryBtn} onPress={() => router.push('/foto-menu')} activeOpacity={0.82}>
-                        <Text style={s.emptyStateSecondaryBtnText} allowFontScaling={true}>Elegir imagen</Text>
-                      </TouchableOpacity>
-                    </View>
+                    <Text style={s.emptyStateTitle} allowFontScaling={true}>Crea tu menú de hoy</Text>
+                    <Text style={s.emptyStateSub} allowFontScaling={true}>Empieza con foto, imagen, plantilla o secciones vacías.</Text>
+                    <TouchableOpacity
+                      style={s.createMenuBtn}
+                      onPress={() => setMenuActionsVisible(true)}
+                      activeOpacity={0.86}>
+                      <Text style={s.createMenuBtnText} allowFontScaling={true}>Crear menú</Text>
+                    </TouchableOpacity>
                   </View>
                 </View>
               )}
 
-              {!menuData.secciones.length && (
-                <TouchableOpacity style={s.templateLinkBtn} onPress={openSectionPicker} activeOpacity={0.8}>
-                  <View style={s.templateLinkRow}>
-                    <SymbolView name="square.grid.2x2" size={13} tintColor={theme.textSecondary} weight="medium" />
-                    <Text style={s.templateLinkText} allowFontScaling={true}>Usar plantilla</Text>
-                  </View>
-                </TouchableOpacity>
-              )}
-
-              {!!menuData.secciones.length && (
+              {hasMenuSections && (
                 <TouchableOpacity style={s.addSecBtn} onPress={addSec}>
                   <Text style={s.addSecText} allowFontScaling={true}>+ Agregar sección</Text>
                 </TouchableOpacity>
               )}
 
-              {!!menuData.secciones.length && (
+              {hasMenuSections && (
                 <View style={s.optionsWrap}>
                   <TouchableOpacity
                     style={s.optionsToggle}
@@ -759,9 +777,9 @@ export default function MenuScreen() {
         icon="📋"
         title="¿Qué hay hoy?"
         body="Toma una foto de tu menú o escríbelo tú mismo. Tus clientes lo ven en segundos."
-        primaryLabel="📷 Tomar foto"
-        onPrimary={() => { markHintSeen('fondero_menu'); setShowMenuHint(false); router.push('/foto-menu'); }}
-        secondaryLabel="Escribirlo yo"
+        primaryLabel="Crear menú"
+        onPrimary={() => { markHintSeen('fondero_menu'); setShowMenuHint(false); setMenuActionsVisible(true); }}
+        secondaryLabel="Luego"
         onSecondary={() => { markHintSeen('fondero_menu'); setShowMenuHint(false); }}
         onDismiss={() => { markHintSeen('fondero_menu'); setShowMenuHint(false); }}
       />
@@ -841,6 +859,17 @@ function makeStyles(t: Theme) {
     },
     emptyStateTitle: { fontSize: 22, fontWeight: '900', color: t.text, textAlign: 'center' },
     emptyStateSub:   { maxWidth: 290, fontSize: 15, lineHeight: 21, color: t.textSecondary, textAlign: 'center' },
+    createMenuBtn: {
+      marginTop: 12,
+      minWidth: 210,
+      minHeight: 52,
+      borderRadius: 18,
+      backgroundColor: t.text,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: 24,
+    },
+    createMenuBtnText: { fontSize: 15, fontWeight: '900', color: t.bg },
     emptyStatePhotoActions: { alignItems: 'center', marginTop: 8, marginBottom: 2, width: '100%' },
     emptyStatePhotoWrap: { alignItems: 'center' },
     emptyStatePhotoFab: {

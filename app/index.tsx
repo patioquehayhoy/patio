@@ -135,13 +135,13 @@ export default function LoginScreen() {
               style={[styles.primaryBtn, { backgroundColor: theme.text }]}
               onPress={handleExplore}
               activeOpacity={0.86}>
-              <Text style={[styles.primaryBtnText, { color: theme.bg }]}>Busco comida</Text>
+              <Text style={[styles.primaryBtnText, { color: theme.bg }]}>Explorar comida</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.secondaryBtn}
               onPress={() => setIntent('business')}
               activeOpacity={0.7}>
-              <Text style={[styles.secondaryBtnText, { color: theme.textSecondary }]}>Tengo un negocio</Text>
+              <Text style={[styles.secondaryBtnText, { color: theme.textSecondary }]}>Publicar mi menú</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -158,7 +158,7 @@ export default function LoginScreen() {
           {!sent ? (
             <View style={[styles.formCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
               <TouchableOpacity style={styles.backLink} onPress={() => { setIntent('choice'); setError(''); }}>
-                <Text style={[styles.backLinkText, { color: theme.textSecondary }]}>← Busco comida</Text>
+                <Text style={[styles.backLinkText, { color: theme.textSecondary }]}>← Explorar comida</Text>
               </TouchableOpacity>
               <View style={[styles.inputWrapper, theme.isDark ? styles.inputWrapperDark : styles.inputWrapperLight]}>
                 <TextInput
@@ -196,7 +196,7 @@ export default function LoginScreen() {
                 <Text style={[styles.backLinkText, { color: theme.text }]}>Cambiar correo</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.backLink} onPress={handleExplore}>
-                <Text style={[styles.backLinkText, { color: theme.textSecondary }]}>Busco comida</Text>
+                <Text style={[styles.backLinkText, { color: theme.textSecondary }]}>Explorar comida</Text>
               </TouchableOpacity>
             </View>
           )}

@@ -1,4 +1,4 @@
-import { useFocusEffect } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
 import { Alert, Platform, ScrollView, Share, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -192,6 +192,12 @@ export default function PreviewScreen() {
                     <SymbolView name="sparkles" size={30} tintColor={theme.accent} weight="semibold" />
                     <Text style={s.emptyTitle} allowFontScaling={true}>Llena tu menú</Text>
                     <Text style={s.emptySub} allowFontScaling={true}>Cuando tengas platillos, aquí verás la vista para compartir.</Text>
+                    <TouchableOpacity
+                      style={s.emptyActionBtn}
+                      onPress={() => router.replace('/menu')}
+                      activeOpacity={0.86}>
+                      <Text style={s.emptyActionText} allowFontScaling={true}>Crear menú</Text>
+                    </TouchableOpacity>
                   </View>
                 )}
               </View>
@@ -275,6 +281,8 @@ function makeStyles(t: Theme) {
     emptyWrap:         { alignItems: 'center', justifyContent: 'center', paddingVertical: 4, gap: 8 },
     emptyTitle:        { fontSize: 22, fontWeight: '900', color: t.text, textAlign: 'center' },
     emptySub:          { maxWidth: 290, fontSize: 15, lineHeight: 21, color: t.textSecondary, textAlign: 'center' },
+    emptyActionBtn:    { marginTop: 10, minWidth: 180, minHeight: 48, borderRadius: 18, backgroundColor: t.text, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 22 },
+    emptyActionText:   { fontSize: 15, fontWeight: '900', color: t.bg },
     actions:           { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.sep, paddingTop: 12 },
     shareButton:       { backgroundColor: t.text, height: 54, borderRadius: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginHorizontal: 24, marginBottom: 24, shadowColor: t.text, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.12, shadowRadius: 18, elevation: 4 },
     shareButtonText:   { color: t.surface, fontSize: 15, fontWeight: '900' },

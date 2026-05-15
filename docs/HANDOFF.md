@@ -1,5 +1,43 @@
 # HANDOFF
 
+## 2026-05-15 (cierre — Supabase completo + menú real en Foodie)
+
+### Qué se hizo hoy
+
+**Supabase schema completo:**
+- `supabase/migrations/20260512_add_lat_lng.sql` — corrida en dashboard ✅
+- `supabase/migrations/20260512_create_menu_tables.sql` — corrida en dashboard ✅
+
+**lib/menu.ts — fetchMenuForFondita:**
+- Lee `cartas` (carta permanente) primero, fallback a `menus` del día
+- Convierte `MenuData` → `PatioMenuSection[]`
+
+**patio/[id].tsx — menú real:**
+- Al abrir ficha, llama `fetchMenuForFondita(patioId)`
+- Si hay menú en Supabase, lo muestra sobre el MOCK vacío
+- Fondero publica → Foodie lo ve inmediatamente
+
+**favoritos.tsx — fonditas reales:**
+- IDs no encontrados en MOCK_PATIOS se fetchean de Supabase via `fetchFonditaById`
+- MOCK + Supabase mergeados en una sola lista
+
+**explorar.tsx — organismo vivo:**
+- Suggestion pills ("mole", "tacos", "agua de jamaica") aparecen a los 800ms con fade-in
+- Desaparecen al buscar o seleccionar pin
+- Tocar pill activa búsqueda con ese query
+
+### Estado del flujo completo
+- **Fondero**: escribe menú → guarda en Supabase (`menus`/`cartas`) ✅
+- **Foodie**: abre ficha → ve menú real del fondero ✅
+- **Explorar**: mapa limpio al inicio, suggestions ambient, sheet solo con intención ✅
+
+### Pendiente estructural (no bloqueante para MVP)
+1. `npx expo run:ios` — rebuild nativo por expo-location (GPS)
+2. API key Google Maps para Android
+3. EAS build para release candidate
+
+---
+
 ## 2026-05-11 (cierre — hints + Supabase completo)
 
 ### Qué se hizo hoy

@@ -4,7 +4,7 @@ import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, Stack } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Keyboard, ScrollView, Share, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Animated, Keyboard, ScrollView, Share, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker, type Region } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -71,6 +71,9 @@ function makeStyles(t: Theme) {
     patioRatingText: { fontSize: 12, fontWeight: '900', color: t.text },
     indexNum: { fontSize: 13, fontWeight: '900' },
     emptyResults: { paddingHorizontal: 18, paddingVertical: 20, alignItems: 'center' },
+    pillsRow: { position: 'absolute', left: 0, right: 0, flexDirection: 'row', justifyContent: 'center', gap: 10 },
+    pill: { overflow: 'hidden', borderRadius: 100, borderWidth: StyleSheet.hairlineWidth, borderColor: t.isDark ? 'rgba(255,255,255,0.14)' : 'rgba(0,0,0,0.08)' },
+    pillText: { paddingHorizontal: 14, paddingVertical: 7, fontSize: 13, fontWeight: '300', color: t.text },
   });
 }
 
@@ -98,6 +101,20 @@ export default function ExplorarScreen() {
   const [query, setQuery] = useState('');
   const [visibleRegion, setVisibleRegion] = useState<Region>(INITIAL_REGION);
   const searchInputRef = useRef<TextInput>(null);
+  const pillsOpacity = useRef(new Animated.Value(0)).current;
+  const SUGGESTIONS = ['mole', 'tacos', 'agua de jamaica'];
+
+  useEffect(() => {
+    const showPills = !searchActive && !showHeader;
+    if (showPills) {
+      const t = setTimeout(() => {
+        Animated.timing(pillsOpacity, { toValue: 1, duration: 400, useNativeDriver: true }).start();
+      }, 800);
+      return () => clearTimeout(t);
+    } else {
+      pillsOpacity.setValue(0);
+    }
+  }, [searchActive, showHeader, pillsOpacity]);
 
   useEffect(() => {
     fetchPublicFonditas().then((db) => {
@@ -243,6 +260,25 @@ export default function ExplorarScreen() {
           style={StyleSheet.absoluteFillObject}
         />
       </View>
+
+      {/* Suggestion pills — ambient, aparecen solo en estado inicial */}
+      <Animated.View
+        pointerEvents={searchActive || showHeader ? 'none' : 'box-none'}
+        style={[s.pillsRow, { bottom: '32%', opacity: pillsOpacity }]}>
+        {SUGGESTIONS.map((q) => (
+          <TouchableOpacity
+            key={q}
+            style={s.pill}
+            activeOpacity={0.72}
+            onPress={() => {
+              openSearch();
+              setTimeout(() => setQuery(q), 90);
+            }}>
+            <BlurView intensity={theme.isDark ? 14 : 14} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
+            <Text style={s.pillText}>{q}</Text>
+          </TouchableOpacity>
+        ))}
+      </Animated.View>
 
       {/* Top bar */}
       <View style={[s.topBar, { top: insets.top + 14 }]}>

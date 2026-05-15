@@ -6,7 +6,7 @@ import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-nati
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { getFavoritePatioIds } from '@/lib/favorites';
-import { MOCK_PATIOS } from '@/lib/patios';
+import { fetchFonditaById, MOCK_PATIOS, type Patio } from '@/lib/patios';
 import { useTheme, type Theme } from '@/lib/theme';
 
 function makeStyles(t: Theme) {
@@ -38,19 +38,23 @@ export default function FavoritosScreen() {
   const s = makeStyles(theme);
   const insets = useSafeAreaInsets();
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
+  const [patios, setPatios] = useState<Patio[]>([]);
 
   useFocusEffect(
     useCallback(() => {
       let mounted = true;
-      getFavoritePatioIds().then((ids) => {
-        if (mounted) setFavoriteIds(ids);
+      getFavoritePatioIds().then(async (ids) => {
+        if (!mounted) return;
+        setFavoriteIds(ids);
+        const mockHits = MOCK_PATIOS.filter((p) => ids.includes(p.id));
+        const mockIds = new Set(mockHits.map((p) => p.id));
+        const remoteIds = ids.filter((id) => !mockIds.has(id));
+        const remote = await Promise.all(remoteIds.map((id) => fetchFonditaById(id)));
+        if (mounted) setPatios([...mockHits, ...remote.filter((p): p is Patio => p !== null)]);
       });
-
       return () => { mounted = false; };
     }, [])
   );
-
-  const patios = MOCK_PATIOS.filter((patio) => favoriteIds.includes(patio.id));
 
   return (
     <View style={[s.container, { paddingTop: insets.top }]}>

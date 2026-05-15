@@ -47,10 +47,21 @@
 ### TypeScript
 - `npx tsc --noEmit` en verde ✅
 
-## Pendientes reales
-1. **`npx expo run:ios`** — rebuild nativo por `expo-location` (GPS en perfil)
-2. **API key Google Maps** — para Android (iOS funciona con provider nativo)
-3. **EAS build** — cuando se acumule suficiente para release candidate
+## Búsqueda — estado
+- MOCK_PATIOS: búsqueda por platillo/tags en memoria ✅
+- Fonditas reales Supabase: `searchLiveMenus()` busca en `cartas` + `menus` del día via ilike ✅
+- Resultados mergeados sin duplicados en `explorar.tsx` ✅
+
+## EAS Build
+- **Preview iOS** en progreso al cierre de sesión 2026-05-15
+- Credenciales Apple: `dubzon@live.com.mx`, Team `JK2N262L7X`
+- Ver estado: https://expo.dev/accounts/parcomx/builds
+
+## Pendientes para mañana
+1. Verificar build en iPhone — instalar via link de expo.dev
+2. GPS en perfil — probar en dispositivo real
+3. Registrar UDID del iPhone en EAS para builds internos
+4. API key Google Maps para Android
 
 ## NO pendiente (resuelto esta sesión)
 - ~~Migración lat/lng en fonditas~~ — corrida en Supabase dashboard ✅

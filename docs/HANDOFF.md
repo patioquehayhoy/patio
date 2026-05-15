@@ -1,6 +1,6 @@
 # HANDOFF
 
-## 2026-05-15 (cierre — Supabase completo + menú real en Foodie)
+## 2026-05-15 (cierre — Supabase completo + búsqueda real + EAS build en progreso)
 
 ### Qué se hizo hoy
 
@@ -31,10 +31,18 @@
 - **Foodie**: abre ficha → ve menú real del fondero ✅
 - **Explorar**: mapa limpio al inicio, suggestions ambient, sheet solo con intención ✅
 
-### Pendiente estructural (no bloqueante para MVP)
-1. `npx expo run:ios` — rebuild nativo por expo-location (GPS)
-2. API key Google Maps para Android
-3. EAS build para release candidate
+### EAS Build en progreso al cierre
+- `eas build --platform ios --profile preview` corriendo en EAS cloud
+- Credenciales: `dubzon@live.com.mx`, Team `JK2N262L7X`
+- Device registrado: MacBook Pro UDID `00006000-000248482121801E`
+- Cuando termine: link de instalación en expo.dev/accounts/parcomx/builds
+- Instalar en iPhone via link o QR — probar flujo Fondero → Foodie completo
+
+### Pendiente para mañana
+1. **Verificar build** en iPhone — flujo completo: fondero sube menú → foodie lo busca y ve
+2. **GPS en perfil** — probar "Marcar en el mapa" en dispositivo real (ya funciona con expo run:ios)
+3. **API key Google Maps** para Android (no bloqueante para iOS)
+4. **Registrar iPhone real** en EAS para próximos builds (ahorita solo está el Mac)
 
 ---
 

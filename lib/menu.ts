@@ -1,19 +1,42 @@
 import { supabase } from './supabase';
 import type { PatioMenuSection } from './patios';
+import type { MenuData } from './menu-store';
+
+function hoy(): string {
+  return new Date().toISOString().split('T')[0];
+}
+
+function menuDataToSections(data: MenuData): PatioMenuSection[] {
+  return data.secciones
+    .filter((sec) => sec.platillos.some((p) => p.nombre))
+    .map((sec) => ({
+      section: sec.nombre,
+      price: sec.precio || undefined,
+      items: sec.platillos
+        .filter((p) => p.nombre)
+        .map((p) => ({ name: p.nombre, price: p.precio || undefined })),
+    }));
+}
 
 export async function fetchMenuForFondita(fonditaId: string): Promise<PatioMenuSection[]> {
-  const { data: sections, error } = await supabase
-    .from('menu_sections')
-    .select('id, name, sort_order, menu_items(id, name, price, sort_order)')
+  // Carta (menú permanente) tiene prioridad
+  const { data: carta } = await supabase
+    .from('cartas')
+    .select('secciones')
     .eq('fondita_id', fonditaId)
-    .order('sort_order');
+    .maybeSingle();
 
-  if (error || !sections) return [];
+  if (carta?.secciones) return menuDataToSections(carta.secciones as MenuData);
 
-  return sections.map((s) => ({
-    section: s.name,
-    items: ((s.menu_items as { name: string; price?: string }[]) ?? [])
-      .sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
-      .map((item) => ({ name: item.name, price: item.price ?? undefined })),
-  }));
+  // Fallback: menú del día de hoy
+  const { data: menuHoy } = await supabase
+    .from('menus')
+    .select('secciones')
+    .eq('fondita_id', fonditaId)
+    .eq('fecha', hoy())
+    .maybeSingle();
+
+  if (menuHoy?.secciones) return menuDataToSections(menuHoy.secciones as MenuData);
+
+  return [];
 }

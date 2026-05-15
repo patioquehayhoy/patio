@@ -9,7 +9,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AgentSpinner } from '@/components/agent-spinner';
 import { getFavoritePatioIds, toggleFavoritePatio } from '@/lib/favorites';
 import { MAP_STYLE_DARK, MAP_STYLE_LIGHT } from '@/lib/map-style';
-import { fetchFonditaById, getPatioById, type Patio } from '@/lib/patios';
+import { fetchFonditaById, getPatioById, type Patio, type PatioMenuSection } from '@/lib/patios';
+import { fetchMenuForFondita } from '@/lib/menu';
 import { getPatioRating, savePatioRating } from '@/lib/ratings';
 import { Fonts, useTheme, type Theme } from '@/lib/theme';
 
@@ -78,6 +79,7 @@ export default function PatioDetailScreen() {
   const insets = useSafeAreaInsets();
   const [patio, setPatio] = useState<Patio | null>(null);
   const [loading, setLoading] = useState(true);
+  const [liveMenu, setLiveMenu] = useState<PatioMenuSection[] | null>(null);
   const [isSaved, setIsSaved] = useState(false);
   const [userRating, setUserRating] = useState<number | null>(null);
   const [showRatingSheet, setShowRatingSheet] = useState(false);
@@ -97,6 +99,7 @@ export default function PatioDetailScreen() {
     if (!patioId) return;
     getFavoritePatioIds().then((ids) => setIsSaved(ids.includes(patioId)));
     getPatioRating(patioId).then((r) => { if (r) setUserRating(r.stars); });
+    fetchMenuForFondita(patioId).then((sections) => { if (sections.length > 0) setLiveMenu(sections); });
   }, [patioId]);
 
   const handleBack = () => {
@@ -265,7 +268,7 @@ export default function PatioDetailScreen() {
             <Text style={s.menuHeaderMeta} allowFontScaling={true}>{patio.price === '$' ? 'Precio pendiente' : patio.price}</Text>
           </View>
           <View style={s.divider} />
-          {patio.menu.map((section, sectionIndex) => (
+          {(liveMenu ?? patio.menu).map((section, sectionIndex) => (
             <View key={section.section}>
               <View style={s.menuSectionHeader}>
                 <Text style={s.menuSectionTitle} allowFontScaling={true}>{section.section}</Text>

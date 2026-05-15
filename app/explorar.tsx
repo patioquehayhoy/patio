@@ -12,7 +12,8 @@ import { getFavoritePatioIds, toggleFavoritePatio } from '@/lib/favorites';
 import { MAP_STYLE_DARK, MAP_STYLE_LIGHT } from '@/lib/map-style';
 import { HintSheet } from '@/components/hint-sheet';
 import { markHintSeen, shouldShowHint } from '@/lib/hints';
-import { fetchPublicFonditas, MOCK_PATIOS, searchPatiosByDish, type Patio } from '@/lib/patios';
+import { fetchPublicFonditas, MOCK_PATIOS, searchPatiosByDish, type Patio, type PatioDishMatch } from '@/lib/patios';
+import { searchLiveMenus } from '@/lib/menu';
 import { Fonts, useTheme, type Theme } from '@/lib/theme';
 
 function makeStyles(t: Theme) {
@@ -105,6 +106,13 @@ export default function ExplorarScreen() {
   const SUGGESTIONS = ['mole', 'tacos', 'agua de jamaica'];
 
   useEffect(() => {
+    if (!query.trim()) { setLiveResults([]); return; }
+    let cancelled = false;
+    searchLiveMenus(query, allPatios).then((r) => { if (!cancelled) setLiveResults(r); });
+    return () => { cancelled = true; };
+  }, [query, allPatios]);
+
+  useEffect(() => {
     const showPills = !searchActive && !showHeader;
     if (showPills) {
       const t = setTimeout(() => {
@@ -135,7 +143,14 @@ export default function ExplorarScreen() {
     );
   }, [visibleRegion, allPatios]);
 
-  const searchResults = useMemo(() => searchPatiosByDish(query), [query]);
+  const [liveResults, setLiveResults] = useState<PatioDishMatch[]>([]);
+  const mockResults = useMemo(() => searchPatiosByDish(query), [query]);
+  const searchResults = useMemo(() => {
+    if (!query.trim()) return [];
+    const seen = new Set(mockResults.map((r) => `${r.patio.id}-${r.item.name}`));
+    const fresh = liveResults.filter((r) => !seen.has(`${r.patio.id}-${r.item.name}`));
+    return [...mockResults, ...fresh].sort((a, b) => b.score - a.score);
+  }, [mockResults, liveResults, query]);
   const matchingPatioIds = useMemo(() => new Set(searchResults.map((r) => r.patio.id)), [searchResults]);
   const isFiltering = query.trim().length > 0;
 

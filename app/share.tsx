@@ -1,12 +1,10 @@
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { HintSheet } from '@/components/hint-sheet';
 import { markHintSeen, shouldShowHint } from '@/lib/hints';
-
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
+import { useTheme } from '@/lib/theme';
 import {
   getFonditaName,
   getMenuData,
@@ -14,6 +12,7 @@ import {
 } from '@/lib/menu-store';
 
 export default function ShareScreen() {
+  const { theme } = useTheme();
   const [data, setData] = useState<MenuData | null>(null);
   const [showShareHint, setShowShareHint] = useState(false);
   const fonditaName = getFonditaName();
@@ -29,40 +28,42 @@ export default function ShareScreen() {
 
   if (!data) {
     return (
-      <ThemedView style={styles.container}>
-        <ThemedText style={styles.empty}>No hay menú guardado aún.</ThemedText>
-      </ThemedView>
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <Text style={{ fontSize: 15, color: theme.textSecondary, textAlign: 'center' }}>
+          No hay menú guardado aún.
+        </Text>
+      </View>
     );
   }
 
   return (
-    <ThemedView style={styles.container}>
+    <View style={styles.container}>
       <ScrollView
-        style={styles.scroll}
+        style={{ flex: 1 }}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}>
-        <ThemedText type="title" style={styles.fonditaName}>
+        <Text style={[styles.fonditaName, { color: theme.text, fontWeight: '900' }]}>
           {fonditaName}
-        </ThemedText>
-        <ThemedText type="defaultSemiBold" style={styles.menuTitle}>
+        </Text>
+        <Text style={[styles.menuTitle, { color: theme.textSecondary }]}>
           Menú del día
-        </ThemedText>
+        </Text>
 
-        {data.secciones.filter(s => s.platillos.some(p => p.nombre)).map(sec => (
+        {data.secciones.filter(sec => sec.platillos.some(p => p.nombre)).map(sec => (
           <View key={sec.id} style={styles.section}>
-            <ThemedText style={styles.sectionLabel}>{sec.nombre}</ThemedText>
+            <Text style={[styles.sectionLabel, { color: theme.text }]}>{sec.nombre}</Text>
             {sec.platillos.filter(p => p.nombre).map((plat, i) => (
-              <ThemedText key={plat.id ?? i} style={styles.item}>
+              <Text key={plat.id ?? i} style={[styles.item, { color: theme.text }]}>
                 {'• ' + plat.nombre + (plat.descripcion ? ' / ' + plat.descripcion : '') + (plat.precio ? ' ($' + plat.precio + ')' : '')}
-              </ThemedText>
+              </Text>
             ))}
             {!!sec.precio?.trim() && (
-              <ThemedText style={styles.precio}>${sec.precio}</ThemedText>
+              <Text style={[styles.precio, { color: theme.text }]}>${sec.precio}</Text>
             )}
           </View>
         ))}
 
-        <ThemedText style={styles.menuDeHoy}>Menú de hoy</ThemedText>
+        <Text style={[styles.menuDeHoy, { color: theme.textSecondary }]}>Menú de hoy</Text>
       </ScrollView>
       <HintSheet
         visible={showShareHint}
@@ -73,7 +74,7 @@ export default function ShareScreen() {
         onPrimary={() => { markHintSeen('fondero_share'); setShowShareHint(false); }}
         onDismiss={() => { markHintSeen('fondero_share'); setShowShareHint(false); }}
       />
-    </ThemedView>
+    </View>
   );
 }
 
@@ -81,22 +82,20 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  scroll: {
-    flex: 1,
-  },
   scrollContent: {
     padding: 24,
     paddingBottom: 16,
   },
   fonditaName: {
+    fontSize: 24,
     textAlign: 'center',
     marginBottom: 4,
   },
   menuTitle: {
-    textAlign: 'center',
     fontSize: 16,
+    fontWeight: '300',
+    textAlign: 'center',
     marginBottom: 24,
-    opacity: 0.7,
   },
   section: {
     marginBottom: 16,
@@ -108,6 +107,7 @@ const styles = StyleSheet.create({
   },
   item: {
     fontSize: 15,
+    fontWeight: '300',
     marginLeft: 8,
     marginBottom: 2,
   },
@@ -118,15 +118,10 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   menuDeHoy: {
-    textAlign: 'center',
     fontStyle: 'italic',
-    opacity: 0.5,
+    textAlign: 'center',
     marginTop: 16,
     fontSize: 14,
-  },
-  empty: {
-    textAlign: 'center',
-    opacity: 0.6,
-    marginBottom: 24,
+    fontWeight: '300',
   },
 });

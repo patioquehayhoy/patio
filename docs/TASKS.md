@@ -58,6 +58,20 @@ Estética: minimalista flat + tech. Poco color (negro, crema, un acento). Tipogr
 - **Cuándo producir**: antes del lanzamiento público — paralelo a v02.5/v03
 - **Nota**: en conjunto con REF-004 (dark) + REF-005 (editorial) forman el sistema visual completo de marca
 
+### REF-007 — glass orgánico / material sensorial (sistema visual transversal)
+Tres texturas de vidrio distintas que en conjunto definen el lenguaje de superficies de Patio:
+
+**A) Frosted con grano** — objeto botánico emergiendo de superficie glass arenada. Verde oliva + rosa. Textura como sand-blasted, no digital. Aplica a: sheets, bottom bars, overlays sobre mapa.
+
+**B) Vidrio estriado / fluted** — lineas verticales finas que distorsionan lo que hay detrás. Tono beige/taupe. Aplica a: separadores, fondos de cards especiales, transiciones entre pantallas.
+
+**C) Refractive distortion** — objeto visto a través de vidrio que lo refracta en ondas/glitch. Azul lavanda. Aplica a: estados de loading, transición al abrir una ficha, animación del agente (REF-003).
+
+**Paleta extraída**: olive `#6B7255`, taupe `#C4AFA0`, lavender `#B8C4D4`, rose-burgundy `#8B3A52`
+**Principio unificador**: lo orgánico (natural, local, CDMX) visto a través de material sofisticado (glass) — metáfora de Patio: lo cotidiano elevado.
+**Generación de assets**: Higgsfield con prompt "botanical [subject] through frosted ribbed glass, muted [color], hyperrealistic material"
+**Cuándo aplicar**: desde v02.5 en BlurView (intensidad + grain overlay sutil) — completo en v03+
+
 ### REF-003 — agente de antojo con lenguaje natural (v05+)
 Orbe animado central (blur + color vivo, pulsa cuando escucha). Input "Ask anything" abajo. El usuario describe en lenguaje libre: "algo salado, no tan picoso, saludable" → el agente cruza con perfil de usuario + fonditas cercanas + menús del día → devuelve sugerencia concreta con fondita y platillo.
 - **Stack**: Claude API (Anthropic SDK) como backend, streaming de respuesta, función `searchLiveMenus()` como tool call

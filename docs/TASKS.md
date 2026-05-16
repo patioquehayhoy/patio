@@ -15,8 +15,10 @@
 - [ ] Revisar lib/colors.ts — verificar si Colors se usa o si todo ya va por Theme
 - [ ] Revisar haptic-tab.tsx — confirmar si se usa en bottom-tab-bar o es residual
 
-### Rediseño (pendiente brief del usuario)
-- [ ] [BLOQUEADO — esperando brief de rediseño de Alejandro]
+### Rediseño explorar.tsx — v02.5
+- [ ] **Ruleta de texto ambient**: reemplazar pills estáticas por scroll vertical que cicla automático cada 2s (tacos → mole → agua de jamaica → ...). Al escribir, la ruleta se filtra con resultados live. Implementar con `ScrollView` + `Animated` scroll automático.
+- [ ] **Shimmer sobre mapa**: overlay muy tenue (opacity 0.06–0.10) con efecto shimmer animado — `Animated` interpolando posición X de un gradiente blanco sobre el mapa. Debe verse el mapa debajo.
+- [ ] **Dots pulsantes en mapa**: los marcadores de fonditas deben pulsar suavemente (scale 1→1.3→1, loop, staggered por índice) mientras cargan, efecto "despertando".
 
 ---
 

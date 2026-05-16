@@ -16,8 +16,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AgentSpinner } from '@/components/agent-spinner';
 import { initializeSignedInUser, LOGIN_CALLBACK_URL } from '@/lib/auth';
-
-const ROLE_KEY = '@patio_user_role';
 import {
   setFonditaDescription,
   setFonditaDireccion,
@@ -33,6 +31,7 @@ import { supabase } from '@/lib/supabase';
 import { Fonts, useTheme } from '@/lib/theme';
 import { setFonditaId } from '@/lib/user-store';
 
+const ROLE_KEY = '@patio_user_role';
 const LIGHT_BG = '#F3F3F0';
 
 function showAuthError(err: { message?: string; code?: string } | null) {

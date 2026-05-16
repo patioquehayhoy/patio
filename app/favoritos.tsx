@@ -37,7 +37,6 @@ export default function FavoritosScreen() {
   const { theme } = useTheme();
   const s = makeStyles(theme);
   const insets = useSafeAreaInsets();
-  const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
   const [patios, setPatios] = useState<Patio[]>([]);
 
   useFocusEffect(
@@ -45,7 +44,6 @@ export default function FavoritosScreen() {
       let mounted = true;
       getFavoritePatioIds().then(async (ids) => {
         if (!mounted) return;
-        setFavoriteIds(ids);
         const mockHits = MOCK_PATIOS.filter((p) => ids.includes(p.id));
         const mockIds = new Set(mockHits.map((p) => p.id));
         const remoteIds = ids.filter((id) => !mockIds.has(id));

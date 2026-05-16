@@ -25,7 +25,6 @@ function RootStack() {
           contentStyle: { backgroundColor: theme.bg },
         }}>
         <Stack.Screen name="index" options={{ title: 'Login / Registro' }} />
-        <Stack.Screen name="buscar" options={{ headerShown: false }} />
         <Stack.Screen name="cuenta" options={{ headerShown: false }} />
         <Stack.Screen name="explorar" options={{ headerShown: false }} />
         <Stack.Screen name="favoritos" options={{ headerShown: false }} />

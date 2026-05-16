@@ -353,7 +353,8 @@ export default function PerfilScreen() {
   };
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
+    await supabase.auth.signOut().catch(() => {});
+    await AsyncStorage.removeItem('@patio_user_role').catch(() => {});
     router.replace('/');
   };
 
@@ -558,12 +559,12 @@ export default function PerfilScreen() {
               <Text style={s.rowLabel} allowFontScaling={true}>Manifiesto</Text>
             </TouchableOpacity>
             <View style={s.divider} />
-            <TouchableOpacity style={s.settingRow} onPress={() => Linking.openURL('mailto:contacto.parco@gmail.com?subject=Problema%20en%20La%20Fondita')} activeOpacity={0.7}>
+            <TouchableOpacity style={s.settingRow} onPress={() => Linking.openURL('mailto:hola@patio.mx?subject=Soporte%20Patio%20Fondero')} activeOpacity={0.7}>
               <Ionicons name="chatbubble-outline" size={22} color={theme.text} style={s.settingIcon} />
               <Text style={s.rowLabel} allowFontScaling={true}>Contactar con soporte</Text>
             </TouchableOpacity>
             <View style={s.divider} />
-            <TouchableOpacity style={s.settingRow} onPress={() => Linking.openURL('https://apple.com')} activeOpacity={0.7}>
+            <TouchableOpacity style={s.settingRow} onPress={() => Linking.openURL('itms-apps://itunes.apple.com/app/id6760884735?action=write-review')} activeOpacity={0.7}>
               <Ionicons name="star-outline" size={22} color={theme.text} style={s.settingIcon} />
               <Text style={s.rowLabel} allowFontScaling={true}>Calificar la app</Text>
             </TouchableOpacity>

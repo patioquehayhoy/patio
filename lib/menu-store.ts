@@ -110,26 +110,6 @@ export function normalizeMenuData(raw: any): MenuData | null {
   return null;
 }
 
-// ─── WhatsApp message ─────────────────────────────────────────────────────────
-export function buildWhatsAppMessage(data: MenuData, fonditaName: string): string {
-  const lines: string[] = [];
-  lines.push(`*${fonditaName}*`);
-  lines.push('');
-  for (const sec of data.secciones) {
-    if (!sec.platillos.some(p => p.nombre)) continue;
-    lines.push(`*${sec.nombre}*`);
-    sec.platillos.filter(p => p.nombre).forEach(p => {
-      const desc   = p.descripcion ? ` / ${p.descripcion}` : '';
-      const precio = p.precio ? ` ($${p.precio})` : '';
-      lines.push(`• ${p.nombre}${desc}${precio}`);
-    });
-    if (sec.precio) lines.push(`_$${sec.precio}_`);
-    lines.push('');
-  }
-  lines.push('_Menú de hoy_');
-  return lines.join('\n');
-}
-
 // ─── In-memory store ──────────────────────────────────────────────────────────
 let _menuData: MenuData | null = null;
 let _cartaData: MenuData | null = null;

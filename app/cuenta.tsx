@@ -1,11 +1,16 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { router, Stack } from 'expo-router';
-import { Animated, Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Animated, Dimensions, Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useEffect, useRef } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { supabase } from '@/lib/supabase';
 import { useTheme, type Theme } from '@/lib/theme';
+
+const SUPPORT_EMAIL = 'hola@patio.mx';
+const ROLE_KEY = '@patio_user_role';
 
 function makeStyles(t: Theme) {
   return StyleSheet.create({
@@ -144,12 +149,18 @@ export default function CuentaScreen() {
                 <ToggleSwitch value={theme.isDark} onValueChange={toggleTheme} />
               </View>
               <View style={s.divider} />
-              <TouchableOpacity style={s.row} activeOpacity={0.76}>
+              <TouchableOpacity
+                style={s.row}
+                activeOpacity={0.76}
+                onPress={() => Linking.openURL(`mailto:${SUPPORT_EMAIL}?subject=Soporte%20Patio`)}>
                 <Ionicons name="chatbubble-outline" size={22} color={theme.textSecondary} />
                 <Text style={s.rowText} allowFontScaling={true}>Contactar soporte</Text>
               </TouchableOpacity>
               <View style={s.divider} />
-              <TouchableOpacity style={s.row} activeOpacity={0.76}>
+              <TouchableOpacity
+                style={s.row}
+                activeOpacity={0.76}
+                onPress={() => Linking.openURL('itms-apps://itunes.apple.com/app/id6760884735?action=write-review')}>
                 <Ionicons name="star-outline" size={22} color={theme.textSecondary} />
                 <Text style={s.rowText} allowFontScaling={true}>Calificar la app</Text>
               </TouchableOpacity>
@@ -159,7 +170,14 @@ export default function CuentaScreen() {
 
             <Text style={s.sectionLabel} allowFontScaling={true}>Sesión</Text>
             <View style={s.card}>
-              <TouchableOpacity style={s.row} onPress={() => router.replace('/')} activeOpacity={0.76}>
+              <TouchableOpacity
+                style={s.row}
+                activeOpacity={0.76}
+                onPress={async () => {
+                  await supabase.auth.signOut().catch(() => {});
+                  await AsyncStorage.removeItem(ROLE_KEY).catch(() => {});
+                  router.replace('/');
+                }}>
                 <Ionicons name="log-out-outline" size={22} color={theme.textSecondary} />
                 <Text style={s.rowText} allowFontScaling={true}>Cerrar sesión</Text>
               </TouchableOpacity>

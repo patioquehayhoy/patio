@@ -78,12 +78,55 @@ function makeStyles(t: Theme) {
   });
 }
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-const SUGGESTIONS = [
-  'mole', 'tacos de canasta', 'agua de jamaica',
-  'pozole', 'enchiladas', 'tamales', 'quesadillas', 'caldo tlalpeño',
+// Genera puntos en anillos concéntricos centrados en pantalla
+const RINGS = [
+  { r: 28,  n: 6,  size: 5,   baseOpacity: 0.55 },
+  { r: 58,  n: 10, size: 4,   baseOpacity: 0.38 },
+  { r: 90,  n: 14, size: 3.5, baseOpacity: 0.26 },
+  { r: 124, n: 18, size: 3,   baseOpacity: 0.18 },
+  { r: 158, n: 22, size: 2.5, baseOpacity: 0.12 },
 ];
+
+type RingDot = { x: number; y: number; size: number; baseOpacity: number; delay: number };
+
+const RADAR_DOTS: RingDot[] = RINGS.flatMap(({ r, n, size, baseOpacity }, ri) =>
+  Array.from({ length: n }, (_, i) => {
+    const angle = (2 * Math.PI * i) / n;
+    return { x: r * Math.cos(angle), y: r * Math.sin(angle), size, baseOpacity, delay: ri * 180 + i * 30 };
+  })
+);
+
+function RadarDot({ x, y, size, baseOpacity, delay, color }: RingDot & { color: string }) {
+  const anim = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    const t = setTimeout(() => {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(anim, { toValue: 1, duration: 1100, useNativeDriver: true }),
+          Animated.timing(anim, { toValue: 0, duration: 1100, useNativeDriver: true }),
+        ])
+      ).start();
+    }, delay);
+    return () => clearTimeout(t);
+  }, [anim, delay]);
+  const opacity = anim.interpolate({ inputRange: [0, 1], outputRange: [baseOpacity * 0.4, baseOpacity] });
+  const scale = anim.interpolate({ inputRange: [0, 1], outputRange: [0.7, 1.2] });
+  return (
+    <Animated.View
+      style={{
+        position: 'absolute',
+        width: size,
+        height: size,
+        borderRadius: size / 2,
+        backgroundColor: color,
+        opacity,
+        transform: [{ translateX: x - size / 2 }, { translateY: y - size / 2 }, { scale }],
+      }}
+    />
+  );
+}
 
 function PulsingDot({ style, delay = 0 }: { style: object; delay?: number }) {
   const scale = useRef(new Animated.Value(1)).current;
@@ -126,11 +169,8 @@ export default function ExplorarScreen() {
   const [query, setQuery] = useState('');
   const [visibleRegion, setVisibleRegion] = useState<Region>(INITIAL_REGION);
   const searchInputRef = useRef<TextInput>(null);
-  const pillsOpacity = useRef(new Animated.Value(0)).current;
-  const [suggestionIndex, setSuggestionIndex] = useState(0);
-  const rouletteOpacity = useRef(new Animated.Value(1)).current;
-  const rouletteY = useRef(new Animated.Value(0)).current;
   const shimmerAnim = useRef(new Animated.Value(0)).current;
+  const idleOpacity = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     if (!query.trim()) { setLiveResults([]); return; }
@@ -139,36 +179,6 @@ export default function ExplorarScreen() {
     return () => { cancelled = true; };
   }, [query, allPatios]);
 
-  useEffect(() => {
-    const showPills = !searchActive && !showHeader;
-    if (showPills) {
-      const t = setTimeout(() => {
-        Animated.timing(pillsOpacity, { toValue: 1, duration: 400, useNativeDriver: true }).start();
-      }, 800);
-      return () => clearTimeout(t);
-    } else {
-      pillsOpacity.setValue(0);
-    }
-  }, [searchActive, showHeader, pillsOpacity]);
-
-  // Roulette cycling
-  useEffect(() => {
-    if (searchActive || showHeader) return;
-    const id = setInterval(() => {
-      Animated.parallel([
-        Animated.timing(rouletteOpacity, { toValue: 0, duration: 260, useNativeDriver: true }),
-        Animated.timing(rouletteY, { toValue: -8, duration: 260, useNativeDriver: true }),
-      ]).start(() => {
-        setSuggestionIndex((i) => (i + 1) % SUGGESTIONS.length);
-        rouletteY.setValue(8);
-        Animated.parallel([
-          Animated.timing(rouletteOpacity, { toValue: 1, duration: 260, useNativeDriver: true }),
-          Animated.timing(rouletteY, { toValue: 0, duration: 260, useNativeDriver: true }),
-        ]).start();
-      });
-    }, 2400);
-    return () => clearInterval(id);
-  }, [searchActive, showHeader, rouletteOpacity, rouletteY]);
 
   // Shimmer sobre mapa
   useEffect(() => {
@@ -207,6 +217,11 @@ export default function ExplorarScreen() {
   }, [mockResults, liveResults, query]);
   const matchingPatioIds = useMemo(() => new Set(searchResults.map((r) => r.patio.id)), [searchResults]);
   const isFiltering = query.trim().length > 0;
+  const idleMode = !searchActive && !showHeader && !isFiltering;
+
+  useEffect(() => {
+    Animated.timing(idleOpacity, { toValue: idleMode ? 1 : 0, duration: 320, useNativeDriver: true }).start();
+  }, [idleMode, idleOpacity]);
 
   const topMatchPerPatio = useMemo(() => {
     const seen = new Set<string>();
@@ -332,7 +347,7 @@ export default function ExplorarScreen() {
           pointerEvents="none"
           style={StyleSheet.absoluteFillObject}
         />
-        {/* Shimmer tenue sobre mapa */}
+        {/* Shimmer tenue */}
         <Animated.View
           pointerEvents="none"
           style={[StyleSheet.absoluteFillObject, { overflow: 'hidden' }, {
@@ -340,24 +355,58 @@ export default function ExplorarScreen() {
           }]}>
           <LinearGradient
             colors={['transparent', theme.isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.09)', 'transparent']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
+            start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
             style={{ width: SCREEN_WIDTH * 0.6, height: '100%' }}
           />
         </Animated.View>
+        {/* Blur fuerte en idle */}
+        <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFillObject, { opacity: idleOpacity }]}>
+          <BlurView intensity={theme.isDark ? 48 : 52} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
+        </Animated.View>
       </View>
 
-      {/* Ruleta de sugerencias ambient */}
+      {/* IDLE LAYER: radar dots + buscador centrado */}
       <Animated.View
-        pointerEvents={searchActive || showHeader ? 'none' : 'box-none'}
-        style={[{ position: 'absolute', left: 0, right: 0, alignItems: 'center', bottom: '32%' }, { opacity: pillsOpacity }]}>
+        pointerEvents={idleMode ? 'box-none' : 'none'}
+        style={[StyleSheet.absoluteFillObject, { alignItems: 'center', justifyContent: 'center', opacity: idleOpacity }]}>
+        {/* Radar dots */}
+        <View style={{ width: 0, height: 0 }}>
+          {RADAR_DOTS.map((dot, i) => (
+            <RadarDot key={i} {...dot} color={theme.accent} />
+          ))}
+        </View>
+        {/* Buscador centrado */}
         <TouchableOpacity
-          activeOpacity={0.72}
-          onPress={() => { openSearch(); setTimeout(() => setQuery(SUGGESTIONS[suggestionIndex]), 90); }}>
-          <Animated.View style={[s.pill, { opacity: rouletteOpacity, transform: [{ translateY: rouletteY }] }]}>
-            <BlurView intensity={14} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
-            <Text style={s.pillText}>{SUGGESTIONS[suggestionIndex]}</Text>
-          </Animated.View>
+          activeOpacity={0.82}
+          onPress={openSearch}
+          style={{
+            position: 'absolute',
+            left: 24, right: 24,
+            top: SCREEN_HEIGHT * 0.08,
+          }}>
+          <BlurView
+            intensity={theme.isDark ? 20 : 24}
+            tint={theme.isDark ? 'dark' : 'light'}
+            style={{
+              borderRadius: 18,
+              overflow: 'hidden',
+              flexDirection: 'row',
+              alignItems: 'center',
+              paddingHorizontal: 16,
+              paddingVertical: 14,
+              gap: 10,
+              borderWidth: StyleSheet.hairlineWidth,
+              borderColor: theme.isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.07)',
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 8 },
+              shadowOpacity: theme.isDark ? 0.22 : 0.08,
+              shadowRadius: 24,
+            }}>
+            <Ionicons name="search-outline" size={18} color={theme.textSecondary} />
+            <Text style={{ fontSize: 16, fontWeight: '300', color: theme.textSecondary }}>
+              ¿Qué se te antoja?
+            </Text>
+          </BlurView>
         </TouchableOpacity>
       </Animated.View>
 

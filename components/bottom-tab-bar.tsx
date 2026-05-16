@@ -6,9 +6,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/lib/theme';
 
 const TABS = [
-  { path: '/perfil',  label: 'Perfil',    iconActive: 'person'        as const, iconInactive: 'person-outline'       as const },
-  { path: '/menu',    label: 'Menú',       iconActive: 'list'          as const, iconInactive: 'list-outline'         as const },
-  { path: '/preview', label: 'Compartir', iconActive: 'share'         as const, iconInactive: 'share-outline'        as const },
+  { path: '/perfil',    label: 'Perfil',    iconActive: 'person'        as const, iconInactive: 'person-outline'       as const },
+  { path: '/foto-menu', label: 'Capturar',  iconActive: 'camera'        as const, iconInactive: 'camera-outline'       as const },
+  { path: '/menu',      label: 'Menú',      iconActive: 'list'          as const, iconInactive: 'list-outline'         as const },
+  { path: '/preview',   label: 'Compartir', iconActive: 'share'         as const, iconInactive: 'share-outline'        as const },
 ];
 
 export function BottomTabBar() {

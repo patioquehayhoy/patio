@@ -230,7 +230,7 @@ export default function PerfilScreen() {
     shouldShowHint('fondero_perfil').then((show) => {
       if (!show) return;
       const n = getFonditaName();
-      if (!n || n === 'Mi Fondita') setShowPerfilHint(true);
+      if (!n || n === 'Mi Fondita' || n === 'La Fondita') setShowPerfilHint(true);
     });
   }, []));
 
@@ -259,7 +259,7 @@ export default function PerfilScreen() {
         if (!fondita) {
           const insertResult = await supabase
             .from('fonditas')
-            .insert({ telefono: user.email, nombre: 'Mi Fondita' })
+            .insert({ telefono: user.email, nombre: '' })
             .select('id, nombre, nombre_updated_at, descripcion, direccion, direccion_visible, horario, pagos_efectivo, pagos_transferencia, pagos_tarjeta, tipo_negocio, latitude, longitude')
             .single();
           fondita = insertResult.data;

@@ -133,7 +133,7 @@ export function buildWhatsAppMessage(data: MenuData, fonditaName: string): strin
 // ─── In-memory store ──────────────────────────────────────────────────────────
 let _menuData: MenuData | null = null;
 let _cartaData: MenuData | null = null;
-let _fonditaName = 'La Fondita';
+let _fonditaName = '';
 let _fonditaDescription = '';
 let _tipoNegocio: string | null = null;
 

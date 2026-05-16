@@ -4,7 +4,7 @@ import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, Stack } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, Dimensions, Keyboard, ScrollView, Share, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Animated, Dimensions, Keyboard, KeyboardAvoidingView, Platform, ScrollView, Share, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker, type Region } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -170,7 +170,8 @@ export default function ExplorarScreen() {
   const [visibleRegion, setVisibleRegion] = useState<Region>(INITIAL_REGION);
   const searchInputRef = useRef<TextInput>(null);
   const shimmerAnim = useRef(new Animated.Value(0)).current;
-  const idleOpacity = useRef(new Animated.Value(1)).current;
+  const idleLayerOpacity = useRef(new Animated.Value(1)).current;
+  const searchBlurOpacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (!query.trim()) { setLiveResults([]); return; }
@@ -219,9 +220,14 @@ export default function ExplorarScreen() {
   const isFiltering = query.trim().length > 0;
   const idleMode = !searchActive && !showHeader && !isFiltering;
 
+  // Halo Xbox: idle = mapa nítido (sin blur, layer visible), buscando = blur intenso (layer oculto)
   useEffect(() => {
-    Animated.timing(idleOpacity, { toValue: idleMode ? 1 : 0, duration: 320, useNativeDriver: true }).start();
-  }, [idleMode, idleOpacity]);
+    const searching = searchActive || isFiltering;
+    Animated.parallel([
+      Animated.timing(idleLayerOpacity, { toValue: searching ? 0 : 1, duration: 320, useNativeDriver: true }),
+      Animated.timing(searchBlurOpacity, { toValue: searching ? 1 : 0, duration: 420, useNativeDriver: true }),
+    ]).start();
+  }, [searchActive, isFiltering, idleLayerOpacity, searchBlurOpacity]);
 
   const topMatchPerPatio = useMemo(() => {
     const seen = new Set<string>();
@@ -347,102 +353,115 @@ export default function ExplorarScreen() {
           pointerEvents="none"
           style={StyleSheet.absoluteFillObject}
         />
-        {/* Blur suave en idle ~32% */}
-        <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFillObject, { opacity: idleOpacity }]}>
-          <BlurView intensity={theme.isDark ? 38 : 40} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
+        {/* Halo Xbox: blur aparece SOLO al buscar */}
+        <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFillObject, { opacity: searchBlurOpacity }]}>
+          <BlurView intensity={theme.isDark ? 44 : 48} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
         </Animated.View>
       </View>
 
-      {/* IDLE LAYER: radar dots + buscador centrado */}
+      {/* IDLE LAYER: radar dots + buscador centrado (oculto cuando buscas) */}
       <Animated.View
         pointerEvents={idleMode ? 'box-none' : 'none'}
-        style={[StyleSheet.absoluteFillObject, { alignItems: 'center', justifyContent: 'center', opacity: idleOpacity }]}>
-        {/* Radar dots */}
+        style={[StyleSheet.absoluteFillObject, { alignItems: 'center', justifyContent: 'center', opacity: idleLayerOpacity }]}>
         <View style={{ width: 0, height: 0 }}>
           {RADAR_DOTS.map((dot, i) => (
             <RadarDot key={i} {...dot} color={theme.accent} />
           ))}
         </View>
-        {/* Buscador exactamente al centro */}
-        <TouchableOpacity
-          activeOpacity={0.82}
-          onPress={openSearch}
-          style={{ position: 'absolute', left: 24, right: 24 }}>
-          <BlurView
-            intensity={theme.isDark ? 20 : 24}
-            tint={theme.isDark ? 'dark' : 'light'}
-            style={{
-              borderRadius: 18,
-              overflow: 'hidden',
-              flexDirection: 'row',
-              alignItems: 'center',
-              paddingHorizontal: 16,
-              paddingVertical: 14,
-              gap: 10,
-              borderWidth: StyleSheet.hairlineWidth,
-              borderColor: theme.isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.07)',
-              shadowColor: '#000',
-              shadowOffset: { width: 0, height: 8 },
-              shadowOpacity: theme.isDark ? 0.22 : 0.08,
-              shadowRadius: 24,
-            }}>
-            <Ionicons name="search-outline" size={18} color={theme.textSecondary} />
-            <Text style={{ fontSize: 16, fontWeight: '300', color: theme.textSecondary }}>
-              ¿Qué se te antoja?
-            </Text>
-          </BlurView>
-        </TouchableOpacity>
+        <View style={{ position: 'absolute', left: 24, right: 24, flexDirection: 'row', gap: 10, alignItems: 'center' }}>
+          <TouchableOpacity activeOpacity={0.82} onPress={openSearch} style={{ flex: 1 }}>
+            <BlurView
+              intensity={theme.isDark ? 20 : 24}
+              tint={theme.isDark ? 'dark' : 'light'}
+              style={{
+                borderRadius: 18,
+                overflow: 'hidden',
+                flexDirection: 'row',
+                alignItems: 'center',
+                paddingHorizontal: 16,
+                paddingVertical: 14,
+                gap: 10,
+                borderWidth: StyleSheet.hairlineWidth,
+                borderColor: theme.isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.07)',
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 8 },
+                shadowOpacity: theme.isDark ? 0.22 : 0.08,
+                shadowRadius: 24,
+              }}>
+              <Ionicons name="search-outline" size={18} color={theme.textSecondary} />
+              <Text style={{ fontSize: 16, fontWeight: '300', color: theme.textSecondary }}>
+                ¿Qué se te antoja?
+              </Text>
+            </BlurView>
+          </TouchableOpacity>
+          <TouchableOpacity
+            activeOpacity={0.82}
+            onPress={() => Alert.alert('Próximamente', 'Pídele a Patio en voz alta qué se te antoja. Llega en la próxima versión.')}
+            style={{ width: 54, height: 54, borderRadius: 27, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth, borderColor: theme.isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.07)' }}>
+            <BlurView intensity={theme.isDark ? 20 : 24} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
+            <Ionicons name="mic-outline" size={22} color={theme.text} />
+          </TouchableOpacity>
+        </View>
       </Animated.View>
 
-      {/* Top bar */}
+      {/* Top bar — siempre visible (perfil + favoritos + expandir) */}
       <View style={[s.topBar, { top: insets.top + 14 }]}>
-        {searchActive ? (
-          <View style={s.searchRow}>
+        <TouchableOpacity style={s.closeButton} onPress={() => router.push('/cuenta')} activeOpacity={0.76}>
+          <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
+          <Ionicons name="person-circle-outline" size={22} color={theme.text} />
+        </TouchableOpacity>
+        <View style={s.topRight}>
+          <TouchableOpacity style={s.toolButton} onPress={() => router.push('/favoritos')} activeOpacity={0.76}>
             <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
-            <TouchableOpacity onPress={closeSearch} activeOpacity={0.76} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-              <Ionicons name="chevron-back" size={20} color={theme.text} />
-            </TouchableOpacity>
-            <TextInput
-              ref={searchInputRef}
-              style={s.searchInput}
-              value={query}
-              onChangeText={handleQueryChange}
-              placeholder="mole, enchiladas, agua de jamaica…"
-              placeholderTextColor={theme.textSecondary}
-              autoCorrect={false}
-              autoCapitalize="none"
-              returnKeyType="search"
-              selectionColor={theme.accent}
-            />
-            {query.length > 0 && (
-              <TouchableOpacity onPress={() => handleQueryChange('')} activeOpacity={0.76} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                <Ionicons name="close-circle" size={18} color={theme.textSecondary} />
-              </TouchableOpacity>
-            )}
-          </View>
-        ) : !idleMode ? (
-          <>
-            <TouchableOpacity style={s.closeButton} onPress={() => router.push('/cuenta')} activeOpacity={0.76}>
-              <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
-              <Ionicons name="person-circle-outline" size={22} color={theme.text} />
-            </TouchableOpacity>
-            <View style={s.topRight}>
-              <TouchableOpacity style={s.toolButton} onPress={() => router.push('/favoritos')} activeOpacity={0.76}>
-                <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
-                <Ionicons name="heart-outline" size={20} color={theme.text} />
-              </TouchableOpacity>
-              <TouchableOpacity style={s.toolButton} onPress={openSearch} activeOpacity={0.76}>
-                <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
-                <Ionicons name="search-outline" size={20} color={theme.text} />
-              </TouchableOpacity>
-              <TouchableOpacity style={s.toolButton} onPress={() => setMapExpanded((v) => !v)} activeOpacity={0.76}>
-                <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
-                <Ionicons name={mapExpanded ? 'list-outline' : 'expand-outline'} size={20} color={theme.text} />
-              </TouchableOpacity>
-            </View>
-          </>
-        ) : null}
+            <Ionicons name="heart-outline" size={20} color={theme.text} />
+          </TouchableOpacity>
+          <TouchableOpacity style={s.toolButton} onPress={() => setMapExpanded((v) => !v)} activeOpacity={0.76}>
+            <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
+            <Ionicons name={mapExpanded ? 'list-outline' : 'expand-outline'} size={20} color={theme.text} />
+          </TouchableOpacity>
+        </View>
       </View>
+
+      {/* Buscador activo — anclado ENCIMA del teclado */}
+      {searchActive && (
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={{ position: 'absolute', left: 0, right: 0, bottom: 0 }}
+          pointerEvents="box-none">
+          <View style={{ paddingHorizontal: 16, paddingBottom: 12, paddingTop: 8, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+            <View style={[s.searchRow, { flex: 1 }]}>
+              <BlurView intensity={theme.isDark ? 30 : 36} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
+              <TouchableOpacity onPress={closeSearch} activeOpacity={0.76} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                <Ionicons name="chevron-back" size={20} color={theme.text} />
+              </TouchableOpacity>
+              <TextInput
+                ref={searchInputRef}
+                style={s.searchInput}
+                value={query}
+                onChangeText={handleQueryChange}
+                placeholder="mole, enchiladas, agua de jamaica…"
+                placeholderTextColor={theme.textSecondary}
+                autoCorrect={false}
+                autoCapitalize="none"
+                returnKeyType="search"
+                selectionColor={theme.accent}
+              />
+              {query.length > 0 && (
+                <TouchableOpacity onPress={() => handleQueryChange('')} activeOpacity={0.76} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                  <Ionicons name="close-circle" size={18} color={theme.textSecondary} />
+                </TouchableOpacity>
+              )}
+            </View>
+            <TouchableOpacity
+              activeOpacity={0.82}
+              onPress={() => Alert.alert('Próximamente', 'Habla con Patio en la próxima versión.')}
+              style={{ width: 44, height: 44, borderRadius: 22, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth, borderColor: theme.isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.07)' }}>
+              <BlurView intensity={theme.isDark ? 30 : 36} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
+              <Ionicons name="mic-outline" size={20} color={theme.text} />
+            </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
+      )}
 
       {!mapExpanded && (showHeader || isFiltering) && (
         <View style={[s.sheet, { paddingBottom: insets.bottom ? 4 : 8 }]}>

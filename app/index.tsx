@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
@@ -15,6 +16,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AgentSpinner } from '@/components/agent-spinner';
 import { initializeSignedInUser, LOGIN_CALLBACK_URL } from '@/lib/auth';
+
+const ROLE_KEY = '@patio_user_role';
 import {
   setFonditaDescription,
   setFonditaDireccion,
@@ -65,33 +68,56 @@ export default function LoginScreen() {
   }, [params.intent]);
 
   useEffect(() => {
-    supabase.auth.getSession()
-      .then(async ({ data }) => {
-        if (data.session) {
-          await initializeSignedInUser(data.session);
-          router.replace('/perfil');
+    (async () => {
+      try {
+        const [{ data }, savedRole] = await Promise.all([
+          supabase.auth.getSession(),
+          AsyncStorage.getItem(ROLE_KEY),
+        ]);
+        if (data.session) await initializeSignedInUser(data.session);
+        if (savedRole === 'fondero' && data.session) {
+          router.replace('/foto-menu');
           return;
         }
-        setCheckingSession(false);
-      })
-      .catch(() => setCheckingSession(false));
+        if (savedRole === 'foodie') {
+          router.replace('/explorar');
+          return;
+        }
+      } catch {}
+      setCheckingSession(false);
+    })();
   }, []);
 
   const handleDevFondero = () => {
     setFonditaId('dev-123');
-    setFonditaName('La Fondita');
-    setFonditaDescription('Comida casera con sazón de abuela');
-    setFonditaDireccion('Av. Principal 123, Col. Centro');
+    setFonditaName('');
+    setFonditaDescription('');
+    setFonditaDireccion('');
     setFonditaDireccionVisible(true);
-    setFonditaHorario('8am – 4pm');
+    setFonditaHorario('');
     setPagosEfectivo(true);
     setPagosTrans(true);
     setPagosTarjeta(false);
     setTipoNegocio('fondita');
-    router.replace('/perfil');
+    router.replace('/foto-menu');
   };
 
-  const handleExplore = () => router.replace('/explorar');
+  const handleDevFoodie = () => router.replace('/explorar');
+
+  const handleExplore = () => {
+    AsyncStorage.setItem(ROLE_KEY, 'foodie').catch(() => {});
+    router.replace('/explorar');
+  };
+
+  const handlePublishMenu = () => {
+    AsyncStorage.setItem(ROLE_KEY, 'fondero').catch(() => {});
+    setIntent('business');
+  };
+
+  const handleResetRole = async () => {
+    await AsyncStorage.removeItem(ROLE_KEY);
+    Alert.alert('Rol limpiado', 'Cierra y abre la app para ver el role-picker de cero.');
+  };
 
   const handleSend = async () => {
     const trimmed = email.trim().toLowerCase();
@@ -139,10 +165,23 @@ export default function LoginScreen() {
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.secondaryBtn}
-              onPress={() => setIntent('business')}
+              onPress={handlePublishMenu}
               activeOpacity={0.7}>
               <Text style={[styles.secondaryBtnText, { color: theme.textSecondary }]}>Publicar mi menú</Text>
             </TouchableOpacity>
+            {__DEV__ && (
+              <View style={styles.devBarInline}>
+                <TouchableOpacity style={[styles.devPill, { borderColor: theme.border }]} onPress={handleDevFoodie} activeOpacity={0.7}>
+                  <Text style={[styles.devButtonText, { color: theme.textSecondary }]}>Dev Foodie</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.devPill, { borderColor: theme.border }]} onPress={handleDevFondero} activeOpacity={0.7}>
+                  <Text style={[styles.devButtonText, { color: theme.textSecondary }]}>Dev Fondero</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.devPill, { borderColor: theme.border }]} onPress={handleResetRole} activeOpacity={0.7}>
+                  <Text style={[styles.devButtonText, { color: theme.textSecondary }]}>Reset rol</Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
         </View>
       ) : (
@@ -203,17 +242,6 @@ export default function LoginScreen() {
         </KeyboardAvoidingView>
       )}
 
-      <View style={styles.devBar}>
-        <TouchableOpacity style={[styles.devPill, { borderColor: theme.border }]} onPress={handleExplore}>
-          <Text style={[styles.devButtonText, { color: theme.textSecondary }]}>Dev Foodie</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.devPill, { borderColor: theme.border }]} onPress={handleDevFondero}>
-          <Text style={[styles.devButtonText, { color: theme.textSecondary }]}>Dev Fondero</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.devPill, { borderColor: theme.border }]} onPress={() => router.push('/onboarding')}>
-          <Text style={[styles.devButtonText, { color: theme.textSecondary }]}>Dev Onboarding</Text>
-        </TouchableOpacity>
-      </View>
     </View>
   );
 }
@@ -266,7 +294,7 @@ const styles = StyleSheet.create({
   backLinkText: { fontSize: 14, fontWeight: '300', textDecorationLine: 'underline' },
 
   // Dev
-  devBar: { position: 'absolute', bottom: 32, alignSelf: 'center', flexDirection: 'row', gap: 8 },
-  devPill: { minHeight: 34, borderRadius: 17, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 12, alignItems: 'center', justifyContent: 'center' },
+  devBarInline: { flexDirection: 'row', gap: 8, justifyContent: 'center', marginTop: 14, flexWrap: 'wrap' },
+  devPill: { minHeight: 36, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 14, alignItems: 'center', justifyContent: 'center' },
   devButtonText: { fontSize: 13, fontWeight: '300' },
 });

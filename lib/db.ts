@@ -26,7 +26,7 @@ export async function upsertFondita(email: string): Promise<string | null> {
 
   const { data, error } = await supabase
     .from('fonditas')
-    .insert({ telefono: email, nombre: 'Mi Fondita' })
+    .insert({ telefono: email, nombre: '' })
     .select('id')
     .single();
 

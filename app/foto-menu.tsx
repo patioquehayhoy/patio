@@ -29,6 +29,7 @@ import {
 } from '@/lib/menu-store';
 import { saveMenuHoy } from '@/lib/db';
 import { getFonditaId } from '@/lib/user-store';
+import { BottomTabBar } from '@/components/bottom-tab-bar';
 
 type Estado = 'idle' | 'camera' | 'processing' | 'review' | 'saved';
 
@@ -288,12 +289,22 @@ export default function FotoMenuScreen() {
   }
 
   async function seleccionarDeGaleria() {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 0.8,
-    });
-    if (!result.canceled && result.assets[0]) {
-      await analizarImagen(result.assets[0].uri);
+    try {
+      const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!perm.granted) {
+        Alert.alert('Permiso necesario', 'Habilita el acceso a tus fotos en Ajustes para elegir una imagen.');
+        return;
+      }
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        quality: 0.8,
+      });
+      if (!result.canceled && result.assets[0]) {
+        await analizarImagen(result.assets[0].uri);
+      }
+    } catch (err) {
+      console.error('seleccionarDeGaleria:', err);
+      Alert.alert('Error', 'No se pudo abrir la galería. Intenta de nuevo.');
     }
   }
 
@@ -416,39 +427,34 @@ export default function FotoMenuScreen() {
     return (
       <SafeAreaView style={s.container}>
         <Stack.Screen options={{ headerShown: false }} />
-        <TouchableOpacity style={s.backIconBtn} onPress={() => router.back()} activeOpacity={0.76}>
-          <Ionicons name="chevron-back" size={20} color={theme.text} />
-        </TouchableOpacity>
 
         <View style={s.idleContent}>
-          <View style={s.cameraBtn}>
-            <TouchableOpacity
-              style={s.cameraBtnInner}
-              onPress={tomarFoto}
-              activeOpacity={0.85}
-            >
-              <Ionicons name="camera" size={42} color={theme.accent} style={s.cameraBtnIcon} />
-              <Text style={s.cameraBtnLabel}>Tomar foto</Text>
-              <Text style={s.cameraBtnSub}>Captura tu menú y revísalo antes de guardar</Text>
+          <View style={{ flex: 1, justifyContent: 'center' }}>
+            <View style={s.cameraBtn}>
+              <TouchableOpacity
+                style={s.cameraBtnInner}
+                onPress={tomarFoto}
+                activeOpacity={0.85}
+              >
+                <Ionicons name="camera" size={56} color={theme.accent} style={s.cameraBtnIcon} />
+                <Text style={s.cameraBtnLabel}>Toma foto de tu menú</Text>
+                <Text style={s.cameraBtnSub}>Patio lo lee por ti y lo organiza al instante</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={s.dividerRow}>
+              <View style={s.dividerLine} />
+              <Text style={s.dividerText}>o</Text>
+              <View style={s.dividerLine} />
+            </View>
+
+            <TouchableOpacity style={s.btnSecondary} onPress={seleccionarDeGaleria} activeOpacity={0.82}>
+              <Text style={s.btnSecondaryText}>Elegir imagen de la galería</Text>
             </TouchableOpacity>
           </View>
-
-          <View style={s.dividerRow}>
-            <View style={s.dividerLine} />
-            <Text style={s.dividerText}>o elige una imagen</Text>
-            <View style={s.dividerLine} />
-          </View>
-
-          <TouchableOpacity style={s.btnSecondary} onPress={seleccionarDeGaleria}>
-            <Text style={s.btnSecondaryText}>Elegir imagen</Text>
-          </TouchableOpacity>
-
-          <View style={s.tipBox}>
-            <Text style={s.tipText}>
-              Toma una foto o sube una imagen y revisa los platillos antes de guardar.
-            </Text>
-          </View>
         </View>
+
+        <BottomTabBar />
       </SafeAreaView>
     );
   }

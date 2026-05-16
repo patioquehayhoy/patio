@@ -45,7 +45,7 @@ export default function LoginCallback() {
   useEffect(() => {
     let isCancelled = false;
 
-    const safeRedirect = (path: '/' | '/perfil') => {
+    const safeRedirect = (path: '/' | '/perfil' | '/foto-menu') => {
       if (!isCancelled) router.replace(path);
     };
 
@@ -84,7 +84,7 @@ export default function LoginCallback() {
 
       if (session) {
         await initializeSignedInUser(session);
-        safeRedirect('/perfil');
+        safeRedirect('/foto-menu');
         return;
       }
 

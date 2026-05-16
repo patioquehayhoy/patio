@@ -36,6 +36,12 @@ Grid de platillos con foto grande, nombre, fondita y precio. Categorías horizon
 - **Cuándo ejecutar**: cuando haya fotos reales de platillos en Supabase y suficientes fonditas activas
 - **Componente clave**: skeleton/shimmer loading para imágenes (estilo ChatGPT image load) — ver `components/agent-spinner.tsx` como base o implementar nuevo con `Animated` + interpolate opacity 0.3↔1
 
+### REF-003 — agente de antojo con lenguaje natural (v05+)
+Orbe animado central (blur + color vivo, pulsa cuando escucha). Input "Ask anything" abajo. El usuario describe en lenguaje libre: "algo salado, no tan picoso, saludable" → el agente cruza con perfil de usuario + fonditas cercanas + menús del día → devuelve sugerencia concreta con fondita y platillo.
+- **Stack**: Claude API (Anthropic SDK) como backend, streaming de respuesta, función `searchLiveMenus()` como tool call
+- **Cuándo ejecutar**: cuando haya masa crítica de fonditas reales con menús y fotos. Requiere ANTHROPIC_API_KEY en el servidor (no en cliente)
+- **Componente clave**: orbe animado con `Animated` + `BlurView` radial, similar a agent-spinner pero como hero element
+
 ### REF-002 — modo antojo / tinder-food (v03)
 Swipe left/right sobre platillos de fonditas cercanas. Right = me late, Left = no hoy. Al acumular 2-3 rights → sugerir la fondita. Vive dentro de explorar.tsx o pantalla propia.
 - **Cuándo ejecutar**: cuando REF-001 esté implementado (necesita fotos)

@@ -349,7 +349,7 @@ export default function ExplorarScreen() {
         />
         {/* Blur suave en idle ~32% */}
         <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFillObject, { opacity: idleOpacity }]}>
-          <BlurView intensity={theme.isDark ? 16 : 18} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
+          <BlurView intensity={theme.isDark ? 38 : 40} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
         </Animated.View>
       </View>
 

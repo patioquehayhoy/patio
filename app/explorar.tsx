@@ -4,7 +4,7 @@ import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, Stack } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, Keyboard, ScrollView, Share, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Animated, Dimensions, Keyboard, ScrollView, Share, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker, type Region } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -78,6 +78,29 @@ function makeStyles(t: Theme) {
   });
 }
 
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+
+const SUGGESTIONS = [
+  'mole', 'tacos de canasta', 'agua de jamaica',
+  'pozole', 'enchiladas', 'tamales', 'quesadillas', 'caldo tlalpeño',
+];
+
+function PulsingDot({ style, delay = 0 }: { style: object; delay?: number }) {
+  const scale = useRef(new Animated.Value(1)).current;
+  useEffect(() => {
+    const t = setTimeout(() => {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(scale, { toValue: 1.28, duration: 900, useNativeDriver: true }),
+          Animated.timing(scale, { toValue: 1, duration: 900, useNativeDriver: true }),
+        ])
+      ).start();
+    }, delay);
+    return () => clearTimeout(t);
+  }, [scale, delay]);
+  return <Animated.View style={[style, { transform: [{ scale }] }]} />;
+}
+
 const INITIAL_REGION: Region = {
   latitude: 19.4429,
   longitude: -99.2044,
@@ -104,7 +127,10 @@ export default function ExplorarScreen() {
   const [visibleRegion, setVisibleRegion] = useState<Region>(INITIAL_REGION);
   const searchInputRef = useRef<TextInput>(null);
   const pillsOpacity = useRef(new Animated.Value(0)).current;
-  const SUGGESTIONS = ['mole', 'tacos', 'agua de jamaica'];
+  const [suggestionIndex, setSuggestionIndex] = useState(0);
+  const rouletteOpacity = useRef(new Animated.Value(1)).current;
+  const rouletteY = useRef(new Animated.Value(0)).current;
+  const shimmerAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (!query.trim()) { setLiveResults([]); return; }
@@ -124,6 +150,33 @@ export default function ExplorarScreen() {
       pillsOpacity.setValue(0);
     }
   }, [searchActive, showHeader, pillsOpacity]);
+
+  // Roulette cycling
+  useEffect(() => {
+    if (searchActive || showHeader) return;
+    const id = setInterval(() => {
+      Animated.parallel([
+        Animated.timing(rouletteOpacity, { toValue: 0, duration: 260, useNativeDriver: true }),
+        Animated.timing(rouletteY, { toValue: -8, duration: 260, useNativeDriver: true }),
+      ]).start(() => {
+        setSuggestionIndex((i) => (i + 1) % SUGGESTIONS.length);
+        rouletteY.setValue(8);
+        Animated.parallel([
+          Animated.timing(rouletteOpacity, { toValue: 1, duration: 260, useNativeDriver: true }),
+          Animated.timing(rouletteY, { toValue: 0, duration: 260, useNativeDriver: true }),
+        ]).start();
+      });
+    }, 2400);
+    return () => clearInterval(id);
+  }, [searchActive, showHeader, rouletteOpacity, rouletteY]);
+
+  // Shimmer sobre mapa
+  useEffect(() => {
+    Animated.loop(
+      Animated.timing(shimmerAnim, { toValue: 1, duration: 3200, useNativeDriver: true })
+    ).start();
+    return () => shimmerAnim.stopAnimation();
+  }, [shimmerAnim]);
 
   useEffect(() => {
     fetchPublicFonditas().then((db) => {
@@ -249,7 +302,7 @@ export default function ExplorarScreen() {
           userInterfaceStyle={theme.isDark ? 'dark' : 'light'}
           onPress={deselect}
           onRegionChangeComplete={setVisibleRegion}>
-          {visiblePatios.map((patio) => {
+          {visiblePatios.map((patio, idx) => {
             const isSelected = patio.id === selectedId && showHeader;
             const isMuted = isFiltering && !matchingPatioIds.has(patio.id);
             return (
@@ -257,7 +310,7 @@ export default function ExplorarScreen() {
                 key={patio.id}
                 coordinate={{ latitude: patio.latitude, longitude: patio.longitude }}
                 onPress={() => selectPatio(patio.id)}
-                tracksViewChanges={true}>
+                tracksViewChanges={false}>
                 <View style={[s.pinHitArea, isMuted && s.pinMuted]}>
                   {isSelected ? (
                     <View style={s.pin}>
@@ -266,7 +319,7 @@ export default function ExplorarScreen() {
                       </View>
                     </View>
                   ) : (
-                    <View style={s.pinSmallDot} />
+                    <PulsingDot style={s.pinSmallDot} delay={(idx % 6) * 280} />
                   )}
                 </View>
               </Marker>
@@ -279,25 +332,33 @@ export default function ExplorarScreen() {
           pointerEvents="none"
           style={StyleSheet.absoluteFillObject}
         />
+        {/* Shimmer tenue sobre mapa */}
+        <Animated.View
+          pointerEvents="none"
+          style={[StyleSheet.absoluteFillObject, { overflow: 'hidden' }, {
+            transform: [{ translateX: shimmerAnim.interpolate({ inputRange: [0, 1], outputRange: [-SCREEN_WIDTH * 1.2, SCREEN_WIDTH * 1.2] }) }],
+          }]}>
+          <LinearGradient
+            colors={['transparent', theme.isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.09)', 'transparent']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={{ width: SCREEN_WIDTH * 0.6, height: '100%' }}
+          />
+        </Animated.View>
       </View>
 
-      {/* Suggestion pills — ambient, aparecen solo en estado inicial */}
+      {/* Ruleta de sugerencias ambient */}
       <Animated.View
         pointerEvents={searchActive || showHeader ? 'none' : 'box-none'}
-        style={[s.pillsRow, { bottom: '32%', opacity: pillsOpacity }]}>
-        {SUGGESTIONS.map((q) => (
-          <TouchableOpacity
-            key={q}
-            style={s.pill}
-            activeOpacity={0.72}
-            onPress={() => {
-              openSearch();
-              setTimeout(() => setQuery(q), 90);
-            }}>
-            <BlurView intensity={theme.isDark ? 14 : 14} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
-            <Text style={s.pillText}>{q}</Text>
-          </TouchableOpacity>
-        ))}
+        style={[{ position: 'absolute', left: 0, right: 0, alignItems: 'center', bottom: '32%' }, { opacity: pillsOpacity }]}>
+        <TouchableOpacity
+          activeOpacity={0.72}
+          onPress={() => { openSearch(); setTimeout(() => setQuery(SUGGESTIONS[suggestionIndex]), 90); }}>
+          <Animated.View style={[s.pill, { opacity: rouletteOpacity, transform: [{ translateY: rouletteY }] }]}>
+            <BlurView intensity={14} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
+            <Text style={s.pillText}>{SUGGESTIONS[suggestionIndex]}</Text>
+          </Animated.View>
+        </TouchableOpacity>
       </Animated.View>
 
       {/* Top bar */}

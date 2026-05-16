@@ -347,21 +347,9 @@ export default function ExplorarScreen() {
           pointerEvents="none"
           style={StyleSheet.absoluteFillObject}
         />
-        {/* Shimmer tenue */}
-        <Animated.View
-          pointerEvents="none"
-          style={[StyleSheet.absoluteFillObject, { overflow: 'hidden' }, {
-            transform: [{ translateX: shimmerAnim.interpolate({ inputRange: [0, 1], outputRange: [-SCREEN_WIDTH * 1.2, SCREEN_WIDTH * 1.2] }) }],
-          }]}>
-          <LinearGradient
-            colors={['transparent', theme.isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.09)', 'transparent']}
-            start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-            style={{ width: SCREEN_WIDTH * 0.6, height: '100%' }}
-          />
-        </Animated.View>
-        {/* Blur fuerte en idle */}
+        {/* Blur suave en idle ~32% */}
         <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFillObject, { opacity: idleOpacity }]}>
-          <BlurView intensity={theme.isDark ? 48 : 52} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
+          <BlurView intensity={theme.isDark ? 16 : 18} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
         </Animated.View>
       </View>
 
@@ -375,15 +363,11 @@ export default function ExplorarScreen() {
             <RadarDot key={i} {...dot} color={theme.accent} />
           ))}
         </View>
-        {/* Buscador centrado */}
+        {/* Buscador exactamente al centro */}
         <TouchableOpacity
           activeOpacity={0.82}
           onPress={openSearch}
-          style={{
-            position: 'absolute',
-            left: 24, right: 24,
-            top: SCREEN_HEIGHT * 0.08,
-          }}>
+          style={{ position: 'absolute', left: 24, right: 24 }}>
           <BlurView
             intensity={theme.isDark ? 20 : 24}
             tint={theme.isDark ? 'dark' : 'light'}
@@ -436,7 +420,7 @@ export default function ExplorarScreen() {
               </TouchableOpacity>
             )}
           </View>
-        ) : (
+        ) : !idleMode ? (
           <>
             <TouchableOpacity style={s.closeButton} onPress={() => router.push('/cuenta')} activeOpacity={0.76}>
               <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
@@ -457,7 +441,7 @@ export default function ExplorarScreen() {
               </TouchableOpacity>
             </View>
           </>
-        )}
+        ) : null}
       </View>
 
       {!mapExpanded && (showHeader || isFiltering) && (

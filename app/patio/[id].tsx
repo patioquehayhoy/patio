@@ -25,6 +25,8 @@ function makeStyles(t: Theme) {
     title: { fontSize: 32, lineHeight: 36, fontWeight: '900', fontFamily: Fonts.brand, color: t.text },
     meta: { marginTop: 8, fontSize: 15, lineHeight: 21, color: t.textSecondary },
     ratingRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 10 },
+    openPill: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 100, alignSelf: 'flex-start', marginTop: 8 },
+    openPillText: { fontSize: 12 },
     ratingText: { fontSize: 15, fontWeight: '900', color: t.text },
     mapPanel: { height: 176, borderRadius: 26, backgroundColor: t.isDark ? '#191A1B' : '#D8D6D0', overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, marginBottom: 20 },
     mapView: { ...StyleSheet.absoluteFillObject },
@@ -70,6 +72,22 @@ function makeStyles(t: Theme) {
     submitBtn: { minHeight: 52, borderRadius: 14, backgroundColor: t.text, alignItems: 'center', justifyContent: 'center' },
     submitText: { fontSize: 16, fontWeight: '900', color: t.surface },
   });
+}
+
+function isPatioOpen(open: string): boolean | null {
+  const m = open.match(/(\d+)(am|pm)?[-–](\d+)(am|pm)/i);
+  if (!m) return null;
+  const toH = (h: string, period: string) => {
+    let n = parseInt(h, 10);
+    if (period?.toLowerCase() === 'pm' && n !== 12) n += 12;
+    if (period?.toLowerCase() === 'am' && n === 12) n = 0;
+    return n;
+  };
+  const now = new Date();
+  const cdmx = now.getUTCHours() - 5 + (now.getUTCMinutes() / 60);
+  const open_ = toH(m[1], m[2] ?? m[4]);
+  const close_ = toH(m[3], m[4]);
+  return cdmx >= open_ && cdmx < close_;
 }
 
 export default function PatioDetailScreen() {
@@ -212,6 +230,17 @@ export default function PatioDetailScreen() {
           <Text style={s.meta} allowFontScaling={true}>
             {patio.category} · {patio.area} · {patio.open}
           </Text>
+          {(() => {
+            const status = isPatioOpen(patio.open);
+            if (status === null) return null;
+            return (
+              <View style={[s.openPill, { backgroundColor: status ? theme.accentLight : (theme.isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)') }]}>
+                <Text style={[s.openPillText, { color: status ? theme.accent : theme.textSecondary, fontWeight: status ? '900' : '300' }]} allowFontScaling={true}>
+                  {status ? 'Abierto' : 'Cerrado'}
+                </Text>
+              </View>
+            );
+          })()}
           <View style={s.starsRow}>
             {[1, 2, 3, 4, 5].map((n) => (
               <TouchableOpacity key={n} onPress={() => handleStarPress(n)} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}>

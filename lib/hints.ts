@@ -4,6 +4,7 @@ const KEYS = {
   fondero_perfil:  'hint_v1_fondero_perfil',
   fondero_menu:    'hint_v1_fondero_menu',
   fondero_share:   'hint_v1_fondero_share',
+  foodie_welcome:  'hint_v1_foodie_welcome',
   foodie_explorar: 'hint_v1_foodie_explorar',
 } as const;
 

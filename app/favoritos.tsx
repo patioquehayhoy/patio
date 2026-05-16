@@ -74,9 +74,9 @@ export default function FavoritosScreen() {
               <Ionicons name="star-outline" size={34} color={theme.textSecondary} />
             </View>
             <Text style={s.emptyTitle} allowFontScaling={true}>Guarda tus lugares de confianza</Text>
-            <Text style={s.emptyText} allowFontScaling={true}>Toca la estrella en una ficha para volver rápido cuando ya sepas qué lugar te late.</Text>
+            <Text style={s.emptyText} allowFontScaling={true}>Cuando encuentres una fondita que te late, guárdala con ♥ para volver rápido.</Text>
             <TouchableOpacity style={s.cta} onPress={() => router.replace('/explorar')} activeOpacity={0.82}>
-              <Text style={s.ctaText} allowFontScaling={true}>Ver mapa</Text>
+              <Text style={s.ctaText} allowFontScaling={true}>Buscar algo rico</Text>
             </TouchableOpacity>
           </View>
         ) : (

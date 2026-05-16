@@ -93,6 +93,7 @@ export default function ExplorarScreen() {
   // selectedId: which pin is highlighted. showHeader: user explicitly tapped a pin/row.
   // These two are always moved together via selectPatio/deselect — never set independently.
   const [allPatios, setAllPatios] = useState<Patio[]>(MOCK_PATIOS);
+  const [showWelcomeHint, setShowWelcomeHint] = useState(false);
   const [showExplorarHint, setShowExplorarHint] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showHeader, setShowHeader] = useState(false);
@@ -173,7 +174,11 @@ export default function ExplorarScreen() {
     useCallback(() => {
       let mounted = true;
       getFavoritePatioIds().then((ids) => { if (mounted) setSavedIds(ids); });
-      shouldShowHint('foodie_explorar').then((show) => { if (mounted && show) setShowExplorarHint(true); });
+      shouldShowHint('foodie_welcome').then((show) => {
+        if (!mounted) return;
+        if (show) { setShowWelcomeHint(true); return; }
+        shouldShowHint('foodie_explorar').then((s) => { if (mounted && s) setShowExplorarHint(true); });
+      });
       return () => { mounted = false; };
     }, [])
   );
@@ -433,7 +438,16 @@ export default function ExplorarScreen() {
             {isFiltering ? (
               topMatchPerPatio.length === 0 ? (
                 <View style={s.emptyResults}>
-                  <Text style={s.listMeta} allowFontScaling={true}>Ningún lugar tiene eso hoy</Text>
+                  <Text style={{ fontSize: 17, fontWeight: '900', color: theme.text, marginBottom: 6 }} allowFontScaling={true}>Nadie tiene eso hoy</Text>
+                  <Text style={{ fontSize: 13, fontWeight: '300', color: theme.textSecondary, marginBottom: 14 }} allowFontScaling={true}>Prueba con tacos, mole o agua de jamaica</Text>
+                  <View style={{ flexDirection: 'row', gap: 8 }}>
+                    {['tacos', 'mole', 'agua'].map((q) => (
+                      <TouchableOpacity key={q} onPress={() => handleQueryChange(q)} activeOpacity={0.76}
+                        style={{ paddingHorizontal: 14, paddingVertical: 8, borderRadius: 100, borderWidth: StyleSheet.hairlineWidth, borderColor: theme.border }}>
+                        <Text style={{ fontSize: 13, fontWeight: '300', color: theme.text }} allowFontScaling={true}>{q}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
                 </View>
               ) : (
                 topMatchPerPatio.map((match) => {
@@ -490,6 +504,15 @@ export default function ExplorarScreen() {
           </ScrollView>
         </View>
       )}
+      <HintSheet
+        visible={showWelcomeHint}
+        icon="🗺️"
+        title="Patio"
+        body="Descubre qué hay de comer cerca. Busca un platillo o toca un punto en el mapa."
+        primaryLabel="Explorar"
+        onPrimary={() => { markHintSeen('foodie_welcome'); setShowWelcomeHint(false); }}
+        onDismiss={() => { markHintSeen('foodie_welcome'); setShowWelcomeHint(false); }}
+      />
       <HintSheet
         visible={showExplorarHint}
         icon="🍽️"

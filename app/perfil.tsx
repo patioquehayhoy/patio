@@ -559,7 +559,7 @@ export default function PerfilScreen() {
               <Text style={s.rowLabel} allowFontScaling={true}>Manifiesto</Text>
             </TouchableOpacity>
             <View style={s.divider} />
-            <TouchableOpacity style={s.settingRow} onPress={() => Linking.openURL('mailto:hola@patio.mx?subject=Soporte%20Patio%20Fondero')} activeOpacity={0.7}>
+            <TouchableOpacity style={s.settingRow} onPress={() => Linking.openURL('mailto:quehayhoy.patio@gmail.com?subject=Soporte%20Patio%20Fondero')} activeOpacity={0.7}>
               <Ionicons name="chatbubble-outline" size={22} color={theme.text} style={s.settingIcon} />
               <Text style={s.rowLabel} allowFontScaling={true}>Contactar con soporte</Text>
             </TouchableOpacity>

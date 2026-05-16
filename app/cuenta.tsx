@@ -9,7 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '@/lib/supabase';
 import { useTheme, type Theme } from '@/lib/theme';
 
-const SUPPORT_EMAIL = 'hola@patio.mx';
+const SUPPORT_EMAIL = 'quehayhoy.patio@gmail.com';
 const ROLE_KEY = '@patio_user_role';
 
 function makeStyles(t: Theme) {

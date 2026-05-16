@@ -38,6 +38,26 @@ Grid de platillos con foto grande, nombre, fondita y precio. Categorías horizon
 - **Cuándo ejecutar**: cuando haya fotos reales de platillos en Supabase y suficientes fonditas activas
 - **Componente clave**: skeleton/shimmer loading para imágenes (estilo ChatGPT image load) — ver `components/agent-spinner.tsx` como base o implementar nuevo con `Animated` + interpolate opacity 0.3↔1
 
+### REF-004 — estética Momentum / dark tech (Fondero dashboard, v04+)
+Dashboard oscuro con acentos naranja/burnt orange. Cards de métricas con números grandes bold, grid de stats. Dark mode con superficies #1A1A1A y acento #E05C2A. Tipografía extrabold en títulos + light en subtítulos.
+- **Aplica a**: pantalla Fondero — métricas (vistas del menú, clicks, fonditas activas)
+- **Paleta a extraer**: burnt orange + negro profundo + crema para dark mode de Patio
+- **Generación de assets**: Higgsfield + ChatGPT cuando haya foto de la fondita real
+- **Cuándo ejecutar**: v04 — después de REF-001 (fotos) y masa crítica de fonditas
+
+### REF-005 — estética editorial food (Hanbut / tipografía sangrada, v03+)
+Crema + rojo editorial, serif display gigante que sangra fuera del frame. Fotos de platillo con mucho aire, composición vertical. Menú con foto + nombre + precio como lista editorial.
+- **Aplica a**: patio/[id].tsx ficha de fondita — cuando haya fotos reales de platillos
+- **Tipografía**: serif display (equivalente a Playfair/Didot) para nombre de fondita en hero
+- **Generación de assets**: Higgsfield para fotos de platillos estilo editorial con fondo neutro
+- **Cuándo ejecutar**: v03 — a la par de REF-001
+
+### REF-006 — assets de redes sociales para lanzamiento
+Estética: minimalista flat + tech. Poco color (negro, crema, un acento). Tipografía bold grande que ocupa todo el frame. Grid de 3 o 6 posts coherentes. Dos modos: oscuro (tech) y claro (editorial food).
+- **Herramientas**: ChatGPT image gen + Higgsfield para variantes con foto/video
+- **Cuándo producir**: antes del lanzamiento público — paralelo a v02.5/v03
+- **Nota**: en conjunto con REF-004 (dark) + REF-005 (editorial) forman el sistema visual completo de marca
+
 ### REF-003 — agente de antojo con lenguaje natural (v05+)
 Orbe animado central (blur + color vivo, pulsa cuando escucha). Input "Ask anything" abajo. El usuario describe en lenguaje libre: "algo salado, no tan picoso, saludable" → el agente cruza con perfil de usuario + fonditas cercanas + menús del día → devuelve sugerencia concreta con fondita y platillo.
 - **Stack**: Claude API (Anthropic SDK) como backend, streaming de respuesta, función `searchLiveMenus()` como tool call

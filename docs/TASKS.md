@@ -29,6 +29,19 @@
 
 ---
 
+## REFERENCIAS VISUALES (para versiones futuras)
+
+### REF-001 — interfaz-swipe (v03/v04)
+Grid de platillos con foto grande, nombre, fondita y precio. Categorías horizontales arriba (pills con emoji). Bottom tab bar con pill activo. Estética: blanco, bordes suaves, tipografía bold negra.
+- **Cuándo ejecutar**: cuando haya fotos reales de platillos en Supabase y suficientes fonditas activas
+- **Componente clave**: skeleton/shimmer loading para imágenes (estilo ChatGPT image load) — ver `components/agent-spinner.tsx` como base o implementar nuevo con `Animated` + interpolate opacity 0.3↔1
+
+### REF-002 — modo antojo / tinder-food (v03)
+Swipe left/right sobre platillos de fonditas cercanas. Right = me late, Left = no hoy. Al acumular 2-3 rights → sugerir la fondita. Vive dentro de explorar.tsx o pantalla propia.
+- **Cuándo ejecutar**: cuando REF-001 esté implementado (necesita fotos)
+
+---
+
 ## REGLAS PARA EL AGENTE
 
 1. **Mínimo viable** — una tarea a la vez, sin refactor extra

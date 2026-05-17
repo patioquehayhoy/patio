@@ -6,28 +6,59 @@
 
 ---
 
-## CICLO ACTUAL
+## CICLO ACTUAL — Rediseño visual con Claude Design
 
-### Limpieza y depuración
-- [x] Eliminar componentes Expo boilerplate sin uso (hello-wave, parallax-scroll, themed-text, themed-view, external-link, loading-indicator, collapsible)
-- [x] Migrar share.tsx de ThemedText/ThemedView a Text/View + useTheme
-- [ ] Auditar navigation-state.ts — verificar si `setUserNavigatedFromLogin` se usa en algún flujo real o es código muerto
-- [ ] Revisar lib/colors.ts — verificar si Colors se usa o si todo ya va por Theme
-- [ ] Revisar haptic-tab.tsx — confirmar si se usa en bottom-tab-bar o es residual
+### Bloqueado por el usuario (acción humana)
+- [ ] **Tomar 13 screenshots** de TestFlight build 1.0.0 (45) — uno por pantalla:
+  - index (role-picker), explorar idle, explorar buscando, patio/[id], favoritos, cuenta
+  - foto-menu, menu editor, preview, share, perfil, manifiesto, onboarding
+- [ ] **Sesión Claude Design** en claude.ai web — pegar `docs/PATIO_PRD.md` + `docs/DESIGN_SYSTEM.md` + screenshots + imágenes de referencias aspiracionales (`GRID_PLATILLOS`, `TINDER_PLATILLO`, `AGENTE_VOZ`, `DASHBOARD_FONDERO`, `FICHA_EDITORIAL`, `REDES_LANZAMIENTO`, `GLASS_ORGANICO`)
+- [ ] **Volver con mockups** de Claude Design para implementar pantalla por pantalla
 
-### Rediseño explorar.tsx — v02.5
-- [ ] **Ruleta de texto ambient**: reemplazar pills estáticas por scroll vertical que cicla automático cada 2s (tacos → mole → agua de jamaica → ...). Al escribir, la ruleta se filtra con resultados live. Implementar con `ScrollView` + `Animated` scroll automático.
-- [ ] **Shimmer sobre mapa**: overlay muy tenue (opacity 0.06–0.10) con efecto shimmer animado — `Animated` interpolando posición X de un gradiente blanco sobre el mapa. Debe verse el mapa debajo.
-- [ ] **Dots pulsantes en mapa**: los marcadores de fonditas deben pulsar suavemente (scale 1→1.3→1, loop, staggered por índice) mientras cargan, efecto "despertando".
+### Mientras llega Claude Design (puede hacer agente)
+- [ ] Verificar bug del magic link Supabase Fondero — necesita reproducción + screenshot del diag visible (ver `~/.claude/.../memory/supabase_magic_link.md`)
+- [ ] Investigar si Supabase Dashboard tiene `patio://login-callback` en Redirect URLs
+
+---
+
+## POST-CLAUDE-DESIGN (siguiente ciclo)
+
+### Implementar mockups pantalla por pantalla
+Orden recomendado por valor:
+1. [ ] **explorar.tsx** — radar dots → animación tech glow, top bar unificada, sheet limpio
+2. [ ] **patio/[id].tsx** — ficha estilo `FICHA_EDITORIAL` con resumen + menú menos jerárquico + botones circulares
+3. [ ] **foto-menu.tsx** — botón gigante más premium (no dashed genérico)
+4. [ ] **menu.tsx** — editor con más respiro entre secciones/platillos
+5. [ ] **cuenta.tsx + perfil.tsx** — settings con personalidad
+6. [ ] **preview.tsx + share.tsx** — cartel exportable estilo editorial
+
+### Features
+- [ ] **Ruta dentro del mapa** (no bouncear a Apple Maps) — `react-native-maps-directions` + polyline
+- [ ] **Zoom-out automático** del mapa al haber matches de búsqueda
+- [ ] **AGENTE_VOZ MVP texto** — input texto + Claude API + búsqueda live de menús (sin voz aún)
+  - Gating: cada 5 búsquedas → "prueba Pro" (ver `~/.claude/.../memory/monetization_strategy.md`)
 
 ---
 
 ## BACKLOG
 
-- [ ] favoritos.tsx — agregar soporte para eliminar favorito (swipe o long press)
-- [ ] explorar.tsx — pill de filtro por colonia/zona
-- [ ] patio/[id].tsx — botón de compartir ficha
-- [ ] perfil.tsx — validar que lat/lng se guarda correctamente en dispositivo real
+- [ ] favoritos.tsx — swipe to delete o long press
+- [ ] explorar.tsx — pill filtro por colonia/zona
+- [ ] patio/[id].tsx — botón compartir ficha (ya existe handleShare, solo wirear visible)
+- [ ] perfil.tsx — validar lat/lng en device real
+- [ ] onboarding.tsx — enganchar como first-launch experience (hoy está huérfano)
+- [ ] Notificaciones push — Expo Notifications, "hoy hay mole en tu fondita guardada"
+
+---
+
+## REGISTRO DE BUILDS
+
+| Build | Fecha | Highlights |
+|-------|-------|------------|
+| 1.0.0 (42) | 2026-05-16 | Primer submit, error duplicate build number |
+| 1.0.0 (43) | 2026-05-16 | Role-picker, blur Halo, mic placeholder, foto-menu Fondero |
+| 1.0.0 (44) | 2026-05-16 | Cleanup, botones zombi arreglados, cerrar sesión real, email oficial |
+| 1.0.0 (45) | 2026-05-17 | Blur baja al filtrar, sheet sobre teclado, dev nav completa, /cuenta simplificada, diag magic link |
 
 ---
 

@@ -1,7 +1,7 @@
 # Patio — PRD para rediseño visual con Claude Design
 
 > Documento de entrega. Copy/paste a Claude Design + adjunta screenshots de cada pantalla.
-> Última actualización: 2026-05-16
+> Última actualización: 2026-05-17
 
 ---
 
@@ -217,3 +217,53 @@ Estilos a los que queremos llegar. Cada uno tiene slug funcional:
 - **Carta:** menú permanente (raro en fonditas, común en taquerías)
 - **Foodie:** usuario que descubre dónde comer
 - **Fondero:** dueño/cocinero de la fondita que publica
+
+---
+
+## 12. Prompts copy-paste para Claude Design
+
+Usa estos mensajes en la sesión de Claude Design en orden:
+
+### Prompt 1 — Setup
+```
+Soy Alejandro, dueño de Patio (app de fonditas CDMX, React Native + Expo).
+Te paso 3 cosas:
+1. PRD completo (debajo)
+2. Sistema de diseño actual (DESIGN_SYSTEM.md)
+3. 13 screenshots del estado actual (TestFlight build 1.0.0 (45))
++ 7 imágenes de referencias aspiracionales
+
+Tu trabajo: rediseñar pantalla por pantalla respetando el PRD,
+proponiendo un sistema visual coherente que resuelva los pain points
+identificados sin romper la lógica.
+
+Empezamos por explorar.tsx (la pantalla más crítica del Foodie).
+Tu primer entregable: mockup + tokens visuales propuestos.
+```
+
+### Prompt 2 — Pantalla por pantalla
+```
+Siguiente pantalla: [nombre].tsx
+Pain points específicos (de la sección 6 del PRD): [...]
+Mostrame mockup + lista de componentes nuevos/modificados.
+```
+
+### Prompt 3 — Consolidar sistema
+```
+Ya cubrimos todas las pantallas. Ahora consolida:
+1. Sistema de tokens completo (colores extendidos, spacing, radii, shadows)
+2. Catálogo de componentes reutilizables (botones, cards, sheets, pills)
+3. Guidelines de animación (entrada/salida, loading, transiciones)
+4. Versión markdown actualizada de DESIGN_SYSTEM.md
+```
+
+### Prompt 4 — Handoff a implementación
+```
+Listo. Generame un documento `docs/DESIGN_SYSTEM_V03.md` con:
+- Tokens en formato copy-paste (TypeScript objects)
+- Specs de cada componente con valores exactos
+- Mapeo: "pantalla X usa componentes A, B, C con tokens T1, T2"
+
+Esto va a ser implementado en React Native + Expo SDK 54.
+Usa Animated nativo (no Framer Motion), BlurView de expo-blur.
+```

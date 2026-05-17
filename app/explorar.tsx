@@ -166,10 +166,17 @@ export default function ExplorarScreen() {
   const [searchActive, setSearchActive] = useState(false);
   const [query, setQuery] = useState('');
   const [visibleRegion, setVisibleRegion] = useState<Region>(INITIAL_REGION);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
   const searchInputRef = useRef<TextInput>(null);
   const shimmerAnim = useRef(new Animated.Value(0)).current;
   const idleLayerOpacity = useRef(new Animated.Value(1)).current;
   const searchBlurOpacity = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const show = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow', (e) => setKeyboardHeight(e.endCoordinates.height));
+    const hide = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide', () => setKeyboardHeight(0));
+    return () => { show.remove(); hide.remove(); };
+  }, []);
 
   useEffect(() => {
     if (!query.trim()) { setLiveResults([]); return; }
@@ -218,12 +225,14 @@ export default function ExplorarScreen() {
   const isFiltering = query.trim().length > 0;
   const idleMode = !searchActive && !showHeader && !isFiltering;
 
-  // Halo Xbox: idle = mapa nítido (sin blur, layer visible), buscando = blur intenso (layer oculto)
+  // Halo Xbox: idle = mapa nítido (sin blur), buscando vacío = blur intenso,
+  // buscando con query = blur baja para ver los pins activos
   useEffect(() => {
     const searching = searchActive || isFiltering;
+    const blurTarget = !searching ? 0 : isFiltering ? 0.45 : 1;
     Animated.parallel([
       Animated.timing(idleLayerOpacity, { toValue: searching ? 0 : 1, duration: 320, useNativeDriver: true }),
-      Animated.timing(searchBlurOpacity, { toValue: searching ? 1 : 0, duration: 420, useNativeDriver: true }),
+      Animated.timing(searchBlurOpacity, { toValue: blurTarget, duration: 420, useNativeDriver: true }),
     ]).start();
   }, [searchActive, isFiltering, idleLayerOpacity, searchBlurOpacity]);
 
@@ -462,7 +471,7 @@ export default function ExplorarScreen() {
       )}
 
       {!mapExpanded && (showHeader || isFiltering) && (
-        <View style={[s.sheet, { paddingBottom: insets.bottom ? 4 : 8 }]}>
+        <View style={[s.sheet, { bottom: keyboardHeight > 0 ? keyboardHeight + 70 : 14, paddingBottom: insets.bottom ? 4 : 8 }]}>
           <BlurView intensity={theme.isDark ? 16 : 22} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
           <View style={s.grabber} />
 

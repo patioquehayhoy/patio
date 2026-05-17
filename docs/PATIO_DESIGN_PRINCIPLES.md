@@ -2,6 +2,12 @@
 
 Use this file as the shared product and UI reference for Patio. Prefer these rules over generic app patterns when designing or refining screens in this repo.
 
+> ⚠️ **Separación importante:**
+> Las secciones **Core Direction → Role Principles** son principios durables: aplican siempre.
+> La sección **Current UI Decisions** son decisiones vigentes y cambiables — pueden replantearse
+> en una exploración de diseño (Claude Design u otra) sin violar los principios.
+> La biblia fundacional vive en [`design/foundations/ESSENTIAL_DESIGN_PRINCIPLES.md`](design/foundations/ESSENTIAL_DESIGN_PRINCIPLES.md).
+
 ## Core Direction
 
 - Prioritize iOS-native patterns and behavior before custom UI.
@@ -48,7 +54,10 @@ Use this file as the shared product and UI reference for Patio. Prefer these rul
 - Avoid over-explaining in persistent UI.
 - Put explanatory detail in sheets, helper text, or follow-up surfaces instead of the main layout.
 
-## Patio-Specific UI Decisions
+## Current UI Decisions (cambiables)
+
+> Estas son decisiones de la versión actual. Una exploración de rediseño puede proponer
+> cambiarlas siempre que respete los principios de arriba.
 
 - In menu editing, `Agregar sección` is the persistent primary action.
 - Menu utilities like changing source, re-choosing a template, or deleting should live under `Más opciones`.

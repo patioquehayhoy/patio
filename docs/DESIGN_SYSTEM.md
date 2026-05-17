@@ -3,6 +3,15 @@
 > Documento vivo. El agente lo lee antes de cualquier cambio visual.
 > Última actualización: 2026-05-16
 
+> ⚠️ **Estatus de este documento:**
+> Estas son las **decisiones actuales** (tokens, valores, componentes vigentes).
+> NO son principios — son la implementación concreta de los principios que viven en
+> [`design/foundations/ESSENTIAL_DESIGN_PRINCIPLES.md`](design/foundations/ESSENTIAL_DESIGN_PRINCIPLES.md).
+>
+> Una exploración de rediseño (Claude Design, etc.) puede proponer cambiar cualquier
+> valor de aquí — paleta, radios, pesos, blur, geometría — siempre que respete los
+> principios durables. Lo único no negociable está marcado en "Reglas no negociables".
+
 ---
 
 ## Filosofía visual

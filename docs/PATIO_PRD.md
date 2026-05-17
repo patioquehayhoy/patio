@@ -3,6 +3,17 @@
 > Documento de entrega. Copy/paste a Claude Design + adjunta screenshots de cada pantalla.
 > Última actualización: 2026-05-17
 
+> ⚠️ **Lectura previa obligatoria para la sesión:**
+> 1. [`design/foundations/ESSENTIAL_DESIGN_PRINCIPLES.md`](design/foundations/ESSENTIAL_DESIGN_PRINCIPLES.md) — biblia fundacional (12 principios WWDC17)
+> 2. [`design/foundations/CLAUDE_DESIGN_BRIEF.md`](design/foundations/CLAUDE_DESIGN_BRIEF.md) — brief limpio del dominio
+> 3. Este PRD (detalle de pantallas + pain points)
+>
+> **Separación importante:** la **paleta, radios, pesos y blur actuales** documentados aquí
+> son **decisiones vigentes y cambiables**. Una propuesta de rediseño puede modificarlos
+> siempre que respete los 12 principios fundacionales y las reglas duras de marca
+> (`Saaaaaaabes.`, Foodie/Fondero separados, "lo cotidiano elevado"). La app vigente
+> NO es la referencia — solo el dominio.
+
 ---
 
 ## 0. Cómo usar este documento
@@ -112,6 +123,19 @@ Toda superficie flotante usa `BlurView` de expo-blur, nunca fondo sólido. Tabla
 
 ---
 
+## 4b. Dirección de exploración geométrica — "Tahoe-style corners"
+
+Sin imponerlo, vale la pena explorar el lenguaje geométrico de **macOS Tahoe / iOS 26**: corners continuos (squircle), radios más grandes y suaves, jerarquía por profundidad sutil (no por sombras pesadas), y un sentido de **superficie unificada** entre cards, sheets, botones y contenedores.
+
+- **Squircle corners** (curvatura continua tipo SF Symbols) en vez de radios geométricos simples
+- **Stacked surfaces** — cards dentro de cards, con sutil diferencia de profundidad
+- **Glassy depth** — más cercano al material de Tahoe que al frosted opaco actual
+- **Compactness con respiro** — más densidad informativa sin sentirse apretado
+
+Claude Design puede tomar esto como dirección o proponer algo distinto, siempre justificando contra los 12 principios fundacionales.
+
+---
+
 ## 5. Referencias visuales aspiracionales
 
 Estilos a los que queremos llegar. Cada uno tiene slug funcional:
@@ -203,10 +227,12 @@ Estilos a los que queremos llegar. Cada uno tiene slug funcional:
 
 ## 10. Anexos a adjuntar a Claude Design
 
-- [ ] Screenshots de cada pantalla en estado actual (toma del simulador o TestFlight)
+- [x] **Screenshots build 1.0.0 (45)** — en [`design/screenshots/v1.0.0-build45/`](design/screenshots/v1.0.0-build45/) con mapeo completo en su README
+- [ ] Pendiente: capturar `share` (cartel final exportable)
 - [ ] Imágenes de las 7 referencias aspiracionales (`GRID_PLATILLOS`, `TINDER_PLATILLO`, `AGENTE_VOZ`, `DASHBOARD_FONDERO`, `FICHA_EDITORIAL`, `REDES_LANZAMIENTO`, `GLASS_ORGANICO`)
 - [ ] Logo de Patio (`assets/images/logo-negro.png` y `logo-blanco.png`)
-- [ ] Este documento + `docs/DESIGN_SYSTEM.md` completo
+- [x] Documentos fundacionales (lectura previa obligatoria — ver disclaimer al inicio del PRD)
+- [x] Este PRD + `docs/DESIGN_SYSTEM.md` (decisiones actuales, cambiables)
 
 ---
 

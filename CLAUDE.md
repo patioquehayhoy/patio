@@ -8,8 +8,9 @@ Antes de cualquier cambio de UI, copy o flujo, leer los siguientes documentos en
 2. `docs/PATIO_DESIGN_PRINCIPLES.md` — reglas de interacción, layout, copy y rol Fondero/Foodie
 3. `docs/DESIGN_SYSTEM.md` — sistema de diseño completo: paleta, tipografía, glass, spacing, referencias REF-001 a REF-007
 4. `docs/design/foundations/IDENTITY_AND_TYPE.md` — identidad de marca y sistema tipográfico
-5. `docs/HANDOFF.md` — estado actual y decisiones recientes
-6. `docs/STATE.md` — estado de features y flujos
+5. `docs/design/foundations/ESSENTIAL_DESIGN_PRINCIPLES.md` — biblia de diseño (WWDC17 Mike Stern): 12 principios + filosofía humano-no-usuario
+6. `docs/HANDOFF.md` — estado actual y decisiones recientes
+7. `docs/STATE.md` — estado de features y flujos
 
 **Reglas de marca no negociables:**
 - `"Saaaaaaabes."` es el tagline oficial de Patio — no modificar, no parafrasear, no "mejorar"

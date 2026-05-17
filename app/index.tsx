@@ -169,16 +169,54 @@ export default function LoginScreen() {
               <Text style={[styles.secondaryBtnText, { color: theme.textSecondary }]}>Publicar mi menú</Text>
             </TouchableOpacity>
             {__DEV__ && (
-              <View style={styles.devBarInline}>
-                <TouchableOpacity style={[styles.devPill, { borderColor: theme.border }]} onPress={handleDevFoodie} activeOpacity={0.7}>
-                  <Text style={[styles.devButtonText, { color: theme.textSecondary }]}>Dev Foodie</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={[styles.devPill, { borderColor: theme.border }]} onPress={handleDevFondero} activeOpacity={0.7}>
-                  <Text style={[styles.devButtonText, { color: theme.textSecondary }]}>Dev Fondero</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={[styles.devPill, { borderColor: theme.border }]} onPress={handleResetRole} activeOpacity={0.7}>
-                  <Text style={[styles.devButtonText, { color: theme.textSecondary }]}>Reset rol</Text>
-                </TouchableOpacity>
+              <View style={{ marginTop: 20 }}>
+                <Text style={[styles.devGroupLabel, { color: theme.textSecondary }]}>DEV · FOODIE</Text>
+                <View style={styles.devBarInline}>
+                  <TouchableOpacity style={[styles.devPill, { borderColor: theme.border }]} onPress={handleDevFoodie} activeOpacity={0.7}>
+                    <Text style={[styles.devButtonText, { color: theme.textSecondary }]}>Explorar</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={[styles.devPill, { borderColor: theme.border }]} onPress={() => router.push('/favoritos')} activeOpacity={0.7}>
+                    <Text style={[styles.devButtonText, { color: theme.textSecondary }]}>Favoritos</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={[styles.devPill, { borderColor: theme.border }]} onPress={() => router.push('/cuenta')} activeOpacity={0.7}>
+                    <Text style={[styles.devButtonText, { color: theme.textSecondary }]}>Cuenta</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={[styles.devPill, { borderColor: theme.border }]} onPress={() => router.push('/patio/cochitacos')} activeOpacity={0.7}>
+                    <Text style={[styles.devButtonText, { color: theme.textSecondary }]}>Ficha</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <Text style={[styles.devGroupLabel, { color: theme.textSecondary, marginTop: 14 }]}>DEV · FONDERO</Text>
+                <View style={styles.devBarInline}>
+                  <TouchableOpacity style={[styles.devPill, { borderColor: theme.border }]} onPress={handleDevFondero} activeOpacity={0.7}>
+                    <Text style={[styles.devButtonText, { color: theme.textSecondary }]}>Capturar</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={[styles.devPill, { borderColor: theme.border }]} onPress={() => { handleDevFondero(); setTimeout(() => router.push('/menu'), 100); }} activeOpacity={0.7}>
+                    <Text style={[styles.devButtonText, { color: theme.textSecondary }]}>Menú</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={[styles.devPill, { borderColor: theme.border }]} onPress={() => { handleDevFondero(); setTimeout(() => router.push('/preview'), 100); }} activeOpacity={0.7}>
+                    <Text style={[styles.devButtonText, { color: theme.textSecondary }]}>Preview</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={[styles.devPill, { borderColor: theme.border }]} onPress={() => { handleDevFondero(); setTimeout(() => router.push('/share'), 100); }} activeOpacity={0.7}>
+                    <Text style={[styles.devButtonText, { color: theme.textSecondary }]}>Compartir</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={[styles.devPill, { borderColor: theme.border }]} onPress={() => { handleDevFondero(); setTimeout(() => router.push('/perfil'), 100); }} activeOpacity={0.7}>
+                    <Text style={[styles.devButtonText, { color: theme.textSecondary }]}>Perfil</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <Text style={[styles.devGroupLabel, { color: theme.textSecondary, marginTop: 14 }]}>DEV · MISC</Text>
+                <View style={styles.devBarInline}>
+                  <TouchableOpacity style={[styles.devPill, { borderColor: theme.border }]} onPress={() => router.push('/manifiesto')} activeOpacity={0.7}>
+                    <Text style={[styles.devButtonText, { color: theme.textSecondary }]}>Manifiesto</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={[styles.devPill, { borderColor: theme.border }]} onPress={() => router.push('/onboarding')} activeOpacity={0.7}>
+                    <Text style={[styles.devButtonText, { color: theme.textSecondary }]}>Onboarding</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={[styles.devPill, { borderColor: theme.border }]} onPress={handleResetRole} activeOpacity={0.7}>
+                    <Text style={[styles.devButtonText, { color: theme.textSecondary }]}>Reset rol</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             )}
           </View>
@@ -293,7 +331,8 @@ const styles = StyleSheet.create({
   backLinkText: { fontSize: 14, fontWeight: '300', textDecorationLine: 'underline' },
 
   // Dev
-  devBarInline: { flexDirection: 'row', gap: 8, justifyContent: 'center', marginTop: 14, flexWrap: 'wrap' },
-  devPill: { minHeight: 36, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 14, alignItems: 'center', justifyContent: 'center' },
+  devGroupLabel: { fontSize: 10, fontWeight: '900', letterSpacing: 1.4, marginBottom: 6, textAlign: 'center' },
+  devBarInline: { flexDirection: 'row', gap: 6, justifyContent: 'center', flexWrap: 'wrap' },
+  devPill: { minHeight: 32, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 12, alignItems: 'center', justifyContent: 'center' },
   devButtonText: { fontSize: 13, fontWeight: '300' },
 });

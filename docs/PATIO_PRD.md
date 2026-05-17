@@ -47,7 +47,9 @@ Este PRD es para una sesión de **Claude Design** (claude.ai/design o similar). 
 ## 2. Las dos personas
 
 ### Foodie (descubrir)
-- **JTBD:** "Tengo hambre, no sé qué comer cerca, quiero algo bueno hoy mismo."
+- **JTBD real (no es "tengo hambre"):** "¿Qué hay hoy de comer cerca? ¿Qué habrá hecho doña Tita? Ah, ese puestecito está bueno — pasé ayer pero se acabó. ¿Hoy se pondrá? ¿Qué habrá traído?"
+- La pregunta central no es **dónde** comer, es **qué hay hoy** y **si vale la pena ir antes de que se acabe**.
+- Patio compite contra la incertidumbre, no contra Google Maps.
 - **Entrada:** sin login obligatorio
 - **Pantalla principal:** `/explorar` — mapa + buscador
 - **Acciones:** buscar platillo, ver ficha de fondita, guardar favoritos
@@ -143,7 +145,6 @@ Estilos a los que queremos llegar. Cada uno tiene slug funcional:
 | Slug                  | Aplicación                                | Versión |
 |-----------------------|-------------------------------------------|---------|
 | `GRID_PLATILLOS`      | Grid catálogo de platillos con foto       | v04     |
-| `TINDER_PLATILLO`     | Swipe sí/no sobre platillos cercanos      | v03     |
 | `AGENTE_VOZ`          | Orbe + lenguaje natural ("Serena style")  | v05+    |
 | `DASHBOARD_FONDERO`   | Dark tech metrics (Momentum)              | v04+    |
 | `FICHA_EDITORIAL`     | Ficha fondita Hanbut (serif sangrado)     | v03+    |

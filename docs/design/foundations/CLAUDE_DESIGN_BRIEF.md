@@ -17,9 +17,10 @@ Tagline oficial (no modificable): **"Saaaaaaabes."**
 ## 2. Dos roles, dos JTBDs
 
 ### Foodie (busca comida)
-- Quiere saber **qué hay hoy, cerca, y vale la pena**, con la mínima carga mental.
-- No quiere comparar 12 menús. Quiere una sugerencia de confianza.
-- Decide en segundos, no en minutos.
+- **La pregunta real NO es "tengo hambre" — es "¿qué hay hoy?".**
+- "¿Qué habrá hecho doña Tita? Aaah, ese puestecito está bueno — pasé ayer pero se acabó. ¿Hoy se pondrá? ¿Qué habrá traído?"
+- Patio compite contra la **incertidumbre** del menú del día, no contra Google Maps.
+- Decide en segundos, no en minutos. Confía en la curaduría humana, no en estrellas frías.
 
 ### Fondero (publica menú)
 - Quiere **publicar su menú del día** sin fricción y sin saber de tecnología.
@@ -79,7 +80,6 @@ Y la premisa: **diseñamos para humanos, no usuarios** — que necesitan sentirs
 | `GLASS_ORGANICO`     | Sistema transversal — glass + botánica CDMX        |
 | `FICHA_EDITORIAL`    | Ficha de fondita estilo Hanbut (serif, crema/rojo) |
 | `GRID_PLATILLOS`     | Catálogo visual de platillos                       |
-| `TINDER_PLATILLO`    | Swipe sí/no sobre platillos cercanos               |
 | `DASHBOARD_FONDERO`  | Dashboard oscuro tech (métricas grandes)           |
 | `AGENTE_VOZ`         | Orbe + lenguaje natural ("Serena style")           |
 | `REDES_LANZAMIENTO`  | Posts de Instagram, dos modos visuales             |

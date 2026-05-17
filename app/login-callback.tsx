@@ -1,6 +1,6 @@
 import { type EmailOtpType, type Session } from '@supabase/supabase-js';
-import { useEffect } from 'react';
-import { View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as Linking from 'expo-linking';
 
@@ -41,39 +41,50 @@ function extractAuthParams(rawUrl: string): {
 
 export default function LoginCallback() {
   const router = useRouter();
+  const [diag, setDiag] = useState<string>('Verificando link...');
 
   useEffect(() => {
     let isCancelled = false;
 
-    const safeRedirect = (path: '/' | '/perfil' | '/foto-menu') => {
-      if (!isCancelled) router.replace(path);
+    const safeRedirect = (path: '/' | '/perfil' | '/foto-menu', delayMs = 0) => {
+      setTimeout(() => { if (!isCancelled) router.replace(path); }, delayMs);
     };
 
     async function handle() {
-      const rawUrl = await Linking.getInitialURL();
+      // Si la app ya estaba abierta y tapeas el link, getInitialURL es null.
+      // Hay que esperar el evento de Linking durante un tick.
+      let rawUrl: string | null = await Linking.getInitialURL();
+      if (!rawUrl) {
+        rawUrl = await new Promise<string | null>((resolve) => {
+          const sub = Linking.addEventListener('url', ({ url }) => { sub.remove(); resolve(url); });
+          setTimeout(() => { sub.remove(); resolve(null); }, 800);
+        });
+      }
       console.log('[auth] login callback url:', rawUrl);
 
       if (!rawUrl) {
-        safeRedirect('/');
+        setDiag('Link vacío — regresando a inicio');
+        safeRedirect('/', 1500);
         return;
       }
 
       const { code, tokenHash, type } = extractAuthParams(rawUrl);
       let session: Session | null = null;
+      let errMsg = '';
 
       if (code) {
+        setDiag('Intercambiando code…');
         const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-        if (error) console.log('[auth] exchangeCodeForSession error:', error.message);
+        if (error) { errMsg = `code: ${error.message}`; console.log('[auth] exchangeCodeForSession error:', error.message); }
         session = data.session ?? null;
       } else if (tokenHash) {
+        setDiag('Verificando OTP…');
         const otpType = normalizeOtpType(type);
-        const { data, error } = await supabase.auth.verifyOtp({
-          token_hash: tokenHash,
-          type: otpType,
-        });
-        if (error) console.log('[auth] verifyOtp error:', error.message);
+        const { data, error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: otpType });
+        if (error) { errMsg = `otp: ${error.message}`; console.log('[auth] verifyOtp error:', error.message); }
         session = data.session ?? null;
       } else {
+        errMsg = 'sin code ni token_hash en URL';
         console.log('[auth] callback sin code/token_hash');
       }
 
@@ -83,25 +94,30 @@ export default function LoginCallback() {
       }
 
       if (session) {
+        setDiag('¡Listo! Entrando…');
         await initializeSignedInUser(session);
         safeRedirect('/foto-menu');
         return;
       }
 
-      safeRedirect('/');
+      setDiag(`Sin sesión. ${errMsg || 'Causa desconocida'}\nRegresando al inicio…`);
+      safeRedirect('/', 3500);
     }
 
     handle().catch((err) => {
+      const msg = err?.message ?? String(err);
+      setDiag(`Error: ${msg}`);
       console.error('[auth] login callback error:', err);
-      safeRedirect('/');
+      safeRedirect('/', 3500);
     });
 
     return () => { isCancelled = true; };
   }, [router]);
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#F5E9D9', justifyContent: 'center', alignItems: 'center' }}>
+    <View style={{ flex: 1, backgroundColor: '#F5E9D9', justifyContent: 'center', alignItems: 'center', padding: 24 }}>
       <AgentSpinner variant="arc" size={30} color="#1A1A1A" />
+      <Text style={{ marginTop: 18, fontSize: 14, color: '#1A1A1A', textAlign: 'center', fontWeight: '300' }}>{diag}</Text>
     </View>
   );
 }

@@ -24,7 +24,7 @@ Metáfora central: **una planta del mercado vista a través de vidrio esmerilado
 | ACCENT      | Naranja/tierra (del tema)     | CTAs, dots pulsantes, estrella activa    |
 
 ### Paleta orgánica — assets y redes (Higgsfield)
-Extraída de REF-007 (glass botánico):
+Extraída de GLASS_ORGANICO (glass botánico):
 - Olive `#6B7255` — fondos de escenas exteriores
 - Taupe `#C4AFA0` — superficies neutras, crema
 - Lavender `#B8C4D4` — overlay de transiciones, agente
@@ -65,7 +65,7 @@ Todos los paneles flotantes, sheets y overlays usan BlurView — nunca fondo só
 | Mapa blur (idle)      | 40              | 38               | light/dark |
 | Hint sheets           | 22              | 16               | light/dark |
 
-### Texturas glass (REF-007) — para assets Higgsfield, no en UI nativa
+### Texturas glass (GLASS_ORGANICO) — para assets Higgsfield, no en UI nativa
 1. **Frosted / sand-blasted** — objeto emergiendo de superficie arenada. Aplica en hero de redes.
 2. **Fluted / estriado** — líneas verticales que distorsionan. Aplica en separadores editoriales.
 3. **Refractive** — distorsión en ondas. Aplica en loading del agente (v05+).
@@ -118,15 +118,15 @@ Al interactuar: blur desaparece (opacity → 0), dots desaparecen, layout normal
 
 ## Referencias visuales activas (ver docs/TASKS.md para detalle)
 
-| REF | Nombre               | Versión | Estado     |
-|-----|----------------------|---------|------------|
-| 001 | Interfaz-swipe       | v04     | Backlog    |
-| 002 | Tinder-food          | v03     | Backlog    |
-| 003 | Agente lenguaje      | v05+    | Backlog    |
-| 004 | Momentum dark        | v04+    | Backlog    |
-| 005 | Hanbut editorial     | v03+    | Backlog    |
-| 006 | Redes lanzamiento    | pre-launch | Pendiente |
-| 007 | Glass orgánico       | v02.5+  | Activo     |
+| Slug funcional        | Aplicación                                | Versión   | Estado     |
+|-----------------------|-------------------------------------------|-----------|------------|
+| `GRID_PLATILLOS`      | Grid de catálogo de platillos con foto    | v04       | Backlog    |
+| `TINDER_PLATILLO`     | Swipe sí/no sobre platillos cercanos      | v03       | Backlog    |
+| `AGENTE_VOZ`          | Orbe + lenguaje natural ("Serena style")  | v05+      | Backlog    |
+| `DASHBOARD_FONDERO`   | Dark tech, métricas grandes (Momentum)    | v04+      | Backlog    |
+| `FICHA_EDITORIAL`     | Ficha fondita estilo Hanbut (serif)       | v03+      | Backlog    |
+| `REDES_LANZAMIENTO`   | Grid de posts Instagram, dos modos        | pre-launch | Pendiente |
+| `GLASS_ORGANICO`      | Texturas glass + botánica CDMX (sistema)  | v02.5+    | Activo     |
 
 ---
 

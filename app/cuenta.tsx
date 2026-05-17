@@ -122,19 +122,13 @@ export default function CuentaScreen() {
               </View>
             </View>
 
-            <Text style={s.sectionLabel} allowFontScaling={true}>Cuenta</Text>
             <View style={s.card}>
               <TouchableOpacity style={s.row} onPress={() => router.push('/favoritos')} activeOpacity={0.76}>
                 <Ionicons name="heart-outline" size={22} color={theme.textSecondary} />
                 <Text style={s.rowText} allowFontScaling={true}>Favoritos</Text>
                 <Ionicons name="chevron-forward" size={18} color={theme.textSecondary} />
               </TouchableOpacity>
-            </View>
-
-            <View style={s.gap} />
-
-            <Text style={s.sectionLabel} allowFontScaling={true}>Aplicación</Text>
-            <View style={s.card}>
+              <View style={s.divider} />
               <TouchableOpacity style={s.row} onPress={() => router.push('/manifiesto')} activeOpacity={0.76}>
                 <Ionicons name="sparkles-outline" size={22} color={theme.textSecondary} />
                 <Text style={s.rowText} allowFontScaling={true}>Manifiesto</Text>
@@ -148,7 +142,11 @@ export default function CuentaScreen() {
                 </View>
                 <ToggleSwitch value={theme.isDark} onValueChange={toggleTheme} />
               </View>
-              <View style={s.divider} />
+            </View>
+
+            <View style={s.gap} />
+
+            <View style={s.card}>
               <TouchableOpacity
                 style={s.row}
                 activeOpacity={0.76}
@@ -164,12 +162,7 @@ export default function CuentaScreen() {
                 <Ionicons name="star-outline" size={22} color={theme.textSecondary} />
                 <Text style={s.rowText} allowFontScaling={true}>Calificar la app</Text>
               </TouchableOpacity>
-            </View>
-
-            <View style={s.gap} />
-
-            <Text style={s.sectionLabel} allowFontScaling={true}>Sesión</Text>
-            <View style={s.card}>
+              <View style={s.divider} />
               <TouchableOpacity
                 style={s.row}
                 activeOpacity={0.76}

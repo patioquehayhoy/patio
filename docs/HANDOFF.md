@@ -1,5 +1,37 @@
 # HANDOFF
 
+## Estado vigente — 2026-05-17
+
+Leer esta sección antes del historial. Las secciones antiguas abajo son bitácora y pueden contener pendientes ya resueltos.
+
+### Hecho
+
+- Supabase está conectado para `fonditas`, `menus` y `cartas`.
+- Fondero puede crear/editar menú y publicarlo en Supabase.
+- Foodie puede ver menú real desde `patio/[id]` vía `fetchMenuForFondita()`.
+- `favoritos.tsx` y fallback de fonditas reales ya usan Supabase.
+- `explorar.tsx` tiene radar de antojo, búsqueda inline, suggestion pills y sheet solo con intención.
+- `buscar.tsx` no es flujo visible del MVP; recupera hacia `/explorar`.
+- Migración `lat/lng` y tablas `menu_sections` / `menu_items` ya fueron aplicadas.
+- Fuente activa de marca: Plus Jakarta Sans 800ExtraBold vía `Fonts.brand`.
+
+### Pendiente real
+
+1. QA en dispositivo: magic link, cámara/galería, GPS y flujo Fondero -> Foodie completo.
+2. Registrar UDID de iPhone si se requieren builds internos.
+3. API key Google Maps restringida antes de builds Android reales.
+4. Preparar handoff a Claude Design con screenshots reales desde `assets/screenshots/`, flujo escrito, definición de Fondero y referencias de spinner.
+5. Auditar visualmente `explorar.tsx` y `patio/[id].tsx` contra `docs/design/VISUAL_SYSTEM.md`.
+6. Decidir/reconciliar paleta: `theme.accent` actual `#F2612F`/`#FF6A3D` vs `t.warm #F5C842` propuesto para mapa/horarios.
+
+### Screenshots
+
+- Fuente vigente: `assets/screenshots/` + `docs/design/SCREENSHOT_INDEX.md`.
+- `docs/design/screenshots/` no existe actualmente en el worktree.
+- No usar paquetes de screenshots que no existan físicamente.
+
+---
+
 ## 2026-05-15 (cierre — Supabase completo + búsqueda real + EAS build en progreso)
 
 ### Qué se hizo hoy
@@ -31,7 +63,7 @@
 - **Foodie**: abre ficha → ve menú real del fondero ✅
 - **Explorar**: mapa limpio al inicio, suggestions ambient, sheet solo con intención ✅
 
-### EAS Build en progreso al cierre
+### EAS Build histórico al cierre
 - `eas build --platform ios --profile preview` corriendo en EAS cloud
 - Credenciales: `dubzon@live.com.mx`, Team `JK2N262L7X`
 - Device registrado: MacBook Pro UDID `00006000-000248482121801E`
@@ -71,7 +103,7 @@
 - **Causa**: hot reload de Metro confundido por los nuevos archivos añadidos
 - **Fix**: presionar `r` en la terminal de Metro para forzar reload completo del bundle
 
-### ⚠️ Migración Supabase PENDIENTE
+### ⚠️ Migración Supabase — histórico, ya resuelta
 ```sql
 ALTER TABLE fonditas ADD COLUMN IF NOT EXISTS latitude float8;
 ALTER TABLE fonditas ADD COLUMN IF NOT EXISTS longitude float8;
@@ -109,7 +141,7 @@ ALTER TABLE fonditas ADD COLUMN IF NOT EXISTS longitude float8;
 - `handleMarkLocation()`: pide permiso → GPS → guarda `latitude`/`longitude` en `fonditas`
 - Estado persiste: si DB ya tiene coords, muestra "En el mapa" al cargar
 
-### ⚠️ Migración Supabase PENDIENTE (hacer antes de probar)
+### ⚠️ Migración Supabase — histórico, ya resuelta
 ```sql
 ALTER TABLE fonditas ADD COLUMN IF NOT EXISTS latitude float8;
 ALTER TABLE fonditas ADD COLUMN IF NOT EXISTS longitude float8;
@@ -181,8 +213,8 @@ Sin esta migración, el botón de ubicación falla al guardar.
 3. Validar visualmente hints en simulador
 4. Push a `origin/v2-menu-vivo`
 
-### Pendiente estructural (no bloqueante)
-- Conectar Patios/Buscar/Favoritos a Supabase (datos reales foodie)
+### Pendiente estructural de ese momento (resuelto después)
+- Datos Foodie en Supabase: resuelto el 2026-05-15
 - API key Google Maps para Android
 - EAS build para release
 
@@ -216,9 +248,9 @@ Comando: `npx expo start --ios`
 
 Una vez validado → push a `origin/v2-menu-vivo`.
 
-### Pendiente que viene del historial
+### Pendiente que venía del historial
 - Permisos de cámara/galería (requieren build — no sirve hot reload)
-- Conectar Patios/Buscar/Favoritos a Supabase
+- Datos Foodie en Supabase: resuelto el 2026-05-15
 - API key Google Maps para Android
 
 ## 2026-05-07 (cierre)
@@ -251,10 +283,10 @@ Regla operativa:
 
 Criterio de éxito: `npx tsc --noEmit` en verde, la fuente carga sin crash en simulador, fallback funciona si se comenta el import de la fuente.
 
-### Pendiente que viene del historial
+### Pendiente que venía del historial
 - Viewport filtering en `explorar.tsx` (`onRegionChangeComplete`)
 - Permisos de cámara/galería (requieren build — no sirve hot reload)
-- Conectar Patios/Buscar/Favoritos a Supabase
+- Datos Foodie en Supabase: resuelto el 2026-05-15
 - API key Google Maps para Android
 
 ## 2026-04-28 (cierre)

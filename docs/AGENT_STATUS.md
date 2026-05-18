@@ -4,6 +4,32 @@
 
 ---
 
+## Ciclo 1 — 2026-05-17 (higiene documental)
+
+**Qué hizo:**
+- Actualizó `docs/GOAL.md` para reflejar que el flujo base Foodie/Fondero ya existe y que el foco actual es QA + handoff de diseño.
+- Reescribió `docs/STATE.md` como fuente vigente de estado, pendientes reales y no pendientes.
+- Reescribió `docs/TASKS.md` con la cola actual: QA humano, Claude Design handoff, auditoría visual y post-mockups.
+- Actualizó `docs/NEXT_SESSION.md`, `docs/PATIO_PRD.md`, `docs/design/SCREENSHOT_INDEX.md`, `docs/design/foundations/CLAUDE_DESIGN_BRIEF.md` e `IDENTITY_AND_TYPE.md`.
+- Añadió sección "Estado vigente" al inicio de `docs/HANDOFF.md` para que el historial viejo no se confunda con pendientes actuales.
+
+**Qué encontró:**
+- `docs/design/screenshots/` ya no existe en el worktree.
+- Los screenshots vigentes siguen siendo `assets/screenshots/` + `docs/design/SCREENSHOT_INDEX.md`.
+- Los paquetes bajo `docs/design/screenshots/` no deben usarse como fuente hasta que existan físicamente.
+- Hay cambios no propios ya presentes: capturas borradas bajo `docs/design/screenshots/` y carpetas nuevas en `docs/design/references/Glass/` y `docs/design/references/Post redes/`.
+- Paleta pendiente de decisión: código actual `#F2612F` / `#FF6A3D` vs warm accent propuesto `#F5C842`.
+
+**Qué sigue:**
+- QA en dispositivo: magic link, cámara/galería, GPS y Fondero -> Foodie.
+- Pasar a Claude Design screenshots reales, flujo escrito, definición de Fondero y referencias de spinner.
+- Auditar `explorar.tsx` y `patio/[id].tsx` contra `VISUAL_SYSTEM.md`.
+
+**Validación:**
+- Solo cambios de documentación. No se corrió `npx tsc --noEmit`.
+
+---
+
 ## Ciclo 0 — 2026-05-15 (sesión manual)
 
 **Qué hizo:**

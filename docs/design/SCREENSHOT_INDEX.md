@@ -3,13 +3,16 @@
 > Inventario de capturas reales de la app.
 > Uso: documentar flujo actual, preparar Figma y alimentar prompts de rediseño visual sin cambiar navegación.
 
-Las capturas viven en `assets/screenshots/`.
+Las capturas históricas vigentes viven en `assets/screenshots/`.
+
+> Nota 2026-05-17: `docs/design/screenshots/` no existe actualmente en el worktree. Si se crea un paquete nuevo de capturas, no documentarlo como fuente hasta que las imágenes existan físicamente.
 
 ## Regla de uso
 
 - Estas imagenes son **evidencia del flujo actual**, no referencias de estilo final.
 - Si ChatGPT/Figma propone cambios, debe respetar lo que estas pantallas hacen funcionalmente.
 - No mezclar con `docs/design/references/`, que es para inspiracion visual externa.
+- Si una captura muestra grid DEV o rutas auxiliares, marcarlo explícitamente como estado dev.
 
 ## Set actual
 
@@ -47,4 +50,3 @@ Las capturas viven en `assets/screenshots/`.
 - Sheet `Crear menu` con foto, imagen, plantilla y manual.
 - Compartir vacio con CTA a crear menu.
 - Borrar menu confirmado/cancelado si hay modal o sheet especifico.
-

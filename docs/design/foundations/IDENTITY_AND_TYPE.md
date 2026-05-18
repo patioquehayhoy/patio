@@ -47,14 +47,14 @@ Principio visual: limpiar ruido, priorizar jerarquía y ritmo.
 
 ## 4) Uso por contexto
 
-- Marca (`Patio`, nombre de negocio): Stabil Grotesk bold.
-- Navegación/tab labels: sistema medium.
-- Formularios: sistema regular/medium por legibilidad.
+- Marca (`Patio`, nombre de negocio): `Fonts.brand` (Plus Jakarta Sans 800ExtraBold).
+- Navegación/tab labels: sistema.
+- Formularios: sistema por legibilidad.
 - Preview para compartir: mezcla editorial (titulares) + sistema (detalle operativo).
 
-## 5) Tokens mínimos (a implementar en tema)
+## 5) Tokens mínimos
 
-- `font.brand`: Stabil Grotesk
+- `font.brand`: Plus Jakarta Sans 800ExtraBold (`Fonts.brand` en código)
 - `font.ui`: SF Pro / Roboto
 - `font.display`: 40
 - `font.h1`: 32
@@ -69,4 +69,3 @@ Antes de cerrar un ajuste de UI:
 1. ¿Se entiende en 2 segundos?
 2. ¿Mantiene la misma jerarquía en iPhone y Android?
 3. ¿Se siente editorial/Patio, no genérico?
-

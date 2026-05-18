@@ -124,5 +124,10 @@ Para cada pantalla rediseñada:
 2. [`ESSENTIAL_DESIGN_PRINCIPLES.md`](ESSENTIAL_DESIGN_PRINCIPLES.md) — biblia fundacional
 3. [`../../GOAL.md`](../../GOAL.md) — filosofía de producto
 4. [`../../PATIO_PRD.md`](../../PATIO_PRD.md) — PRD detallado
-5. 13 screenshots de TestFlight build 1.0.0 (45)
-6. Imágenes de referencias aspiracionales (los 7 slugs)
+5. Screenshots reales del flujo actual desde `assets/screenshots/`, en el orden de `docs/design/SCREENSHOT_INDEX.md`
+6. Flujo Foodie/Fondero escrito en 2 líneas
+7. Definición exacta de Fondero
+8. Referencias de spinner/radar
+9. Imágenes de referencias aspiracionales disponibles
+
+> No usar paquetes bajo `docs/design/screenshots/` como fuente de verdad hasta que existan físicamente en el worktree.

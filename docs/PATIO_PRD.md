@@ -228,12 +228,16 @@ Estilos a los que queremos llegar. Cada uno tiene slug funcional:
 
 ## 10. Anexos a adjuntar a Claude Design
 
-- [x] **Screenshots build 1.0.0 (45)** — en [`design/screenshots/v1.0.0-build45/`](design/screenshots/v1.0.0-build45/) con mapeo completo en su README
-- [ ] Pendiente: capturar `share` (cartel final exportable)
-- [ ] Imágenes de las 7 referencias aspiracionales (`GRID_PLATILLOS`, `TINDER_PLATILLO`, `AGENTE_VOZ`, `DASHBOARD_FONDERO`, `FICHA_EDITORIAL`, `REDES_LANZAMIENTO`, `GLASS_ORGANICO`)
-- [ ] Logo de Patio (`assets/images/logo-negro.png` y `logo-blanco.png`)
-- [x] Documentos fundacionales (lectura previa obligatoria — ver disclaimer al inicio del PRD)
-- [x] Este PRD + `docs/DESIGN_SYSTEM.md` (decisiones actuales, cambiables)
+- [ ] **Screenshots reales del flujo actual** — usar `assets/screenshots/` + `docs/design/SCREENSHOT_INDEX.md`.
+- [ ] **Flujo escrito Foodie/Fondero en 2 líneas** — ver `docs/STATE.md` y `docs/TASKS.md`.
+- [ ] **Definición de Fondero** — dueño/encargado/cocinera/cocinero u operador de una fondita que publica qué hay hoy.
+- [ ] **Referencias de spinner/radar** — Linear / Tesla / Apple system activity / tech glow silencioso.
+- [ ] Imágenes de referencias aspiracionales disponibles en `docs/design/references/`.
+- [ ] Logo de Patio (`assets/images/logo-negro.png` y `logo-blanco.png`) si existen en el workspace.
+- [x] Documentos fundacionales (lectura previa obligatoria — ver disclaimer al inicio del PRD).
+- [x] Este PRD + `docs/DESIGN_SYSTEM.md` + `docs/design/VISUAL_SYSTEM.md`.
+
+> Nota: no usar paquetes bajo `docs/design/screenshots/` como fuente hasta que existan físicamente en el worktree. No listar screenshots como "capturados" hasta que los archivos existan.
 
 ---
 
@@ -257,13 +261,15 @@ Soy Alejandro, dueño de Patio (app de fonditas CDMX, React Native + Expo).
 Te paso 3 cosas:
 1. PRD completo (debajo)
 2. Sistema de diseño actual (DESIGN_SYSTEM.md)
-3. 13 screenshots del estado actual (TestFlight build 1.0.0 (45))
-+ 7 imágenes de referencias aspiracionales
+3. Screenshots reales del flujo actual en orden de navegación
++ referencias aspiracionales disponibles
 
 Tu trabajo: rediseñar pantalla por pantalla respetando el PRD,
 proponiendo un sistema visual coherente que resuelva los pain points
 identificados sin romper la lógica.
 
+Importante: los screenshots son evidencia de flujo, no referencia estética.
+No existe reserva ni ficha individual de platillo todavía.
 Empezamos por explorar.tsx (la pantalla más crítica del Foodie).
 Tu primer entregable: mockup + tokens visuales propuestos.
 ```

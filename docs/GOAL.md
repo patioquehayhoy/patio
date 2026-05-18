@@ -34,19 +34,27 @@ Construir una app móvil (Patio) para negocios de comida y personas que buscan c
 
 El acceso de negocio debe existir sin contaminar la experiencia principal de exploración. Filosofía tipo Uber: la persona que busca comida no necesita ver ni entender el modo operador; quien tiene negocio encuentra una entrada discreta para registrar o administrar su Patio.
 
-## Objetivo técnico inmediato
-Dejar estable el flujo actual `login -> perfil -> menú -> preview/share`, y preparar el siguiente bloque de V3:
+## Objetivo técnico actual
+El MVP ya tiene el esqueleto funcional de ambos lados:
 
-1. Entrada inicial clara: `Busco comida` / `Tengo un negocio`.
-2. Acceso de negocio discreto y reversible para no atrapar a un foodie en el flujo equivocado.
-3. Base para mapa/listado de Patios.
-4. Perfil público de Patio sin depender todavía de fotos perfectas.
-5. Calificación simple tipo 5 estrellas con razones guiadas cuando la experiencia no fue buena.
+1. **Foodie:** entrada a `Explorar comida`, mapa como home real, búsqueda inline, pins, bottom sheet, ficha pública, favoritos, cuenta y ratings estructurados.
+2. **Fondero:** login por magic link, perfil de negocio, ubicación GPS/lat-lng, creación/edición de menú, guardado en Supabase, preview/share y publicación visible para Foodie.
+3. **Datos reales:** `fonditas`, `menus` y `cartas` conectan Fondero -> Foodie; favoritos y fallback de fonditas reales ya leen Supabase.
+
+El objetivo inmediato ya no es crear esas piezas, sino **cerrar QA y preparar rediseño visual sin romper flujo**:
+
+1. Verificar build/dispositivo real: magic link, cámara/galería, ubicación GPS y flujo Fondero -> Foodie.
+2. Auditar visualmente Foodie contra `docs/design/VISUAL_SYSTEM.md`, empezando por `app/explorar.tsx` y `app/patio/[id].tsx`.
+3. Entregar a Claude Design screenshots + flujo escrito como contrato, no como referencia estética.
+4. Mantener `/buscar` fuera del MVP visible; la búsqueda vive dentro de `/explorar`.
+5. Decidir si `/share` sigue existiendo como ruta separada o si `preview` cubre por completo la tarea de compartir.
 
 ## Criterio de éxito de corto plazo
-Un usuario nuevo puede completar el flujo de negocio de punta a punta en una sola sesión sin bloqueos de autenticación ni pérdida de datos del menú del día.
+Un fondero puede entrar, configurar su negocio, marcar ubicación, publicar menú y ver ese menú reflejado en la ficha Foodie sin pérdida de datos.
 
-Un usuario foodie puede abrir Patio, entender qué hacer, descubrir lugares cercanos o destacados, y llegar a una ficha pública sin tener que entender cómo se administra un negocio.
+Un foodie puede abrir Patio sin login, buscar algo que se le antoja, ver resultados en el mapa, abrir una ficha con menú real, guardar/compartir y pedir cómo llegar sin entender el modo negocio.
+
+Un diseñador externo puede rediseñar visualmente la app sin cambiar rutas, tareas, jerarquía funcional ni mezclar Foodie con Fondero.
 
 ## Notas para V3
 - Mapa y Top 10 importan porque no solo muestran dónde comer: ayudan a decidir cuál lugar vale la pena.

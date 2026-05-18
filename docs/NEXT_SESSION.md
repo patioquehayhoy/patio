@@ -1,17 +1,20 @@
 # Próxima sesión — empieza aquí
 
-> Última actualización: 2026-05-17 — después de cerrar el ciclo de fixes pre-Claude Design.
+> Última actualización: 2026-05-17 — handoff QA + Claude Design.
 
 ## Dónde estamos
 
-El repo está **listo para entregar a Claude Design**. Código limpio, sin bugs conocidos críticos, TypeScript y lint OK. Build 1.0.0 (45) en proceso de submit a TestFlight.
+El repo tiene el MVP funcional de Foodie + Fondero y está en fase de **QA en dispositivo + handoff a Claude Design**.
+
+No asumir que existe un paquete nuevo de screenshots en `docs/design/screenshots/`: actualmente la fuente vigente es `assets/screenshots/` + `docs/design/SCREENSHOT_INDEX.md`.
 
 ## Lo que el usuario va a hacer
 
-1. Tomar 13 screenshots de la app desde TestFlight (lista en `docs/TASKS.md`)
-2. Abrir sesión en Claude Design (claude.ai web)
-3. Usar los **Prompts copy-paste** que están en `docs/PATIO_PRD.md` sección 12
-4. Volver con mockups
+1. Pasar a Claude Design screenshots reales del flujo actual en orden de navegación.
+2. Pasar el flujo escrito Foodie/Fondero en 2 líneas.
+3. Pasar definición exacta de Fondero.
+4. Pasar referencias de spinner/radar.
+5. Volver con mockups o dirección visual.
 
 ## Lo que TÚ (Claude) debes hacer si te invocan sin contexto
 
@@ -19,6 +22,11 @@ El repo está **listo para entregar a Claude Design**. Código limpio, sin bugs 
 → Implementar pantalla por pantalla siguiendo el orden en `docs/TASKS.md` sección "POST-CLAUDE-DESIGN"
 → Empezar siempre por `explorar.tsx` (más crítica del Foodie)
 → Validar cada cambio con `npx tsc --noEmit` antes de commitear
+
+### Si el usuario pide preparar contexto para Claude Design
+→ Usar `docs/STATE.md`, `docs/design/FLOW_V2.md`, `docs/design/SCREENSHOT_INDEX.md` y `docs/PATIO_PRD.md`
+→ Aclarar que screenshots son evidencia de flujo, no referencia estética
+→ Aclarar que no existe reserva ni ficha individual de platillo todavía
 
 ### Si el usuario reporta bug del magic link Fondero
 → Pedirle screenshot del texto de diagnóstico que ahora aparece en `/login-callback`
@@ -35,6 +43,7 @@ El repo está **listo para entregar a Claude Design**. Código limpio, sin bugs 
 - Borrar `onboarding.tsx` (sigue huérfano pero útil)
 - Lanzar EAS build (cuesta cuota, siempre confirmar antes)
 - Hacer commit con cuentas/secrets
+- Revertir capturas o carpetas nuevas del usuario en `docs/design/references/`
 
 ## Estado de cuentas y servicios
 

@@ -1,25 +1,20 @@
 # TASKS — Cola de trabajo para agentes
 
-> Última actualización: 2026-05-17.
+> Última actualización: 2026-06-03.
 > Estado: `[ ]` pendiente | `[x]` hecho | `[~]` en progreso.
+
+## REDISEÑO EDITORIAL — listo, espera aprobación
+
+- [x] **Dirección editorial completa** producida en `docs/design/EDITORIAL_REDESIGN.md` (Ciclo 2). Naranja=marca confirmado; flujo NO tocado.
+- [ ] **Aprobación humana** del documento editorial → desbloquea implementación.
+- [ ] Implementar regla de color a nivel token (naranja=marca, no UI). Primer paso, desbloquea el resto.
+
 
 ## CICLO ACTUAL — QA + Claude Design handoff
 
 ### Bloqueado por acción humana
 
-- [ ] **Pasar screenshots reales a Claude Design** en orden de flujo.
-  - Usar `assets/screenshots/` + `docs/design/SCREENSHOT_INDEX.md` como fuente vigente.
-  - No usar paquetes bajo `docs/design/screenshots/` hasta que existan físicamente en el worktree.
-  - Si una captura muestra grid DEV, marcarla como estado dev y pedir mockup limpio.
-- [ ] **Pasar flujo escrito en 2 líneas**:
-  - Foodie: abre app -> Explorar comida -> mapa/radar -> buscar o tocar pin -> sheet -> ficha fondita -> guardar/compartir/como llegar.
-  - Fondero: abre app -> Publicar mi menú -> login -> perfil -> menú -> crear por foto/imagen/plantilla/manual -> preview -> compartir.
-- [ ] **Pasar definición de Fondero**:
-  - Dueño, encargado, cocinera/cocinero u operador de una fondita/negocio local que publica qué hay hoy.
-  - No es influencer, reviewer ni curador.
-- [ ] **Pasar referencias de spinner/radar**:
-  - Linear / Tesla / Apple system activity / tech glow silencioso.
-  - Evitar loader genérico o dots juguetones.
+- [x] ~~Pasar screenshots/flujo/definición/refs a Claude Design~~ — **resuelto in-session** (Ciclo 2). El rediseño editorial se hizo aquí leyendo los screenshots reales directamente. Ver `docs/design/EDITORIAL_REDESIGN.md`. Ya no hay cuello de botella de "sesión externa".
 
 ### QA humano / dispositivo
 

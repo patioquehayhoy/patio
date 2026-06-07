@@ -113,6 +113,45 @@ app/
 
 ---
 
+## 5.1 Flujo navegacional completo (cómo se conectan las pantallas)
+
+No diseñes pantallas aisladas: cada una es un paso de un recorrido. Aquí el panorama de ambos lados.
+
+### Recorrido Foodie (descubrir)
+```text
+Inicio (role-picker, Foodie-first)
+  → Explorar comida
+    → Mapa en estado "radar de antojo" (buscador protagonista, mapa tenue, señales sutiles, SIN lista completa al abrir)
+      → Busca inline → puntos relevantes se encienden → bottom sheet compacto con coincidencias
+      → Toca un punto → resumen de fondita (mini) → Ver negocio → Detalle fondita (/patio/[id])
+                                                  → Guardar (favorito) · Compartir · Cómo llegar
+      → Favoritos (utilidad, no obligatorio)
+      → Cuenta (ajustes y soporte, NO hub de navegación)
+```
+
+### Recorrido Fondero (publicar)
+```text
+Inicio → Publicar mi menú → Login negocio (OTP)
+  → Perfil negocio → [Tab bar: Perfil · Menú · Compartir]
+    → Tab Menú
+        → Sin menú → un solo CTA "Crear menú" → hoja con 4 métodos:
+              Tomar foto · Elegir imagen · Usar plantilla · Empezar desde cero
+        → Con menú → Editar menú · Más opciones
+    → Tab Compartir
+        → Sin menú → redirige a "Crear menú" (no pantalla vacía pasiva)
+        → Con menú → Preview + compartir imagen (cartel/story)
+```
+
+### Reglas de flujo (decisiones de producto ya tomadas)
+- **Una sola búsqueda:** vive dentro de Explorar. `/buscar` queda fuera del MVP visible; si alguien llega, se le regresa al mapa.
+- **Explorar abre como radar**, no como lista de inventario. La lista se revela por intención (buscar / tocar punto).
+- **Una sola entrada a crear menú:** el CTA "Crear menú" es el único origen; foto/galería/plantilla/manual son métodos *dentro* de él, no caminos sueltos.
+- **Compartir nunca es pantalla vacía:** si no hay menú, su trabajo es llevar a crear uno.
+- **Inicio Foodie-first:** acción principal "Explorar comida", entrada fondera secundaria "Publicar mi menú".
+- **Onboarding** explica una vez (first-run/beta), no repite la narrativa del inicio.
+
+---
+
 ## 6. Pain points actuales (lo que está feo hoy)
 
 ### Globales

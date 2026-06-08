@@ -20,7 +20,7 @@ Te paso todo el contexto necesario abajo. **Lee el documento completo antes de p
 
 ## 1. Reglas de la sesión (LEER PRIMERO)
 
-1. **Los screenshots adjuntos NO son la referencia a respetar.** Muestran lo que existe hoy, sus pantallas, su lógica, y sus dolores. **No estamos atados al look actual** — paleta, radios, pesos tipográficos, blur, tipografía, todo es replanteable. Solo respeta lo que está marcado como "regla dura" en este documento.
+1. **Los screenshots adjuntos NO son la referencia estética a respetar.** Muestran lo que existe hoy, sus pantallas, su lógica, y sus dolores. La **paleta sí está cerrada** y debe mantenerse como la app actual: `#F8F8F5`, `#1C1C1E`, `#F2612F` light / `#FF6A3D` dark, más neutros documentados. El rediseño puede replantear radios, glass, composición, jerarquía y ritmo, pero no introducir amarillo ni un segundo acento cálido.
 
 2. **Estás diseñando para humanos, no para "usuarios".** Los humanos necesitan: sentirse seguros, entender, lograr, y experimentar belleza. Apégate a esto.
 

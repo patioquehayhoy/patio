@@ -1,36 +1,30 @@
-# Patio — PRD para rediseño visual con Claude Design
+# Patio — PRD (Product Requirements Document)
 
-> Documento de entrega. Copy/paste a Claude Design + adjunta screenshots de cada pantalla.
-> Última actualización: 2026-05-17
+> Documento general de producto: dominio, personas, arquitectura de pantallas,
+> sistema de diseño vigente y pain points. Sirve como fuente de verdad para
+> cualquier trabajo de diseño o desarrollo, independiente de la herramienta.
+> Última actualización: 2026-06-07
 
-> ⚠️ **Lectura previa obligatoria para la sesión:**
+> **Lectura complementaria:**
 > 1. [`design/foundations/ESSENTIAL_DESIGN_PRINCIPLES.md`](design/foundations/ESSENTIAL_DESIGN_PRINCIPLES.md) — biblia fundacional (12 principios WWDC17)
-> 2. [`design/foundations/CLAUDE_DESIGN_BRIEF.md`](design/foundations/CLAUDE_DESIGN_BRIEF.md) — brief limpio del dominio
-> 3. Este PRD (detalle de pantallas + pain points)
+> 2. [`design/FLOW_V2.md`](design/FLOW_V2.md) — flujo navegacional Foodie/Fondero
+> 3. [`DESIGN_SYSTEM.md`](DESIGN_SYSTEM.md) — sistema de diseño completo
+> 4. [`design/FIGMA_REDESIGN_BRIEF.md`](design/FIGMA_REDESIGN_BRIEF.md) — brief práctico para aterrizar el rediseño en Figma
+> 5. [`design/REDESIGN_BLUEPRINT_V1.md`](design/REDESIGN_BLUEPRINT_V1.md) — blueprint previo a Figma para rediseñar con sistema
+> 6. [`design/DESIGN_VERSION_REGISTRY.md`](design/DESIGN_VERSION_REGISTRY.md) — nombres de versiones: Patio Vivo, Patio Tahoe, Patio Agent
+> 7. [`design/FIGMA_AGENT_CODE_PROMPT.md`](design/FIGMA_AGENT_CODE_PROMPT.md) — prompt para Figma Agent con contexto curado de código
 >
-> **Separación importante:** la **paleta, radios, pesos y blur actuales** documentados aquí
-> son **decisiones vigentes y cambiables**. Una propuesta de rediseño puede modificarlos
-> siempre que respete los 12 principios fundacionales y las reglas duras de marca
-> (`Saaaaaaabes.`, Foodie/Fondero separados, "lo cotidiano elevado"). La app vigente
-> NO es la referencia — solo el dominio.
+> **Reglas duras de marca (no negociables):** `Saaaaaaabes.` (tagline literal),
+> Foodie/Fondero separados, "lo cotidiano elevado", y el bloque de precio en
+> `menu.tsx` (ver CLAUDE.md).
 
 ---
 
-## 0. Cómo usar este documento
+## 0. Alcance de este documento
 
-Este PRD es para una sesión de **Claude Design** (claude.ai/design o similar). Le da contexto suficiente para que proponga un rediseño visual coherente sin romper la lógica de la app.
-
-**Lo que Claude Design debe hacer:**
-- Proponer un nuevo lenguaje visual respetando filosofía y paleta
-- Generar mockups por pantalla
-- Mantener la arquitectura de navegación actual
-- Resolver las inconsistencias identificadas (pesos tipográficos, padding, jerarquía)
-
-**Lo que Claude Design NO debe hacer:**
-- Cambiar la lógica de negocio
-- Mover el tagline `"Saaaaaaabes."` ni el nombre Patio
-- Romper la separación Foodie vs Fondero
-- Tocar el bloque de precio en `menu.tsx` (documentado en CLAUDE.md)
+PRD general de Patio: describe **qué es el producto, para quién, cómo está
+estructurado y qué chirría hoy**. No prescribe una solución de diseño ni una
+herramienta — es contexto factual para diseñar o desarrollar.
 
 ---
 
@@ -93,20 +87,21 @@ app/
 
 Ver `docs/DESIGN_SYSTEM.md` para detalle completo. Resumen ejecutivo:
 
-### Paleta core
-| Token   | Hex                  | Uso                                     |
-|---------|----------------------|-----------------------------------------|
-| BG      | `#EFEFEF`            | Fondo principal                         |
-| BLACK   | `#292929`            | Texto principal, botones primarios      |
-| WHITE   | `#FFFFFF`            | Superficie, cards, inputs               |
-| BLACK60 | `rgba(41,41,41,0.5)` | Texto secundario, placeholders          |
-| ACCENT  | Naranja tierra       | CTAs, dots activos                      |
+### Paleta core (estado actual en código — `lib/colors.ts`)
+| Token         | Hex (light) | Hex (dark) | Uso actual                              |
+|---------------|-------------|------------|-----------------------------------------|
+| bg            | `#F8F8F5`   | `#111214`  | Fondo principal                         |
+| surface       | `#FFFFFF`   | `#1B1C20`  | Superficie, cards, inputs               |
+| surface2      | `#F6F4EE`   | `#24262C`  | Superficie secundaria                   |
+| text          | `#1C1C1E`   | `#F5F5F0`  | Texto principal                         |
+| textSecondary | `#70757F`   | `#9A9CA3`  | Texto secundario, placeholders          |
+| accent        | `#F2612F`   | `#FF6A3D`  | Naranja — hoy usado como accent de UI (CTAs, tabs activas, dots) |
+| border        | `#E9E5DD`   | `#2C2F36`  | Bordes, separadores                     |
+| button        | `#1C1C1E`   | `#F5F5F0`  | Botones primarios                       |
 
-### Paleta orgánica (assets `GLASS_ORGANICO`)
-- Olive `#6B7255` — exteriores
-- Taupe `#C4AFA0` — superficies neutras
-- Lavender `#B8C4D4` — overlays, agente
-- Rose-burgundy `#8B3A52` — acento cálido
+> Nota factual: el `accent` naranja se usa hoy como acento general de interfaz
+> (tabs, CTAs, dots de radar, labels). Ver `docs/design/EDITORIAL_REDESIGN.md`
+> y `docs/STATE.md` para la discusión sobre su rol.
 
 ### Tipografía (regla dura)
 - **SF Pro Display** ≥20pt
@@ -134,7 +129,7 @@ Sin imponerlo, vale la pena explorar el lenguaje geométrico de **macOS Tahoe / 
 - **Glassy depth** — más cercano al material de Tahoe que al frosted opaco actual
 - **Compactness con respiro** — más densidad informativa sin sentirse apretado
 
-Claude Design puede tomar esto como dirección o proponer algo distinto, siempre justificando contra los 12 principios fundacionales.
+Esto es una dirección de exploración posible, justificable contra los 12 principios fundacionales — no una obligación.
 
 ---
 
@@ -153,9 +148,9 @@ Estilos a los que queremos llegar. Cada uno tiene slug funcional:
 
 ---
 
-## 6. Pain points UX actuales (lo feo que Claude Design debe resolver)
+## 6. Pain points UX actuales
 
-> Lista honesta de qué chirría hoy. Las screenshots adjuntas muestran cada uno.
+> Lista honesta de qué chirría hoy. Los screenshots en `assets/screenshots/` muestran cada uno.
 
 ### Globales
 1. **Sin continuidad tipográfica** entre pantallas — pesos `'500'` o `'700'` cuelan en lugares random
@@ -200,7 +195,7 @@ Estilos a los que queremos llegar. Cada uno tiene slug funcional:
 - **Glass general** — la dirección de BlurView + transparencia es correcta, solo falta consistencia
 - **Tagline `Saaaaaaabes.`** — intocable
 - **Tabla de pesos 900/300** — buena regla, falla en ejecución
-- **Paleta** — el `#EFEFEF` + `#292929` + naranja funciona
+- **Paleta** — el fondo claro (`#F8F8F5`) + texto/botón oscuro (`#1C1C1E`) + accent naranja funciona
 - **Flujo Fondero E2E** — la lógica capturar→revisar→publicar es sólida
 - **Role picker en entrada** — funciona, persiste rol en AsyncStorage
 
@@ -216,28 +211,28 @@ Estilos a los que queremos llegar. Cada uno tiene slug funcional:
 
 ---
 
-## 9. Entregables esperados de Claude Design
+## 9. Entregables de un rediseño (cualquier herramienta)
 
 1. **Sistema de diseño visual** consolidado (paleta extendida, sistema de spacing, tokens completos)
 2. **Mockups por pantalla** (las 13 pantallas listadas en sección 3)
-3. **Componentes reutilizables** propuestos (botón, card, sheet, pill, input, top-bar)
+3. **Componentes reutilizables** (botón, card, sheet, pill, input, top-bar)
 4. **Animaciones clave** descritas (radar dots → algo tech glow, transiciones entre pantallas, loading)
 5. **Guidelines de implementación** — qué tokens, qué fuentes, qué intensidades de BlurView
 
 ---
 
-## 10. Anexos a adjuntar a Claude Design
+## 10. Insumos disponibles para diseñar
 
-- [ ] **Screenshots reales del flujo actual** — usar `assets/screenshots/` + `docs/design/SCREENSHOT_INDEX.md`.
-- [ ] **Flujo escrito Foodie/Fondero en 2 líneas** — ver `docs/STATE.md` y `docs/TASKS.md`.
-- [ ] **Definición de Fondero** — dueño/encargado/cocinera/cocinero u operador de una fondita que publica qué hay hoy.
-- [ ] **Referencias de spinner/radar** — Linear / Tesla / Apple system activity / tech glow silencioso.
-- [ ] Imágenes de referencias aspiracionales disponibles en `docs/design/references/`.
-- [ ] Logo de Patio (`assets/images/logo-negro.png` y `logo-blanco.png`) si existen en el workspace.
-- [x] Documentos fundacionales (lectura previa obligatoria — ver disclaimer al inicio del PRD).
-- [x] Este PRD + `docs/DESIGN_SYSTEM.md` + `docs/design/VISUAL_SYSTEM.md`.
+- **Screenshots reales del flujo actual** — `assets/screenshots/` + `docs/design/SCREENSHOT_INDEX.md`.
+- **Flujo escrito Foodie/Fondero** — `docs/design/FLOW_V2.md`, `docs/STATE.md`.
+- **Definición de Fondero** — dueño/encargado/cocinera/cocinero u operador de una fondita que publica qué hay hoy.
+- **Referencias de spinner/radar** — Linear / Tesla / Apple system activity / tech glow silencioso.
+- **Referencias aspiracionales** — `docs/design/references/`.
+- **Logo de Patio** — `assets/images/logo-negro.png` y `logo-blanco.png` (si existen en el workspace).
+- **Documentos fundacionales** — ver lectura complementaria al inicio del PRD.
+- **Sistema de diseño** — `docs/DESIGN_SYSTEM.md` + `docs/design/VISUAL_SYSTEM.md`.
 
-> Nota: no usar paquetes bajo `docs/design/screenshots/` como fuente hasta que existan físicamente en el worktree. No listar screenshots como "capturados" hasta que los archivos existan.
+> Nota: no usar paquetes bajo `docs/design/screenshots/` como fuente hasta que existan físicamente en el worktree.
 
 ---
 
@@ -248,55 +243,3 @@ Estilos a los que queremos llegar. Cada uno tiene slug funcional:
 - **Carta:** menú permanente (raro en fonditas, común en taquerías)
 - **Foodie:** usuario que descubre dónde comer
 - **Fondero:** dueño/cocinero de la fondita que publica
-
----
-
-## 12. Prompts copy-paste para Claude Design
-
-Usa estos mensajes en la sesión de Claude Design en orden:
-
-### Prompt 1 — Setup
-```
-Soy Alejandro, dueño de Patio (app de fonditas CDMX, React Native + Expo).
-Te paso 3 cosas:
-1. PRD completo (debajo)
-2. Sistema de diseño actual (DESIGN_SYSTEM.md)
-3. Screenshots reales del flujo actual en orden de navegación
-+ referencias aspiracionales disponibles
-
-Tu trabajo: rediseñar pantalla por pantalla respetando el PRD,
-proponiendo un sistema visual coherente que resuelva los pain points
-identificados sin romper la lógica.
-
-Importante: los screenshots son evidencia de flujo, no referencia estética.
-No existe reserva ni ficha individual de platillo todavía.
-Empezamos por explorar.tsx (la pantalla más crítica del Foodie).
-Tu primer entregable: mockup + tokens visuales propuestos.
-```
-
-### Prompt 2 — Pantalla por pantalla
-```
-Siguiente pantalla: [nombre].tsx
-Pain points específicos (de la sección 6 del PRD): [...]
-Mostrame mockup + lista de componentes nuevos/modificados.
-```
-
-### Prompt 3 — Consolidar sistema
-```
-Ya cubrimos todas las pantallas. Ahora consolida:
-1. Sistema de tokens completo (colores extendidos, spacing, radii, shadows)
-2. Catálogo de componentes reutilizables (botones, cards, sheets, pills)
-3. Guidelines de animación (entrada/salida, loading, transiciones)
-4. Versión markdown actualizada de DESIGN_SYSTEM.md
-```
-
-### Prompt 4 — Handoff a implementación
-```
-Listo. Generame un documento `docs/DESIGN_SYSTEM_V03.md` con:
-- Tokens en formato copy-paste (TypeScript objects)
-- Specs de cada componente con valores exactos
-- Mapeo: "pantalla X usa componentes A, B, C con tokens T1, T2"
-
-Esto va a ser implementado en React Native + Expo SDK 54.
-Usa Animated nativo (no Framer Motion), BlurView de expo-blur.
-```

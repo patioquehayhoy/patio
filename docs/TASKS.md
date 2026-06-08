@@ -3,11 +3,14 @@
 > Última actualización: 2026-06-03.
 > Estado: `[ ]` pendiente | `[x]` hecho | `[~]` en progreso.
 
-## REDISEÑO EDITORIAL — listo, espera aprobación
+## REDISEÑO EDITORIAL — listo, espera aterrizaje visual
 
 - [x] **Dirección editorial completa** producida en `docs/design/EDITORIAL_REDESIGN.md` (Ciclo 2). Naranja=marca confirmado; flujo NO tocado.
-- [ ] **Aprobación humana** del documento editorial → desbloquea implementación.
-- [ ] Implementar regla de color a nivel token (naranja=marca, no UI). Primer paso, desbloquea el resto.
+- [x] **Paleta confirmada por producto:** se conserva la paleta actual de la app (`lib/colors.ts`) sin introducir amarillo ni un segundo acento cálido.
+- [x] Brief de rediseño Figma creado en `docs/design/FIGMA_REDESIGN_BRIEF.md`.
+- [x] Blueprint previo a Figma creado en `docs/design/REDESIGN_BLUEPRINT_V1.md`.
+- [x] Registro de versiones creado en `docs/design/DESIGN_VERSION_REGISTRY.md` (`Patio Vivo`, `Patio Tahoe`, `Patio Agent`).
+- [ ] Aterrizar bases de diseño en Figma: tokens, componentes, jerarquía, glass, corners Tahoe-style y mockups clave.
 
 
 ## CICLO ACTUAL — QA + Claude Design handoff
@@ -27,15 +30,11 @@
 
 ### Puede hacer agente antes de mockups
 
-- [ ] Auditar `app/explorar.tsx` contra `docs/design/VISUAL_SYSTEM.md`.
-- [ ] Auditar `app/patio/[id].tsx` contra `docs/design/VISUAL_SYSTEM.md`.
-- [ ] Reconciliar paleta documentada:
-  - Código actual: `lib/colors.ts` usa `#F2612F` light / `#FF6A3D` dark.
-  - `VISUAL_SYSTEM.md`: propone `#F5C842` como warm accent de mapa/horarios.
-  - Decidir si `#F5C842` entra como token nuevo o si se conserva el naranja actual.
+- [x] Auditoría visual humana realizada: la app está funcional, pero no satisface la dirección premium/minimalista buscada.
+- [ ] Preparar sistema visual homologado para rediseño: paleta actual, typography 900/300, glass, spacing, Tahoe-style corners, componentes reutilizables.
 - [ ] Investigar si Supabase Dashboard tiene `patio://login-callback` en Redirect URLs si magic link falla.
 
-## POST-CLAUDE-DESIGN
+## POST-SISTEMA VISUAL / FIGMA
 
 Implementar mockups pantalla por pantalla. Orden recomendado:
 

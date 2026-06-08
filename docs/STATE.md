@@ -10,7 +10,7 @@ Patio ya tiene un MVP funcional de dos lados:
 - **Fondero:** login magic link -> perfil negocio -> marcar ubicación -> crear/editar menú -> guardar en Supabase -> preview/share.
 - **Puente real:** lo que publica Fondero en Supabase puede verse desde la ficha Foodie.
 
-El foco actual es **QA en dispositivo + paquete para Claude Design + auditoría visual Foodie**, no construir el flujo base desde cero.
+El foco actual es **QA en dispositivo + rediseño visual homologado**, no construir el flujo base desde cero.
 
 ## Hecho
 
@@ -58,8 +58,8 @@ El foco actual es **QA en dispositivo + paquete para Claude Design + auditoría 
 - `fontWeight` permitido: `'900'` / `'300'`, con excepciones documentadas.
 - Separadores deben usar `StyleSheet.hairlineWidth`.
 - Glass usa `expo-blur`; velos de mapa usan `expo-linear-gradient`.
-- Tema actual en código usa naranja `#F2612F` light / `#FF6A3D` dark como `theme.accent`.
-- `VISUAL_SYSTEM.md` propone `#F5C842` como warm accent específico de mapa/horarios; todavía debe reconciliarse con el theme antes de implementarse globalmente.
+- La paleta vigente es la de `lib/colors.ts`: fondo `#F8F8F5`, texto/botón `#1C1C1E`, accent naranja `#F2612F` light / `#FF6A3D` dark.
+- No hay decisión pendiente de amarillo ni de segundo acento cálido. El rediseño debe elevar jerarquía, glass, geometría, composición y ritmo usando la paleta actual.
 
 ## Pendiente ahora
 
@@ -72,21 +72,18 @@ El foco actual es **QA en dispositivo + paquete para Claude Design + auditoría 
 5. Registrar UDID de iPhone para builds internos si aplica.
 6. Configurar API key Google Maps restringida antes de builds Android reales.
 
-### Claude Design
+### Rediseño visual / Figma
 
-1. Pasar screenshots reales del flujo actual como evidencia, no como referencia visual final.
-2. Pasar flujo escrito Foodie/Fondero en 2 líneas.
-3. Pasar definición exacta de Fondero.
-4. Pasar referencias de spinner/radar: Linear/Tesla/Apple system activity, tech glow silencioso.
-5. Aclarar que no existe reserva ni ficha individual de platillo todavía.
+1. Usar `docs/design/FIGMA_REDESIGN_BRIEF.md` como brief práctico para aterrizar tokens, componentes, glass, corners Tahoe-style, jerarquía tipográfica y estados.
+2. Usar screenshots reales como evidencia funcional, no como estética final.
+3. Rediseñar primero las pantallas críticas: `explorar`, `patio/[id]`, `foto-menu`, `menu`.
+4. Aclarar que no existe reserva ni ficha individual de platillo todavía.
 
 ### Auditoría visual de implementación
 
-1. `app/explorar.tsx`: glass, pins, bottom sheet, velo, pills y radar contra `VISUAL_SYSTEM.md`.
-2. `app/patio/[id].tsx`: título brand, rating, mapa inline, pin, botón "Cómo llegar" glass, separadores hairline.
-3. `app/index.tsx`: entrada limpia/editorial sin depender de grid DEV.
-4. `app/favoritos.tsx`: empty state y filas.
-5. Reconciliar `docs/DESIGN_SYSTEM.md`, `docs/design/VISUAL_SYSTEM.md` y `lib/colors.ts` antes de hacer cambios grandes de paleta.
+1. Auditoría humana ya realizada: funcionalmente bien, visualmente insuficiente para el estándar premium/minimalista.
+2. Falta convertir esa auditoría en sistema y mockups implementables.
+3. Antes de código visual grande: asegurar que `docs/DESIGN_SYSTEM.md`, `docs/design/VISUAL_SYSTEM.md` y `lib/colors.ts` digan lo mismo.
 
 ## No pendiente
 

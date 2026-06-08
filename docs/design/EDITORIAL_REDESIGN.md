@@ -9,17 +9,17 @@
 
 ---
 
-## 0. Decisión de sistema previa — dos colores con dos roles (no compiten)
+## 0. Decisión de sistema previa — paleta cerrada, jerarquía por sistema
 
-Hoy el código y el VISUAL_SYSTEM no están alineados en color. Esto es **lo primero a resolver** porque atraviesa todas las pantallas.
+La paleta está cerrada: se conserva la paleta actual de la app (`lib/colors.ts`). El rediseño no debe introducir amarillo ni un segundo acento cálido. La mejora viene de jerarquía, glass, geometría, composición, ritmo y uso más intencional del naranja.
 
-| Color | Rol único permitido | Dónde aparece hoy (mal) |
+| Color | Rol permitido | Dirección |
 |---|---|---|
-| **Naranja `#F2612F` / `#FF6A3D`** | Identidad de marca: pin del mapa, rating ★, acento Fondero (logo "✦", botón Tomar foto) | Se usa como accent **general** de UI en `foto-menu`, `menu` (★ + labels), `cuenta` (tab activa) |
-| **Negro `#292929`** | Acción primaria, jerarquía tipográfica, texto | — |
-| **Cálido `#F5C842`** | *Solo* estado activo de mapa/horario (pill seleccionada, "abierto ahora") | Aún sin usar — reservado |
+| **Naranja `#F2612F` / `#FF6A3D`** | Acento Patio: marca, selección, estados activos, acciones que necesitan firma | Usarlo con intención, no como decoración en cada label |
+| **Negro/texto `#1C1C1E` / `#F5F5F0`** | Acción primaria, jerarquía tipográfica, texto | Cargar más jerarquía en peso/escala, menos en color |
+| **Neutros `bg/surface/border`** | Profundidad, glass, separación, calma | Dar premium por capas y ritmo, no por más colores |
 
-**Regla editorial nueva:** el naranja es **marca**, no es **interfaz**. Se gana donde Patio firma (pin, rating, identidad Fondero) y se calla en formularios, settings y cuerpo. El contraste **900 vs 300** carga la jerarquía, no el color. Esto es *Consistency* + *Visibility* (un acento que significa algo es legible; un acento decorativo es ruido).
+**Regla editorial:** el naranja existe, pero no debe hacer todo el trabajo. El contraste **900 vs 300**, la escala, el glass y la proximidad cargan la jerarquía. Esto es *Consistency* + *Visibility*: un acento que significa algo es legible; un acento decorativo es ruido.
 
 ---
 
@@ -38,7 +38,7 @@ Hoy el código y el VISUAL_SYSTEM no están alineados en color. Esto es **lo pri
   - **Línea meta** (`300`, 13pt, `t.gray`): `Taquería · Presa las Vírgenes` — tipo y calle fundidos, densidad Apple Music.
   - **Precio** a la derecha, `900`, alineado — es la segunda decisión real ("¿me alcanza hoy?").
 - **Matar el rating de las filas.** Si vuelve, que sea **un solo trust signal editorial** ("Recomendado", "Nuevo hoy") — no una estrella fría. (El brief: *confía en curaduría humana, no en estrellas*.)
-- **Horario** solo cuando es accionable: badge cálido `#F5C842` "Abierto · cierra 5pm". Aquí sí entra el cálido — es su único territorio.
+- **Horario** solo cuando es accionable: badge contenido "Abierto · cierra 5pm" usando neutros/glass y, si necesita énfasis, el naranja actual con baja presencia.
 - Quitar el pill `5.0` del header de sección. El header dice solo `CERCA DE TI` (label 11pt/900/UPPER/1.8 spacing).
 - Numeración: o desaparece, o baja a `300` gris pequeño antes del nombre — nunca círculo sólido que compita.
 
@@ -158,7 +158,7 @@ Hoy el código y el VISUAL_SYSTEM no están alineados en color. Esto es **lo pri
 ## 7. Resumen transversal (lo que toca todas las pantallas)
 
 1. **Naranja = marca, no interfaz.** Se gana en: pin, rating-firma, gesto IA Fondero (Tomar foto), cartel de share. Se calla en: tabs, settings, `+ agregar`, chrome general → ahí va negro `900`.
-2. **Cálido `#F5C842` = solo estado activo de mapa/horario.** "Abierto ahora", pill seleccionada. En ningún otro lado.
+2. **Sin segundo acento cálido.** Estados activos, horarios y selección usan la paleta actual con intención y baja competencia visual.
 3. **Jerarquía por peso (900 vs 300), nunca por color.** Eliminar todo `400/500/600` salvo las dos excepciones documentadas.
 4. **Respiro entre grupos, densidad dentro del grupo** (Apple Music). Aplica a listas de explorar, menú y secciones.
 5. **Ruido cero:** matar ratings repetidos, handles permanentes, pills sin función, iconos que compiten con labels.

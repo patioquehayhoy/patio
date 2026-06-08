@@ -30,11 +30,11 @@ Ejemplos: `mapa_glass-bottomsheet_behance_v01.png`, `tipografia_editorial-numero
 - Fuente: App de logística/entrega (desconocida)
 - Qué nos gustó:
   - Mapa light con UI casi invisible — botones de control como pills grises tiny
-  - Card de acento amarillo-cálido en bottom: fondo sólido, dato bold y mono
+  - Card de acento en bottom: fondo sólido, dato bold y mono
   - Tipografía de datos: `01:37` en peso ultra-heavy, `+48 min` en pill secundaria
   - Sin sombras agresivas; todo se sostiene por contraste de color
   - Separación clara entre "superficie del mapa" y "panel de datos"
-- Aplicación en Patio: Acento cálido (`#F5C842`) para horario activo / lugar seleccionado; estilo de botones flotantes sobre mapa; jerarquía editorial de datos horarios en bottom sheet
+- Aplicación en Patio: tomar la estructura de botones flotantes sobre mapa y la jerarquía editorial de datos horarios en bottom sheet; no trasladar su color amarillo a Patio.
 - Prioridad: Alta
 
 ---
@@ -81,9 +81,9 @@ Ejemplos: `mapa_glass-bottomsheet_behance_v01.png`, `tipografia_editorial-numero
   - El calendario integrado como módulo — misma jerarquía que el resto del contenido
 - Aplicación en Patio:
   - Referencia de composición modular para futura pantalla de perfil fondero (cards de stats)
-  - El acento cálido como dato único confirma el uso de `#F5C842` solo en horario/selección
+  - El acento como dato único confirma que Patio debe usar su naranja actual con intención, no como decoración repetida
   - Modelo de bottom tab como pill activa (no tab bar plano) — revisar cuando hagamos tab nav real
-  - Temperatura general de la UI: más cálida que gris frío — refuerza el off-white `#EFEFEF` de bg
+  - Temperatura general de la UI: más cálida que gris frío — refuerza el off-white `#F8F8F5` de bg
 - Prioridad: Media
 
 ---

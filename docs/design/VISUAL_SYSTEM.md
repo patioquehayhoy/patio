@@ -21,24 +21,18 @@
 
 ### Paleta base
 
-| Token      | Light                  | Dark                   | Uso                                    |
-|------------|------------------------|------------------------|----------------------------------------|
-| `t.bg`     | `#EFEFEF`              | `#111111`              | Fondo principal de pantalla            |
-| `t.surface`| `#FFFFFF`              | `#1C1C1E`              | Cards, inputs, paneles no-glass        |
-| `t.text`   | `#292929`              | `#F0F0F0`              | Texto primario                         |
-| `t.gray`   | `rgba(41,41,41,0.5)`   | `rgba(240,240,240,0.5)`| Texto secundario, metadata             |
-| `t.accent` | `#292929`              | `#F0F0F0`              | Acento principal (monochromático)      |
-| `t.sep`    | `rgba(0,0,0,0.08)`     | `rgba(255,255,255,0.10)`| Separadores, bordes internos          |
-| `t.border` | `rgba(0,0,0,0.08)`     | `rgba(255,255,255,0.10)`| Bordes de contenedores               |
+| Token             | Light                  | Dark                   | Uso                                      |
+|-------------------|------------------------|------------------------|------------------------------------------|
+| `t.bg`            | `#F8F8F5`              | `#111214`              | Fondo principal de pantalla              |
+| `t.surface`       | `#FFFFFF`              | `#1B1C20`              | Cards, inputs, paneles no-glass          |
+| `t.surface2`      | `#F6F4EE`              | `#24262C`              | Superficie secundaria                    |
+| `t.text`          | `#1C1C1E`              | `#F5F5F0`              | Texto primario                           |
+| `t.textSecondary` | `#70757F`              | `#9A9CA3`              | Texto secundario, metadata               |
+| `t.accent`        | `#F2612F`              | `#FF6A3D`              | Acento naranja de Patio                  |
+| `t.border`        | `#E9E5DD`              | `#2C2F36`              | Separadores, bordes internos             |
+| `t.button`        | `#1C1C1E`              | `#F5F5F0`              | Botones primarios                        |
 
-### Acento cálido (para estado activo/seleccionado en mapa)
-
-| Token           | Valor              | Uso                                              |
-|-----------------|--------------------|--------------------------------------------------|
-| `t.warm`        | `#F5C842`          | Horario activo, lugar seleccionado, CTA de mapa  |
-| `t.warmSurface` | `rgba(245,200,66,0.12)` | Fondo de pill activo, badge de horario      |
-
-> El acento cálido (`#F5C842`) aparece únicamente en el contexto del mapa y horarios. Nunca en formularios ni UI general.
+> Paleta cerrada: se conserva la paleta actual de `lib/colors.ts`. No introducir amarillo ni un segundo acento cálido. La evolución visual debe venir de jerarquía, glass, geometría, ritmo y composición.
 
 ---
 
@@ -233,7 +227,7 @@ backgroundColor={t.surface} borderWidth={StyleSheet.hairlineWidth} borderColor={
 // Label: fontSize 12, fontWeight '300', color t.gray
 
 // Activa (seleccionada)
-backgroundColor={t.warm} // #F5C842
+backgroundColor={t.accent} // #F2612F light / #FF6A3D dark
 // Label: fontSize 12, fontWeight '900', color '#292929'
 ```
 
@@ -264,7 +258,7 @@ Antes de hacer commit de cualquier cambio de UI:
 - [ ] ¿Los pesos son solo 900 y 300? (sin 400, 500, 600 salvo excepciones documentadas)
 - [ ] ¿Los separadores son hairlineWidth? (nunca height: 1)
 - [ ] ¿Los paneles flotantes usan BlurView? (nunca fondo sólido sobre mapa)
-- [ ] ¿El acento cálido (#F5C842) solo aparece en contexto de mapa/horario?
+- [ ] ¿El acento naranja aparece con intención clara y sin competir con la jerarquía tipográfica?
 - [ ] `npx tsc --noEmit` pasa en verde
 
 ---

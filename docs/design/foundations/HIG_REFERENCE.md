@@ -111,8 +111,8 @@ HIG define: ilustración + título + descripción + acción primaria (opcional).
 | Separadores | rgba(0,0,0,0.10) | t.border (hairlineWidth) |
 | Texto secundario | rgba(0,0,0,0.50) | t.textSecondary |
 | Surface card | #FFFFFF / #1C1C1E | t.surface |
-| Fondo de app | #F2F2F7 / #000000 | t.bg (#EFEFEF claro) |
-| Tint/accent | #007AFF | t.accent (#F5C842 solo contexto mapa) |
+| Fondo de app | #F2F2F7 / #000000 | t.bg (`#F8F8F5` claro) |
+| Tint/accent | #007AFF | t.accent (`#F2612F` light / `#FF6A3D` dark) |
 
 ---
 

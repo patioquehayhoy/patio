@@ -28,13 +28,12 @@
 ## Ciclo 2 — 2026-06-03 (rediseño editorial — Claude in-session)
 
 **Qué hizo:**
-- Decisión de usuario confirmada: el rediseño se hace **aquí** (no en sesión externa de Claude Design) y se **mantiene el naranja de marca** (`#F2612F` / `#FF6A3D`), sin adoptar `#F5C842` como accent general.
+- Decisión de usuario confirmada: el rediseño se hace **aquí** (no en sesión externa de Claude Design) y se **mantiene la paleta actual de la app**, incluido el naranja (`#F2612F` / `#FF6A3D`), sin adoptar amarillo ni segundo acento.
 - Leyó los 6 screenshots reales prioritarios del brief (`explorar`, `detalle/ficha`, `foto-menu`, `menu`, `perfil`, `cuenta`) desde `assets/screenshots/`.
 - Produjo `docs/design/EDITORIAL_REDESIGN.md`: dirección editorial pantalla por pantalla (tipografía, jerarquía, glass, color, copy), cada una justificada contra los 12 principios WWDC17. **No** toca flujo ni estructura.
 
 **Qué encontró:**
-- Desalineación de color sistémica: el naranja se usa hoy como **accent de UI** (tabs activas, `+ agregar`, labels) cuando el VISUAL_SYSTEM lo reserva para **marca**. Regla nueva propuesta: *naranja = marca, no interfaz*.
-- `#F5C842` (cálido) sigue sin usarse — reservado para estado activo de mapa/horario.
+- Desalineación de color sistémica: algunos documentos proponían un segundo acento, pero producto cerró la paleta actual de la app. El trabajo visual debe concentrarse en jerarquía, glass, geometría y composición.
 - Ratings `★ 5.0` repetidos en cada fila de explorar = ruido (contradice "curaduría humana, no estrellas frías").
 - `menu.tsx` ya logra bien la densidad Apple Music; le falta respiro entre secciones.
 - `share.tsx` posiblemente absorbible por `preview.tsx` — marcado para decisión de estructura (fuera del alcance editorial).
@@ -63,7 +62,7 @@
 - Los screenshots vigentes siguen siendo `assets/screenshots/` + `docs/design/SCREENSHOT_INDEX.md`.
 - Los paquetes bajo `docs/design/screenshots/` no deben usarse como fuente hasta que existan físicamente.
 - Hay cambios no propios ya presentes: capturas borradas bajo `docs/design/screenshots/` y carpetas nuevas en `docs/design/references/Glass/` y `docs/design/references/Post redes/`.
-- Paleta pendiente de decisión: código actual `#F2612F` / `#FF6A3D` vs warm accent propuesto `#F5C842`.
+- Paleta cerrada por producto: conservar `#F2612F` / `#FF6A3D` como accent naranja de la app; no introducir `#F5C842` ni amarillo como decisión pendiente.
 
 **Qué sigue:**
 - QA en dispositivo: magic link, cámara/galería, GPS y Fondero -> Foodie.

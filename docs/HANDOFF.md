@@ -20,9 +20,9 @@ Leer esta sección antes del historial. Las secciones antiguas abajo son bitáco
 1. QA en dispositivo: magic link, cámara/galería, GPS y flujo Fondero -> Foodie completo.
 2. Registrar UDID de iPhone si se requieren builds internos.
 3. API key Google Maps restringida antes de builds Android reales.
-4. Preparar handoff a Claude Design con screenshots reales desde `assets/screenshots/`, flujo escrito, definición de Fondero y referencias de spinner.
-5. Auditar visualmente `explorar.tsx` y `patio/[id].tsx` contra `docs/design/VISUAL_SYSTEM.md`.
-6. Decidir/reconciliar paleta: `theme.accent` actual `#F2612F`/`#FF6A3D` vs `t.warm #F5C842` propuesto para mapa/horarios.
+4. Aterrizar rediseño visual en Figma o documento visual: screenshots reales, flujo escrito, definición de Fondero, referencias de spinner y principios Tahoe/Apple.
+5. Convertir la auditoría visual humana en bases de diseño implementables.
+6. Paleta cerrada: conservar `lib/colors.ts` (`#F2612F`/`#FF6A3D` como accent naranja). No introducir amarillo ni un segundo acento cálido.
 
 ### Screenshots
 

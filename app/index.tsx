@@ -210,8 +210,8 @@ const styles = StyleSheet.create({
   taglineBold: { fontSize: 15, fontWeight: '900', fontFamily: Fonts.brand, textAlign: 'center' },
   tagline: { fontSize: 15, fontWeight: '300', fontFamily: Fonts.brand, textAlign: 'center' },
   choiceActions: { gap: 14 },
-  primaryBtn: { minHeight: 60, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  primaryBtnText: { fontSize: 18, fontWeight: '900' },
+  primaryBtn: { minHeight: 60, borderRadius: 18, alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.12, shadowRadius: 20, elevation: 4 },
+  primaryBtnText: { fontSize: 17, fontWeight: '700', letterSpacing: -0.3 },
   secondaryBtn: { minHeight: 44, alignItems: 'center', justifyContent: 'center' },
   secondaryBtnText: { fontSize: 14, fontWeight: '300' },
 

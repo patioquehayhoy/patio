@@ -31,6 +31,31 @@ Alejandro revisó TODAS las pantallas de v02 (levantadas como web local con `npm
 - **Fix del editor de menú (`menu.tsx`):** Alejandro tiene TOC con el scroll largo del editor "Menú de hoy". Solución acordada: **agrupar platillos por sección** (Entrada/Guisado/etc.) en filas compactas en vez de tarjeta gigante por platillo → menos scroll. (La barra de scroll fea que vio es del navegador/Vite, NO de iOS real — en RN no se ve así.)
 - **Recurso clave en v02:** `TokenExport.tsx` trae tokens listos para RN/NativeWind (paleta, espaciado base-4, radios chip14/card18/sheet28/phone44, motion specs) + lista de **11 componentes base que cubren el 90% de la app** (ButtonAccent, ButtonInk, ButtonGlass, ChipFilter, GlassCard, MenuRow, CourseInput, PinPrice, BottomSheet, StatusDot, EyebrowLabel). Usar como puente Figma→código.
 
+### Sesión de código 2026-06-15 — rama `v2-look-figma`
+
+Rama nueva desde `v2-menu-vivo`. Trabajo: aplicar el look de Figma v02 a la app real, recorriendo el **flujo Foodie en orden** (no pantallas sueltas). App corre en simulador iOS (Expo Go, puerto 8081, bundle `com.parcomx.patio`).
+
+**Hecho y commiteado:**
+- **Fase 1 tokens** (`lib/colors.ts` + `lib/theme.tsx`): paleta homologada a Figma (ink #111214, ink-soft #4A4A47, borde translúcido, bgDark #0A0B0D, glass, accentSoft #FBE7DD). Escalas nuevas exportadas: `Radius`, `Spacing`, `Type`, `Motion`. Sin colores hardcodeados sueltos → se propaga a toda la app.
+- **index.tsx**: quitada la grid DEV (entrada limpia) + botón con presencia.
+- **patio/[id].tsx (ficha Foodie)**: rediseño completo tal cual Figma — hero 300px con degradado (placeholder), nav glass, card traslapada, estado dot verde, título 36, meta row, **menú agrupado por sección** (resuelve TOC), CTA sticky. Lógica intacta (Supabase, favoritos, rating, mapa).
+- **explorar.tsx**: ajustes (sheet radius 28, precio en naranja).
+- **onboarding.tsx**: reescrito tal cual Figma `FoodieOnboarding` — 3 slides, hero botánico REAL (imágenes en `assets/hero/botanica-N.png`, copiadas de `assets/artes/`), eyebrow naranja, título 36, dots animados spring, botón. Copy corregido por identidad verbal (slide 2 = "Lo que se cocina hoy", sin "en su voz"; "cocinas/lugares" no "fonditas").
+
+**Imágenes:** 8 fotos botánicas (dahlias sobre fondo oscuro, formato vertical) en `assets/hero/botanica-1..8.png`. Sirven para heros de onboarding, ficha y estados.
+
+**Reglas de trabajo acordadas con Alejandro (2026-06-15):**
+1. **Replicar Figma TAL CUAL**, sin mezclar lo viejo con lo nuevo.
+2. **Si una pantalla difiere de Figma o no existe igual → PREGUNTAR**, no inventar/mezclar.
+3. El **copy se rige por `IDENTITY_VERBAL.md`**, no por el copy viejo de Figma (que tiene anti-IA como "en su voz").
+
+**PENDIENTE (próxima sesión, en orden del flujo Foodie):**
+1. **Enganchar onboarding como first-launch real** — hoy NO se muestra solo (ningún check de `ONBOARDING_KEY` en el arranque; `_layout` o `index` debe redirigir a `/onboarding` si no está visto). Verificar antes de dar por cerrado.
+2. **Enchufar foto botánica real** en el hero de `patio/[id]` (hoy es degradado placeholder).
+3. **index.tsx (inicio/login) tal cual Figma** — OJO: la app mezcla inicio+login en un archivo; Figma los tiene separados (FonderoLanding oscuro, FonderoMagicLink, MagicLinkEmail). Decidir estructura con Alejandro.
+4. **favoritos.tsx** (guardados) y **cuenta.tsx** tal cual Figma → cierran el flujo Foodie.
+5. Luego flujo Fondero: foto-menu, menu (fix TOC agrupar), preview/share (MenuPoster), perfil.
+
 ### Hecho
 
 - Supabase está conectado para `fonditas`, `menus` y `cartas`.

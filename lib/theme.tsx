@@ -17,6 +17,10 @@ export type Theme = {
   accentLight: string;    // acento con baja opacidad (fondos sutiles)
   textSecondary: string;  // texto secundario
   border: string;         // bordes y separadores
+  // ── Tokens v02 (Figma Make) ──
+  textMute: string;       // ink-mute — captions/metadata
+  accentSoft: string;     // fondos tibios, chip "elige uno"
+  glass: string;          // capas glass (sheets, search bars)
   isDark: boolean;
 };
 
@@ -30,9 +34,12 @@ export const lightTheme: Theme = {
   gray:          Colors.textSecondary,
   bone:          Colors.bg,
   accent:        Colors.accent,
-  accentLight:   'rgba(211,29,15,0.1)',
+  accentLight:   Colors.accentSoft,
   textSecondary: Colors.textSecondary,
   border:        Colors.border,
+  textMute:      Colors.textMute,
+  accentSoft:    Colors.accentSoft,
+  glass:         Colors.glass,
   isDark:        false,
 };
 
@@ -46,9 +53,12 @@ export const darkTheme: Theme = {
   gray:          Colors.textSecondaryDark,
   bone:          Colors.bgDark,
   accent:        Colors.accentDark,
-  accentLight:   'rgba(211,29,15,0.15)',
+  accentLight:   Colors.accentSoftDark,
   textSecondary: Colors.textSecondaryDark,
   border:        Colors.borderDark,
+  textMute:      Colors.textMuteDark,
+  accentSoft:    Colors.accentSoftDark,
+  glass:         Colors.glassDark,
   isDark:        true,
 };
 
@@ -56,6 +66,44 @@ export const DARK_MODE_KEY = '@lafondita_dark_mode';
 
 export const Fonts = {
   brand: 'PlusJakartaSans_800ExtraBold',
+} as const;
+
+// ─── Escalas de diseño (Figma Make v02) ─────────────────────────────────────────
+// Radios: chip 14 · card 18 · sheet 28 · phone 44
+export const Radius = {
+  chip: 14,
+  card: 18,
+  sheet: 28,
+  phone: 44,
+} as const;
+
+// Espaciado base-4 con pasos editoriales
+export const Spacing = {
+  xs: 4,
+  sm: 8,
+  md: 12,
+  lg: 16,
+  xl: 22,   // gutter de pantalla
+  xxl: 32,  // sección
+  hero: 56, // hero
+} as const;
+
+// Tipografía editorial extrema (SF Pro · sistema). { size, weight, line }
+export const Type = {
+  display: { fontSize: 48, fontWeight: '800' as const, lineHeight: 50 },
+  title:   { fontSize: 36, fontWeight: '800' as const, lineHeight: 38 },
+  section: { fontSize: 22, fontWeight: '700' as const, lineHeight: 26 },
+  body:    { fontSize: 15, fontWeight: '400' as const, lineHeight: 21 },
+  eyebrow: { fontSize: 11, fontWeight: '700' as const, letterSpacing: 1.6 }, // UPPERCASE
+  caption: { fontSize: 12, fontWeight: '500' as const, lineHeight: 16 },
+} as const;
+
+// Motion — spring iOS, sin distracciones
+export const Motion = {
+  sheetSpring:  { stiffness: 380, damping: 32 },
+  pressScale:   { scale: 0.96, durationMs: 120 },
+  enterEditorial: { translateY: 12, durationMs: 320 },
+  pinPulse:     { from: 1, to: 1.08, durationMs: 1800 },
 } as const;
 
 // ─── Context ──────────────────────────────────────────────────────────────────

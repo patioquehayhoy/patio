@@ -42,3 +42,7 @@ app-example
 # generated native folders
 /ios
 /android
+
+# Figma Make exports — referencia de diseño, no ejecutamos npm install ahí
+design-source/**/node_modules/
+design-source/**/dist/

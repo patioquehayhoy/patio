@@ -18,6 +18,8 @@
 ### Bloqueado por acción humana
 
 - [x] ~~Pasar screenshots/flujo/definición/refs a Claude Design~~ — **resuelto in-session** (Ciclo 2). El rediseño editorial se hizo aquí leyendo los screenshots reales directamente. Ver `docs/design/EDITORIAL_REDESIGN.md`. Ya no hay cuello de botella de "sesión externa".
+- [x] ~~Handoff de diseño a herramienta externa~~ — **resuelto vía Figma Make** (Ciclo 4). Diseño completo exportado a `design-source/figma-make/v01/`, aislado del build. Sistema de versiones en `design-source/README.md` + `VERSIONS.md`.
+- [~] **Cerrar el diseño en Figma Make** (en progreso, Alejandro). Sigue iterando visual + estructura + copy. La traducción a React Native NO inicia hasta que el diseño quede cerrado.
 
 ### QA humano / dispositivo
 
@@ -35,6 +37,9 @@
 - [ ] Investigar si Supabase Dashboard tiene `patio://login-callback` en Redirect URLs si magic link falla.
 
 ## POST-SISTEMA VISUAL / FIGMA
+
+> Fuente de diseño: `design-source/figma-make/v01/` (export de Figma Make, web — traducir a `.tsx`).
+> **No iniciar hasta que el diseño esté cerrado** (ver tarea "Cerrar el diseño en Figma Make").
 
 Implementar mockups pantalla por pantalla. Orden recomendado:
 

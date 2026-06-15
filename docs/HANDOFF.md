@@ -1,8 +1,35 @@
 # HANDOFF
 
-## Estado vigente — 2026-05-17
+## Estado vigente — 2026-06-14
 
 Leer esta sección antes del historial. Las secciones antiguas abajo son bitácora y pueden contener pendientes ya resueltos.
+
+### Diseño — Figma Make (Ciclo 5, activo)
+
+- El rediseño visual de Patio se hace en **Figma Make** (lienzo web, Claude compone el UI). Reemplaza el handoff a "Claude Design".
+- Exports congelados en `design-source/figma-make/`: **v01** (2026-06-12, base) y **v02** (2026-06-14, ajustes de menú). Conviven, no se reemplazan. Registro en `VERSIONS.md`. **Aislados del build** (Metro/TS/ESLint los ignoran).
+- El export es **web (Vite/React/Tailwind), NO React Native** → se **traduce** a `.tsx`, no se pega.
+- **DECISIÓN 2026-06-14: dejar de iterar en Figma Make, cerrar el diseño AQUÍ (en código).** Figma es bueno para GENERAR, malo y carísimo para AJUSTAR (1,000 créditos comprados se vaciaron en ajustes de menú que ni quedaron bien). El pulido fino se hace sobre el export/código, gratis. Ver `cost_tracking` en memoria + `docs/COSTOS.md`.
+- **Identidad verbal documentada:** `docs/design/foundations/IDENTITY_VERBAL.md` — modelo de nombres estilo Uber (no "fonda/fondero" paraguas), anti-IA, tono por pantalla, par de marca "¿Qué hay hoy? Saaaaaaabes.". Incluye §8 brief para pegar en Figma.
+- **Estado del diseño: ~90%.** Falta cerrar menú + compartir + limpiar copy "fondero/a". Se cierra en código, no en Figma.
+
+### Trabajo de esta sesión (2026-06-14) en v02 — sin commitear
+
+- **Modelo de precio del menú reescrito** en `v02/src/app/data/menu.ts`: antes `priceMode: "fixed"|"perItem"` (excluyente). Ahora **`dayPrice` (precio del día, opcional) + `price` por item (extra a la carta) coexisten** — refleja fonditas reales (comida corrida $55 + extras a la carta). Decisión de producto de Alejandro.
+- **Editor del Fondero** (`FonderoPublish.tsx`): quitado el toggle de modo de precio; precio del día opcional + precio por platillo siempre disponible. Borrado código muerto (`PriceModeTab`). UX "lo más simple posible".
+- **`MenuCard.tsx`**: compatible con el nuevo modelo (muestra precio solo en extras).
+- Verificado: cero referencias rotas a campos viejos en todo v02.
+- **Pendiente inmediato:** cerrar "compartir" (`MenuPoster.tsx`) y limpiar copy "fondero/a".
+
+### Decisiones visuales 2026-06-15 (tras revisar v02 corriendo en navegador)
+
+Alejandro revisó TODAS las pantallas de v02 (levantadas como web local con `npm run dev` en `design-source/figma-make/v02/`). Veredicto: **le encanta el diseño tal cual.** Decisiones:
+
+- **Meta:** la app real (ya en TestFlight, builds 42–45) debe **VERSE como Figma v02**. La función del menú YA existe en código (`app/menu.tsx` + `lib/menu-store.ts`, con precio por sección + por platillo + Supabase). NO se reconstruye — solo se aplica el look. Trabajar en **rama nueva**.
+- **Prioridad de traducción: el LOOK GENERAL** — glass, degradados, hero con flores botánicas, tipografía editorial extrema (SF Pro 800/400), naranja con intención.
+- **Naranja confirmado:** `#F2612F` light / `#FF6A3D` dark (ya es el oficial en `lib/colors.ts` y la biblia; lo que se ve "raro" es por degradados encima, no el token).
+- **Fix del editor de menú (`menu.tsx`):** Alejandro tiene TOC con el scroll largo del editor "Menú de hoy". Solución acordada: **agrupar platillos por sección** (Entrada/Guisado/etc.) en filas compactas en vez de tarjeta gigante por platillo → menos scroll. (La barra de scroll fea que vio es del navegador/Vite, NO de iOS real — en RN no se ve así.)
+- **Recurso clave en v02:** `TokenExport.tsx` trae tokens listos para RN/NativeWind (paleta, espaciado base-4, radios chip14/card18/sheet28/phone44, motion specs) + lista de **11 componentes base que cubren el 90% de la app** (ButtonAccent, ButtonInk, ButtonGlass, ChipFilter, GlassCard, MenuRow, CourseInput, PinPrice, BottomSheet, StatusDot, EyebrowLabel). Usar como puente Figma→código.
 
 ### Hecho
 
@@ -17,12 +44,11 @@ Leer esta sección antes del historial. Las secciones antiguas abajo son bitáco
 
 ### Pendiente real
 
-1. QA en dispositivo: magic link, cámara/galería, GPS y flujo Fondero -> Foodie completo.
-2. Registrar UDID de iPhone si se requieren builds internos.
-3. API key Google Maps restringida antes de builds Android reales.
-4. Aterrizar rediseño visual en Figma o documento visual: screenshots reales, flujo escrito, definición de Fondero, referencias de spinner y principios Tahoe/Apple.
-5. Convertir la auditoría visual humana en bases de diseño implementables.
-6. Paleta cerrada: conservar `lib/colors.ts` (`#F2612F`/`#FF6A3D` como accent naranja). No introducir amarillo ni un segundo acento cálido.
+1. **Cerrar el diseño en Figma Make** (Alejandro, en progreso) → luego traducir pantalla por pantalla a `.tsx`.
+2. QA en dispositivo: magic link, cámara/galería, GPS y flujo Fondero -> Foodie completo.
+3. Registrar UDID de iPhone si se requieren builds internos.
+4. API key Google Maps restringida antes de builds Android reales.
+5. Paleta cerrada: conservar `lib/colors.ts` (`#F2612F`/`#FF6A3D` como accent naranja). No introducir amarillo ni un segundo acento cálido — conciliar con tokens de `theme.css` al traducir.
 
 ### Screenshots
 

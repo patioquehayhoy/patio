@@ -4,6 +4,49 @@
 
 ---
 
+## Ciclo 5 — 2026-06-14 (identidad verbal + control de costos + cierre de menú en código)
+
+**Qué hizo:**
+- Creó **`docs/design/foundations/IDENTITY_VERBAL.md`**: identidad verbal de Patio. Modelo de nombres estilo Uber/Rappi (nadie se renombra; verbo "publicar en Patio"; genérico = "lo de hoy"/"lugares", nunca "fonda/fondero/cocina" como etiqueta paraguas), tono calibrado por pantalla, lista anti-IA, par de marca **"¿Qué hay hoy? Saaaaaaabes."** (claim + tagline), glosario JTBD, §8 brief para pegar en Figma.
+- Creó **`docs/COSTOS.md`**: burn tracker de inversión (suscripciones, créditos, tiempo, ROI). Burn rate ~$68.25/mes (Figma $20 + ChatGPT $20 + Claude $20 + Apple $8.25).
+- Importó **v02** a `design-source/figma-make/v02/` (ajustes de menú). Comparó v01 vs v02 (registro en VERSIONS.md): v02 aporta arquitectura de datos del menú (`data/menu.ts`, `MenuCard`, `MenuPoster`).
+- **Reescribió el modelo de precio del menú** en v02: de `priceMode` excluyente a **`dayPrice` + `price` por item coexistiendo** (precio del día + extras a la carta). Editor del Fondero simplificado (sin toggle).
+
+**Qué encontró:**
+- **Figma Make es malo/carísimo para AJUSTAR** (bueno solo para generar de cero). Alejandro compró 1,000 créditos extra ($9.20, recurrente) y se vaciaron en ajustes de menú fallidos. Decisión: cerrar el diseño en código, no en Figma.
+- El defecto del menú no era visual sino de **modelo de datos**: el precio excluyente no representaba a las fonditas reales (comida corrida + a la carta). Se arregló en minutos, gratis, en código.
+
+**Qué sigue:**
+- Cancelar la suscripción de créditos Figma **antes del 7 jul** (recordatorio cloud + alarma personal de Alejandro programados).
+- Cerrar "compartir" (`MenuPoster.tsx`) y limpiar copy "fondero/a" en v02.
+- Luego: traducir a React Native y actualizar la versión de TestFlight.
+
+**Validación:**
+- Verificado: cero referencias rotas a campos viejos en v02. (v02 está fuera de TS del repo, no entra a `tsc`.)
+
+---
+
+## Ciclo 4 — 2026-06-12 (diseño rediseñado en Figma Make + sistema de versiones)
+
+**Qué hizo:**
+- Alejandro rediseñó Patio en **Figma Make** (Claude componiendo el UI completo en lienzo web). Esto **resuelve y reemplaza** el handoff pendiente a "Claude Design" del Ciclo 3.
+- Importó el export (`High Fidelity Design for Patio.zip`, 116 archivos) a `design-source/figma-make/v01/`, **aislado del build**: Metro lo ignora (`metro.config.js` nuevo → `resolver.blockList`), TypeScript lo excluye (`tsconfig.json` → `exclude`), ESLint también (`eslint.config.js`). `.gitignore` excluye `node_modules`/`dist` internos.
+- Montó **sistema de versiones de diseño**: `design-source/README.md` (flujo) + `design-source/figma-make/VERSIONS.md` (registro). Regla: Figma Make en la nube = doc vivo; el repo = snapshots fechados congelados, no se sincronizan, se reemplazan.
+
+**Qué encontró:**
+- El export es **web (Vite/React/Tailwind/Radix/MUI), no React Native**. No se pega en `app/` — es blueprint para **traducir** pantalla por pantalla.
+- Decisión de producto: el diseño **NO está cerrado** (~90%); se sigue iterando visual + estructura + copy en Figma Make. Falta sobre todo **lenguaje textual**, no visual.
+- **No traducir a React Native aún** — sería trabajo desperdiciado hasta declarar el diseño cerrado.
+
+**Qué sigue:**
+- Alejandro sigue iterando en Figma Make. En cada hito: exportar ZIP → `vNN/` → anotar fila en `VERSIONS.md`.
+- Cuando el diseño quede **cerrado**: traducir pantalla por pantalla a `.tsx` (orden de `TASKS.md`), empezando por conciliar tokens de `theme.css` con `lib/colors.ts` / `DESIGN_SYSTEM.md`.
+
+**Validación:**
+- `npx tsc --noEmit` — verde ✅ (confirma que el código web quedó fuera de TypeScript).
+
+---
+
 ## Ciclo 3 — 2026-06-06 (handoff a Claude Design + fórmula de imágenes de inicio)
 
 **Qué hizo:**

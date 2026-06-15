@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="P" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 64 64">
+  <!-- Generator: Adobe Illustrator 30.5.1, SVG Export Plug-In . SVG Version: 2.1.4 Build 3)  -->
+  <defs>
+    <style>
+      .st0 {
+        fill: #f3f3f0;
+      }
+
+      .st1 {
+        fill: #1a1a1a;
+      }
+    </style>
+  </defs>
+  <rect class="st0" width="64" height="64"/>
+  <path class="st1" d="M45.24,21.38h-21.68l-11.8,16.53h0l-3.36,4.71h7.99c2.11-2.95,5.52-4.71,9.15-4.71h7.91c8.05,0,17.25-3.71,20.5-8.27,3.25-4.56-.65-8.27-8.7-8.27ZM36.67,33.39h-13.69l5.35-7.49h13.69c3.65,0,5.42,1.68,3.94,3.75s-5.64,3.75-9.29,3.75Z"/>
+</svg>

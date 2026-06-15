@@ -16,20 +16,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AgentSpinner } from '@/components/agent-spinner';
 import { initializeSignedInUser, LOGIN_CALLBACK_URL } from '@/lib/auth';
-import {
-  setFonditaDescription,
-  setFonditaDireccion,
-  setFonditaDireccionVisible,
-  setFonditaHorario,
-  setFonditaName,
-  setPagosEfectivo,
-  setPagosTarjeta,
-  setPagosTrans,
-  setTipoNegocio,
-} from '@/lib/menu-store';
 import { supabase } from '@/lib/supabase';
 import { Fonts, useTheme } from '@/lib/theme';
-import { setFonditaId } from '@/lib/user-store';
 
 const ROLE_KEY = '@patio_user_role';
 const LIGHT_BG = '#F3F3F0';
@@ -87,22 +75,6 @@ export default function LoginScreen() {
     })();
   }, []);
 
-  const handleDevFondero = () => {
-    setFonditaId('dev-123');
-    setFonditaName('');
-    setFonditaDescription('');
-    setFonditaDireccion('');
-    setFonditaDireccionVisible(true);
-    setFonditaHorario('');
-    setPagosEfectivo(true);
-    setPagosTrans(true);
-    setPagosTarjeta(false);
-    setTipoNegocio('fondita');
-    router.replace('/foto-menu');
-  };
-
-  const handleDevFoodie = () => router.replace('/explorar');
-
   const handleExplore = () => {
     AsyncStorage.setItem(ROLE_KEY, 'foodie').catch(() => {});
     router.replace('/explorar');
@@ -111,11 +83,6 @@ export default function LoginScreen() {
   const handlePublishMenu = () => {
     AsyncStorage.setItem(ROLE_KEY, 'fondero').catch(() => {});
     setIntent('business');
-  };
-
-  const handleResetRole = async () => {
-    await AsyncStorage.removeItem(ROLE_KEY);
-    Alert.alert('Rol limpiado', 'Cierra y abre la app para ver el role-picker de cero.');
   };
 
   const handleSend = async () => {
@@ -168,57 +135,6 @@ export default function LoginScreen() {
               activeOpacity={0.7}>
               <Text style={[styles.secondaryBtnText, { color: theme.textSecondary }]}>Publicar mi menú</Text>
             </TouchableOpacity>
-            {__DEV__ && (
-              <View style={{ marginTop: 20 }}>
-                <Text style={[styles.devGroupLabel, { color: theme.textSecondary }]}>DEV · FOODIE</Text>
-                <View style={styles.devBarInline}>
-                  <TouchableOpacity style={[styles.devPill, { borderColor: theme.border }]} onPress={handleDevFoodie} activeOpacity={0.7}>
-                    <Text style={[styles.devButtonText, { color: theme.textSecondary }]}>Explorar</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={[styles.devPill, { borderColor: theme.border }]} onPress={() => router.push('/favoritos')} activeOpacity={0.7}>
-                    <Text style={[styles.devButtonText, { color: theme.textSecondary }]}>Favoritos</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={[styles.devPill, { borderColor: theme.border }]} onPress={() => router.push('/cuenta')} activeOpacity={0.7}>
-                    <Text style={[styles.devButtonText, { color: theme.textSecondary }]}>Cuenta</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={[styles.devPill, { borderColor: theme.border }]} onPress={() => router.push('/patio/cochitacos')} activeOpacity={0.7}>
-                    <Text style={[styles.devButtonText, { color: theme.textSecondary }]}>Ficha</Text>
-                  </TouchableOpacity>
-                </View>
-
-                <Text style={[styles.devGroupLabel, { color: theme.textSecondary, marginTop: 14 }]}>DEV · FONDERO</Text>
-                <View style={styles.devBarInline}>
-                  <TouchableOpacity style={[styles.devPill, { borderColor: theme.border }]} onPress={handleDevFondero} activeOpacity={0.7}>
-                    <Text style={[styles.devButtonText, { color: theme.textSecondary }]}>Capturar</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={[styles.devPill, { borderColor: theme.border }]} onPress={() => { handleDevFondero(); setTimeout(() => router.push('/menu'), 100); }} activeOpacity={0.7}>
-                    <Text style={[styles.devButtonText, { color: theme.textSecondary }]}>Menú</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={[styles.devPill, { borderColor: theme.border }]} onPress={() => { handleDevFondero(); setTimeout(() => router.push('/preview'), 100); }} activeOpacity={0.7}>
-                    <Text style={[styles.devButtonText, { color: theme.textSecondary }]}>Preview</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={[styles.devPill, { borderColor: theme.border }]} onPress={() => { handleDevFondero(); setTimeout(() => router.push('/share'), 100); }} activeOpacity={0.7}>
-                    <Text style={[styles.devButtonText, { color: theme.textSecondary }]}>Compartir</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={[styles.devPill, { borderColor: theme.border }]} onPress={() => { handleDevFondero(); setTimeout(() => router.push('/perfil'), 100); }} activeOpacity={0.7}>
-                    <Text style={[styles.devButtonText, { color: theme.textSecondary }]}>Perfil</Text>
-                  </TouchableOpacity>
-                </View>
-
-                <Text style={[styles.devGroupLabel, { color: theme.textSecondary, marginTop: 14 }]}>DEV · MISC</Text>
-                <View style={styles.devBarInline}>
-                  <TouchableOpacity style={[styles.devPill, { borderColor: theme.border }]} onPress={() => router.push('/manifiesto')} activeOpacity={0.7}>
-                    <Text style={[styles.devButtonText, { color: theme.textSecondary }]}>Manifiesto</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={[styles.devPill, { borderColor: theme.border }]} onPress={() => router.push('/onboarding')} activeOpacity={0.7}>
-                    <Text style={[styles.devButtonText, { color: theme.textSecondary }]}>Onboarding</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={[styles.devPill, { borderColor: theme.border }]} onPress={handleResetRole} activeOpacity={0.7}>
-                    <Text style={[styles.devButtonText, { color: theme.textSecondary }]}>Reset rol</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            )}
           </View>
         </View>
       ) : (
@@ -329,10 +245,4 @@ const styles = StyleSheet.create({
   hint: { fontSize: 13, textAlign: 'center', lineHeight: 18 },
   backLink: { alignItems: 'center', paddingTop: 4, paddingBottom: 2 },
   backLinkText: { fontSize: 14, fontWeight: '300', textDecorationLine: 'underline' },
-
-  // Dev
-  devGroupLabel: { fontSize: 10, fontWeight: '900', letterSpacing: 1.4, marginBottom: 6, textAlign: 'center' },
-  devBarInline: { flexDirection: 'row', gap: 6, justifyContent: 'center', flexWrap: 'wrap' },
-  devPill: { minHeight: 32, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 12, alignItems: 'center', justifyContent: 'center' },
-  devButtonText: { fontSize: 13, fontWeight: '300' },
 });

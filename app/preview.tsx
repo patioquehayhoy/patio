@@ -1,321 +1,158 @@
-import { router, useFocusEffect } from 'expo-router';
+import { router, Stack, useFocusEffect } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
-import { Alert, Platform, ScrollView, Share, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, Platform, Share, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { SymbolView } from 'expo-symbols';
 import * as Sharing from 'expo-sharing';
 import { captureRef } from 'react-native-view-shot';
 
-import { BottomTabBar } from '@/components/bottom-tab-bar';
-import { useTheme, type Theme } from '@/lib/theme';
-import {
-  getCartaData,
-  getFonditaDescription,
-  getFonditaDireccion,
-  getFonditaHorario,
-  getMenuData,
-  getPagosEfectivo,
-  getPagosTarjeta,
-  getPagosTrans,
-  type MenuData,
-} from '@/lib/menu-store';
+import { getFonditaName, getMenuData, type MenuData } from '@/lib/menu-store';
+import { Fonts } from '@/lib/theme';
 
-// Paleta oscura fija estilo Figma (flujo Fondero siempre oscuro).
-const DARK = {
-  bg: '#111214',
-  surface: 'rgba(255,255,255,0.04)',
-  surface2: 'rgba(255,255,255,0.08)',
-  text: '#F8F8F5',
-  textSecondary: 'rgba(248,248,245,0.55)',
-  border: 'rgba(255,255,255,0.10)',
-  sep: 'rgba(255,255,255,0.08)',
-  accent: '#FF6A3D',
-  accentLight: 'rgba(255,106,61,0.15)',
-};
+// MenuPoster exacto a Figma: tarjeta vertical de marca que se comparte como imagen.
+const DARK = { bg: '#08090B', text: '#F8F8F5', textMute: 'rgba(248,248,245,0.55)', accent: '#FF6A3D' };
+const LIGHT = { bg: '#F8F8F5', card: '#FFFFFF', ink: '#111214', inkSoft: '#4A4A47', mute: '#8A8A85', sep: 'rgba(17,18,20,0.06)', accent: '#F2612F' };
 
-function SectionBlock({ data, title, theme }: { data: MenuData; title: string; theme: Theme }) {
-  const hasContent = data.secciones.some(s => s.platillos.some(p => p.nombre));
+// Menú de ejemplo si aún no hay nada (para que el póster nunca salga vacío).
+const SAMPLE: { name: string; section: string }[] = [
+  { name: 'Sopa de fideo aguada', section: 'Entrada' },
+  { name: 'Tinga · Bistec a la mexicana', section: 'Guisado' },
+  { name: 'Arroz · Frijoles · Tortillas', section: 'Acompañante' },
+  { name: 'Gelatina de mosaico', section: 'Postre' },
+];
 
-  if (!hasContent) return null;
+type Row = { section: string; name: string; price?: string };
 
-  const s = makeStyles(theme);
-  const normalizePrice = (value: string): string => value.replace(/[^0-9.]/g, '');
-  const cleanDescriptionAndPrice = (description: string, explicitPrice?: string) => {
-    const fromParens = description.match(/\(\s*\$?\s*([0-9]+(?:\.[0-9]+)?)\s*\)/i);
-    const fromRaw = description.match(/\$\s*([0-9]+(?:\.[0-9]+)?)/i);
-    const extracted = explicitPrice || normalizePrice(fromParens?.[1] ?? fromRaw?.[1] ?? '');
-    const cleaned = description
-      .replace(/\(\s*\$?\s*[0-9]+(?:\.[0-9]+)?\s*\)/gi, '')
-      .replace(/\$\s*[0-9]+(?:\.[0-9]+)?/gi, '')
-      .replace(/\((?:men[uú]|menu)\)/gi, '')
-      .replace(/\b(?:men[uú]|menu)\b/gi, '')
-      .replace(/\s{2,}/g, ' ')
-      .trim();
-    return { cleaned, extracted };
-  };
-  const toVariantBullets = (description: string): string[] => {
-    if (!description) return [];
-    if (description.includes(' / ')) {
-      return description.split(' / ').map(part => part.trim()).filter(Boolean);
+function flattenMenu(m: MenuData | null): { rows: Row[]; dayPrice: string | null } {
+  if (!m) return { rows: [], dayPrice: null };
+  const rows: Row[] = [];
+  let dayPrice: string | null = null;
+  for (const sec of m.secciones) {
+    if (!dayPrice && sec.precio?.trim()) dayPrice = sec.precio.trim();
+    for (const p of sec.platillos) {
+      if (p.nombre?.trim()) rows.push({ section: sec.nombre, name: p.nombre.trim(), price: p.precio?.trim() || undefined });
     }
-    if (description.includes('•')) {
-      return description.split('•').map(part => part.trim()).filter(Boolean);
-    }
-    return [];
-  };
-
-  return (
-    <View style={s.block}>
-      <Text style={s.groupTitle} allowFontScaling={true}>{title}</Text>
-      {data.secciones.filter(sec => sec.platillos.some(p => p.nombre)).map(sec => {
-        const hasSectionPrice = !!sec.precio?.trim();
-        return (
-          <View key={sec.id} style={s.subsection}>
-            <View style={s.sectionHeader}>
-              <Text style={s.sectionTitle} allowFontScaling={true}>{sec.nombre}</Text>
-              {hasSectionPrice ? <Text style={s.sectionPrice} allowFontScaling={true}>${sec.precio}</Text> : <View style={s.sectionPriceSpacer} />}
-            </View>
-            {sec.platillos.filter(p => p.nombre).map((plat, i) => {
-              const { cleaned, extracted } = cleanDescriptionAndPrice(plat.descripcion ?? '', plat.precio ?? '');
-              const variantBullets = toVariantBullets(cleaned);
-              const showBullets = variantBullets.length > 1;
-              return (
-                <View key={plat.id ?? i} style={s.itemCard}>
-                  <View style={s.itemLeft}>
-                    <Text style={s.itemName} allowFontScaling={true}>{plat.nombre}</Text>
-                    {!showBullets && !!cleaned && <Text style={s.itemDesc} allowFontScaling={true}>{cleaned}</Text>}
-                    {showBullets && (
-                      <View style={s.variantList}>
-                        {variantBullets.map((line, bulletIndex) => (
-                          <Text key={`${plat.id ?? i}-${bulletIndex}`} style={s.variantItem} allowFontScaling={true}>
-                            {'\u2022'} {line}
-                          </Text>
-                        ))}
-                      </View>
-                    )}
-                  </View>
-                  <View style={s.itemPriceWrap}>
-                    {!!extracted && <Text style={s.itemPrice} allowFontScaling={true}>${extracted}</Text>}
-                  </View>
-                </View>
-              );
-            })}
-          </View>
-        );
-      })}
-    </View>
-  );
+  }
+  return { rows, dayPrice };
 }
 
 export default function PreviewScreen() {
-  const [menuData, setMenuData] = useState<MenuData | null>(null);
-  const [cartaData, setCartaData] = useState<MenuData | null>(null);
-  const [fonditaDesc, setFonditaDescState] = useState(getFonditaDescription());
-  const [fonditaDireccion, setFonditaDireccionState] = useState(getFonditaDireccion());
-  const [fonditaHorario,   setFonditaHorarioState]   = useState(getFonditaHorario());
-  const [pagosEfectivo,    setPagosEfectivoState]    = useState(getPagosEfectivo());
-  const [pagosTrans,       setPagosTransState]       = useState(getPagosTrans());
-  const [pagosTarjeta,     setPagosTarjetaState]     = useState(getPagosTarjeta());
-  const { theme } = useTheme();
-  const s = makeStyles(theme);
   const insets = useSafeAreaInsets();
-  const shareCardRef = useRef<View | null>(null);
-  const landscapeShareRef = useRef<View | null>(null);
+  const [menuData, setMenuData] = useState<MenuData | null>(null);
+  const [businessName, setBusinessName] = useState('Fonda Lupita');
+  const posterRef = useRef<View | null>(null);
+
   useFocusEffect(
     useCallback(() => {
       setMenuData(getMenuData());
-      setCartaData(getCartaData());
-      setFonditaDescState(getFonditaDescription());
-      setFonditaDireccionState(getFonditaDireccion());
-      setFonditaHorarioState(getFonditaHorario());
-      setPagosEfectivoState(getPagosEfectivo());
-      setPagosTransState(getPagosTrans());
-      setPagosTarjetaState(getPagosTarjeta());
+      setBusinessName(getFonditaName() || 'Fonda Lupita');
     }, [])
   );
 
-  const hasMenuItems = !!menuData?.secciones?.some(sec => sec.platillos.some(p => p.nombre?.trim()));
-  const hasCartaItems = !!cartaData?.secciones?.some(sec => sec.platillos.some(p => p.nombre?.trim()));
-  const hasAnything = hasMenuItems || hasCartaItems;
-  const fecha = new Date().toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' });
-  const pagos = [pagosEfectivo && 'Efectivo', pagosTrans && 'Transferencia', pagosTarjeta && 'Tarjeta'].filter(Boolean).join(' · ');
-  const showMaps = !!fonditaDireccion.trim();
+  const { rows, dayPrice } = flattenMenu(menuData);
+  const usingSample = rows.length === 0;
+  const displayRows: Row[] = usingSample ? SAMPLE.map((x) => ({ section: x.section, name: x.name })) : rows;
+  const priceLabel = dayPrice ? `$${dayPrice}` : (usingSample ? '$55' : null);
+  const fecha = new Date().toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' }).toUpperCase();
 
-  const shareFile = async (uri: string, mimeType: string, dialogTitle: string, uti?: string) => {
-    if (Platform.OS !== 'web' && (await Sharing.isAvailableAsync())) {
-      await Sharing.shareAsync(uri, { mimeType, dialogTitle, UTI: uti });
-      return;
-    }
-    await Share.share({ url: uri });
-  };
-
-  const handleShareImage = async () => {
-    if (!landscapeShareRef.current) return;
+  const handleShare = async () => {
+    if (!posterRef.current) return;
     try {
-      const uri = await captureRef(landscapeShareRef, {
-        format: 'png',
-        quality: 1,
-        result: 'tmpfile',
-      });
-      await shareFile(uri, 'image/png', 'Compartir imagen horizontal', 'public.png');
+      const uri = await captureRef(posterRef, { format: 'png', quality: 1, result: 'tmpfile' });
+      if (Platform.OS !== 'web' && (await Sharing.isAvailableAsync())) {
+        await Sharing.shareAsync(uri, { mimeType: 'image/png', dialogTitle: 'Compartir menú', UTI: 'public.png' });
+      } else {
+        await Share.share({ url: uri });
+      }
     } catch {
-      Alert.alert('No se pudo compartir la imagen', 'Intentemos de nuevo.');
+      Alert.alert('No se pudo compartir', 'Intentemos de nuevo.');
     }
   };
 
   return (
-    <View style={[s.container, { paddingTop: insets.top }]}>
-      <ScrollView
-        style={s.scroll}
-        contentContainerStyle={s.scrollContent}
-        showsVerticalScrollIndicator={false}>
-        <View ref={shareCardRef} collapsable={false} style={[s.shareFrame, !hasAnything && s.shareFrameEmpty]}>
-          <View style={[s.shareCard, !hasAnything && s.shareCardEmpty]}>
-            <View style={[s.scrollBody, !hasAnything && s.scrollBodyEmpty]}>
-              <View>
-                {hasAnything && (
-                  <>
-                    {!!fonditaDesc && <Text style={s.fonditaDesc} allowFontScaling={true}>{fonditaDesc}</Text>}
-                    {showMaps && <Text style={s.fonditaDireccion} allowFontScaling={true}>{fonditaDireccion}</Text>}
-                    {(!!fonditaDesc || showMaps) && <View style={s.headerDivider} />}
-                  </>
-                )}
+    <View style={s.root}>
+      <Stack.Screen options={{ headerShown: false }} />
 
-                {hasCartaItems && cartaData && <SectionBlock data={cartaData} title="Carta" theme={theme} />}
-                {hasCartaItems && hasMenuItems && <View style={s.sectionSeparator} />}
-                {hasMenuItems && menuData && <SectionBlock data={menuData} title="Menú del día" theme={theme} />}
-              </View>
+      {/* Top bar */}
+      <View style={[s.top, { top: insets.top + 6 }]}>
+        <TouchableOpacity style={s.navBtn} onPress={() => router.replace('/menu')} activeOpacity={0.7}>
+          <Ionicons name="chevron-back" size={20} color={DARK.text} />
+        </TouchableOpacity>
+        <Text style={s.topTitle} allowFontScaling={true}>Compartir</Text>
+        <View style={s.navBtn} />
+      </View>
 
-              <View>
-                {hasAnything && (
-                  <View style={s.infoBlock}>
-                    <Text style={s.infoFecha} allowFontScaling={true}>{new Date().toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' })}</Text>
-                    {!!fonditaHorario && <Text style={s.infoLine} allowFontScaling={true}>{fonditaHorario}</Text>}
-                    {(pagosEfectivo || pagosTrans || pagosTarjeta) && (
-                      <Text style={s.infoLine} allowFontScaling={true}>
-                        {[pagosEfectivo && 'Efectivo', pagosTrans && 'Transferencia', pagosTarjeta && 'Tarjeta'].filter(Boolean).join(' · ')}
-                      </Text>
-                    )}
-                  </View>
-                )}
-
-                {!hasAnything && (
-                  <View style={s.emptyWrap}>
-                    <SymbolView name="sparkles" size={30} tintColor={LIGHT.accent} weight="semibold" />
-                    <Text style={s.emptyTitle} allowFontScaling={true}>Llena tu menú</Text>
-                    <Text style={s.emptySub} allowFontScaling={true}>Cuando tengas platillos, aquí verás la vista para compartir.</Text>
-                    <TouchableOpacity
-                      style={s.emptyActionBtn}
-                      onPress={() => router.replace('/menu')}
-                      activeOpacity={0.86}>
-                      <Text style={s.emptyActionText} allowFontScaling={true}>Crear menú</Text>
-                    </TouchableOpacity>
-                  </View>
-                )}
-              </View>
+      {/* Póster centrado */}
+      <View style={s.posterWrap}>
+        <View ref={posterRef} collapsable={false} style={s.poster}>
+          {/* Header de marca */}
+          <View style={s.posterHead}>
+            <View style={s.brandRow}>
+              <Image source={require('../assets/images/p-icon-transparent.png')} style={s.brandMark} resizeMode="contain" />
+              <Text style={s.brandClaim} allowFontScaling={true}>¿Qué hay hoy?</Text>
             </View>
+            <Text style={s.posterDate} allowFontScaling={true}>{fecha}</Text>
+            <Text style={s.posterName} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} allowFontScaling={true}>{businessName}</Text>
           </View>
-        </View>
-      </ScrollView>
 
-      {hasAnything && (
-        <View style={s.actions}>
-          <TouchableOpacity style={s.shareButton} onPress={handleShareImage} activeOpacity={0.82}>
-            <Ionicons name="image-outline" size={20} color={"#fff"} style={{ marginRight: 8 }} />
-            <Text style={s.shareButtonText} allowFontScaling={true}>Compartir</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-      <View style={s.captureRoot} pointerEvents="none">
-        <View ref={landscapeShareRef} collapsable={false} style={s.landscapeCanvas}>
-          <View style={s.landscapeCard}>
-            <View style={s.landscapeHeader}>
-              {!!fonditaDesc && <Text style={s.landscapeDesc}>{fonditaDesc}</Text>}
-              {showMaps && <Text style={s.landscapeDireccion}>{fonditaDireccion}</Text>}
+          {/* Card de menú */}
+          <View style={s.menuCard}>
+            <View style={s.menuCardHead}>
+              <Text style={s.menuCardLabel} allowFontScaling={true}>Menú del día</Text>
+              {priceLabel ? <Text style={s.menuCardPrice} allowFontScaling={true}>{priceLabel}</Text> : null}
             </View>
-            <View style={s.landscapeColumns}>
-              <View style={s.landscapeColumnPrimary}>
-                {menuData ? <SectionBlock data={menuData} title="Menú del día" theme={theme} /> : <Text style={s.landscapeEmpty}>Sin menú del día</Text>}
+            {displayRows.map((r, i) => (
+              <View key={i} style={s.menuRow}>
+                <Text style={s.menuRowName} numberOfLines={1} allowFontScaling={true}>{r.name}</Text>
+                {r.price ? <Text style={s.menuRowPrice} allowFontScaling={true}>${r.price}</Text> : null}
               </View>
-              <View style={s.landscapeDivider} />
-              <View style={s.landscapeColumnSecondary}>
-                {cartaData ? <SectionBlock data={cartaData} title="Carta" theme={theme} /> : <Text style={s.landscapeEmpty}>Sin carta</Text>}
-              </View>
-            </View>
-            <View style={s.landscapeFooter}>
-              <Text style={s.infoFecha}>{fecha}</Text>
-              {!!fonditaHorario && <Text style={s.infoLine}>{fonditaHorario}</Text>}
-              {!!pagos && <Text style={s.infoLine}>{pagos}</Text>}
-            </View>
+            ))}
           </View>
+
+          {/* Firma */}
+          <Text style={s.posterSign} allowFontScaling={true}>Saaaaaaabes.</Text>
         </View>
       </View>
-      <BottomTabBar variant="fondero" />
+
+      {/* CTA compartir */}
+      <View style={[s.ctaWrap, { paddingBottom: (insets.bottom || 10) + 24 }]}>
+        <TouchableOpacity style={s.cta} onPress={handleShare} activeOpacity={0.86}>
+          <Ionicons name="logo-whatsapp" size={18} color="#fff" />
+          <Text style={s.ctaText} allowFontScaling={true}>Compartir en WhatsApp</Text>
+        </TouchableOpacity>
+        <Text style={s.ctaHint} allowFontScaling={true}>Se manda como imagen, lista para reenviar</Text>
+      </View>
     </View>
   );
 }
 
-// El póster compartible mantiene fondo claro (legibilidad de la imagen que
-// se manda por WhatsApp); el chrome de la pantalla va oscuro estilo Figma.
-const LIGHT = { surface: '#FFFFFF', text: '#111214', gray: '#6B6B68', textSecondary: '#8A8A85', sep: 'rgba(17,18,20,0.08)', accent: '#F2612F' };
+const s = StyleSheet.create({
+  root: { flex: 1, backgroundColor: DARK.bg },
+  top: { position: 'absolute', left: 16, right: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', zIndex: 20 },
+  navBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.08)', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
+  topTitle: { fontSize: 14, fontWeight: '600', color: DARK.text },
 
-function makeStyles(theme: Theme) {
-  const t: Theme = { ...theme, ...DARK, isDark: true };
-  return StyleSheet.create({
-    container:         { flex: 1, backgroundColor: t.bg },
-    scroll:            { flex: 1 },
-    scrollContent:     { flexGrow: 1, padding: 16, paddingBottom: 6 },
-    shareFrame:        { backgroundColor: t.bg, paddingHorizontal: 0, paddingVertical: 8 },
-    shareFrameEmpty:   { flexGrow: 1, justifyContent: 'center' },
-    shareCard:         { backgroundColor: LIGHT.surface, borderRadius: 22, borderWidth: 1, borderColor: LIGHT.sep, paddingHorizontal: 22, paddingVertical: 24, shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.25, shadowRadius: 24, elevation: 2 },
-    shareCardEmpty:    { minHeight: 360, justifyContent: 'center' },
-    scrollBody:        { flexGrow: 1, justifyContent: 'space-between' },
-    scrollBodyEmpty:   { minHeight: 300, justifyContent: 'center' },
-    headerDivider:     { height: StyleSheet.hairlineWidth, backgroundColor: LIGHT.sep, marginBottom: 20, opacity: 0.72 },
-    fonditaName:       { fontSize: 30, fontWeight: '900', color: LIGHT.text, lineHeight: 36, marginBottom: 3 },
-    fonditaDesc:       { fontSize: 16, fontWeight: '300', color: LIGHT.gray, lineHeight: 22, marginBottom: 3, textAlign: 'center' },
-    fonditaDireccion:  { fontSize: 12, fontWeight: '300', color: LIGHT.gray, lineHeight: 17, opacity: 0.62, marginBottom: 6 },
-    block:             { marginBottom: 0 },
-    groupTitle:        { fontSize: 16, fontWeight: '900', color: LIGHT.accent, marginBottom: 14, textTransform: 'uppercase' },
-    subsection:        { marginBottom: 18 },
-    sectionHeader:     { minHeight: 24, flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 6 },
-    sectionTitle:      { flex: 1, fontSize: 15, fontWeight: '900', color: LIGHT.text, textTransform: 'uppercase' },
-    sectionPrice:      { width: 64, textAlign: 'right', fontSize: 15, fontWeight: '300', color: LIGHT.textSecondary },
-    sectionPriceSpacer:{ width: 64 },
-    itemCard:          { flexDirection: 'row', alignItems: 'flex-start', paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: LIGHT.sep },
-    itemLeft:          { flex: 1, minWidth: 0, paddingRight: 12 },
-    itemName:          { fontSize: 17, fontWeight: '500', color: LIGHT.text, lineHeight: 23 },
-    itemDesc:          { marginTop: 3, fontSize: 14, fontWeight: '300', color: LIGHT.gray, lineHeight: 20 },
-    variantList:       { marginTop: 4, gap: 2 },
-    variantItem:       { fontSize: 13, fontWeight: '300', color: LIGHT.gray, lineHeight: 18 },
-    itemPriceWrap:     { width: 64, alignItems: 'flex-end', justifyContent: 'flex-start', paddingTop: 2 },
-    itemPrice:         { fontSize: 15, fontWeight: '300', color: LIGHT.textSecondary, lineHeight: 20, textAlign: 'right' },
-    precio:            { fontSize: 22, fontWeight: '900', color: LIGHT.accent, marginTop: 12, marginBottom: 0 },
-    sectionSeparator:  { height: StyleSheet.hairlineWidth, backgroundColor: LIGHT.sep, marginVertical: 24 },
-    infoBlock:         { marginTop: 24, paddingTop: 16, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: LIGHT.sep, alignItems: 'center' },
-    infoFecha:         { fontSize: 12, fontWeight: '300', color: LIGHT.gray, opacity: 0.7, lineHeight: 18, textAlign: 'center', marginBottom: 2 },
-    infoLine:          { fontSize: 12, fontWeight: '300', color: LIGHT.gray, opacity: 0.7, lineHeight: 18, textAlign: 'center', marginBottom: 2 },
-    emptyWrap:         { alignItems: 'center', justifyContent: 'center', paddingVertical: 4, gap: 8 },
-    emptyTitle:        { fontSize: 22, fontWeight: '900', color: LIGHT.text, textAlign: 'center' },
-    emptySub:          { maxWidth: 290, fontSize: 15, lineHeight: 21, color: LIGHT.textSecondary, textAlign: 'center' },
-    emptyActionBtn:    { marginTop: 10, minWidth: 180, minHeight: 48, borderRadius: 18, backgroundColor: LIGHT.text, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 22 },
-    emptyActionText:   { fontSize: 15, fontWeight: '900', color: '#fff' },
-    actions:           { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.sep, paddingTop: 12 },
-    shareButton:       { backgroundColor: t.accent, height: 54, borderRadius: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginHorizontal: 24, marginBottom: 24, shadowColor: t.accent, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.4, shadowRadius: 18, elevation: 4 },
-    shareButtonText:   { color: '#fff', fontSize: 15, fontWeight: '900' },
-    captureRoot:       { position: 'absolute', left: -2000, top: 0, opacity: 1 },
-    landscapeCanvas:   { width: 767, backgroundColor: '#EFEFEC', paddingVertical: 10, paddingHorizontal: 10 },
-    landscapeCard:     { backgroundColor: LIGHT.surface, borderRadius: 20, paddingTop: 22, paddingBottom: 18, paddingHorizontal: 14 },
-    landscapeHeader:   { width: 522, alignSelf: 'center', alignItems: 'center', marginBottom: 10, paddingBottom: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: LIGHT.sep },
-    landscapeName:     { fontSize: 36, fontWeight: '900', color: LIGHT.text, lineHeight: 40, marginBottom: 4, textAlign: 'center' },
-    landscapeDesc:     { fontSize: 16, fontWeight: '300', color: LIGHT.gray, lineHeight: 22, marginBottom: 2, textAlign: 'center' },
-    landscapeDireccion:{ fontSize: 12, fontWeight: '300', color: LIGHT.gray, lineHeight: 17, opacity: 0.5, marginBottom: 2, textAlign: 'center' },
-    landscapeColumns:  { width: 522, alignSelf: 'center', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'center' },
-    landscapeColumnPrimary:{ width: 307, flexShrink: 0 },
-    landscapeColumnSecondary:{ width: 203, flexShrink: 0 },
-    landscapeDivider:  { width: 12 },
-    landscapeFooter:   { width: 522, alignSelf: 'center', marginTop: 14, paddingTop: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: LIGHT.sep, alignItems: 'center' },
-    landscapeEmpty:    { fontSize: 16, fontWeight: '300', color: LIGHT.gray, fontStyle: 'italic', marginTop: 8 },
-  });
-}
+  posterWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 },
+  poster: { width: 300, borderRadius: 26, backgroundColor: LIGHT.bg, overflow: 'hidden', shadowColor: '#000', shadowOffset: { width: 0, height: 30 }, shadowOpacity: 0.5, shadowRadius: 40, elevation: 12 },
+  posterHead: { paddingHorizontal: 22, paddingTop: 22, paddingBottom: 16 },
+  brandRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 },
+  brandMark: { width: 30, height: 30 },
+  brandClaim: { fontSize: 16, fontWeight: '900', letterSpacing: -0.3, color: LIGHT.ink, fontFamily: Fonts.brand },
+  posterDate: { fontSize: 11, fontWeight: '700', letterSpacing: 1.4, textTransform: 'uppercase', color: LIGHT.accent, marginBottom: 6 },
+  posterName: { fontSize: 28, fontWeight: '900', letterSpacing: -0.8, color: LIGHT.ink, fontFamily: Fonts.brand },
+
+  menuCard: { marginHorizontal: 22, padding: 18, borderRadius: 18, backgroundColor: LIGHT.card, borderWidth: StyleSheet.hairlineWidth, borderColor: LIGHT.sep },
+  menuCardHead: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 12 },
+  menuCardLabel: { fontSize: 10.5, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase', color: LIGHT.mute },
+  menuCardPrice: { fontSize: 20, fontWeight: '900', letterSpacing: -0.4, color: LIGHT.accent, fontFamily: Fonts.brand },
+  menuRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 7, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: LIGHT.sep },
+  menuRowName: { flex: 1, fontSize: 14, fontWeight: '400', color: LIGHT.ink, marginRight: 10 },
+  menuRowPrice: { fontSize: 13, fontWeight: '300', color: LIGHT.inkSoft },
+
+  posterSign: { paddingHorizontal: 22, paddingTop: 16, paddingBottom: 20, textAlign: 'center', fontSize: 15, fontWeight: '900', letterSpacing: -0.3, color: LIGHT.ink, fontFamily: Fonts.brand },
+
+  ctaWrap: { paddingHorizontal: 22, paddingTop: 12 },
+  cta: { height: 56, borderRadius: 18, backgroundColor: '#25D366', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  ctaText: { fontSize: 16, fontWeight: '700', color: '#fff', letterSpacing: -0.2 },
+  ctaHint: { marginTop: 10, fontSize: 11.5, fontWeight: '300', color: DARK.textMute, textAlign: 'center' },
+});

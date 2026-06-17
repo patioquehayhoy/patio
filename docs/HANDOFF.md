@@ -1,10 +1,29 @@
 # HANDOFF
 
-## Estado vigente — 2026-06-16 (reconstrucción flujo Fondero)
+## Estado vigente — 2026-06-17 (cierre flujo Fondero + póster)
 
 Leer esta sección antes del historial. Las secciones antiguas abajo son bitácora y pueden contener pendientes ya resueltos.
 
-### Sesión 2026-06-16 — Reconstrucción look Figma (commit 8e2372f, sin push)
+### Sesión 2026-06-17 — Cierre Fondero (3 commits locales, SIN PUSH)
+
+**Commits locales en `v2-look-figma` (falta `git push origin v2-look-figma` — entorno sin credenciales):**
+- `8e2372f` Reconstrucción flujo Fondero look Figma + features Foodie
+- `342b287` foto-menu idle look Figma + limpiar share huérfana
+- `b19f515` preview → MenuPoster look Figma (póster compartible)
+
+**Cerrado esta sesión:**
+- **foto-menu (idle)** redISeñado: header back→Hoy, eyebrow, card foto héroe degradado naranja (consistente con "Hoy"), galería discreta. Estados processing/review/saved quedaron oscuros OK.
+- **share.tsx BORRADA** (huérfana confirmada, nadie la navegaba) + quitada de `_layout`.
+- **preview.tsx → MenuPoster**: póster vertical de marca (P + "¿Qué hay hoy?" + fecha + nombre negocio + menú + "Saaaaaaabes."), chrome oscuro, botón verde "Compartir en WhatsApp", captura como imagen (captureRef + Sharing). Back→Hoy. Lo usa `menu-publicado`.
+- **Rutas rotas: NINGUNA** (verificado). tsc verde en todos los commits.
+
+**PENDIENTE (próxima sesión):**
+1. **PUSH**: `git push origin v2-look-figma` (3 commits esperando). Solo Alejandro (credenciales).
+2. **Recorrido visual de TODAS las pantallas** en simulador — cazar viejas voladas. Método: Alejandro navega, Claude arregla. (Claude verifica tsc, no el look — por eso se cuelan viejas.)
+3. **Lado Foodie se siente parchado** — aplicar criterio limpio+verbal. Sospechoso: el buscador de inicio (explorar) con los puntos cargando. Revisar explorar/favoritos/cuenta/ficha a fondo.
+4. **Simulador se apaga solo seguido** — molesto pero no bloqueante; rebootear con `xcrun simctl boot` + abrir con URL localhost (la IP de WiFi cambia, usar localhost siempre).
+
+### Sesión 2026-06-16 — Reconstrucción look Figma
 
 **Aprendizaje clave (ver memoria `figma_exact_not_maquillaje` + `verbal_overrides_figma`):**
 Alejandro detestó el primer intento porque MAQUILLÉ las pantallas viejas (fondo oscuro encima) en vez de reconstruir. Se sentía "Frankenstein". Decisión: **reconstruir desde cero, no parchar.** Y: **el lenguaje verbal (IDENTITY_VERBAL.md) MANDA sobre el copy de Figma** — Figma usa "Fonda"/"Fondero" que VIOLAN las reglas. NUNCA esas palabras en pantalla.

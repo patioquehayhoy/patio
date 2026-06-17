@@ -46,7 +46,7 @@ export default function LoginCallback() {
   useEffect(() => {
     let isCancelled = false;
 
-    const safeRedirect = (path: '/' | '/perfil' | '/foto-menu', delayMs = 0) => {
+    const safeRedirect = (path: '/' | '/perfil' | '/menu', delayMs = 0) => {
       setTimeout(() => { if (!isCancelled) router.replace(path); }, delayMs);
     };
 
@@ -96,7 +96,7 @@ export default function LoginCallback() {
       if (session) {
         setDiag('¡Listo! Entrando…');
         await initializeSignedInUser(session);
-        safeRedirect('/foto-menu');
+        safeRedirect('/menu');
         return;
       }
 

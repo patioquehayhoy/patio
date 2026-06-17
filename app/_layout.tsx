@@ -29,13 +29,19 @@ function RootStack() {
         <Stack.Screen name="explorar" options={{ headerShown: false }} />
         <Stack.Screen name="favoritos" options={{ headerShown: false }} />
         <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+        <Stack.Screen name="push-prompt" options={{ headerShown: false }} />
         <Stack.Screen name="login-callback" options={{ headerShown: false }} />
         <Stack.Screen name="menu" options={{ title: '' }} />
+        <Stack.Screen name="menu-editar" options={{ headerShown: false }} />
+        <Stack.Screen name="menu-publicado" options={{ headerShown: false }} />
+        <Stack.Screen name="historial" options={{ headerShown: false }} />
         <Stack.Screen name="manifiesto" options={{ headerShown: false }} />
         <Stack.Screen name="share" options={{ title: 'Compartir' }} />
         <Stack.Screen name="preview" options={{ headerShown: false }} />
         <Stack.Screen name="perfil" options={{ headerShown: false }} />
+        <Stack.Screen name="perfil-editar" options={{ headerShown: false }} />
         <Stack.Screen name="patio/[id]" options={{ headerShown: false }} />
+        <Stack.Screen name="resena/[id]" options={{ headerShown: false }} />
       </Stack>
       <StatusBar style={theme.isDark ? 'light' : 'dark'} />
     </>

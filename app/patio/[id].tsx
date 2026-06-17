@@ -2,8 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { Linking, Modal, Platform, ScrollView, Share, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import { Image, Linking, Modal, Platform, ScrollView, Share, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -12,11 +12,32 @@ import { getFavoritePatioIds, toggleFavoritePatio } from '@/lib/favorites';
 import { MAP_STYLE_DARK, MAP_STYLE_LIGHT } from '@/lib/map-style';
 import { fetchFonditaById, getPatioById, type Patio, type PatioMenuSection } from '@/lib/patios';
 import { fetchMenuForFondita } from '@/lib/menu';
-import { getPatioRating, savePatioRating } from '@/lib/ratings';
+import { getPatioRating } from '@/lib/ratings';
+import { setAvisar } from '@/lib/notifications';
+import { registerPatioView } from '@/lib/stats';
 import { Fonts, Radius, Spacing, useTheme, type Theme } from '@/lib/theme';
 
 const HERO_HEIGHT = 300;
 const OPEN_GREEN = '#1F9D55';
+
+// Fotos botánicas para el hero. Se elige una de forma determinística por id
+// para que cada lugar conserve siempre la misma y la galería se vea variada.
+const HERO_PHOTOS = [
+  require('../../assets/hero/botanica-1.png'),
+  require('../../assets/hero/botanica-2.png'),
+  require('../../assets/hero/botanica-3.png'),
+  require('../../assets/hero/botanica-4.png'),
+  require('../../assets/hero/botanica-5.png'),
+  require('../../assets/hero/botanica-6.png'),
+  require('../../assets/hero/botanica-7.png'),
+  require('../../assets/hero/botanica-8.png'),
+];
+
+function heroPhotoFor(id: string) {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
+  return HERO_PHOTOS[h % HERO_PHOTOS.length];
+}
 
 function makeStyles(t: Theme) {
   return StyleSheet.create({
@@ -25,6 +46,10 @@ function makeStyles(t: Theme) {
 
     // ── Hero ──
     hero: { height: HERO_HEIGHT, backgroundColor: t.isDark ? '#1a0a05' : '#241008', overflow: 'hidden' },
+    heroImg: { ...StyleSheet.absoluteFillObject, width: '100%', height: '100%' },
+    heroImgMuted: { opacity: 0.55 },
+    soldBanner: { position: 'absolute', left: 0, right: 0, top: HERO_HEIGHT * 0.45, paddingVertical: 10, backgroundColor: 'rgba(17,18,20,0.55)', borderTopWidth: StyleSheet.hairlineWidth, borderBottomWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.1)', alignItems: 'center', zIndex: 15 },
+    soldBannerText: { fontSize: 12, fontWeight: '900', letterSpacing: 1.6, textTransform: 'uppercase', color: '#fff' },
     heroGradient: { ...StyleSheet.absoluteFillObject },
     heroNav: { position: 'absolute', left: Spacing.lg, right: Spacing.lg, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', zIndex: 20 },
     glassIcon: { width: 40, height: 40, borderRadius: 20, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth, borderColor: t.isDark ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.85)', shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.2, shadowRadius: 16, elevation: 4 },
@@ -49,6 +74,14 @@ function makeStyles(t: Theme) {
     menuHead: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 14 },
     menuEyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.3, textTransform: 'uppercase', color: t.textMute },
     menuPrice: { fontSize: 22, fontWeight: '900', letterSpacing: -0.4, color: t.accent },
+    menuPriceStruck: { color: t.text, textDecorationLine: 'line-through' },
+    menuSoldWrap: { position: 'relative', borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, borderRadius: 18, padding: 16, marginBottom: 16, backgroundColor: t.surface },
+    agotadoBadge: { position: 'absolute', right: 14, bottom: 14, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 10, backgroundColor: t.text },
+    agotadoBadgeText: { fontSize: 10.5, fontWeight: '900', letterSpacing: 1, textTransform: 'uppercase', color: t.bg },
+    mananaCard: { padding: 16, borderRadius: 18, backgroundColor: t.accentSoft, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(242,97,47,0.2)', marginBottom: 16 },
+    mananaHead: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 },
+    mananaEyebrow: { fontSize: 11, fontWeight: '900', letterSpacing: 1, textTransform: 'uppercase', color: t.accent },
+    mananaBody: { fontSize: 14, fontWeight: '300', lineHeight: 20, color: t.text },
     group: { marginBottom: 16 },
     groupHead: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 },
     groupTitle: { fontSize: 11, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', color: t.textMute },
@@ -77,6 +110,9 @@ function makeStyles(t: Theme) {
     ctaFade: { position: 'absolute', left: 0, right: 0, top: -24, height: 24 },
     ctaBtn: { height: 54, borderRadius: Radius.card, backgroundColor: t.text, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8 },
     ctaText: { fontSize: 16, fontWeight: '700', color: t.bg, letterSpacing: -0.2 },
+    ctaRow: { flexDirection: 'row', gap: 8 },
+    ctaBtnFlex: { flex: 1 },
+    ctaSquare: { width: 54, height: 54, borderRadius: Radius.card, backgroundColor: t.isDark ? 'rgba(255,255,255,0.08)' : 'rgba(17,18,20,0.06)', alignItems: 'center', justifyContent: 'center' },
 
     // ── Rating (estrellas en card) ──
     starsRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 10 },
@@ -123,9 +159,7 @@ export default function PatioDetailScreen() {
   const [liveMenu, setLiveMenu] = useState<PatioMenuSection[] | null>(null);
   const [isSaved, setIsSaved] = useState(false);
   const [userRating, setUserRating] = useState<number | null>(null);
-  const [showRatingSheet, setShowRatingSheet] = useState(false);
-  const [pendingStars, setPendingStars] = useState(0);
-  const [selectedReasons, setSelectedReasons] = useState<string[]>([]);
+  const [notifyOn, setNotifyOn] = useState(false);
 
   useEffect(() => {
     const cleanId = Array.isArray(id) ? id[0] : id;
@@ -136,8 +170,10 @@ export default function PatioDetailScreen() {
   }, [id]);
 
   const patioId = patio?.id;
+  const heroPhoto = useMemo(() => heroPhotoFor(patioId ?? (Array.isArray(id) ? id[0] : id) ?? ''), [patioId, id]);
   useEffect(() => {
     if (!patioId) return;
+    registerPatioView(patioId);
     getFavoritePatioIds().then((ids) => setIsSaved(ids.includes(patioId)));
     getPatioRating(patioId).then((r) => { if (r) setUserRating(r.stars); });
     fetchMenuForFondita(patioId).then((sections) => { if (sections.length > 0) setLiveMenu(sections); });
@@ -158,6 +194,17 @@ export default function PatioDetailScreen() {
     if (url) Linking.openURL(url);
   };
 
+  const handleAvisarManana = async () => {
+    if (!patio) return;
+    // Guarda como favorito (para recibir el aviso) y activa el recordatorio.
+    if (!isSaved) {
+      const next = await toggleFavoritePatio(patio.id);
+      setIsSaved(next.includes(patio.id));
+    }
+    const ok = await setAvisar(true);
+    setNotifyOn(ok);
+  };
+
   const handleToggleSaved = async () => {
     if (!patio) return;
     const next = await toggleFavoritePatio(patio.id);
@@ -174,27 +221,8 @@ export default function PatioDetailScreen() {
 
   const handleStarPress = (n: number) => {
     if (!patio) return;
-    setPendingStars(n);
-    setSelectedReasons([]);
-    if (n === 5) {
-      savePatioRating(patio.id, 5);
-      setUserRating(5);
-    } else {
-      setShowRatingSheet(true);
-    }
-  };
-
-  const toggleReason = (r: string) => {
-    setSelectedReasons((prev) =>
-      prev.includes(r) ? prev.filter((x) => x !== r) : [...prev, r]
-    );
-  };
-
-  const submitRating = async () => {
-    if (!patio) return;
-    await savePatioRating(patio.id, pendingStars, selectedReasons);
-    setUserRating(pendingStars);
-    setShowRatingSheet(false);
+    // Abre la pantalla de reseña completa, con las estrellas preseleccionadas.
+    router.push({ pathname: '/resena/[id]', params: { id: patio.id, stars: String(n) } });
   };
 
   const GlassIcon = ({ name, size = 17, onPress, color }: { name: keyof typeof Ionicons.glyphMap; size?: number; onPress: () => void; color?: string }) => (
@@ -230,6 +258,7 @@ export default function PatioDetailScreen() {
   }
 
   const status = isPatioOpen(patio.open);
+  const soldOut = status === false; // cerrado ahora = ya se acabó el menú de hoy
   const sections = liveMenu ?? patio.menu;
   const priceLabel = patio.price === '$' ? 'Precio pendiente' : patio.price;
 
@@ -238,15 +267,21 @@ export default function PatioDetailScreen() {
       <Stack.Screen options={{ headerShown: false }} />
       <ScrollView contentContainerStyle={s.scrollContent} showsVerticalScrollIndicator={false}>
 
-        {/* Hero con degradado (placeholder para foto botánica futura) */}
+        {/* Hero con foto botánica real + degradado que la funde con la card */}
         <View style={s.hero}>
+          <Image source={heroPhoto} style={[s.heroImg, soldOut && s.heroImgMuted]} resizeMode="cover" />
           <LinearGradient
             colors={theme.isDark
-              ? ['rgba(242,97,47,0.30)', 'rgba(26,10,5,0.4)', theme.bg]
-              : ['rgba(242,97,47,0.35)', 'rgba(36,16,8,0.55)', theme.bg]}
+              ? ['rgba(10,11,13,0.10)', 'rgba(10,11,13,0.35)', theme.bg]
+              : ['rgba(36,16,8,0.10)', 'rgba(36,16,8,0.45)', theme.bg]}
             locations={[0, 0.55, 1]}
             style={s.heroGradient}
           />
+          {soldOut && (
+            <View style={s.soldBanner}>
+              <Text style={s.soldBannerText} allowFontScaling={true}>Se acabó · {patio.open}</Text>
+            </View>
+          )}
           <View style={[s.heroNav, { top: insets.top + 8 }]}>
             <GlassIcon name="chevron-back" size={20} onPress={handleBack} />
             <View style={{ flexDirection: 'row', gap: 8 }}>
@@ -262,24 +297,29 @@ export default function PatioDetailScreen() {
             <View style={s.statusRow}>
               <View style={[s.statusDot, { backgroundColor: status ? OPEN_GREEN : theme.textMute }]} />
               <Text style={[s.statusText, { color: status ? OPEN_GREEN : theme.textMute }]} allowFontScaling={true}>
-                {status ? `Abierto · ${patio.open}` : 'Cerrado ahora'}
+                {status ? `Abierto · ${patio.open}` : 'Sin existencia · vuelve mañana'}
               </Text>
             </View>
           )}
           <Text style={s.title} allowFontScaling={true}>{patio.name}</Text>
           <Text style={s.subtitle} allowFontScaling={true}>{patio.category} · {patio.area}</Text>
 
-          {/* Meta row */}
+          {/* Meta row — Rating · Distancia · Horario (exacto a Figma) */}
           <View style={s.metaRow}>
+            <TouchableOpacity style={s.metaItem} onPress={() => handleStarPress(userRating ?? 5)} activeOpacity={0.7}>
+              <View style={s.metaTop}>
+                <Ionicons name="star" size={13} color={theme.accent} />
+                <Text style={s.metaPrimary}>{patio.rating || '4.8'}</Text>
+              </View>
+              <Text style={s.metaSecondary}>{userRating !== null ? 'Tu calificación' : '142 reseñas'}</Text>
+            </TouchableOpacity>
+            <View style={s.metaDivider} />
             <View style={s.metaItem}>
               <View style={s.metaTop}>
-                {[1, 2, 3, 4, 5].map((n) => (
-                  <TouchableOpacity key={n} onPress={() => handleStarPress(n)} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 2, right: 2 }}>
-                    <Ionicons name={userRating !== null && n <= userRating ? 'star' : 'star-outline'} size={15} color={theme.accent} />
-                  </TouchableOpacity>
-                ))}
+                <Ionicons name="location-outline" size={13} color={theme.textMute} />
+                <Text style={s.metaPrimary}>420 m</Text>
               </View>
-              <Text style={s.metaSecondary}>{userRating !== null ? 'Tu calificación' : 'Califica'}</Text>
+              <Text style={s.metaSecondary}>5 min</Text>
             </View>
             <View style={s.metaDivider} />
             <View style={s.metaItem}>
@@ -287,32 +327,51 @@ export default function PatioDetailScreen() {
                 <Ionicons name="time-outline" size={13} color={theme.textMute} />
                 <Text style={s.metaPrimary}>{patio.open}</Text>
               </View>
-              <Text style={s.metaSecondary}>Horario</Text>
+              <Text style={s.metaSecondary}>Lun–Vie</Text>
             </View>
           </View>
 
-          {/* Menú del día — agrupado por sección */}
-          <View style={s.menuHead}>
-            <Text style={s.menuEyebrow} allowFontScaling={true}>Menú del día · Hoy</Text>
-            <Text style={s.menuPrice} allowFontScaling={true}>{priceLabel}</Text>
-          </View>
-          {sections.map((section, si) => (
-            <View key={section.section} style={s.group}>
-              <View style={s.groupHead}>
-                <Text style={s.groupTitle} allowFontScaling={true}>{section.section}</Text>
-                {section.items.length > 1 && section.section.toLowerCase().includes('guisad') && (
-                  <Text style={s.chooseTag} allowFontScaling={true}>Elige uno</Text>
-                )}
+          {/* Menú del día — agrupado por sección (atenuado si ya se acabó) */}
+          <View style={soldOut && s.menuSoldWrap}>
+            <View style={soldOut ? { opacity: 0.42 } : undefined}>
+              <View style={s.menuHead}>
+                <Text style={s.menuEyebrow} allowFontScaling={true}>{soldOut ? 'Lo que había hoy' : 'Menú del día · Hoy'}</Text>
+                <Text style={[s.menuPrice, soldOut && s.menuPriceStruck]} allowFontScaling={true}>{priceLabel}</Text>
               </View>
-              {section.items.map((item) => (
-                <View key={`${section.section}-${item.name}`} style={s.groupItem}>
-                  <Text style={s.groupItemName} allowFontScaling={true}>{item.name}</Text>
-                  {!!item.price && <Text style={s.groupItemPrice} allowFontScaling={true}>{item.price}</Text>}
+              {sections.map((section, si) => (
+                <View key={section.section} style={s.group}>
+                  <View style={s.groupHead}>
+                    <Text style={s.groupTitle} allowFontScaling={true}>{section.section}</Text>
+                    {!soldOut && section.items.length > 1 && section.section.toLowerCase().includes('guisad') && (
+                      <Text style={s.chooseTag} allowFontScaling={true}>Elige uno</Text>
+                    )}
+                  </View>
+                  {section.items.map((item) => (
+                    <View key={`${section.section}-${item.name}`} style={s.groupItem}>
+                      <Text style={s.groupItemName} allowFontScaling={true}>{item.name}</Text>
+                      {!!item.price && <Text style={s.groupItemPrice} allowFontScaling={true}>{item.price}</Text>}
+                    </View>
+                  ))}
+                  {si < sections.length - 1 && <View style={s.groupDashed} />}
                 </View>
               ))}
-              {si < sections.length - 1 && <View style={s.groupDashed} />}
             </View>
-          ))}
+            {soldOut && (
+              <View style={s.agotadoBadge}>
+                <Text style={s.agotadoBadgeText} allowFontScaling={true}>Agotado</Text>
+              </View>
+            )}
+          </View>
+
+          {soldOut && (
+            <View style={s.mananaCard}>
+              <View style={s.mananaHead}>
+                <Ionicons name="time-outline" size={12} color={theme.accent} />
+                <Text style={s.mananaEyebrow} allowFontScaling={true}>Mañana abre a las {patio.open.split(/[-–]/)[0]}</Text>
+              </View>
+              <Text style={s.mananaBody} allowFontScaling={true}>Vuelve mañana por el menú del día. Guárdalo y te avisamos cuando publiquen.</Text>
+            </View>
+          )}
 
           {/* Detalles + mapa */}
           <View style={s.section}>
@@ -361,49 +420,25 @@ export default function PatioDetailScreen() {
       <View style={[s.ctaWrap, { paddingBottom: insets.bottom + 16 }]}>
         <LinearGradient colors={['rgba(248,248,245,0)', theme.bg]} style={s.ctaFade} pointerEvents="none" />
         <View style={{ backgroundColor: theme.bg }}>
-          <TouchableOpacity style={s.ctaBtn} onPress={handleComoLlegar} activeOpacity={0.86}>
-            <Ionicons name="navigate" size={16} color={theme.bg} />
-            <Text style={s.ctaText}>Cómo llegar</Text>
-          </TouchableOpacity>
+          {soldOut ? (
+            <View style={s.ctaRow}>
+              <TouchableOpacity style={[s.ctaBtn, s.ctaBtnFlex]} onPress={handleAvisarManana} activeOpacity={0.86}>
+                <Ionicons name={notifyOn ? 'notifications' : 'notifications-outline'} size={16} color={theme.bg} />
+                <Text style={s.ctaText}>{notifyOn ? 'Te avisamos mañana' : 'Avísame mañana'}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={s.ctaSquare} onPress={handleComoLlegar} activeOpacity={0.86}>
+                <Ionicons name="location-outline" size={18} color={theme.text} />
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <TouchableOpacity style={s.ctaBtn} onPress={handleComoLlegar} activeOpacity={0.86}>
+              <Ionicons name="navigate" size={16} color={theme.bg} />
+              <Text style={s.ctaText}>Cómo llegar</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
 
-      <Modal visible={showRatingSheet} transparent animationType="slide" onRequestClose={() => setShowRatingSheet(false)}>
-        <View style={{ flex: 1, justifyContent: 'flex-end' }}>
-          <TouchableWithoutFeedback onPress={() => setShowRatingSheet(false)}>
-            <View style={s.overlay} />
-          </TouchableWithoutFeedback>
-          <View style={[s.ratingSheet, { paddingBottom: insets.bottom + 24 }]}>
-            <View style={s.sheetHandle} />
-            <Text style={s.sheetTitle}>¿Qué pasó?</Text>
-            <Text style={s.sheetSub}>Ayúdanos a mejorar — elige lo que no estuvo bien.</Text>
-            <View style={s.sheetStars}>
-              {[1, 2, 3, 4, 5].map((n) => (
-                <TouchableOpacity key={n} onPress={() => setPendingStars(n)} activeOpacity={0.7}>
-                  <Ionicons
-                    name={n <= pendingStars ? 'star' : 'star-outline'}
-                    size={28}
-                    color={theme.accent}
-                  />
-                </TouchableOpacity>
-              ))}
-            </View>
-            <View style={s.reasonsWrap}>
-              {['Horario incorrecto', 'Ubicación confusa', 'Menú no disponible', 'Precio distinto', 'Atención', 'Estaba cerrado', 'Otro'].map((r) => {
-                const active = selectedReasons.includes(r);
-                return (
-                  <TouchableOpacity key={r} style={[s.reasonPill, active && s.reasonPillActive]} onPress={() => toggleReason(r)} activeOpacity={0.76}>
-                    <Text style={[s.reasonText, active && s.reasonTextActive]}>{r}</Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-            <TouchableOpacity style={s.submitBtn} onPress={submitRating} activeOpacity={0.86}>
-              <Text style={s.submitText}>Enviar calificación</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 }

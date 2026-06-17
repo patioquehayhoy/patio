@@ -29,7 +29,19 @@ import {
 } from '@/lib/menu-store';
 import { saveMenuHoy } from '@/lib/db';
 import { getFonditaId } from '@/lib/user-store';
-import { BottomTabBar } from '@/components/bottom-tab-bar';
+
+// Paleta oscura fija estilo Figma (flujo Fondero siempre oscuro).
+const DARK = {
+  bg: '#111214',
+  surface: 'rgba(255,255,255,0.04)',
+  surface2: 'rgba(255,255,255,0.08)',
+  text: '#F8F8F5',
+  textSecondary: 'rgba(248,248,245,0.55)',
+  border: 'rgba(255,255,255,0.10)',
+  sep: 'rgba(255,255,255,0.08)',
+  accent: '#FF6A3D',
+  accentLight: 'rgba(255,106,61,0.15)',
+};
 
 type Estado = 'idle' | 'camera' | 'processing' | 'review' | 'saved';
 
@@ -126,9 +138,9 @@ function PlatilloCard({
               value={plat.nombre}
               onChangeText={onNombre}
               placeholder="Platillo"
-              placeholderTextColor={theme.border}
+              placeholderTextColor={DARK.textSecondary}
               autoCapitalize="sentences"
-              selectionColor={theme.accent}
+              selectionColor={DARK.accent}
               returnKeyType="next"
             />
             <View style={s.platActions}>
@@ -138,9 +150,9 @@ function PlatilloCard({
                 value={plat.precio}
                 onChangeText={v => onPrecio(v.replace(/[^0-9.]/g, ''))}
                 placeholder="0"
-                placeholderTextColor={theme.border}
+                placeholderTextColor={DARK.textSecondary}
                 keyboardType="decimal-pad"
-                selectionColor={theme.accent}
+                selectionColor={DARK.accent}
               />
             </View>
           </View>
@@ -149,9 +161,9 @@ function PlatilloCard({
             value={plat.descripcion}
             onChangeText={onDesc}
             placeholder="Descripción"
-            placeholderTextColor={theme.border}
+            placeholderTextColor={DARK.textSecondary}
             autoCapitalize="none"
-            selectionColor={theme.accent}
+            selectionColor={DARK.accent}
             returnKeyType="next"
           />
         </View>
@@ -223,7 +235,7 @@ function SectionCard({
             value={sec.nombre}
             onChangeText={v => onNombre(v.toUpperCase())}
             autoCapitalize="characters"
-            selectionColor={theme.accent}
+            selectionColor={DARK.accent}
             returnKeyType="done"
           />
           <View style={s.priceWrap}>
@@ -233,9 +245,9 @@ function SectionCard({
               value={sec.precio}
               onChangeText={v => onPrecio(v.replace(/[^0-9.]/g, ''))}
               placeholder="0"
-              placeholderTextColor={theme.border}
+              placeholderTextColor={DARK.textSecondary}
               keyboardType="decimal-pad"
-              selectionColor={theme.accent}
+              selectionColor={DARK.accent}
             />
           </View>
         </View>
@@ -417,7 +429,8 @@ export default function FotoMenuScreen() {
   useEffect(() => {
     if (estado !== 'saved') return;
     const id = setTimeout(() => {
-      router.replace('/preview');
+      // Tras leer la foto, llevar al editor para revisar/ajustar antes de publicar.
+      router.replace('/menu-editar');
     }, 800);
     return () => clearTimeout(id);
   }, [estado]);
@@ -436,7 +449,7 @@ export default function FotoMenuScreen() {
                 onPress={tomarFoto}
                 activeOpacity={0.85}
               >
-                <Ionicons name="camera" size={56} color={theme.accent} style={s.cameraBtnIcon} />
+                <Ionicons name="camera" size={56} color={DARK.accent} style={s.cameraBtnIcon} />
                 <Text style={s.cameraBtnLabel}>Toma foto de tu menú</Text>
                 <Text style={s.cameraBtnSub}>Patio lo lee por ti y lo organiza al instante</Text>
               </TouchableOpacity>
@@ -454,7 +467,6 @@ export default function FotoMenuScreen() {
           </View>
         </View>
 
-        <BottomTabBar />
       </SafeAreaView>
     );
   }
@@ -488,7 +500,7 @@ export default function FotoMenuScreen() {
     return (
       <SafeAreaView style={[s.container, s.centerContent]}>
         <Stack.Screen options={{ headerShown: false }} />
-        <AgentSpinner variant="dots" size={34} color={theme.accent} />
+        <AgentSpinner variant="dots" size={34} color={DARK.accent} />
         <Text style={[s.processingLabel, { marginTop: 16 }]}>
           Patio está leyendo tu contenido...
         </Text>
@@ -610,7 +622,8 @@ function visionAMenuData(secciones: MenuSeccion[], precio: string): MenuData {
   };
 }
 
-function makeStyles(t: Theme) {
+function makeStyles(theme: Theme) {
+  const t: Theme = { ...theme, ...DARK, isDark: true };
   return StyleSheet.create({
     container:       { flex: 1, backgroundColor: t.bg },
     centerContent:   { alignItems: 'center', justifyContent: 'center', padding: 24 },

@@ -21,6 +21,19 @@ import {
   type MenuData,
 } from '@/lib/menu-store';
 
+// Paleta oscura fija estilo Figma (flujo Fondero siempre oscuro).
+const DARK = {
+  bg: '#111214',
+  surface: 'rgba(255,255,255,0.04)',
+  surface2: 'rgba(255,255,255,0.08)',
+  text: '#F8F8F5',
+  textSecondary: 'rgba(248,248,245,0.55)',
+  border: 'rgba(255,255,255,0.10)',
+  sep: 'rgba(255,255,255,0.08)',
+  accent: '#FF6A3D',
+  accentLight: 'rgba(255,106,61,0.15)',
+};
+
 function SectionBlock({ data, title, theme }: { data: MenuData; title: string; theme: Theme }) {
   const hasContent = data.secciones.some(s => s.platillos.some(p => p.nombre));
 
@@ -189,7 +202,7 @@ export default function PreviewScreen() {
 
                 {!hasAnything && (
                   <View style={s.emptyWrap}>
-                    <SymbolView name="sparkles" size={30} tintColor={theme.accent} weight="semibold" />
+                    <SymbolView name="sparkles" size={30} tintColor={LIGHT.accent} weight="semibold" />
                     <Text style={s.emptyTitle} allowFontScaling={true}>Llena tu menú</Text>
                     <Text style={s.emptySub} allowFontScaling={true}>Cuando tengas platillos, aquí verás la vista para compartir.</Text>
                     <TouchableOpacity
@@ -209,7 +222,7 @@ export default function PreviewScreen() {
       {hasAnything && (
         <View style={s.actions}>
           <TouchableOpacity style={s.shareButton} onPress={handleShareImage} activeOpacity={0.82}>
-            <Ionicons name="image-outline" size={20} color={theme.surface} style={{ marginRight: 8 }} />
+            <Ionicons name="image-outline" size={20} color={"#fff"} style={{ marginRight: 8 }} />
             <Text style={s.shareButtonText} allowFontScaling={true}>Compartir</Text>
           </TouchableOpacity>
         </View>
@@ -238,66 +251,71 @@ export default function PreviewScreen() {
           </View>
         </View>
       </View>
-      <BottomTabBar />
+      <BottomTabBar variant="fondero" />
     </View>
   );
 }
 
-function makeStyles(t: Theme) {
+// El póster compartible mantiene fondo claro (legibilidad de la imagen que
+// se manda por WhatsApp); el chrome de la pantalla va oscuro estilo Figma.
+const LIGHT = { surface: '#FFFFFF', text: '#111214', gray: '#6B6B68', textSecondary: '#8A8A85', sep: 'rgba(17,18,20,0.08)', accent: '#F2612F' };
+
+function makeStyles(theme: Theme) {
+  const t: Theme = { ...theme, ...DARK, isDark: true };
   return StyleSheet.create({
     container:         { flex: 1, backgroundColor: t.bg },
     scroll:            { flex: 1 },
     scrollContent:     { flexGrow: 1, padding: 16, paddingBottom: 6 },
     shareFrame:        { backgroundColor: t.bg, paddingHorizontal: 0, paddingVertical: 8 },
     shareFrameEmpty:   { flexGrow: 1, justifyContent: 'center' },
-    shareCard:         { backgroundColor: t.surface, borderRadius: 22, borderWidth: 1, borderColor: t.sep, paddingHorizontal: 22, paddingVertical: 24, shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.05, shadowRadius: 24, elevation: 2 },
+    shareCard:         { backgroundColor: LIGHT.surface, borderRadius: 22, borderWidth: 1, borderColor: LIGHT.sep, paddingHorizontal: 22, paddingVertical: 24, shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.25, shadowRadius: 24, elevation: 2 },
     shareCardEmpty:    { minHeight: 360, justifyContent: 'center' },
     scrollBody:        { flexGrow: 1, justifyContent: 'space-between' },
     scrollBodyEmpty:   { minHeight: 300, justifyContent: 'center' },
-    headerDivider:     { height: StyleSheet.hairlineWidth, backgroundColor: t.sep, marginBottom: 20, opacity: 0.72 },
-    fonditaName:       { fontSize: 30, fontWeight: '900', color: t.text, lineHeight: 36, marginBottom: 3 },
-    fonditaDesc:       { fontSize: 16, fontWeight: '300', color: t.gray, lineHeight: 22, marginBottom: 3, textAlign: 'center' },
-    fonditaDireccion:  { fontSize: 12, fontWeight: '300', color: t.gray, lineHeight: 17, opacity: 0.62, marginBottom: 6 },
+    headerDivider:     { height: StyleSheet.hairlineWidth, backgroundColor: LIGHT.sep, marginBottom: 20, opacity: 0.72 },
+    fonditaName:       { fontSize: 30, fontWeight: '900', color: LIGHT.text, lineHeight: 36, marginBottom: 3 },
+    fonditaDesc:       { fontSize: 16, fontWeight: '300', color: LIGHT.gray, lineHeight: 22, marginBottom: 3, textAlign: 'center' },
+    fonditaDireccion:  { fontSize: 12, fontWeight: '300', color: LIGHT.gray, lineHeight: 17, opacity: 0.62, marginBottom: 6 },
     block:             { marginBottom: 0 },
-    groupTitle:        { fontSize: 16, fontWeight: '900', color: t.accent, marginBottom: 14, textTransform: 'uppercase' },
+    groupTitle:        { fontSize: 16, fontWeight: '900', color: LIGHT.accent, marginBottom: 14, textTransform: 'uppercase' },
     subsection:        { marginBottom: 18 },
     sectionHeader:     { minHeight: 24, flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 6 },
-    sectionTitle:      { flex: 1, fontSize: 15, fontWeight: '900', color: t.text, textTransform: 'uppercase' },
-    sectionPrice:      { width: 64, textAlign: 'right', fontSize: 15, fontWeight: '300', color: t.textSecondary },
+    sectionTitle:      { flex: 1, fontSize: 15, fontWeight: '900', color: LIGHT.text, textTransform: 'uppercase' },
+    sectionPrice:      { width: 64, textAlign: 'right', fontSize: 15, fontWeight: '300', color: LIGHT.textSecondary },
     sectionPriceSpacer:{ width: 64 },
-    itemCard:          { flexDirection: 'row', alignItems: 'flex-start', paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.sep },
+    itemCard:          { flexDirection: 'row', alignItems: 'flex-start', paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: LIGHT.sep },
     itemLeft:          { flex: 1, minWidth: 0, paddingRight: 12 },
-    itemName:          { fontSize: 17, fontWeight: '500', color: t.text, lineHeight: 23 },
-    itemDesc:          { marginTop: 3, fontSize: 14, fontWeight: '300', color: t.gray, lineHeight: 20 },
+    itemName:          { fontSize: 17, fontWeight: '500', color: LIGHT.text, lineHeight: 23 },
+    itemDesc:          { marginTop: 3, fontSize: 14, fontWeight: '300', color: LIGHT.gray, lineHeight: 20 },
     variantList:       { marginTop: 4, gap: 2 },
-    variantItem:       { fontSize: 13, fontWeight: '300', color: t.gray, lineHeight: 18 },
+    variantItem:       { fontSize: 13, fontWeight: '300', color: LIGHT.gray, lineHeight: 18 },
     itemPriceWrap:     { width: 64, alignItems: 'flex-end', justifyContent: 'flex-start', paddingTop: 2 },
-    itemPrice:         { fontSize: 15, fontWeight: '300', color: t.textSecondary, lineHeight: 20, textAlign: 'right' },
-    precio:            { fontSize: 22, fontWeight: '900', color: t.accent, marginTop: 12, marginBottom: 0 },
-    sectionSeparator:  { height: StyleSheet.hairlineWidth, backgroundColor: t.sep, marginVertical: 24 },
-    infoBlock:         { marginTop: 24, paddingTop: 16, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.sep, alignItems: 'center' },
-    infoFecha:         { fontSize: 12, fontWeight: '300', color: t.gray, opacity: 0.7, lineHeight: 18, textAlign: 'center', marginBottom: 2 },
-    infoLine:          { fontSize: 12, fontWeight: '300', color: t.gray, opacity: 0.7, lineHeight: 18, textAlign: 'center', marginBottom: 2 },
+    itemPrice:         { fontSize: 15, fontWeight: '300', color: LIGHT.textSecondary, lineHeight: 20, textAlign: 'right' },
+    precio:            { fontSize: 22, fontWeight: '900', color: LIGHT.accent, marginTop: 12, marginBottom: 0 },
+    sectionSeparator:  { height: StyleSheet.hairlineWidth, backgroundColor: LIGHT.sep, marginVertical: 24 },
+    infoBlock:         { marginTop: 24, paddingTop: 16, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: LIGHT.sep, alignItems: 'center' },
+    infoFecha:         { fontSize: 12, fontWeight: '300', color: LIGHT.gray, opacity: 0.7, lineHeight: 18, textAlign: 'center', marginBottom: 2 },
+    infoLine:          { fontSize: 12, fontWeight: '300', color: LIGHT.gray, opacity: 0.7, lineHeight: 18, textAlign: 'center', marginBottom: 2 },
     emptyWrap:         { alignItems: 'center', justifyContent: 'center', paddingVertical: 4, gap: 8 },
-    emptyTitle:        { fontSize: 22, fontWeight: '900', color: t.text, textAlign: 'center' },
-    emptySub:          { maxWidth: 290, fontSize: 15, lineHeight: 21, color: t.textSecondary, textAlign: 'center' },
-    emptyActionBtn:    { marginTop: 10, minWidth: 180, minHeight: 48, borderRadius: 18, backgroundColor: t.text, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 22 },
-    emptyActionText:   { fontSize: 15, fontWeight: '900', color: t.bg },
+    emptyTitle:        { fontSize: 22, fontWeight: '900', color: LIGHT.text, textAlign: 'center' },
+    emptySub:          { maxWidth: 290, fontSize: 15, lineHeight: 21, color: LIGHT.textSecondary, textAlign: 'center' },
+    emptyActionBtn:    { marginTop: 10, minWidth: 180, minHeight: 48, borderRadius: 18, backgroundColor: LIGHT.text, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 22 },
+    emptyActionText:   { fontSize: 15, fontWeight: '900', color: '#fff' },
     actions:           { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.sep, paddingTop: 12 },
-    shareButton:       { backgroundColor: t.text, height: 54, borderRadius: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginHorizontal: 24, marginBottom: 24, shadowColor: t.text, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.12, shadowRadius: 18, elevation: 4 },
-    shareButtonText:   { color: t.surface, fontSize: 15, fontWeight: '900' },
+    shareButton:       { backgroundColor: t.accent, height: 54, borderRadius: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginHorizontal: 24, marginBottom: 24, shadowColor: t.accent, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.4, shadowRadius: 18, elevation: 4 },
+    shareButtonText:   { color: '#fff', fontSize: 15, fontWeight: '900' },
     captureRoot:       { position: 'absolute', left: -2000, top: 0, opacity: 1 },
-    landscapeCanvas:   { width: 767, backgroundColor: t.bg, paddingVertical: 10, paddingHorizontal: 10 },
-    landscapeCard:     { backgroundColor: t.surface, borderRadius: 20, paddingTop: 22, paddingBottom: 18, paddingHorizontal: 14 },
-    landscapeHeader:   { width: 522, alignSelf: 'center', alignItems: 'center', marginBottom: 10, paddingBottom: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.sep },
-    landscapeName:     { fontSize: 36, fontWeight: '900', color: t.text, lineHeight: 40, marginBottom: 4, textAlign: 'center' },
-    landscapeDesc:     { fontSize: 16, fontWeight: '300', color: t.gray, lineHeight: 22, marginBottom: 2, textAlign: 'center' },
-    landscapeDireccion:{ fontSize: 12, fontWeight: '300', color: t.gray, lineHeight: 17, opacity: 0.5, marginBottom: 2, textAlign: 'center' },
+    landscapeCanvas:   { width: 767, backgroundColor: '#EFEFEC', paddingVertical: 10, paddingHorizontal: 10 },
+    landscapeCard:     { backgroundColor: LIGHT.surface, borderRadius: 20, paddingTop: 22, paddingBottom: 18, paddingHorizontal: 14 },
+    landscapeHeader:   { width: 522, alignSelf: 'center', alignItems: 'center', marginBottom: 10, paddingBottom: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: LIGHT.sep },
+    landscapeName:     { fontSize: 36, fontWeight: '900', color: LIGHT.text, lineHeight: 40, marginBottom: 4, textAlign: 'center' },
+    landscapeDesc:     { fontSize: 16, fontWeight: '300', color: LIGHT.gray, lineHeight: 22, marginBottom: 2, textAlign: 'center' },
+    landscapeDireccion:{ fontSize: 12, fontWeight: '300', color: LIGHT.gray, lineHeight: 17, opacity: 0.5, marginBottom: 2, textAlign: 'center' },
     landscapeColumns:  { width: 522, alignSelf: 'center', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'center' },
     landscapeColumnPrimary:{ width: 307, flexShrink: 0 },
     landscapeColumnSecondary:{ width: 203, flexShrink: 0 },
     landscapeDivider:  { width: 12 },
-    landscapeFooter:   { width: 522, alignSelf: 'center', marginTop: 14, paddingTop: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.sep, alignItems: 'center' },
-    landscapeEmpty:    { fontSize: 16, fontWeight: '300', color: t.gray, fontStyle: 'italic', marginTop: 8 },
+    landscapeFooter:   { width: 522, alignSelf: 'center', marginTop: 14, paddingTop: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: LIGHT.sep, alignItems: 'center' },
+    landscapeEmpty:    { fontSize: 16, fontWeight: '300', color: LIGHT.gray, fontStyle: 'italic', marginTop: 8 },
   });
 }

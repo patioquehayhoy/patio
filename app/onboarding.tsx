@@ -69,9 +69,11 @@ function makeStyles(t: Theme) {
   });
 }
 
-function finish() {
-  AsyncStorage.setItem(ONBOARDING_KEY, '1');
-  router.replace('/');
+async function finish(dest: '/' | '/push-prompt' = '/') {
+  // Esperar el write antes de navegar; si no, la llave puede no guardarse
+  // y el onboarding reaparece en el siguiente arranque.
+  try { await AsyncStorage.setItem(ONBOARDING_KEY, '1'); } catch {}
+  router.replace(dest);
 }
 
 export default function OnboardingScreen() {
@@ -89,7 +91,7 @@ export default function OnboardingScreen() {
   };
 
   const advance = () => {
-    if (index === SLIDES.length - 1) { finish(); return; }
+    if (index === SLIDES.length - 1) { finish('/push-prompt'); return; }
     const next = index + 1;
     Animated.timing(fade, { toValue: 0, duration: 160, easing: Easing.out(Easing.quad), useNativeDriver: true }).start(() => {
       setIndex(next);
@@ -146,7 +148,7 @@ export default function OnboardingScreen() {
           activeOpacity={0.86}>
           <Text style={[s.ctaText, !isLast && theme.isDark && { color: theme.bg }]} allowFontScaling={true}>{slide.cta}</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={s.skipBtn} onPress={finish} activeOpacity={0.7}>
+        <TouchableOpacity style={s.skipBtn} onPress={() => finish('/')} activeOpacity={0.7}>
           <Text style={s.skipText} allowFontScaling={true}>{isLast ? 'Ahora no' : 'Saltar'}</Text>
         </TouchableOpacity>
       </View>

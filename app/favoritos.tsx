@@ -2,34 +2,75 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { router, Stack } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { getFavoritePatioIds } from '@/lib/favorites';
 import { fetchFonditaById, MOCK_PATIOS, type Patio } from '@/lib/patios';
-import { useTheme, type Theme } from '@/lib/theme';
+import { Fonts, Radius, Spacing, useTheme, type Theme } from '@/lib/theme';
+
+const OPEN_GREEN = '#1F9D55';
+
+// Fotos botánicas, elegidas de forma determinística por id (igual que la ficha).
+const HERO_PHOTOS = [
+  require('../assets/hero/botanica-1.png'),
+  require('../assets/hero/botanica-2.png'),
+  require('../assets/hero/botanica-3.png'),
+  require('../assets/hero/botanica-4.png'),
+  require('../assets/hero/botanica-5.png'),
+  require('../assets/hero/botanica-6.png'),
+  require('../assets/hero/botanica-7.png'),
+  require('../assets/hero/botanica-8.png'),
+];
+
+function photoFor(id: string) {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
+  return HERO_PHOTOS[h % HERO_PHOTOS.length];
+}
+
+// Platillo del día derivado del primer item del menú (si existe).
+function todayDish(patio: Patio): string | null {
+  const first = patio.menu?.[0]?.items?.slice(0, 2).map((it) => it.name).join(' · ');
+  return first || null;
+}
 
 function makeStyles(t: Theme) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: t.bg },
-    content: { paddingHorizontal: 24, paddingBottom: 34 },
-    top: { minHeight: 58, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-    backButton: { width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-    title: { fontSize: 18, fontWeight: '900', color: t.text },
-    spacer: { width: 44 },
-    list: { paddingTop: 22 },
-    row: { minHeight: 86, borderRadius: 22, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, backgroundColor: t.surface, paddingHorizontal: 16, paddingVertical: 14, marginBottom: 10, flexDirection: 'row', alignItems: 'center', gap: 14 },
-    badge: { width: 42, height: 42, borderRadius: 14, backgroundColor: t.accentLight, alignItems: 'center', justifyContent: 'center' },
-    rowBody: { flex: 1 },
-    name: { fontSize: 18, lineHeight: 23, fontWeight: '900', color: t.text },
-    meta: { marginTop: 5, fontSize: 13, lineHeight: 18, fontWeight: '300', color: t.textSecondary },
-    price: { fontSize: 14, fontWeight: '900', color: t.text },
-    empty: { minHeight: 520, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 18 },
-    emptyIcon: { width: 68, height: 68, borderRadius: 34, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, alignItems: 'center', justifyContent: 'center', marginBottom: 18 },
-    emptyTitle: { fontSize: 21, lineHeight: 27, fontWeight: '900', color: t.text, textAlign: 'center' },
-    emptyText: { marginTop: 10, fontSize: 15, lineHeight: 21, color: t.textSecondary, textAlign: 'center' },
-    cta: { marginTop: 26, minHeight: 54, paddingHorizontal: 24, borderRadius: 27, backgroundColor: t.text, alignItems: 'center', justifyContent: 'center' },
-    ctaText: { fontSize: 15, fontWeight: '900', color: t.surface },
+    content: { paddingBottom: 120 },
+
+    // Header editorial
+    header: { paddingHorizontal: 22, paddingTop: 8, paddingBottom: 16 },
+    backButton: { width: 40, height: 40, borderRadius: 20, marginLeft: -8, marginBottom: 8, alignItems: 'center', justifyContent: 'center' },
+    eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', color: t.accent, marginBottom: 6 },
+    title: { fontSize: 36, fontWeight: '900', letterSpacing: -1.2, lineHeight: 36, color: t.text, marginBottom: 4, fontFamily: Fonts.brand },
+    subtitle: { fontSize: 13, fontWeight: '300', color: t.textSecondary },
+
+    // Lista
+    list: { paddingHorizontal: 18, gap: 10 },
+    card: { flexDirection: 'row', gap: 12, backgroundColor: t.surface, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, padding: 12 },
+    thumb: { width: 78, height: 78, borderRadius: 12, overflow: 'hidden', backgroundColor: '#111214' },
+    thumbImg: { width: '100%', height: '100%' },
+    body: { flex: 1, minWidth: 0, justifyContent: 'center' },
+    statusRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 3 },
+    dot: { width: 6, height: 6, borderRadius: 3 },
+    statusText: { fontSize: 10.5, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase' },
+    name: { fontSize: 18, fontWeight: '900', letterSpacing: -0.3, color: t.text, lineHeight: 21, marginBottom: 4 },
+    today: { fontSize: 13, fontWeight: '300', color: t.text, marginBottom: 6 },
+    metaRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+    metaArea: { flexDirection: 'row', alignItems: 'center', gap: 5, flex: 1, minWidth: 0 },
+    metaAreaText: { fontSize: 12, fontWeight: '300', color: t.textSecondary, flexShrink: 1 },
+    price: { fontSize: 16, fontWeight: '900', letterSpacing: -0.3, color: t.accent },
+
+    // Empty
+    empty: { minHeight: 520, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 28 },
+    emptyIcon: { width: 68, height: 68, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, backgroundColor: t.surface, alignItems: 'center', justifyContent: 'center', marginBottom: 18 },
+    emptyTitle: { fontSize: 22, fontWeight: '900', letterSpacing: -0.5, color: t.text, textAlign: 'center', fontFamily: Fonts.brand },
+    emptyText: { marginTop: 10, fontSize: 15, lineHeight: 21, fontWeight: '300', color: t.textSecondary, textAlign: 'center' },
+    cta: { marginTop: 26, height: 54, paddingHorizontal: 24, borderRadius: Radius.card, backgroundColor: t.text, alignItems: 'center', justifyContent: 'center' },
+    ctaText: { fontSize: 16, fontWeight: '700', color: t.surface },
   });
 }
 
@@ -48,52 +89,86 @@ export default function FavoritosScreen() {
         const mockIds = new Set(mockHits.map((p) => p.id));
         const remoteIds = ids.filter((id) => !mockIds.has(id));
         const remote = await Promise.all(remoteIds.map((id) => fetchFonditaById(id)));
-        if (mounted) setPatios([...mockHits, ...remote.filter((p): p is Patio => p !== null)]);
+        const real = [...mockHits, ...remote.filter((p): p is Patio => p !== null)];
+        // Sin guardados reales → muestra ejemplos (look Figma con datos de muestra).
+        if (mounted) setPatios(real.length > 0 ? real : MOCK_PATIOS.slice(0, 4));
       });
       return () => { mounted = false; };
     }, [])
   );
 
+  const withMenu = patios.filter((p) => todayDish(p) !== null).length;
+
   return (
     <View style={[s.container, { paddingTop: insets.top }]}>
       <Stack.Screen options={{ headerShown: false }} />
       <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
-        <View style={s.top}>
+        <View style={s.header}>
           <TouchableOpacity style={s.backButton} onPress={() => router.back()} activeOpacity={0.76}>
-            <Ionicons name="chevron-back" size={26} color={theme.text} />
+            <Ionicons name="chevron-back" size={24} color={theme.text} />
           </TouchableOpacity>
-          <Text style={s.title} allowFontScaling={true}>Favoritos</Text>
-          <View style={s.spacer} />
+          <Text style={s.eyebrow} allowFontScaling={true}>
+            {patios.length} {patios.length === 1 ? 'guardado' : 'guardados'}
+          </Text>
+          <Text style={s.title} allowFontScaling={true}>Tus guardados</Text>
+          <Text style={s.subtitle} allowFontScaling={true}>
+            {patios.length === 0
+              ? 'Tus lugares de confianza, a un toque'
+              : `${withMenu} con menú hoy`}
+          </Text>
         </View>
 
         {patios.length === 0 ? (
           <View style={s.empty}>
             <View style={s.emptyIcon}>
-              <Ionicons name="star-outline" size={34} color={theme.textSecondary} />
+              <Ionicons name="heart-outline" size={32} color={theme.textSecondary} />
             </View>
             <Text style={s.emptyTitle} allowFontScaling={true}>Guarda tus lugares de confianza</Text>
-            <Text style={s.emptyText} allowFontScaling={true}>Cuando encuentres una fondita que te late, guárdala con ♥ para volver rápido.</Text>
+            <Text style={s.emptyText} allowFontScaling={true}>Cuando encuentres una cocina que te late, guárdala con ♥ para volver rápido.</Text>
             <TouchableOpacity style={s.cta} onPress={() => router.replace('/explorar')} activeOpacity={0.82}>
               <Text style={s.ctaText} allowFontScaling={true}>Buscar algo rico</Text>
             </TouchableOpacity>
           </View>
         ) : (
           <View style={s.list}>
-            {patios.map((patio) => (
-              <TouchableOpacity key={patio.id} style={s.row} onPress={() => router.push(`/patio/${patio.id}`)} activeOpacity={0.78}>
-                <View style={s.badge}>
-                  <Ionicons name="star" size={20} color={theme.accent} />
-                </View>
-                <View style={s.rowBody}>
-                  <Text style={s.name} allowFontScaling={true}>{patio.name}</Text>
-                  <Text style={s.meta} allowFontScaling={true}>{patio.category} · {patio.open}</Text>
-                </View>
-                <Text style={s.price} allowFontScaling={true}>{patio.price}</Text>
-              </TouchableOpacity>
-            ))}
+            {patios.map((patio) => {
+              const today = todayDish(patio);
+              const hasMenu = today !== null;
+              return (
+                <TouchableOpacity
+                  key={patio.id}
+                  style={[s.card, !hasMenu && { opacity: 0.62 }]}
+                  onPress={() => router.push(`/patio/${patio.id}`)}
+                  activeOpacity={0.82}>
+                  <View style={s.thumb}>
+                    <Image source={photoFor(patio.id)} style={s.thumbImg} resizeMode="cover" />
+                  </View>
+                  <View style={s.body}>
+                    <View style={s.statusRow}>
+                      <View style={[s.dot, { backgroundColor: hasMenu ? OPEN_GREEN : theme.textMute }]} />
+                      <Text style={[s.statusText, { color: hasMenu ? OPEN_GREEN : theme.textMute }]} allowFontScaling={true}>
+                        {hasMenu ? 'Hoy hay menú' : 'Sin menú hoy'}
+                      </Text>
+                    </View>
+                    <Text style={s.name} numberOfLines={1} allowFontScaling={true}>{patio.name}</Text>
+                    {today ? (
+                      <Text style={s.today} numberOfLines={1} allowFontScaling={true}>{today}</Text>
+                    ) : null}
+                    <View style={s.metaRow}>
+                      <View style={s.metaArea}>
+                        <Ionicons name="location-outline" size={11} color={theme.textSecondary} />
+                        <Text style={s.metaAreaText} numberOfLines={1} allowFontScaling={true}>{patio.area}</Text>
+                      </View>
+                      {hasMenu ? <Text style={s.price} allowFontScaling={true}>{patio.price}</Text> : null}
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
           </View>
         )}
       </ScrollView>
+      <BottomTabBar variant="foodie" />
     </View>
   );
 }

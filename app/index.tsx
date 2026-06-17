@@ -20,6 +20,7 @@ import { supabase } from '@/lib/supabase';
 import { Fonts, useTheme } from '@/lib/theme';
 
 const ROLE_KEY = '@patio_user_role';
+const ONBOARDING_KEY = 'onboarding_done';
 const LIGHT_BG = '#F3F3F0';
 
 function showAuthError(err: { message?: string; code?: string } | null) {
@@ -57,13 +58,18 @@ export default function LoginScreen() {
   useEffect(() => {
     (async () => {
       try {
+        const onboardingDone = await AsyncStorage.getItem(ONBOARDING_KEY);
+        if (onboardingDone !== '1') {
+          router.replace('/onboarding');
+          return;
+        }
         const [{ data }, savedRole] = await Promise.all([
           supabase.auth.getSession(),
           AsyncStorage.getItem(ROLE_KEY),
         ]);
         if (data.session) await initializeSignedInUser(data.session);
         if (savedRole === 'fondero' && data.session) {
-          router.replace('/foto-menu');
+          router.replace('/menu');
           return;
         }
         if (savedRole === 'foodie') {
@@ -135,6 +141,23 @@ export default function LoginScreen() {
               activeOpacity={0.7}>
               <Text style={[styles.secondaryBtnText, { color: theme.textSecondary }]}>Publicar mi menú</Text>
             </TouchableOpacity>
+
+            {__DEV__ && (
+              <View style={[styles.devBar, { borderColor: theme.border }]}>
+                <TouchableOpacity
+                  style={[styles.devBtn, { borderColor: theme.border }]}
+                  onPress={() => router.replace('/explorar')}
+                  activeOpacity={0.7}>
+                  <Text style={[styles.devBtnText, { color: theme.textSecondary }]}>DEV · Foodie</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.devBtn, { borderColor: theme.border }]}
+                  onPress={() => router.replace('/menu')}
+                  activeOpacity={0.7}>
+                  <Text style={[styles.devBtnText, { color: theme.textSecondary }]}>DEV · Fondero</Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
         </View>
       ) : (
@@ -214,6 +237,9 @@ const styles = StyleSheet.create({
   primaryBtnText: { fontSize: 17, fontWeight: '700', letterSpacing: -0.3 },
   secondaryBtn: { minHeight: 44, alignItems: 'center', justifyContent: 'center' },
   secondaryBtnText: { fontSize: 14, fontWeight: '300' },
+  devBar: { flexDirection: 'row', gap: 8, marginTop: 8, paddingTop: 12, borderTopWidth: StyleSheet.hairlineWidth },
+  devBtn: { flex: 1, minHeight: 38, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  devBtnText: { fontSize: 12, fontWeight: '300' },
 
   // Form layout
   keyboardView: { flex: 1, justifyContent: 'center' },

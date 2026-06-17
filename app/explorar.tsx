@@ -11,6 +11,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getFavoritePatioIds, toggleFavoritePatio } from '@/lib/favorites';
 import { MAP_STYLE_DARK, MAP_STYLE_LIGHT } from '@/lib/map-style';
 import { HintSheet } from '@/components/hint-sheet';
+import { FoodieLoading } from '@/components/foodie-loading';
+import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { markHintSeen, shouldShowHint } from '@/lib/hints';
 import { fetchPublicFonditas, MOCK_PATIOS, searchPatiosByDish, type Patio, type PatioDishMatch } from '@/lib/patios';
 import { searchLiveMenus } from '@/lib/menu';
@@ -22,6 +24,7 @@ function makeStyles(t: Theme) {
 
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: t.bg },
+    loadingOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: t.bg, zIndex: 50 },
     map: { ...StyleSheet.absoluteFillObject, backgroundColor: t.isDark ? '#191A1B' : '#D8D6D0' },
     mapView: { ...StyleSheet.absoluteFillObject },
     pinHitArea: { width: 38, height: 38, alignItems: 'center', justifyContent: 'center' },
@@ -71,7 +74,15 @@ function makeStyles(t: Theme) {
     patioRating: { flexDirection: 'row', alignItems: 'center', gap: 3 },
     patioRatingText: { fontSize: 12, fontWeight: '900', color: t.text },
     indexNum: { fontSize: 13, fontWeight: '900' },
-    emptyResults: { paddingHorizontal: 18, paddingVertical: 20, alignItems: 'center' },
+    emptyResults: { paddingHorizontal: 28, paddingVertical: 36, alignItems: 'center' },
+    emptyIconCircle: { width: 88, height: 88, borderRadius: 44, backgroundColor: t.accentSoft, alignItems: 'center', justifyContent: 'center', marginBottom: 24 },
+    emptyEyebrow: { fontSize: 11, fontWeight: '900', letterSpacing: 1.5, textTransform: 'uppercase', color: t.accent, marginBottom: 10 },
+    emptyTitle: { fontSize: 26, fontWeight: '900', letterSpacing: -0.8, lineHeight: 30, color: t.text, textAlign: 'center', marginBottom: 12, fontFamily: Fonts.brand },
+    emptySub: { fontSize: 15, fontWeight: '300', lineHeight: 21, color: t.textSecondary, textAlign: 'center', marginBottom: 28, maxWidth: 300 },
+    emptyPruebaLabel: { fontSize: 11, fontWeight: '900', letterSpacing: 1.4, textTransform: 'uppercase', color: t.textSecondary, marginBottom: 14 },
+    emptyPills: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center' },
+    emptyPill: { paddingHorizontal: 16, paddingVertical: 9, borderRadius: 100, backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
+    emptyPillText: { fontSize: 14, fontWeight: '300', color: t.text },
     pillsRow: { position: 'absolute', left: 0, right: 0, flexDirection: 'row', justifyContent: 'center', gap: 10 },
     pill: { overflow: 'hidden', borderRadius: 100, borderWidth: StyleSheet.hairlineWidth, borderColor: t.isDark ? 'rgba(255,255,255,0.14)' : 'rgba(0,0,0,0.08)' },
     pillText: { paddingHorizontal: 14, paddingVertical: 7, fontSize: 13, fontWeight: '300', color: t.text },
@@ -157,6 +168,7 @@ export default function ExplorarScreen() {
   // selectedId: which pin is highlighted. showHeader: user explicitly tapped a pin/row.
   // These two are always moved together via selectPatio/deselect — never set independently.
   const [allPatios, setAllPatios] = useState<Patio[]>(MOCK_PATIOS);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [showWelcomeHint, setShowWelcomeHint] = useState(false);
   const [showExplorarHint, setShowExplorarHint] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -195,11 +207,17 @@ export default function ExplorarScreen() {
   }, [shimmerAnim]);
 
   useEffect(() => {
-    fetchPublicFonditas().then((db) => {
+    let cancelled = false;
+    // Carga inicial: muestra el FoodieLoading mientras llegan las fonditas reales.
+    const minDelay = new Promise((r) => setTimeout(r, 900));
+    Promise.all([fetchPublicFonditas(), minDelay]).then(([db]) => {
+      if (cancelled) return;
       const existingIds = new Set(MOCK_PATIOS.map((p) => p.id));
-      const newOnes = db.filter((p) => !existingIds.has(p.id));
+      const newOnes = (db as Patio[]).filter((p) => !existingIds.has(p.id));
       if (newOnes.length > 0) setAllPatios([...MOCK_PATIOS, ...newOnes]);
-    });
+      setInitialLoading(false);
+    }).catch(() => { if (!cancelled) setInitialLoading(false); });
+    return () => { cancelled = true; };
   }, []);
 
   const visiblePatios = useMemo(() => {
@@ -558,13 +576,17 @@ export default function ExplorarScreen() {
             {isFiltering ? (
               topMatchPerPatio.length === 0 ? (
                 <View style={s.emptyResults}>
-                  <Text style={{ fontSize: 17, fontWeight: '900', color: theme.text, marginBottom: 6 }} allowFontScaling={true}>Nadie tiene eso hoy</Text>
-                  <Text style={{ fontSize: 13, fontWeight: '300', color: theme.textSecondary, marginBottom: 14 }} allowFontScaling={true}>Prueba con tacos, mole o agua de jamaica</Text>
-                  <View style={{ flexDirection: 'row', gap: 8 }}>
-                    {['tacos', 'mole', 'agua'].map((q) => (
-                      <TouchableOpacity key={q} onPress={() => handleQueryChange(q)} activeOpacity={0.76}
-                        style={{ paddingHorizontal: 14, paddingVertical: 8, borderRadius: 100, borderWidth: StyleSheet.hairlineWidth, borderColor: theme.border }}>
-                        <Text style={{ fontSize: 13, fontWeight: '300', color: theme.text }} allowFontScaling={true}>{q}</Text>
+                  <View style={s.emptyIconCircle}>
+                    <Ionicons name="search" size={32} color={theme.accent} />
+                  </View>
+                  <Text style={s.emptyEyebrow} allowFontScaling={true}>Sin resultados</Text>
+                  <Text style={s.emptyTitle} allowFontScaling={true}>Nadie está sirviendo eso hoy.</Text>
+                  <Text style={s.emptySub} allowFontScaling={true}>Patio busca en menús del día, no en catálogos. Prueba algo más cercano a la comida corrida.</Text>
+                  <Text style={s.emptyPruebaLabel} allowFontScaling={true}>Prueba con</Text>
+                  <View style={s.emptyPills}>
+                    {['caldo', 'tinga', 'mole', 'pozole', 'veggie'].map((q) => (
+                      <TouchableOpacity key={q} onPress={() => handleQueryChange(q)} activeOpacity={0.8} style={s.emptyPill}>
+                        <Text style={s.emptyPillText} allowFontScaling={true}>{q}</Text>
                       </TouchableOpacity>
                     ))}
                   </View>
@@ -642,6 +664,12 @@ export default function ExplorarScreen() {
         onPrimary={() => { markHintSeen('foodie_explorar'); setShowExplorarHint(false); }}
         onDismiss={() => { markHintSeen('foodie_explorar'); setShowExplorarHint(false); }}
       />
+      {initialLoading && (
+        <View style={s.loadingOverlay}>
+          <FoodieLoading />
+        </View>
+      )}
+      {!searchActive && <BottomTabBar variant="foodie" />}
     </View>
   );
 }

@@ -1,6 +1,37 @@
 # HANDOFF
 
-## Estado vigente — 2026-06-14
+## Estado vigente — 2026-06-16 (reconstrucción flujo Fondero)
+
+Leer esta sección antes del historial. Las secciones antiguas abajo son bitácora y pueden contener pendientes ya resueltos.
+
+### Sesión 2026-06-16 — Reconstrucción look Figma (commit 8e2372f, sin push)
+
+**Aprendizaje clave (ver memoria `figma_exact_not_maquillaje` + `verbal_overrides_figma`):**
+Alejandro detestó el primer intento porque MAQUILLÉ las pantallas viejas (fondo oscuro encima) en vez de reconstruir. Se sentía "Frankenstein". Decisión: **reconstruir desde cero, no parchar.** Y: **el lenguaje verbal (IDENTITY_VERBAL.md) MANDA sobre el copy de Figma** — Figma usa "Fonda"/"Fondero" que VIOLAN las reglas. NUNCA esas palabras en pantalla.
+
+**Flujo Fondero reconstruido limpio:**
+- TabBar = pill flotante glass: **Hoy / Historial / Mi Patio** (NO "Fonda").
+- **`menu.tsx` = pantalla "Hoy"** (elección): foto HÉROE (card naranja "Patio lo lee por ti") + Escribir + Menú anterior.
+- **`menu-editar.tsx`** = editor de platillos (toggle precio único/por platillo, $55 ±, pills sección, datos Lupita). Back → Hoy. Publicar → `menu-publicado`.
+- **`historial.tsx`** = 312 foodies + chart + menús pasados.
+- **`perfil.tsx`** = "Mi Patio" (hero foto + racha 14 días + filas). Filas → `perfil-editar.tsx` (editor rediseñado).
+- **`menu-publicado.tsx`** = Success ("Tu menú está vivo" + 3 viendo).
+
+**Estado por pantalla (inventario):**
+- 🆕 reconstruidas look Figma oscuro: menu (Hoy), menu-editar, historial, perfil, perfil-editar, preview, foto-menu*, menu-publicado.
+- ✳️ Foodie con tokens nuevos: explorar, favoritos, cuenta, patio/[id], onboarding, push-prompt, resena/[id].
+- ⚠️ **VIEJAS / por revisar:** `foto-menu.tsx` (es la vieja con fondo oscuro — NO tiene look Figma, "Toma foto/Elegir galería" es legacy), `share.tsx` (HUÉRFANA, ya no se navega), `preview.tsx` (compartir viejo, sacado del flujo).
+
+**PENDIENTE INMEDIATO (próxima sesión):**
+1. **foto-menu.tsx**: rediseñar exacto a Figma (hoy es la pantalla vieja parchada que Alejandro detectó).
+2. **Probar el flujo completo de TODAS las pantallas** en simulador — cazar más pantallas viejas voladas.
+3. **Borrar huérfanas**: `share.tsx`, y decidir `preview.tsx` (¿se usa para compartir póster o se reemplaza por MenuPoster?).
+4. **Lado Foodie se siente parchado** (buscador inicio con puntos cargando) — aplicar mismo criterio limpio+verbal.
+5. **PUSH pendiente**: commit 8e2372f está local, falta `git push origin v2-look-figma` (el entorno no tiene credenciales).
+
+---
+
+## Estado previo — 2026-06-14
 
 Leer esta sección antes del historial. Las secciones antiguas abajo son bitácora y pueden contener pendientes ya resueltos.
 

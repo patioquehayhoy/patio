@@ -16,8 +16,9 @@ import { router, Stack } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import Swipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
+import { LinearGradient } from 'expo-linear-gradient';
 import { AgentSpinner } from '@/components/agent-spinner';
-import { useTheme, type Theme } from '@/lib/theme';
+import { Fonts, useTheme, type Theme } from '@/lib/theme';
 import { leerMenuDeFoto, type MenuSeccion } from '@/lib/vision';
 import {
   setMenuData as saveMenuData,
@@ -441,32 +442,34 @@ export default function FotoMenuScreen() {
       <SafeAreaView style={s.container}>
         <Stack.Screen options={{ headerShown: false }} />
 
-        <View style={s.idleContent}>
-          <View style={{ flex: 1, justifyContent: 'center' }}>
-            <View style={s.cameraBtn}>
-              <TouchableOpacity
-                style={s.cameraBtnInner}
-                onPress={tomarFoto}
-                activeOpacity={0.85}
-              >
-                <Ionicons name="camera" size={56} color={DARK.accent} style={s.cameraBtnIcon} />
-                <Text style={s.cameraBtnLabel}>Toma foto de tu menú</Text>
-                <Text style={s.cameraBtnSub}>Patio lo lee por ti y lo organiza al instante</Text>
-              </TouchableOpacity>
-            </View>
-
-            <View style={s.dividerRow}>
-              <View style={s.dividerLine} />
-              <Text style={s.dividerText}>o</Text>
-              <View style={s.dividerLine} />
-            </View>
-
-            <TouchableOpacity style={s.btnSecondary} onPress={seleccionarDeGaleria} activeOpacity={0.82}>
-              <Text style={s.btnSecondaryText}>Elegir imagen de la galería</Text>
-            </TouchableOpacity>
-          </View>
+        {/* Header con back a Hoy */}
+        <View style={s.idleTop}>
+          <TouchableOpacity style={s.idleBack} onPress={() => router.replace('/menu')} activeOpacity={0.7}>
+            <Ionicons name="chevron-back" size={20} color={DARK.text} />
+          </TouchableOpacity>
         </View>
 
+        <View style={s.idleBody}>
+          <Text style={s.idleEyebrow} allowFontScaling={true}>Captura</Text>
+          <Text style={s.idleTitle} allowFontScaling={true}>Toma foto de tu menú</Text>
+          <Text style={s.idleSub} allowFontScaling={true}>Patio lo lee y lo organiza por ti. Sin escribir nada.</Text>
+
+          {/* Card foto héroe (mismo lenguaje que "Hoy") */}
+          <TouchableOpacity activeOpacity={0.9} onPress={tomarFoto} style={s.heroCard}>
+            <LinearGradient colors={['#FF8458', '#F2612F']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.heroGradient}>
+              <View style={s.heroIconBox}>
+                <Ionicons name="camera" size={30} color="#fff" />
+              </View>
+              <Text style={s.heroCardTitle} allowFontScaling={true}>Abrir cámara</Text>
+              <Text style={s.heroCardBody} allowFontScaling={true}>Encuadra tu menú y listo</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={s.galleryBtn} onPress={seleccionarDeGaleria} activeOpacity={0.82}>
+            <Ionicons name="images-outline" size={18} color={DARK.text} />
+            <Text style={s.galleryBtnText} allowFontScaling={true}>Elegir de la galería</Text>
+          </TouchableOpacity>
+        </View>
       </SafeAreaView>
     );
   }
@@ -629,34 +632,20 @@ function makeStyles(theme: Theme) {
     centerContent:   { alignItems: 'center', justifyContent: 'center', padding: 24 },
     backIconBtn:     { width: 44, height: 44, borderRadius: 16, marginLeft: 12, marginTop: 8, alignItems: 'center', justifyContent: 'center', backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
     backIconBtnWhite:{ width: 44, height: 44, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.22)', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.25)' },
-    idleContent:     { flex: 1, padding: 24 },
-    cameraBtn: {
-      borderWidth: 1.5,
-      borderColor: t.border,
-      borderStyle: 'dashed',
-      borderRadius: 20,
-      overflow: 'hidden',
-      marginBottom: 18,
-      backgroundColor: t.surface,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 10 },
-      shadowOpacity: 0.04,
-      shadowRadius: 22,
-      elevation: 2,
-    },
-    cameraBtnInner: {
-      alignItems: 'center',
-      justifyContent: 'center',
-      paddingVertical: 44,
-      gap: 10,
-      backgroundColor: t.surface,
-    },
-    cameraBtnIcon:   { marginBottom: 2 },
-    cameraBtnLabel:  { fontSize: 19, fontWeight: '900', color: t.text },
-    cameraBtnSub:    { fontSize: 14, color: t.textSecondary, lineHeight: 20 },
-    dividerRow:      { flexDirection: 'row', alignItems: 'center', gap: 10, marginVertical: 14 },
-    dividerLine:     { flex: 1, height: 1, backgroundColor: t.border },
-    dividerText:     { fontSize: 12, color: t.textSecondary },
+    // ── Idle (look Figma) ──
+    idleTop:         { paddingHorizontal: 16, paddingTop: 6, height: 46, justifyContent: 'center' },
+    idleBack:        { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.08)', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
+    idleBody:        { flex: 1, paddingHorizontal: 22, paddingTop: 12 },
+    idleEyebrow:     { fontSize: 11, fontWeight: '700', letterSpacing: 1.6, textTransform: 'uppercase', color: t.accent, marginBottom: 8 },
+    idleTitle:       { fontSize: 32, fontWeight: '900', letterSpacing: -1.2, lineHeight: 34, color: t.text, marginBottom: 6, fontFamily: Fonts.brand },
+    idleSub:         { fontSize: 14, fontWeight: '300', lineHeight: 20, color: t.textSecondary, marginBottom: 24 },
+    heroCard:        { borderRadius: 24, overflow: 'hidden', marginBottom: 14, shadowColor: '#F2612F', shadowOffset: { width: 0, height: 14 }, shadowOpacity: 0.4, shadowRadius: 28, elevation: 8 },
+    heroGradient:    { padding: 24, minHeight: 180, justifyContent: 'flex-end' },
+    heroIconBox:     { width: 56, height: 56, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
+    heroCardTitle:   { fontSize: 24, fontWeight: '900', letterSpacing: -0.6, color: '#fff', marginBottom: 4, fontFamily: Fonts.brand },
+    heroCardBody:    { fontSize: 14, fontWeight: '300', color: 'rgba(255,255,255,0.9)' },
+    galleryBtn:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 15, borderRadius: 18, backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
+    galleryBtnText:  { fontSize: 15, fontWeight: '600', color: t.text },
     btnPrimary: {
       backgroundColor: t.accent,
       borderRadius: 18,

@@ -36,7 +36,6 @@ function RootStack() {
         <Stack.Screen name="menu-publicado" options={{ headerShown: false }} />
         <Stack.Screen name="historial" options={{ headerShown: false }} />
         <Stack.Screen name="manifiesto" options={{ headerShown: false }} />
-        <Stack.Screen name="share" options={{ title: 'Compartir' }} />
         <Stack.Screen name="preview" options={{ headerShown: false }} />
         <Stack.Screen name="perfil" options={{ headerShown: false }} />
         <Stack.Screen name="perfil-editar" options={{ headerShown: false }} />

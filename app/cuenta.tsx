@@ -203,7 +203,7 @@ export default function CuentaScreen() {
           <View style={s.group}>
             <Text style={s.groupLabel} allowFontScaling={true}>Patio</Text>
             <View style={s.card}>
-              <Row theme={theme} icon="storefront-outline" title="¿Tienes una cocina?" sub="Publica tu menú como fondero" accent onPress={() => router.replace('/?intent=business')} />
+              <Row theme={theme} icon="storefront-outline" title="¿Tienes una cocina?" sub="Publica tu menú del día" accent onPress={() => router.push('/fondero-acceso')} />
               <Row theme={theme} icon="chatbubble-outline" title="Contactar soporte" divider onPress={() => Linking.openURL(`mailto:${SUPPORT_EMAIL}?subject=Soporte%20Patio`)} />
               <Row theme={theme} icon="star-outline" title="Calificar la app" divider onPress={() => Linking.openURL('itms-apps://itunes.apple.com/app/id6760884735?action=write-review')} />
               <Row theme={theme} icon="log-out-outline" title="Cerrar sesión" divider onPress={handleSignOut} />

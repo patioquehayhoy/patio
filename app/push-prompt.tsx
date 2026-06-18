@@ -41,7 +41,7 @@ export default function PushPromptScreen() {
           <Ionicons name="notifications" size={28} color="#fff" />
         </View>
         <Text style={s.eyebrow} allowFontScaling={true}>Casi listo · 3 de 3</Text>
-        <Text style={s.title} allowFontScaling={true}>Para avisarte cuando tu fonda publica el menú.</Text>
+        <Text style={s.title} allowFontScaling={true}>Para avisarte cuando publiquen el menú de hoy.</Text>
         <Text style={s.body} allowFontScaling={true}>
           Solo te avisamos cuando tus lugares guardados publican — máximo uno al día. Sin spam.
         </Text>

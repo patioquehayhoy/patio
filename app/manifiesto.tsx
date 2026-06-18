@@ -124,15 +124,15 @@ export default function ManifiestoScreen() {
         <View style={s.block}>
           <Text style={s.blockLabel} allowFontScaling={true}>Qué es Patio</Text>
           <Text style={s.body} allowFontScaling={true}>
-            Patio conecta a quien busca dónde comer con negocios locales que merecen más visibilidad. Busca por platillo, explora el mapa y guarda tus favoritos.
+            Las cocinas de tu barrio publican su menú del día. Tú buscas por platillo, ves qué hay cerca y decides si vale la caminata.
           </Text>
           <View style={s.divider} />
         </View>
 
         <View style={s.block}>
-          <Text style={s.blockLabel} allowFontScaling={true}>Para fonderos</Text>
+          <Text style={s.blockLabel} allowFontScaling={true}>Si tienes una cocina</Text>
           <Text style={s.body} allowFontScaling={true}>
-            Sube el menú del día en segundos — escríbelo o toma una foto y lo procesamos automáticamente. Tu platillo de hoy aparece en el mapa para que te encuentren quienes buscan exactamente lo que cocinas.
+            Tomas foto de tu menú y Patio lo lee por ti. Lo de hoy aparece en el mapa para quien anda cerca y se oculta solo cuando cierras.
           </Text>
           <View style={s.divider} />
         </View>
@@ -140,9 +140,9 @@ export default function ManifiestoScreen() {
         <View style={s.block}>
           <Text style={s.blockLabel} allowFontScaling={true}>Gracias por llegar temprano</Text>
           <Text style={s.body} allowFontScaling={true}>
-            Si estás en esta versión beta, eres de las primeras personas en darle forma a Patio. Cada comentario y cada uso nos ayuda a construirlo mejor.
+            Estás en las primeras versiones de Patio. Lo que uses y lo que nos digas le da forma a lo que sigue.
           </Text>
-          <Text style={s.closing} allowFontScaling={true}>Gracias por ser parte de Patio.</Text>
+          <Text style={s.closing} allowFontScaling={true}>Saaaaaaabes.</Text>
         </View>
       </ScrollView>
     </View>

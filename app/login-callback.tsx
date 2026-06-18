@@ -1,6 +1,6 @@
 import { type EmailOtpType, type Session } from '@supabase/supabase-js';
 import { useEffect, useState } from 'react';
-import { Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as Linking from 'expo-linking';
 
@@ -115,9 +115,16 @@ export default function LoginCallback() {
   }, [router]);
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#F5E9D9', justifyContent: 'center', alignItems: 'center', padding: 24 }}>
-      <AgentSpinner variant="arc" size={30} color="#1A1A1A" />
-      <Text style={{ marginTop: 18, fontSize: 14, color: '#1A1A1A', textAlign: 'center', fontWeight: '300' }}>{diag}</Text>
+    <View style={s.root}>
+      <View style={s.glow} />
+      <AgentSpinner variant="arc" size={30} color="#FF6A3D" />
+      <Text style={s.diag} allowFontScaling={true}>{diag}</Text>
     </View>
   );
 }
+
+const s = StyleSheet.create({
+  root: { flex: 1, backgroundColor: '#111214', justifyContent: 'center', alignItems: 'center', padding: 28 },
+  glow: { position: 'absolute', top: -150, left: -100, right: -100, height: 600, backgroundColor: 'rgba(255,106,61,0.10)', borderRadius: 300 },
+  diag: { marginTop: 20, fontSize: 14, color: 'rgba(248,248,245,0.7)', textAlign: 'center', fontWeight: '300', lineHeight: 20 },
+});

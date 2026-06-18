@@ -39,13 +39,13 @@ function flattenMenu(m: MenuData | null): { rows: Row[]; dayPrice: string | null
 export default function PreviewScreen() {
   const insets = useSafeAreaInsets();
   const [menuData, setMenuData] = useState<MenuData | null>(null);
-  const [businessName, setBusinessName] = useState('Fonda Lupita');
+  const [businessName, setBusinessName] = useState('Cocina de Lupita');
   const posterRef = useRef<View | null>(null);
 
   useFocusEffect(
     useCallback(() => {
       setMenuData(getMenuData());
-      setBusinessName(getFonditaName() || 'Fonda Lupita');
+      setBusinessName(getFonditaName() || 'Cocina de Lupita');
     }, [])
   );
 

@@ -9,7 +9,7 @@ const SCREEN_HEIGHT = Dimensions.get('screen').height;
 
 type HintSheetProps = {
   visible: boolean;
-  icon: string;
+  icon: keyof typeof Ionicons.glyphMap;
   title: string;
   body: string;
   primaryLabel: string;
@@ -56,7 +56,9 @@ export function HintSheet({ visible, icon, title, body, primaryLabel, onPrimary,
           <TouchableOpacity style={s.closeBtn} onPress={dismiss} activeOpacity={0.76} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
             <Ionicons name="close" size={20} color={theme.text} />
           </TouchableOpacity>
-          <Text style={s.iconText} allowFontScaling={true}>{icon}</Text>
+          <View style={s.iconBadge}>
+            <Ionicons name={icon} size={28} color={theme.accent} />
+          </View>
           <Text style={s.title} allowFontScaling={true}>{title}</Text>
           <Text style={s.body} allowFontScaling={true}>{body}</Text>
           <TouchableOpacity style={s.primaryBtn} onPress={handlePrimary} activeOpacity={0.86}>
@@ -78,7 +80,7 @@ function makeStyles(t: Theme) {
     overlay:      { flex: 1, backgroundColor: 'rgba(0,0,0,0.40)', justifyContent: 'flex-end' },
     sheet:        { backgroundColor: t.surface, borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: 24, paddingTop: 20 },
     closeBtn:     { position: 'absolute', top: 16, right: 16, width: 44, height: 44, alignItems: 'center', justifyContent: 'center', opacity: 0.4 },
-    iconText:     { fontSize: 48, textAlign: 'center', marginBottom: 16, marginTop: 12 },
+    iconBadge:    { alignSelf: 'center', width: 56, height: 56, borderRadius: 16, backgroundColor: t.accentSoft, alignItems: 'center', justifyContent: 'center', marginBottom: 16, marginTop: 12 },
     title:        { fontSize: 24, fontWeight: '900', fontFamily: Fonts.brand, textAlign: 'center', color: t.text, marginBottom: 10 },
     body:         { fontSize: 15, fontWeight: '300', fontFamily: Fonts.brand, textAlign: 'center', color: t.textSecondary, lineHeight: 22, marginBottom: 28 },
     primaryBtn:   { minHeight: 56, borderRadius: 16, backgroundColor: t.text, alignItems: 'center', justifyContent: 'center' },

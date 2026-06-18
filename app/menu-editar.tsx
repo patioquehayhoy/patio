@@ -30,7 +30,7 @@ type SectionOpt = (typeof SECTION_OPTIONS)[number];
 
 type Item = { id: string; name: string; price?: number; section?: SectionOpt };
 
-// Semilla de ejemplo (Fonda Lupita) — tal cual Figma.
+// Semilla de ejemplo (Cocina de Lupita) — tal cual Figma.
 const SEED: Item[] = [
   { id: 'l1', name: 'Sopa de fideo aguada', section: 'Entrada' },
   { id: 'l2', name: 'Tinga de pollo', section: 'Guisado' },

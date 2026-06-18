@@ -648,18 +648,18 @@ export default function ExplorarScreen() {
       )}
       <HintSheet
         visible={showWelcomeHint}
-        icon="🗺️"
-        title="Patio"
-        body="Descubre qué hay de comer cerca. Busca un platillo o toca un punto en el mapa."
-        primaryLabel="Explorar"
+        icon="search"
+        title="¿Qué hay hoy?"
+        body="Busca un platillo o toca un punto en el mapa. Te mostramos qué cocinas tienen menú ahorita."
+        primaryLabel="Ver qué hay"
         onPrimary={() => { markHintSeen('foodie_welcome'); setShowWelcomeHint(false); }}
         onDismiss={() => { markHintSeen('foodie_welcome'); setShowWelcomeHint(false); }}
       />
       <HintSheet
         visible={showExplorarHint}
-        icon="🍽️"
-        title="¿Qué se te antoja hoy?"
-        body="Busca un platillo o explora el mapa. Patio muestra qué fonditas tienen menú ahorita."
+        icon="restaurant"
+        title="¿Qué se te antoja?"
+        body="Busca un platillo o explora el mapa. Te mostramos qué cocinas tienen menú ahorita."
         primaryLabel="Ver qué hay"
         onPrimary={() => { markHintSeen('foodie_explorar'); setShowExplorarHint(false); }}
         onDismiss={() => { markHintSeen('foodie_explorar'); setShowExplorarHint(false); }}

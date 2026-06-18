@@ -618,7 +618,7 @@ export default function PerfilScreen() {
 
       <HintSheet
         visible={showPerfilHint}
-        icon="🏪"
+        icon="storefront"
         title="Ponle nombre a tu negocio"
         body="Nombre, tipo de negocio, horario y cómo cobras. Dos minutos y tu perfil está listo."
         primaryLabel="Empezar"

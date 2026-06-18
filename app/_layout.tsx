@@ -25,6 +25,7 @@ function RootStack() {
           contentStyle: { backgroundColor: theme.bg },
         }}>
         <Stack.Screen name="index" options={{ title: 'Login / Registro' }} />
+        <Stack.Screen name="fondero-acceso" options={{ headerShown: false }} />
         <Stack.Screen name="cuenta" options={{ headerShown: false }} />
         <Stack.Screen name="explorar" options={{ headerShown: false }} />
         <Stack.Screen name="favoritos" options={{ headerShown: false }} />
@@ -32,6 +33,7 @@ function RootStack() {
         <Stack.Screen name="push-prompt" options={{ headerShown: false }} />
         <Stack.Screen name="login-callback" options={{ headerShown: false }} />
         <Stack.Screen name="menu" options={{ title: '' }} />
+        <Stack.Screen name="foto-menu" options={{ headerShown: false }} />
         <Stack.Screen name="menu-editar" options={{ headerShown: false }} />
         <Stack.Screen name="menu-publicado" options={{ headerShown: false }} />
         <Stack.Screen name="historial" options={{ headerShown: false }} />

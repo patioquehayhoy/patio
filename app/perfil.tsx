@@ -76,7 +76,7 @@ export default function PerfilScreen() {
           />
           <View style={[s.heroText, { paddingTop: insets.top + 70 }]}>
             <Text style={s.eyebrow} allowFontScaling={true}>Tu Patio</Text>
-            <Text style={s.name} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} allowFontScaling={true}>Fonda Lupita</Text>
+            <Text style={s.name} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} allowFontScaling={true}>Cocina de Lupita</Text>
             <View style={s.metaRow}>
               <Ionicons name="location-outline" size={12} color={DARK.textSecondary} />
               <Text style={s.metaText} allowFontScaling={true}>Roma Norte</Text>

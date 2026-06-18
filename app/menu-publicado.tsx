@@ -1,5 +1,4 @@
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { router, Stack } from 'expo-router';
 import { useEffect, useRef } from 'react';
 import { Animated, Easing, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -52,8 +51,6 @@ export default function MenuPublicadoScreen() {
           <Text style={s.ghostText} allowFontScaling={true}>Ver mi historial</Text>
         </TouchableOpacity>
       </View>
-
-      <LinearGradient colors={['transparent', 'transparent']} style={StyleSheet.absoluteFill} pointerEvents="none" />
     </View>
   );
 }

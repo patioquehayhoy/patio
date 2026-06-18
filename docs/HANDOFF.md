@@ -1,8 +1,37 @@
 # HANDOFF
 
-## Estado vigente — 2026-06-17 (cierre flujo Fondero + póster)
+## Estado vigente — 2026-06-17 (recorrido completo + limpieza + login/mailing)
 
 Leer esta sección antes del historial. Las secciones antiguas abajo son bitácora y pueden contener pendientes ya resueltos.
+
+### Sesión 2026-06-17 (tarde) — Recorrido completo de pantallas + cierre login/mailing
+
+**SIN COMMIT todavía** (working tree con cambios sin commitear, encima de los 3 commits + handoff ya locales). Todo en local, nada de push.
+
+**Recorrido completo de las 19 pantallas** (auditoría por código + 2 capturas en simulador). Veredicto: la mayoría ya estaba look Figma. Lo suelto se arregló. **Ninguna huérfana, ninguna ruta rota, tsc verde, lint sin errores.**
+
+**Limpieza verbal + bugs (hecho):**
+- **HintSheet** (`components/hint-sheet.tsx`): el `icon` era emoji (🗺️) renderizado como `<Text>` → sin glyph salían cuadros `?`. Cambiado a **Ionicons** en badge naranja (`accentSoft`). El prop `icon` ahora es `keyof Ionicons.glyphMap`. **Confirmado en simulador.**
+- **explorar**: copy genérico del hint de bienvenida ("Patio / Descubre qué hay de comer cerca") → **"¿Qué hay hoy?"** + tono verbal. Ambos hints (`foodie_welcome`, `foodie_explorar`) alineados.
+- **manifiesto**: quitado "Para fonderos" + copy marketing → "Si tienes una cocina", humano, cierre `Saaaaaaabes.`
+- **push-prompt**: "cuando tu fonda publica" → "cuando publiquen el menú de hoy".
+- Dato semilla **"Fonda Lupita" → "Cocina de Lupita"** (perfil, preview, menu-editar). Quita la palabra paraguas "Fonda" de pantalla.
+- **foto-menu** registrado en el `Stack` de `_layout` (estaba sin registrar, funcionaba por archivo).
+- **menu-publicado**: quitado un `LinearGradient` transparente muerto + su import.
+
+**Login + Mailing (lo que faltaba — hecho):**
+- **`login-callback.tsx`** ("Verificando link…"): era beige viejo `#F5E9D9` → ahora oscuro `#111214` + glow naranja, consistente con flujo Fondero. **Lógica de auth intacta** (solo el render).
+- **Template de email**: NO existía en el repo (Supabase mandaba su default en inglés). Creado **`supabase/templates/magic-link.html`** con marca Patio (botón naranja, P, `Saaaaaaabes.`, variables `{{ .ConfirmationURL }}` / `{{ .Email }}`) + `supabase/templates/README.md`. ⚠️ **NO se instala solo — Alejandro lo pega en Supabase Dashboard → Auth → Email Templates → Magic Link Y Confirm signup** (signInWithOtp con shouldCreateUser:true manda el de signup la 1ª vez).
+- **Pantalla FonderoMagicLink**: creada **`app/fondero-acceso.tsx`** (captura de correo oscura + botánica, 3 beneficios, estado "revisa tu correo"). Enganchada desde index ("Publicar mi menú") y cuenta ("¿Tienes una cocina?"). Registrada en `_layout`.
+- **`index.tsx` limpiado**: borrado ~110 líneas de código muerto (el formCard de login viejo, el estado `intent='business'`, `showAuthError`, imports y estilos huérfanos). Ahora index solo es la pantalla de elección.
+
+**PENDIENTE (próxima sesión):**
+1. **PUSH**: ya son 3 commits + handoff + estos cambios sin commitear. `git push origin v2-look-figma` (la rama NI EXISTE en origin todavía → primer push con `-u`). Solo Alejandro (credenciales).
+2. **Instalar el template de email en Supabase** (ver `supabase/templates/README.md`). Sin esto, el correo magic-link sigue saliendo genérico en inglés.
+3. **Ojo humano sobre `fondero-acceso` y `login-callback`** en simulador — NO se pudieron capturar por la fragilidad del deep-link del dev client a rutas Fondero. Compilan bien; falta verlas navegando a mano (tocar "Publicar mi menú" desde el inicio).
+4. **Warnings de lint preexistentes** (no de esta sesión): `useMemo` sin usar en menu-editar, `SUPPORT_PHONE` sin usar en perfil. Menores.
+
+---
 
 ### Sesión 2026-06-17 — Cierre Fondero (3 commits locales, SIN PUSH)
 

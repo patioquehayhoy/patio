@@ -96,7 +96,7 @@ export default function HistorialScreen() {
       </ScrollView>
 
       {/* CTA publicar */}
-      <View style={[s.ctaWrap, { paddingBottom: (insets.bottom || 10) + 90 }]}>
+      <View style={[s.ctaWrap, { paddingBottom: (insets.bottom || 10) + 90 }]} pointerEvents="box-none">
         <TouchableOpacity style={s.cta} onPress={() => router.replace('/menu')} activeOpacity={0.86}>
           <Ionicons name="add" size={16} color="#fff" />
           <Text style={s.ctaText} allowFontScaling={true}>Publicar menú de hoy</Text>
@@ -116,7 +116,7 @@ const s = StyleSheet.create({
 
   eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.6, textTransform: 'uppercase', color: DARK.accent, marginBottom: 6 },
   bigRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 12, marginBottom: 2 },
-  bigNum: { fontSize: 64, fontWeight: '900', letterSpacing: -2.5, lineHeight: 58, color: DARK.text, fontFamily: Fonts.brand },
+  bigNum: { fontSize: 64, fontWeight: '900', letterSpacing: -2.5, lineHeight: 72, color: DARK.text, fontFamily: Fonts.brand, includeFontPadding: false },
   trend: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingBottom: 8 },
   trendText: { fontSize: 13, fontWeight: '700', color: DARK.green },
   bigSub: { fontSize: 14, fontWeight: '300', color: DARK.textSecondary, marginBottom: 24 },

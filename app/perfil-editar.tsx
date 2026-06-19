@@ -6,8 +6,6 @@ import { markHintSeen, shouldShowHint } from '@/lib/hints';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Alert,
-  Animated,
-  Linking,
   Platform,
   ScrollView,
   StyleSheet,
@@ -33,7 +31,6 @@ import {
   getPagosEfectivo, setPagosEfectivo,
   getPagosTrans, setPagosTrans,
   getPagosTarjeta, setPagosTarjeta,
-  getTipoNegocio, setTipoNegocio,
 } from '@/lib/menu-store';
 import { Fonts, useTheme, type Theme } from '@/lib/theme';
 
@@ -44,19 +41,12 @@ const DARK = {
   surface2: 'rgba(255,255,255,0.08)',
   text: '#F8F8F5',
   textSecondary: 'rgba(248,248,245,0.55)',
+  textMute: 'rgba(248,248,245,0.4)',
   border: 'rgba(255,255,255,0.10)',
   sep: 'rgba(255,255,255,0.06)',
   accent: '#FF6A3D',
   accentLight: 'rgba(255,106,61,0.15)',
 };
-
-const TIPOS_NEGOCIO: { key: string; label: string }[] = [
-  { key: 'fondita',    label: 'Fondita' },
-  { key: 'taqueria',   label: 'Taquería' },
-  { key: 'reposteria', label: 'Repostería' },
-  { key: 'mariscos',   label: 'Mariscos' },
-  { key: 'otro',       label: 'Otro' },
-];
 
 const MAX_NOMBRE      = 30;
 const MAX_DESCRIPCION = 80;
@@ -120,8 +110,10 @@ function makeStyles(theme: Theme) {
     heroBlock:          { paddingTop: 8, paddingBottom: 6 },
     titleRow:           { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
     eyebrowOrange:      { fontSize: 11, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', color: t.accent, marginBottom: 6 },
-    screenTitle:        { fontSize: 34, fontWeight: '900', letterSpacing: -1.2, lineHeight: 38, color: t.text, marginBottom: 18, fontFamily: Fonts.brand },
-    saveInlineBtn:      { fontSize: 15, fontWeight: '700', color: t.accent },
+    screenTitle:        { fontSize: 34, fontWeight: '900', letterSpacing: -1.2, lineHeight: 36, color: t.text, marginBottom: 6, fontFamily: Fonts.brand },
+    screenSub:          { fontSize: 14, fontWeight: '300', lineHeight: 19, color: t.textSecondary, marginBottom: 4 },
+    savePill:           { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 100, backgroundColor: t.accent },
+    savePillText:       { fontSize: 13, fontWeight: '700', color: '#fff' },
     // Card de campos
     fieldCard:          { backgroundColor: t.surface, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, paddingHorizontal: 16, paddingVertical: 14 },
     fieldLabel:         { fontSize: 11, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', color: t.textMute, marginBottom: 4 },
@@ -133,26 +125,23 @@ function makeStyles(theme: Theme) {
     block:              { paddingTop: 24 },
     blockFirst:         { paddingTop: 32 },
     blockLabel:         { fontSize: 11, fontWeight: '900', color: t.textSecondary, marginBottom: 8, paddingLeft: 2 },
-    // Type pills (inside card)
-    tipoRow:            { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: 14, paddingVertical: 14 },
-    typePill:           { paddingHorizontal: 16, paddingVertical: 9, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, backgroundColor: t.bg },
-    typePillActive:     { backgroundColor: t.text, borderColor: t.text },
-    typePillText:       { fontSize: 14, fontWeight: '300', color: t.text },
-    typePillTextActive: { color: t.surface, fontWeight: '900' },
-    // Groups
+    // Cards planas (horario)
+    plainCard:          { backgroundColor: t.surface, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, overflow: 'hidden' },
+    opSection:          { paddingHorizontal: 16, paddingVertical: 16 },
     divider:            { height: StyleSheet.hairlineWidth, backgroundColor: t.border },
-    pickerWrapper:      { backgroundColor: t.surface, borderRadius: 12, overflow: 'hidden' },
-    operationGroup:     { marginTop: 2, backgroundColor: t.surface, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, overflow: 'hidden' },
-    operationRow:       { minHeight: 54, paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center' },
-    operationTitle:     { flex: 1, fontSize: 17, fontWeight: '300', color: t.text },
-    operationValue:     { fontSize: 17, fontWeight: '900', color: t.text },
+    pickerWrapper:      { marginTop: 12, backgroundColor: t.bg, borderRadius: 12, overflow: 'hidden' },
+    // Horario — cápsulas de → a
+    horarioRow:         { flexDirection: 'row', alignItems: 'center', gap: 10 },
+    timeCapsule:        { flex: 1, paddingHorizontal: 14, paddingVertical: 11, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, backgroundColor: t.bg },
+    timeCapsuleActive:  { borderColor: t.accent, backgroundColor: t.accentLight },
+    timeCapsuleHint:    { fontSize: 10.5, fontWeight: '700', letterSpacing: 0.5, textTransform: 'uppercase', color: t.textMute, marginBottom: 3 },
+    timeCapsuleVal:     { fontSize: 18, fontWeight: '900', color: t.text, fontFamily: Fonts.brand },
     // Payments
-    paymentRow:         { paddingHorizontal: 14, paddingVertical: 14 },
     paymentChips:       { flexDirection: 'row', gap: 8 },
-    paymentChip:        { flex: 1, minHeight: 36, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, alignItems: 'center', justifyContent: 'center', backgroundColor: t.bg },
-    paymentChipActive:  { backgroundColor: t.text, borderColor: t.text },
-    paymentChipText:    { fontSize: 12, fontWeight: '900', color: t.text },
-    paymentChipTextActive: { color: t.surface },
+    paymentChip:        { flex: 1, flexDirection: 'row', minHeight: 44, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, alignItems: 'center', justifyContent: 'center', backgroundColor: t.surface },
+    paymentChipActive:  { backgroundColor: t.accent, borderColor: t.accent },
+    paymentChipText:    { fontSize: 12.5, fontWeight: '700', color: t.text },
+    paymentChipTextActive: { color: '#fff' },
     // Settings
     settingGroup:       { marginTop: 2, backgroundColor: t.surface, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, overflow: 'hidden' },
     settingRow:         { flexDirection: 'row', alignItems: 'center', minHeight: 62, paddingHorizontal: 14 },
@@ -162,31 +151,9 @@ function makeStyles(theme: Theme) {
   });
 }
 
-// ─── ToggleSwitch ─────────────────────────────────────────────────────────────
-function ToggleSwitch({ value, onValueChange }: { value: boolean; onValueChange: (v: boolean) => void }) {
-  const anim = useRef(new Animated.Value(value ? 1 : 0)).current;
-  useEffect(() => {
-    Animated.spring(anim, { toValue: value ? 1 : 0, useNativeDriver: false, speed: 20, bounciness: 0 }).start();
-  }, [anim, value]);
-  const translateX = anim.interpolate({ inputRange: [0, 1], outputRange: [2, 20] });
-  const trackBg    = anim.interpolate({ inputRange: [0, 1], outputRange: ['rgba(255,255,255,0.18)', DARK.accent] });
-  return (
-    <TouchableOpacity onPress={() => onValueChange(!value)} activeOpacity={0.85}>
-      <Animated.View style={[tog.track, { backgroundColor: trackBg }]}>
-        <Animated.View style={[tog.thumb, { transform: [{ translateX }] }]} />
-      </Animated.View>
-    </TouchableOpacity>
-  );
-}
-
-const tog = StyleSheet.create({
-  track: { width: 46, height: 28, borderRadius: 14, justifyContent: 'center', paddingHorizontal: 1 },
-  thumb: { width: 24, height: 24, borderRadius: 12, backgroundColor: '#FFFFFF', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.14, shadowRadius: 4, elevation: 2 },
-});
-
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 export default function PerfilScreen() {
-  const { theme, toggleTheme } = useTheme();
+  const { theme } = useTheme();
   const s = makeStyles(theme);
   const insets = useSafeAreaInsets();
 
@@ -203,7 +170,6 @@ export default function PerfilScreen() {
   const [pagosEfectivo, setPagosEfectivoState] = useState(getPagosEfectivo());
   const [pagosTrans,    setPagosTransState]    = useState(getPagosTrans());
   const [pagosTarjeta,  setPagosTarjetaState]  = useState(getPagosTarjeta());
-  const [tipoNegocio,   setTipoNegocioState]   = useState<string | null>(getTipoNegocio());
   const [email,         setEmail]         = useState('');
   const [ready,         setReady]         = useState(false);
   const [isSaving,      setIsSaving]      = useState(false);
@@ -220,7 +186,6 @@ export default function PerfilScreen() {
     pagosEfectivo: getPagosEfectivo(),
     pagosTrans:    getPagosTrans(),
     pagosTarjeta:  getPagosTarjeta(),
-    tipoNegocio:   getTipoNegocio() as string | null,
   });
 
   const isDirty =
@@ -230,8 +195,7 @@ export default function PerfilScreen() {
     horario       !== savedValues.horario       ||
     pagosEfectivo !== savedValues.pagosEfectivo ||
     pagosTrans    !== savedValues.pagosTrans    ||
-    pagosTarjeta  !== savedValues.pagosTarjeta  ||
-    tipoNegocio   !== savedValues.tipoNegocio;
+    pagosTarjeta  !== savedValues.pagosTarjeta;
 
   const [showPerfilHint, setShowPerfilHint] = useState(false);
 
@@ -304,12 +268,10 @@ export default function PerfilScreen() {
           setCierre(p.cierre);
         }
 
-        const tn = (fondita as any).tipo_negocio ?? null;
         setPagosEfectivoState(pe);  setPagosEfectivo(pe);
         setPagosTransState(pt);     setPagosTrans(pt);
         setPagosTarjetaState(ptar); setPagosTarjeta(ptar);
-        setTipoNegocioState(tn);    setTipoNegocio(tn);
-        setSavedValues({ nombre: n, descripcion: desc, ubicacion: ub, horario: hor || '', pagosEfectivo: pe, pagosTrans: pt, pagosTarjeta: ptar, tipoNegocio: tn });
+        setSavedValues({ nombre: n, descripcion: desc, ubicacion: ub, horario: hor || '', pagosEfectivo: pe, pagosTrans: pt, pagosTarjeta: ptar });
 
         if (fondita.nombre_updated_at) nombreUpdatedAtRef.current = fondita.nombre_updated_at;
         if ((fondita as any).latitude && (fondita as any).longitude) setLocationSaved(true);
@@ -347,7 +309,6 @@ export default function PerfilScreen() {
       if (pagosEfectivo !== savedValues.pagosEfectivo) { payload['pagos_efectivo']      = pagosEfectivo; newSaved.pagosEfectivo = pagosEfectivo; }
       if (pagosTrans    !== savedValues.pagosTrans)    { payload['pagos_transferencia'] = pagosTrans;    newSaved.pagosTrans    = pagosTrans; }
       if (pagosTarjeta  !== savedValues.pagosTarjeta)  { payload['pagos_tarjeta']       = pagosTarjeta;  newSaved.pagosTarjeta  = pagosTarjeta; }
-      if (tipoNegocio   !== savedValues.tipoNegocio)   { payload['tipo_negocio']         = tipoNegocio ?? ''; newSaved.tipoNegocio = tipoNegocio; }
 
       if (Object.keys(payload).length > 0) {
         if (fonditaId) await supabase.from('fonditas').update(payload).eq('id', fonditaId);
@@ -358,7 +319,6 @@ export default function PerfilScreen() {
         if ('pagos_efectivo' in payload)      setPagosEfectivo(pagosEfectivo);
         if ('pagos_transferencia' in payload) setPagosTrans(pagosTrans);
         if ('pagos_tarjeta' in payload)       setPagosTarjeta(pagosTarjeta);
-        if ('tipo_negocio' in payload)        setTipoNegocio(tipoNegocio);
       }
 
       setSavedValues(newSaved);
@@ -405,21 +365,27 @@ export default function PerfilScreen() {
       </TouchableOpacity>
       <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
 
-        {/* ── NEGOCIO ── */}
+        {/* ── HEADER ── */}
         <View style={s.heroBlock}>
           <View style={s.titleRow}>
-            <Text style={s.eyebrowOrange} allowFontScaling={true}>Tu Patio</Text>
+            <Text style={s.eyebrowOrange} allowFontScaling={true}>Mi Patio</Text>
             {isDirty && (
               <TouchableOpacity onPress={handleSaveAll} disabled={isSaving} activeOpacity={0.6}>
-                <Text style={[s.saveInlineBtn, isSaving && { opacity: 0.4 }]} allowFontScaling={true}>
-                  {isSaving ? 'Guardando…' : 'Guardar'}
-                </Text>
+                <View style={s.savePill}>
+                  <Text style={[s.savePillText, isSaving && { opacity: 0.5 }]} allowFontScaling={true}>
+                    {isSaving ? 'Guardando…' : 'Guardar'}
+                  </Text>
+                </View>
               </TouchableOpacity>
             )}
           </View>
-          <Text style={s.screenTitle} allowFontScaling={true}>Información</Text>
+          <Text style={s.screenTitle} allowFontScaling={true}>Editar mi lugar</Text>
+          <Text style={s.screenSub} allowFontScaling={true}>Así te encuentran quienes andan cerca.</Text>
+        </View>
 
-          {/* Card de campos */}
+        {/* ── IDENTIDAD ── */}
+        <View style={s.block}>
+          <Text style={s.blockLabel} allowFontScaling={true}>IDENTIDAD</Text>
           <View style={s.fieldCard}>
             <Text style={s.fieldLabel} allowFontScaling={true}>Nombre</Text>
             <TextInput
@@ -477,139 +443,100 @@ export default function PerfilScreen() {
           </View>
         </View>
 
-        {/* ── TIPO · HORARIO · PAGOS — un solo card ── */}
-        <View style={s.blockFirst}>
-          <View style={s.operationGroup}>
-            <View style={s.tipoRow}>
-              {TIPOS_NEGOCIO.map(({ key, label }) => (
+        {/* ── HORARIO ── */}
+        <View style={s.block}>
+          <Text style={s.blockLabel} allowFontScaling={true}>HORARIO DE HOY</Text>
+          <View style={s.plainCard}>
+            <View style={s.opSection}>
+              <View style={s.horarioRow}>
                 <TouchableOpacity
-                  key={key}
-                  style={[s.typePill, tipoNegocio === key && s.typePillActive]}
-                  onPress={() => { setTipoNegocioState(key); setTipoNegocio(key); }}
+                  style={[s.timeCapsule, showApertura && s.timeCapsuleActive]}
+                  onPress={() => { setShowCierre(false); setShowApertura(v => !v); }}
                   activeOpacity={0.75}>
-                  <Text style={[s.typePillText, tipoNegocio === key && s.typePillTextActive]} allowFontScaling={true}>
-                    {label}
+                  <Text style={s.timeCapsuleHint} allowFontScaling={true}>Abre</Text>
+                  <Text style={[s.timeCapsuleVal, !apertura && { color: DARK.textMute, fontWeight: '300' }]} allowFontScaling={true}>
+                    {apertura ? formatTime(apertura) : 'Definir'}
                   </Text>
                 </TouchableOpacity>
-              ))}
-            </View>
-            <View style={s.divider} />
-            <TouchableOpacity style={s.operationRow} onPress={() => { setShowCierre(false); setShowApertura(v => !v); }} activeOpacity={0.72}>
-              <Text style={s.operationTitle} allowFontScaling={true}>Apertura</Text>
-              <Text style={[s.operationValue, !apertura && { color: DARK.textSecondary }]} allowFontScaling={true}>
-                {apertura ? formatTime(apertura) : 'Definir'}
-              </Text>
-            </TouchableOpacity>
-            <View style={s.divider} />
-            <TouchableOpacity style={s.operationRow} onPress={() => { setShowApertura(false); setShowCierre(v => !v); }} activeOpacity={0.72}>
-              <Text style={s.operationTitle} allowFontScaling={true}>Cierre</Text>
-              <Text style={[s.operationValue, !cierre && { color: DARK.textSecondary }]} allowFontScaling={true}>
-                {cierre ? formatTime(cierre) : 'Definir'}
-              </Text>
-            </TouchableOpacity>
-            {(showApertura || showCierre) && <View style={s.divider} />}
-            {showApertura && (
-              <View style={s.pickerWrapper}>
-                <DateTimePicker
-                  mode="time"
-                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                  value={apertura ?? defaultApertura()}
-                  onChange={(_, d) => {
-                    if (d) setApertura(d);
-                    if (aperturaTimerRef.current) clearTimeout(aperturaTimerRef.current);
-                    aperturaTimerRef.current = setTimeout(() => setShowApertura(false), 600);
-                  }}
-                  minuteInterval={15}
-                  textColor={DARK.text}
-                  accentColor={DARK.accent}
-                />
+                <Ionicons name="arrow-forward" size={14} color={DARK.textMute} />
+                <TouchableOpacity
+                  style={[s.timeCapsule, showCierre && s.timeCapsuleActive]}
+                  onPress={() => { setShowApertura(false); setShowCierre(v => !v); }}
+                  activeOpacity={0.75}>
+                  <Text style={s.timeCapsuleHint} allowFontScaling={true}>Cierra</Text>
+                  <Text style={[s.timeCapsuleVal, !cierre && { color: DARK.textMute, fontWeight: '300' }]} allowFontScaling={true}>
+                    {cierre ? formatTime(cierre) : 'Definir'}
+                  </Text>
+                </TouchableOpacity>
               </View>
-            )}
-            {showCierre && (
-              <View style={s.pickerWrapper}>
-                <DateTimePicker
-                  mode="time"
-                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                  value={cierre ?? defaultCierre()}
-                  onChange={(_, d) => {
-                    if (d) setCierre(d);
-                    if (cierreTimerRef.current) clearTimeout(cierreTimerRef.current);
-                    cierreTimerRef.current = setTimeout(() => setShowCierre(false), 600);
-                  }}
-                  minuteInterval={15}
-                  textColor={DARK.text}
-                  accentColor={DARK.accent}
-                />
-              </View>
-            )}
-            <View style={s.divider} />
-            <View style={s.paymentRow}>
-              <View style={s.paymentChips}>
-                {([['Efectivo', pagosEfectivo, setPagosEfectivoState], ['Transferencia', pagosTrans, setPagosTransState], ['Tarjeta', pagosTarjeta, setPagosTarjetaState]] as const).map(([label, active, toggle]) => (
-                  <TouchableOpacity
-                    key={label}
-                    style={[s.paymentChip, active && s.paymentChipActive]}
-                    onPress={() => toggle(!active)}
-                    activeOpacity={0.75}>
-                    <Text style={[s.paymentChipText, active && s.paymentChipTextActive]} allowFontScaling={true}>{label}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
+              {showApertura && (
+                <View style={s.pickerWrapper}>
+                  <DateTimePicker
+                    mode="time"
+                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                    value={apertura ?? defaultApertura()}
+                    onChange={(_, d) => {
+                      if (d) setApertura(d);
+                      if (aperturaTimerRef.current) clearTimeout(aperturaTimerRef.current);
+                      aperturaTimerRef.current = setTimeout(() => setShowApertura(false), 600);
+                    }}
+                    minuteInterval={15}
+                    textColor={DARK.text}
+                    accentColor={DARK.accent}
+                  />
+                </View>
+              )}
+              {showCierre && (
+                <View style={s.pickerWrapper}>
+                  <DateTimePicker
+                    mode="time"
+                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                    value={cierre ?? defaultCierre()}
+                    onChange={(_, d) => {
+                      if (d) setCierre(d);
+                      if (cierreTimerRef.current) clearTimeout(cierreTimerRef.current);
+                      cierreTimerRef.current = setTimeout(() => setShowCierre(false), 600);
+                    }}
+                    minuteInterval={15}
+                    textColor={DARK.text}
+                    accentColor={DARK.accent}
+                  />
+                </View>
+              )}
             </View>
           </View>
         </View>
 
-        {/* ── CUENTA ── */}
+        {/* ── PAGOS ── */}
+        <View style={s.block}>
+          <Text style={s.blockLabel} allowFontScaling={true}>CÓMO COBRAS</Text>
+          <View style={s.paymentChips}>
+            {([['cash', 'Efectivo', pagosEfectivo, setPagosEfectivoState], ['transfer', 'Transferencia', pagosTrans, setPagosTransState], ['card', 'Tarjeta', pagosTarjeta, setPagosTarjetaState]] as const).map(([key, label, active, toggle]) => (
+              <TouchableOpacity
+                key={key}
+                style={[s.paymentChip, active && s.paymentChipActive]}
+                onPress={() => toggle(!active)}
+                activeOpacity={0.75}>
+                {active && <Ionicons name="checkmark" size={13} color="#fff" style={{ marginRight: 4 }} />}
+                <Text style={[s.paymentChipText, active && s.paymentChipTextActive]} allowFontScaling={true}>{label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {/* ── CUENTA: correo + cerrar sesión ── */}
         <View style={s.block}>
           <Text style={s.blockLabel} allowFontScaling={true}>CUENTA</Text>
           <View style={s.settingGroup}>
             <View style={s.settingRow}>
-              <Ionicons name="mail-outline" size={22} color={DARK.text} style={s.settingIcon} />
-              <Text style={s.emailText} allowFontScaling={true}>{email || 'Sin correo'}</Text>
+              <Ionicons name="mail-outline" size={20} color={DARK.textSecondary} style={s.settingIcon} />
+              <Text style={s.emailText} numberOfLines={1} allowFontScaling={true}>{email || 'Sin correo'}</Text>
             </View>
-          </View>
-        </View>
-
-        {/* ── PREFERENCIAS ── */}
-        <View style={s.block}>
-          <Text style={s.blockLabel} allowFontScaling={true}>PREFERENCIAS</Text>
-          <View style={s.settingGroup}>
-            <View style={s.settingRow}>
-              <Ionicons name="moon-outline" size={22} color={DARK.text} style={s.settingIcon} />
-              <Text style={s.rowLabel} allowFontScaling={true}>Modo oscuro</Text>
-              <ToggleSwitch value={theme.isDark} onValueChange={toggleTheme} />
-            </View>
-          </View>
-        </View>
-
-        {/* ── SOPORTE ── */}
-        <View style={s.block}>
-          <Text style={s.blockLabel} allowFontScaling={true}>SOPORTE</Text>
-          <View style={s.settingGroup}>
-            <TouchableOpacity style={s.settingRow} onPress={() => router.push('/manifiesto')} activeOpacity={0.7}>
-              <Ionicons name="sparkles-outline" size={22} color={DARK.text} style={s.settingIcon} />
-              <Text style={s.rowLabel} allowFontScaling={true}>Manifiesto</Text>
-            </TouchableOpacity>
             <View style={s.divider} />
-            <TouchableOpacity style={s.settingRow} onPress={() => Linking.openURL('mailto:quehayhoy.patio@gmail.com?subject=Soporte%20Patio%20Fondero')} activeOpacity={0.7}>
-              <Ionicons name="chatbubble-outline" size={22} color={DARK.text} style={s.settingIcon} />
-              <Text style={s.rowLabel} allowFontScaling={true}>Contactar con soporte</Text>
-            </TouchableOpacity>
-            <View style={s.divider} />
-            <TouchableOpacity style={s.settingRow} onPress={() => Linking.openURL('itms-apps://itunes.apple.com/app/id6760884735?action=write-review')} activeOpacity={0.7}>
-              <Ionicons name="star-outline" size={22} color={DARK.text} style={s.settingIcon} />
-              <Text style={s.rowLabel} allowFontScaling={true}>Calificar la app</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* ── SESIÓN ── */}
-        <View style={s.block}>
-          <Text style={s.blockLabel} allowFontScaling={true}>SESIÓN</Text>
-          <View style={s.settingGroup}>
             <TouchableOpacity style={s.settingRow} onPress={handleSignOut} activeOpacity={0.7}>
-              <Ionicons name="log-out-outline" size={22} color={DARK.text} style={s.settingIcon} />
+              <Ionicons name="log-out-outline" size={20} color={DARK.textSecondary} style={s.settingIcon} />
               <Text style={s.rowLabel} allowFontScaling={true}>Cerrar sesión</Text>
+              <Ionicons name="chevron-forward" size={15} color={DARK.textMute} />
             </TouchableOpacity>
           </View>
         </View>

@@ -6,7 +6,7 @@ Leer esta sección antes del historial. Las secciones antiguas abajo son bitáco
 
 ### Sesión 2026-06-17 (tarde) — Recorrido completo de pantallas + cierre login/mailing
 
-**SIN COMMIT todavía** (working tree con cambios sin commitear, encima de los 3 commits + handoff ya locales). Todo en local, nada de push.
+**4 commits locales SIN PUSH.** El recorrido + login/mailing se commiteó en `19444eb`. El arreglo del botón Soporte (abajo) está SIN COMMIT en el working tree. Todo en local, nada de push.
 
 **Recorrido completo de las 19 pantallas** (auditoría por código + 2 capturas en simulador). Veredicto: la mayoría ya estaba look Figma. Lo suelto se arregló. **Ninguna huérfana, ninguna ruta rota, tsc verde, lint sin errores.**
 
@@ -18,6 +18,13 @@ Leer esta sección antes del historial. Las secciones antiguas abajo son bitáco
 - Dato semilla **"Fonda Lupita" → "Cocina de Lupita"** (perfil, preview, menu-editar). Quita la palabra paraguas "Fonda" de pantalla.
 - **foto-menu** registrado en el `Stack` de `_layout` (estaba sin registrar, funcionaba por archivo).
 - **menu-publicado**: quitado un `LinearGradient` transparente muerto + su import.
+
+**Botón que mentía — arreglado (SIN COMMIT):**
+- **`perfil.tsx` (Mi Patio) → fila "Soporte"**: el `onPress` iba a `/perfil-editar` aunque el sub prometía contacto. Alejandro lo detectó NAVEGANDO (no se ve leyendo una pantalla suelta, hay que recorrer). Ahora abre **correo** (`mailto:quehayhoy.patio@gmail.com`), sub = "Escríbenos por correo". Quitado el `SUPPORT_PHONE` placeholder (`525500000000`).
+- **Decisión: soporte por correo, no WhatsApp.** Apple pide URL de soporte (un correo basta); Google Play exige email de contacto (ya está), teléfono opcional. No hace falta número.
+- **Pasada estática anti-"botón mentiroso"**: `grep` de filas cuyo `sub` promete WhatsApp/correo/mapa pero `onPress` va a ruta interna. Resultado: solo Soporte mentía en toda la app. Método barato (sin abrir sim) para cazar esta clase de bug.
+
+**Método de trabajo acordado (importante):** Claude en Claude Code NO recorre la app tocando botones — ve código y screenshots sueltos, no el FLUJO. Por eso bugs de navegación (Soporte→Perfil) se le escapan aunque tenga el archivo enfrente. Reparto: **Figma Make diseña el look** (tiene render en vivo), **Alejandro navega y reporta en una frase**, **Claude arregla por código + traduce diseños de Figma a RN**. El rediseño de la ficha "Mi Patio" (se ve mal) va a Figma Make, no a Claude redibujando a ciegas. Ver memoria [[sim_deeplink_fragile]].
 
 **Login + Mailing (lo que faltaba — hecho):**
 - **`login-callback.tsx`** ("Verificando link…"): era beige viejo `#F5E9D9` → ahora oscuro `#111214` + glow naranja, consistente con flujo Fondero. **Lógica de auth intacta** (solo el render).

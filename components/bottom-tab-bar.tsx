@@ -51,19 +51,30 @@ export function BottomTabBar({ variant = 'fondero' }: { variant?: 'foodie' | 'fo
   const tabs = variant === 'foodie' ? FOODIE_TABS : FONDERO_TABS;
 
   return (
-    <View style={[styles.wrap, { bottom: (insets.bottom || 10) + 4 }]} pointerEvents="box-none">
-      <BlurView
-        intensity={isDark ? 40 : 36}
-        tint={isDark ? 'dark' : 'light'}
-        style={[styles.pill, { backgroundColor: c.pill, borderColor: c.border }]}>
+    <View style={[styles.wrap, { bottom: (insets.bottom || 10) + 4 }]}>
+      <View style={[styles.pill, { backgroundColor: c.pill, borderColor: c.border }]}>
+        <BlurView
+          intensity={isDark ? 40 : 36}
+          tint={isDark ? 'dark' : 'light'}
+          style={StyleSheet.absoluteFill}
+        />
         {tabs.map(({ path, label, icon }) => {
           const active = pathname === path;
+          const onTabPress = () => {
+            Keyboard.dismiss();
+            // Navegamos SIEMPRE, sin guard. Antes el `if (!active)` dependía de
+            // usePathname (que puede ir un frame atrasado) y "a veces no navegaba".
+            // router.replace a la ruta actual es no-op visual en expo-router, así que
+            // navegar incondicionalmente es seguro y elimina la intermitencia.
+            router.replace(path as any);
+          };
           return (
             <TouchableOpacity
               key={path}
               style={[styles.tab, active && { backgroundColor: c.accentBg }]}
               activeOpacity={0.7}
-              onPress={() => { Keyboard.dismiss(); if (!active) router.replace(path as any); }}>
+              hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
+              onPress={onTabPress}>
               <Ionicons name={icon} size={20} color={active ? c.accent : c.mute} />
               <Text style={[styles.label, { color: active ? c.accent : c.mute, fontWeight: active ? '700' : '500' }]}>
                 {label}
@@ -71,13 +82,13 @@ export function BottomTabBar({ variant = 'fondero' }: { variant?: 'foodie' | 'fo
             </TouchableOpacity>
           );
         })}
-      </BlurView>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { position: 'absolute', left: 12, right: 12, zIndex: 40 },
+  wrap: { position: 'absolute', left: 12, right: 12, zIndex: 100, elevation: 100 },
   pill: {
     flexDirection: 'row',
     gap: 4,

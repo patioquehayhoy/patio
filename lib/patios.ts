@@ -1,4 +1,11 @@
 import { supabase } from './supabase';
+import {
+  deserialize,
+  migrarStringLegacy,
+  horarioDeHoy,
+  formatHHMM12,
+  type HorarioSemanal,
+} from './horario';
 
 export type PatioMenuItem = {
   name: string;
@@ -28,7 +35,23 @@ export type Patio = {
   y: number;
   menu: PatioMenuSection[];
   payments: string[];
+  weeklyHours: HorarioSemanal | null;
 };
+
+// Deriva el horario semanal de una fila: jsonb nuevo, o fallback al string viejo.
+function weeklyFromRow(horarioSemanal: unknown, horario: string | null): HorarioSemanal | null {
+  return deserialize(horarioSemanal) ?? migrarStringLegacy(horario);
+}
+
+// "open" para tarjetas (explorar): el rango de HOY si hay horario semanal,
+// si no el string legacy crudo.
+function openLabel(weekly: HorarioSemanal | null, horario: string | null): string {
+  const hoy = horarioDeHoy(weekly);
+  if (hoy && !hoy.cerrado && hoy.abre && hoy.cierra) {
+    return `${formatHHMM12(hoy.abre)}–${formatHHMM12(hoy.cierra)}`;
+  }
+  return horario ?? '';
+}
 
 export type PatioDishMatch = {
   patio: Patio;
@@ -72,6 +95,7 @@ export const MOCK_PATIOS: Patio[] = [
       { section: 'BEBIDAS', items: [{ name: 'Agua fresca', tags: ['bebida', 'agua'] }, { name: 'Refresco', tags: ['bebida'] }] },
     ],
     payments: ['Efectivo', 'Transferencia'],
+    weeklyHours: null,
   },
   {
     id: 'cintora-taqueria',
@@ -99,6 +123,7 @@ export const MOCK_PATIOS: Patio[] = [
       { section: 'BEBIDAS', items: [{ name: 'Agua', tags: ['bebida'] }, { name: 'Refresco', tags: ['bebida'] }] },
     ],
     payments: ['Efectivo'],
+    weeklyHours: null,
   },
   {
     id: 'don-bonachon',
@@ -125,6 +150,7 @@ export const MOCK_PATIOS: Patio[] = [
       },
     ],
     payments: ['Efectivo', 'Tarjeta'],
+    weeklyHours: null,
   },
   {
     id: 'aaattaco',
@@ -152,6 +178,7 @@ export const MOCK_PATIOS: Patio[] = [
       { section: 'EXTRAS', items: [{ name: 'Arroz rojo', tags: ['arroz'] }, { name: 'Agua del día', tags: ['agua', 'bebida'] }] },
     ],
     payments: ['Efectivo', 'Transferencia'],
+    weeklyHours: null,
   },
   {
     id: 'vianca',
@@ -185,6 +212,7 @@ export const MOCK_PATIOS: Patio[] = [
       },
     ],
     payments: ['Efectivo', 'Tarjeta'],
+    weeklyHours: null,
   },
 ];
 
@@ -202,37 +230,41 @@ function tipoLabel(tipo: string | null): string {
 export async function fetchPublicFonditas(): Promise<Patio[]> {
   const { data, error } = await supabase
     .from('fonditas')
-    .select('id, nombre, descripcion, direccion, horario, tipo_negocio, pagos_efectivo, pagos_transferencia, pagos_tarjeta')
+    .select('id, nombre, descripcion, direccion, horario, horario_semanal, tipo_negocio, pagos_efectivo, pagos_transferencia, pagos_tarjeta')
     .not('nombre', 'is', null)
     .neq('nombre', 'Mi Fondita');
 
   if (error || !data) return [];
 
-  return data.map((row): Patio => ({
-    id: row.id,
-    name: row.nombre ?? 'Sin nombre',
-    category: tipoLabel(row.tipo_negocio),
-    area: 'CDMX',
-    price: '$',
-    address: row.direccion ?? '',
-    open: row.horario ?? '',
-    rating: '5.0',
-    reason: row.descripcion ?? '',
-    latitude: 0,
-    longitude: 0,
-    x: 0,
-    y: 0,
-    menu: [],
-    payments: [
-      ...(row.pagos_efectivo ? ['Efectivo'] : []),
-      ...(row.pagos_transferencia ? ['Transferencia'] : []),
-      ...(row.pagos_tarjeta ? ['Tarjeta'] : []),
-    ],
-  }));
+  return data.map((row): Patio => {
+    const weekly = weeklyFromRow((row as any).horario_semanal, row.horario);
+    return {
+      id: row.id,
+      name: row.nombre ?? 'Sin nombre',
+      category: tipoLabel(row.tipo_negocio),
+      area: 'CDMX',
+      price: '$',
+      address: row.direccion ?? '',
+      open: openLabel(weekly, row.horario),
+      rating: '5.0',
+      reason: row.descripcion ?? '',
+      latitude: 0,
+      longitude: 0,
+      x: 0,
+      y: 0,
+      menu: [],
+      payments: [
+        ...(row.pagos_efectivo ? ['Efectivo'] : []),
+        ...(row.pagos_transferencia ? ['Transferencia'] : []),
+        ...(row.pagos_tarjeta ? ['Tarjeta'] : []),
+      ],
+      weeklyHours: weekly,
+    };
+  });
 }
 
 export async function fetchFonditaById(id: string): Promise<Patio | null> {
-  const base = 'id, nombre, descripcion, direccion, horario, tipo_negocio, pagos_efectivo, pagos_transferencia, pagos_tarjeta';
+  const base = 'id, nombre, descripcion, direccion, horario, horario_semanal, tipo_negocio, pagos_efectivo, pagos_transferencia, pagos_tarjeta';
   let row: Record<string, unknown> | null = null;
 
   const withLoc = await supabase.from('fonditas').select(`${base}, latitude, longitude`).eq('id', id).maybeSingle();
@@ -244,6 +276,7 @@ export async function fetchFonditaById(id: string): Promise<Patio | null> {
     row = noLoc.data as Record<string, unknown>;
   }
 
+  const weekly = weeklyFromRow(row.horario_semanal, (row.horario as string | null) ?? null);
   return {
     id: row.id as string,
     name: (row.nombre as string | null) ?? 'Sin nombre',
@@ -251,7 +284,7 @@ export async function fetchFonditaById(id: string): Promise<Patio | null> {
     area: 'CDMX',
     price: '$',
     address: (row.direccion as string | null) ?? '',
-    open: (row.horario as string | null) ?? '',
+    open: openLabel(weekly, (row.horario as string | null) ?? null),
     rating: '5.0',
     reason: (row.descripcion as string | null) ?? '',
     latitude: (row.latitude as number | null) ?? 0,
@@ -263,6 +296,7 @@ export async function fetchFonditaById(id: string): Promise<Patio | null> {
       ...(row.pagos_transferencia ? ['Transferencia'] : []),
       ...(row.pagos_tarjeta ? ['Tarjeta'] : []),
     ],
+    weeklyHours: weekly,
   };
 }
 

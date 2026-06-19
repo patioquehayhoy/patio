@@ -1,3 +1,5 @@
+import type { HorarioSemanal } from './horario';
+
 // ─── ID helpers ───────────────────────────────────────────────────────────────
 export function makeSectionId(): string {
   return Date.now().toString(36) + Math.random().toString(36).slice(2);
@@ -131,6 +133,7 @@ export function setTipoNegocio(t: string | null) { _tipoNegocio = t; }
 let _fonditaDireccion = '';
 let _fonditaDireccionVisible = false;
 let _fonditaHorario = '';
+let _fonditaHorarioSemanal: HorarioSemanal | null = null;
 let _pagosEfectivo = false;
 let _pagosTrans = false;
 let _pagosTarjeta = false;
@@ -141,6 +144,8 @@ export function getFonditaDireccionVisible(): boolean { return _fonditaDireccion
 export function setFonditaDireccionVisible(v: boolean) { _fonditaDireccionVisible = v; }
 export function getFonditaHorario(): string { return _fonditaHorario; }
 export function setFonditaHorario(v: string) { _fonditaHorario = v; }
+export function getFonditaHorarioSemanal(): HorarioSemanal | null { return _fonditaHorarioSemanal; }
+export function setFonditaHorarioSemanal(v: HorarioSemanal | null) { _fonditaHorarioSemanal = v; }
 export function getPagosEfectivo(): boolean { return _pagosEfectivo; }
 export function setPagosEfectivo(v: boolean) { _pagosEfectivo = v; }
 export function getPagosTrans(): boolean { return _pagosTrans; }

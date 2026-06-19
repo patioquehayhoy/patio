@@ -1,4 +1,5 @@
 import * as Location from 'expo-location';
+import { BlurView } from 'expo-blur';
 import { router, useFocusEffect } from 'expo-router';
 
 import { HintSheet } from '@/components/hint-sheet';
@@ -28,10 +29,18 @@ import {
   getFonditaDescription, setFonditaDescription,
   getFonditaDireccion, setFonditaDireccion,
   getFonditaHorario, setFonditaHorario,
+  getFonditaHorarioSemanal, setFonditaHorarioSemanal,
   getPagosEfectivo, setPagosEfectivo,
   getPagosTrans, setPagosTrans,
   getPagosTarjeta, setPagosTarjeta,
 } from '@/lib/menu-store';
+import {
+  type HorarioSemanal,
+  deserialize, migrarStringLegacy, serialize,
+  horarioDefault, resumenHorario, resumenHorarioFilas,
+  dateToHHMM, hhmmToDate,
+  DIAS_ORDEN_LUNES, DIA_LETRA,
+} from '@/lib/horario';
 import { Fonts, useTheme, type Theme } from '@/lib/theme';
 
 // Paleta oscura fija estilo Figma FonderoFonda (flujo Fondero siempre oscuro).
@@ -67,53 +76,23 @@ function formatTime(date: Date): string {
   return m === 0 ? `${h12}${ampm}` : `${h12}:${m.toString().padStart(2, '0')}${ampm}`;
 }
 
-function parseTime(str: string): Date {
-  const d = new Date();
-  const ispm = str.endsWith('pm');
-  const clean = str.replace(/[ap]m$/, '');
-  const parts = clean.split(':');
-  let h = parseInt(parts[0]);
-  const m = parts[1] ? parseInt(parts[1]) : 0;
-  if (ispm && h !== 12) h += 12;
-  if (!ispm && h === 12) h = 0;
-  d.setHours(h, m, 0, 0);
-  return d;
-}
-
-function parseHorario(horario: string): { apertura: Date; cierre: Date } {
-  let dashIdx = horario.indexOf(' – ');
-  if (dashIdx === -1) {
-    const dotIdx = horario.indexOf(' · ');
-    if (dotIdx !== -1) {
-      const times = horario.slice(dotIdx + 3);
-      dashIdx = times.indexOf(' – ');
-      if (dashIdx !== -1) {
-        return { apertura: parseTime(times.slice(0, dashIdx)), cierre: parseTime(times.slice(dashIdx + 3)) };
-      }
-    }
-    return { apertura: defaultApertura(), cierre: defaultCierre() };
-  }
-  return { apertura: parseTime(horario.slice(0, dashIdx)), cierre: parseTime(horario.slice(dashIdx + 3)) };
-}
-
-function buildHorario(apertura: Date, cierre: Date): string {
-  return `${formatTime(apertura)} – ${formatTime(cierre)}`;
-}
-
 function makeStyles(theme: Theme) {
   const t: Theme = { ...theme, ...DARK, isDark: true };
   return StyleSheet.create({
     container:          { flex: 1, backgroundColor: t.bg },
     scroll:             { flex: 1 },
-    scrollContent:      { paddingHorizontal: 20, paddingBottom: 64 },
+    scrollContent:      { paddingHorizontal: 20, paddingBottom: 120 },
     // Hero
     heroBlock:          { paddingTop: 8, paddingBottom: 6 },
     titleRow:           { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
     eyebrowOrange:      { fontSize: 11, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', color: t.accent, marginBottom: 6 },
     screenTitle:        { fontSize: 34, fontWeight: '900', letterSpacing: -1.2, lineHeight: 36, color: t.text, marginBottom: 6, fontFamily: Fonts.brand },
     screenSub:          { fontSize: 14, fontWeight: '300', lineHeight: 19, color: t.textSecondary, marginBottom: 4 },
-    savePill:           { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 100, backgroundColor: t.accent },
-    savePillText:       { fontSize: 13, fontWeight: '700', color: '#fff' },
+    // Barra Guardar fija abajo (glass)
+    saveBar:            { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 20, paddingTop: 12, overflow: 'hidden' },
+    saveBarBorder:      { position: 'absolute', top: 0, left: 0, right: 0, height: StyleSheet.hairlineWidth, backgroundColor: t.border },
+    saveBtn:            { height: 52, borderRadius: 16, backgroundColor: t.accent, alignItems: 'center', justifyContent: 'center' },
+    saveBtnText:        { fontSize: 16, fontWeight: '700', color: '#fff' },
     // Card de campos
     fieldCard:          { backgroundColor: t.surface, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, paddingHorizontal: 16, paddingVertical: 14 },
     fieldLabel:         { fontSize: 11, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', color: t.textMute, marginBottom: 4 },
@@ -136,6 +115,27 @@ function makeStyles(theme: Theme) {
     timeCapsuleActive:  { borderColor: t.accent, backgroundColor: t.accentLight },
     timeCapsuleHint:    { fontSize: 10.5, fontWeight: '700', letterSpacing: 0.5, textTransform: 'uppercase', color: t.textMute, marginBottom: 3 },
     timeCapsuleVal:     { fontSize: 18, fontWeight: '900', color: t.text, fontFamily: Fonts.brand },
+    // Horario semanal
+    // Resumen agrupado (filas día → horas)
+    resumenCard:        { marginBottom: 12, gap: 2 },
+    resumenFila:        { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', paddingVertical: 4 },
+    resumenDias:        { fontSize: 14, fontWeight: '900', color: t.text, fontFamily: Fonts.brand, minWidth: 70 },
+    resumenHoras:       { fontSize: 14, fontWeight: '300', color: t.textSecondary, flex: 1, textAlign: 'right' },
+    resumenCerrado:     { color: t.textMute },
+    cerradoNota:        { fontSize: 12.5, fontWeight: '300', color: t.accent, marginBottom: 10 },
+    horarioSep:         { height: StyleSheet.hairlineWidth, backgroundColor: t.border, marginVertical: 16 },
+    diasHint:           { fontSize: 11.5, fontWeight: '300', color: t.textMute, marginBottom: 10 },
+    dayChipsRow:        { flexDirection: 'row', gap: 6 },
+    dayChip:            { flex: 1, aspectRatio: 1, maxWidth: 44, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, backgroundColor: t.bg, alignItems: 'center', justifyContent: 'center', position: 'relative' },
+    dayChipDot:         { position: 'absolute', top: 6, right: 6, width: 5, height: 5, borderRadius: 3, backgroundColor: t.accent },
+    dayChipException:   { borderColor: t.accent, backgroundColor: t.accentLight },
+    dayChipClosed:      { borderColor: t.accent, backgroundColor: t.accentLight, opacity: 0.6 },
+    dayChipSelected:    { borderColor: t.accent, backgroundColor: t.accent },
+    dayChipText:        { fontSize: 13, fontWeight: '900', color: t.textSecondary, fontFamily: Fonts.brand },
+    exceptionBar:       { flexDirection: 'row', gap: 6, marginTop: 16 },
+    exceptionAction:    { flex: 1, paddingVertical: 11, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, backgroundColor: t.surface, alignItems: 'center', justifyContent: 'center' },
+    exceptionDone:      { backgroundColor: t.accent, borderColor: t.accent },
+    exceptionActionText:{ fontSize: 12.5, fontWeight: '700', color: t.text },
     // Payments
     paymentChips:       { flexDirection: 'row', gap: 8 },
     paymentChip:        { flex: 1, flexDirection: 'row', minHeight: 44, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, alignItems: 'center', justifyContent: 'center', backgroundColor: t.surface },
@@ -157,14 +157,16 @@ export default function PerfilScreen() {
   const s = makeStyles(theme);
   const insets = useSafeAreaInsets();
 
-  const existingHorario = getFonditaHorario();
-  const parsed = existingHorario ? parseHorario(existingHorario) : null;
+  const initialSemanal =
+    getFonditaHorarioSemanal() ?? migrarStringLegacy(getFonditaHorario()) ?? horarioDefault();
 
   const [nombre,        setNombre]        = useState(getFonditaName());
   const [descripcion,   setDescripcion]   = useState(getFonditaDescription());
   const [ubicacion,     setUbicacion]     = useState(getFonditaDireccion());
-  const [apertura,      setApertura]      = useState<Date | null>(parsed?.apertura ?? null);
-  const [cierre,        setCierre]        = useState<Date | null>(parsed?.cierre ?? null);
+  // Horario semanal (7 días) + días seleccionados para editar como excepción.
+  // Selección vacía = se edita el "base" (los días que aún heredan el base).
+  const [semanal,       setSemanal]       = useState<HorarioSemanal>(initialSemanal);
+  const [seleccion,     setSeleccion]     = useState<number[]>([]);
   const [showApertura,  setShowApertura]  = useState(false);
   const [showCierre,    setShowCierre]    = useState(false);
   const [pagosEfectivo, setPagosEfectivoState] = useState(getPagosEfectivo());
@@ -176,13 +178,23 @@ export default function PerfilScreen() {
   const [locationSaved,    setLocationSaved]    = useState(false);
   const [isSavingLocation, setIsSavingLocation] = useState(false);
 
-  const horario = apertura && cierre ? buildHorario(apertura, cierre) : '';
+  // Resumen natural del horario y firma JSON para detectar cambios.
+  const horarioResumen = resumenHorario(semanal);
+  const semanalJSON = JSON.stringify(serialize(semanal));
+
+  // Día "activo" que alimenta las cápsulas/picker: el primero seleccionado, o
+  // el base (Lunes) cuando no hay selección. Solo para mostrar las horas.
+  const diaActivo = seleccion.length > 0
+    ? semanal.find(d => d.dia === seleccion[0])!
+    : (semanal.find(d => d.dia === 1) ?? semanal[0]);
+  const apertura = diaActivo && !diaActivo.cerrado && diaActivo.abre ? hhmmToDate(diaActivo.abre) : null;
+  const cierre   = diaActivo && !diaActivo.cerrado && diaActivo.cierra ? hhmmToDate(diaActivo.cierra) : null;
 
   const [savedValues, setSavedValues] = useState({
     nombre:        getFonditaName(),
     descripcion:   getFonditaDescription(),
     ubicacion:     getFonditaDireccion(),
-    horario:       getFonditaHorario() || '',
+    horarioJSON:   JSON.stringify(serialize(initialSemanal)),
     pagosEfectivo: getPagosEfectivo(),
     pagosTrans:    getPagosTrans(),
     pagosTarjeta:  getPagosTarjeta(),
@@ -192,7 +204,7 @@ export default function PerfilScreen() {
     nombre        !== savedValues.nombre        ||
     descripcion   !== savedValues.descripcion   ||
     ubicacion     !== savedValues.ubicacion     ||
-    horario       !== savedValues.horario       ||
+    semanalJSON   !== savedValues.horarioJSON   ||
     pagosEfectivo !== savedValues.pagosEfectivo ||
     pagosTrans    !== savedValues.pagosTrans    ||
     pagosTarjeta  !== savedValues.pagosTarjeta;
@@ -204,6 +216,45 @@ export default function PerfilScreen() {
   const nombreInputRef     = useRef<TextInput>(null);
   const aperturaTimerRef   = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cierreTimerRef     = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // ── Manipulación del horario semanal ──
+  // Días "objetivo" de una edición: los seleccionados, o (sin selección) los que
+  // heredan el base — es decir, los que comparten horario con el Lunes. Así, editar
+  // el base NO pisa las excepciones que ya pusiste (regla acordada).
+  const baseDia = semanal.find(d => d.dia === 1) ?? semanal[0];
+  const hereda = (d: typeof baseDia) =>
+    d.cerrado === baseDia.cerrado && d.abre === baseDia.abre && d.cierra === baseDia.cierra;
+  const diasObjetivo = (): number[] =>
+    seleccion.length > 0 ? seleccion : semanal.filter(hereda).map(d => d.dia);
+
+  const aplicarHora = (campo: 'abre' | 'cierra', value: string) => {
+    const target = new Set(diasObjetivo());
+    setSemanal(prev => prev.map(d =>
+      target.has(d.dia) ? { ...d, cerrado: false, [campo]: value } : d
+    ));
+  };
+
+  const marcarCerrado = () => {
+    const target = new Set(seleccion);
+    setSemanal(prev => prev.map(d =>
+      target.has(d.dia) ? { ...d, cerrado: true, abre: null, cierra: null } : d
+    ));
+    setSeleccion([]);
+  };
+
+  // Igualar los días seleccionados al horario base.
+  const igualarABase = () => {
+    const target = new Set(seleccion);
+    setSemanal(prev => prev.map(d =>
+      target.has(d.dia) ? { ...d, cerrado: baseDia.cerrado, abre: baseDia.abre, cierra: baseDia.cierra } : d
+    ));
+    setSeleccion([]);
+  };
+
+  const toggleDia = (dia: number) => {
+    setShowApertura(false); setShowCierre(false);
+    setSeleccion(prev => prev.includes(dia) ? prev.filter(x => x !== dia) : [...prev, dia]);
+  };
 
   useFocusEffect(useCallback(() => {
     shouldShowHint('fondero_perfil').then((show) => {
@@ -229,7 +280,7 @@ export default function PerfilScreen() {
 
         const selectResult = await supabase
           .from('fonditas')
-          .select('id, nombre, nombre_updated_at, descripcion, direccion, direccion_visible, horario, pagos_efectivo, pagos_transferencia, pagos_tarjeta, tipo_negocio, latitude, longitude')
+          .select('id, nombre, nombre_updated_at, descripcion, direccion, direccion_visible, horario, horario_semanal, pagos_efectivo, pagos_transferencia, pagos_tarjeta, tipo_negocio, latitude, longitude')
           .eq('telefono', user.email)
           .maybeSingle();
 
@@ -239,7 +290,7 @@ export default function PerfilScreen() {
           const insertResult = await supabase
             .from('fonditas')
             .insert({ telefono: user.email, nombre: '' })
-            .select('id, nombre, nombre_updated_at, descripcion, direccion, direccion_visible, horario, pagos_efectivo, pagos_transferencia, pagos_tarjeta, tipo_negocio, latitude, longitude')
+            .select('id, nombre, nombre_updated_at, descripcion, direccion, direccion_visible, horario, horario_semanal, pagos_efectivo, pagos_transferencia, pagos_tarjeta, tipo_negocio, latitude, longitude')
             .single();
           fondita = insertResult.data;
         }
@@ -257,21 +308,23 @@ export default function PerfilScreen() {
         const pt   = fondita.pagos_transferencia ?? false;
         const ptar = fondita.pagos_tarjeta       ?? false;
 
+        // Horario: jsonb nuevo, fallback al string viejo, fallback al default.
+        const sem = deserialize((fondita as any).horario_semanal)
+          ?? migrarStringLegacy(hor)
+          ?? horarioDefault();
+
         setNombre(n);         setFonditaName(n);
         setDescripcion(desc); setFonditaDescription(desc);
         setUbicacion(ub);     setFonditaDireccion(ub);
         setFonditaHorario(hor);
-
-        if (hor) {
-          const p = parseHorario(hor);
-          setApertura(p.apertura);
-          setCierre(p.cierre);
-        }
+        setSemanal(sem);
+        setFonditaHorarioSemanal(sem);
+        setSeleccion([]);
 
         setPagosEfectivoState(pe);  setPagosEfectivo(pe);
         setPagosTransState(pt);     setPagosTrans(pt);
         setPagosTarjetaState(ptar); setPagosTarjeta(ptar);
-        setSavedValues({ nombre: n, descripcion: desc, ubicacion: ub, horario: hor || '', pagosEfectivo: pe, pagosTrans: pt, pagosTarjeta: ptar });
+        setSavedValues({ nombre: n, descripcion: desc, ubicacion: ub, horarioJSON: JSON.stringify(serialize(sem)), pagosEfectivo: pe, pagosTrans: pt, pagosTarjeta: ptar });
 
         if (fondita.nombre_updated_at) nombreUpdatedAtRef.current = fondita.nombre_updated_at;
         if ((fondita as any).latitude && (fondita as any).longitude) setLocationSaved(true);
@@ -288,7 +341,7 @@ export default function PerfilScreen() {
     try {
       const fonditaId = fonditaIdRef.current;
       const newSaved  = { ...savedValues };
-      const payload: Record<string, string | boolean> = {};
+      const payload: Record<string, unknown> = {};
 
       if (nombre !== savedValues.nombre) {
         const lastUpdated = nombreUpdatedAtRef.current;
@@ -305,7 +358,11 @@ export default function PerfilScreen() {
 
       if (descripcion !== savedValues.descripcion) { payload['descripcion'] = descripcion.trim(); newSaved.descripcion = descripcion.trim(); }
       if (ubicacion   !== savedValues.ubicacion)   { payload['direccion']   = ubicacion.trim();   newSaved.ubicacion   = ubicacion.trim(); }
-      if (horario     !== savedValues.horario)     { payload['horario']     = horario;             newSaved.horario     = horario; }
+      if (semanalJSON !== savedValues.horarioJSON) {
+        payload['horario_semanal'] = serialize(semanal);  // fuente de verdad
+        payload['horario']         = horarioResumen;       // text legacy / compat
+        newSaved.horarioJSON       = semanalJSON;
+      }
       if (pagosEfectivo !== savedValues.pagosEfectivo) { payload['pagos_efectivo']      = pagosEfectivo; newSaved.pagosEfectivo = pagosEfectivo; }
       if (pagosTrans    !== savedValues.pagosTrans)    { payload['pagos_transferencia'] = pagosTrans;    newSaved.pagosTrans    = pagosTrans; }
       if (pagosTarjeta  !== savedValues.pagosTarjeta)  { payload['pagos_tarjeta']       = pagosTarjeta;  newSaved.pagosTarjeta  = pagosTarjeta; }
@@ -315,7 +372,7 @@ export default function PerfilScreen() {
         if ('nombre' in payload)              { setFonditaName(nombre.trim()); nombreUpdatedAtRef.current = new Date().toISOString(); }
         if ('descripcion' in payload)         setFonditaDescription(descripcion.trim());
         if ('direccion' in payload)           setFonditaDireccion(ubicacion.trim());
-        if ('horario' in payload)             setFonditaHorario(horario);
+        if ('horario_semanal' in payload)     { setFonditaHorarioSemanal(semanal); setFonditaHorario(horarioResumen); }
         if ('pagos_efectivo' in payload)      setPagosEfectivo(pagosEfectivo);
         if ('pagos_transferencia' in payload) setPagosTrans(pagosTrans);
         if ('pagos_tarjeta' in payload)       setPagosTarjeta(pagosTarjeta);
@@ -367,18 +424,7 @@ export default function PerfilScreen() {
 
         {/* ── HEADER ── */}
         <View style={s.heroBlock}>
-          <View style={s.titleRow}>
-            <Text style={s.eyebrowOrange} allowFontScaling={true}>Mi Patio</Text>
-            {isDirty && (
-              <TouchableOpacity onPress={handleSaveAll} disabled={isSaving} activeOpacity={0.6}>
-                <View style={s.savePill}>
-                  <Text style={[s.savePillText, isSaving && { opacity: 0.5 }]} allowFontScaling={true}>
-                    {isSaving ? 'Guardando…' : 'Guardar'}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            )}
-          </View>
+          <Text style={s.eyebrowOrange} allowFontScaling={true}>Mi Patio</Text>
           <Text style={s.screenTitle} allowFontScaling={true}>Editar mi lugar</Text>
           <Text style={s.screenSub} allowFontScaling={true}>Así te encuentran quienes andan cerca.</Text>
         </View>
@@ -445,9 +491,27 @@ export default function PerfilScreen() {
 
         {/* ── HORARIO ── */}
         <View style={s.block}>
-          <Text style={s.blockLabel} allowFontScaling={true}>HORARIO DE HOY</Text>
+          <Text style={s.blockLabel} allowFontScaling={true}>
+            {seleccion.length > 0 ? 'HORARIO DE ESTOS DÍAS' : 'TU HORARIO'}
+          </Text>
+          {/* Resumen agrupado por bloques de días (Grouping + Proximity) */}
+          {seleccion.length === 0 && (
+            <View style={s.resumenCard}>
+              {resumenHorarioFilas(semanal).map((fila, i) => (
+                <View key={i} style={s.resumenFila}>
+                  <Text style={s.resumenDias} allowFontScaling={true}>{fila.dias}</Text>
+                  <Text style={[s.resumenHoras, fila.horas === 'Cerrado' && s.resumenCerrado]} allowFontScaling={true}>{fila.horas}</Text>
+                </View>
+              ))}
+            </View>
+          )}
+
           <View style={s.plainCard}>
             <View style={s.opSection}>
+              {/* Cápsulas Abre → Cierra (editan el base, o los días seleccionados) */}
+              {diaActivo && diaActivo.cerrado && seleccion.length > 0 ? (
+                <Text style={s.cerradoNota} allowFontScaling={true}>Cerrado este día. Define una hora para volver a abrir.</Text>
+              ) : null}
               <View style={s.horarioRow}>
                 <TouchableOpacity
                   style={[s.timeCapsule, showApertura && s.timeCapsuleActive]}
@@ -476,7 +540,7 @@ export default function PerfilScreen() {
                     display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                     value={apertura ?? defaultApertura()}
                     onChange={(_, d) => {
-                      if (d) setApertura(d);
+                      if (d) aplicarHora('abre', dateToHHMM(d));
                       if (aperturaTimerRef.current) clearTimeout(aperturaTimerRef.current);
                       aperturaTimerRef.current = setTimeout(() => setShowApertura(false), 600);
                     }}
@@ -493,7 +557,7 @@ export default function PerfilScreen() {
                     display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                     value={cierre ?? defaultCierre()}
                     onChange={(_, d) => {
-                      if (d) setCierre(d);
+                      if (d) aplicarHora('cierra', dateToHHMM(d));
                       if (cierreTimerRef.current) clearTimeout(cierreTimerRef.current);
                       cierreTimerRef.current = setTimeout(() => setShowCierre(false), 600);
                     }}
@@ -501,6 +565,54 @@ export default function PerfilScreen() {
                     textColor={DARK.text}
                     accentColor={DARK.accent}
                   />
+                </View>
+              )}
+
+              <View style={s.horarioSep} />
+
+              {/* Fila de 7 chips de día (Lun→Dom) */}
+              <Text style={s.diasHint} allowFontScaling={true}>
+                {seleccion.length > 0 ? 'Editando los días marcados' : 'Toca un día para darle horario distinto'}
+              </Text>
+              <View style={s.dayChipsRow}>
+                {DIAS_ORDEN_LUNES.map((dia) => {
+                  const d = semanal.find(x => x.dia === dia)!;
+                  const sel = seleccion.includes(dia);
+                  const excepcion = !(d.cerrado === baseDia.cerrado && d.abre === baseDia.abre && d.cierra === baseDia.cierra);
+                  return (
+                    <TouchableOpacity
+                      key={dia}
+                      onPress={() => toggleDia(dia)}
+                      activeOpacity={0.7}
+                      style={[
+                        s.dayChip,
+                        excepcion && !sel && s.dayChipException,
+                        d.cerrado && !sel && s.dayChipClosed,
+                        sel && s.dayChipSelected,
+                      ]}>
+                      <Text style={[
+                        s.dayChipText,
+                        excepcion && !sel && { color: DARK.accent },
+                        sel && { color: '#fff' },
+                      ]} allowFontScaling={true}>{DIA_LETRA[dia]}</Text>
+                      {excepcion && !sel && <View style={s.dayChipDot} />}
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+
+              {/* Barra contextual: solo con selección */}
+              {seleccion.length > 0 && (
+                <View style={s.exceptionBar}>
+                  <TouchableOpacity style={s.exceptionAction} onPress={igualarABase} activeOpacity={0.7}>
+                    <Text style={s.exceptionActionText} allowFontScaling={true}>Igual que el resto</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={s.exceptionAction} onPress={marcarCerrado} activeOpacity={0.7}>
+                    <Text style={s.exceptionActionText} allowFontScaling={true}>Cerrado</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={[s.exceptionAction, s.exceptionDone]} onPress={() => { setShowApertura(false); setShowCierre(false); setSeleccion([]); }} activeOpacity={0.7}>
+                    <Text style={[s.exceptionActionText, { color: '#fff' }]} allowFontScaling={true}>Listo</Text>
+                  </TouchableOpacity>
                 </View>
               )}
             </View>
@@ -542,6 +654,24 @@ export default function PerfilScreen() {
         </View>
 
       </ScrollView>
+
+      {/* Guardar: barra fija abajo, glass, solo con cambios pendientes.
+          Visibility + 80/20: la acción principal del Fondero siempre al alcance. */}
+      {isDirty && (
+        <View style={[s.saveBar, { paddingBottom: insets.bottom || 16 }]}>
+          <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill} />
+          <View style={s.saveBarBorder} />
+          <TouchableOpacity
+            style={[s.saveBtn, isSaving && { opacity: 0.6 }]}
+            onPress={handleSaveAll}
+            disabled={isSaving}
+            activeOpacity={0.85}>
+            <Text style={s.saveBtnText} allowFontScaling={true}>
+              {isSaving ? 'Guardando…' : 'Guardar cambios'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       <HintSheet
         visible={showPerfilHint}

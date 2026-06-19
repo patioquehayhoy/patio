@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 
 import { BottomTabBar } from '@/components/bottom-tab-bar';
+import { useTabBarScroll } from '@/lib/tab-bar-visibility';
 import { getNotifPrefs, setAvisar, setCercanas } from '@/lib/notifications';
 import { getFoodieStats, type FoodieStats } from '@/lib/stats';
 import { supabase } from '@/lib/supabase';
@@ -113,6 +114,7 @@ export default function CuentaScreen() {
   const { theme, toggleTheme } = useTheme();
   const s = makeStyles(theme);
   const insets = useSafeAreaInsets();
+  const { onScroll } = useTabBarScroll();
   const [stats, setStats] = useState<FoodieStats>({ viewed: 0, saved: 0 });
   const [avisar, setAvisarState] = useState(false);
   const [cercanas, setCercanasState] = useState(false);
@@ -145,7 +147,7 @@ export default function CuentaScreen() {
   return (
     <View style={[s.root, { paddingTop: insets.top }]}>
       <Stack.Screen options={{ headerShown: false, presentation: 'card' }} />
-      <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false} onScroll={onScroll} scrollEventThrottle={16}>
         <View style={s.header}>
           <TouchableOpacity style={s.closeBtn} onPress={() => router.back()} activeOpacity={0.76}>
             <Ionicons name="chevron-back" size={24} color={theme.text} />

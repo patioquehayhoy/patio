@@ -50,6 +50,8 @@ export default function LoginScreen() {
 
   const handlePublishMenu = () => {
     AsyncStorage.setItem(ROLE_KEY, 'fondero').catch(() => {});
+    // En dev entra directo al flujo Fondero sin magic link, para poder probar.
+    if (__DEV__) { router.replace('/menu'); return; }
     router.push('/fondero-acceso');
   };
 

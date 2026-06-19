@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { supabase } from '@/lib/supabase';
+import { useTabBarScroll } from '@/lib/tab-bar-visibility';
 import { Fonts } from '@/lib/theme';
 
 // Mi Patio (FonderoFonda): la cocina del Fondero vista con orgullo.
@@ -61,6 +62,7 @@ function Row({ icon, title, sub, accent, last, onPress }: RowProps) {
 
 export default function PerfilScreen() {
   const insets = useSafeAreaInsets();
+  const { onScroll } = useTabBarScroll();
 
   const handleSignOut = async () => {
     await supabase.auth.signOut().catch(() => {});
@@ -78,7 +80,7 @@ export default function PerfilScreen() {
     <View style={s.root}>
       <Stack.Screen options={{ headerShown: false }} />
 
-      <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + 110 }} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + 110 }} showsVerticalScrollIndicator={false} onScroll={onScroll} scrollEventThrottle={16}>
         {/* Hero band con foto + velo */}
         <View style={s.hero}>
           <Image source={HERO} style={s.heroImg} resizeMode="cover" />

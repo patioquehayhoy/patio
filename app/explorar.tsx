@@ -10,10 +10,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { getFavoritePatioIds, toggleFavoritePatio } from '@/lib/favorites';
 import { MAP_STYLE_DARK, MAP_STYLE_LIGHT } from '@/lib/map-style';
-import { HintSheet } from '@/components/hint-sheet';
 import { FoodieLoading } from '@/components/foodie-loading';
 import { BottomTabBar } from '@/components/bottom-tab-bar';
-import { markHintSeen, shouldShowHint } from '@/lib/hints';
 import { fetchPublicFonditas, MOCK_PATIOS, searchPatiosByDish, type Patio, type PatioDishMatch } from '@/lib/patios';
 import { searchLiveMenus } from '@/lib/menu';
 import { Fonts, Radius, useTheme, type Theme } from '@/lib/theme';
@@ -169,8 +167,6 @@ export default function ExplorarScreen() {
   // These two are always moved together via selectPatio/deselect — never set independently.
   const [allPatios, setAllPatios] = useState<Patio[]>(MOCK_PATIOS);
   const [initialLoading, setInitialLoading] = useState(true);
-  const [showWelcomeHint, setShowWelcomeHint] = useState(false);
-  const [showExplorarHint, setShowExplorarHint] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showHeader, setShowHeader] = useState(false);
   const [mapExpanded, setMapExpanded] = useState(false);
@@ -273,11 +269,6 @@ export default function ExplorarScreen() {
     useCallback(() => {
       let mounted = true;
       getFavoritePatioIds().then((ids) => { if (mounted) setSavedIds(ids); });
-      shouldShowHint('foodie_welcome').then((show) => {
-        if (!mounted) return;
-        if (show) { setShowWelcomeHint(true); return; }
-        shouldShowHint('foodie_explorar').then((s) => { if (mounted && s) setShowExplorarHint(true); });
-      });
       return () => { mounted = false; };
     }, [])
   );
@@ -646,24 +637,6 @@ export default function ExplorarScreen() {
           </ScrollView>
         </View>
       )}
-      <HintSheet
-        visible={showWelcomeHint}
-        icon="search"
-        title="¿Qué hay hoy?"
-        body="Busca un platillo o toca un punto en el mapa. Te mostramos qué cocinas tienen menú ahorita."
-        primaryLabel="Ver qué hay"
-        onPrimary={() => { markHintSeen('foodie_welcome'); setShowWelcomeHint(false); }}
-        onDismiss={() => { markHintSeen('foodie_welcome'); setShowWelcomeHint(false); }}
-      />
-      <HintSheet
-        visible={showExplorarHint}
-        icon="restaurant"
-        title="¿Qué se te antoja?"
-        body="Busca un platillo o explora el mapa. Te mostramos qué cocinas tienen menú ahorita."
-        primaryLabel="Ver qué hay"
-        onPrimary={() => { markHintSeen('foodie_explorar'); setShowExplorarHint(false); }}
-        onDismiss={() => { markHintSeen('foodie_explorar'); setShowExplorarHint(false); }}
-      />
       {initialLoading && (
         <View style={s.loadingOverlay}>
           <FoodieLoading />

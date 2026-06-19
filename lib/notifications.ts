@@ -69,27 +69,28 @@ async function scheduleDailyReminder() {
   });
 }
 
+// La PREFERENCIA del usuario (el toggle) se respeta siempre y se guarda, aunque
+// el permiso nativo del sistema no esté disponible (Expo Go) o no se conceda.
+// Intentamos programar el recordatorio en best-effort, pero NUNCA revertimos el
+// toggle por eso — antes el switch "rebotaba" a apagado en simulador.
 export async function setAvisar(value: boolean): Promise<boolean> {
+  await AsyncStorage.setItem(PREF_AVISAR, value ? '1' : '0');
   if (value) {
-    const ok = await ensurePermission();
-    if (!ok) { await AsyncStorage.setItem(PREF_AVISAR, '0'); return false; }
-    await scheduleDailyReminder();
-    await AsyncStorage.setItem(PREF_AVISAR, '1');
-    return true;
+    // best-effort: pide permiso y programa, pero no afecta el valor devuelto.
+    ensurePermission().then((ok) => { if (ok) scheduleDailyReminder().catch(() => {}); });
+  } else {
+    const N = getModule();
+    if (N) await N.cancelScheduledNotificationAsync(DAILY_ID).catch(() => {});
   }
-  const N = getModule();
-  if (N) await N.cancelScheduledNotificationAsync(DAILY_ID).catch(() => {});
-  await AsyncStorage.setItem(PREF_AVISAR, '0');
-  return false;
+  return value;
 }
 
 export async function setCercanas(value: boolean): Promise<boolean> {
-  // Las sugerencias cercanas requieren geofencing (siguiente nivel). Por ahora
-  // solo guarda la preferencia + asegura permiso de notificación.
-  if (value && Platform.OS === 'ios') {
-    const ok = await ensurePermission();
-    if (!ok) { await AsyncStorage.setItem(PREF_CERCANAS, '0'); return false; }
-  }
+  // Geofencing real es siguiente nivel. Por ahora guarda la preferencia siempre
+  // y pide permiso en best-effort, sin revertir el toggle.
   await AsyncStorage.setItem(PREF_CERCANAS, value ? '1' : '0');
+  if (value && Platform.OS === 'ios') {
+    ensurePermission().catch(() => {});
+  }
   return value;
 }

@@ -1,8 +1,11 @@
 import { router, usePathname } from 'expo-router';
 import { BlurView } from 'expo-blur';
-import { Keyboard, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useEffect } from 'react';
+import { Animated, Keyboard, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+
+import { useTabBarTranslate } from '@/lib/tab-bar-visibility';
 
 // TabBar exacta a Figma Make: pill flotante glass con 3 tabs.
 // Foodie (claro): Hoy / Guardados / Yo.
@@ -49,9 +52,19 @@ export function BottomTabBar({ variant = 'fondero' }: { variant?: 'foodie' | 'fo
   const isDark = variant === 'fondero';
   const c = isDark ? DARK : LIGHT;
   const tabs = variant === 'foodie' ? FOODIE_TABS : FONDERO_TABS;
+  const { translateY, reveal } = useTabBarTranslate();
+
+  // Al cambiar de pestaña, el tab bar siempre reaparece (no llegar a la nueva
+  // pantalla con la barra escondida del scroll anterior).
+  useEffect(() => { reveal(); }, [pathname, reveal]);
 
   return (
-    <View style={[styles.wrap, { bottom: (insets.bottom || 10) + 4 }]}>
+    <Animated.View
+      style={[
+        styles.wrap,
+        { bottom: (insets.bottom || 10) + 4 },
+        translateY ? { transform: [{ translateY }] } : null,
+      ]}>
       <View style={[styles.pill, { backgroundColor: c.pill, borderColor: c.border }]}>
         <BlurView
           intensity={isDark ? 40 : 36}
@@ -83,7 +96,7 @@ export function BottomTabBar({ variant = 'fondero' }: { variant?: 'foodie' | 'fo
           );
         })}
       </View>
-    </View>
+    </Animated.View>
   );
 }
 

@@ -7,6 +7,7 @@ import 'react-native-reanimated';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { ThemeProvider, useTheme } from '@/lib/theme';
+import { TabBarVisibilityProvider } from '@/lib/tab-bar-visibility';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -60,9 +61,11 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider>
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <RootStack />
-      </GestureHandlerRootView>
+      <TabBarVisibilityProvider>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <RootStack />
+        </GestureHandlerRootView>
+      </TabBarVisibilityProvider>
     </ThemeProvider>
   );
 }

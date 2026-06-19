@@ -4,6 +4,7 @@ import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-nati
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BottomTabBar } from '@/components/bottom-tab-bar';
+import { useTabBarScroll } from '@/lib/tab-bar-visibility';
 import { Fonts } from '@/lib/theme';
 
 // FonderoHistory exacto a Figma: métricas + chart + menús pasados.
@@ -32,6 +33,7 @@ const PAST = [
 
 export default function HistorialScreen() {
   const insets = useSafeAreaInsets();
+  const { onScroll } = useTabBarScroll();
 
   return (
     <View style={s.root}>
@@ -48,7 +50,9 @@ export default function HistorialScreen() {
 
       <ScrollView
         contentContainerStyle={{ paddingTop: insets.top + 58, paddingHorizontal: 22, paddingBottom: 200 }}
-        showsVerticalScrollIndicator={false}>
+        showsVerticalScrollIndicator={false}
+        onScroll={onScroll}
+        scrollEventThrottle={16}>
         {/* Métrica grande */}
         <Text style={s.eyebrow} allowFontScaling={true}>Esta semana</Text>
         <View style={s.bigRow}>

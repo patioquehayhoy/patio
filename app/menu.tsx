@@ -5,6 +5,7 @@ import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-nati
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BottomTabBar } from '@/components/bottom-tab-bar';
+import { useTabBarScroll } from '@/lib/tab-bar-visibility';
 import { Fonts } from '@/lib/theme';
 
 // Pantalla "Hoy" del Fondero: elección de cómo armar el menú del día.
@@ -27,6 +28,7 @@ function todayLabel(): string {
 
 export default function HoyScreen() {
   const insets = useSafeAreaInsets();
+  const { onScroll } = useTabBarScroll();
 
   return (
     <View style={s.root}>
@@ -34,7 +36,9 @@ export default function HoyScreen() {
 
       <ScrollView
         contentContainerStyle={{ paddingTop: insets.top + 20, paddingHorizontal: 22, paddingBottom: 140 }}
-        showsVerticalScrollIndicator={false}>
+        showsVerticalScrollIndicator={false}
+        onScroll={onScroll}
+        scrollEventThrottle={16}>
 
         {/* Header editorial */}
         <Text style={s.eyebrow} allowFontScaling={true}>{todayLabel()}</Text>

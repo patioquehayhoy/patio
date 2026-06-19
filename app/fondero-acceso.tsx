@@ -98,11 +98,12 @@ export default function FonderoAccesoScreen() {
     <View style={s.root}>
       <Stack.Screen options={{ headerShown: false }} />
 
-      {/* Backdrop botánico + glow naranja */}
+      {/* Backdrop botánico + glow naranja — el gradiente funde la imagen a negro
+          ANTES de donde termina, para que no se vea la línea de corte. */}
       <Image source={HERO} style={s.bg} resizeMode="cover" />
       <LinearGradient
-        colors={['rgba(17,18,20,0.2)', 'rgba(17,18,20,0.6)', DARK.bg]}
-        locations={[0, 0.6, 1]}
+        colors={['rgba(17,18,20,0.15)', 'rgba(17,18,20,0.55)', DARK.bg, DARK.bg]}
+        locations={[0, 0.38, 0.6, 1]}
         style={StyleSheet.absoluteFill}
       />
       <View style={s.glow} />
@@ -140,7 +141,6 @@ export default function FonderoAccesoScreen() {
                   autoCapitalize="none"
                   keyboardType="email-address"
                   autoComplete="email"
-                  autoFocus
                   returnKeyType="go"
                   onSubmitEditing={handleSend}
                   selectionColor={DARK.accent}
@@ -201,7 +201,7 @@ export default function FonderoAccesoScreen() {
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: DARK.bg },
-  bg: { ...StyleSheet.absoluteFillObject, width: '100%', height: '55%', opacity: 0.5 },
+  bg: { ...StyleSheet.absoluteFillObject, width: '100%', height: '70%', opacity: 0.5 },
   glow: { position: 'absolute', top: -200, left: -100, right: -100, height: 600, backgroundColor: 'rgba(255,106,61,0.10)', borderRadius: 300 },
 
   backBtn: { position: 'absolute', left: 16, zIndex: 20, width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.08)', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },

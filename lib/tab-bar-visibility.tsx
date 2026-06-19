@@ -26,6 +26,11 @@ export function TabBarVisibilityProvider({ children }: { children: React.ReactNo
   }, [translateY]);
 
   const reveal = useCallback(() => {
+    // Al cambiar de pestaña reseteamos el offset de referencia: la nueva
+    // pantalla arranca en y=0 y no debe heredar el lastY de la anterior
+    // (heredarlo producía un dy negativo enorme en el primer scroll y
+    // desincronizaba la lógica).
+    lastY.current = 0;
     if (!shown.current) { shown.current = true; animateTo(0); }
   }, [animateTo]);
 
@@ -36,6 +41,8 @@ export function TabBarVisibilityProvider({ children }: { children: React.ReactNo
 
     // Cerca del tope: siempre visible.
     if (y <= 4) { reveal(); return; }
+    // Ignoramos rebotes (bounce) por arriba del tope en iOS.
+    if (y < 0) return;
     if (Math.abs(dy) < THRESHOLD) return;
 
     if (dy > 0 && shown.current) {            // scroll hacia abajo → ocultar

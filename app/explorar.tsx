@@ -33,8 +33,9 @@ function makeStyles(t: Theme) {
     pinSmallDot: { width: 14, height: 14, borderRadius: 7, backgroundColor: t.accent, borderWidth: 2.5, borderColor: t.isDark ? 'rgba(25,26,27,0.70)' : 'rgba(255,255,255,0.85)', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.22, shadowRadius: 3, elevation: 2 },
     topBar: { position: 'absolute', left: 24, right: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
     topRight: { flexDirection: 'row', gap: 8 },
-    closeButton: { width: 44, height: 44, borderRadius: 16, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: btnBorder, alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: btnShadowOpacity, shadowRadius: 16, elevation: 2 },
-    toolButton: { width: 44, height: 44, borderRadius: 16, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: btnBorder, alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: btnShadowOpacity, shadowRadius: 16, elevation: 2 },
+    glassBtn: { width: 44, height: 44, borderRadius: 16, overflow: 'hidden', backgroundColor: t.isDark ? 'rgba(20,21,24,0.55)' : 'rgba(255,255,255,0.72)', borderWidth: StyleSheet.hairlineWidth, borderColor: btnBorder, alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: btnShadowOpacity + 0.04, shadowRadius: 18, elevation: 3 },
+    searchPill: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingVertical: 15, borderRadius: 18, overflow: 'hidden', backgroundColor: t.isDark ? 'rgba(20,21,24,0.55)' : 'rgba(255,255,255,0.78)', borderWidth: StyleSheet.hairlineWidth, borderColor: btnBorder, shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: btnShadowOpacity + 0.04, shadowRadius: 22, elevation: 4 },
+    micBtn: { width: 54, height: 54, borderRadius: 18, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', backgroundColor: t.isDark ? 'rgba(20,21,24,0.55)' : 'rgba(255,255,255,0.78)', borderWidth: StyleSheet.hairlineWidth, borderColor: btnBorder, shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: btnShadowOpacity + 0.04, shadowRadius: 22, elevation: 4 },
     searchRow: { flex: 1, height: 44, borderRadius: 16, overflow: 'hidden', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, gap: 8, borderWidth: StyleSheet.hairlineWidth, borderColor: btnBorder, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: btnShadowOpacity, shadowRadius: 16, elevation: 2 },
     searchInput: { flex: 1, fontSize: 15, fontWeight: '300', color: t.text, height: 44, paddingVertical: 0 },
     sheet: { position: 'absolute', left: 14, right: 14, bottom: 14, maxHeight: '48%', borderRadius: Radius.sheet, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: t.isDark ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.18)', shadowColor: '#000', shadowOffset: { width: 0, height: 12 }, shadowOpacity: t.isDark ? 0.20 : 0.08, shadowRadius: 32, elevation: 8 },
@@ -85,54 +86,6 @@ function makeStyles(t: Theme) {
     pill: { overflow: 'hidden', borderRadius: 100, borderWidth: StyleSheet.hairlineWidth, borderColor: t.isDark ? 'rgba(255,255,255,0.14)' : 'rgba(0,0,0,0.08)' },
     pillText: { paddingHorizontal: 14, paddingVertical: 7, fontSize: 13, fontWeight: '300', color: t.text },
   });
-}
-
-// Genera puntos en anillos concéntricos centrados en pantalla
-const RINGS = [
-  { r: 28,  n: 6,  size: 5,   baseOpacity: 0.55 },
-  { r: 58,  n: 10, size: 4,   baseOpacity: 0.38 },
-  { r: 90,  n: 14, size: 3.5, baseOpacity: 0.26 },
-  { r: 124, n: 18, size: 3,   baseOpacity: 0.18 },
-  { r: 158, n: 22, size: 2.5, baseOpacity: 0.12 },
-];
-
-type RingDot = { x: number; y: number; size: number; baseOpacity: number; delay: number };
-
-const RADAR_DOTS: RingDot[] = RINGS.flatMap(({ r, n, size, baseOpacity }, ri) =>
-  Array.from({ length: n }, (_, i) => {
-    const angle = (2 * Math.PI * i) / n;
-    return { x: r * Math.cos(angle), y: r * Math.sin(angle), size, baseOpacity, delay: ri * 180 + i * 30 };
-  })
-);
-
-function RadarDot({ x, y, size, baseOpacity, delay, color }: RingDot & { color: string }) {
-  const anim = useRef(new Animated.Value(0)).current;
-  useEffect(() => {
-    const t = setTimeout(() => {
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(anim, { toValue: 1, duration: 1100, useNativeDriver: true }),
-          Animated.timing(anim, { toValue: 0, duration: 1100, useNativeDriver: true }),
-        ])
-      ).start();
-    }, delay);
-    return () => clearTimeout(t);
-  }, [anim, delay]);
-  const opacity = anim.interpolate({ inputRange: [0, 1], outputRange: [baseOpacity * 0.4, baseOpacity] });
-  const scale = anim.interpolate({ inputRange: [0, 1], outputRange: [0.7, 1.2] });
-  return (
-    <Animated.View
-      style={{
-        position: 'absolute',
-        width: size,
-        height: size,
-        borderRadius: size / 2,
-        backgroundColor: color,
-        opacity,
-        transform: [{ translateX: x - size / 2 }, { translateY: y - size / 2 }, { scale }],
-      }}
-    />
-  );
 }
 
 function PulsingDot({ style, delay = 0 }: { style: object; delay?: number }) {
@@ -375,64 +328,42 @@ export default function ExplorarScreen() {
         </Animated.View>
       </View>
 
-      {/* IDLE LAYER: radar dots + buscador centrado (oculto cuando buscas) */}
+      {/* IDLE LAYER: identidad editorial + buscador centrado (oculto cuando buscas) */}
       <Animated.View
         pointerEvents={idleMode ? 'box-none' : 'none'}
         style={[StyleSheet.absoluteFillObject, { alignItems: 'center', justifyContent: 'center', opacity: idleLayerOpacity }]}>
-        <View style={{ width: 0, height: 0 }}>
-          {RADAR_DOTS.map((dot, i) => (
-            <RadarDot key={i} {...dot} color={theme.accent} />
-          ))}
-        </View>
         <View style={{ position: 'absolute', left: 24, right: 24, flexDirection: 'row', gap: 10, alignItems: 'center' }}>
-          <TouchableOpacity activeOpacity={0.82} onPress={openSearch} style={{ flex: 1 }}>
-            <BlurView
-              intensity={theme.isDark ? 20 : 24}
-              tint={theme.isDark ? 'dark' : 'light'}
-              style={{
-                borderRadius: 18,
-                overflow: 'hidden',
-                flexDirection: 'row',
-                alignItems: 'center',
-                paddingHorizontal: 16,
-                paddingVertical: 14,
-                gap: 10,
-                borderWidth: StyleSheet.hairlineWidth,
-                borderColor: theme.isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.07)',
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 8 },
-                shadowOpacity: theme.isDark ? 0.22 : 0.08,
-                shadowRadius: 24,
-              }}>
-              <Ionicons name="search-outline" size={18} color={theme.textSecondary} />
-              <Text style={{ fontSize: 16, fontWeight: '300', color: theme.textSecondary }}>
-                ¿Qué se te antoja?
-              </Text>
-            </BlurView>
+          <TouchableOpacity activeOpacity={0.82} onPress={openSearch} style={[s.searchPill, { flex: 1 }]}>
+            <BlurView intensity={theme.isDark ? 28 : 36} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
+            <Ionicons name="search-outline" size={18} color={theme.textSecondary} />
+            <Text style={{ fontSize: 16, fontWeight: '300', color: theme.textSecondary }}>
+              ¿Qué se te antoja?
+            </Text>
           </TouchableOpacity>
           <TouchableOpacity
             activeOpacity={0.82}
             onPress={() => Alert.alert('Próximamente', 'Pídele a Patio en voz alta qué se te antoja. Llega en la próxima versión.')}
-            style={{ width: 54, height: 54, borderRadius: 27, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth, borderColor: theme.isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.07)' }}>
-            <BlurView intensity={theme.isDark ? 20 : 24} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
+            style={s.micBtn}>
+            <BlurView intensity={theme.isDark ? 28 : 36} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
             <Ionicons name="mic-outline" size={22} color={theme.text} />
           </TouchableOpacity>
         </View>
       </Animated.View>
 
-      {/* Top bar — siempre visible (perfil + favoritos + expandir) */}
+      {/* Top bar — siempre visible (perfil + favoritos + expandir).
+          Los 3 botones uniformes: mismo glass, fondo de respaldo y borde. */}
       <View style={[s.topBar, { top: insets.top + 14 }]}>
-        <TouchableOpacity style={s.closeButton} onPress={() => router.push('/cuenta')} activeOpacity={0.76}>
-          <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
-          <Ionicons name="person-circle-outline" size={22} color={theme.text} />
+        <TouchableOpacity style={s.glassBtn} onPress={() => router.push('/cuenta')} activeOpacity={0.76}>
+          <BlurView intensity={theme.isDark ? 24 : 30} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
+          <Ionicons name="person-outline" size={20} color={theme.text} />
         </TouchableOpacity>
         <View style={s.topRight}>
-          <TouchableOpacity style={s.toolButton} onPress={() => router.push('/favoritos')} activeOpacity={0.76}>
-            <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
-            <Ionicons name="heart-outline" size={20} color={theme.text} />
+          <TouchableOpacity style={s.glassBtn} onPress={() => router.push('/favoritos')} activeOpacity={0.76}>
+            <BlurView intensity={theme.isDark ? 24 : 30} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
+            <Ionicons name="bookmark-outline" size={20} color={theme.text} />
           </TouchableOpacity>
-          <TouchableOpacity style={s.toolButton} onPress={() => setMapExpanded((v) => !v)} activeOpacity={0.76}>
-            <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
+          <TouchableOpacity style={s.glassBtn} onPress={() => setMapExpanded((v) => !v)} activeOpacity={0.76}>
+            <BlurView intensity={theme.isDark ? 24 : 30} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
             <Ionicons name={mapExpanded ? 'list-outline' : 'expand-outline'} size={20} color={theme.text} />
           </TouchableOpacity>
         </View>

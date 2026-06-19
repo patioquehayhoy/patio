@@ -19,7 +19,8 @@ function RootStack() {
         initialRouteName="index"
         screenOptions={{
           headerShown: true,
-          animation: 'none',
+          animation: 'fade',
+          animationDuration: 160,
           headerStyle: { backgroundColor: theme.bg },
           headerShadowVisible: false,
           headerTintColor: theme.text,

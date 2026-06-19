@@ -1,6 +1,47 @@
 # HANDOFF
 
-## Estado vigente — 2026-06-17 (recorrido completo + limpieza + login/mailing)
+## Estado vigente — 2026-06-18 (TestFlight + UX Foodie/Fondero + tab bar Facebook)
+
+Leer esta sección primero. Abajo es bitácora.
+
+### Sesión 2026-06-18 — primer build en device + tanda de fixes UX
+
+**7 commits locales en `v2-look-figma`, SIN PUSH** (la rama NO existe en origin todavía → primer push con `-u origin v2-look-figma`). El push pide token de `patioquehayhoy` (no hay TTY en el entorno de Claude; lo hace Alejandro).
+
+**HITO: primer build de Patio instalado en iPhone real (preview, install link).** Pasos que costaron y quedaron resueltos:
+- Push notifications: el build fallaba ("provisioning profile doesn't support Push / falta aps-environment"). Causa: app usa `expo-notifications`. Fix: aceptar el **Apple Program License Agreement** (estaba pendiente → bloqueaba crear la Push Key) + `eas credentials` configuró push.
+- iPhone registrado en EAS (UDID `00008130-000614960E12001C`) vía `eas device:create` → Website → QR.
+- Build `eas build -p ios --profile preview` interactivo (seleccionar Mac + iPhone en el ad-hoc).
+- `eas` logueado como **parcomx** (contacto.parco@gmail.com); Apple ID dev **dubzon@live.com.mx**, team **JK2N262L7X**.
+
+**Fixes UX de esta sesión (commit `d82bddc`, todo en simulador, tsc+lint verdes):**
+- **Tab bar estilo Facebook** (`lib/tab-bar-visibility.tsx` + `bottom-tab-bar`): se oculta al scrollear abajo, reaparece al jalar arriba; siempre visible cerca del tope y al cambiar de pestaña. Provider en `_layout`, `onScroll` enchufado en menu/historial/perfil/favoritos/cuenta.
+- **fondero-acceso**: quitado `autoFocus` (ya no salta el teclado tapando la info) + fondo al 70% con gradiente de 4 stops (elimina la línea dura de corte).
+- **explorar**: ELIMINADOS los HintSheet de bienvenida (la "peca" fea antes del mapa).
+- **foodie-loading**: el loading del mapa pasó de la peca naranja con ondas a un arco giratorio sobrio.
+- **cuenta/notifications**: fix toggles que "rebotaban" a apagado → ahora la preferencia se guarda siempre, el permiso se pide en best-effort sin revertir el switch.
+- **index**: acceso Fondero sin magic link en `__DEV__` ("Publicar mi menú" → `/menu`).
+
+**Antes (commit `4842d3d`):** rediseño Mi Patio (hero+avatar, stats, racha), Editar mi lugar (IDENTIDAD/HORARIO/PAGOS/CUENTA, quitado "tipo de cocina" + su lógica), Historial (fix número recortado lineHeight), fix tab bar navegación intermitente (quitado guard `if(!active)`).
+
+**PENDIENTE INMEDIATO (mañana):**
+1. **PUSH**: `git push -u origin v2-look-figma` (7 commits). Token de patioquehayhoy. Alejandro.
+2. **Dev build local en iPhone para ver cambios EN VIVO** (Fast Refresh en el cel, sin rebuild): quedó a medias. `npx expo run:ios --device 00008130-000614960E12001C` falla con "No code signing certificates". Falta configurar **signing en Xcode**: abrir `ios/Patio.xcworkspace` → target Patio → Signing & Capabilities → ✅ Automatically manage signing → Team (Add Account con Apple ID dubzon@live.com.mx). Una vez firmado, `expo run:ios --device` compila e instala por cable. ALTERNATIVA: `eas build --profile development` (nube, sin Xcode).
+3. **Mapa/explorar** (necesita ojo de Alejandro en device/sim): iconos flotantes (perfil/favoritos/expandir) no alineados con el estilo de la app; el pin/peca que sale sobre "se acabó" (cuando algo está cerrado) — decidir si naranja o hover. NO rediseñado aún.
+4. **Template de email** sigue sin instalarse en Supabase (`supabase/templates/README.md`).
+5. **"Sin correo"** en Editar mi lugar: aparece porque se entra por DEV (sin login real). En device con magic link debería cargar el correo — verificar.
+
+**ROADMAP (orden sugerido):**
+- A. Cerrar el **dev build en device** (signing Xcode) → iterar diseño en vivo en el cel.
+- B. **Mapa/explorar**: rediseño de iconos + estados de pin (lo más flojo del lado Foodie).
+- C. **TONO/REDACCIÓN** de splash/onboarding (POSPUESTO a propósito — primero diseño, luego copy).
+- D. **Backend de notificaciones**: el toggle "avísame cuando publiquen" hoy solo programa un recordatorio LOCAL a la 1pm; el push real (cuando un fondero publica) + geofencing de "sugerencias cercanas" necesitan servidor. Feature futura.
+- E. Instalar template de email en Supabase + QA del magic link real en device.
+- F. Build de TestFlight (production + auto-submit) cuando el bloque esté pulido y probado.
+
+---
+
+## Estado previo — 2026-06-17 (recorrido completo + limpieza + login/mailing)
 
 Leer esta sección antes del historial. Las secciones antiguas abajo son bitácora y pueden contener pendientes ya resueltos.
 

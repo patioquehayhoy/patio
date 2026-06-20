@@ -1,8 +1,41 @@
 # HANDOFF
 
-## Estado vigente — 2026-06-18 (TestFlight + UX Foodie/Fondero + tab bar Facebook)
+## Estado vigente — 2026-06-19 (Horario semanal + fixes barra/explorar)
 
 Leer esta sección primero. Abajo es bitácora.
+
+### Sesión 2026-06-19 — Horario por día + pulido UX
+
+**2 commits locales en `v2-look-figma`, SIN PUSH** (`0341e1a`, `7a16361`). Sumados a los 20 previos que tampoco están en origin (la rama NO existe en remoto → primer push con `-u`). tsc verde, lint limpio.
+
+**Feature grande — Horario semanal por día (commit `7a16361`):**
+- Antes el horario era un solo rango para toda la semana (string en columna `horario`). Ahora soporta horario por día con excepciones (caso real: "L–V hasta 7pm, fin de semana hasta 3am") y cierres de madrugada.
+- **`lib/horario.ts` (nuevo):** modelo de 7 días (jsonb), cruce de medianoche, `estaAbiertoAhora`, `proximaApertura`, `resumenHorario`/`resumenHorarioFilas`. **CDMX corregido a UTC-6** (el código viejo usaba UTC-5, bug).
+- **Migración SQL `supabase/migrations/20260619_add_horario_semanal.sql`** — columna `horario_semanal jsonb`. **YA CORRIDA en Supabase Dashboard por Alejandro** (conserva `horario` text para compat).
+- **Editor (`perfil-editar.tsx`) estilo Apple/Resy:** cápsulas base Abre→Cierra + fila de 7 chips (L M M J V S D, punto naranja = excepción) + barra contextual (Igual que el resto / Cerrado / Listo). Resumen agrupado por bloques (no listota). **Botón Guardar ahora es barra fija abajo (glass)** en vez del pill perdido en el header. Editar el base respeta las excepciones.
+- **Ficha Foodie (`patio/[id].tsx`):** estado abierto/cerrado con horario semanal (fallback legacy), "Abierto · rango de hoy", "Cerrado · Sáb abre a las…", share con resumen.
+
+**Fixes UX (commit `0341e1a`):**
+- **Tab bar:** reset de `lastY` en `reveal()` (ya no hereda el scroll de la pantalla anterior → ocultar/reaparecer estilo Facebook ahora sí funciona). `_layout` con `animation: 'fade'` 160ms (antes `'none'`, no se percibía la navegación al tocar tab).
+- **explorar:** eliminados los RADAR_DOTS (la "peca" naranja a media pantalla) + su código muerto. Buscador centrado limpio, sin título redundante sobre el mapa.
+
+**Supabase (decisión 2026-06-19):** proyecto en org "Parco Apps" / "lafondita" / cuenta contacto.parco. Plan Free pausa por inactividad → dar "Resume" (restaura todo, benigno). NO migrar de cuenta todavía (ver memoria supabase_project).
+
+**PENDIENTE INMEDIATO — lo corre Alejandro (TTY/token, Claude no puede):**
+1. **PUSH:** `git push -u origin v2-look-figma` (22 commits).
+2. **BUILD TestFlight:** `eas build -p ios --profile production --auto-submit`. eas.json ya tiene perfil `production` (autoIncrement) + submit con ascAppId 6760884735. Verificado.
+3. **Ver estado:** `eas build:list --platform ios --limit 1`.
+
+**QA en TestFlight cuando llegue:**
+- Horario: marcar días distintos, guardar, salir/entrar → confirmar que persiste.
+- Magic link: el correo aún llega genérico en inglés (template Patio sin instalar en Supabase, `supabase/templates/README.md`).
+- Confirmar que el proyecto Supabase no se volvió a pausar.
+
+---
+
+## Estado previo — 2026-06-18 (TestFlight + UX Foodie/Fondero + tab bar Facebook)
+
+Bitácora abajo.
 
 ### Sesión 2026-06-18 — primer build en device + tanda de fixes UX
 

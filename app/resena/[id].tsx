@@ -171,7 +171,7 @@ export default function ResenaScreen() {
             style={s.noteInput}
             value={note}
             onChangeText={setNote}
-            placeholder="¿Qué tal estuvo? Cuéntale a otros foodies…"
+            placeholder="¿Qué tal estuvo? Cuéntale a quien anda buscando…"
             placeholderTextColor={theme.textSecondary}
             multiline
             selectionColor={theme.accent}
@@ -184,7 +184,7 @@ export default function ResenaScreen() {
             ? <Image source={{ uri: photoUri }} style={s.photoThumb} />
             : <Ionicons name="camera-outline" size={16} color={theme.accent} />}
           <Text style={s.photoText} allowFontScaling={true}>
-            {photoUri ? 'Cambiar foto' : 'Foto opcional · ayuda a otros foodies'}
+            {photoUri ? 'Cambiar foto' : 'Foto opcional · le ayuda a quien busca'}
           </Text>
           {photoUri ? <Ionicons name="checkmark-circle" size={18} color={theme.accent} /> : null}
         </TouchableOpacity>

@@ -152,8 +152,8 @@ export default function CuentaScreen() {
           <TouchableOpacity style={s.closeBtn} onPress={() => router.back()} activeOpacity={0.76}>
             <Ionicons name="chevron-back" size={24} color={theme.text} />
           </TouchableOpacity>
-          <Text style={s.eyebrow} allowFontScaling={true}>Tu Patio</Text>
-          <Text style={s.title} allowFontScaling={true}>Foodie sin nombre.</Text>
+          <Text style={s.eyebrow} allowFontScaling={true}>Cuenta</Text>
+          <Text style={s.title} allowFontScaling={true}>Tu Patio</Text>
         </View>
 
         <View style={s.body}>
@@ -166,7 +166,7 @@ export default function CuentaScreen() {
               <View style={s.statsRow}>
                 <View style={s.statCol}>
                   <Text style={s.statNum} allowFontScaling={true}>{stats.viewed || 12}</Text>
-                  <Text style={s.statLabel} allowFontScaling={true}>fonditas vistas</Text>
+                  <Text style={s.statLabel} allowFontScaling={true}>lugares vistos</Text>
                 </View>
                 <View style={s.statDivider} />
                 <View style={s.statCol}>
@@ -191,9 +191,9 @@ export default function CuentaScreen() {
             </View>
           </View>
 
-          {/* Grupo: Tu Patio */}
+          {/* Grupo: Ajustes */}
           <View style={s.group}>
-            <Text style={s.groupLabel} allowFontScaling={true}>Tu Patio</Text>
+            <Text style={s.groupLabel} allowFontScaling={true}>Ajustes</Text>
             <View style={s.card}>
               <Row theme={theme} icon="heart-outline" title="Guardados" sub="Tus lugares de confianza" onPress={() => router.push('/favoritos')} />
               <Row theme={theme} icon="moon-outline" title="Modo oscuro" divider toggle={{ value: theme.isDark, onValueChange: toggleTheme }} />

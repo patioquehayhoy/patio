@@ -44,7 +44,7 @@ export default function HistorialScreen() {
         <TouchableOpacity style={s.navBtn} onPress={() => router.back()} activeOpacity={0.7}>
           <Ionicons name="chevron-back" size={20} color={DARK.text} />
         </TouchableOpacity>
-        <Text style={s.navTitle} allowFontScaling={true}>Tu Patio</Text>
+        <Text style={s.navTitle} allowFontScaling={true}>Mi Patio</Text>
         <View style={s.navBtn} />
       </View>
 
@@ -62,7 +62,7 @@ export default function HistorialScreen() {
             <Text style={s.trendText} allowFontScaling={true}>+18%</Text>
           </View>
         </View>
-        <Text style={s.bigSub} allowFontScaling={true}>foodies vieron tu menú</Text>
+        <Text style={s.bigSub} allowFontScaling={true}>personas vieron tu menú</Text>
 
         {/* Chart */}
         <View style={s.chartCard}>

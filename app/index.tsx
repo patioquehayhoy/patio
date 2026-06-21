@@ -82,7 +82,7 @@ export default function LoginScreen() {
             style={[styles.primaryBtn, { backgroundColor: theme.text }]}
             onPress={handleExplore}
             activeOpacity={0.86}>
-            <Text style={[styles.primaryBtnText, { color: theme.bg }]}>Explorar comida</Text>
+            <Text style={[styles.primaryBtnText, { color: theme.bg }]}>Explorar cocinas</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.secondaryBtn}

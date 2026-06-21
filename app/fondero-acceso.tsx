@@ -190,7 +190,7 @@ export default function FonderoAccesoScreen() {
           {/* Pie: cambiar a foodie */}
           <TouchableOpacity style={s.footer} onPress={() => router.replace('/explorar')} activeOpacity={0.7}>
             <Text style={s.footerText} allowFontScaling={true}>
-              ¿Solo buscas comida? <Text style={s.footerAccent}>Explorar cocinas →</Text>
+              ¿Solo buscas algo rico? <Text style={s.footerAccent}>Explorar cocinas →</Text>
             </Text>
           </TouchableOpacity>
         </View>

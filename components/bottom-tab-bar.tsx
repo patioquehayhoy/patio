@@ -1,7 +1,7 @@
 import { router, usePathname } from 'expo-router';
 import { BlurView } from 'expo-blur';
 import { useEffect } from 'react';
-import { Animated, Keyboard, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Animated, Keyboard, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -84,14 +84,12 @@ export function BottomTabBar({ variant = 'fondero' }: { variant?: 'foodie' | 'fo
           return (
             <TouchableOpacity
               key={path}
+              accessibilityLabel={label}
               style={[styles.tab, active && { backgroundColor: c.accentBg }]}
               activeOpacity={0.7}
-              hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
+              hitSlop={{ top: 10, bottom: 10, left: 6, right: 6 }}
               onPress={onTabPress}>
-              <Ionicons name={icon} size={20} color={active ? c.accent : c.mute} />
-              <Text style={[styles.label, { color: active ? c.accent : c.mute, fontWeight: active ? '700' : '500' }]}>
-                {label}
-              </Text>
+              <Ionicons name={icon} size={24} color={active ? c.accent : c.mute} />
             </TouchableOpacity>
           );
         })}
@@ -101,13 +99,15 @@ export function BottomTabBar({ variant = 'fondero' }: { variant?: 'foodie' | 'fo
 }
 
 const styles = StyleSheet.create({
-  wrap: { position: 'absolute', left: 12, right: 12, zIndex: 100, elevation: 100 },
+  // Barra compacta y centrada (estilo Instagram): solo del ancho de los íconos,
+  // flotando en el centro — no de borde a borde.
+  wrap: { position: 'absolute', left: 0, right: 0, alignItems: 'center', zIndex: 100, elevation: 100 },
   pill: {
     flexDirection: 'row',
-    gap: 4,
+    gap: 6,
     paddingVertical: 8,
     paddingHorizontal: 10,
-    borderRadius: 28,
+    borderRadius: 30,
     borderWidth: StyleSheet.hairlineWidth,
     overflow: 'hidden',
     shadowColor: '#000',
@@ -116,6 +116,6 @@ const styles = StyleSheet.create({
     shadowRadius: 30,
     elevation: 8,
   },
-  tab: { flex: 1, paddingVertical: 10, paddingHorizontal: 8, borderRadius: 20, alignItems: 'center', gap: 3 },
-  label: { fontSize: 10.5, letterSpacing: -0.1 },
+  // Tabs cuadrados de ancho fijo (sin flex): la barra se ajusta a su contenido.
+  tab: { width: 52, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
 });

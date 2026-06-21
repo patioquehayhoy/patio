@@ -335,6 +335,15 @@ export default function PerfilScreen() {
     init();
   }, []);
 
+  // Back protegido: si hay cambios sin guardar, confirma antes de salir.
+  const handleBack = () => {
+    if (!isDirty) { router.back(); return; }
+    Alert.alert('¿Descartar cambios?', 'Hiciste cambios que no has guardado. Si sales, se pierden.', [
+      { text: 'Seguir editando', style: 'cancel' },
+      { text: 'Descartar', style: 'destructive', onPress: () => router.back() },
+    ]);
+  };
+
   const handleSaveAll = async () => {
     if (isSaving) return;
     setIsSaving(true);
@@ -415,7 +424,7 @@ export default function PerfilScreen() {
   return (
     <View style={[s.container, { paddingTop: insets.top + 8 }]}>
       <TouchableOpacity
-        onPress={() => router.back()}
+        onPress={handleBack}
         activeOpacity={0.7}
         style={{ width: 40, height: 40, borderRadius: 20, marginLeft: 14, marginBottom: 4, backgroundColor: DARK.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: DARK.border, alignItems: 'center', justifyContent: 'center' }}>
         <Ionicons name="chevron-back" size={20} color={DARK.text} />

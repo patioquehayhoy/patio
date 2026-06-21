@@ -147,8 +147,9 @@ export default function PerfilScreen() {
             <Ionicons name="chevron-forward" size={16} color="rgba(255,255,255,0.5)" />
           </TouchableOpacity>
 
-          {/* Grupo: cuenta */}
+          {/* Grupo: cambiar de lado + cuenta */}
           <View style={s.group}>
+            <Row icon="map-outline" title="Explorar cocinas" sub="Ver Patio como quien busca" onPress={() => router.push('/explorar' as any)} />
             <Row icon="help-circle-outline" title="Soporte" sub="Escríbenos por correo" onPress={handleSupport} />
             <Row icon="log-out-outline" title="Cerrar sesión" last onPress={handleSignOut} />
           </View>

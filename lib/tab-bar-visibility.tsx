@@ -22,7 +22,13 @@ export function TabBarVisibilityProvider({ children }: { children: React.ReactNo
   const shown = useRef(true);
 
   const animateTo = useCallback((to: number) => {
-    Animated.spring(translateY, { toValue: to, useNativeDriver: true, speed: 18, bounciness: 0 }).start();
+    // useNativeDriver: false a propósito. Con el driver nativo el transform se
+    // aplica solo en el hilo de UI y el área tappeable de los botones NO sigue a
+    // la barra → quedaba desfasada (el primer tap caía en zona muerta y "solo
+    // navegaba si tocabas primero otro lado"). Con el driver de JS el layout se
+    // recalcula cada frame y los toques siguen a la barra. La distancia es corta
+    // y la vista pequeña, así que no hay costo de rendimiento perceptible.
+    Animated.spring(translateY, { toValue: to, useNativeDriver: false, speed: 18, bounciness: 0 }).start();
   }, [translateY]);
 
   const reveal = useCallback(() => {

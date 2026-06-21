@@ -4,7 +4,7 @@ import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, Stack } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Animated, Keyboard, KeyboardAvoidingView, Platform, ScrollView, Share, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Animated, Keyboard, KeyboardAvoidingView, Platform, ScrollView, Share, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker, type Region } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -35,7 +35,6 @@ function makeStyles(t: Theme) {
     topRight: { flexDirection: 'row', gap: 8 },
     glassBtn: { width: 44, height: 44, borderRadius: 16, overflow: 'hidden', backgroundColor: t.isDark ? 'rgba(20,21,24,0.55)' : 'rgba(255,255,255,0.72)', borderWidth: StyleSheet.hairlineWidth, borderColor: btnBorder, alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: btnShadowOpacity + 0.04, shadowRadius: 18, elevation: 3 },
     searchPill: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingVertical: 15, borderRadius: 18, overflow: 'hidden', backgroundColor: t.isDark ? 'rgba(20,21,24,0.55)' : 'rgba(255,255,255,0.78)', borderWidth: StyleSheet.hairlineWidth, borderColor: btnBorder, shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: btnShadowOpacity + 0.04, shadowRadius: 22, elevation: 4 },
-    micBtn: { width: 54, height: 54, borderRadius: 18, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', backgroundColor: t.isDark ? 'rgba(20,21,24,0.55)' : 'rgba(255,255,255,0.78)', borderWidth: StyleSheet.hairlineWidth, borderColor: btnBorder, shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: btnShadowOpacity + 0.04, shadowRadius: 22, elevation: 4 },
     searchRow: { flex: 1, height: 44, borderRadius: 16, overflow: 'hidden', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, gap: 8, borderWidth: StyleSheet.hairlineWidth, borderColor: btnBorder, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: btnShadowOpacity, shadowRadius: 16, elevation: 2 },
     searchInput: { flex: 1, fontSize: 15, fontWeight: '300', color: t.text, height: 44, paddingVertical: 0 },
     sheet: { position: 'absolute', left: 14, right: 14, bottom: 14, maxHeight: '48%', borderRadius: Radius.sheet, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: t.isDark ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.18)', shadowColor: '#000', shadowOffset: { width: 0, height: 12 }, shadowOpacity: t.isDark ? 0.20 : 0.08, shadowRadius: 32, elevation: 8 },
@@ -332,20 +331,13 @@ export default function ExplorarScreen() {
       <Animated.View
         pointerEvents={idleMode ? 'box-none' : 'none'}
         style={[StyleSheet.absoluteFillObject, { alignItems: 'center', justifyContent: 'center', opacity: idleLayerOpacity }]}>
-        <View style={{ position: 'absolute', left: 24, right: 24, flexDirection: 'row', gap: 10, alignItems: 'center' }}>
-          <TouchableOpacity activeOpacity={0.82} onPress={openSearch} style={[s.searchPill, { flex: 1 }]}>
+        <View style={{ position: 'absolute', left: 24, right: 24 }}>
+          <TouchableOpacity activeOpacity={0.82} onPress={openSearch} style={s.searchPill}>
             <BlurView intensity={theme.isDark ? 28 : 36} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
             <Ionicons name="search-outline" size={18} color={theme.textSecondary} />
             <Text style={{ fontSize: 16, fontWeight: '300', color: theme.textSecondary }}>
-              ¿Qué se te antoja?
+              ¿Qué hay hoy?
             </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            activeOpacity={0.82}
-            onPress={() => Alert.alert('Próximamente', 'Pídele a Patio en voz alta qué se te antoja. Llega en la próxima versión.')}
-            style={s.micBtn}>
-            <BlurView intensity={theme.isDark ? 28 : 36} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
-            <Ionicons name="mic-outline" size={22} color={theme.text} />
           </TouchableOpacity>
         </View>
       </Animated.View>
@@ -375,8 +367,8 @@ export default function ExplorarScreen() {
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={{ position: 'absolute', left: 0, right: 0, bottom: 0 }}
           pointerEvents="box-none">
-          <View style={{ paddingHorizontal: 16, paddingBottom: 12, paddingTop: 8, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-            <View style={[s.searchRow, { flex: 1 }]}>
+          <View style={{ paddingHorizontal: 16, paddingBottom: 12, paddingTop: 8 }}>
+            <View style={s.searchRow}>
               <BlurView intensity={theme.isDark ? 30 : 36} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
               <TouchableOpacity onPress={closeSearch} activeOpacity={0.76} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
                 <Ionicons name="chevron-back" size={20} color={theme.text} />
@@ -399,13 +391,6 @@ export default function ExplorarScreen() {
                 </TouchableOpacity>
               )}
             </View>
-            <TouchableOpacity
-              activeOpacity={0.82}
-              onPress={() => Alert.alert('Próximamente', 'Habla con Patio en la próxima versión.')}
-              style={{ width: 44, height: 44, borderRadius: 22, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth, borderColor: theme.isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.07)' }}>
-              <BlurView intensity={theme.isDark ? 30 : 36} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
-              <Ionicons name="mic-outline" size={20} color={theme.text} />
-            </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>
       )}

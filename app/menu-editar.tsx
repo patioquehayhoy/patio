@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, Stack } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { saveMenuHoy } from '@/lib/db';
@@ -83,17 +83,47 @@ export default function MenuScreen() {
   const [priceMode, setPriceMode] = useState<'fixed' | 'perItem'>('fixed');
   const [dayPrice, setDayPrice] = useState<number | undefined>(55);
   const [items, setItems] = useState<Item[]>(() => SEED.map((it) => ({ ...it })));
+  const [publishing, setPublishing] = useState(false);
+
+  // Firma del estado inicial para detectar cambios sin guardar.
+  const initialSig = useMemo(() => JSON.stringify({ priceMode: 'fixed', dayPrice: 55, items: SEED }), []);
+  const dirty = JSON.stringify({ priceMode, dayPrice, items }) !== initialSig;
 
   const updateItem = (id: string, patch: Partial<Item>) =>
     setItems((prev) => prev.map((it) => (it.id === id ? { ...it, ...patch } : it)));
   const removeItem = (id: string) => setItems((prev) => prev.filter((it) => it.id !== id));
   const addItem = () => setItems((prev) => [...prev, { id: newId(), name: '' }]);
 
+  // Back protegido: si hay cambios sin publicar, confirma antes de salir.
+  const handleBack = () => {
+    if (!dirty) { router.replace('/menu'); return; }
+    Alert.alert('¿Descartar cambios?', 'No publicaste tu menú. Si sales, se pierde lo que escribiste.', [
+      { text: 'Seguir editando', style: 'cancel' },
+      { text: 'Descartar', style: 'destructive', onPress: () => router.replace('/menu') },
+    ]);
+  };
+
   const handlePublish = async () => {
-    const data = toMenuData(items, priceMode === 'fixed' ? dayPrice : undefined);
+    if (publishing) return;
+    // No publicar vacío: al menos un platillo con nombre.
+    const conNombre = items.filter((it) => it.name.trim().length > 0);
+    if (conNombre.length === 0) {
+      Alert.alert('Tu menú está vacío', 'Escribe al menos un platillo antes de publicar.');
+      return;
+    }
+    setPublishing(true);
+    const data = toMenuData(conNombre, priceMode === 'fixed' ? dayPrice : undefined);
     saveMenuData(data);
     const fonditaId = getFonditaId();
-    if (fonditaId) await saveMenuHoy(fonditaId, data).catch(() => {});
+    if (fonditaId) {
+      try {
+        await saveMenuHoy(fonditaId, data);
+      } catch {
+        setPublishing(false);
+        Alert.alert('No se pudo publicar', 'Revisa tu conexión e inténtalo de nuevo.');
+        return;
+      }
+    }
     router.push('/menu-publicado');
   };
 
@@ -105,7 +135,7 @@ export default function MenuScreen() {
 
       {/* Top bar */}
       <View style={[s.topBar, { top: insets.top + 6 }]}>
-        <TouchableOpacity style={s.glassBtn} onPress={() => router.replace('/menu')} activeOpacity={0.7}>
+        <TouchableOpacity style={s.glassBtn} onPress={handleBack} activeOpacity={0.7}>
           <Ionicons name="chevron-back" size={20} color={DARK.text} />
         </TouchableOpacity>
       </View>
@@ -232,8 +262,8 @@ export default function MenuScreen() {
             style={s.ctaFade}
             pointerEvents="none"
           />
-          <TouchableOpacity style={s.cta} onPress={handlePublish} activeOpacity={0.86}>
-            <Text style={s.ctaText} allowFontScaling={true}>Publicar menú · Visible ya</Text>
+          <TouchableOpacity style={[s.cta, publishing && { opacity: 0.6 }]} onPress={handlePublish} disabled={publishing} activeOpacity={0.86}>
+            <Text style={s.ctaText} allowFontScaling={true}>{publishing ? 'Publicando…' : 'Publicar menú · Visible ya'}</Text>
           </TouchableOpacity>
           <Text style={s.ctaHint} allowFontScaling={true}>Se oculta automáticamente a las 17:30</Text>
         </View>

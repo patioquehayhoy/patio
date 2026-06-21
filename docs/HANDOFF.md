@@ -1,8 +1,41 @@
 # HANDOFF
 
-## Estado vigente — 2026-06-19 (Horario semanal + fixes barra/explorar)
+## Estado vigente — 2026-06-20 (Auditoría UX + copy + barra Instagram)
 
 Leer esta sección primero. Abajo es bitácora.
+
+### Sesión 2026-06-20 — Auditoría heurística + limpieza de copy
+
+**2 commits nuevos en `v2-look-figma` (`2b3f435`, `19387eb`), SIN PUSH.** Sumados a los previos (rama aún no existe en origin). tsc verde, lint limpio.
+
+**Auditoría heurística (Nielsen) hecha como auditor externo.** Hallazgo #1 (no resuelto a propósito): la app muestra DATOS FALSOS hardcoded (312 vistas, +18%, 142 reseñas, 420m, "3 viendo"). Alejandro decidió dejarlos por ahora (sirven para ver el flujo, fáciles de cambiar). **Pendiente real antes de usuarios reales: conectarlos o quitarlos.**
+
+**Limpieza de copy (commit `2b3f435`) — roles de código fuera de pantalla:**
+- "Foodie sin nombre" → "Tu cuenta"; "fonditas vistas" → "lugares vistos" (cuenta).
+- "foodies vieron tu menú" → "personas vieron tu menú" (historial).
+- "otros foodies" → "quien anda buscando" (reseña).
+- "Explorar comida" → "Explorar cocinas" (index, unifica). "¿Solo buscas comida?" → "algo rico" (fondero-acceso).
+- Auditoría confirmó: el manifiesto SÍ respeta la identidad verbal (no estaba mal).
+
+**Fixes UX (commit `19387eb`):**
+- **Barra inferior estilo Instagram:** compacta, centrada, solo íconos (sin labels). Fix del bug de toques: el transform usaba useNativeDriver:true y el área tappeable no seguía a la barra (primer tap en zona muerta) → ahora useNativeDriver:false.
+- **explorar:** placeholder "¿Qué hay hoy?"; quitado el micrófono "Próximamente" (idle + búsqueda).
+- **Cambio de rol sin logout:** perfil Fondero → "Explorar cocinas". DECISIÓN: una app por ahora, separar Foodie/Fondero al crecer (modelo Uber). Ver memoria one_app_vs_two.
+- **Consistencia:** "Mi Patio" = exclusivo Fondero; Foodie usa "Cuenta".
+- **Editores protegidos:** menu-editar y perfil-editar confirman "¿Descartar cambios?" al salir. menu-editar no publica vacío + avisa si Supabase falla.
+
+**PENDIENTE INMEDIATO — lo corre Alejandro (TTY/token, Claude no puede):**
+1. **PUSH:** `git push -u origin v2-look-figma`. OJO: falta resolver auth de GitHub (no hay token guardado; el push falla con "could not read Password"). NO bloquea el build — EAS compila desde local, no desde GitHub.
+2. **BUILD TestFlight:** `eas build -p ios --profile production --auto-submit` (logueado como parcomx, eas.json verificado).
+3. **Ver estado:** `eas build:list --platform ios --limit 1`.
+
+**Hilos abiertos (memoria open_ux_threads):** mailing template sin instalar en Supabase; rediseño del mapa (vago, pendiente de aterrizar); liquid glass nativo (dejado fuera, frágil en Expo).
+
+---
+
+## Estado previo — 2026-06-19 (Horario semanal + fixes barra/explorar)
+
+Bitácora abajo.
 
 ### Sesión 2026-06-19 — Horario por día + pulido UX
 

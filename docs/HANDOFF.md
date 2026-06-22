@@ -39,6 +39,7 @@ Leer esta sección primero. Abajo es bitácora.
 3. **Póster/menu (preview.tsx + menu) — jerarquía.** A Alejandro NO le gusta la jerarquía del menú: muy espaciado, lista plana. Quiere **agrupar por tiempos** (1er tiempo, 2do, postre, bebidas), más compacto y sutil. Aplica a preview Y al menu.
 4. **"Usar menú anterior" (menu.tsx → historial)** — no se ve que haya menús anteriores; debería abrir una **vista previa** de cada uno antes de reutilizarlo.
 5. **Onboarding sheet "Ponle nombre a tu negocio"** (hint en perfil-editar) — no le gusta, rediseñar/quitar.
+6. **Organización de Guardados (a futuro, en el radar)** — cuando un Foodie tenga ~70 guardados, la lista plana no escala. Necesitará filtros/agrupación/búsqueda (por zona, "abierto hoy", tipo, etc.). No urgente, pero diseñar favoritos/vistos pensando en que crecerá.
 
 **Nota de método:** el video de WhatsApp que mandó Alejandro (`~/Downloads/WhatsApp Video...mp4`) mostraba WhatsApp navegando en sí mismo, no Patio — pero la referencia es clara: el patrón Large Title de iOS (header que colapsa al scrollear). Claude no puede VER video reproducido, solo frames extraídos con ffmpeg o screenshots.
 

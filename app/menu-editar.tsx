@@ -8,21 +8,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { saveMenuHoy } from '@/lib/db';
 import { makePlatilloId, makeSectionId, setMenuData as saveMenuData, type MenuData } from '@/lib/menu-store';
 import { getFonditaId } from '@/lib/user-store';
-import { Fonts } from '@/lib/theme';
+import { Fonts, useTheme } from '@/lib/theme';
+import { fonderoPalette, type FonderoColors } from '@/lib/fondero-palette';
 
 // ── FonderoPublish exacto a Figma ──────────────────────────────────────────────
-const DARK = {
-  bg: '#111214',
-  surface: 'rgba(255,255,255,0.04)',
-  surface2: 'rgba(255,255,255,0.06)',
-  border: 'rgba(255,255,255,0.08)',
-  text: '#F8F8F5',
-  textSecondary: 'rgba(248,248,245,0.55)',
-  textMute: 'rgba(248,248,245,0.4)',
-  accent: '#FF6A3D',
-  accentSoft: 'rgba(255,106,61,0.15)',
-  accentBorder: 'rgba(255,106,61,0.35)',
-};
+// Respeta el tema claro/oscuro vía fonderoPalette.
 
 // Lista cerrada de secciones (igual que Figma).
 const SECTION_OPTIONS = [undefined, 'Entrada', 'Guisado', 'Acompañante', 'Postre', 'Bebida', 'Tacos', 'Antojito', 'Especial del día'] as const;
@@ -80,6 +70,9 @@ function toMenuData(items: Item[], dayPrice?: number): MenuData {
 
 export default function MenuScreen() {
   const insets = useSafeAreaInsets();
+  const { theme } = useTheme();
+  const c = fonderoPalette(theme.isDark);
+  const s = makeStyles(c);
   const [priceMode, setPriceMode] = useState<'fixed' | 'perItem'>('fixed');
   const [dayPrice, setDayPrice] = useState<number | undefined>(55);
   const [items, setItems] = useState<Item[]>(() => SEED.map((it) => ({ ...it })));
@@ -128,6 +121,10 @@ export default function MenuScreen() {
   };
 
   const showPerItemPrice = priceMode === 'perItem';
+  // Velo de fundido sobre el CTA, baja al fondo del tema.
+  const ctaFade: [string, string, string] = theme.isDark
+    ? ['rgba(17,18,20,0)', 'rgba(17,18,20,0.95)', c.bg]
+    : ['rgba(248,248,245,0)', 'rgba(248,248,245,0.95)', c.bg];
 
   return (
     <View style={s.root}>
@@ -136,7 +133,7 @@ export default function MenuScreen() {
       {/* Top bar */}
       <View style={[s.topBar, { top: insets.top + 6 }]}>
         <TouchableOpacity style={s.glassBtn} onPress={handleBack} activeOpacity={0.7}>
-          <Ionicons name="chevron-back" size={20} color={DARK.text} />
+          <Ionicons name="chevron-back" size={20} color={c.text} />
         </TouchableOpacity>
       </View>
 
@@ -185,7 +182,7 @@ export default function MenuScreen() {
                   style={s.circleBtn}
                   onPress={() => setDayPrice((p) => (typeof p === 'number' ? (p - 5 < 5 ? undefined : p - 5) : undefined))}
                   activeOpacity={0.8}>
-                  <Ionicons name="remove" size={16} color="rgba(248,248,245,0.9)" />
+                  <Ionicons name="remove" size={16} color={c.text} />
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[s.circleBtn, s.circleBtnAccent]}
@@ -207,12 +204,12 @@ export default function MenuScreen() {
                     value={it.name}
                     onChangeText={(v) => updateItem(it.id, { name: v })}
                     placeholder="Nombre del platillo"
-                    placeholderTextColor={DARK.textMute}
-                    selectionColor={DARK.accent}
+                    placeholderTextColor={c.textMute}
+                    selectionColor={c.accent}
                     allowFontScaling={true}
                   />
                   <TouchableOpacity style={s.removeBtn} onPress={() => removeItem(it.id)} activeOpacity={0.7}>
-                    <Ionicons name="close" size={12} color="rgba(248,248,245,0.5)" />
+                    <Ionicons name="close" size={12} color={c.textSecondary} />
                   </TouchableOpacity>
                 </View>
                 <View style={s.itemBottom}>
@@ -220,7 +217,7 @@ export default function MenuScreen() {
                     style={[s.sectionPill, it.section ? s.sectionPillOn : s.sectionPillOff]}
                     onPress={() => updateItem(it.id, { section: nextSection(it.section) })}
                     activeOpacity={0.8}>
-                    <Text style={[s.sectionPillText, { color: it.section ? DARK.accent : DARK.textSecondary }]} allowFontScaling={true}>
+                    <Text style={[s.sectionPillText, { color: it.section ? c.accent : c.textSecondary }]} allowFontScaling={true}>
                       {it.section ?? 'Sin sección'}
                     </Text>
                   </TouchableOpacity>
@@ -236,8 +233,8 @@ export default function MenuScreen() {
                         }}
                         keyboardType="number-pad"
                         placeholder="0"
-                        placeholderTextColor={DARK.textMute}
-                        selectionColor={DARK.accent}
+                        placeholderTextColor={c.textMute}
+                        selectionColor={c.accent}
                         allowFontScaling={true}
                       />
                     </View>
@@ -249,7 +246,7 @@ export default function MenuScreen() {
 
           {/* Añadir platillo */}
           <TouchableOpacity style={s.addBtn} onPress={addItem} activeOpacity={0.8}>
-            <Ionicons name="add" size={16} color="rgba(248,248,245,0.7)" />
+            <Ionicons name="add" size={16} color={c.textSecondary} />
             <Text style={s.addText} allowFontScaling={true}>Añadir platillo</Text>
           </TouchableOpacity>
         </ScrollView>
@@ -257,7 +254,7 @@ export default function MenuScreen() {
         {/* CTA publicar */}
         <View style={[s.ctaWrap, { paddingBottom: (insets.bottom || 10) + 90 }]}>
           <LinearGradient
-            colors={['rgba(17,18,20,0)', 'rgba(17,18,20,0.95)', DARK.bg]}
+            colors={ctaFade}
             locations={[0, 0.4, 1]}
             style={s.ctaFade}
             pointerEvents="none"
@@ -273,51 +270,51 @@ export default function MenuScreen() {
   );
 }
 
-const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: DARK.bg },
-  topBar: { position: 'absolute', left: 16, right: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', zIndex: 20 },
-  glassBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.08)', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
-  previewBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.06)', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.08)' },
-  previewText: { fontSize: 12, fontWeight: '600', letterSpacing: 0.4, textTransform: 'uppercase', color: DARK.textSecondary },
+function makeStyles(c: FonderoColors) {
+  return StyleSheet.create({
+    root: { flex: 1, backgroundColor: c.bg },
+    topBar: { position: 'absolute', left: 16, right: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', zIndex: 20 },
+    glassBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: c.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: c.border, alignItems: 'center', justifyContent: 'center' },
 
-  eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.6, textTransform: 'uppercase', color: DARK.accent, marginBottom: 8 },
-  title: { fontSize: 38, fontWeight: '900', letterSpacing: -1.3, lineHeight: 38, color: DARK.text, marginBottom: 6, fontFamily: Fonts.brand },
-  sub: { fontSize: 14, fontWeight: '300', lineHeight: 19, color: DARK.textSecondary, marginBottom: 20 },
+    eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.6, textTransform: 'uppercase', color: c.accent, marginBottom: 8 },
+    title: { fontSize: 38, fontWeight: '900', letterSpacing: -1.3, lineHeight: 38, color: c.text, marginBottom: 6, fontFamily: Fonts.brand },
+    sub: { fontSize: 14, fontWeight: '300', lineHeight: 19, color: c.textSecondary, marginBottom: 20 },
 
-  segmented: { flexDirection: 'row', gap: 4, padding: 4, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.05)', marginBottom: 12 },
-  segBtn: { flex: 1, paddingVertical: 10, borderRadius: 12, alignItems: 'center' },
-  segBtnActive: { backgroundColor: DARK.accent },
-  segText: { fontSize: 13, fontWeight: '600', color: DARK.textSecondary },
-  segTextActive: { color: '#fff' },
+    segmented: { flexDirection: 'row', gap: 4, padding: 4, borderRadius: 16, backgroundColor: c.surface, marginBottom: 12 },
+    segBtn: { flex: 1, paddingVertical: 10, borderRadius: 12, alignItems: 'center' },
+    segBtnActive: { backgroundColor: c.accent },
+    segText: { fontSize: 13, fontWeight: '600', color: c.textSecondary },
+    segTextActive: { color: '#fff' },
 
-  priceCard: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 18, borderRadius: 20, backgroundColor: DARK.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: DARK.border, marginBottom: 12 },
-  priceLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase', color: 'rgba(248,248,245,0.5)', marginBottom: 4 },
-  priceValue: { fontSize: 32, fontWeight: '900', letterSpacing: -1, color: DARK.text, fontFamily: Fonts.brand },
-  priceMxn: { fontSize: 16, fontWeight: '500', color: 'rgba(248,248,245,0.4)' },
-  priceEmpty: { fontSize: 15, fontWeight: '300', color: 'rgba(248,248,245,0.4)' },
-  priceBtns: { flexDirection: 'row', gap: 8 },
-  circleBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.08)', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
-  circleBtnAccent: { backgroundColor: DARK.accent, borderColor: DARK.accent },
+    priceCard: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 18, borderRadius: 20, backgroundColor: c.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: c.border, marginBottom: 12 },
+    priceLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase', color: c.textMute, marginBottom: 4 },
+    priceValue: { fontSize: 32, fontWeight: '900', letterSpacing: -1, color: c.text, fontFamily: Fonts.brand },
+    priceMxn: { fontSize: 16, fontWeight: '500', color: c.textMute },
+    priceEmpty: { fontSize: 15, fontWeight: '300', color: c.textMute },
+    priceBtns: { flexDirection: 'row', gap: 8 },
+    circleBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: c.iconBg, borderWidth: StyleSheet.hairlineWidth, borderColor: c.border, alignItems: 'center', justifyContent: 'center' },
+    circleBtnAccent: { backgroundColor: c.accent, borderColor: c.accent },
 
-  itemCard: { padding: 14, borderRadius: 16, backgroundColor: DARK.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: DARK.border },
-  itemTop: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  itemInput: { flex: 1, fontSize: 15, color: DARK.text, padding: 0 },
-  removeBtn: { width: 24, height: 24, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.06)', alignItems: 'center', justifyContent: 'center' },
-  itemBottom: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 10 },
-  sectionPill: { paddingHorizontal: 11, paddingVertical: 5, borderRadius: 100, borderWidth: StyleSheet.hairlineWidth },
-  sectionPillOn: { backgroundColor: DARK.accentSoft, borderColor: DARK.accentBorder },
-  sectionPillOff: { backgroundColor: 'rgba(255,255,255,0.06)', borderColor: 'rgba(255,255,255,0.12)' },
-  sectionPillText: { fontSize: 12, fontWeight: '600' },
-  priceTag: { flexDirection: 'row', alignItems: 'center', gap: 2, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.06)', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.1)' },
-  priceTagDollar: { fontSize: 14, color: 'rgba(248,248,245,0.5)' },
-  priceTagInput: { width: 44, fontSize: 14, fontWeight: '600', color: DARK.text, textAlign: 'right', padding: 0 },
+    itemCard: { padding: 14, borderRadius: 16, backgroundColor: c.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: c.border },
+    itemTop: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+    itemInput: { flex: 1, fontSize: 15, color: c.text, padding: 0 },
+    removeBtn: { width: 24, height: 24, borderRadius: 12, backgroundColor: c.iconBg, alignItems: 'center', justifyContent: 'center' },
+    itemBottom: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 10 },
+    sectionPill: { paddingHorizontal: 11, paddingVertical: 5, borderRadius: 100, borderWidth: StyleSheet.hairlineWidth },
+    sectionPillOn: { backgroundColor: 'rgba(255,106,61,0.15)', borderColor: 'rgba(255,106,61,0.35)' },
+    sectionPillOff: { backgroundColor: c.iconBg, borderColor: c.border },
+    sectionPillText: { fontSize: 12, fontWeight: '600' },
+    priceTag: { flexDirection: 'row', alignItems: 'center', gap: 2, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10, backgroundColor: c.iconBg, borderWidth: StyleSheet.hairlineWidth, borderColor: c.border },
+    priceTagDollar: { fontSize: 14, color: c.textMute },
+    priceTagInput: { width: 44, fontSize: 14, fontWeight: '600', color: c.text, textAlign: 'right', padding: 0 },
 
-  addBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 12, borderRadius: 16, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.16)', borderStyle: 'dashed' },
-  addText: { fontSize: 14, fontWeight: '600', color: 'rgba(248,248,245,0.7)' },
+    addBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 12, borderRadius: 16, borderWidth: 1.5, borderColor: c.border, borderStyle: 'dashed' },
+    addText: { fontSize: 14, fontWeight: '600', color: c.textSecondary },
 
-  ctaWrap: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 22, paddingTop: 16 },
-  ctaFade: { position: 'absolute', left: 0, right: 0, top: -40, bottom: 0 },
-  cta: { height: 56, borderRadius: 18, backgroundColor: DARK.accent, alignItems: 'center', justifyContent: 'center', shadowColor: DARK.accent, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.5, shadowRadius: 20, elevation: 5 },
-  ctaText: { fontSize: 16, fontWeight: '700', color: '#fff', letterSpacing: -0.2 },
-  ctaHint: { marginTop: 10, fontSize: 11.5, fontWeight: '300', color: 'rgba(248,248,245,0.4)', textAlign: 'center' },
-});
+    ctaWrap: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 22, paddingTop: 16 },
+    ctaFade: { position: 'absolute', left: 0, right: 0, top: -40, bottom: 0 },
+    cta: { height: 56, borderRadius: 18, backgroundColor: c.accent, alignItems: 'center', justifyContent: 'center', shadowColor: c.accent, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.5, shadowRadius: 20, elevation: 5 },
+    ctaText: { fontSize: 16, fontWeight: '700', color: '#fff', letterSpacing: -0.2 },
+    ctaHint: { marginTop: 10, fontSize: 11.5, fontWeight: '300', color: c.textMute, textAlign: 'center' },
+  });
+}

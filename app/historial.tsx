@@ -5,21 +5,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { useTabBarScroll } from '@/lib/tab-bar-visibility';
-import { Fonts } from '@/lib/theme';
+import { Fonts, useTheme } from '@/lib/theme';
+import { fonderoPalette, type FonderoColors } from '@/lib/fondero-palette';
 
 // FonderoHistory exacto a Figma: métricas + chart + menús pasados.
-const DARK = {
-  bg: '#111214',
-  surface: 'rgba(255,255,255,0.04)',
-  surface2: 'rgba(255,255,255,0.03)',
-  border: 'rgba(255,255,255,0.08)',
-  border2: 'rgba(255,255,255,0.06)',
-  text: '#F8F8F5',
-  textSecondary: 'rgba(248,248,245,0.55)',
-  textMute: 'rgba(248,248,245,0.4)',
-  accent: '#FF6A3D',
-  green: '#1F9D55',
-};
+// Respeta el tema claro/oscuro vía fonderoPalette.
 
 const CHART = [34, 52, 28, 71, 65, 48, 14];
 const DAYS = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
@@ -34,18 +24,19 @@ const PAST = [
 export default function HistorialScreen() {
   const insets = useSafeAreaInsets();
   const { onScroll } = useTabBarScroll();
+  const { theme } = useTheme();
+  const c = fonderoPalette(theme.isDark);
+  const s = makeStyles(c);
+  // Barra inactiva del chart: clara translúcida en oscuro, ink translúcido en claro.
+  const inactiveBar = theme.isDark ? 'rgba(248,248,245,0.15)' : 'rgba(17,18,20,0.10)';
 
   return (
     <View style={s.root}>
       <Stack.Screen options={{ headerShown: false }} />
 
-      {/* Top */}
+      {/* Top — pestaña raíz: sin flecha 'atrás', se navega con la tab bar. */}
       <View style={[s.top, { top: insets.top + 6 }]}>
-        <TouchableOpacity style={s.navBtn} onPress={() => router.back()} activeOpacity={0.7}>
-          <Ionicons name="chevron-back" size={20} color={DARK.text} />
-        </TouchableOpacity>
-        <Text style={s.navTitle} allowFontScaling={true}>Mi Patio</Text>
-        <View style={s.navBtn} />
+        <Text style={s.navTitle} allowFontScaling={true}>Historial</Text>
       </View>
 
       <ScrollView
@@ -58,7 +49,7 @@ export default function HistorialScreen() {
         <View style={s.bigRow}>
           <Text style={s.bigNum} allowFontScaling={true}>312</Text>
           <View style={s.trend}>
-            <Ionicons name="trending-up" size={12} color={DARK.green} />
+            <Ionicons name="trending-up" size={12} color={c.green} />
             <Text style={s.trendText} allowFontScaling={true}>+18%</Text>
           </View>
         </View>
@@ -69,13 +60,13 @@ export default function HistorialScreen() {
           <View style={s.chartBars}>
             {CHART.map((v, i) => (
               <View key={i} style={s.barCol}>
-                <View style={[s.bar, { height: `${v}%`, backgroundColor: i === TODAY_IDX ? DARK.accent : 'rgba(248,248,245,0.15)' }]} />
+                <View style={[s.bar, { height: `${v}%`, backgroundColor: i === TODAY_IDX ? c.accent : inactiveBar }]} />
               </View>
             ))}
           </View>
           <View style={s.chartDays}>
             {DAYS.map((d, i) => (
-              <Text key={i} style={[s.dayLabel, { color: i === TODAY_IDX ? DARK.accent : DARK.textMute, fontWeight: i === TODAY_IDX ? '700' : '500' }]} allowFontScaling={true}>{d}</Text>
+              <Text key={i} style={[s.dayLabel, { color: i === TODAY_IDX ? c.accent : c.textMute, fontWeight: i === TODAY_IDX ? '700' : '500' }]} allowFontScaling={true}>{d}</Text>
             ))}
           </View>
         </View>
@@ -89,11 +80,11 @@ export default function HistorialScreen() {
               <Text style={s.pastDish} numberOfLines={1} allowFontScaling={true}>{m.dish}</Text>
             </View>
             <View style={s.viewsBox}>
-              <Ionicons name="eye-outline" size={11} color={DARK.textMute} />
+              <Ionicons name="eye-outline" size={11} color={c.textMute} />
               <Text style={s.viewsText} allowFontScaling={true}>{m.views}</Text>
             </View>
             <TouchableOpacity style={s.repeatBtn} onPress={() => router.replace('/menu')} activeOpacity={0.8}>
-              <Ionicons name="refresh" size={13} color={DARK.accent} />
+              <Ionicons name="refresh" size={13} color={c.accent} />
             </TouchableOpacity>
           </View>
         ))}
@@ -112,35 +103,36 @@ export default function HistorialScreen() {
   );
 }
 
-const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: DARK.bg },
-  top: { position: 'absolute', left: 16, right: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', zIndex: 20 },
-  navBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.08)', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
-  navTitle: { fontSize: 14, fontWeight: '600', color: 'rgba(248,248,245,0.9)' },
+function makeStyles(c: FonderoColors) {
+  return StyleSheet.create({
+    root: { flex: 1, backgroundColor: c.bg },
+    top: { position: 'absolute', left: 16, right: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', zIndex: 20 },
+    navTitle: { fontSize: 14, fontWeight: '600', color: c.text },
 
-  eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.6, textTransform: 'uppercase', color: DARK.accent, marginBottom: 6 },
-  bigRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 12, marginBottom: 2 },
-  bigNum: { fontSize: 64, fontWeight: '900', letterSpacing: -2.5, lineHeight: 72, color: DARK.text, fontFamily: Fonts.brand, includeFontPadding: false },
-  trend: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingBottom: 8 },
-  trendText: { fontSize: 13, fontWeight: '700', color: DARK.green },
-  bigSub: { fontSize: 14, fontWeight: '300', color: DARK.textSecondary, marginBottom: 24 },
+    eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.6, textTransform: 'uppercase', color: c.accent, marginBottom: 6 },
+    bigRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 12, marginBottom: 2 },
+    bigNum: { fontSize: 64, fontWeight: '900', letterSpacing: -2.5, lineHeight: 72, color: c.text, fontFamily: Fonts.brand, includeFontPadding: false },
+    trend: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingBottom: 8 },
+    trendText: { fontSize: 13, fontWeight: '700', color: c.green },
+    bigSub: { fontSize: 14, fontWeight: '300', color: c.textSecondary, marginBottom: 24 },
 
-  chartCard: { padding: 16, borderRadius: 18, backgroundColor: DARK.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: DARK.border, marginBottom: 22 },
-  chartBars: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: 6, height: 60 },
-  barCol: { flex: 1, height: '100%', justifyContent: 'flex-end' },
-  bar: { width: '100%', borderRadius: 6, minHeight: 6 },
-  chartDays: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 },
-  dayLabel: { flex: 1, textAlign: 'center', fontSize: 10.5, letterSpacing: 0.5 },
+    chartCard: { padding: 16, borderRadius: 18, backgroundColor: c.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: c.border, marginBottom: 22 },
+    chartBars: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: 6, height: 60 },
+    barCol: { flex: 1, height: '100%', justifyContent: 'flex-end' },
+    bar: { width: '100%', borderRadius: 6, minHeight: 6 },
+    chartDays: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 },
+    dayLabel: { flex: 1, textAlign: 'center', fontSize: 10.5, letterSpacing: 0.5 },
 
-  sectionLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1.4, textTransform: 'uppercase', color: 'rgba(248,248,245,0.5)', marginBottom: 12 },
-  pastCard: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: 14, backgroundColor: DARK.surface2, borderWidth: StyleSheet.hairlineWidth, borderColor: DARK.border2, marginBottom: 8 },
-  pastDay: { fontSize: 10.5, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', color: DARK.textMute, marginBottom: 3 },
-  pastDish: { fontSize: 14, color: DARK.text },
-  viewsBox: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  viewsText: { fontSize: 12, fontWeight: '600', color: 'rgba(248,248,245,0.6)' },
-  repeatBtn: { width: 32, height: 32, borderRadius: 10, backgroundColor: 'rgba(255,106,61,0.12)', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,106,61,0.25)', alignItems: 'center', justifyContent: 'center' },
+    sectionLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1.4, textTransform: 'uppercase', color: c.textMute, marginBottom: 12 },
+    pastCard: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: 14, backgroundColor: c.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: c.border, marginBottom: 8 },
+    pastDay: { fontSize: 10.5, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', color: c.textMute, marginBottom: 3 },
+    pastDish: { fontSize: 14, color: c.text },
+    viewsBox: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+    viewsText: { fontSize: 12, fontWeight: '600', color: c.textSecondary },
+    repeatBtn: { width: 32, height: 32, borderRadius: 10, backgroundColor: 'rgba(255,106,61,0.12)', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,106,61,0.25)', alignItems: 'center', justifyContent: 'center' },
 
-  ctaWrap: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 22, paddingTop: 16, backgroundColor: DARK.bg },
-  cta: { height: 56, borderRadius: 18, backgroundColor: DARK.accent, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, shadowColor: DARK.accent, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.5, shadowRadius: 20, elevation: 5 },
-  ctaText: { fontSize: 16, fontWeight: '700', color: '#fff', letterSpacing: -0.2 },
-});
+    ctaWrap: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 22, paddingTop: 16, backgroundColor: c.bg },
+    cta: { height: 56, borderRadius: 18, backgroundColor: c.accent, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, shadowColor: c.accent, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.5, shadowRadius: 20, elevation: 5 },
+    ctaText: { fontSize: 16, fontWeight: '700', color: '#fff', letterSpacing: -0.2 },
+  });
+}

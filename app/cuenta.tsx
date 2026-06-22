@@ -147,11 +147,10 @@ export default function CuentaScreen() {
   return (
     <View style={[s.root, { paddingTop: insets.top }]}>
       <Stack.Screen options={{ headerShown: false, presentation: 'card' }} />
-      <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false} onScroll={onScroll} scrollEventThrottle={16}>
+      <ScrollView contentContainerStyle={[s.content, { paddingBottom: insets.bottom + 130 }]} showsVerticalScrollIndicator={false} onScroll={onScroll} scrollEventThrottle={16}>
+        {/* Pestaña raíz: sin flecha 'atrás' — se navega con la tab bar (modelo
+            Instagram). El back solo existe en pantallas hijas. */}
         <View style={s.header}>
-          <TouchableOpacity style={s.closeBtn} onPress={() => router.back()} activeOpacity={0.76}>
-            <Ionicons name="chevron-back" size={24} color={theme.text} />
-          </TouchableOpacity>
           <Text style={s.eyebrow} allowFontScaling={true}>Cuenta</Text>
           <Text style={s.title} allowFontScaling={true}>Tu Patio</Text>
         </View>
@@ -164,15 +163,15 @@ export default function CuentaScreen() {
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}>
               <View style={s.statsRow}>
-                <View style={s.statCol}>
+                <TouchableOpacity style={s.statCol} activeOpacity={0.7} onPress={() => router.push('/vistos' as any)}>
                   <Text style={s.statNum} allowFontScaling={true}>{stats.viewed || 12}</Text>
                   <Text style={s.statLabel} allowFontScaling={true}>lugares vistos</Text>
-                </View>
+                </TouchableOpacity>
                 <View style={s.statDivider} />
-                <View style={s.statCol}>
+                <TouchableOpacity style={s.statCol} activeOpacity={0.7} onPress={() => router.push('/favoritos' as any)}>
                   <Text style={s.statNum} allowFontScaling={true}>{stats.saved || 4}</Text>
                   <Text style={s.statLabel} allowFontScaling={true}>guardadas</Text>
-                </View>
+                </TouchableOpacity>
                 <View style={s.statDivider} />
                 <View style={s.statCol}>
                   <Text style={s.statNum} allowFontScaling={true}>38</Text>

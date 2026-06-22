@@ -6,19 +6,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { useTabBarScroll } from '@/lib/tab-bar-visibility';
-import { Fonts } from '@/lib/theme';
+import { Fonts, useTheme } from '@/lib/theme';
+import { fonderoPalette, type FonderoColors } from '@/lib/fondero-palette';
 
 // Pantalla "Hoy" del Fondero: elección de cómo armar el menú del día.
 // La foto es el héroe (Patio lo lee por ti = la magia que vendemos).
-const DARK = {
-  bg: '#111214',
-  surface: 'rgba(255,255,255,0.04)',
-  border: 'rgba(255,255,255,0.08)',
-  text: '#F8F8F5',
-  textSecondary: 'rgba(248,248,245,0.55)',
-  textMute: 'rgba(248,248,245,0.4)',
-  accent: '#FF6A3D',
-};
+// Respeta el tema claro/oscuro vía fonderoPalette.
 
 function todayLabel(): string {
   try {
@@ -29,6 +22,9 @@ function todayLabel(): string {
 export default function HoyScreen() {
   const insets = useSafeAreaInsets();
   const { onScroll } = useTabBarScroll();
+  const { theme } = useTheme();
+  const c = fonderoPalette(theme.isDark);
+  const s = makeStyles(c);
 
   return (
     <View style={s.root}>
@@ -69,25 +65,25 @@ export default function HoyScreen() {
         {/* Opción: escribir */}
         <TouchableOpacity activeOpacity={0.85} onPress={() => router.push('/menu-editar')} style={s.optionRow}>
           <View style={s.optionIcon}>
-            <Ionicons name="create-outline" size={20} color={DARK.text} />
+            <Ionicons name="create-outline" size={20} color={c.text} />
           </View>
           <View style={{ flex: 1, minWidth: 0 }}>
             <Text style={s.optionTitle} allowFontScaling={true}>Escribe tu menú</Text>
             <Text style={s.optionSub} allowFontScaling={true}>Platillo por platillo, con precio</Text>
           </View>
-          <Ionicons name="chevron-forward" size={16} color={DARK.textMute} />
+          <Ionicons name="chevron-forward" size={16} color={c.textMute} />
         </TouchableOpacity>
 
         {/* Opción: usar anterior */}
         <TouchableOpacity activeOpacity={0.85} onPress={() => router.push('/historial')} style={s.optionRow}>
           <View style={s.optionIcon}>
-            <Ionicons name="refresh-outline" size={20} color={DARK.text} />
+            <Ionicons name="refresh-outline" size={20} color={c.text} />
           </View>
           <View style={{ flex: 1, minWidth: 0 }}>
             <Text style={s.optionTitle} allowFontScaling={true}>Usa un menú anterior</Text>
             <Text style={s.optionSub} allowFontScaling={true}>Repite uno que ya publicaste</Text>
           </View>
-          <Ionicons name="chevron-forward" size={16} color={DARK.textMute} />
+          <Ionicons name="chevron-forward" size={16} color={c.textMute} />
         </TouchableOpacity>
       </ScrollView>
 
@@ -96,24 +92,26 @@ export default function HoyScreen() {
   );
 }
 
-const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: DARK.bg },
-  eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.6, textTransform: 'uppercase', color: DARK.accent, marginBottom: 8 },
-  title: { fontSize: 38, fontWeight: '900', letterSpacing: -1.3, lineHeight: 38, color: DARK.text, marginBottom: 6, fontFamily: Fonts.brand },
-  sub: { fontSize: 14, fontWeight: '300', lineHeight: 20, color: DARK.textSecondary, marginBottom: 24 },
+function makeStyles(c: FonderoColors) {
+  return StyleSheet.create({
+    root: { flex: 1, backgroundColor: c.bg },
+    eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.6, textTransform: 'uppercase', color: c.accent, marginBottom: 8 },
+    title: { fontSize: 38, fontWeight: '900', letterSpacing: -1.3, lineHeight: 38, color: c.text, marginBottom: 6, fontFamily: Fonts.brand },
+    sub: { fontSize: 14, fontWeight: '300', lineHeight: 20, color: c.textSecondary, marginBottom: 24 },
 
-  heroCard: { borderRadius: 24, overflow: 'hidden', shadowColor: '#F2612F', shadowOffset: { width: 0, height: 14 }, shadowOpacity: 0.4, shadowRadius: 28, elevation: 8 },
-  heroGradient: { padding: 24, minHeight: 200, justifyContent: 'flex-end' },
-  heroIcon: { width: 56, height: 56, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
-  heroTitle: { fontSize: 24, fontWeight: '900', letterSpacing: -0.6, color: '#fff', marginBottom: 6, fontFamily: Fonts.brand },
-  heroBody: { fontSize: 14, fontWeight: '300', lineHeight: 19, color: 'rgba(255,255,255,0.9)', marginBottom: 14, maxWidth: 280 },
-  heroTag: { flexDirection: 'row', alignItems: 'center', gap: 5, alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 100, backgroundColor: 'rgba(255,255,255,0.18)' },
-  heroTagText: { fontSize: 11, fontWeight: '700', letterSpacing: 0.5, color: '#fff' },
+    heroCard: { borderRadius: 24, overflow: 'hidden', shadowColor: '#F2612F', shadowOffset: { width: 0, height: 14 }, shadowOpacity: 0.4, shadowRadius: 28, elevation: 8 },
+    heroGradient: { padding: 24, minHeight: 200, justifyContent: 'flex-end' },
+    heroIcon: { width: 56, height: 56, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
+    heroTitle: { fontSize: 24, fontWeight: '900', letterSpacing: -0.6, color: '#fff', marginBottom: 6, fontFamily: Fonts.brand },
+    heroBody: { fontSize: 14, fontWeight: '300', lineHeight: 19, color: 'rgba(255,255,255,0.9)', marginBottom: 14, maxWidth: 280 },
+    heroTag: { flexDirection: 'row', alignItems: 'center', gap: 5, alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 100, backgroundColor: 'rgba(255,255,255,0.18)' },
+    heroTagText: { fontSize: 11, fontWeight: '700', letterSpacing: 0.5, color: '#fff' },
 
-  orLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase', color: DARK.textMute, textAlign: 'center', marginVertical: 20 },
+    orLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase', color: c.textMute, textAlign: 'center', marginVertical: 20 },
 
-  optionRow: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 16, borderRadius: 18, backgroundColor: DARK.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: DARK.border, marginBottom: 10 },
-  optionIcon: { width: 44, height: 44, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.06)', alignItems: 'center', justifyContent: 'center' },
-  optionTitle: { fontSize: 16, fontWeight: '600', letterSpacing: -0.2, color: DARK.text, marginBottom: 2 },
-  optionSub: { fontSize: 13, fontWeight: '300', color: DARK.textSecondary },
-});
+    optionRow: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 16, borderRadius: 18, backgroundColor: c.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: c.border, marginBottom: 10 },
+    optionIcon: { width: 44, height: 44, borderRadius: 14, backgroundColor: c.iconBg, alignItems: 'center', justifyContent: 'center' },
+    optionTitle: { fontSize: 16, fontWeight: '600', letterSpacing: -0.2, color: c.text, marginBottom: 2 },
+    optionSub: { fontSize: 13, fontWeight: '300', color: c.textSecondary },
+  });
+}

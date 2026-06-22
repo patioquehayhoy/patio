@@ -6,7 +6,10 @@ import { Animated, type NativeScrollEvent, type NativeSyntheticEvent } from 'rea
 // pantalla alimente su scroll y el BottomTabBar se traslade en consecuencia.
 
 const HIDE_DISTANCE = 120;      // qué tan abajo viaja el pill al ocultarse
-const THRESHOLD = 8;            // px de scroll para considerar un gesto (anti-jitter)
+const THRESHOLD = 24;           // px de scroll para considerar un gesto (anti-jitter)
+                                // Más alto = la barra es menos sensible y no
+                                // reaparece/desaparece con micro-movimientos.
+const TOP_ZONE = 24;           // px desde el tope donde la barra siempre se ve
 
 type TabBarCtx = {
   translateY: Animated.Value;   // 0 = visible, HIDE_DISTANCE = oculto
@@ -46,7 +49,7 @@ export function TabBarVisibilityProvider({ children }: { children: React.ReactNo
     lastY.current = y;
 
     // Cerca del tope: siempre visible.
-    if (y <= 4) { reveal(); return; }
+    if (y <= TOP_ZONE) { reveal(); return; }
     // Ignoramos rebotes (bounce) por arriba del tope en iOS.
     if (y < 0) return;
     if (Math.abs(dy) < THRESHOLD) return;

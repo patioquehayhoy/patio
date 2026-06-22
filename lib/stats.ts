@@ -3,20 +3,37 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getFavoritePatioIds } from './favorites';
 
 const VIEWED_KEY = '@patio_viewed_ids';
+const MAX_VIEWED = 100; // tope sano para no crecer sin límite
 
-// Conjunto de ids de fonditas que el foodie ha abierto (vistas únicas).
-async function getViewedSet(): Promise<Set<string>> {
+// Ids de fonditas que el foodie ha abierto, ORDENADOS del más reciente al más
+// viejo. Antes se guardaba un Set (sin orden); seguimos leyendo ese formato por
+// compatibilidad, pero al escribir usamos un arreglo ordenado para poder mostrar
+// "lo que viste" en orden y entrar a cada ficha.
+async function getViewedIds(): Promise<string[]> {
   const raw = await AsyncStorage.getItem(VIEWED_KEY);
-  return new Set<string>(raw ? (JSON.parse(raw) as string[]) : []);
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((id): id is string => typeof id === 'string');
+  } catch {
+    return [];
+  }
+}
+
+// Lista pública de ids vistos (más reciente primero).
+export async function getViewedPatioIds(): Promise<string[]> {
+  return getViewedIds();
 }
 
 // Registra que se abrió una ficha. Se llama al entrar al detalle.
+// Si ya estaba, lo mueve al frente (vista más reciente).
 export async function registerPatioView(patioId: string): Promise<void> {
   if (!patioId) return;
-  const set = await getViewedSet();
-  if (set.has(patioId)) return;
-  set.add(patioId);
-  await AsyncStorage.setItem(VIEWED_KEY, JSON.stringify([...set]));
+  const current = await getViewedIds();
+  const withoutId = current.filter((id) => id !== patioId);
+  const next = [patioId, ...withoutId].slice(0, MAX_VIEWED);
+  await AsyncStorage.setItem(VIEWED_KEY, JSON.stringify(next));
 }
 
 export type FoodieStats = {
@@ -25,6 +42,6 @@ export type FoodieStats = {
 };
 
 export async function getFoodieStats(): Promise<FoodieStats> {
-  const [viewedSet, savedIds] = await Promise.all([getViewedSet(), getFavoritePatioIds()]);
-  return { viewed: viewedSet.size, saved: savedIds.length };
+  const [viewedIds, savedIds] = await Promise.all([getViewedIds(), getFavoritePatioIds()]);
+  return { viewed: viewedIds.length, saved: savedIds.length };
 }

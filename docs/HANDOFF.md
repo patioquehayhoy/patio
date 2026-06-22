@@ -1,8 +1,56 @@
 # HANDOFF
 
-## Estado vigente — 2026-06-20 (Auditoría UX + copy + barra Instagram)
+## Estado vigente — 2026-06-21 (Dev build en iPhone + navegación + modo claro Fondero + stats vivas + header system)
 
 Leer esta sección primero. Abajo es bitácora.
+
+### Sesión 2026-06-21 — sesión larga, MUCHOS cambios. `tsc` verde. SIN COMMIT aún (Alejandro hace push).
+
+**HITO: dev build instalada en iPhone real por cable + Fast Refresh.** Signing en Xcode configurado (Apple ID `dubzon@live.com.mx`, team `JK2N262L7X`, bundle `com.parcomx.patio`, "Automatically manage signing" ✅). Ya NO se necesita cable: el iPhone se conecta por WiFi (Xcode lo ve como "Parco", iPhone 15 Pro). **Flujo de trabajo montado:** Metro corre en la Mac (`npx expo start --dev-client --host lan`), Mac no se duerme con Claude Code abierto. Se trabaja en **simulador** (Claude le toma capturas directo) + **iPhone** (Alejandro cierra/abre la app para ver cambios — el Fast Refresh se va al simulador cuando ambos están conectados). Alejandro puede dirigir desde la app de Claude en el cel estando en la calle (no necesita la app cargada allá, solo escribirle).
+
+**Bug barra de navegación (RESUELTO):**
+- Dark mode: la barra usaba `variant === 'fondero'` para el color → salía blanca en oscuro. Ahora `bottom-tab-bar.tsx` lee `theme.isDark` (tema real); `variant` solo decide qué tabs muestra.
+- Bug primer-tap: `BlurView` interceptaba el toque → `pointerEvents="none"`.
+- Sensibilidad: `tab-bar-visibility.tsx` THRESHOLD 8→24, TOP_ZONE 4→24. Ya no reaparece con micro-scroll.
+
+**Navegación pestañas-puras (modelo Instagram, criterio Apple HIG "un destino = un punto de entrada"):**
+- **explorar (mapa):** quitados los botones flotantes Perfil 👤 y Guardados 🔖 (ya están en la tab bar) y luego también el ⛶ Expandir (Alejandro no le veía función). Mapa limpio: solo buscador + tab bar. Borrado el estado muerto `mapExpanded` + estilos `topBar/topRight/glassBtn`.
+- **cuenta, favoritos, historial:** quitada la flecha "atrás" (son pestañas raíz, no llevan back). Bug de copy corregido: historial decía "Mi Patio" (título de Perfil) → "Historial".
+- Padding inferior con insets (cuenta/favoritos `insets.bottom + 130`) para que la tab bar flotante no tape contenido.
+
+**MODO CLARO/OSCURO en TODO el Fondero (decisión de producto de Alejandro: el toggle debe afectar AMBOS lados):**
+- Antes el Fondero era SIEMPRE oscuro (constante `DARK` hardcodeada en 6 pantallas). Ahora respeta `theme.isDark`.
+- **`lib/fondero-palette.ts` (NUEVO):** `fonderoPalette(isDark)` → DARK (idéntica a la original, no rompe el diseño oscuro de Figma) + LIGHT (reutiliza tokens claros del Foodie). Una sola fuente de verdad.
+- Convertidas a `makeStyles(c)`: menu (Hoy), historial, perfil, menu-editar, foto-menu, preview. El **bloque de precio de menu-editar se preservó** (regla CLAUDE.md). El **póster de preview es SIEMPRE claro** (imagen de marca que se comparte, no cambia con el tema) — solo el chrome sigue el tema.
+- **Toggle "Modo oscuro" agregado en Mi Patio (perfil Fondero)** — antes solo existía en Cuenta (Foodie), por eso quedabas atrapado. Ahora se cambia desde ambos lados.
+
+**ESTADÍSTICAS VIVAS (feature nueva, idea de Alejandro):**
+- `lib/stats.ts` ya existía (registraba vistas únicas). **Extendido** a lista ordenada por recencia (más reciente primero, tope 100, compatible con datos viejos). Nuevo export `getViewedPatioIds()`.
+- **`app/vistos.tsx` (NUEVO):** pantalla "Lo que viste" — lista navegable de cocinas abiertas, cada una entra a su ficha. Estado vacío cuidado. Registrada en `_layout`.
+- En **cuenta.tsx** la stat "Lugares vistos" ahora es REAL (no el 12 de ejemplo) y es **tocable** → abre `/vistos`. "Guardadas" ahora abre `/favoritos`.
+
+**SISTEMA DE HEADER (empezado, NO propagado — pendiente validación de Alejandro):**
+- **`components/collapsing-header.tsx` (NUEVO):** patrón Large Title estilo WhatsApp/iOS. `CollapsingHeader` = barra compacta flotante (blur + título pequeño + back/acciones) que aparece al scrollear; `CollapsingTitle` = título grande que vive en el scroll y se desvanece al subir. Animación por interpolación de `scrollY` (`useNativeDriver: true`).
+- **Integrado SOLO en `vistos.tsx`** como prueba. Se ve bien en reposo. **Falta que Alejandro pruebe el colapso scrolleando** antes de propagarlo a las 9 pantallas con header grande (Hoy, Historial, Mi Patio, Editar, Cuenta, Guardados, etc.).
+
+**PENDIENTES DE DISEÑO (Alejandro los reportó viendo la app en su iPhone — orden de prioridad que él pidió):**
+1. **Header system** — validar el colapso en `vistos` y si gusta, PROPAGAR a toda la app (era lo que estaba en curso al cerrar). Inspiración: animación de headers de WhatsApp (botones superiores que se mueven/desaparecen al scrollear).
+2. **Horario por día (perfil-editar.tsx) — LO MÁS ROTO.** Interfaz confusa: no se entiende si editas el horario general o el de un día específico, ni cuándo se guardó uno. **Falta feedback al guardar** (el botón "Guardar cambios" no desaparece ni confirma nada → viola Apple HIG 3.2 Feedback, ver `docs/design/foundations/ESSENTIAL_DESIGN_PRINCIPLES.md`). Rediseñar la interfaz completa.
+3. **Póster/menu (preview.tsx + menu) — jerarquía.** A Alejandro NO le gusta la jerarquía del menú: muy espaciado, lista plana. Quiere **agrupar por tiempos** (1er tiempo, 2do, postre, bebidas), más compacto y sutil. Aplica a preview Y al menu.
+4. **"Usar menú anterior" (menu.tsx → historial)** — no se ve que haya menús anteriores; debería abrir una **vista previa** de cada uno antes de reutilizarlo.
+5. **Onboarding sheet "Ponle nombre a tu negocio"** (hint en perfil-editar) — no le gusta, rediseñar/quitar.
+
+**Nota de método:** el video de WhatsApp que mandó Alejandro (`~/Downloads/WhatsApp Video...mp4`) mostraba WhatsApp navegando en sí mismo, no Patio — pero la referencia es clara: el patrón Large Title de iOS (header que colapsa al scrollear). Claude no puede VER video reproducido, solo frames extraídos con ffmpeg o screenshots.
+
+**PENDIENTE INMEDIATO — lo corre Alejandro:**
+1. **PUSH:** `git push -u origin v2-look-figma` (sigue sin resolver auth GitHub; no bloquea build).
+2. Probar en device/sim los cambios de hoy, sobre todo el modo claro Fondero en oscuro (debería verse igual que antes — se preservaron los valores DARK).
+
+---
+
+## Estado previo — 2026-06-20 (Auditoría UX + copy + barra Instagram)
+
+Bitácora abajo.
 
 ### Sesión 2026-06-20 — Auditoría heurística + limpieza de copy
 

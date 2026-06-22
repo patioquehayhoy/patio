@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
 import { useTabBarTranslate } from '@/lib/tab-bar-visibility';
+import { useTheme } from '@/lib/theme';
 
 // TabBar exacta a Figma Make: pill flotante glass con 3 tabs.
 // Foodie (claro): Hoy / Guardados / Yo.
@@ -49,7 +50,11 @@ const LIGHT = {
 export function BottomTabBar({ variant = 'fondero' }: { variant?: 'foodie' | 'fondero' } = {}) {
   const pathname = usePathname();
   const insets = useSafeAreaInsets();
-  const isDark = variant === 'fondero';
+  const { theme } = useTheme();
+  // El COLOR de la barra sigue el tema real de la app (claro/oscuro), no el rol.
+  // Antes usaba `variant === 'fondero'` → en modo oscuro + pantalla Foodie la barra
+  // salía blanca. `variant` ahora SOLO decide qué tabs se muestran.
+  const isDark = theme.isDark;
   const c = isDark ? DARK : LIGHT;
   const tabs = variant === 'foodie' ? FOODIE_TABS : FONDERO_TABS;
   const { translateY, reveal } = useTabBarTranslate();
@@ -70,6 +75,7 @@ export function BottomTabBar({ variant = 'fondero' }: { variant?: 'foodie' | 'fo
           intensity={isDark ? 40 : 36}
           tint={isDark ? 'dark' : 'light'}
           style={StyleSheet.absoluteFill}
+          pointerEvents="none"
         />
         {tabs.map(({ path, label, icon }) => {
           const active = pathname === path;

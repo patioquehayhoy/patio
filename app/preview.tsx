@@ -7,10 +7,13 @@ import * as Sharing from 'expo-sharing';
 import { captureRef } from 'react-native-view-shot';
 
 import { getFonditaName, getMenuData, type MenuData } from '@/lib/menu-store';
-import { Fonts } from '@/lib/theme';
+import { Fonts, useTheme } from '@/lib/theme';
+import { fonderoPalette, type FonderoColors } from '@/lib/fondero-palette';
 
 // MenuPoster exacto a Figma: tarjeta vertical de marca que se comparte como imagen.
-const DARK = { bg: '#08090B', text: '#F8F8F5', textMute: 'rgba(248,248,245,0.55)', accent: '#FF6A3D' };
+// El PÓSTER (tarjeta blanca) es SIEMPRE claro — es una imagen de marca que se
+// comparte, no debe cambiar con el tema. Solo el chrome (fondo, top bar, hint)
+// sigue el tema claro/oscuro de la app.
 const LIGHT = { bg: '#F8F8F5', card: '#FFFFFF', ink: '#111214', inkSoft: '#4A4A47', mute: '#8A8A85', sep: 'rgba(17,18,20,0.06)', accent: '#F2612F' };
 
 // Menú de ejemplo si aún no hay nada (para que el póster nunca salga vacío).
@@ -38,6 +41,9 @@ function flattenMenu(m: MenuData | null): { rows: Row[]; dayPrice: string | null
 
 export default function PreviewScreen() {
   const insets = useSafeAreaInsets();
+  const { theme } = useTheme();
+  const c = fonderoPalette(theme.isDark);
+  const s = makeStyles(c);
   const [menuData, setMenuData] = useState<MenuData | null>(null);
   const [businessName, setBusinessName] = useState('Cocina de Lupita');
   const posterRef = useRef<View | null>(null);
@@ -76,7 +82,7 @@ export default function PreviewScreen() {
       {/* Top bar */}
       <View style={[s.top, { top: insets.top + 6 }]}>
         <TouchableOpacity style={s.navBtn} onPress={() => router.replace('/menu')} activeOpacity={0.7}>
-          <Ionicons name="chevron-back" size={20} color={DARK.text} />
+          <Ionicons name="chevron-back" size={20} color={c.text} />
         </TouchableOpacity>
         <Text style={s.topTitle} allowFontScaling={true}>Compartir</Text>
         <View style={s.navBtn} />
@@ -126,11 +132,12 @@ export default function PreviewScreen() {
   );
 }
 
-const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: DARK.bg },
+function makeStyles(c: FonderoColors) {
+  return StyleSheet.create({
+  root: { flex: 1, backgroundColor: c.bg },
   top: { position: 'absolute', left: 16, right: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', zIndex: 20 },
-  navBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.08)', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
-  topTitle: { fontSize: 14, fontWeight: '600', color: DARK.text },
+  navBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: c.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: c.border, alignItems: 'center', justifyContent: 'center' },
+  topTitle: { fontSize: 14, fontWeight: '600', color: c.text },
 
   posterWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 },
   poster: { width: 300, borderRadius: 26, backgroundColor: LIGHT.bg, overflow: 'hidden', shadowColor: '#000', shadowOffset: { width: 0, height: 30 }, shadowOpacity: 0.5, shadowRadius: 40, elevation: 12 },
@@ -154,5 +161,6 @@ const s = StyleSheet.create({
   ctaWrap: { paddingHorizontal: 22, paddingTop: 12 },
   cta: { height: 56, borderRadius: 18, backgroundColor: '#25D366', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   ctaText: { fontSize: 16, fontWeight: '700', color: '#fff', letterSpacing: -0.2 },
-  ctaHint: { marginTop: 10, fontSize: 11.5, fontWeight: '300', color: DARK.textMute, textAlign: 'center' },
-});
+  ctaHint: { marginTop: 10, fontSize: 11.5, fontWeight: '300', color: c.textMute, textAlign: 'center' },
+  });
+}

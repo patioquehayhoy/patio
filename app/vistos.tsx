@@ -1,19 +1,18 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { router, Stack } from 'expo-router';
-import { useCallback, useState } from 'react';
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useCallback, useRef, useState } from 'react';
+import { Animated, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { BottomTabBar } from '@/components/bottom-tab-bar';
-import { useTabBarScroll } from '@/lib/tab-bar-visibility';
-import { getFavoritePatioIds } from '@/lib/favorites';
+import { CollapsingHeader, CollapsingTitle } from '@/components/collapsing-header';
+import { getViewedPatioIds } from '@/lib/stats';
 import { fetchFonditaById, MOCK_PATIOS, type Patio } from '@/lib/patios';
-import { Fonts, Radius, Spacing, useTheme, type Theme } from '@/lib/theme';
+import { Fonts, Radius, useTheme, type Theme } from '@/lib/theme';
 
 const OPEN_GREEN = '#1F9D55';
 
-// Fotos botánicas, elegidas de forma determinística por id (igual que la ficha).
+// Fotos botánicas, elegidas de forma determinística por id (igual que favoritos/ficha).
 const HERO_PHOTOS = [
   require('../assets/hero/botanica-1.png'),
   require('../assets/hero/botanica-2.png'),
@@ -31,7 +30,6 @@ function photoFor(id: string) {
   return HERO_PHOTOS[h % HERO_PHOTOS.length];
 }
 
-// Platillo del día derivado del primer item del menú (si existe).
 function todayDish(patio: Patio): string | null {
   const first = patio.menu?.[0]?.items?.slice(0, 2).map((it) => it.name).join(' · ');
   return first || null;
@@ -40,7 +38,7 @@ function todayDish(patio: Patio): string | null {
 function makeStyles(t: Theme) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: t.bg },
-    content: { paddingBottom: 120 },
+    content: { paddingBottom: 40 },
 
     // Header editorial
     header: { paddingHorizontal: 22, paddingTop: 8, paddingBottom: 16 },
@@ -50,7 +48,7 @@ function makeStyles(t: Theme) {
     subtitle: { fontSize: 13, fontWeight: '300', color: t.textSecondary },
 
     // Lista
-    list: { paddingHorizontal: 18, gap: 10 },
+    list: { paddingHorizontal: 18, gap: 10, marginTop: 16 },
     card: { flexDirection: 'row', gap: 12, backgroundColor: t.surface, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, padding: 12 },
     thumb: { width: 78, height: 78, borderRadius: 12, overflow: 'hidden', backgroundColor: '#111214' },
     thumbImg: { width: '100%', height: '100%' },
@@ -75,58 +73,67 @@ function makeStyles(t: Theme) {
   });
 }
 
-export default function FavoritosScreen() {
+export default function VistosScreen() {
   const { theme } = useTheme();
   const s = makeStyles(theme);
   const insets = useSafeAreaInsets();
-  const { onScroll } = useTabBarScroll();
   const [patios, setPatios] = useState<Patio[]>([]);
 
   useFocusEffect(
     useCallback(() => {
       let mounted = true;
-      getFavoritePatioIds().then(async (ids) => {
+      getViewedPatioIds().then(async (ids) => {
         if (!mounted) return;
-        const mockHits = MOCK_PATIOS.filter((p) => ids.includes(p.id));
-        const mockIds = new Set(mockHits.map((p) => p.id));
-        const remoteIds = ids.filter((id) => !mockIds.has(id));
-        const remote = await Promise.all(remoteIds.map((id) => fetchFonditaById(id)));
-        const real = [...mockHits, ...remote.filter((p): p is Patio => p !== null)];
-        // Sin guardados reales → muestra ejemplos (look Figma con datos de muestra).
-        if (mounted) setPatios(real.length > 0 ? real : MOCK_PATIOS.slice(0, 4));
+        // Resolver cada id preservando el ORDEN de recencia (más reciente primero).
+        const resolved = await Promise.all(
+          ids.map(async (id) => {
+            const mock = MOCK_PATIOS.find((p) => p.id === id);
+            if (mock) return mock;
+            return fetchFonditaById(id);
+          })
+        );
+        if (mounted) setPatios(resolved.filter((p): p is Patio => p !== null));
       });
       return () => { mounted = false; };
     }, [])
   );
 
-  const withMenu = patios.filter((p) => todayDish(p) !== null).length;
+  const scrollY = useRef(new Animated.Value(0)).current;
 
   return (
-    <View style={[s.container, { paddingTop: insets.top }]}>
+    <View style={s.container}>
       <Stack.Screen options={{ headerShown: false }} />
-      <ScrollView contentContainerStyle={[s.content, { paddingBottom: insets.bottom + 130 }]} showsVerticalScrollIndicator={false} onScroll={onScroll} scrollEventThrottle={16}>
-        {/* Pestaña raíz: sin flecha 'atrás' — se navega con la tab bar. */}
-        <View style={s.header}>
-          <Text style={s.eyebrow} allowFontScaling={true}>
-            {patios.length} {patios.length === 1 ? 'guardado' : 'guardados'}
-          </Text>
-          <Text style={s.title} allowFontScaling={true}>Tus guardados</Text>
-          <Text style={s.subtitle} allowFontScaling={true}>
-            {patios.length === 0
-              ? 'Tus lugares de confianza, a un toque'
-              : `${withMenu} con menú hoy`}
-          </Text>
-        </View>
+
+      <CollapsingHeader
+        scrollY={scrollY}
+        c={theme}
+        onBack={() => router.back()}
+        title="Lo que viste"
+      />
+
+      <Animated.ScrollView
+        contentContainerStyle={[s.content, { paddingTop: insets.top + 48 }]}
+        showsVerticalScrollIndicator={false}
+        scrollEventThrottle={16}
+        onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: true })}>
+
+        <CollapsingTitle
+          scrollY={scrollY}
+          c={theme}
+          eyebrow={`${patios.length} ${patios.length === 1 ? 'lugar' : 'lugares'}`}
+          title="Lo que viste"
+          subtitle="Las cocinas que abriste, lo más reciente primero"
+        />
 
         {patios.length === 0 ? (
           <View style={s.empty}>
             <View style={s.emptyIcon}>
-              <Ionicons name="heart-outline" size={32} color={theme.textSecondary} />
+              <Ionicons name="eye-outline" size={32} color={theme.textSecondary} />
             </View>
-            <Text style={s.emptyTitle} allowFontScaling={true}>Guarda tus lugares de confianza</Text>
-            <Text style={s.emptyText} allowFontScaling={true}>Cuando encuentres una cocina que te late, guárdala con ♥ para volver rápido.</Text>
+            <Text style={s.emptyTitle} allowFontScaling={true}>Aún no has visto nada</Text>
+            <Text style={s.emptyText} allowFontScaling={true}>Cuando abras una cocina en el mapa, aparece aquí para volver rápido.</Text>
             <TouchableOpacity style={s.cta} onPress={() => router.replace('/explorar')} activeOpacity={0.82}>
-              <Text style={s.ctaText} allowFontScaling={true}>Buscar algo rico</Text>
+              <Text style={s.ctaText} allowFontScaling={true}>Ver qué hay hoy</Text>
             </TouchableOpacity>
           </View>
         ) : (
@@ -167,8 +174,7 @@ export default function FavoritosScreen() {
             })}
           </View>
         )}
-      </ScrollView>
-      <BottomTabBar variant="foodie" />
+      </Animated.ScrollView>
     </View>
   );
 }

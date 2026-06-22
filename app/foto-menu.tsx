@@ -19,6 +19,7 @@ import Swipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AgentSpinner } from '@/components/agent-spinner';
 import { Fonts, useTheme, type Theme } from '@/lib/theme';
+import { fonderoPalette } from '@/lib/fondero-palette';
 import { leerMenuDeFoto, type MenuSeccion } from '@/lib/vision';
 import {
   setMenuData as saveMenuData,
@@ -101,6 +102,7 @@ function PlatilloCard({
 }) {
   const { theme } = useTheme();
   const s = makeStyles(theme);
+  const c = fonderoPalette(theme.isDark);
   const swipeRef = useRef<any>(null);
 
   const handleMove = () => {
@@ -139,9 +141,9 @@ function PlatilloCard({
               value={plat.nombre}
               onChangeText={onNombre}
               placeholder="Platillo"
-              placeholderTextColor={DARK.textSecondary}
+              placeholderTextColor={c.textSecondary}
               autoCapitalize="sentences"
-              selectionColor={DARK.accent}
+              selectionColor={c.accent}
               returnKeyType="next"
             />
             <View style={s.platActions}>
@@ -151,9 +153,9 @@ function PlatilloCard({
                 value={plat.precio}
                 onChangeText={v => onPrecio(v.replace(/[^0-9.]/g, ''))}
                 placeholder="0"
-                placeholderTextColor={DARK.textSecondary}
+                placeholderTextColor={c.textSecondary}
                 keyboardType="decimal-pad"
-                selectionColor={DARK.accent}
+                selectionColor={c.accent}
               />
             </View>
           </View>
@@ -162,9 +164,9 @@ function PlatilloCard({
             value={plat.descripcion}
             onChangeText={onDesc}
             placeholder="Descripción"
-            placeholderTextColor={DARK.textSecondary}
+            placeholderTextColor={c.textSecondary}
             autoCapitalize="none"
-            selectionColor={DARK.accent}
+            selectionColor={c.accent}
             returnKeyType="next"
           />
         </View>
@@ -199,6 +201,7 @@ function SectionCard({
 }) {
   const { theme } = useTheme();
   const s = makeStyles(theme);
+  const c = fonderoPalette(theme.isDark);
   const addLabel = '+ agregar';
   const swipeRef = useRef<any>(null);
 
@@ -236,7 +239,7 @@ function SectionCard({
             value={sec.nombre}
             onChangeText={v => onNombre(v.toUpperCase())}
             autoCapitalize="characters"
-            selectionColor={DARK.accent}
+            selectionColor={c.accent}
             returnKeyType="done"
           />
           <View style={s.priceWrap}>
@@ -246,9 +249,9 @@ function SectionCard({
               value={sec.precio}
               onChangeText={v => onPrecio(v.replace(/[^0-9.]/g, ''))}
               placeholder="0"
-              placeholderTextColor={DARK.textSecondary}
+              placeholderTextColor={c.textSecondary}
               keyboardType="decimal-pad"
-              selectionColor={DARK.accent}
+              selectionColor={c.accent}
             />
           </View>
         </View>
@@ -280,6 +283,7 @@ function SectionCard({
 export default function FotoMenuScreen() {
   const { theme } = useTheme();
   const s = makeStyles(theme);
+  const c = fonderoPalette(theme.isDark);
 
   const [estado, setEstado] = useState<Estado>('idle');
   const [permission, requestPermission] = useCameraPermissions();
@@ -445,7 +449,7 @@ export default function FotoMenuScreen() {
         {/* Header con back a Hoy */}
         <View style={s.idleTop}>
           <TouchableOpacity style={s.idleBack} onPress={() => router.replace('/menu')} activeOpacity={0.7}>
-            <Ionicons name="chevron-back" size={20} color={DARK.text} />
+            <Ionicons name="chevron-back" size={20} color={c.text} />
           </TouchableOpacity>
         </View>
 
@@ -466,7 +470,7 @@ export default function FotoMenuScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity style={s.galleryBtn} onPress={seleccionarDeGaleria} activeOpacity={0.82}>
-            <Ionicons name="images-outline" size={18} color={DARK.text} />
+            <Ionicons name="images-outline" size={18} color={c.text} />
             <Text style={s.galleryBtnText} allowFontScaling={true}>Elegir de la galería</Text>
           </TouchableOpacity>
         </View>
@@ -503,7 +507,7 @@ export default function FotoMenuScreen() {
     return (
       <SafeAreaView style={[s.container, s.centerContent]}>
         <Stack.Screen options={{ headerShown: false }} />
-        <AgentSpinner variant="dots" size={34} color={DARK.accent} />
+        <AgentSpinner variant="dots" size={34} color={c.accent} />
         <Text style={[s.processingLabel, { marginTop: 16 }]}>
           Patio está leyendo tu contenido...
         </Text>
@@ -626,7 +630,22 @@ function visionAMenuData(secciones: MenuSeccion[], precio: string): MenuData {
 }
 
 function makeStyles(theme: Theme) {
-  const t: Theme = { ...theme, ...DARK, isDark: true };
+  // El flujo Fondero ahora respeta el tema. `t` combina el Theme base con la
+  // paleta Fondero correcta (clara u oscura) para no romper los estilos que
+  // referencian t.surface/t.text/etc.
+  const p = fonderoPalette(theme.isDark);
+  const t = {
+    ...theme,
+    bg: p.bg,
+    surface: p.surface,
+    surface2: p.iconBg,
+    text: p.text,
+    textSecondary: p.textSecondary,
+    border: p.border,
+    sep: p.border,
+    accent: p.accent,
+    accentLight: 'rgba(255,106,61,0.15)',
+  };
   return StyleSheet.create({
     container:       { flex: 1, backgroundColor: t.bg },
     centerContent:   { alignItems: 'center', justifyContent: 'center', padding: 24 },

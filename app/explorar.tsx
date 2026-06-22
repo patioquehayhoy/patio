@@ -31,9 +31,6 @@ function makeStyles(t: Theme) {
     pinCoreSelected: { width: 12, height: 12, borderRadius: 6, backgroundColor: t.text, alignItems: 'center', justifyContent: 'center' },
     pinDot: { width: 3, height: 3, borderRadius: 2, backgroundColor: t.surface },
     pinSmallDot: { width: 14, height: 14, borderRadius: 7, backgroundColor: t.accent, borderWidth: 2.5, borderColor: t.isDark ? 'rgba(25,26,27,0.70)' : 'rgba(255,255,255,0.85)', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.22, shadowRadius: 3, elevation: 2 },
-    topBar: { position: 'absolute', left: 24, right: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-    topRight: { flexDirection: 'row', gap: 8 },
-    glassBtn: { width: 44, height: 44, borderRadius: 16, overflow: 'hidden', backgroundColor: t.isDark ? 'rgba(20,21,24,0.55)' : 'rgba(255,255,255,0.72)', borderWidth: StyleSheet.hairlineWidth, borderColor: btnBorder, alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: btnShadowOpacity + 0.04, shadowRadius: 18, elevation: 3 },
     searchPill: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingVertical: 15, borderRadius: 18, overflow: 'hidden', backgroundColor: t.isDark ? 'rgba(20,21,24,0.55)' : 'rgba(255,255,255,0.78)', borderWidth: StyleSheet.hairlineWidth, borderColor: btnBorder, shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: btnShadowOpacity + 0.04, shadowRadius: 22, elevation: 4 },
     searchRow: { flex: 1, height: 44, borderRadius: 16, overflow: 'hidden', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, gap: 8, borderWidth: StyleSheet.hairlineWidth, borderColor: btnBorder, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: btnShadowOpacity, shadowRadius: 16, elevation: 2 },
     searchInput: { flex: 1, fontSize: 15, fontWeight: '300', color: t.text, height: 44, paddingVertical: 0 },
@@ -121,7 +118,6 @@ export default function ExplorarScreen() {
   const [initialLoading, setInitialLoading] = useState(true);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showHeader, setShowHeader] = useState(false);
-  const [mapExpanded, setMapExpanded] = useState(false);
   const [savedIds, setSavedIds] = useState<string[]>([]);
   const [searchActive, setSearchActive] = useState(false);
   const [query, setQuery] = useState('');
@@ -342,25 +338,6 @@ export default function ExplorarScreen() {
         </View>
       </Animated.View>
 
-      {/* Top bar — siempre visible (perfil + favoritos + expandir).
-          Los 3 botones uniformes: mismo glass, fondo de respaldo y borde. */}
-      <View style={[s.topBar, { top: insets.top + 14 }]}>
-        <TouchableOpacity style={s.glassBtn} onPress={() => router.push('/cuenta')} activeOpacity={0.76}>
-          <BlurView intensity={theme.isDark ? 24 : 30} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
-          <Ionicons name="person-outline" size={20} color={theme.text} />
-        </TouchableOpacity>
-        <View style={s.topRight}>
-          <TouchableOpacity style={s.glassBtn} onPress={() => router.push('/favoritos')} activeOpacity={0.76}>
-            <BlurView intensity={theme.isDark ? 24 : 30} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
-            <Ionicons name="bookmark-outline" size={20} color={theme.text} />
-          </TouchableOpacity>
-          <TouchableOpacity style={s.glassBtn} onPress={() => setMapExpanded((v) => !v)} activeOpacity={0.76}>
-            <BlurView intensity={theme.isDark ? 24 : 30} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
-            <Ionicons name={mapExpanded ? 'list-outline' : 'expand-outline'} size={20} color={theme.text} />
-          </TouchableOpacity>
-        </View>
-      </View>
-
       {/* Buscador activo — anclado ENCIMA del teclado */}
       {searchActive && (
         <KeyboardAvoidingView
@@ -395,7 +372,7 @@ export default function ExplorarScreen() {
         </KeyboardAvoidingView>
       )}
 
-      {!mapExpanded && (showHeader || isFiltering) && (
+      {(showHeader || isFiltering) && (
         <View style={[s.sheet, { bottom: keyboardHeight > 0 ? keyboardHeight + 70 : 14, paddingBottom: insets.bottom ? 4 : 8 }]}>
           <BlurView intensity={theme.isDark ? 16 : 22} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
           <View style={s.grabber} />

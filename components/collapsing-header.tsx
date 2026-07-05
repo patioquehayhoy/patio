@@ -59,20 +59,7 @@ export function CollapsingHeader({
     outputRange: [0, 1],
     extrapolate: 'clamp',
   });
-  // El título grande se desvanece y sube un poco al colapsar.
-  const bigOpacity = scrollY.interpolate({
-    inputRange: [COLLAPSE_START, COLLAPSE_END * 0.7],
-    outputRange: [1, 0],
-    extrapolate: 'clamp',
-  });
-  const bigTranslate = scrollY.interpolate({
-    inputRange: [0, COLLAPSE_END],
-    outputRange: [0, -12],
-    extrapolate: 'clamp',
-  });
-
   const barH = 44;
-  const hasButtons = !!onBack || (rightActions && rightActions.length > 0);
 
   return (
     <>

@@ -9,7 +9,6 @@ import { useFocusEffect } from '@react-navigation/native';
 
 import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { useTabBarScroll } from '@/lib/tab-bar-visibility';
-import { getNotifPrefs, setAvisar, setCercanas } from '@/lib/notifications';
 import { getFoodieStats, type FoodieStats } from '@/lib/stats';
 import { supabase } from '@/lib/supabase';
 import { Fonts, useTheme, type Theme } from '@/lib/theme';
@@ -116,32 +115,24 @@ export default function CuentaScreen() {
   const insets = useSafeAreaInsets();
   const { onScroll } = useTabBarScroll();
   const [stats, setStats] = useState<FoodieStats>({ viewed: 0, saved: 0 });
-  const [avisar, setAvisarState] = useState(false);
-  const [cercanas, setCercanasState] = useState(false);
+  const [hasSession, setHasSession] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
       getFoodieStats().then(setStats);
-      getNotifPrefs().then((p) => { setAvisarState(p.avisar); setCercanasState(p.cercanas); });
+      supabase.auth.getSession().then(({ data }) => setHasSession(!!data.session));
     }, [])
   );
-
-  const onToggleAvisar = async (v: boolean) => {
-    setAvisarState(v); // optimista
-    const final = await setAvisar(v);
-    setAvisarState(final); // refleja permiso real
-  };
-
-  const onToggleCercanas = async (v: boolean) => {
-    setCercanasState(v);
-    const final = await setCercanas(v);
-    setCercanasState(final);
-  };
 
   const handleSignOut = async () => {
     await supabase.auth.signOut().catch(() => {});
     await AsyncStorage.removeItem(ROLE_KEY).catch(() => {});
     router.replace('/');
+  };
+
+  const handleDevFondero = async () => {
+    await AsyncStorage.setItem(ROLE_KEY, 'fondero').catch(() => {});
+    router.replace('/menu');
   };
 
   return (
@@ -156,59 +147,43 @@ export default function CuentaScreen() {
         </View>
 
         <View style={s.body}>
-          {/* Stats card — 3 columnas (datos reales con respaldo de ejemplo Figma) */}
-          <View style={s.idCard}>
+          {/* Resumen útil: solo datos reales, sin métricas decorativas. */}
+          {(stats.viewed > 0 || stats.saved > 0) && <View style={s.idCard}>
             <LinearGradient
               colors={theme.isDark ? [theme.surface, theme.surface] : ['#FFFFFF', theme.accentSoft]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}>
               <View style={s.statsRow}>
                 <TouchableOpacity style={s.statCol} activeOpacity={0.7} onPress={() => router.push('/vistos' as any)}>
-                  <Text style={s.statNum} allowFontScaling={true}>{stats.viewed || 12}</Text>
+                  <Text style={s.statNum} allowFontScaling={true}>{stats.viewed}</Text>
                   <Text style={s.statLabel} allowFontScaling={true}>lugares vistos</Text>
                 </TouchableOpacity>
                 <View style={s.statDivider} />
                 <TouchableOpacity style={s.statCol} activeOpacity={0.7} onPress={() => router.push('/favoritos' as any)}>
-                  <Text style={s.statNum} allowFontScaling={true}>{stats.saved || 4}</Text>
+                  <Text style={s.statNum} allowFontScaling={true}>{stats.saved}</Text>
                   <Text style={s.statLabel} allowFontScaling={true}>guardadas</Text>
                 </TouchableOpacity>
-                <View style={s.statDivider} />
-                <View style={s.statCol}>
-                  <Text style={s.statNum} allowFontScaling={true}>38</Text>
-                  <Text style={s.statLabel} allowFontScaling={true}>km caminados</Text>
-                </View>
               </View>
             </LinearGradient>
-          </View>
+          </View>}
 
-          {/* Grupo: Notificaciones */}
-          <View style={s.group}>
-            <Text style={s.groupLabel} allowFontScaling={true}>Notificaciones</Text>
-            <View style={s.card}>
-              <Row theme={theme} icon="notifications-outline" title="Avísame cuando publiquen" sub={avisar ? 'Recordatorio diario a la 1pm' : 'Para tus fonditas guardadas'} accent toggle={{ value: avisar, onValueChange: onToggleAvisar }} />
-              <Row theme={theme} icon="location-outline" title="Sugerencias cercanas" sub="Cuando andes cerca de algo rico" divider toggle={{ value: cercanas, onValueChange: onToggleCercanas }} />
-            </View>
-          </View>
-
-          {/* Grupo: Ajustes */}
-          <View style={s.group}>
-            <Text style={s.groupLabel} allowFontScaling={true}>Ajustes</Text>
-            <View style={s.card}>
-              <Row theme={theme} icon="heart-outline" title="Guardados" sub="Tus lugares de confianza" onPress={() => router.push('/favoritos')} />
+          {/* Una sola lista: Cuenta tiene un trabajo, no tres paneles compitiendo. */}
+          <View style={s.card}>
+              <Row theme={theme} icon="heart-outline" title="Guardados" onPress={() => router.push('/favoritos')} />
               <Row theme={theme} icon="moon-outline" title="Modo oscuro" divider toggle={{ value: theme.isDark, onValueChange: toggleTheme }} />
-              <Row theme={theme} icon="sparkles-outline" title="Manifiesto" sub="De qué va Patio" divider onPress={() => router.push('/manifiesto')} />
-            </View>
-          </View>
-
-          {/* Grupo: Patio */}
-          <View style={s.group}>
-            <Text style={s.groupLabel} allowFontScaling={true}>Patio</Text>
-            <View style={s.card}>
-              <Row theme={theme} icon="storefront-outline" title="¿Tienes una cocina?" sub="Publica tu menú del día" accent onPress={() => router.push('/fondero-acceso')} />
+              {__DEV__ && (
+                <Row
+                  theme={theme}
+                  icon="construct-outline"
+                  title="Publicar mi menú · DEV"
+                  sub="Entrar sin iniciar sesión"
+                  accent
+                  onPress={handleDevFondero}
+                />
+              )}
+              {!__DEV__ && <Row theme={theme} icon="storefront-outline" title="Publicar mi menú" divider accent onPress={() => router.push('/fondero-acceso')} />}
               <Row theme={theme} icon="chatbubble-outline" title="Contactar soporte" divider onPress={() => Linking.openURL(`mailto:${SUPPORT_EMAIL}?subject=Soporte%20Patio`)} />
-              <Row theme={theme} icon="star-outline" title="Calificar la app" divider onPress={() => Linking.openURL('itms-apps://itunes.apple.com/app/id6760884735?action=write-review')} />
-              <Row theme={theme} icon="log-out-outline" title="Cerrar sesión" divider onPress={handleSignOut} />
-            </View>
+              {hasSession && <Row theme={theme} icon="log-out-outline" title="Cerrar sesión" divider onPress={handleSignOut} />}
           </View>
 
           <View style={s.footer}>

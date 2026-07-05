@@ -11,6 +11,7 @@ import { Fonts, useTheme } from '@/lib/theme';
 
 const ROLE_KEY = '@patio_user_role';
 const ONBOARDING_KEY = 'onboarding_done';
+const DEV_VERSION = 'HOY · 2026.07.04 · 12:52';
 
 export default function LoginScreen() {
   const { theme } = useTheme();
@@ -20,6 +21,12 @@ export default function LoginScreen() {
   useEffect(() => {
     (async () => {
       try {
+        // En desarrollo siempre mostramos esta entrada: sirve como selector de
+        // rol y como prueba visible de que el iPhone cargó el bundle actual.
+        if (__DEV__) {
+          setCheckingSession(false);
+          return;
+        }
         const onboardingDone = await AsyncStorage.getItem(ONBOARDING_KEY);
         if (onboardingDone !== '1') {
           router.replace('/onboarding');
@@ -71,7 +78,7 @@ export default function LoginScreen() {
     <View style={[styles.root, { backgroundColor: theme.bg, paddingTop: insets.top }]}>
       <Stack.Screen options={{ headerShown: false }} />
 
-      <View style={[styles.choiceRoot, { paddingBottom: insets.bottom + 32 }]}>
+      <View style={[styles.choiceRoot, { paddingBottom: insets.bottom + 18 }]}>
         <View style={styles.logoArea}>
           <Image source={logo} style={styles.logo} resizeMode="contain" />
           <Text style={[styles.taglineBold, { color: theme.text }]}>¿Qué hay hoy?</Text>
@@ -92,20 +99,23 @@ export default function LoginScreen() {
           </TouchableOpacity>
 
           {__DEV__ && (
-            <View style={[styles.devBar, { borderColor: theme.border }]}>
-              <TouchableOpacity
-                style={[styles.devBtn, { borderColor: theme.border }]}
-                onPress={() => router.replace('/explorar')}
-                activeOpacity={0.7}>
-                <Text style={[styles.devBtnText, { color: theme.textSecondary }]}>DEV · Foodie</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.devBtn, { borderColor: theme.border }]}
-                onPress={() => router.replace('/menu')}
-                activeOpacity={0.7}>
-                <Text style={[styles.devBtnText, { color: theme.textSecondary }]}>DEV · Fondero</Text>
-              </TouchableOpacity>
-            </View>
+            <>
+              <Text style={[styles.devVersion, { color: theme.textMute }]}>DEV · {DEV_VERSION}</Text>
+              <View style={[styles.devBar, { borderColor: theme.border }]}>
+                <TouchableOpacity
+                  style={[styles.devBtn, { borderColor: theme.border }]}
+                  onPress={() => router.replace('/explorar')}
+                  activeOpacity={0.7}>
+                  <Text style={[styles.devBtnText, { color: theme.textSecondary }]}>DEV · Foodie</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.devBtn, { borderColor: theme.border }]}
+                  onPress={() => router.replace('/menu')}
+                  activeOpacity={0.7}>
+                  <Text style={[styles.devBtnText, { color: theme.textSecondary }]}>DEV · Fondero</Text>
+                </TouchableOpacity>
+              </View>
+            </>
           )}
         </View>
       </View>
@@ -119,16 +129,17 @@ const styles = StyleSheet.create({
   root: { flex: 1, paddingHorizontal: 24 },
 
   // Choice layout
-  choiceRoot: { flex: 1, justifyContent: 'center' },
-  logoArea: { alignItems: 'center', marginBottom: 48 },
-  logo: { width: 300, height: 112, marginLeft: -7, marginBottom: 10 },
+  choiceRoot: { flex: 1, justifyContent: 'space-between' },
+  logoArea: { alignItems: 'center', paddingTop: 150 },
+  logo: { width: 270, height: 100, marginLeft: -6, marginBottom: 14 },
   taglineBold: { fontSize: 15, fontWeight: '900', fontFamily: Fonts.brand, textAlign: 'center' },
   tagline: { fontSize: 15, fontWeight: '300', fontFamily: Fonts.brand, textAlign: 'center' },
-  choiceActions: { gap: 14 },
-  primaryBtn: { minHeight: 60, borderRadius: 18, alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.12, shadowRadius: 20, elevation: 4 },
+  choiceActions: { gap: 10 },
+  primaryBtn: { minHeight: 56, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
   primaryBtnText: { fontSize: 17, fontWeight: '700', letterSpacing: -0.3 },
   secondaryBtn: { minHeight: 44, alignItems: 'center', justifyContent: 'center' },
   secondaryBtnText: { fontSize: 14, fontWeight: '300' },
+  devVersion: { marginTop: 8, textAlign: 'center', fontSize: 10, fontWeight: '600', letterSpacing: 0.8 },
   devBar: { flexDirection: 'row', gap: 8, marginTop: 8, paddingTop: 12, borderTopWidth: StyleSheet.hairlineWidth },
   devBtn: { flex: 1, minHeight: 38, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   devBtnText: { fontSize: 12, fontWeight: '300' },

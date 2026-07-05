@@ -230,7 +230,7 @@ function tipoLabel(tipo: string | null): string {
 export async function fetchPublicFonditas(): Promise<Patio[]> {
   const { data, error } = await supabase
     .from('fonditas')
-    .select('id, nombre, descripcion, direccion, horario, horario_semanal, tipo_negocio, pagos_efectivo, pagos_transferencia, pagos_tarjeta')
+    .select('id, nombre, descripcion, direccion, horario, horario_semanal, tipo_negocio, pagos_efectivo, pagos_transferencia, pagos_tarjeta, latitude, longitude')
     .not('nombre', 'is', null)
     .neq('nombre', 'Mi Fondita');
 
@@ -246,10 +246,10 @@ export async function fetchPublicFonditas(): Promise<Patio[]> {
       price: '$',
       address: row.direccion ?? '',
       open: openLabel(weekly, row.horario),
-      rating: '5.0',
+      rating: '',
       reason: row.descripcion ?? '',
-      latitude: 0,
-      longitude: 0,
+      latitude: row.latitude ?? 0,
+      longitude: row.longitude ?? 0,
       x: 0,
       y: 0,
       menu: [],
@@ -285,7 +285,7 @@ export async function fetchFonditaById(id: string): Promise<Patio | null> {
     price: '$',
     address: (row.direccion as string | null) ?? '',
     open: openLabel(weekly, (row.horario as string | null) ?? null),
-    rating: '5.0',
+    rating: '',
     reason: (row.descripcion as string | null) ?? '',
     latitude: (row.latitude as number | null) ?? 0,
     longitude: (row.longitude as number | null) ?? 0,

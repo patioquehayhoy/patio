@@ -1,11 +1,9 @@
 import { router, usePathname } from 'expo-router';
 import { BlurView } from 'expo-blur';
-import { useEffect } from 'react';
-import { Animated, Keyboard, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Keyboard, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
-import { useTabBarTranslate } from '@/lib/tab-bar-visibility';
 import { useTheme } from '@/lib/theme';
 
 // TabBar exacta a Figma Make: pill flotante glass con 3 tabs.
@@ -57,19 +55,13 @@ export function BottomTabBar({ variant = 'fondero' }: { variant?: 'foodie' | 'fo
   const isDark = theme.isDark;
   const c = isDark ? DARK : LIGHT;
   const tabs = variant === 'foodie' ? FOODIE_TABS : FONDERO_TABS;
-  const { translateY, reveal } = useTabBarTranslate();
-
-  // Al cambiar de pestaña, el tab bar siempre reaparece (no llegar a la nueva
-  // pantalla con la barra escondida del scroll anterior).
-  useEffect(() => { reveal(); }, [pathname, reveal]);
-
   return (
-    <Animated.View
+    <View
       style={[
         styles.wrap,
         { bottom: (insets.bottom || 10) + 4 },
-        translateY ? { transform: [{ translateY }] } : null,
       ]}>
+      {__DEV__ && <Text style={[styles.version, { color: c.mute }]}>DEV · 2026.07.04 · 12:52</Text>}
       <View style={[styles.pill, { backgroundColor: c.pill, borderColor: c.border }]}>
         <BlurView
           intensity={isDark ? 40 : 36}
@@ -95,24 +87,23 @@ export function BottomTabBar({ variant = 'fondero' }: { variant?: 'foodie' | 'fo
               activeOpacity={0.7}
               hitSlop={{ top: 10, bottom: 10, left: 6, right: 6 }}
               onPress={onTabPress}>
-              <Ionicons name={icon} size={24} color={active ? c.accent : c.mute} />
+              <Ionicons name={icon} size={25} color={active ? c.accent : c.mute} />
             </TouchableOpacity>
           );
         })}
       </View>
-    </Animated.View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  // Barra compacta y centrada (estilo Instagram): solo del ancho de los íconos,
-  // flotando en el centro — no de borde a borde.
   wrap: { position: 'absolute', left: 0, right: 0, alignItems: 'center', zIndex: 100, elevation: 100 },
+  version: { marginBottom: 5, textAlign: 'center', fontSize: 9, fontWeight: '700', letterSpacing: 0.6 },
   pill: {
     flexDirection: 'row',
-    gap: 6,
-    paddingVertical: 8,
-    paddingHorizontal: 10,
+    gap: 5,
+    paddingVertical: 7,
+    paddingHorizontal: 8,
     borderRadius: 30,
     borderWidth: StyleSheet.hairlineWidth,
     overflow: 'hidden',
@@ -122,6 +113,5 @@ const styles = StyleSheet.create({
     shadowRadius: 30,
     elevation: 8,
   },
-  // Tabs cuadrados de ancho fijo (sin flex): la barra se ajusta a su contenido.
-  tab: { width: 52, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
+  tab: { width: 54, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center' },
 });

@@ -37,11 +37,12 @@ import {
 import {
   type HorarioSemanal,
   deserialize, migrarStringLegacy, serialize,
-  horarioDefault, resumenHorario, resumenHorarioFilas,
+  horarioDefault, resumenHorario,
   dateToHHMM, hhmmToDate,
-  DIAS_ORDEN_LUNES, DIA_LETRA,
+  DIAS_ORDEN_LUNES,
 } from '@/lib/horario';
 import { Fonts, useTheme, type Theme } from '@/lib/theme';
+import { GlassIconButton } from '@/components/glass-button';
 
 // Paleta oscura fija estilo Figma FonderoFonda (flujo Fondero siempre oscuro).
 const DARK = {
@@ -124,6 +125,9 @@ function makeStyles(theme: Theme) {
     resumenCerrado:     { color: t.textMute },
     cerradoNota:        { fontSize: 12.5, fontWeight: '300', color: t.accent, marginBottom: 10 },
     horarioSep:         { height: StyleSheet.hairlineWidth, backgroundColor: t.border, marginVertical: 16 },
+    editingContext:     { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 14 },
+    editingContextLabel:{ fontSize: 11, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase', color: t.textMute },
+    editingContextValue:{ fontSize: 15, fontWeight: '900', color: t.accent, fontFamily: Fonts.brand },
     diasHint:           { fontSize: 11.5, fontWeight: '300', color: t.textMute, marginBottom: 10 },
     dayChipsRow:        { flexDirection: 'row', gap: 6 },
     dayChip:            { flex: 1, aspectRatio: 1, maxWidth: 44, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, backgroundColor: t.bg, alignItems: 'center', justifyContent: 'center', position: 'relative' },
@@ -136,6 +140,18 @@ function makeStyles(theme: Theme) {
     exceptionAction:    { flex: 1, paddingVertical: 11, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, backgroundColor: t.surface, alignItems: 'center', justifyContent: 'center' },
     exceptionDone:      { backgroundColor: t.accent, borderColor: t.accent },
     exceptionActionText:{ fontSize: 12.5, fontWeight: '700', color: t.text },
+    dayRow:             { minHeight: 58, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 10 },
+    dayRowBorder:       { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border },
+    dayName:            { flex: 1, fontSize: 16, fontWeight: '600', color: t.text },
+    dayHours:           { fontSize: 14, fontWeight: '300', color: t.textSecondary },
+    dayEditor:          { paddingHorizontal: 16, paddingBottom: 16, backgroundColor: t.bg, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border },
+    closedRow:          { minHeight: 52, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+    closedLabel:        { fontSize: 14, fontWeight: '500', color: t.text },
+    timeRow:            { minHeight: 52, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border },
+    timeRowLabel:       { fontSize: 14, color: t.textSecondary },
+    timeRowValue:       { fontSize: 17, fontWeight: '700', color: t.text },
+    applyAll:           { minHeight: 44, marginTop: 8, alignItems: 'center', justifyContent: 'center' },
+    applyAllText:       { fontSize: 13, fontWeight: '600', color: t.accent },
     // Payments
     paymentChips:       { flexDirection: 'row', gap: 8 },
     paymentChip:        { flex: 1, flexDirection: 'row', minHeight: 44, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, alignItems: 'center', justifyContent: 'center', backgroundColor: t.surface },
@@ -163,8 +179,8 @@ export default function PerfilScreen() {
   const [nombre,        setNombre]        = useState(getFonditaName());
   const [descripcion,   setDescripcion]   = useState(getFonditaDescription());
   const [ubicacion,     setUbicacion]     = useState(getFonditaDireccion());
-  // Horario semanal (7 días) + días seleccionados para editar como excepción.
-  // Selección vacía = se edita el "base" (los días que aún heredan el base).
+  // Horario semanal. Solo se edita un contexto a la vez: horario general o un
+  // día concreto. La selección múltiple anterior hacía ambiguo qué se cambiaba.
   const [semanal,       setSemanal]       = useState<HorarioSemanal>(initialSemanal);
   const [seleccion,     setSeleccion]     = useState<number[]>([]);
   const [showApertura,  setShowApertura]  = useState(false);
@@ -214,46 +230,38 @@ export default function PerfilScreen() {
   const fonditaIdRef       = useRef<string | null>(getFonditaId());
   const nombreUpdatedAtRef = useRef<string | null>(null);
   const nombreInputRef     = useRef<TextInput>(null);
-  const aperturaTimerRef   = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const cierreTimerRef     = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // ── Manipulación del horario semanal ──
-  // Días "objetivo" de una edición: los seleccionados, o (sin selección) los que
-  // heredan el base — es decir, los que comparten horario con el Lunes. Así, editar
-  // el base NO pisa las excepciones que ya pusiste (regla acordada).
-  const baseDia = semanal.find(d => d.dia === 1) ?? semanal[0];
-  const hereda = (d: typeof baseDia) =>
-    d.cerrado === baseDia.cerrado && d.abre === baseDia.abre && d.cierra === baseDia.cierra;
-  const diasObjetivo = (): number[] =>
-    seleccion.length > 0 ? seleccion : semanal.filter(hereda).map(d => d.dia);
 
   const aplicarHora = (campo: 'abre' | 'cierra', value: string) => {
-    const target = new Set(diasObjetivo());
+    const target = new Set(seleccion);
     setSemanal(prev => prev.map(d =>
       target.has(d.dia) ? { ...d, cerrado: false, [campo]: value } : d
     ));
   };
 
-  const marcarCerrado = () => {
+  const toggleCerrado = () => {
     const target = new Set(seleccion);
     setSemanal(prev => prev.map(d =>
-      target.has(d.dia) ? { ...d, cerrado: true, abre: null, cierra: null } : d
+      target.has(d.dia)
+        ? d.cerrado
+          ? { ...d, cerrado: false, abre: '08:00', cierra: '16:00' }
+          : { ...d, cerrado: true, abre: null, cierra: null }
+        : d
     ));
-    setSeleccion([]);
   };
 
-  // Igualar los días seleccionados al horario base.
-  const igualarABase = () => {
-    const target = new Set(seleccion);
-    setSemanal(prev => prev.map(d =>
-      target.has(d.dia) ? { ...d, cerrado: baseDia.cerrado, abre: baseDia.abre, cierra: baseDia.cierra } : d
-    ));
-    setSeleccion([]);
+  const aplicarATodos = () => {
+    if (!diaActivo) return;
+    setSemanal(prev => prev.map(d => ({
+      ...d,
+      cerrado: diaActivo.cerrado,
+      abre: diaActivo.abre,
+      cierra: diaActivo.cierra,
+    })));
   };
 
   const toggleDia = (dia: number) => {
     setShowApertura(false); setShowCierre(false);
-    setSeleccion(prev => prev.includes(dia) ? prev.filter(x => x !== dia) : [...prev, dia]);
+    setSeleccion(prev => prev[0] === dia ? [] : [dia]);
   };
 
   useFocusEffect(useCallback(() => {
@@ -423,12 +431,9 @@ export default function PerfilScreen() {
 
   return (
     <View style={[s.container, { paddingTop: insets.top + 8 }]}>
-      <TouchableOpacity
-        onPress={handleBack}
-        activeOpacity={0.7}
-        style={{ width: 40, height: 40, borderRadius: 20, marginLeft: 14, marginBottom: 4, backgroundColor: DARK.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: DARK.border, alignItems: 'center', justifyContent: 'center' }}>
-        <Ionicons name="chevron-back" size={20} color={DARK.text} />
-      </TouchableOpacity>
+      <View style={{ marginLeft: 14, marginBottom: 4 }}>
+        <GlassIconButton icon="chevron-back" accessibilityLabel="Volver" onPress={handleBack} size={38} iconSize={19} />
+      </View>
       <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
 
         {/* ── HEADER ── */}
@@ -500,131 +505,77 @@ export default function PerfilScreen() {
 
         {/* ── HORARIO ── */}
         <View style={s.block}>
-          <Text style={s.blockLabel} allowFontScaling={true}>
-            {seleccion.length > 0 ? 'HORARIO DE ESTOS DÍAS' : 'TU HORARIO'}
-          </Text>
-          {/* Resumen agrupado por bloques de días (Grouping + Proximity) */}
-          {seleccion.length === 0 && (
-            <View style={s.resumenCard}>
-              {resumenHorarioFilas(semanal).map((fila, i) => (
-                <View key={i} style={s.resumenFila}>
-                  <Text style={s.resumenDias} allowFontScaling={true}>{fila.dias}</Text>
-                  <Text style={[s.resumenHoras, fila.horas === 'Cerrado' && s.resumenCerrado]} allowFontScaling={true}>{fila.horas}</Text>
-                </View>
-              ))}
-            </View>
-          )}
-
+          <Text style={s.blockLabel} allowFontScaling={true}>HORARIO</Text>
           <View style={s.plainCard}>
-            <View style={s.opSection}>
-              {/* Cápsulas Abre → Cierra (editan el base, o los días seleccionados) */}
-              {diaActivo && diaActivo.cerrado && seleccion.length > 0 ? (
-                <Text style={s.cerradoNota} allowFontScaling={true}>Cerrado este día. Define una hora para volver a abrir.</Text>
-              ) : null}
-              <View style={s.horarioRow}>
-                <TouchableOpacity
-                  style={[s.timeCapsule, showApertura && s.timeCapsuleActive]}
-                  onPress={() => { setShowCierre(false); setShowApertura(v => !v); }}
-                  activeOpacity={0.75}>
-                  <Text style={s.timeCapsuleHint} allowFontScaling={true}>Abre</Text>
-                  <Text style={[s.timeCapsuleVal, !apertura && { color: DARK.textMute, fontWeight: '300' }]} allowFontScaling={true}>
-                    {apertura ? formatTime(apertura) : 'Definir'}
-                  </Text>
-                </TouchableOpacity>
-                <Ionicons name="arrow-forward" size={14} color={DARK.textMute} />
-                <TouchableOpacity
-                  style={[s.timeCapsule, showCierre && s.timeCapsuleActive]}
-                  onPress={() => { setShowApertura(false); setShowCierre(v => !v); }}
-                  activeOpacity={0.75}>
-                  <Text style={s.timeCapsuleHint} allowFontScaling={true}>Cierra</Text>
-                  <Text style={[s.timeCapsuleVal, !cierre && { color: DARK.textMute, fontWeight: '300' }]} allowFontScaling={true}>
-                    {cierre ? formatTime(cierre) : 'Definir'}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-              {showApertura && (
-                <View style={s.pickerWrapper}>
-                  <DateTimePicker
-                    mode="time"
-                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                    value={apertura ?? defaultApertura()}
-                    onChange={(_, d) => {
-                      if (d) aplicarHora('abre', dateToHHMM(d));
-                      if (aperturaTimerRef.current) clearTimeout(aperturaTimerRef.current);
-                      aperturaTimerRef.current = setTimeout(() => setShowApertura(false), 600);
-                    }}
-                    minuteInterval={15}
-                    textColor={DARK.text}
-                    accentColor={DARK.accent}
-                  />
-                </View>
-              )}
-              {showCierre && (
-                <View style={s.pickerWrapper}>
-                  <DateTimePicker
-                    mode="time"
-                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                    value={cierre ?? defaultCierre()}
-                    onChange={(_, d) => {
-                      if (d) aplicarHora('cierra', dateToHHMM(d));
-                      if (cierreTimerRef.current) clearTimeout(cierreTimerRef.current);
-                      cierreTimerRef.current = setTimeout(() => setShowCierre(false), 600);
-                    }}
-                    minuteInterval={15}
-                    textColor={DARK.text}
-                    accentColor={DARK.accent}
-                  />
-                </View>
-              )}
-
-              <View style={s.horarioSep} />
-
-              {/* Fila de 7 chips de día (Lun→Dom) */}
-              <Text style={s.diasHint} allowFontScaling={true}>
-                {seleccion.length > 0 ? 'Editando los días marcados' : 'Toca un día para darle horario distinto'}
-              </Text>
-              <View style={s.dayChipsRow}>
-                {DIAS_ORDEN_LUNES.map((dia) => {
-                  const d = semanal.find(x => x.dia === dia)!;
-                  const sel = seleccion.includes(dia);
-                  const excepcion = !(d.cerrado === baseDia.cerrado && d.abre === baseDia.abre && d.cierra === baseDia.cierra);
-                  return (
-                    <TouchableOpacity
-                      key={dia}
-                      onPress={() => toggleDia(dia)}
-                      activeOpacity={0.7}
-                      style={[
-                        s.dayChip,
-                        excepcion && !sel && s.dayChipException,
-                        d.cerrado && !sel && s.dayChipClosed,
-                        sel && s.dayChipSelected,
-                      ]}>
-                      <Text style={[
-                        s.dayChipText,
-                        excepcion && !sel && { color: DARK.accent },
-                        sel && { color: '#fff' },
-                      ]} allowFontScaling={true}>{DIA_LETRA[dia]}</Text>
-                      {excepcion && !sel && <View style={s.dayChipDot} />}
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-
-              {/* Barra contextual: solo con selección */}
-              {seleccion.length > 0 && (
-                <View style={s.exceptionBar}>
-                  <TouchableOpacity style={s.exceptionAction} onPress={igualarABase} activeOpacity={0.7}>
-                    <Text style={s.exceptionActionText} allowFontScaling={true}>Igual que el resto</Text>
+            {DIAS_ORDEN_LUNES.map((dia, index) => {
+              const d = semanal.find(x => x.dia === dia)!;
+              const selected = seleccion[0] === dia;
+              const label = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'][dia];
+              return (
+                <View key={dia}>
+                  <TouchableOpacity
+                    style={[s.dayRow, index > 0 && s.dayRowBorder]}
+                    onPress={() => toggleDia(dia)}
+                    activeOpacity={0.72}>
+                    <Text style={s.dayName}>{label}</Text>
+                    <Text style={[s.dayHours, d.cerrado && { color: DARK.textMute }]}>
+                      {d.cerrado
+                        ? 'Cerrado'
+                        : `${d.abre ? formatTime(hhmmToDate(d.abre)) : '—'} – ${d.cierra ? formatTime(hhmmToDate(d.cierra)) : '—'}`}
+                    </Text>
+                    <Ionicons name={selected ? 'chevron-up' : 'chevron-down'} size={15} color={DARK.textMute} />
                   </TouchableOpacity>
-                  <TouchableOpacity style={s.exceptionAction} onPress={marcarCerrado} activeOpacity={0.7}>
-                    <Text style={s.exceptionActionText} allowFontScaling={true}>Cerrado</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={[s.exceptionAction, s.exceptionDone]} onPress={() => { setShowApertura(false); setShowCierre(false); setSeleccion([]); }} activeOpacity={0.7}>
-                    <Text style={[s.exceptionActionText, { color: '#fff' }]} allowFontScaling={true}>Listo</Text>
-                  </TouchableOpacity>
+
+                  {selected && (
+                    <View style={s.dayEditor}>
+                      <TouchableOpacity style={s.closedRow} onPress={toggleCerrado} activeOpacity={0.72}>
+                        <Text style={s.closedLabel}>Cerrado este día</Text>
+                        <Ionicons name={d.cerrado ? 'checkmark-circle' : 'ellipse-outline'} size={22} color={d.cerrado ? DARK.accent : DARK.textMute} />
+                      </TouchableOpacity>
+
+                      {!d.cerrado && (
+                        <>
+                          <TouchableOpacity style={s.timeRow} onPress={() => { setShowCierre(false); setShowApertura(v => !v); }} activeOpacity={0.72}>
+                            <Text style={s.timeRowLabel}>Apertura</Text>
+                            <Text style={s.timeRowValue}>{apertura ? formatTime(apertura) : 'Definir'}</Text>
+                          </TouchableOpacity>
+                          {showApertura && (
+                            <DateTimePicker
+                              mode="time"
+                              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                              value={apertura ?? defaultApertura()}
+                              onChange={(_, value) => value && aplicarHora('abre', dateToHHMM(value))}
+                              minuteInterval={15}
+                              textColor={DARK.text}
+                              accentColor={DARK.accent}
+                            />
+                          )}
+                          <TouchableOpacity style={s.timeRow} onPress={() => { setShowApertura(false); setShowCierre(v => !v); }} activeOpacity={0.72}>
+                            <Text style={s.timeRowLabel}>Cierre</Text>
+                            <Text style={s.timeRowValue}>{cierre ? formatTime(cierre) : 'Definir'}</Text>
+                          </TouchableOpacity>
+                          {showCierre && (
+                            <DateTimePicker
+                              mode="time"
+                              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                              value={cierre ?? defaultCierre()}
+                              onChange={(_, value) => value && aplicarHora('cierra', dateToHHMM(value))}
+                              minuteInterval={15}
+                              textColor={DARK.text}
+                              accentColor={DARK.accent}
+                            />
+                          )}
+                        </>
+                      )}
+
+                      <TouchableOpacity style={s.applyAll} onPress={aplicarATodos} activeOpacity={0.7}>
+                        <Text style={s.applyAllText}>Usar este horario todos los días</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
                 </View>
-              )}
-            </View>
+              );
+            })}
           </View>
         </View>
 

@@ -20,6 +20,12 @@ export interface MenuVisualResult {
 }
 
 const REGLAS = `
+REGLA FIDELIDAD: Transcribe únicamente lo que realmente aparece en la imagen. No inventes platillos, tiempos, acompañamientos ni precios.
+
+REGLA FLEXIBILIDAD: Un negocio puede vender un único especial ese día (por ejemplo, solo pozole martes y jueves). En ese caso crea una sola sección llamada "ESPECIAL DE HOY". No fuerces un menú de tres tiempos.
+
+REGLA SECCIONES: Respeta los encabezados visibles. Si la imagen no tiene encabezados claros, agrupa con nombres simples como "MENÚ DE HOY", "EXTRAS" o "BEBIDAS".
+
 REGLA AGRUPACIÓN: Variantes del mismo platillo van en UN solo item. nombre='Enchiladas' descripcion='Verdes, rojas o enmoladas'. NUNCA repitas el mismo platillo.
 
 REGLA PRECIO: Si hay precio único del menú ponlo en 'precio'. Si cada sección o platillo tiene precio propio ponlo en la descripción del platillo entre paréntesis. Ejemplo: descripcion='De chocolate o zanahoria ($180 entera / $45 porción)'.
@@ -29,12 +35,7 @@ Responde SOLO con JSON válido sin texto ni markdown:
 
 function buildPrompt(tipo: string | null): string {
   if (tipo === 'fondita') {
-    return `Eres un experto en menús de fonditas y cocinas económicas mexicanas. Analiza la imagen y estructura el menú con estas secciones exactas:
-
-- 1ER TIEMPO: siempre sopa o caldo (sopa de fideo, sopa de lima, consomé, caldo tlalpeño, crema, lentejas). NUNCA guisados.
-- 2DO TIEMPO: arroz o pasta como acompañamiento (arroz rojo, arroz blanco, espagueti). NUNCA guisados.
-- 3ER TIEMPO: el guisado o platillo principal (pechuga, bistec, milanesa, enchiladas, mole, picadillo, chicharrón, chiles rellenos, higado, puntas de res).
-- BEBIDAS: aguas frescas, refrescos, jugos.
+    return `Eres un experto en leer menús reales de fonditas y cocinas económicas mexicanas. Transcribe la imagen respetando su estructura. Puede ser comida corrida, carta, un especial de un solo platillo o una combinación.
 ${REGLAS}`;
   }
 
@@ -71,13 +72,8 @@ ${REGLAS}`;
 ${REGLAS}`;
   }
 
-  // null / undefined — fondita como default
-  return `Eres un experto en menús de fonditas y cocinas económicas mexicanas. Analiza la imagen y estructura el menú con estas secciones exactas:
-
-- 1ER TIEMPO: siempre sopa o caldo (sopa de fideo, sopa de lima, consomé, caldo tlalpeño, crema, lentejas). NUNCA guisados.
-- 2DO TIEMPO: arroz o pasta como acompañamiento (arroz rojo, arroz blanco, espagueti). NUNCA guisados.
-- 3ER TIEMPO: el guisado o platillo principal (pechuga, bistec, milanesa, enchiladas, mole, picadillo, chicharrón, chiles rellenos, higado, puntas de res).
-- BEBIDAS: aguas frescas, refrescos, jugos.
+  // null / undefined — lectura flexible, sin asumir un formato de comida corrida.
+  return `Eres un experto en leer menús reales de negocios de comida en México. Transcribe la imagen respetando su estructura, incluso si solo contiene un especial del día.
 ${REGLAS}`;
 }
 

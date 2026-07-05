@@ -3,7 +3,7 @@ import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { Image, Linking, Modal, Platform, ScrollView, Share, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import { Image, Linking, Platform, ScrollView, Share, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -192,7 +192,7 @@ export default function PatioDetailScreen() {
 
   const handleBack = () => {
     if (router.canGoBack()) router.back();
-    else router.replace('/');
+    else router.replace('/explorar');
   };
 
   const handleComoLlegar = () => {
@@ -327,23 +327,15 @@ export default function PatioDetailScreen() {
           <Text style={s.title} allowFontScaling={true}>{patio.name}</Text>
           <Text style={s.subtitle} allowFontScaling={true}>{patio.category} · {patio.area}</Text>
 
-          {/* Meta row — Rating · Distancia · Horario (exacto a Figma) */}
+          {/* Solo señales reales: calificación propia y horario configurado. */}
           <View style={s.metaRow}>
-            <TouchableOpacity style={s.metaItem} onPress={() => handleStarPress(userRating ?? 5)} activeOpacity={0.7}>
+            <TouchableOpacity style={s.metaItem} onPress={() => handleStarPress(userRating ?? 0)} activeOpacity={0.7}>
               <View style={s.metaTop}>
-                <Ionicons name="star" size={13} color={theme.accent} />
-                <Text style={s.metaPrimary}>{patio.rating || '4.8'}</Text>
+                <Ionicons name={userRating ? 'star' : 'star-outline'} size={13} color={theme.accent} />
+                <Text style={s.metaPrimary}>{userRating ?? 'Calificar'}</Text>
               </View>
-              <Text style={s.metaSecondary}>{userRating !== null ? 'Tu calificación' : '142 reseñas'}</Text>
+              <Text style={s.metaSecondary}>{userRating !== null ? 'Tu calificación' : 'Comparte tu experiencia'}</Text>
             </TouchableOpacity>
-            <View style={s.metaDivider} />
-            <View style={s.metaItem}>
-              <View style={s.metaTop}>
-                <Ionicons name="location-outline" size={13} color={theme.textMute} />
-                <Text style={s.metaPrimary}>420 m</Text>
-              </View>
-              <Text style={s.metaSecondary}>5 min</Text>
-            </View>
             <View style={s.metaDivider} />
             <View style={s.metaItem}>
               <View style={s.metaTop}>

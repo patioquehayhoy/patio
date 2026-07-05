@@ -8,8 +8,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { useTabBarScroll } from '@/lib/tab-bar-visibility';
 import { getFavoritePatioIds } from '@/lib/favorites';
-import { fetchFonditaById, MOCK_PATIOS, type Patio } from '@/lib/patios';
-import { Fonts, Radius, Spacing, useTheme, type Theme } from '@/lib/theme';
+import { fetchFonditaById, type Patio } from '@/lib/patios';
+import { Fonts, Radius, useTheme, type Theme } from '@/lib/theme';
 
 const OPEN_GREEN = '#1F9D55';
 
@@ -87,13 +87,9 @@ export default function FavoritosScreen() {
       let mounted = true;
       getFavoritePatioIds().then(async (ids) => {
         if (!mounted) return;
-        const mockHits = MOCK_PATIOS.filter((p) => ids.includes(p.id));
-        const mockIds = new Set(mockHits.map((p) => p.id));
-        const remoteIds = ids.filter((id) => !mockIds.has(id));
-        const remote = await Promise.all(remoteIds.map((id) => fetchFonditaById(id)));
-        const real = [...mockHits, ...remote.filter((p): p is Patio => p !== null)];
-        // Sin guardados reales → muestra ejemplos (look Figma con datos de muestra).
-        if (mounted) setPatios(real.length > 0 ? real : MOCK_PATIOS.slice(0, 4));
+        const remote = await Promise.all(ids.map((id) => fetchFonditaById(id)));
+        const real = remote.filter((p): p is Patio => p !== null);
+        if (mounted) setPatios(real);
       });
       return () => { mounted = false; };
     }, [])

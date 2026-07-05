@@ -12,7 +12,7 @@ import { getFavoritePatioIds, toggleFavoritePatio } from '@/lib/favorites';
 import { MAP_STYLE_DARK, MAP_STYLE_LIGHT } from '@/lib/map-style';
 import { FoodieLoading } from '@/components/foodie-loading';
 import { BottomTabBar } from '@/components/bottom-tab-bar';
-import { fetchPublicFonditas, MOCK_PATIOS, searchPatiosByDish, type Patio, type PatioDishMatch } from '@/lib/patios';
+import { fetchPublicFonditas, type Patio, type PatioDishMatch } from '@/lib/patios';
 import { searchLiveMenus } from '@/lib/menu';
 import { Fonts, Radius, useTheme, type Theme } from '@/lib/theme';
 
@@ -114,7 +114,7 @@ export default function ExplorarScreen() {
 
   // selectedId: which pin is highlighted. showHeader: user explicitly tapped a pin/row.
   // These two are always moved together via selectPatio/deselect — never set independently.
-  const [allPatios, setAllPatios] = useState<Patio[]>(MOCK_PATIOS);
+  const [allPatios, setAllPatios] = useState<Patio[]>([]);
   const [initialLoading, setInitialLoading] = useState(true);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showHeader, setShowHeader] = useState(false);
@@ -156,9 +156,7 @@ export default function ExplorarScreen() {
     const minDelay = new Promise((r) => setTimeout(r, 900));
     Promise.all([fetchPublicFonditas(), minDelay]).then(([db]) => {
       if (cancelled) return;
-      const existingIds = new Set(MOCK_PATIOS.map((p) => p.id));
-      const newOnes = (db as Patio[]).filter((p) => !existingIds.has(p.id));
-      if (newOnes.length > 0) setAllPatios([...MOCK_PATIOS, ...newOnes]);
+      setAllPatios(db as Patio[]);
       setInitialLoading(false);
     }).catch(() => { if (!cancelled) setInitialLoading(false); });
     return () => { cancelled = true; };
@@ -176,13 +174,10 @@ export default function ExplorarScreen() {
   }, [visibleRegion, allPatios]);
 
   const [liveResults, setLiveResults] = useState<PatioDishMatch[]>([]);
-  const mockResults = useMemo(() => searchPatiosByDish(query), [query]);
   const searchResults = useMemo(() => {
     if (!query.trim()) return [];
-    const seen = new Set(mockResults.map((r) => `${r.patio.id}-${r.item.name}`));
-    const fresh = liveResults.filter((r) => !seen.has(`${r.patio.id}-${r.item.name}`));
-    return [...mockResults, ...fresh].sort((a, b) => b.score - a.score);
-  }, [mockResults, liveResults, query]);
+    return [...liveResults].sort((a, b) => b.score - a.score);
+  }, [liveResults, query]);
   const matchingPatioIds = useMemo(() => new Set(searchResults.map((r) => r.patio.id)), [searchResults]);
   const isFiltering = query.trim().length > 0;
   const idleMode = !searchActive && !showHeader && !isFiltering;
@@ -373,7 +368,7 @@ export default function ExplorarScreen() {
       )}
 
       {(showHeader || isFiltering) && (
-        <View style={[s.sheet, { bottom: keyboardHeight > 0 ? keyboardHeight + 70 : 14, paddingBottom: insets.bottom ? 4 : 8 }]}>
+        <View style={[s.sheet, { bottom: keyboardHeight > 0 ? keyboardHeight + 70 : insets.bottom + 82, paddingBottom: insets.bottom ? 4 : 8 }]}>
           <BlurView intensity={theme.isDark ? 16 : 22} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
           <View style={s.grabber} />
 
@@ -414,10 +409,6 @@ export default function ExplorarScreen() {
                         <Text style={s.priceCaption} allowFontScaling={true}>{selectedPatio.reason}</Text>
                       </>
                     )}
-                    <View style={s.ratingRow}>
-                      <Ionicons name="star" size={13} color={theme.accent} />
-                      <Text style={s.ratingText} allowFontScaling={true}>{selectedPatio.rating}</Text>
-                    </View>
                   </View>
                   {selectedPatio.latitude > 0 && (
                     <TouchableOpacity style={s.cta} onPress={() => router.push(`/patio/${selectedPatio.id}`)} activeOpacity={0.82}>
@@ -445,15 +436,7 @@ export default function ExplorarScreen() {
                   <Text style={s.listFilterText} allowFontScaling={true}>Limpiar</Text>
                 </TouchableOpacity>
               </>
-            ) : (
-              <>
-                <Text style={s.listTitle} allowFontScaling={true}>CERCA DE TI</Text>
-                <View style={s.listFilter}>
-                  <Ionicons name="star" size={12} color={theme.accent} />
-                  <Text style={s.listFilterText} allowFontScaling={true}>5.0</Text>
-                </View>
-              </>
-            )}
+            ) : <Text style={s.listTitle} allowFontScaling={true}>CERCA DE TI</Text>}
           </View>
 
           <ScrollView style={s.list} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
@@ -517,10 +500,6 @@ export default function ExplorarScreen() {
                     </View>
                     <View style={s.patioRight}>
                       <Text style={s.patioPrice} allowFontScaling={true}>{patio.price}</Text>
-                      <View style={s.patioRating}>
-                        <Ionicons name="star" size={11} color={theme.accent} />
-                        <Text style={s.patioRatingText} allowFontScaling={true}>{patio.rating}</Text>
-                      </View>
                       <Text style={s.patioOpen} allowFontScaling={true}>{patio.open}</Text>
                     </View>
                   </TouchableOpacity>
@@ -535,7 +514,7 @@ export default function ExplorarScreen() {
           <FoodieLoading />
         </View>
       )}
-      {!searchActive && <BottomTabBar variant="foodie" />}
+      <BottomTabBar variant="foodie" />
     </View>
   );
 }

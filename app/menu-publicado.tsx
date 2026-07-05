@@ -33,22 +33,16 @@ export default function MenuPublicadoScreen() {
           <Text style={s.title} allowFontScaling={true}>Tu menú está vivo.</Text>
           <Text style={s.body} allowFontScaling={true}>Quien anda cerca ya puede verlo. Se oculta solo a las 17:30.</Text>
 
-          <View style={s.viewersPill}>
-            <Ionicons name="eye-outline" size={13} color="#FF6A3D" />
-            <Text style={s.viewersText} allowFontScaling={true}>
-              <Text style={s.viewersBold}>3 personas</Text> ya lo están viendo
-            </Text>
-          </View>
         </Animated.View>
 
         <View style={s.spacer} />
 
         <TouchableOpacity style={s.primaryBtn} onPress={() => router.replace('/preview')} activeOpacity={0.86}>
           <Ionicons name="share-social-outline" size={16} color="#F8F8F5" />
-          <Text style={s.primaryText} allowFontScaling={true}>Compartir en WhatsApp</Text>
+          <Text style={s.primaryText} allowFontScaling={true}>Ver y compartir</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={s.ghostBtn} onPress={() => router.replace('/historial')} activeOpacity={0.7}>
-          <Text style={s.ghostText} allowFontScaling={true}>Ver mi historial</Text>
+        <TouchableOpacity style={s.ghostBtn} onPress={() => router.replace('/menu')} activeOpacity={0.7}>
+          <Text style={s.ghostText} allowFontScaling={true}>Volver a Hoy</Text>
         </TouchableOpacity>
       </View>
     </View>

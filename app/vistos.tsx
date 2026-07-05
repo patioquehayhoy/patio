@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { CollapsingHeader, CollapsingTitle } from '@/components/collapsing-header';
 import { getViewedPatioIds } from '@/lib/stats';
-import { fetchFonditaById, MOCK_PATIOS, type Patio } from '@/lib/patios';
+import { fetchFonditaById, type Patio } from '@/lib/patios';
 import { Fonts, Radius, useTheme, type Theme } from '@/lib/theme';
 
 const OPEN_GREEN = '#1F9D55';
@@ -85,13 +85,7 @@ export default function VistosScreen() {
       getViewedPatioIds().then(async (ids) => {
         if (!mounted) return;
         // Resolver cada id preservando el ORDEN de recencia (más reciente primero).
-        const resolved = await Promise.all(
-          ids.map(async (id) => {
-            const mock = MOCK_PATIOS.find((p) => p.id === id);
-            if (mock) return mock;
-            return fetchFonditaById(id);
-          })
-        );
+        const resolved = await Promise.all(ids.map((id) => fetchFonditaById(id)));
         if (mounted) setPatios(resolved.filter((p): p is Patio => p !== null));
       });
       return () => { mounted = false; };

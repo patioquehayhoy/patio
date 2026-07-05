@@ -1,138 +1,119 @@
 import { Ionicons } from '@expo/vector-icons';
-import { router, Stack } from 'expo-router';
+import { router, Stack, useFocusEffect } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BottomTabBar } from '@/components/bottom-tab-bar';
-import { useTabBarScroll } from '@/lib/tab-bar-visibility';
+import { fonderoPalette } from '@/lib/fondero-palette';
+import { setMenuData, type MenuData } from '@/lib/menu-store';
+import { supabase } from '@/lib/supabase';
 import { Fonts, useTheme } from '@/lib/theme';
-import { fonderoPalette, type FonderoColors } from '@/lib/fondero-palette';
+import { getFonditaId } from '@/lib/user-store';
 
-// FonderoHistory exacto a Figma: métricas + chart + menús pasados.
-// Respeta el tema claro/oscuro vía fonderoPalette.
+type PublishedMenu = { fecha: string; secciones: MenuData };
 
-const CHART = [34, 52, 28, 71, 65, 48, 14];
-const DAYS = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
-const TODAY_IDX = 3;
-
-const PAST = [
-  { day: 'Ayer · Lun', price: '$60', dish: 'Mole verde · Milanesa', views: 71 },
-  { day: 'Vie pasado', price: '$60', dish: 'Pancita · Chiles rellenos', views: 65 },
-  { day: 'Jue pasado', price: '$55', dish: 'Tinga · Bistec', views: 48 },
-];
+function summary(menu: MenuData): string {
+  return menu.secciones
+    .flatMap(section => section.platillos)
+    .map(dish => dish.nombre.trim())
+    .filter(Boolean)
+    .slice(0, 3)
+    .join(' · ');
+}
 
 export default function HistorialScreen() {
   const insets = useSafeAreaInsets();
-  const { onScroll } = useTabBarScroll();
   const { theme } = useTheme();
   const c = fonderoPalette(theme.isDark);
-  const s = makeStyles(c);
-  // Barra inactiva del chart: clara translúcida en oscuro, ink translúcido en claro.
-  const inactiveBar = theme.isDark ? 'rgba(248,248,245,0.15)' : 'rgba(17,18,20,0.10)';
+  const [menus, setMenus] = useState<PublishedMenu[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useFocusEffect(useCallback(() => {
+    let active = true;
+    const load = async () => {
+      const id = getFonditaId();
+      if (!id) {
+        if (active) { setMenus([]); setLoading(false); }
+        return;
+      }
+      const { data } = await supabase
+        .from('menus')
+        .select('fecha,secciones')
+        .eq('fondita_id', id)
+        .order('fecha', { ascending: false })
+        .limit(20);
+      if (active) {
+        setMenus((data ?? []) as PublishedMenu[]);
+        setLoading(false);
+      }
+    };
+    load();
+    return () => { active = false; };
+  }, []));
+
+  const reuse = (menu: MenuData) => {
+    setMenuData(menu);
+    router.push({ pathname: '/menu-editar', params: { reuse: '1' } });
+  };
 
   return (
-    <View style={s.root}>
+    <View style={[s.root, { backgroundColor: c.bg, paddingTop: insets.top }]}>
       <Stack.Screen options={{ headerShown: false }} />
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 24, paddingBottom: insets.bottom + 120 }} showsVerticalScrollIndicator={false}>
+        <Text style={[s.eyebrow, { color: c.accent }]}>PUBLICACIONES</Text>
+        <Text style={[s.title, { color: c.text }]}>Historial</Text>
+        <Text style={[s.subtitle, { color: c.textSecondary }]}>Vuelve a usar cualquiera de tus menús publicados.</Text>
 
-      {/* Top — pestaña raíz: sin flecha 'atrás', se navega con la tab bar. */}
-      <View style={[s.top, { top: insets.top + 6 }]}>
-        <Text style={s.navTitle} allowFontScaling={true}>Historial</Text>
-      </View>
-
-      <ScrollView
-        contentContainerStyle={{ paddingTop: insets.top + 58, paddingHorizontal: 22, paddingBottom: 200 }}
-        showsVerticalScrollIndicator={false}
-        onScroll={onScroll}
-        scrollEventThrottle={16}>
-        {/* Métrica grande */}
-        <Text style={s.eyebrow} allowFontScaling={true}>Esta semana</Text>
-        <View style={s.bigRow}>
-          <Text style={s.bigNum} allowFontScaling={true}>312</Text>
-          <View style={s.trend}>
-            <Ionicons name="trending-up" size={12} color={c.green} />
-            <Text style={s.trendText} allowFontScaling={true}>+18%</Text>
-          </View>
-        </View>
-        <Text style={s.bigSub} allowFontScaling={true}>personas vieron tu menú</Text>
-
-        {/* Chart */}
-        <View style={s.chartCard}>
-          <View style={s.chartBars}>
-            {CHART.map((v, i) => (
-              <View key={i} style={s.barCol}>
-                <View style={[s.bar, { height: `${v}%`, backgroundColor: i === TODAY_IDX ? c.accent : inactiveBar }]} />
-              </View>
-            ))}
-          </View>
-          <View style={s.chartDays}>
-            {DAYS.map((d, i) => (
-              <Text key={i} style={[s.dayLabel, { color: i === TODAY_IDX ? c.accent : c.textMute, fontWeight: i === TODAY_IDX ? '700' : '500' }]} allowFontScaling={true}>{d}</Text>
-            ))}
-          </View>
-        </View>
-
-        {/* Menús pasados */}
-        <Text style={s.sectionLabel} allowFontScaling={true}>Menús pasados</Text>
-        {PAST.map((m, i) => (
-          <View key={i} style={s.pastCard}>
-            <View style={{ flex: 1, minWidth: 0 }}>
-              <Text style={s.pastDay} allowFontScaling={true}>{m.day} · {m.price}</Text>
-              <Text style={s.pastDish} numberOfLines={1} allowFontScaling={true}>{m.dish}</Text>
-            </View>
-            <View style={s.viewsBox}>
-              <Ionicons name="eye-outline" size={11} color={c.textMute} />
-              <Text style={s.viewsText} allowFontScaling={true}>{m.views}</Text>
-            </View>
-            <TouchableOpacity style={s.repeatBtn} onPress={() => router.replace('/menu')} activeOpacity={0.8}>
-              <Ionicons name="refresh" size={13} color={c.accent} />
+        {!loading && menus.length === 0 ? (
+          <View style={[s.empty, { borderColor: c.border }]}>
+            <Ionicons name="receipt-outline" size={28} color={c.textMute} />
+            <Text style={[s.emptyTitle, { color: c.text }]}>Todavía no hay menús</Text>
+            <Text style={[s.emptyBody, { color: c.textSecondary }]}>Cuando publiques uno aparecerá aquí para volver a usarlo.</Text>
+            <TouchableOpacity style={[s.emptyButton, { backgroundColor: c.accent }]} onPress={() => router.replace('/menu')} activeOpacity={0.84}>
+              <Text style={s.emptyButtonText}>Crear menú</Text>
             </TouchableOpacity>
           </View>
-        ))}
+        ) : (
+          <View style={[s.list, { borderColor: c.border }]}>
+            {menus.map((menu, index) => (
+              <TouchableOpacity
+                key={`${menu.fecha}-${index}`}
+                style={[s.row, index > 0 && { borderTopColor: c.border, borderTopWidth: StyleSheet.hairlineWidth }]}
+                onPress={() => reuse(menu.secciones)}
+                activeOpacity={0.74}>
+                <View style={{ flex: 1 }}>
+                  <Text style={[s.date, { color: c.accent }]}>
+                    {new Date(`${menu.fecha}T12:00:00`).toLocaleDateString('es-MX', { day: 'numeric', month: 'long' })}
+                  </Text>
+                  <Text style={[s.summary, { color: c.text }]} numberOfLines={2}>{summary(menu.secciones) || 'Menú publicado'}</Text>
+                </View>
+                <View style={[s.reuse, { backgroundColor: c.iconBg }]}>
+                  <Ionicons name="refresh" size={17} color={c.textSecondary} />
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
       </ScrollView>
-
-      {/* CTA publicar */}
-      <View style={[s.ctaWrap, { paddingBottom: (insets.bottom || 10) + 90 }]} pointerEvents="box-none">
-        <TouchableOpacity style={s.cta} onPress={() => router.replace('/menu')} activeOpacity={0.86}>
-          <Ionicons name="add" size={16} color="#fff" />
-          <Text style={s.ctaText} allowFontScaling={true}>Publicar menú de hoy</Text>
-        </TouchableOpacity>
-      </View>
-
       <BottomTabBar variant="fondero" />
     </View>
   );
 }
 
-function makeStyles(c: FonderoColors) {
-  return StyleSheet.create({
-    root: { flex: 1, backgroundColor: c.bg },
-    top: { position: 'absolute', left: 16, right: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', zIndex: 20 },
-    navTitle: { fontSize: 14, fontWeight: '600', color: c.text },
-
-    eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.6, textTransform: 'uppercase', color: c.accent, marginBottom: 6 },
-    bigRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 12, marginBottom: 2 },
-    bigNum: { fontSize: 64, fontWeight: '900', letterSpacing: -2.5, lineHeight: 72, color: c.text, fontFamily: Fonts.brand, includeFontPadding: false },
-    trend: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingBottom: 8 },
-    trendText: { fontSize: 13, fontWeight: '700', color: c.green },
-    bigSub: { fontSize: 14, fontWeight: '300', color: c.textSecondary, marginBottom: 24 },
-
-    chartCard: { padding: 16, borderRadius: 18, backgroundColor: c.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: c.border, marginBottom: 22 },
-    chartBars: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: 6, height: 60 },
-    barCol: { flex: 1, height: '100%', justifyContent: 'flex-end' },
-    bar: { width: '100%', borderRadius: 6, minHeight: 6 },
-    chartDays: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 },
-    dayLabel: { flex: 1, textAlign: 'center', fontSize: 10.5, letterSpacing: 0.5 },
-
-    sectionLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1.4, textTransform: 'uppercase', color: c.textMute, marginBottom: 12 },
-    pastCard: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: 14, backgroundColor: c.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: c.border, marginBottom: 8 },
-    pastDay: { fontSize: 10.5, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', color: c.textMute, marginBottom: 3 },
-    pastDish: { fontSize: 14, color: c.text },
-    viewsBox: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-    viewsText: { fontSize: 12, fontWeight: '600', color: c.textSecondary },
-    repeatBtn: { width: 32, height: 32, borderRadius: 10, backgroundColor: 'rgba(255,106,61,0.12)', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,106,61,0.25)', alignItems: 'center', justifyContent: 'center' },
-
-    ctaWrap: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 22, paddingTop: 16, backgroundColor: c.bg },
-    cta: { height: 56, borderRadius: 18, backgroundColor: c.accent, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, shadowColor: c.accent, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.5, shadowRadius: 20, elevation: 5 },
-    ctaText: { fontSize: 16, fontWeight: '700', color: '#fff', letterSpacing: -0.2 },
-  });
-}
+const s = StyleSheet.create({
+  root: { flex: 1 },
+  eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.5, marginBottom: 8 },
+  title: { fontSize: 38, lineHeight: 41, fontWeight: '900', letterSpacing: -1.3, fontFamily: Fonts.brand },
+  subtitle: { marginTop: 8, fontSize: 14, lineHeight: 20 },
+  empty: { marginTop: 34, padding: 24, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center' },
+  emptyTitle: { marginTop: 14, fontSize: 20, fontWeight: '800' },
+  emptyBody: { maxWidth: 270, marginTop: 7, textAlign: 'center', fontSize: 14, lineHeight: 20 },
+  emptyButton: { minHeight: 48, marginTop: 20, paddingHorizontal: 22, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
+  emptyButtonText: { color: '#fff', fontSize: 15, fontWeight: '700' },
+  list: { marginTop: 28, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
+  row: { minHeight: 84, paddingHorizontal: 17, paddingVertical: 15, flexDirection: 'row', alignItems: 'center', gap: 14 },
+  date: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.8 },
+  summary: { marginTop: 5, fontSize: 15, lineHeight: 20, fontWeight: '500' },
+  reuse: { width: 38, height: 38, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
+});

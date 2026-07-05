@@ -1,6 +1,6 @@
 import { router, Stack, useFocusEffect } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
-import { Alert, Image, Platform, Share, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, Platform, ScrollView, Share, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Sharing from 'expo-sharing';
@@ -9,6 +9,7 @@ import { captureRef } from 'react-native-view-shot';
 import { getFonditaName, getMenuData, type MenuData } from '@/lib/menu-store';
 import { Fonts, useTheme } from '@/lib/theme';
 import { fonderoPalette, type FonderoColors } from '@/lib/fondero-palette';
+import { GlassIconButton } from '@/components/glass-button';
 
 // MenuPoster exacto a Figma: tarjeta vertical de marca que se comparte como imagen.
 // El PÓSTER (tarjeta blanca) es SIEMPRE claro — es una imagen de marca que se
@@ -16,49 +17,27 @@ import { fonderoPalette, type FonderoColors } from '@/lib/fondero-palette';
 // sigue el tema claro/oscuro de la app.
 const LIGHT = { bg: '#F8F8F5', card: '#FFFFFF', ink: '#111214', inkSoft: '#4A4A47', mute: '#8A8A85', sep: 'rgba(17,18,20,0.06)', accent: '#F2612F' };
 
-// Menú de ejemplo si aún no hay nada (para que el póster nunca salga vacío).
-const SAMPLE: { name: string; section: string }[] = [
-  { name: 'Sopa de fideo aguada', section: 'Entrada' },
-  { name: 'Tinga · Bistec a la mexicana', section: 'Guisado' },
-  { name: 'Arroz · Frijoles · Tortillas', section: 'Acompañante' },
-  { name: 'Gelatina de mosaico', section: 'Postre' },
-];
-
-type Row = { section: string; name: string; price?: string };
-
-function flattenMenu(m: MenuData | null): { rows: Row[]; dayPrice: string | null } {
-  if (!m) return { rows: [], dayPrice: null };
-  const rows: Row[] = [];
-  let dayPrice: string | null = null;
-  for (const sec of m.secciones) {
-    if (!dayPrice && sec.precio?.trim()) dayPrice = sec.precio.trim();
-    for (const p of sec.platillos) {
-      if (p.nombre?.trim()) rows.push({ section: sec.nombre, name: p.nombre.trim(), price: p.precio?.trim() || undefined });
-    }
-  }
-  return { rows, dayPrice };
-}
-
 export default function PreviewScreen() {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
   const c = fonderoPalette(theme.isDark);
   const s = makeStyles(c);
   const [menuData, setMenuData] = useState<MenuData | null>(null);
-  const [businessName, setBusinessName] = useState('Cocina de Lupita');
+  const [businessName, setBusinessName] = useState('Tu Patio');
   const posterRef = useRef<View | null>(null);
 
   useFocusEffect(
     useCallback(() => {
       setMenuData(getMenuData());
-      setBusinessName(getFonditaName() || 'Cocina de Lupita');
+      setBusinessName(getFonditaName() || 'Tu Patio');
     }, [])
   );
 
-  const { rows, dayPrice } = flattenMenu(menuData);
-  const usingSample = rows.length === 0;
-  const displayRows: Row[] = usingSample ? SAMPLE.map((x) => ({ section: x.section, name: x.name })) : rows;
-  const priceLabel = dayPrice ? `$${dayPrice}` : (usingSample ? '$55' : null);
+  const sections = (menuData?.secciones ?? [])
+    .map(section => ({ ...section, platillos: section.platillos.filter(dish => dish.nombre.trim()) }))
+    .filter(section => section.platillos.length);
+  const dayPrice = sections.find(section => section.precio.trim())?.precio.trim();
+  const priceLabel = dayPrice ? `$${dayPrice}` : null;
   const fecha = new Date().toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' }).toUpperCase();
 
   const handleShare = async () => {
@@ -81,15 +60,13 @@ export default function PreviewScreen() {
 
       {/* Top bar */}
       <View style={[s.top, { top: insets.top + 6 }]}>
-        <TouchableOpacity style={s.navBtn} onPress={() => router.replace('/menu')} activeOpacity={0.7}>
-          <Ionicons name="chevron-back" size={20} color={c.text} />
-        </TouchableOpacity>
+        <GlassIconButton icon="chevron-back" accessibilityLabel="Volver" onPress={() => router.replace('/menu')} />
         <Text style={s.topTitle} allowFontScaling={true}>Compartir</Text>
         <View style={s.navBtn} />
       </View>
 
-      {/* Póster centrado */}
-      <View style={s.posterWrap}>
+      {/* Póster editorial, scrolleable si el menú real es largo. */}
+      <ScrollView contentContainerStyle={[s.posterWrap, { paddingTop: insets.top + 74, paddingBottom: insets.bottom + 132 }]} showsVerticalScrollIndicator={false}>
         <View ref={posterRef} collapsable={false} style={s.poster}>
           {/* Header de marca */}
           <View style={s.posterHead}>
@@ -107,10 +84,18 @@ export default function PreviewScreen() {
               <Text style={s.menuCardLabel} allowFontScaling={true}>Menú del día</Text>
               {priceLabel ? <Text style={s.menuCardPrice} allowFontScaling={true}>{priceLabel}</Text> : null}
             </View>
-            {displayRows.map((r, i) => (
-              <View key={i} style={s.menuRow}>
-                <Text style={s.menuRowName} numberOfLines={1} allowFontScaling={true}>{r.name}</Text>
-                {r.price ? <Text style={s.menuRowPrice} allowFontScaling={true}>${r.price}</Text> : null}
+            {sections.map((section, sectionIndex) => (
+              <View key={section.id} style={sectionIndex > 0 && s.menuSection}>
+                <Text style={s.menuSectionTitle}>{section.nombre}</Text>
+                {section.platillos.map((dish) => (
+                  <View key={dish.id} style={s.menuRow}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={s.menuRowName} allowFontScaling={true}>{dish.nombre}</Text>
+                      {dish.descripcion ? <Text style={s.menuRowDescription}>{dish.descripcion}</Text> : null}
+                    </View>
+                    {dish.precio ? <Text style={s.menuRowPrice} allowFontScaling={true}>${dish.precio}</Text> : null}
+                  </View>
+                ))}
               </View>
             ))}
           </View>
@@ -118,7 +103,7 @@ export default function PreviewScreen() {
           {/* Firma */}
           <Text style={s.posterSign} allowFontScaling={true}>Saaaaaaabes.</Text>
         </View>
-      </View>
+      </ScrollView>
 
       {/* CTA compartir */}
       <View style={[s.ctaWrap, { paddingBottom: (insets.bottom || 10) + 24 }]}>
@@ -139,8 +124,8 @@ function makeStyles(c: FonderoColors) {
   navBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: c.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: c.border, alignItems: 'center', justifyContent: 'center' },
   topTitle: { fontSize: 14, fontWeight: '600', color: c.text },
 
-  posterWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 },
-  poster: { width: 300, borderRadius: 26, backgroundColor: LIGHT.bg, overflow: 'hidden', shadowColor: '#000', shadowOffset: { width: 0, height: 30 }, shadowOpacity: 0.5, shadowRadius: 40, elevation: 12 },
+  posterWrap: { alignItems: 'center', paddingHorizontal: 22 },
+  poster: { width: 330, borderRadius: 26, backgroundColor: LIGHT.bg, overflow: 'hidden', shadowColor: '#000', shadowOffset: { width: 0, height: 24 }, shadowOpacity: 0.24, shadowRadius: 34, elevation: 12 },
   posterHead: { paddingHorizontal: 22, paddingTop: 22, paddingBottom: 16 },
   brandRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 },
   brandMark: { width: 30, height: 30 },
@@ -148,12 +133,15 @@ function makeStyles(c: FonderoColors) {
   posterDate: { fontSize: 11, fontWeight: '700', letterSpacing: 1.4, textTransform: 'uppercase', color: LIGHT.accent, marginBottom: 6 },
   posterName: { fontSize: 28, fontWeight: '900', letterSpacing: -0.8, color: LIGHT.ink, fontFamily: Fonts.brand },
 
-  menuCard: { marginHorizontal: 22, padding: 18, borderRadius: 18, backgroundColor: LIGHT.card, borderWidth: StyleSheet.hairlineWidth, borderColor: LIGHT.sep },
+  menuCard: { marginHorizontal: 18, padding: 18, borderRadius: 18, backgroundColor: LIGHT.card, borderWidth: StyleSheet.hairlineWidth, borderColor: LIGHT.sep },
   menuCardHead: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 12 },
   menuCardLabel: { fontSize: 10.5, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase', color: LIGHT.mute },
   menuCardPrice: { fontSize: 20, fontWeight: '900', letterSpacing: -0.4, color: LIGHT.accent, fontFamily: Fonts.brand },
-  menuRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 7, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: LIGHT.sep },
-  menuRowName: { flex: 1, fontSize: 14, fontWeight: '400', color: LIGHT.ink, marginRight: 10 },
+  menuSection: { marginTop: 14 },
+  menuSectionTitle: { marginBottom: 3, fontSize: 10, fontWeight: '800', letterSpacing: 1, color: LIGHT.accent, textTransform: 'uppercase' },
+  menuRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', paddingVertical: 7, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: LIGHT.sep },
+  menuRowName: { fontSize: 14, lineHeight: 18, fontWeight: '500', color: LIGHT.ink, marginRight: 10 },
+  menuRowDescription: { marginTop: 2, fontSize: 11.5, lineHeight: 15, color: LIGHT.inkSoft },
   menuRowPrice: { fontSize: 13, fontWeight: '300', color: LIGHT.inkSoft },
 
   posterSign: { paddingHorizontal: 22, paddingTop: 16, paddingBottom: 20, textAlign: 'center', fontSize: 15, fontWeight: '900', letterSpacing: -0.3, color: LIGHT.ink, fontFamily: Fonts.brand },

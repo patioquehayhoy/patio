@@ -8,6 +8,7 @@ import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { useTabBarScroll } from '@/lib/tab-bar-visibility';
 import { Fonts, useTheme } from '@/lib/theme';
 import { fonderoPalette, type FonderoColors } from '@/lib/fondero-palette';
+import { noWidow } from '@/lib/typography';
 
 // Pantalla "Hoy" del Fondero: elección de cómo armar el menú del día.
 // La foto es el héroe (Patio lo lee por ti = la magia que vendemos).
@@ -39,7 +40,7 @@ export default function HoyScreen() {
         {/* Header editorial */}
         <Text style={s.eyebrow} allowFontScaling={true}>{todayLabel()}</Text>
         <Text style={s.title} allowFontScaling={true}>Lo de hoy</Text>
-        <Text style={s.sub} allowFontScaling={true}>Arma tu menú en 30 segundos. Quien anda cerca lo ve.</Text>
+        <Text style={s.sub} allowFontScaling={true}>{noWidow('Publica lo que vendes hoy. Patio lo ordena por ti.')}</Text>
 
         {/* Héroe: tomar foto */}
         <TouchableOpacity activeOpacity={0.9} onPress={() => router.push('/foto-menu')} style={s.heroCard}>
@@ -52,7 +53,7 @@ export default function HoyScreen() {
               <Ionicons name="camera" size={30} color="#fff" />
             </View>
             <Text style={s.heroTitle} allowFontScaling={true}>Toma foto de tu menú</Text>
-            <Text style={s.heroBody} allowFontScaling={true}>Patio lo lee y lo organiza por ti. Sin escribir nada.</Text>
+            <Text style={s.heroBody} allowFontScaling={true}>{noWidow('Patio lee la foto y prepara el menú para que solo lo revises.')}</Text>
             <View style={s.heroTag}>
               <Ionicons name="sparkles" size={12} color="#fff" />
               <Text style={s.heroTagText} allowFontScaling={true}>Lo más rápido</Text>
@@ -69,7 +70,7 @@ export default function HoyScreen() {
           </View>
           <View style={{ flex: 1, minWidth: 0 }}>
             <Text style={s.optionTitle} allowFontScaling={true}>Escribe tu menú</Text>
-            <Text style={s.optionSub} allowFontScaling={true}>Platillo por platillo, con precio</Text>
+            <Text style={s.optionSub} allowFontScaling={true}>{noWidow('Empieza vacío y agrega solo lo necesario')}</Text>
           </View>
           <Ionicons name="chevron-forward" size={16} color={c.textMute} />
         </TouchableOpacity>

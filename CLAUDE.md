@@ -4,6 +4,7 @@
 
 Antes de cualquier cambio de UI, copy o flujo, leer los siguientes documentos en este orden:
 
+0. `docs/ROADCONTROLLER.md` — mapa operativo superior: frentes, estado, fuentes de verdad, no-mezcla
 1. `docs/GOAL.md` — filosofía de producto, principios de experiencia, objetivos técnicos
 2. `docs/PATIO_DESIGN_PRINCIPLES.md` — reglas de interacción, layout, copy y rol Fondero/Foodie
 3. `docs/DESIGN_SYSTEM.md` — sistema de diseño completo: paleta, tipografía, glass, spacing, referencias REF-001 a REF-007
@@ -14,8 +15,11 @@ Antes de cualquier cambio de UI, copy o flujo, leer los siguientes documentos en
 
 **Reglas de marca no negociables:**
 - `"Saaaaaaabes."` es el tagline oficial de Patio — no modificar, no parafrasear, no "mejorar"
+- `"¿Qué hay hoy?"` y `"Saaaaaaabes."` van SIEMPRE juntos como par de marca — nunca separados en una misma pieza
+- **PROHIBIDO el lenguaje comparativo** "no es X, es Y" ("Esto no es un delivery…", "no es solo un menú…"). Es contaminación de identidad verbal: se afirma lo que Patio ES, sin apoyarse en negaciones (ley dictada 2026-07-07)
 - El tono es humano, local, editorial — nunca genérico ni de marketing
 - Fondero y Foodie son roles distintos con JTBDs distintos — no mezclar ni contaminar sus flujos
+- Sin viudas en textos de UI: envolver copys largos con `noWidow()` de `lib/typography`
 
 ## Tipografía
 

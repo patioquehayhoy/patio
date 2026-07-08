@@ -6,8 +6,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { fonderoPalette } from '@/lib/fondero-palette';
+import { getLocalMenus, seedDemoHistory } from '@/lib/menu-history';
 import { setMenuData, type MenuData } from '@/lib/menu-store';
 import { supabase } from '@/lib/supabase';
+import { useTabBarScroll } from '@/lib/tab-bar-visibility';
 import { Fonts, useTheme } from '@/lib/theme';
 import { getFonditaId } from '@/lib/user-store';
 
@@ -28,23 +30,31 @@ export default function HistorialScreen() {
   const c = fonderoPalette(theme.isDark);
   const [menus, setMenus] = useState<PublishedMenu[]>([]);
   const [loading, setLoading] = useState(true);
+  const { onScroll } = useTabBarScroll();
 
   useFocusEffect(useCallback(() => {
     let active = true;
     const load = async () => {
+      await seedDemoHistory();
+      const locales = await getLocalMenus();
       const id = getFonditaId();
-      if (!id) {
-        if (active) { setMenus([]); setLoading(false); }
-        return;
+      let remotos: PublishedMenu[] = [];
+      if (id) {
+        const { data } = await supabase
+          .from('menus')
+          .select('fecha,secciones')
+          .eq('fondita_id', id)
+          .order('fecha', { ascending: false })
+          .limit(20);
+        remotos = (data ?? []) as PublishedMenu[];
       }
-      const { data } = await supabase
-        .from('menus')
-        .select('fecha,secciones')
-        .eq('fondita_id', id)
-        .order('fecha', { ascending: false })
-        .limit(20);
+      // Supabase manda cuando hay sesión; lo local llena los huecos (modo DEV/offline).
+      const porFecha = new Map<string, PublishedMenu>();
+      for (const menu of locales) porFecha.set(menu.fecha, menu);
+      for (const menu of remotos) porFecha.set(menu.fecha, menu);
+      const merged = [...porFecha.values()].sort((a, b) => b.fecha.localeCompare(a.fecha)).slice(0, 20);
       if (active) {
-        setMenus((data ?? []) as PublishedMenu[]);
+        setMenus(merged);
         setLoading(false);
       }
     };
@@ -60,7 +70,7 @@ export default function HistorialScreen() {
   return (
     <View style={[s.root, { backgroundColor: c.bg, paddingTop: insets.top }]}>
       <Stack.Screen options={{ headerShown: false }} />
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 24, paddingBottom: insets.bottom + 120 }} showsVerticalScrollIndicator={false}>
+      <ScrollView onScroll={onScroll} scrollEventThrottle={16} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 24, paddingBottom: insets.bottom + 120 }} showsVerticalScrollIndicator={false}>
         <Text style={[s.eyebrow, { color: c.accent }]}>PUBLICACIONES</Text>
         <Text style={[s.title, { color: c.text }]}>Historial</Text>
         <Text style={[s.subtitle, { color: c.textSecondary }]}>Vuelve a usar cualquiera de tus menús publicados.</Text>

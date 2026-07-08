@@ -2,10 +2,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { router, Stack, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { Linking, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
+import { Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BottomTabBar } from '@/components/bottom-tab-bar';
+import { ToggleSwitch } from '@/components/toggle-switch';
 import { fonderoPalette, type FonderoColors } from '@/lib/fondero-palette';
 import {
   getFonditaDireccion,
@@ -14,6 +15,7 @@ import {
 } from '@/lib/menu-store';
 import { supabase } from '@/lib/supabase';
 import { Fonts, useTheme } from '@/lib/theme';
+import { useTabBarScroll } from '@/lib/tab-bar-visibility';
 
 const ROLE_KEY = '@patio_user_role';
 const SUPPORT_EMAIL = 'quehayhoy.patio@gmail.com';
@@ -45,6 +47,7 @@ export default function PerfilScreen() {
   const insets = useSafeAreaInsets();
   const { theme, toggleTheme } = useTheme();
   const c = fonderoPalette(theme.isDark);
+  const { onScroll } = useTabBarScroll();
   const [name, setName] = useState('');
   const [address, setAddress] = useState('');
   const [hasMenu, setHasMenu] = useState(false);
@@ -69,7 +72,7 @@ export default function PerfilScreen() {
   return (
     <View style={[s.root, { backgroundColor: c.bg, paddingTop: insets.top }]}>
       <Stack.Screen options={{ headerShown: false }} />
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 24, paddingBottom: insets.bottom + 110 }} showsVerticalScrollIndicator={false}>
+      <ScrollView onScroll={onScroll} scrollEventThrottle={16} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 24, paddingBottom: insets.bottom + 110 }} showsVerticalScrollIndicator={false}>
         <Text style={[s.eyebrow, { color: c.accent }]}>MI PATIO</Text>
         <Text style={[s.title, { color: c.text }]} numberOfLines={2}>{name || 'Tu negocio'}</Text>
         <Text style={[s.status, { color: c.textSecondary }]}>
@@ -89,8 +92,9 @@ export default function PerfilScreen() {
             c={c}
             icon="moon-outline"
             title="Modo oscuro"
-            trailing={<Switch value={theme.isDark} onValueChange={toggleTheme} trackColor={{ true: c.accent }} />}
+            trailing={<ToggleSwitch value={theme.isDark} onValueChange={toggleTheme} activeColor={c.accent} />}
           />
+          <Row c={c} icon="sparkles-outline" title="Nuestro manifiesto" onPress={() => router.push('/manifiesto')} />
           <Row c={c} icon="help-circle-outline" title="Soporte" onPress={() => Linking.openURL(`mailto:${SUPPORT_EMAIL}?subject=Soporte%20Patio`)} />
           <Row c={c} icon="log-out-outline" title="Cerrar sesión" last onPress={signOut} />
         </View>

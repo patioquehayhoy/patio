@@ -72,7 +72,6 @@ export default function PreviewScreen() {
           <View style={s.posterHead}>
             <View style={s.brandRow}>
               <Image source={require('../assets/images/p-icon-transparent.png')} style={s.brandMark} resizeMode="contain" />
-              <Text style={s.brandClaim} allowFontScaling={true}>¿Qué hay hoy?</Text>
             </View>
             <Text style={s.posterDate} allowFontScaling={true}>{fecha}</Text>
             <Text style={s.posterName} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} allowFontScaling={true}>{businessName}</Text>
@@ -101,7 +100,7 @@ export default function PreviewScreen() {
           </View>
 
           {/* Firma */}
-          <Text style={s.posterSign} allowFontScaling={true}>Saaaaaaabes.</Text>
+          <Text style={s.posterSign} allowFontScaling={true}>¿Qué hay hoy? Saaaaaaabes.</Text>
         </View>
       </ScrollView>
 

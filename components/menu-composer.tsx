@@ -15,6 +15,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { saveMenuHoy } from '@/lib/db';
+import { saveLocalMenu } from '@/lib/menu-history';
 import { fonderoPalette, type FonderoColors } from '@/lib/fondero-palette';
 import {
   makePlatilloId,
@@ -134,6 +135,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
     setPublishing(true);
     try {
       setMenuData(clean);
+      await saveLocalMenu(clean);
       const fonditaId = getFonditaId();
       if (fonditaId) await saveMenuHoy(fonditaId, clean);
       router.replace('/menu-publicado');

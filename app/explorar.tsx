@@ -14,6 +14,7 @@ import { FoodieLoading } from '@/components/foodie-loading';
 import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { fetchPublicFonditas, type Patio, type PatioDishMatch } from '@/lib/patios';
 import { searchLiveMenus } from '@/lib/menu';
+import { noWidow } from '@/lib/typography';
 import { Fonts, Radius, useTheme, type Theme } from '@/lib/theme';
 
 function makeStyles(t: Theme) {
@@ -135,10 +136,16 @@ export default function ExplorarScreen() {
   }, []);
 
   useEffect(() => {
-    if (!query.trim()) { setLiveResults([]); return; }
+    if (!query.trim()) { setLiveResults([]); setSearchPending(false); return; }
     let cancelled = false;
-    searchLiveMenus(query, allPatios).then((r) => { if (!cancelled) setLiveResults(r); });
-    return () => { cancelled = true; };
+    setSearchPending(true);
+    // Debounce corto: no buscar (ni declarar "sin resultados") en cada tecla.
+    const timer = setTimeout(() => {
+      searchLiveMenus(query, allPatios).then((r) => {
+        if (!cancelled) { setLiveResults(r); setSearchPending(false); }
+      });
+    }, 300);
+    return () => { cancelled = true; clearTimeout(timer); };
   }, [query, allPatios]);
 
 
@@ -154,7 +161,10 @@ export default function ExplorarScreen() {
     let cancelled = false;
     // Carga inicial: muestra el FoodieLoading mientras llegan las fonditas reales.
     const minDelay = new Promise((r) => setTimeout(r, 900));
-    Promise.all([fetchPublicFonditas(), minDelay]).then(([db]) => {
+    const prepare = __DEV__
+      ? import('@/lib/demo').then((demo) => demo.seedDemoFoodie()).then(fetchPublicFonditas)
+      : fetchPublicFonditas();
+    Promise.all([prepare, minDelay]).then(([db]) => {
       if (cancelled) return;
       setAllPatios(db as Patio[]);
       setInitialLoading(false);
@@ -174,12 +184,14 @@ export default function ExplorarScreen() {
   }, [visibleRegion, allPatios]);
 
   const [liveResults, setLiveResults] = useState<PatioDishMatch[]>([]);
+  const [searchPending, setSearchPending] = useState(false);
   const searchResults = useMemo(() => {
     if (!query.trim()) return [];
     return [...liveResults].sort((a, b) => b.score - a.score);
   }, [liveResults, query]);
   const matchingPatioIds = useMemo(() => new Set(searchResults.map((r) => r.patio.id)), [searchResults]);
-  const isFiltering = query.trim().length > 0;
+  // Con 1-2 letras todavía no es una búsqueda: no filtrar ni declarar "sin resultados".
+  const isFiltering = query.trim().length >= 3;
   const idleMode = !searchActive && !showHeader && !isFiltering;
 
   // Halo Xbox: idle = mapa nítido (sin blur), buscando vacío = blur intenso,
@@ -280,7 +292,7 @@ export default function ExplorarScreen() {
           style={s.mapView}
           toolbarEnabled={false}
           userInterfaceStyle={theme.isDark ? 'dark' : 'light'}
-          onPress={deselect}
+          onPress={() => (searchActive ? closeSearch() : deselect())}
           onRegionChangeComplete={setVisibleRegion}>
           {visiblePatios.map((patio, idx) => {
             const isSelected = patio.id === selectedId && showHeader;
@@ -350,10 +362,11 @@ export default function ExplorarScreen() {
                 style={s.searchInput}
                 value={query}
                 onChangeText={handleQueryChange}
-                placeholder="mole, enchiladas, agua de jamaica…"
+                placeholder="¿Qué hay hoy?"
                 placeholderTextColor={theme.textSecondary}
                 autoCorrect={false}
                 autoCapitalize="none"
+                autoFocus
                 returnKeyType="search"
                 selectionColor={theme.accent}
               />
@@ -442,13 +455,14 @@ export default function ExplorarScreen() {
           <ScrollView style={s.list} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
             {isFiltering ? (
               topMatchPerPatio.length === 0 ? (
+                searchPending ? null : (
                 <View style={s.emptyResults}>
                   <View style={s.emptyIconCircle}>
                     <Ionicons name="search" size={32} color={theme.accent} />
                   </View>
                   <Text style={s.emptyEyebrow} allowFontScaling={true}>Sin resultados</Text>
-                  <Text style={s.emptyTitle} allowFontScaling={true}>Nadie está sirviendo eso hoy.</Text>
-                  <Text style={s.emptySub} allowFontScaling={true}>Patio busca en menús del día, no en catálogos. Prueba algo más cercano a la comida corrida.</Text>
+                  <Text style={s.emptyTitle} allowFontScaling={true}>{noWidow('Nadie está sirviendo eso hoy.')}</Text>
+                  <Text style={s.emptySub} allowFontScaling={true}>{noWidow('Patio busca en menús del día, no en catálogos. Prueba algo más cercano a la comida corrida.')}</Text>
                   <Text style={s.emptyPruebaLabel} allowFontScaling={true}>Prueba con</Text>
                   <View style={s.emptyPills}>
                     {['caldo', 'tinga', 'mole', 'pozole', 'veggie'].map((q) => (
@@ -458,6 +472,7 @@ export default function ExplorarScreen() {
                     ))}
                   </View>
                 </View>
+                )
               ) : (
                 topMatchPerPatio.map((match) => {
                   const active = match.patio.id === selectedId && showHeader;

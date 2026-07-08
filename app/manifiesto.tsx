@@ -124,13 +124,13 @@ export default function ManifiestoScreen() {
         <View style={s.block}>
           <Text style={s.blockLabel} allowFontScaling={true}>Qué es Patio</Text>
           <Text style={s.body} allowFontScaling={true}>
-            Las cocinas de tu barrio publican su menú del día. Tú buscas por platillo, ves qué hay cerca y decides si vale la caminata.
+            La fonda, la taquería, el puestecito de elotes, la hamburguesa de la esquina: todos publican lo de hoy. Tú buscas por platillo, ves qué hay cerca y decides si vale la caminata.
           </Text>
           <View style={s.divider} />
         </View>
 
         <View style={s.block}>
-          <Text style={s.blockLabel} allowFontScaling={true}>Si tienes una cocina</Text>
+          <Text style={s.blockLabel} allowFontScaling={true}>Si tú eres quien cocina</Text>
           <Text style={s.body} allowFontScaling={true}>
             Tomas foto de tu menú y Patio lo lee por ti. Lo de hoy aparece en el mapa para quien anda cerca y se oculta solo cuando cierras.
           </Text>

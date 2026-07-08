@@ -227,6 +227,16 @@ function tipoLabel(tipo: string | null): string {
   return (tipo && map[tipo]) || 'Fondita';
 }
 
+// En desarrollo, el mapa se llena con lugares sintéticos (lib/demo.ts) además
+// de los reales, para poder recorrer la app completa. En producción solo Supabase.
+function withDevPatios(reales: Patio[]): Patio[] {
+  if (!__DEV__) return reales;
+  const { DEMO_PATIOS } = require('./demo') as typeof import('./demo');
+  const vistos = new Set(reales.map((p) => p.id));
+  const extra = [...MOCK_PATIOS, ...DEMO_PATIOS].filter((p) => !vistos.has(p.id));
+  return [...reales, ...extra];
+}
+
 export async function fetchPublicFonditas(): Promise<Patio[]> {
   const { data, error } = await supabase
     .from('fonditas')
@@ -234,9 +244,9 @@ export async function fetchPublicFonditas(): Promise<Patio[]> {
     .not('nombre', 'is', null)
     .neq('nombre', 'Mi Fondita');
 
-  if (error || !data) return [];
+  if (error || !data) return withDevPatios([]);
 
-  return data.map((row): Patio => {
+  return withDevPatios(data.map((row): Patio => {
     const weekly = weeklyFromRow((row as any).horario_semanal, row.horario);
     return {
       id: row.id,
@@ -260,10 +270,14 @@ export async function fetchPublicFonditas(): Promise<Patio[]> {
       ],
       weeklyHours: weekly,
     };
-  });
+  }));
 }
 
 export async function fetchFonditaById(id: string): Promise<Patio | null> {
+  // Mocks y demo (DEV) se resuelven local: sus ids no existen en Supabase.
+  const local = withDevPatios([]).find((p) => p.id === id);
+  if (local) return local;
+
   const base = 'id, nombre, descripcion, direccion, horario, horario_semanal, tipo_negocio, pagos_efectivo, pagos_transferencia, pagos_tarjeta';
   let row: Record<string, unknown> | null = null;
 

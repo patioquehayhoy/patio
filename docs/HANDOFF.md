@@ -1,8 +1,69 @@
 # HANDOFF
 
-## Estado vigente — 2026-06-21 (Dev build en iPhone + navegación + modo claro Fondero + stats vivas + header system)
+## Estado vigente — 2026-07-07 (QA en device + plan de 4 frentes hacia MVP lanzable)
 
 Leer esta sección primero. Abajo es bitácora.
+
+### Contexto de la sesión
+
+Alejandro recorrió la app completa en su iPhone (dev build reinstalada por cable hoy; la anterior ya no estaba). Dio DOS tandas de feedback por transcript de voz + screenshots. Se arreglaron muchas cosas (lista abajo) pero el cierre de sesión fue un **reencuadre importante**: dejar de hacer micro-fixes y ejecutar un plan de panorama completo. **Meta declarada: MVP funcional completo para lanzar.** Si no se logra aquí, Alejandro considera mover el trabajo a Figma Make (desaconsejado: Make exporta web, no RN, y es caro ajustando — learning Ciclo 5).
+
+### EL PLAN APROBADO — 4 frentes (ejecutar en orden, Frente 1 primero)
+
+**FRENTE 1 — Que el MVP camine de punta a punta (LO MÁS IMPORTANTE para Alejandro):**
+1. **"Día vivo" demo:** los lugares de `lib/demo.ts` + `MOCK_PATIOS` deben **publicar HOY**: menús del día con precios, horarios abiertos a la hora real, 1-2 agotados a propósito. HOY los demo salen "SIN EXISTENCIA/AGOTADO/Precio pendiente" porque la ficha considera "vivo" solo lo publicado en Supabase.
+2. **Búsqueda debe leer los menús demo/mock locales** — `searchLiveMenus()` (`lib/menu.ts`) solo busca menús publicados en Supabase → "mole" no da resultados aunque Don Bonachón lo tenga en su `menu` local. Incluir los `patio.menu` locales en la búsqueda (solo DEV).
+3. **"Cerrar sesión" no aparece en Cuenta Foodie** — está detrás de `hasSession` y en DEV no hay sesión. Alejandro lo reportó 2 veces.
+4. **Historial: tres puntitos por menú → EDITAR** antes de reutilizar (hoy solo "reusar" directo).
+5. **Criterio de salida:** recorrido Foodie completo (mapa → buscar "mole" → ficha viva → guardar → reseña) y Fondero completo (foto → publicar → póster → historial → editar/reusar) SIN callejones. Evidencia con capturas de simulador, no promesas.
+
+**FRENTE 2 — LEY VERBAL NUEVA + barrido de copy:**
+- **LEY (dictada por Alejandro, registrarla como regla dura):** PROHIBIDO el lenguaje comparativo "no es X, es Y" ("Esto no es un delivery…", "no es solo un menú…"). Es contaminación de identidad verbal. Se afirma lo que Patio ES, sin negaciones. Ya registrada en CLAUDE.md.
+- Barrido de onboarding completo (slides con ese lenguaje + copy desactualizado "Las cocinas de tu barrio…"), empty states y ficha.
+- **Viudas** con `noWidow()` en TODO el onboarding ("lo que se cocina hoy", "casi listo para avisarte…", "permitir notificaciones").
+- Revisar la palabra "menú" donde no aplica: el puestecito de elotes no tiene menú, tiene *lo de hoy*.
+
+**FRENTE 3 — Sistema de degradados/glass (una regla, no parches):**
+- Onboarding: degradado imagen→negro "asqueroso", con corte visible (Figma Make lo tiene suave — comparar con `design-source/figma-make/v02`).
+- Ficha (`patio/[id]`): el hero recorta la imagen con degradado negro NO uniforme, y hay una **pleca/banda fake** que se empalma con los textos a la altura del CTA "Avísame mañana" (ver screenshots del 7 jul). Verificar si el glass/blur está funcionando o es un LinearGradient mal parametrizado.
+- Regla única de gradiente (más paradas de color, easing suave) aplicada a los 3 lugares.
+
+**FRENTE 4 — Figma Make (en paralelo, lo lleva Alejandro; hay créditos de nuevo):**
+- Armarle el paquete de tareas para Make: brief de **intro/onboarding** (candidato #1, la entrada actual le parece "asquerosa"), **póster** rediseñado (logo P no se distingue, espacio raro arriba-derecha; el "¿Qué hay hoy? Saaaaaaabes." abajo SÍ gustó), y **búsqueda viva** (en vez del blur muerto del mapa: planta creciendo / patios prendiéndose al escribir).
+- Reparto confirmado: Make DISEÑA pantallas nuevas, el código se traduce aquí. NO pasar el código a Make.
+
+### Hecho en esta sesión (2026-07-07, todo con tsc verde)
+
+- **Dev build reinstalada** en iPhone por cable (`npx expo run:ios --device`, gratis, NO gastó build EAS). Gotcha: falló 1ª vez por "developer disk image could not be mounted" (iPhone bloqueado); reintentar con iPhone desbloqueado. iOS 26.5 + Xcode 26.3 funcionan.
+- **Conexión iPhone↔Metro:** dev build abre pantalla "Development servers"; la URL guardada vieja (`10.0.0.25`) era de otra red — verificar IP actual con `ipconfig getifaddr en0` (hoy: `192.168.100.4`). Permiso de Red Local ya activo.
+- **Toggle compartido** `components/toggle-switch.tsx` (accent del tema, ambos lados) — reemplaza Switch nativo desfasado (Fondero) y toggle verde iOS (Foodie).
+- **Manifiesto**: enlazado en Cuenta + Mi Patio (estaba huérfano) y copy actualizado ("la fonda, la taquería, el puestecito de elotes…"; "Si tú eres quien cocina").
+- **Póster**: "¿Qué hay hoy? Saaaaaaabes." juntos como firma (LEY de marca: nunca separados); claim suelto eliminado.
+- **Historial/"usar menú anterior"**: `lib/menu-history.ts` — persistencia local AsyncStorage (tope 30) + merge con Supabase + `seedDemoHistory()` (3 menús demo en DEV).
+- **Buscador explorar**: `autoFocus` (el `setTimeout(80)` perdía la carrera en device → sin teclado); tocar mapa cierra búsqueda; umbral 3 letras + debounce 300ms + no declarar "sin resultados" hasta tener respuesta; placeholder fijo "¿Qué hay hoy?"; viudas corregidas en empty state.
+- **Cámara nativa** en foto-menu (`launchCameraAsync` + `allowsEditing`) — a Alejandro le gustó. **Galería sin recorte** (`allowsEditing` en galería invoca una UI propia de expo sobre PHPicker = el "recorte chafa"; el recorte nativo de Apple no es invocable ahí sin módulo nativo → selector puro y la visión lee la foto completa).
+- **Datos sintéticos**: `lib/demo.ts` — 7 lugares variados (elotes, hamburguesas, mariscos, comida corrida, pozolería, repostería, jugos) + seed de guardados/vistos. Se inyectan vía `withDevPatios()` en `fetchPublicFonditas`/`fetchFonditaById` (`lib/patios.ts`), solo `__DEV__`. **INSUFICIENTE: les falta el "día vivo" (Frente 1).**
+- **Tab bar auto-hide** cableada en historial y perfil.
+- **DEV · Onboarding** botón en la entrada (para poder revisar el onboarding).
+- **docs/ROADCONTROLLER.md** creado (mapa operativo, formato T1all) + referenciado como lectura #0 en CLAUDE.md.
+
+### Pendientes fuera de los 4 frentes (registrados en TASKS.md)
+
+- Nombrar menús en historial (default fecha+platillos, editable) — idea de Alejandro, le gustó mucho.
+- Navegación simétrica total entre perfiles (decisión: UNA app hoy, dos al escalar — research Uber de Alejandro).
+- Spinner de visión estilo ChatGPT.
+- Guardados organizados por categoría/cercanía (ya hay datos demo).
+- Decisiones pendientes de Alejandro: logo en póster, botonzote naranja de "Editar mi negocio".
+- EAS Update (OTA) sin configurar — resolvería "última versión sin build" fuera de casa.
+- Push de la rama: `git push -u origin v2-look-figma` (auth GitHub pendiente, lo corre Alejandro).
+
+### Learnings operativos de la sesión (no repetir errores)
+
+1. **No micro-fixes: panorama.** Alejandro lo dijo explícito. Trabajar por recorridos completos con criterio de salida, no por síntomas.
+2. **Actualizar este HANDOFF en cada avance** — el contexto del chat se pierde (tokens); los docs son la memoria real.
+3. La instalación por cable NO gasta builds EAS (es compilación local Xcode). El miedo a "gastar build" era por confusión de términos — explicar siempre qué tipo de build es.
+4. Los transcripts de voz de Alejandro son el canal de feedback preferido (teclear le frustra). Procesarlos a checklist accionable.
+5. En el sim/device DEV se entra sin sesión → todo lo que dependa de `fonditaId`/`hasSession` se comporta distinto que en producción. El modo demo debe cubrir esos huecos.
 
 ### Sesión 2026-06-21 — sesión larga, MUCHOS cambios. `tsc` verde. SIN COMMIT aún (Alejandro hace push).
 

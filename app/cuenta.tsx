@@ -2,12 +2,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, Stack } from 'expo-router';
-import { Animated, Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useCallback, useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 
 import { BottomTabBar } from '@/components/bottom-tab-bar';
+import { ToggleSwitch } from '@/components/toggle-switch';
 import { useTabBarScroll } from '@/lib/tab-bar-visibility';
 import { getFoodieStats, type FoodieStats } from '@/lib/stats';
 import { supabase } from '@/lib/supabase';
@@ -15,7 +16,6 @@ import { Fonts, useTheme, type Theme } from '@/lib/theme';
 
 const SUPPORT_EMAIL = 'quehayhoy.patio@gmail.com';
 const ROLE_KEY = '@patio_user_role';
-const OPEN_GREEN = '#1F9D55';
 
 function makeStyles(t: Theme) {
   return StyleSheet.create({
@@ -55,27 +55,6 @@ function makeStyles(t: Theme) {
     footerText: { fontSize: 11, fontWeight: '300', letterSpacing: 0.5, textTransform: 'uppercase', color: t.textMute },
   });
 }
-
-function ToggleSwitch({ value, onValueChange }: { value: boolean; onValueChange: (v: boolean) => void }) {
-  const anim = useRef(new Animated.Value(value ? 1 : 0)).current;
-  useEffect(() => {
-    Animated.spring(anim, { toValue: value ? 1 : 0, useNativeDriver: false, speed: 20, bounciness: 0 }).start();
-  }, [anim, value]);
-  const translateX = anim.interpolate({ inputRange: [0, 1], outputRange: [2, 20] });
-  const trackBg = anim.interpolate({ inputRange: [0, 1], outputRange: ['#cbced4', OPEN_GREEN] });
-  return (
-    <TouchableOpacity onPress={() => onValueChange(!value)} activeOpacity={0.85}>
-      <Animated.View style={[tog.track, { backgroundColor: trackBg }]}>
-        <Animated.View style={[tog.thumb, { transform: [{ translateX }] }]} />
-      </Animated.View>
-    </TouchableOpacity>
-  );
-}
-
-const tog = StyleSheet.create({
-  track: { width: 44, height: 26, borderRadius: 13, justifyContent: 'center', paddingHorizontal: 1 },
-  thumb: { width: 22, height: 22, borderRadius: 11, backgroundColor: '#fff', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.15, shadowRadius: 4, elevation: 2 },
-});
 
 type RowProps = {
   icon: keyof typeof Ionicons.glyphMap;
@@ -182,6 +161,7 @@ export default function CuentaScreen() {
                 />
               )}
               {!__DEV__ && <Row theme={theme} icon="storefront-outline" title="Publicar mi menú" divider accent onPress={() => router.push('/fondero-acceso')} />}
+              <Row theme={theme} icon="sparkles-outline" title="Nuestro manifiesto" divider onPress={() => router.push('/manifiesto')} />
               <Row theme={theme} icon="chatbubble-outline" title="Contactar soporte" divider onPress={() => Linking.openURL(`mailto:${SUPPORT_EMAIL}?subject=Soporte%20Patio`)} />
               {hasSession && <Row theme={theme} icon="log-out-outline" title="Cerrar sesión" divider onPress={handleSignOut} />}
           </View>

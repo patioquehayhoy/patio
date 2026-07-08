@@ -114,6 +114,12 @@ export default function LoginScreen() {
                   activeOpacity={0.7}>
                   <Text style={[styles.devBtnText, { color: theme.textSecondary }]}>DEV · Fondero</Text>
                 </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.devBtn, { borderColor: theme.border }]}
+                  onPress={() => router.replace('/onboarding')}
+                  activeOpacity={0.7}>
+                  <Text style={[styles.devBtnText, { color: theme.textSecondary }]}>DEV · Onboarding</Text>
+                </TouchableOpacity>
               </View>
             </>
           )}

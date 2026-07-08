@@ -1,12 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
-import { CameraView, type CameraType, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, Stack } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import {
   Alert,
-  Animated,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -27,39 +25,29 @@ import { noWidow } from '@/lib/typography';
 import { leerMenuDeFoto, type MenuSeccion } from '@/lib/vision';
 import { GlassIconButton } from '@/components/glass-button';
 
-type State = 'idle' | 'camera' | 'processing' | 'review';
+type State = 'idle' | 'processing' | 'review';
 
 export default function FotoMenuScreen() {
   const { theme } = useTheme();
   const c = fonderoPalette(theme.isDark);
   const s = makeStyles(theme);
   const [state, setState] = useState<State>('idle');
-  const [permission, requestPermission] = useCameraPermissions();
   const [menu, setMenu] = useState<MenuData>({ secciones: [] });
-  const cameraRef = useRef<CameraView>(null);
-  const hintOpacity = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    if (state !== 'camera') return;
-    hintOpacity.setValue(0);
-    const animation = Animated.sequence([
-      Animated.timing(hintOpacity, { toValue: 1, duration: 200, useNativeDriver: true }),
-      Animated.delay(2100),
-      Animated.timing(hintOpacity, { toValue: 0, duration: 380, useNativeDriver: true }),
-    ]);
-    animation.start();
-    return () => animation.stop();
-  }, [hintOpacity, state]);
 
   const openCamera = async () => {
-    if (!permission?.granted) {
-      const result = await requestPermission();
-      if (!result.granted) {
-        Alert.alert('Cámara desactivada', 'Puedes elegir una foto de tu galería.');
-        return;
-      }
+    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+    if (!permissionResult.granted) {
+      Alert.alert('Cámara desactivada', 'Puedes elegir una foto de tu galería.');
+      return;
     }
-    setState('camera');
+    // Cámara nativa de iOS: zoom, recorte y "usar foto" como cualquier app.
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      quality: 0.85,
+    });
+    const asset = !result.canceled ? result.assets[0] : null;
+    if (asset) await analyze(asset.uri);
   };
 
   const analyze = async (uri: string) => {
@@ -87,20 +75,16 @@ export default function FotoMenuScreen() {
     }
   };
 
-  const capture = async () => {
-    const photo = await cameraRef.current?.takePictureAsync({ quality: 0.82 });
-    if (photo?.uri) await analyze(photo.uri);
-  };
-
   const choosePhoto = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permissionResult.granted) {
       Alert.alert('Fotos desactivadas', 'Activa el permiso para elegir una imagen.');
       return;
     }
+    // Sin allowsEditing: el recorte de expo sobre PHPicker es una UI propia
+    // ("diseño chafa"); mejor selector nativo puro y la visión lee la foto completa.
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
-      allowsEditing: true,
       quality: 0.9,
     });
     const asset = !result.canceled ? result.assets[0] : null;
@@ -113,34 +97,8 @@ export default function FotoMenuScreen() {
         initialData={menu}
         source="foto"
         onBack={() => setState('idle')}
-        onRetake={() => setState('camera')}
+        onRetake={openCamera}
       />
-    );
-  }
-
-  if (state === 'camera') {
-    return (
-      <View style={s.cameraRoot}>
-        <Stack.Screen options={{ headerShown: false }} />
-        <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing={'back' as CameraType} />
-        <SafeAreaView style={s.cameraOverlay}>
-          <Animated.View style={[s.hint, { opacity: hintOpacity }]}>
-            <Ionicons name="scan-outline" size={14} color="#fff" />
-            <Text style={s.hintText}>Incluye el menú completo</Text>
-          </Animated.View>
-          <View style={s.cameraControls}>
-            <TouchableOpacity style={s.sideControl} onPress={() => setState('idle')} activeOpacity={0.75}>
-              <Ionicons name="close" size={23} color="#fff" />
-            </TouchableOpacity>
-            <TouchableOpacity style={s.shutter} onPress={capture} activeOpacity={0.86}>
-              <View style={s.shutterInner} />
-            </TouchableOpacity>
-            <TouchableOpacity style={s.sideControl} onPress={choosePhoto} activeOpacity={0.75}>
-              <Ionicons name="images-outline" size={22} color="#fff" />
-            </TouchableOpacity>
-          </View>
-        </SafeAreaView>
-      </View>
     );
   }
 

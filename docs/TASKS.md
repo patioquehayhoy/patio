@@ -1,7 +1,59 @@
 # TASKS — Cola de trabajo para agentes
 
-> Última actualización: 2026-06-03.
+> Última actualización: 2026-07-07.
 > Estado: `[ ]` pendiente | `[x]` hecho | `[~]` en progreso.
+
+## CICLO 2026-07-07 — Feedback de Alejandro en device (transcript de voz)
+
+Recorrido completo Fondero + Foodie en iPhone con la dev build del 4 jul. Lo que gustó:
+tab bar y botones, inicio Fondero (foto/a mano/anterior), spinner de visión, resultado editable,
+"Editar mi negocio" rediseñado, horarios L-D, pantallas Foodie, guardados, perfil.
+
+### Bugs (código, arreglar directo)
+
+- [x] **Historial/"Usar menú anterior" vacío** — RESUELTO 2026-07-07: nuevo `lib/menu-history.ts` guarda cada menú publicado en AsyncStorage (tope 30); `historial.tsx` mezcla local + Supabase (Supabase manda si hay sesión). Causa original: sin sesión no había UUID y `saveMenuHoy` se saltaba en silencio.
+- [x] **Manifiesto huérfano** — RESUELTO 2026-07-07: fila "Nuestro manifiesto" en Cuenta (Foodie) y Mi Patio (Fondero).
+- [x] **Buscador Foodie (explorar) no permite buscar** — RESUELTO 2026-07-07: `autoFocus` en el TextInput (el `setTimeout(80)` perdía la carrera en device → sin teclado, barra oculta tras la tab bar) + tocar el mapa cierra la búsqueda.
+- [x] **Toggle "Modo oscuro" desfasado en Mi Patio (Fondero)** — RESUELTO 2026-07-07: nuevo `components/toggle-switch.tsx` compartido reemplaza el Switch nativo.
+- [x] **Toggle "Modo oscuro" en Cuenta (Foodie) sale VERDE** — RESUELTO 2026-07-07: el toggle compartido usa el accent del tema (naranja) en ambos lados.
+
+### Mejoras UX (código)
+
+- [x] **Cámara/galería nativas en foto-menu** — RESUELTO 2026-07-07: la cámara custom de `expo-camera` se reemplazó por `ImagePicker.launchCameraAsync` con `allowsEditing` (cámara nativa iOS con zoom y recorte); "tomar otra foto" desde revisión reabre la nativa. Galería ya era nativa con recorte.
+- [ ] **Spinner de visión estilo ChatGPT** — el actual gusta, pero quiere el patrón de "generando imagen" de ChatGPT (progresivo/shimmer).
+- [~] **Modo demo (dev)** — PARCIAL 2026-07-07: `seedDemoHistory()` siembra 3 menús de ejemplo en días pasados (solo `__DEV__`, solo si el historial local está vacío). Falta evaluar seed de guardados/vistos Foodie y estados bloqueados.
+- [ ] **Captura robusta: casos de uso de foto** — cubrir y categorizar todos los casos reales antes de lanzar: menú manuscrito, pizarrón, foto chueca/borrosa, poca luz, menú muy largo, varios menús en una foto. Definir qué hace la visión en cada caso y qué feedback recibe el Fondero.
+
+### Marca (regla no negociable)
+
+- [x] **Póster: "¿Qué hay hoy?" y "Saaaaaaabes." deben ir JUNTOS** — RESUELTO 2026-07-07: la firma del póster ahora dice "¿Qué hay hoy? Saaaaaaabes."; se quitó el claim suelto de arriba-derecha. Logo sigue arriba-izquierda (decisión pendiente).
+
+### Tanda 2 (transcript 2 · resuelto 2026-07-07)
+
+- [x] **Onboarding visible** — botón `DEV · Onboarding` en la entrada.
+- [x] **Manifiesto actualizado** — fuera "cocinas" como paraguas: "la fonda, la taquería, el puestecito de elotes, la hamburguesa de la esquina"; "Si tú eres quien cocina".
+- [x] **"Sin resultados" apresurado** — la búsqueda ahora exige 3 letras + debounce 300ms + espera resultados antes de declarar vacío.
+- [x] **Viudas** — `noWidow()` en título y cuerpo del empty state de búsqueda.
+- [x] **Placeholder consistente** — el buscador activo dice "¿Qué hay hoy?" (ya no cambia a "mole, enchiladas…").
+- [x] **Datos sintéticos Foodie** — `lib/demo.ts`: 7 lugares variados (elotes, hamburguesas, mariscos, comida corrida, pozolería, repostería, jugos) + seed de ~6 guardados y ~8 vistos. Solo `__DEV__`; se inyectan vía `fetchPublicFonditas`/`fetchFonditaById`.
+- [x] **Tab bar auto-hide estilo Instagram** — cableado en historial y perfil (ya existía en menu/cuenta/favoritos).
+
+### Tanda 2 (pendientes)
+
+- [ ] **Póster: rediseñar composición** — el logo P no se distingue, espacio raro arriba-derecha. "¿Qué hay hoy? Saaaaaaabes." abajo SÍ le gustó. Candidato Figma Make.
+- [ ] **Nombrar menús en historial** — default (fecha + platillos) editable: "que yo le pueda poner nombre a mis menús".
+- [ ] **Recorte de galería "chafa"** — el actual es el editor nativo de iOS pero de marco cuadrado; investigar recorte libre como el de la cámara.
+- [ ] **Blur del mapa al buscar se ve muerto** — explorar algo vivo: fotos botánicas, "planta creciendo", o patios prendiéndose conforme escribes. Diseño/Make.
+- [ ] **Navegación simétrica total entre perfiles** — que Foodie y Fondero puedan recorrer TODOS los escenarios (incl. onboarding/registro al cambiar de rol). DECISIÓN confirmada: UNA app hoy, dos al escalar (research Uber).
+- [ ] **Verificar "Cerrar sesión" en Fondero** — Alejandro reporta que no le aparece (en DEV sin sesión podría estar oculto).
+- [ ] **Guardados organizados** — por categoría/cercanía/abierto-hoy; ya hay datos demo para diseñarlo.
+
+### Decisiones de diseño (validar con Alejandro / explorar en Figma Make)
+
+- [ ] **Intro/onboarding de la app** — "asqueroso", siempre lo ha querido cambiar. Candidato #1 para Figma Make (generar de cero es su fuerte).
+- [ ] Logo de Patio arriba-izquierda en el póster — ¿es el lugar idóneo?
+- [ ] "Botonzote" naranja de Editar mi negocio — ¿bajarle jerarquía?
+
 
 ## REDISEÑO EDITORIAL — listo, espera aterrizaje visual
 

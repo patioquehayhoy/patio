@@ -1,12 +1,8 @@
-import * as Location from 'expo-location';
 import { BlurView } from 'expo-blur';
-import { router, useFocusEffect } from 'expo-router';
 
 import { HintSheet } from '@/components/hint-sheet';
-import { markHintSeen, shouldShowHint } from '@/lib/hints';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useRef } from 'react';
 import {
-  Alert,
   Platform,
   ScrollView,
   StyleSheet,
@@ -19,25 +15,8 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-import { supabase } from '@/lib/supabase';
-import { FONDITA_ID_KEY } from '@/lib/db';
-import { getFonditaId, setFonditaId } from '@/lib/user-store';
+import { useFonderoProfileController } from '@/lib/controllers/useFonderoProfileController';
 import {
-  getFonditaName, setFonditaName,
-  getFonditaDescription, setFonditaDescription,
-  getFonditaDireccion, setFonditaDireccion,
-  getFonditaHorario, setFonditaHorario,
-  getFonditaHorarioSemanal, setFonditaHorarioSemanal,
-  getPagosEfectivo, setPagosEfectivo,
-  getPagosTrans, setPagosTrans,
-  getPagosTarjeta, setPagosTarjeta,
-} from '@/lib/menu-store';
-import {
-  type HorarioSemanal,
-  deserialize, migrarStringLegacy, serialize,
-  horarioDefault, resumenHorario,
   dateToHHMM, hhmmToDate,
   DIAS_ORDEN_LUNES,
 } from '@/lib/horario';
@@ -172,262 +151,45 @@ export default function PerfilScreen() {
   const { theme } = useTheme();
   const s = makeStyles(theme);
   const insets = useSafeAreaInsets();
-
-  const initialSemanal =
-    getFonditaHorarioSemanal() ?? migrarStringLegacy(getFonditaHorario()) ?? horarioDefault();
-
-  const [nombre,        setNombre]        = useState(getFonditaName());
-  const [descripcion,   setDescripcion]   = useState(getFonditaDescription());
-  const [ubicacion,     setUbicacion]     = useState(getFonditaDireccion());
-  // Horario semanal. Solo se edita un contexto a la vez: horario general o un
-  // día concreto. La selección múltiple anterior hacía ambiguo qué se cambiaba.
-  const [semanal,       setSemanal]       = useState<HorarioSemanal>(initialSemanal);
-  const [seleccion,     setSeleccion]     = useState<number[]>([]);
-  const [showApertura,  setShowApertura]  = useState(false);
-  const [showCierre,    setShowCierre]    = useState(false);
-  const [pagosEfectivo, setPagosEfectivoState] = useState(getPagosEfectivo());
-  const [pagosTrans,    setPagosTransState]    = useState(getPagosTrans());
-  const [pagosTarjeta,  setPagosTarjetaState]  = useState(getPagosTarjeta());
-  const [email,         setEmail]         = useState('');
-  const [ready,         setReady]         = useState(false);
-  const [isSaving,      setIsSaving]      = useState(false);
-  const [locationSaved,    setLocationSaved]    = useState(false);
-  const [isSavingLocation, setIsSavingLocation] = useState(false);
-
-  // Resumen natural del horario y firma JSON para detectar cambios.
-  const horarioResumen = resumenHorario(semanal);
-  const semanalJSON = JSON.stringify(serialize(semanal));
-
-  // Día "activo" que alimenta las cápsulas/picker: el primero seleccionado, o
-  // el base (Lunes) cuando no hay selección. Solo para mostrar las horas.
-  const diaActivo = seleccion.length > 0
-    ? semanal.find(d => d.dia === seleccion[0])!
-    : (semanal.find(d => d.dia === 1) ?? semanal[0]);
-  const apertura = diaActivo && !diaActivo.cerrado && diaActivo.abre ? hhmmToDate(diaActivo.abre) : null;
-  const cierre   = diaActivo && !diaActivo.cerrado && diaActivo.cierra ? hhmmToDate(diaActivo.cierra) : null;
-
-  const [savedValues, setSavedValues] = useState({
-    nombre:        getFonditaName(),
-    descripcion:   getFonditaDescription(),
-    ubicacion:     getFonditaDireccion(),
-    horarioJSON:   JSON.stringify(serialize(initialSemanal)),
-    pagosEfectivo: getPagosEfectivo(),
-    pagosTrans:    getPagosTrans(),
-    pagosTarjeta:  getPagosTarjeta(),
-  });
-
-  const isDirty =
-    nombre        !== savedValues.nombre        ||
-    descripcion   !== savedValues.descripcion   ||
-    ubicacion     !== savedValues.ubicacion     ||
-    semanalJSON   !== savedValues.horarioJSON   ||
-    pagosEfectivo !== savedValues.pagosEfectivo ||
-    pagosTrans    !== savedValues.pagosTrans    ||
-    pagosTarjeta  !== savedValues.pagosTarjeta;
-
-  const [showPerfilHint, setShowPerfilHint] = useState(false);
-
-  const fonditaIdRef       = useRef<string | null>(getFonditaId());
-  const nombreUpdatedAtRef = useRef<string | null>(null);
   const nombreInputRef     = useRef<TextInput>(null);
-
-  const aplicarHora = (campo: 'abre' | 'cierra', value: string) => {
-    const target = new Set(seleccion);
-    setSemanal(prev => prev.map(d =>
-      target.has(d.dia) ? { ...d, cerrado: false, [campo]: value } : d
-    ));
-  };
-
-  const toggleCerrado = () => {
-    const target = new Set(seleccion);
-    setSemanal(prev => prev.map(d =>
-      target.has(d.dia)
-        ? d.cerrado
-          ? { ...d, cerrado: false, abre: '08:00', cierra: '16:00' }
-          : { ...d, cerrado: true, abre: null, cierra: null }
-        : d
-    ));
-  };
-
-  const aplicarATodos = () => {
-    if (!diaActivo) return;
-    setSemanal(prev => prev.map(d => ({
-      ...d,
-      cerrado: diaActivo.cerrado,
-      abre: diaActivo.abre,
-      cierra: diaActivo.cierra,
-    })));
-  };
-
-  const toggleDia = (dia: number) => {
-    setShowApertura(false); setShowCierre(false);
-    setSeleccion(prev => prev[0] === dia ? [] : [dia]);
-  };
-
-  useFocusEffect(useCallback(() => {
-    shouldShowHint('fondero_perfil').then((show) => {
-      if (!show) return;
-      const n = getFonditaName();
-      if (!n || n === 'Mi Fondita' || n === 'La Fondita') setShowPerfilHint(true);
-    });
-  }, []));
-
-  useEffect(() => {
-    const init = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-
-        if (!user?.email) {
-          let fallbackId: string | null = getFonditaId();
-          if (!fallbackId) fallbackId = await AsyncStorage.getItem(FONDITA_ID_KEY);
-          if (fallbackId) fonditaIdRef.current = fallbackId;
-          return;
-        }
-
-        setEmail(user.email);
-
-        const selectResult = await supabase
-          .from('fonditas')
-          .select('id, nombre, nombre_updated_at, descripcion, direccion, direccion_visible, horario, horario_semanal, pagos_efectivo, pagos_transferencia, pagos_tarjeta, tipo_negocio, latitude, longitude')
-          .eq('telefono', user.email)
-          .maybeSingle();
-
-        let fondita = selectResult.data;
-
-        if (!fondita) {
-          const insertResult = await supabase
-            .from('fonditas')
-            .insert({ telefono: user.email, nombre: '' })
-            .select('id, nombre, nombre_updated_at, descripcion, direccion, direccion_visible, horario, horario_semanal, pagos_efectivo, pagos_transferencia, pagos_tarjeta, tipo_negocio, latitude, longitude')
-            .single();
-          fondita = insertResult.data;
-        }
-
-        if (!fondita) return;
-
-        fonditaIdRef.current = fondita.id;
-        setFonditaId(fondita.id);
-
-        const n    = fondita.nombre      ?? getFonditaName();
-        const desc = fondita.descripcion ?? getFonditaDescription();
-        const ub   = fondita.direccion   ?? getFonditaDireccion();
-        const hor  = fondita.horario     ?? '';
-        const pe   = fondita.pagos_efectivo      ?? false;
-        const pt   = fondita.pagos_transferencia ?? false;
-        const ptar = fondita.pagos_tarjeta       ?? false;
-
-        // Horario: jsonb nuevo, fallback al string viejo, fallback al default.
-        const sem = deserialize((fondita as any).horario_semanal)
-          ?? migrarStringLegacy(hor)
-          ?? horarioDefault();
-
-        setNombre(n);         setFonditaName(n);
-        setDescripcion(desc); setFonditaDescription(desc);
-        setUbicacion(ub);     setFonditaDireccion(ub);
-        setFonditaHorario(hor);
-        setSemanal(sem);
-        setFonditaHorarioSemanal(sem);
-        setSeleccion([]);
-
-        setPagosEfectivoState(pe);  setPagosEfectivo(pe);
-        setPagosTransState(pt);     setPagosTrans(pt);
-        setPagosTarjetaState(ptar); setPagosTarjeta(ptar);
-        setSavedValues({ nombre: n, descripcion: desc, ubicacion: ub, horarioJSON: JSON.stringify(serialize(sem)), pagosEfectivo: pe, pagosTrans: pt, pagosTarjeta: ptar });
-
-        if (fondita.nombre_updated_at) nombreUpdatedAtRef.current = fondita.nombre_updated_at;
-        if ((fondita as any).latitude && (fondita as any).longitude) setLocationSaved(true);
-      } finally {
-        setReady(true);
-      }
-    };
-    init();
-  }, []);
-
-  // Back protegido: si hay cambios sin guardar, confirma antes de salir.
-  const handleBack = () => {
-    if (!isDirty) { router.back(); return; }
-    Alert.alert('¿Descartar cambios?', 'Hiciste cambios que no has guardado. Si sales, se pierden.', [
-      { text: 'Seguir editando', style: 'cancel' },
-      { text: 'Descartar', style: 'destructive', onPress: () => router.back() },
-    ]);
-  };
-
-  const handleSaveAll = async () => {
-    if (isSaving) return;
-    setIsSaving(true);
-    try {
-      const fonditaId = fonditaIdRef.current;
-      const newSaved  = { ...savedValues };
-      const payload: Record<string, unknown> = {};
-
-      if (nombre !== savedValues.nombre) {
-        const lastUpdated = nombreUpdatedAtRef.current;
-        const blocked = lastUpdated && (Date.now() - new Date(lastUpdated).getTime()) / (1000 * 60 * 60 * 24) < 15;
-        if (blocked) {
-          const fechaDisponible = new Date(new Date(lastUpdated!).getTime() + 15 * 24 * 60 * 60 * 1000);
-          Alert.alert('Nombre en pausa', `Tu nombre está bloqueado hasta el ${fechaDisponible.toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })}. Los demás cambios sí se guardaron.`);
-        } else {
-          payload['nombre'] = nombre.trim();
-          payload['nombre_updated_at'] = new Date().toISOString();
-          newSaved.nombre = nombre.trim();
-        }
-      }
-
-      if (descripcion !== savedValues.descripcion) { payload['descripcion'] = descripcion.trim(); newSaved.descripcion = descripcion.trim(); }
-      if (ubicacion   !== savedValues.ubicacion)   { payload['direccion']   = ubicacion.trim();   newSaved.ubicacion   = ubicacion.trim(); }
-      if (semanalJSON !== savedValues.horarioJSON) {
-        payload['horario_semanal'] = serialize(semanal);  // fuente de verdad
-        payload['horario']         = horarioResumen;       // text legacy / compat
-        newSaved.horarioJSON       = semanalJSON;
-      }
-      if (pagosEfectivo !== savedValues.pagosEfectivo) { payload['pagos_efectivo']      = pagosEfectivo; newSaved.pagosEfectivo = pagosEfectivo; }
-      if (pagosTrans    !== savedValues.pagosTrans)    { payload['pagos_transferencia'] = pagosTrans;    newSaved.pagosTrans    = pagosTrans; }
-      if (pagosTarjeta  !== savedValues.pagosTarjeta)  { payload['pagos_tarjeta']       = pagosTarjeta;  newSaved.pagosTarjeta  = pagosTarjeta; }
-
-      if (Object.keys(payload).length > 0) {
-        if (fonditaId) await supabase.from('fonditas').update(payload).eq('id', fonditaId);
-        if ('nombre' in payload)              { setFonditaName(nombre.trim()); nombreUpdatedAtRef.current = new Date().toISOString(); }
-        if ('descripcion' in payload)         setFonditaDescription(descripcion.trim());
-        if ('direccion' in payload)           setFonditaDireccion(ubicacion.trim());
-        if ('horario_semanal' in payload)     { setFonditaHorarioSemanal(semanal); setFonditaHorario(horarioResumen); }
-        if ('pagos_efectivo' in payload)      setPagosEfectivo(pagosEfectivo);
-        if ('pagos_transferencia' in payload) setPagosTrans(pagosTrans);
-        if ('pagos_tarjeta' in payload)       setPagosTarjeta(pagosTarjeta);
-      }
-
-      setSavedValues(newSaved);
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleSignOut = async () => {
-    await supabase.auth.signOut().catch(() => {});
-    await AsyncStorage.removeItem('@patio_user_role').catch(() => {});
-    router.replace('/');
-  };
-
-  const handleMarkLocation = async () => {
-    const fonditaId = fonditaIdRef.current;
-    if (!fonditaId) { Alert.alert('Guarda tu perfil primero'); return; }
-    setIsSavingLocation(true);
-    try {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert('Sin permiso de ubicación', 'Activa la ubicación en Ajustes para aparecer en el mapa.');
-        return;
-      }
-      const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-      const { latitude, longitude } = pos.coords;
-      const { error } = await supabase.from('fonditas').update({ latitude, longitude }).eq('id', fonditaId);
-      if (error) throw error;
-      setLocationSaved(true);
-    } catch {
-      Alert.alert('Error', 'No se pudo guardar la ubicación. Intenta de nuevo.');
-    } finally {
-      setIsSavingLocation(false);
-    }
-  };
+  const {
+    apertura,
+    aplicarATodos,
+    aplicarHora,
+    cierre,
+    descripcion,
+    email,
+    handleBack,
+    handleMarkLocation,
+    handleSaveAll,
+    handleSignOut,
+    isDirty,
+    isSaving,
+    isSavingLocation,
+    locationSaved,
+    markPerfilHintDone,
+    nombre,
+    pagosEfectivo,
+    pagosTarjeta,
+    pagosTrans,
+    ready,
+    seleccion,
+    semanal,
+    setDescripcion,
+    setNombre,
+    setPagosEfectivoState,
+    setPagosTarjetaState,
+    setPagosTransState,
+    setShowApertura,
+    setShowCierre,
+    setUbicacion,
+    showApertura,
+    showCierre,
+    showPerfilHint,
+    toggleCerrado,
+    toggleDia,
+    ubicacion,
+  } = useFonderoProfileController();
 
   return (
     <View style={[s.container, { paddingTop: insets.top + 8 }]}>
@@ -607,7 +369,7 @@ export default function PerfilScreen() {
             <View style={s.divider} />
             <TouchableOpacity style={s.settingRow} onPress={handleSignOut} activeOpacity={0.7}>
               <Ionicons name="log-out-outline" size={20} color={DARK.textSecondary} style={s.settingIcon} />
-              <Text style={s.rowLabel} allowFontScaling={true}>Cerrar sesión</Text>
+              <Text style={s.rowLabel} allowFontScaling={true}>{email ? 'Cerrar sesión' : 'Salir del modo Fondero'}</Text>
               <Ionicons name="chevron-forward" size={15} color={DARK.textMute} />
             </TouchableOpacity>
           </View>
@@ -640,11 +402,10 @@ export default function PerfilScreen() {
         body="Nombre, tipo de negocio, horario y cómo cobras. Dos minutos y tu perfil está listo."
         primaryLabel="Empezar"
         onPrimary={() => {
-          markHintSeen('fondero_perfil');
-          setShowPerfilHint(false);
+          markPerfilHintDone();
           setTimeout(() => nombreInputRef.current?.focus(), 300);
         }}
-        onDismiss={() => { markHintSeen('fondero_perfil'); setShowPerfilHint(false); }}
+        onDismiss={markPerfilHintDone}
       />
     </View>
   );

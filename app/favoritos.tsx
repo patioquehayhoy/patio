@@ -1,14 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect } from '@react-navigation/native';
 import { router, Stack } from 'expo-router';
-import { useCallback, useState } from 'react';
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BottomTabBar } from '@/components/bottom-tab-bar';
+import { todayDish, useFavoritePatiosController } from '@/lib/controllers/useFavoritePatiosController';
 import { useTabBarScroll } from '@/lib/tab-bar-visibility';
-import { getFavoritePatioIds } from '@/lib/favorites';
-import { fetchFonditaById, type Patio } from '@/lib/patios';
 import { Fonts, Radius, useTheme, type Theme } from '@/lib/theme';
 
 const OPEN_GREEN = '#1F9D55';
@@ -29,12 +26,6 @@ function photoFor(id: string) {
   let h = 0;
   for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
   return HERO_PHOTOS[h % HERO_PHOTOS.length];
-}
-
-// Platillo del día derivado del primer item del menú (si existe).
-function todayDish(patio: Patio): string | null {
-  const first = patio.menu?.[0]?.items?.slice(0, 2).map((it) => it.name).join(' · ');
-  return first || null;
 }
 
 function makeStyles(t: Theme) {
@@ -80,22 +71,7 @@ export default function FavoritosScreen() {
   const s = makeStyles(theme);
   const insets = useSafeAreaInsets();
   const { onScroll } = useTabBarScroll();
-  const [patios, setPatios] = useState<Patio[]>([]);
-
-  useFocusEffect(
-    useCallback(() => {
-      let mounted = true;
-      getFavoritePatioIds().then(async (ids) => {
-        if (!mounted) return;
-        const remote = await Promise.all(ids.map((id) => fetchFonditaById(id)));
-        const real = remote.filter((p): p is Patio => p !== null);
-        if (mounted) setPatios(real);
-      });
-      return () => { mounted = false; };
-    }, [])
-  );
-
-  const withMenu = patios.filter((p) => todayDish(p) !== null).length;
+  const { patios, withMenu } = useFavoritePatiosController();
 
   return (
     <View style={[s.container, { paddingTop: insets.top }]}>

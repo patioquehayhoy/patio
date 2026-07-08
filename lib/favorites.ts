@@ -24,3 +24,10 @@ export async function toggleFavoritePatio(id: string) {
   await setFavoritePatioIds(next);
   return next;
 }
+
+export async function removeFavoritePatio(id: string) {
+  const current = await getFavoritePatioIds();
+  const next = current.filter((favoriteId) => favoriteId !== id);
+  await setFavoritePatioIds(next);
+  return next;
+}

@@ -10,6 +10,10 @@ import { supabase } from '@/lib/supabase';
 
 const OTP_TYPES: EmailOtpType[] = ['signup', 'invite', 'magiclink', 'recovery', 'email_change', 'email'];
 
+function debugLog(...args: unknown[]) {
+  if (__DEV__) console.log(...args);
+}
+
 function normalizeOtpType(rawType: string | null): EmailOtpType {
   if (!rawType) return 'magiclink';
   return OTP_TYPES.includes(rawType as EmailOtpType) ? (rawType as EmailOtpType) : 'magiclink';
@@ -60,7 +64,7 @@ export default function LoginCallback() {
           setTimeout(() => { sub.remove(); resolve(null); }, 800);
         });
       }
-      console.log('[auth] login callback url:', rawUrl);
+      debugLog('[auth] login callback url:', rawUrl);
 
       if (!rawUrl) {
         setDiag('Link vacío — regresando a inicio');
@@ -75,17 +79,17 @@ export default function LoginCallback() {
       if (code) {
         setDiag('Intercambiando code…');
         const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-        if (error) { errMsg = `code: ${error.message}`; console.log('[auth] exchangeCodeForSession error:', error.message); }
+        if (error) { errMsg = `code: ${error.message}`; debugLog('[auth] exchangeCodeForSession error:', error.message); }
         session = data.session ?? null;
       } else if (tokenHash) {
         setDiag('Verificando OTP…');
         const otpType = normalizeOtpType(type);
         const { data, error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: otpType });
-        if (error) { errMsg = `otp: ${error.message}`; console.log('[auth] verifyOtp error:', error.message); }
+        if (error) { errMsg = `otp: ${error.message}`; debugLog('[auth] verifyOtp error:', error.message); }
         session = data.session ?? null;
       } else {
         errMsg = 'sin code ni token_hash en URL';
-        console.log('[auth] callback sin code/token_hash');
+        debugLog('[auth] callback sin code/token_hash');
       }
 
       if (!session) {

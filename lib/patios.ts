@@ -229,11 +229,12 @@ function tipoLabel(tipo: string | null): string {
 
 // En desarrollo, el mapa se llena con lugares sintéticos (lib/demo.ts) además
 // de los reales, para poder recorrer la app completa. En producción solo Supabase.
-function withDevPatios(reales: Patio[]): Patio[] {
+async function withDevPatios(reales: Patio[]): Promise<Patio[]> {
   if (!__DEV__) return reales;
-  const { DEMO_PATIOS } = require('./demo') as typeof import('./demo');
+  const { DEMO_PATIOS, getDevPublishedPatio } = require('./demo') as typeof import('./demo');
+  const published = await getDevPublishedPatio();
   const vistos = new Set(reales.map((p) => p.id));
-  const extra = [...MOCK_PATIOS, ...DEMO_PATIOS].filter((p) => !vistos.has(p.id));
+  const extra = [...(published ? [published] : []), ...MOCK_PATIOS, ...DEMO_PATIOS].filter((p) => !vistos.has(p.id));
   return [...reales, ...extra];
 }
 
@@ -275,7 +276,7 @@ export async function fetchPublicFonditas(): Promise<Patio[]> {
 
 export async function fetchFonditaById(id: string): Promise<Patio | null> {
   // Mocks y demo (DEV) se resuelven local: sus ids no existen en Supabase.
-  const local = withDevPatios([]).find((p) => p.id === id);
+  const local = (await withDevPatios([])).find((p) => p.id === id);
   if (local) return local;
 
   const base = 'id, nombre, descripcion, direccion, horario, horario_semanal, tipo_negocio, pagos_efectivo, pagos_transferencia, pagos_tarjeta';
@@ -325,8 +326,14 @@ export function searchPatiosByDish(query: string): PatioDishMatch[] {
   const queryTokens = normalizedQuery.split(/\s+/).filter(Boolean);
 
   const matches: PatioDishMatch[] = [];
+  const patios = __DEV__
+    ? (() => {
+        const { DEMO_PATIOS } = require('./demo') as typeof import('./demo');
+        return [...MOCK_PATIOS, ...DEMO_PATIOS];
+      })()
+    : MOCK_PATIOS;
 
-  for (const patio of MOCK_PATIOS) {
+  for (const patio of patios) {
     for (const section of patio.menu) {
       for (const item of section.items) {
         const itemName = normalizeSearch(item.name);

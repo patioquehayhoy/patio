@@ -51,11 +51,13 @@ export default function PerfilScreen() {
   const [name, setName] = useState('');
   const [address, setAddress] = useState('');
   const [hasMenu, setHasMenu] = useState(false);
+  const [hasSession, setHasSession] = useState(false);
 
   useFocusEffect(useCallback(() => {
     setName(getFonditaName());
     setAddress(getFonditaDireccion());
     setHasMenu(!!getMenuData()?.secciones.some(section => section.platillos.some(dish => dish.nombre.trim())));
+    supabase.auth.getSession().then(({ data }) => setHasSession(!!data.session));
   }, []));
 
   const signOut = async () => {
@@ -96,7 +98,7 @@ export default function PerfilScreen() {
           />
           <Row c={c} icon="sparkles-outline" title="Nuestro manifiesto" onPress={() => router.push('/manifiesto')} />
           <Row c={c} icon="help-circle-outline" title="Soporte" onPress={() => Linking.openURL(`mailto:${SUPPORT_EMAIL}?subject=Soporte%20Patio`)} />
-          <Row c={c} icon="log-out-outline" title="Cerrar sesión" last onPress={signOut} />
+          <Row c={c} icon="log-out-outline" title={hasSession ? 'Cerrar sesión' : 'Salir del modo Fondero'} last onPress={signOut} />
         </View>
       </ScrollView>
       <BottomTabBar variant="fondero" />

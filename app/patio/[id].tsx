@@ -1,24 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
-import { router, Stack, useLocalSearchParams } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
-import { Image, Linking, Platform, ScrollView, Share, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Stack, useLocalSearchParams } from 'expo-router';
+import { useMemo } from 'react';
+import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AgentSpinner } from '@/components/agent-spinner';
-import { getFavoritePatioIds, toggleFavoritePatio } from '@/lib/favorites';
+import { usePatioDetailController } from '@/lib/controllers/usePatioDetailController';
 import { MAP_STYLE_DARK, MAP_STYLE_LIGHT } from '@/lib/map-style';
-import { fetchFonditaById, getPatioById, type Patio, type PatioMenuSection } from '@/lib/patios';
-import { fetchMenuForFondita } from '@/lib/menu';
-import {
-  estaAbiertoAhora, horarioDeHoy, proximaApertura, resumenHorario,
-  formatHHMM12, DIA_CORTO,
-} from '@/lib/horario';
-import { getPatioRating } from '@/lib/ratings';
-import { setAvisar } from '@/lib/notifications';
-import { registerPatioView } from '@/lib/stats';
 import { Fonts, Radius, Spacing, useTheme, type Theme } from '@/lib/theme';
 
 const HERO_HEIGHT = 300;
@@ -110,8 +101,7 @@ function makeStyles(t: Theme) {
     divider: { height: StyleSheet.hairlineWidth, backgroundColor: t.border, marginLeft: 52 },
 
     // ── CTA sticky ──
-    ctaWrap: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 20, paddingTop: 14 },
-    ctaFade: { position: 'absolute', left: 0, right: 0, top: -24, height: 24 },
+    ctaWrap: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 20, paddingTop: 10, backgroundColor: t.bg },
     ctaBtn: { height: 54, borderRadius: Radius.card, backgroundColor: t.text, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8 },
     ctaText: { fontSize: 16, fontWeight: '700', color: t.bg, letterSpacing: -0.2 },
     ctaRow: { flexDirection: 'row', gap: 8 },
@@ -137,105 +127,35 @@ function makeStyles(t: Theme) {
   });
 }
 
-// Fallback para fonditas sin horario semanal (mocks/legacy): regex sobre el string.
-function isPatioOpenLegacy(open: string): boolean | null {
-  const m = open.match(/(\d+)(am|pm)?[-–](\d+)(am|pm)/i);
-  if (!m) return null;
-  const toH = (h: string, period: string) => {
-    let n = parseInt(h, 10);
-    if (period?.toLowerCase() === 'pm' && n !== 12) n += 12;
-    if (period?.toLowerCase() === 'am' && n === 12) n = 0;
-    return n;
-  };
-  const now = new Date();
-  const cdmx = now.getUTCHours() - 6 + (now.getUTCMinutes() / 60); // CDMX = UTC-6
-  const open_ = toH(m[1], m[2] ?? m[4]);
-  const close_ = toH(m[3], m[4]);
-  return cdmx >= open_ && cdmx < close_;
-}
-
-// Estado abierto/cerrado: prefiere el horario semanal, cae al string legacy.
-function patioStatus(patio: Patio): boolean | null {
-  if (patio.weeklyHours) return estaAbiertoAhora(patio.weeklyHours);
-  return isPatioOpenLegacy(patio.open);
-}
-
 export default function PatioDetailScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const { theme } = useTheme();
   const s = makeStyles(theme);
   const insets = useSafeAreaInsets();
-  const [patio, setPatio] = useState<Patio | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [liveMenu, setLiveMenu] = useState<PatioMenuSection[] | null>(null);
-  const [isSaved, setIsSaved] = useState(false);
-  const [userRating, setUserRating] = useState<number | null>(null);
-  const [notifyOn, setNotifyOn] = useState(false);
-
-  useEffect(() => {
-    const cleanId = Array.isArray(id) ? id[0] : id;
-    if (!cleanId) { setLoading(false); return; }
-    const mock = getPatioById(cleanId);
-    if (mock) { setPatio(mock); setLoading(false); return; }
-    fetchFonditaById(cleanId).then((found) => { setPatio(found); setLoading(false); });
-  }, [id]);
-
-  const patioId = patio?.id;
-  const heroPhoto = useMemo(() => heroPhotoFor(patioId ?? (Array.isArray(id) ? id[0] : id) ?? ''), [patioId, id]);
-  useEffect(() => {
-    if (!patioId) return;
-    registerPatioView(patioId);
-    getFavoritePatioIds().then((ids) => setIsSaved(ids.includes(patioId)));
-    getPatioRating(patioId).then((r) => { if (r) setUserRating(r.stars); });
-    fetchMenuForFondita(patioId).then((sections) => { if (sections.length > 0) setLiveMenu(sections); });
-  }, [patioId]);
-
-  const handleBack = () => {
-    if (router.canGoBack()) router.back();
-    else router.replace('/explorar');
-  };
-
-  const handleComoLlegar = () => {
-    if (!patio) return;
-    const { latitude, longitude } = patio;
-    const url = Platform.select({
-      ios: `maps://maps.apple.com/?daddr=${latitude},${longitude}&dirflg=d`,
-      android: `google.navigation:q=${latitude},${longitude}`,
-    });
-    if (url) Linking.openURL(url);
-  };
-
-  const handleAvisarManana = async () => {
-    if (!patio) return;
-    // Guarda como favorito (para recibir el aviso) y activa el recordatorio.
-    if (!isSaved) {
-      const next = await toggleFavoritePatio(patio.id);
-      setIsSaved(next.includes(patio.id));
-    }
-    const ok = await setAvisar(true);
-    setNotifyOn(ok);
-  };
-
-  const handleToggleSaved = async () => {
-    if (!patio) return;
-    const next = await toggleFavoritePatio(patio.id);
-    setIsSaved(next.includes(patio.id));
-  };
-
-  const handleShare = () => {
-    if (!patio) return;
-    const mapsUrl = `https://maps.apple.com/?q=${patio.latitude},${patio.longitude}`;
-    const horarioTexto = resumenHorario(patio.weeklyHours) || patio.open;
-    Share.share({
-      message: `${patio.name}\n${patio.category} · ${patio.area}\n${horarioTexto}\n\n📍 ${patio.address}\n${mapsUrl}`,
-    });
-  };
-
-  const handleStarPress = (n: number) => {
-    if (!patio) return;
-    // Abre la pantalla de reseña completa, con las estrellas preseleccionadas.
-    router.push({ pathname: '/resena/[id]', params: { id: patio.id, stars: String(n) } });
-  };
+  const {
+    cleanId,
+    handleAvisarManana,
+    handleBack,
+    handleComoLlegar,
+    handleShare,
+    handleStarPress,
+    handleToggleSaved,
+    hoy,
+    isSaved,
+    loading,
+    notifyOn,
+    patio,
+    patioId,
+    priceLabel,
+    proxTexto,
+    rangoHoy,
+    sections,
+    soldOut,
+    status,
+    todayLabel,
+    userRating,
+  } = usePatioDetailController(id);
+  const heroPhoto = useMemo(() => heroPhotoFor(patioId ?? cleanId ?? ''), [patioId, cleanId]);
 
   const GlassIcon = ({ name, size = 17, onPress, color }: { name: keyof typeof Ionicons.glyphMap; size?: number; onPress: () => void; color?: string }) => (
     <TouchableOpacity style={s.glassIcon} onPress={onPress} activeOpacity={0.76}>
@@ -268,21 +188,6 @@ export default function PatioDetailScreen() {
       </View>
     );
   }
-
-  const status = patioStatus(patio);
-  const soldOut = status === false; // cerrado ahora = ya se acabó el menú de hoy
-  const sections = liveMenu ?? patio.menu;
-
-  // Horario para display: rango de hoy + próxima apertura (cuando está cerrado).
-  const hoy = horarioDeHoy(patio.weeklyHours);
-  const rangoHoy = hoy && !hoy.cerrado && hoy.abre && hoy.cierra
-    ? `${formatHHMM12(hoy.abre)}–${formatHHMM12(hoy.cierra)}`
-    : patio.open;
-  const prox = proximaApertura(patio.weeklyHours);
-  const proxTexto = prox
-    ? `${DIA_CORTO[prox.dia]} abre a las ${formatHHMM12(prox.abre)}`
-    : null;
-  const priceLabel = patio.price === '$' ? 'Precio pendiente' : patio.price;
 
   return (
     <View style={s.container}>
@@ -342,7 +247,7 @@ export default function PatioDetailScreen() {
                 <Ionicons name="time-outline" size={13} color={theme.textMute} />
                 <Text style={s.metaPrimary}>{hoy && hoy.cerrado ? 'Cerrado' : rangoHoy}</Text>
               </View>
-              <Text style={s.metaSecondary}>{DIA_CORTO[(hoy?.dia ?? new Date().getDay())]}</Text>
+              <Text style={s.metaSecondary}>{todayLabel}</Text>
             </View>
           </View>
 
@@ -433,7 +338,6 @@ export default function PatioDetailScreen() {
 
       {/* CTA sticky */}
       <View style={[s.ctaWrap, { paddingBottom: insets.bottom + 16 }]}>
-        <LinearGradient colors={['rgba(248,248,245,0)', theme.bg]} style={s.ctaFade} pointerEvents="none" />
         <View style={{ backgroundColor: theme.bg }}>
           {soldOut ? (
             <View style={s.ctaRow}>

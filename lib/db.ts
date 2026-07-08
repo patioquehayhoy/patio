@@ -4,6 +4,10 @@ import type { MenuData } from './menu-store';
 
 export const FONDITA_ID_KEY = '@lafondita_fondita_id';
 
+function debugLog(...args: unknown[]) {
+  if (__DEV__) console.log(...args);
+}
+
 function hoy(): string {
   return new Date().toISOString().split('T')[0];
 }
@@ -41,7 +45,7 @@ export async function saveMenuHoy(fonditaId: string, data: MenuData): Promise<vo
     return;
   }
   const fecha = hoy();
-  console.log('[db] saveMenuHoy →', { fonditaId, fecha });
+  debugLog('[db] saveMenuHoy →', { fonditaId, fecha });
   const { error } = await supabase
     .from('menus')
     .upsert(
@@ -49,7 +53,7 @@ export async function saveMenuHoy(fonditaId: string, data: MenuData): Promise<vo
       { onConflict: 'fondita_id,fecha' }
     );
   if (error) console.error('[db] saveMenuHoy error:', error);
-  else console.log('[db] saveMenuHoy OK');
+  else debugLog('[db] saveMenuHoy OK');
 }
 
 export async function deleteMenuHoy(fonditaId: string): Promise<void> {
@@ -68,7 +72,7 @@ export async function loadMenuHoy(fonditaId: string): Promise<MenuData | null> {
     return null;
   }
   const fecha = hoy();
-  console.log('[db] loadMenuHoy →', { fonditaId, fecha });
+  debugLog('[db] loadMenuHoy →', { fonditaId, fecha });
   const { data, error } = await supabase
     .from('menus')
     .select('secciones')
@@ -77,7 +81,7 @@ export async function loadMenuHoy(fonditaId: string): Promise<MenuData | null> {
     .maybeSingle();
 
   if (error) { console.error('[db] loadMenuHoy error:', error); return null; }
-  console.log('[db] loadMenuHoy result:', data ? 'encontrado' : 'null');
+  debugLog('[db] loadMenuHoy result:', data ? 'encontrado' : 'null');
   return data ? (data.secciones as MenuData) : null;
 }
 
@@ -95,7 +99,7 @@ export async function saveCarta(fonditaId: string, data: MenuData): Promise<void
     console.warn('[db] saveCarta skipped: fonditaId inválido para UUID', { fonditaId });
     return;
   }
-  console.log('[db] saveCarta →', { fonditaId });
+  debugLog('[db] saveCarta →', { fonditaId });
   const { error } = await supabase
     .from('cartas')
     .upsert(
@@ -103,7 +107,7 @@ export async function saveCarta(fonditaId: string, data: MenuData): Promise<void
       { onConflict: 'fondita_id' }
     );
   if (error) console.error('[db] saveCarta error:', error);
-  else console.log('[db] saveCarta OK');
+  else debugLog('[db] saveCarta OK');
 }
 
 export async function loadCarta(fonditaId: string): Promise<MenuData | null> {
@@ -111,7 +115,7 @@ export async function loadCarta(fonditaId: string): Promise<MenuData | null> {
     console.warn('[db] loadCarta skipped: fonditaId inválido para UUID', { fonditaId });
     return null;
   }
-  console.log('[db] loadCarta →', { fonditaId });
+  debugLog('[db] loadCarta →', { fonditaId });
   const { data, error } = await supabase
     .from('cartas')
     .select('secciones')
@@ -119,6 +123,6 @@ export async function loadCarta(fonditaId: string): Promise<MenuData | null> {
     .maybeSingle();
 
   if (error) { console.error('[db] loadCarta error:', error); return null; }
-  console.log('[db] loadCarta result:', data ? 'encontrado' : 'null');
+  debugLog('[db] loadCarta result:', data ? 'encontrado' : 'null');
   return data ? (data.secciones as MenuData) : null;
 }

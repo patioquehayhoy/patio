@@ -1,8 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
-import { router, Stack } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { Stack } from 'expo-router';
+import { useMemo } from 'react';
 import {
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -14,21 +13,14 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { saveMenuHoy } from '@/lib/db';
-import { saveLocalMenu } from '@/lib/menu-history';
+import { emptyMenu, useFonderoMenuDraftController } from '@/lib/controllers/useFonderoMenuDraftController';
 import { fonderoPalette, type FonderoColors } from '@/lib/fondero-palette';
-import {
-  makePlatilloId,
-  makeSectionId,
-  setMenuData,
-  type MenuData,
-  type Platillo,
-  type Seccion,
-} from '@/lib/menu-store';
+import type { MenuData } from '@/lib/menu-store';
 import { Fonts, useTheme } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
-import { getFonditaId } from '@/lib/user-store';
 import { GlassIconButton } from '@/components/glass-button';
+
+export { emptyMenu };
 
 type Props = {
   initialData: MenuData;
@@ -37,113 +29,29 @@ type Props = {
   onRetake?: () => void;
 };
 
-const blankDish = (): Platillo => ({
-  id: makePlatilloId(),
-  nombre: '',
-  descripcion: '',
-  precio: '',
-});
-
-const blankSection = (name = 'MENÚ DE HOY'): Seccion => ({
-  id: makeSectionId(),
-  nombre: name,
-  precio: '',
-  platillos: [blankDish()],
-});
-
-export function emptyMenu(): MenuData {
-  return { secciones: [blankSection()] };
-}
-
 export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
   const c = fonderoPalette(theme.isDark);
   const s = useMemo(() => makeStyles(c), [c]);
-  const [data, setData] = useState<MenuData>(() =>
-    initialData.secciones.length ? initialData : emptyMenu()
-  );
-  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
-  const [details, setDetails] = useState<Record<string, boolean>>({});
-  const [sectionActions, setSectionActions] = useState<string | null>(null);
-  const [publishing, setPublishing] = useState(false);
-
-  const patchSection = (id: string, patch: Partial<Seccion>) =>
-    setData(prev => ({
-      secciones: prev.secciones.map(sec => sec.id === id ? { ...sec, ...patch } : sec),
-    }));
-
-  const patchDish = (sectionId: string, dishId: string, patch: Partial<Platillo>) =>
-    setData(prev => ({
-      secciones: prev.secciones.map(sec =>
-        sec.id === sectionId
-          ? { ...sec, platillos: sec.platillos.map(dish => dish.id === dishId ? { ...dish, ...patch } : dish) }
-          : sec
-      ),
-    }));
-
-  const removeDish = (sectionId: string, dishId: string) =>
-    setData(prev => ({
-      secciones: prev.secciones.map(sec =>
-        sec.id === sectionId
-          ? { ...sec, platillos: sec.platillos.filter(dish => dish.id !== dishId) }
-          : sec
-      ),
-    }));
-
-  const moveSection = (id: string, direction: -1 | 1) =>
-    setData(prev => {
-      const next = [...prev.secciones];
-      const index = next.findIndex(sec => sec.id === id);
-      const target = index + direction;
-      if (index < 0 || target < 0 || target >= next.length) return prev;
-      [next[index], next[target]] = [next[target], next[index]];
-      return { secciones: next };
-    });
-
-  const removeSection = (id: string) => {
-    if (data.secciones.length === 1) {
-      Alert.alert('Tu menú necesita una sección');
-      return;
-    }
-    setData(prev => ({ secciones: prev.secciones.filter(sec => sec.id !== id) }));
-  };
-
-  const publish = async () => {
-    if (publishing) return;
-    const clean: MenuData = {
-      secciones: data.secciones
-        .map(sec => ({
-          ...sec,
-          nombre: sec.nombre.trim() || 'MENÚ DE HOY',
-          precio: sec.precio.trim(),
-          platillos: sec.platillos
-            .filter(dish => dish.nombre.trim())
-            .map(dish => ({
-              ...dish,
-              nombre: dish.nombre.trim(),
-              descripcion: dish.descripcion.trim(),
-              precio: dish.precio.trim(),
-            })),
-        }))
-        .filter(sec => sec.platillos.length),
-    };
-    if (!clean.secciones.length) {
-      Alert.alert('Falta el menú', 'Escribe al menos un platillo para publicarlo.');
-      return;
-    }
-    setPublishing(true);
-    try {
-      setMenuData(clean);
-      await saveLocalMenu(clean);
-      const fonditaId = getFonditaId();
-      if (fonditaId) await saveMenuHoy(fonditaId, clean);
-      router.replace('/menu-publicado');
-    } catch {
-      Alert.alert('No se pudo publicar', 'Revisa tu conexión e inténtalo otra vez.');
-      setPublishing(false);
-    }
-  };
+  const {
+    addDish,
+    addSection,
+    collapsed,
+    data,
+    details,
+    moveSection,
+    patchDish,
+    patchSection,
+    publish,
+    publishing,
+    removeDish,
+    removeSection,
+    revealDetails,
+    sectionActions,
+    toggleCollapsed,
+    toggleSectionActions,
+  } = useFonderoMenuDraftController(initialData);
 
   return (
     <View style={s.root}>
@@ -177,7 +85,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                 <View style={s.sectionHeader}>
                   <TouchableOpacity
                     style={s.collapseButton}
-                    onPress={() => setCollapsed(prev => ({ ...prev, [section.id]: !isCollapsed }))}
+                    onPress={() => toggleCollapsed(section.id)}
                     activeOpacity={0.7}>
                     <Ionicons name={isCollapsed ? 'chevron-forward' : 'chevron-down'} size={17} color={c.textSecondary} />
                   </TouchableOpacity>
@@ -191,7 +99,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                   />
                   <TouchableOpacity
                     style={s.moreButton}
-                    onPress={() => setSectionActions(actionsOpen ? null : section.id)}
+                    onPress={() => toggleSectionActions(section.id)}
                     activeOpacity={0.7}>
                     <Ionicons name="ellipsis-horizontal" size={19} color={c.textSecondary} />
                   </TouchableOpacity>
@@ -270,7 +178,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                             </View>
                           ) : (
                             <TouchableOpacity
-                              onPress={() => setDetails(prev => ({ ...prev, [dish.id]: true }))}
+                              onPress={() => revealDetails(dish.id)}
                               activeOpacity={0.7}>
                               <Text style={s.addDetail}>+ detalle o precio</Text>
                             </TouchableOpacity>
@@ -281,7 +189,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
 
                     <TouchableOpacity
                       style={s.addDish}
-                      onPress={() => patchSection(section.id, { platillos: [...section.platillos, blankDish()] })}
+                      onPress={() => addDish(section)}
                       activeOpacity={0.7}>
                       <Ionicons name="add" size={16} color={c.accent} />
                       <Text style={s.addDishText}>Agregar platillo</Text>
@@ -294,9 +202,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
 
           <TouchableOpacity
             style={s.addSection}
-            onPress={() => setData(prev => ({
-              secciones: [...prev.secciones, blankSection(`SECCIÓN ${prev.secciones.length + 1}`)],
-            }))}
+            onPress={addSection}
             activeOpacity={0.7}>
             <Ionicons name="add-circle-outline" size={18} color={c.textSecondary} />
             <Text style={s.addSectionText}>Agregar otra sección</Text>

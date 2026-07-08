@@ -8,7 +8,7 @@ import { makePlatilloId, makeSectionId, normalizeMenuData, type MenuData } from 
 const KEY = '@patio_menu_history';
 const MAX = 30;
 
-export type LocalMenuEntry = { fecha: string; secciones: MenuData };
+export type LocalMenuEntry = { fecha: string; secciones: MenuData; nombre?: string };
 
 function hoy(): string {
   return new Date().toISOString().split('T')[0];
@@ -17,10 +17,30 @@ function hoy(): string {
 export async function saveLocalMenu(data: MenuData): Promise<void> {
   try {
     const list = await getLocalMenus();
-    const next = [{ fecha: hoy(), secciones: data }, ...list.filter((m) => m.fecha !== hoy())].slice(0, MAX);
+    const current = list.find((m) => m.fecha === hoy());
+    const next = [{ fecha: hoy(), secciones: data, nombre: current?.nombre }, ...list.filter((m) => m.fecha !== hoy())].slice(0, MAX);
     await AsyncStorage.setItem(KEY, JSON.stringify(next));
   } catch {
     // Persistencia local es best-effort: nunca debe bloquear la publicación.
+  }
+}
+
+export async function renameLocalMenu(fecha: string, nombre: string, secciones: MenuData): Promise<void> {
+  try {
+    const cleanName = nombre.trim();
+    const list = await getLocalMenus();
+    const existing = list.find((menu) => menu.fecha === fecha);
+    const nextEntry: LocalMenuEntry = {
+      fecha,
+      secciones: existing?.secciones ?? secciones,
+      ...(cleanName ? { nombre: cleanName } : {}),
+    };
+    const next = [nextEntry, ...list.filter((menu) => menu.fecha !== fecha)]
+      .sort((a, b) => b.fecha.localeCompare(a.fecha))
+      .slice(0, MAX);
+    await AsyncStorage.setItem(KEY, JSON.stringify(next));
+  } catch {
+    // El nombre es un nicety local; si falla, el historial sigue funcionando.
   }
 }
 
@@ -34,7 +54,8 @@ export async function getLocalMenus(): Promise<LocalMenuEntry[]> {
       .map((entry) => {
         if (!entry || typeof entry.fecha !== 'string') return null;
         const secciones = normalizeMenuData(entry.secciones);
-        return secciones ? { fecha: entry.fecha, secciones } : null;
+        const nombre = typeof entry.nombre === 'string' ? entry.nombre.trim() : '';
+        return secciones ? { fecha: entry.fecha, secciones, ...(nombre ? { nombre } : {}) } : null;
       })
       .filter((entry): entry is LocalMenuEntry => entry !== null);
   } catch {

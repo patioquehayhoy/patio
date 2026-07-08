@@ -1,7 +1,30 @@
 # TASKS — Cola de trabajo para agentes
 
-> Última actualización: 2026-07-07.
+> Última actualización: 2026-07-08.
 > Estado: `[ ]` pendiente | `[x]` hecho | `[~]` en progreso.
+
+## CICLO 2026-07-08 - Estabilizacion arquitectura
+
+- [x] **Rollback conservador de cambios riesgosos** - se sacaron los experimentos recientes en `explorar`, `foto-menu`, `patio/[id]`, `favoritos`, `preview` y docs que marcaban features experimentales como resueltas. Ver `docs/DIFF_AUDIT_2026-07-08.md`.
+- [x] **Diagnostico de arquitectura Patio** - mapa funcional de app real vs Make/Tahoe en `docs/ARCHITECTURE_AUDIT_2026-07-08.md`.
+- [x] **Primer controller Foodie** - `app/explorar.tsx` ya delega datos, busqueda, favoritos, seleccion, seed demo y Share a `lib/controllers/useFoodieExploreController.ts`. La pantalla queda principalmente como render + animacion.
+- [x] **Segundo controller: Patio Detail** - `app/patio/[id].tsx` ya delega carga de patio, menú vivo, favorito, rating, Share, avisos, horarios derivados y CTAs a `lib/controllers/usePatioDetailController.ts`.
+- [x] **Tercer controller: Fondero Menu Draft** - `components/menu-composer.tsx` ya delega estado del draft, secciones, platillos, publicar, persistencia local y Supabase a `lib/controllers/useFonderoMenuDraftController.ts`.
+- [x] **Cuarto controller: Fondero Profile** - `app/perfil-editar.tsx` ya delega Supabase, AsyncStorage, horario semanal, pagos, dirty-state, GPS, logout y hint a `lib/controllers/useFonderoProfileController.ts`.
+- [x] **Quinto controller: Foto Menu State** - `app/foto-menu.tsx` ya delega permisos, picker, normalizacion JPEG, vision, conversion a `MenuData` y estado `idle -> processing -> review` a `lib/controllers/useFotoMenuController.ts`.
+- [x] **Sexto controller: Favoritos Foodie** - `app/favoritos.tsx` ya delega ids guardados, fetch de patios y conteo de menú hoy a `lib/controllers/useFavoritePatiosController.ts`.
+- [x] **Séptimo controller: Historial Fondero** - `app/historial.tsx` ya delega seed demo, merge local/Supabase, reuso, renombrado y helpers de título/fecha a `lib/controllers/useMenuHistoryController.ts`.
+- [x] **Octavo controller: Vistos Foodie** - `app/vistos.tsx` ya delega ids vistos y fetch de patios a `lib/controllers/useViewedPatiosController.ts`; `todayDish` vive en `lib/controllers/patioListHelpers.ts`.
+- [x] **Noveno controller: Cuenta Foodie** - `app/cuenta.tsx` ya delega stats, sesión, sign out y entrada DEV Fondero a `lib/controllers/useFoodieAccountController.ts`.
+- [x] **Décimo controller: Preview Fondero** - `app/preview.tsx` ya delega carga de menú, negocio, secciones, fecha, precio y share/capture a `lib/controllers/useMenuPreviewController.ts`.
+- [x] **Auditoría integral app** - typecheck, lint y export iOS/Android pasan; diagnóstico completo en `docs/APP_AUDIT_2026-07-08.md`.
+- [x] **Simulador DEV end-to-end** - Explorar ya muestra lista de lugares desde el inicio; búsqueda consulta menús demo/locales; publicar menú en Fondero crea/actualiza `Mi Patio Demo` para verlo luego desde Foodie, detalle, guardados y búsqueda.
+- [x] **Explorar tipo mapa/capas** - sheet de `Cerca de ti`/`Guardados` ya se puede ocultar con tap en mapa, botón `Ocultar` o swipe hacia abajo; búsqueda y guardados viven como botones flotantes estilo mapa.
+- [ ] **Siguiente panorámico real** - QA manual en iPhone + revisar navegación completa Foodie/Fondero antes de rediseñar Make/Tahoe.
+- [ ] **P0: sacar IA de cliente antes de producción** - `lib/vision.ts` usa `EXPO_PUBLIC_ANTHROPIC_API_KEY` + `dangerouslyAllowBrowser`; mover a backend/proxy/Edge Function.
+- [ ] **P0: confirmar magic link real** - validar `patio://login-callback` en Supabase Dashboard y en iPhone con correo real.
+- [ ] **P1: corregir expo-doctor** - correr `npx expo install --check`, alinear patch versions Expo y remover `@types/react-native` directo.
+- [ ] **P1: limpiar archivo temporal** - revisar y borrar `app/.perfil.tsx.swp` si no contiene trabajo pendiente.
 
 ## CICLO 2026-07-07 — Feedback de Alejandro en device (transcript de voz)
 
@@ -41,7 +64,7 @@ tab bar y botones, inicio Fondero (foto/a mano/anterior), spinner de visión, re
 ### Tanda 2 (pendientes)
 
 - [ ] **Póster: rediseñar composición** — el logo P no se distingue, espacio raro arriba-derecha. "¿Qué hay hoy? Saaaaaaabes." abajo SÍ le gustó. Candidato Figma Make.
-- [ ] **Nombrar menús en historial** — default (fecha + platillos) editable: "que yo le pueda poner nombre a mis menús".
+- [x] **Nombrar menús en historial** — RESUELTO 2026-07-08: default fecha + platillos, editable con lápiz, persistido localmente por fecha y conservado al mezclar local + Supabase.
 - [ ] **Recorte de galería "chafa"** — el actual es el editor nativo de iOS pero de marco cuadrado; investigar recorte libre como el de la cámara.
 - [ ] **Blur del mapa al buscar se ve muerto** — explorar algo vivo: fotos botánicas, "planta creciendo", o patios prendiéndose conforme escribes. Diseño/Make.
 - [ ] **Navegación simétrica total entre perfiles** — que Foodie y Fondero puedan recorrer TODOS los escenarios (incl. onboarding/registro al cambiar de rol). DECISIÓN confirmada: UNA app hoy, dos al escalar (research Uber).

@@ -1,71 +1,20 @@
 import { Ionicons } from '@expo/vector-icons';
-import { router, Stack, useFocusEffect } from 'expo-router';
-import { useCallback, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { router, Stack } from 'expo-router';
+import { Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BottomTabBar } from '@/components/bottom-tab-bar';
+import { dateLabel, defaultHistoryTitle, useMenuHistoryController } from '@/lib/controllers/useMenuHistoryController';
 import { fonderoPalette } from '@/lib/fondero-palette';
-import { getLocalMenus, seedDemoHistory } from '@/lib/menu-history';
-import { setMenuData, type MenuData } from '@/lib/menu-store';
-import { supabase } from '@/lib/supabase';
 import { useTabBarScroll } from '@/lib/tab-bar-visibility';
 import { Fonts, useTheme } from '@/lib/theme';
-import { getFonditaId } from '@/lib/user-store';
-
-type PublishedMenu = { fecha: string; secciones: MenuData };
-
-function summary(menu: MenuData): string {
-  return menu.secciones
-    .flatMap(section => section.platillos)
-    .map(dish => dish.nombre.trim())
-    .filter(Boolean)
-    .slice(0, 3)
-    .join(' · ');
-}
 
 export default function HistorialScreen() {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
   const c = fonderoPalette(theme.isDark);
-  const [menus, setMenus] = useState<PublishedMenu[]>([]);
-  const [loading, setLoading] = useState(true);
   const { onScroll } = useTabBarScroll();
-
-  useFocusEffect(useCallback(() => {
-    let active = true;
-    const load = async () => {
-      await seedDemoHistory();
-      const locales = await getLocalMenus();
-      const id = getFonditaId();
-      let remotos: PublishedMenu[] = [];
-      if (id) {
-        const { data } = await supabase
-          .from('menus')
-          .select('fecha,secciones')
-          .eq('fondita_id', id)
-          .order('fecha', { ascending: false })
-          .limit(20);
-        remotos = (data ?? []) as PublishedMenu[];
-      }
-      // Supabase manda cuando hay sesión; lo local llena los huecos (modo DEV/offline).
-      const porFecha = new Map<string, PublishedMenu>();
-      for (const menu of locales) porFecha.set(menu.fecha, menu);
-      for (const menu of remotos) porFecha.set(menu.fecha, menu);
-      const merged = [...porFecha.values()].sort((a, b) => b.fecha.localeCompare(a.fecha)).slice(0, 20);
-      if (active) {
-        setMenus(merged);
-        setLoading(false);
-      }
-    };
-    load();
-    return () => { active = false; };
-  }, []));
-
-  const reuse = (menu: MenuData) => {
-    setMenuData(menu);
-    router.push({ pathname: '/menu-editar', params: { reuse: '1' } });
-  };
+  const { closeRename, draftName, editing, loading, menus, openRename, reuse, saveName, setDraftName } = useMenuHistoryController();
 
   return (
     <View style={[s.root, { backgroundColor: c.bg, paddingTop: insets.top }]}>
@@ -87,25 +36,62 @@ export default function HistorialScreen() {
         ) : (
           <View style={[s.list, { borderColor: c.border }]}>
             {menus.map((menu, index) => (
-              <TouchableOpacity
+              <View
                 key={`${menu.fecha}-${index}`}
-                style={[s.row, index > 0 && { borderTopColor: c.border, borderTopWidth: StyleSheet.hairlineWidth }]}
-                onPress={() => reuse(menu.secciones)}
-                activeOpacity={0.74}>
-                <View style={{ flex: 1 }}>
+                style={[s.row, index > 0 && { borderTopColor: c.border, borderTopWidth: StyleSheet.hairlineWidth }]}>
+                <TouchableOpacity style={{ flex: 1 }} onPress={() => reuse(menu.secciones)} activeOpacity={0.74}>
                   <Text style={[s.date, { color: c.accent }]}>
-                    {new Date(`${menu.fecha}T12:00:00`).toLocaleDateString('es-MX', { day: 'numeric', month: 'long' })}
+                    {dateLabel(menu.fecha)}
                   </Text>
-                  <Text style={[s.summary, { color: c.text }]} numberOfLines={2}>{summary(menu.secciones) || 'Menú publicado'}</Text>
+                  <Text style={[s.summary, { color: c.text }]} numberOfLines={2}>{menu.nombre || defaultHistoryTitle(menu)}</Text>
+                </TouchableOpacity>
+                <View style={s.rowActions}>
+                  <TouchableOpacity
+                    accessibilityLabel="Nombrar menú"
+                    style={[s.iconBtn, { backgroundColor: c.iconBg }]}
+                    onPress={() => openRename(menu)}
+                    activeOpacity={0.72}>
+                    <Ionicons name="pencil" size={16} color={c.textSecondary} />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    accessibilityLabel="Usar menú"
+                    style={[s.iconBtn, { backgroundColor: c.iconBg }]}
+                    onPress={() => reuse(menu.secciones)}
+                    activeOpacity={0.72}>
+                    <Ionicons name="refresh" size={17} color={c.textSecondary} />
+                  </TouchableOpacity>
                 </View>
-                <View style={[s.reuse, { backgroundColor: c.iconBg }]}>
-                  <Ionicons name="refresh" size={17} color={c.textSecondary} />
-                </View>
-              </TouchableOpacity>
+              </View>
             ))}
           </View>
         )}
       </ScrollView>
+      <Modal visible={!!editing} transparent animationType="fade" onRequestClose={closeRename}>
+        <View style={s.modalBackdrop}>
+          <View style={[s.modalCard, { backgroundColor: c.surface, borderColor: c.border }]}>
+            <Text style={[s.modalTitle, { color: c.text }]}>Nombrar menú</Text>
+            <TextInput
+              value={draftName}
+              onChangeText={(value) => setDraftName(value.slice(0, 48))}
+              style={[s.nameInput, { color: c.text, borderColor: c.border }]}
+              placeholder="Ej. Viernes de pozole"
+              placeholderTextColor={c.textMute}
+              selectionColor={c.accent}
+              autoFocus
+              returnKeyType="done"
+              onSubmitEditing={saveName}
+            />
+            <View style={s.modalActions}>
+              <TouchableOpacity style={[s.modalBtn, { borderColor: c.border }]} onPress={closeRename} activeOpacity={0.75}>
+                <Text style={[s.modalBtnText, { color: c.textSecondary }]}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[s.modalBtn, s.modalPrimary, { backgroundColor: c.accent }]} onPress={saveName} activeOpacity={0.82}>
+                <Text style={s.modalPrimaryText}>Guardar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
       <BottomTabBar variant="fondero" />
     </View>
   );
@@ -125,5 +111,15 @@ const s = StyleSheet.create({
   row: { minHeight: 84, paddingHorizontal: 17, paddingVertical: 15, flexDirection: 'row', alignItems: 'center', gap: 14 },
   date: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.8 },
   summary: { marginTop: 5, fontSize: 15, lineHeight: 20, fontWeight: '500' },
-  reuse: { width: 38, height: 38, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
+  rowActions: { flexDirection: 'row', gap: 8 },
+  iconBtn: { width: 38, height: 38, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
+  modalBackdrop: { flex: 1, paddingHorizontal: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.42)' },
+  modalCard: { width: '100%', maxWidth: 360, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, padding: 18 },
+  modalTitle: { fontSize: 22, fontWeight: '900', fontFamily: Fonts.brand },
+  nameInput: { marginTop: 16, minHeight: 48, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 14, fontSize: 16, fontWeight: '500' },
+  modalActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 10, marginTop: 16 },
+  modalBtn: { minHeight: 44, minWidth: 104, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 14 },
+  modalPrimary: { borderWidth: 0 },
+  modalBtnText: { fontSize: 15, fontWeight: '700' },
+  modalPrimaryText: { color: '#fff', fontSize: 15, fontWeight: '700' },
 });

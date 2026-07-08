@@ -1,13 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect } from '@react-navigation/native';
 import { router, Stack } from 'expo-router';
-import { useCallback, useRef, useState } from 'react';
+import { useRef } from 'react';
 import { Animated, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { CollapsingHeader, CollapsingTitle } from '@/components/collapsing-header';
-import { getViewedPatioIds } from '@/lib/stats';
-import { fetchFonditaById, type Patio } from '@/lib/patios';
+import { todayDish } from '@/lib/controllers/patioListHelpers';
+import { useViewedPatiosController } from '@/lib/controllers/useViewedPatiosController';
 import { Fonts, Radius, useTheme, type Theme } from '@/lib/theme';
 
 const OPEN_GREEN = '#1F9D55';
@@ -28,11 +27,6 @@ function photoFor(id: string) {
   let h = 0;
   for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
   return HERO_PHOTOS[h % HERO_PHOTOS.length];
-}
-
-function todayDish(patio: Patio): string | null {
-  const first = patio.menu?.[0]?.items?.slice(0, 2).map((it) => it.name).join(' · ');
-  return first || null;
 }
 
 function makeStyles(t: Theme) {
@@ -77,21 +71,7 @@ export default function VistosScreen() {
   const { theme } = useTheme();
   const s = makeStyles(theme);
   const insets = useSafeAreaInsets();
-  const [patios, setPatios] = useState<Patio[]>([]);
-
-  useFocusEffect(
-    useCallback(() => {
-      let mounted = true;
-      getViewedPatioIds().then(async (ids) => {
-        if (!mounted) return;
-        // Resolver cada id preservando el ORDEN de recencia (más reciente primero).
-        const resolved = await Promise.all(ids.map((id) => fetchFonditaById(id)));
-        if (mounted) setPatios(resolved.filter((p): p is Patio => p !== null));
-      });
-      return () => { mounted = false; };
-    }, [])
-  );
-
+  const { patios } = useViewedPatiosController();
   const scrollY = useRef(new Animated.Value(0)).current;
 
   return (

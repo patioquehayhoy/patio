@@ -1,10 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
-import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, Stack } from 'expo-router';
-import { useState } from 'react';
 import {
-  Alert,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -14,89 +11,24 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AgentSpinner } from '@/components/agent-spinner';
 import { MenuComposer } from '@/components/menu-composer';
+import { useFotoMenuController } from '@/lib/controllers/useFotoMenuController';
 import { fonderoPalette } from '@/lib/fondero-palette';
-import {
-  makePlatilloId,
-  makeSectionId,
-  type MenuData,
-} from '@/lib/menu-store';
 import { Fonts, useTheme, type Theme } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
-import { leerMenuDeFoto, type MenuSeccion } from '@/lib/vision';
 import { GlassIconButton } from '@/components/glass-button';
-
-type State = 'idle' | 'processing' | 'review';
 
 export default function FotoMenuScreen() {
   const { theme } = useTheme();
   const c = fonderoPalette(theme.isDark);
   const s = makeStyles(theme);
-  const [state, setState] = useState<State>('idle');
-  const [menu, setMenu] = useState<MenuData>({ secciones: [] });
-
-  const openCamera = async () => {
-    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
-    if (!permissionResult.granted) {
-      Alert.alert('Cámara desactivada', 'Puedes elegir una foto de tu galería.');
-      return;
-    }
-    // Cámara nativa de iOS: zoom, recorte y "usar foto" como cualquier app.
-    const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ['images'],
-      allowsEditing: true,
-      quality: 0.85,
-    });
-    const asset = !result.canceled ? result.assets[0] : null;
-    if (asset) await analyze(asset.uri);
-  };
-
-  const analyze = async (uri: string) => {
-    setState('processing');
-    try {
-      // Convierte HEIC, PNG y RAW/DNG a un JPEG consistente para el modelo.
-      const ImageManipulator = await import('expo-image-manipulator');
-      const normalized = await ImageManipulator.manipulateAsync(
-        uri,
-        [],
-        { compress: 0.9, format: ImageManipulator.SaveFormat.JPEG }
-      );
-      const result = await leerMenuDeFoto(normalized.uri);
-      const hasDishes = result.secciones.some(section => section.platillos.some(dish => dish.nombre.trim()));
-      if (result.error || !hasDishes) {
-        Alert.alert('No pudimos leerlo', 'Prueba con una imagen más clara o escríbelo manualmente.');
-        setState('idle');
-        return;
-      }
-      setMenu(visionToMenu(result.secciones, result.precio));
-      setState('review');
-    } catch {
-      Alert.alert('No pudimos leerlo', 'Prueba otra foto o escríbelo manualmente.');
-      setState('idle');
-    }
-  };
-
-  const choosePhoto = async () => {
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permissionResult.granted) {
-      Alert.alert('Fotos desactivadas', 'Activa el permiso para elegir una imagen.');
-      return;
-    }
-    // Sin allowsEditing: el recorte de expo sobre PHPicker es una UI propia
-    // ("diseño chafa"); mejor selector nativo puro y la visión lee la foto completa.
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      quality: 0.9,
-    });
-    const asset = !result.canceled ? result.assets[0] : null;
-    if (asset) await analyze(asset.uri);
-  };
+  const { choosePhoto, menu, openCamera, resetToIdle, state } = useFotoMenuController();
 
   if (state === 'review') {
     return (
       <MenuComposer
         initialData={menu}
         source="foto"
-        onBack={() => setState('idle')}
+        onBack={resetToIdle}
         onRetake={openCamera}
       />
     );
@@ -143,28 +75,6 @@ export default function FotoMenuScreen() {
       </View>
     </SafeAreaView>
   );
-}
-
-function visionToMenu(sections: MenuSeccion[], menuPrice: string): MenuData {
-  const price = (value?: string) => (value ?? '').replace(/[^0-9.]/g, '');
-  const clean = (value: string) => value
-    .replace(/\((?:men[uú]|menu)\)/gi, '')
-    .replace(/\b(?:men[uú]|menu)\b/gi, '')
-    .replace(/\s{2,}/g, ' ')
-    .trim();
-  return {
-    secciones: sections.map((section, index) => ({
-      id: makeSectionId(),
-      nombre: clean(section.nombre) || 'MENÚ DE HOY',
-      precio: index === 0 ? price(menuPrice) : price(section.precioSeccion),
-      platillos: section.platillos.map(dish => ({
-        id: makePlatilloId(),
-        nombre: clean(dish.nombre),
-        descripcion: clean(dish.descripcion ?? ''),
-        precio: '',
-      })),
-    })),
-  };
 }
 
 function makeStyles(theme: Theme) {

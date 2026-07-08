@@ -62,6 +62,16 @@ export default function LoginScreen() {
     router.push('/fondero-acceso');
   };
 
+  const handleDevFoodie = () => {
+    AsyncStorage.setItem(ROLE_KEY, 'foodie').catch(() => {});
+    router.replace('/explorar');
+  };
+
+  const handleDevFondero = () => {
+    AsyncStorage.setItem(ROLE_KEY, 'fondero').catch(() => {});
+    router.replace('/menu');
+  };
+
   if (checkingSession) {
     return (
       <View style={[styles.centered, { backgroundColor: theme.bg }]}>
@@ -104,13 +114,13 @@ export default function LoginScreen() {
               <View style={[styles.devBar, { borderColor: theme.border }]}>
                 <TouchableOpacity
                   style={[styles.devBtn, { borderColor: theme.border }]}
-                  onPress={() => router.replace('/explorar')}
+                  onPress={handleDevFoodie}
                   activeOpacity={0.7}>
                   <Text style={[styles.devBtnText, { color: theme.textSecondary }]}>DEV · Foodie</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.devBtn, { borderColor: theme.border }]}
-                  onPress={() => router.replace('/menu')}
+                  onPress={handleDevFondero}
                   activeOpacity={0.7}>
                   <Text style={[styles.devBtnText, { color: theme.textSecondary }]}>DEV · Fondero</Text>
                 </TouchableOpacity>

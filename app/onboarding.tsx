@@ -7,6 +7,7 @@ import { Animated, Easing, Image, StyleSheet, Text, TouchableOpacity, View } fro
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Fonts, Radius, useTheme, type Theme } from '@/lib/theme';
+import { noWidow } from '@/lib/typography';
 
 const ONBOARDING_KEY = 'onboarding_done';
 const HERO_H = 380;
@@ -23,7 +24,7 @@ type Slide = {
 // Copy alineado a identidad verbal (slide 2 corregido: sin "en su voz").
 const SLIDES: Slide[] = [
   {
-    eyebrow: 'Esto no es delivery',
+    eyebrow: 'Barrio vivo',
     title: 'Saber qué hay hoy.',
     body: 'Las cocinas de tu barrio publican su menú del día. Tú decides si vale la caminata.',
     cta: 'Continuar',
@@ -31,7 +32,7 @@ const SLIDES: Slide[] = [
     image: require('../assets/hero/botanica-3.png'),
   },
   {
-    eyebrow: 'Sin filtros raros',
+    eyebrow: 'Menú real',
     title: 'Lo que se cocina hoy.',
     body: 'El menú escrito como te lo diría en persona. Tinga, bistec, sopa de fideo. Real.',
     cta: 'Continuar',
@@ -39,10 +40,10 @@ const SLIDES: Slide[] = [
     image: require('../assets/hero/botanica-1.png'),
   },
   {
-    eyebrow: 'Cuando quieras',
+    eyebrow: 'Tus lugares',
     title: 'Te avisamos si abre.',
     body: 'Guarda tus lugares favoritos y te decimos cuando publican menú. Sin spam, sin notificaciones inútiles.',
-    cta: 'Permitir ubicación',
+    cta: 'Activar avisos',
     icon: 'notifications-outline',
     image: require('../assets/hero/botanica-2.png'),
   },
@@ -123,8 +124,8 @@ export default function OnboardingScreen() {
 
         <Animated.View style={{ opacity: fade }}>
           <Text style={s.eyebrow} allowFontScaling={true}>{slide.eyebrow}</Text>
-          <Text style={s.title} allowFontScaling={true}>{slide.title}</Text>
-          <Text style={s.body} allowFontScaling={true}>{slide.body}</Text>
+          <Text style={s.title} allowFontScaling={true}>{noWidow(slide.title)}</Text>
+          <Text style={s.body} allowFontScaling={true}>{noWidow(slide.body)}</Text>
         </Animated.View>
 
         <View style={s.spacer} />

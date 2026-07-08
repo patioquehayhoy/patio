@@ -40,7 +40,7 @@ export async function fetchMenuForFondita(fonditaId: string): Promise<PatioMenuS
 }
 
 function normalize(s: string): string {
-  return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+  return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
 }
 
 function matchesQuery(text: string, q: string): boolean {
@@ -62,6 +62,37 @@ function extractMatches(secciones: MenuData['secciones'], patio: Patio, query: s
       }
     }
   }
+  return matches;
+}
+
+function extractPatioMenuMatches(patio: Patio, query: string): PatioDishMatch[] {
+  const q = normalize(query);
+  const tokens = q.split(/\s+/).filter(Boolean);
+  const matches: PatioDishMatch[] = [];
+
+  for (const section of patio.menu) {
+    for (const item of section.items) {
+      const haystack = [
+        item.name,
+        item.price ?? '',
+        section.section,
+        patio.name,
+        patio.category,
+        patio.reason,
+        ...(item.tags ?? []),
+      ].map(normalize).join(' ');
+
+      if (!haystack.includes(q) && !tokens.every((token) => haystack.includes(token))) continue;
+
+      matches.push({
+        patio,
+        section: section.section,
+        item,
+        score: normalize(item.name).includes(q) ? 90 : normalize(section.section).includes(q) ? 50 : 25,
+      });
+    }
+  }
+
   return matches;
 }
 
@@ -87,6 +118,18 @@ export async function searchLiveMenus(query: string, patios: Patio[]): Promise<P
 
   for (const row of cartas.data ?? []) addResults(row.fondita_id, row.secciones as MenuData);
   for (const row of menus.data ?? []) addResults(row.fondita_id, row.secciones as MenuData);
+
+  if (__DEV__) {
+    for (const patio of patios) {
+      for (const match of extractPatioMenuMatches(patio, query)) {
+        const key = `${patio.id}-${match.item.name}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          results.push(match);
+        }
+      }
+    }
+  }
 
   return results.sort((a, b) => b.score - a.score);
 }

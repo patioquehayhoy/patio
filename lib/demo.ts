@@ -2,9 +2,100 @@
 // NADA de esto corre en producción: todo está detrás de __DEV__.
 // Lugares variados (no solo fondas: elotes, hamburguesas, mariscos, postres…)
 // para probar guardados por categoría, búsqueda por platillo y fichas.
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 import { setFavoritePatioIds, getFavoritePatioIds } from './favorites';
+import { makePlatilloId, makeSectionId, type MenuData } from './menu-store';
 import { registerPatioView, getViewedPatioIds } from './stats';
-import type { Patio } from './patios';
+import type { Patio, PatioMenuSection } from './patios';
+
+export const DEV_MY_PATIO_ID = 'demo-mi-patio';
+const DEV_PUBLISHED_MENU_KEY = '@patio_demo_published_menu';
+
+function menuToSections(data: MenuData): PatioMenuSection[] {
+  return data.secciones
+    .map((section) => ({
+      section: section.nombre.trim() || 'MENÚ DEL DÍA',
+      price: section.precio.trim() || undefined,
+      items: section.platillos
+        .filter((dish) => dish.nombre.trim())
+        .map((dish) => ({
+          name: dish.nombre.trim(),
+          price: dish.precio.trim() ? `$${dish.precio.trim().replace(/^\$/, '')}` : undefined,
+          tags: [dish.nombre, dish.descripcion, section.nombre].filter(Boolean),
+        })),
+    }))
+    .filter((section) => section.items.length);
+}
+
+function makeDemoMenu(): MenuData {
+  const section = (nombre: string, platillos: [string, string, string][]) => ({
+    id: makeSectionId(),
+    nombre,
+    precio: '',
+    platillos: platillos.map(([nombrePlatillo, descripcion, precio]) => ({
+      id: makePlatilloId(),
+      nombre: nombrePlatillo,
+      descripcion,
+      precio,
+    })),
+  });
+
+  return {
+    secciones: [
+      section('MENÚ DEL DÍA', [
+        ['Mole rojo con pollo', 'Con arroz rojo, frijoles y tortillas', '95'],
+        ['Enchiladas verdes', 'Pollo, crema, queso y cebolla', '90'],
+        ['Caldo tlalpeño', 'Con garbanzo, pollo y chipotle', '85'],
+      ]),
+      section('BEBIDAS', [
+        ['Agua de jamaica', '', '25'],
+        ['Agua de horchata', '', '25'],
+      ]),
+    ],
+  };
+}
+
+export async function saveDevPublishedMenu(data: MenuData): Promise<void> {
+  if (!__DEV__) return;
+  await AsyncStorage.setItem(DEV_PUBLISHED_MENU_KEY, JSON.stringify(data));
+}
+
+export async function getDevPublishedMenu(): Promise<MenuData | null> {
+  if (!__DEV__) return null;
+  try {
+    const raw = await AsyncStorage.getItem(DEV_PUBLISHED_MENU_KEY);
+    return raw ? (JSON.parse(raw) as MenuData) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function makeDevPublishedPatio(data: MenuData): Patio {
+  return {
+    id: DEV_MY_PATIO_ID,
+    name: 'Mi Patio Demo',
+    category: 'Fondita',
+    area: 'Irrigación',
+    price: '$',
+    address: 'Presa Salinillas 24',
+    open: '8am-5pm',
+    rating: 'Nuevo',
+    reason: 'Tu menú publicado en modo simulador',
+    latitude: 19.4429,
+    longitude: -99.2044,
+    x: 52,
+    y: 45,
+    menu: menuToSections(data),
+    payments: ['Efectivo', 'Transferencia'],
+    weeklyHours: null,
+  };
+}
+
+export async function getDevPublishedPatio(): Promise<Patio | null> {
+  const menu = await getDevPublishedMenu();
+  return menu ? makeDevPublishedPatio(menu) : null;
+}
 
 export const DEMO_PATIOS: Patio[] = [
   {
@@ -219,7 +310,8 @@ const DEMO_VIEWED = ['demo-jugos-sol', 'demo-burgers-charly', 'demo-mariscos-gü
 
 export async function seedDemoFoodie(): Promise<void> {
   if (!__DEV__) return;
-  const [saved, viewed] = await Promise.all([getFavoritePatioIds(), getViewedPatioIds()]);
+  const [saved, viewed, published] = await Promise.all([getFavoritePatioIds(), getViewedPatioIds(), getDevPublishedMenu()]);
+  if (!published) await saveDevPublishedMenu(makeDemoMenu());
   if (saved.length === 0) await setFavoritePatioIds(DEMO_SAVED);
   if (viewed.length <= 5) {
     // Registrar en orden inverso deja el primero de la lista como el más reciente.

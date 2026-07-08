@@ -1,19 +1,16 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect } from '@react-navigation/native';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, Stack } from 'expo-router';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, Keyboard, KeyboardAvoidingView, Platform, ScrollView, Share, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import MapView, { Marker, type Region } from 'react-native-maps';
+import { useEffect, useRef, useState } from 'react';
+import { Animated, Keyboard, PanResponder, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import MapView, { Marker } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { getFavoritePatioIds, toggleFavoritePatio } from '@/lib/favorites';
 import { MAP_STYLE_DARK, MAP_STYLE_LIGHT } from '@/lib/map-style';
 import { FoodieLoading } from '@/components/foodie-loading';
 import { BottomTabBar } from '@/components/bottom-tab-bar';
-import { fetchPublicFonditas, type Patio, type PatioDishMatch } from '@/lib/patios';
-import { searchLiveMenus } from '@/lib/menu';
+import { FOODIE_INITIAL_REGION, useFoodieExploreController } from '@/lib/controllers/useFoodieExploreController';
 import { noWidow } from '@/lib/typography';
 import { Fonts, Radius, useTheme, type Theme } from '@/lib/theme';
 
@@ -33,6 +30,12 @@ function makeStyles(t: Theme) {
     pinDot: { width: 3, height: 3, borderRadius: 2, backgroundColor: t.surface },
     pinSmallDot: { width: 14, height: 14, borderRadius: 7, backgroundColor: t.accent, borderWidth: 2.5, borderColor: t.isDark ? 'rgba(25,26,27,0.70)' : 'rgba(255,255,255,0.85)', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.22, shadowRadius: 3, elevation: 2 },
     searchPill: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingVertical: 15, borderRadius: 18, overflow: 'hidden', backgroundColor: t.isDark ? 'rgba(20,21,24,0.55)' : 'rgba(255,255,255,0.78)', borderWidth: StyleSheet.hairlineWidth, borderColor: btnBorder, shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: btnShadowOpacity + 0.04, shadowRadius: 22, elevation: 4 },
+    mapButtons: { position: 'absolute', left: 16, right: 16, zIndex: 12, flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
+    mapButtonStack: { gap: 8 },
+    mapButton: { width: 44, height: 44, borderRadius: 14, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', backgroundColor: t.isDark ? 'rgba(20,21,24,0.78)' : 'rgba(255,255,255,0.88)', borderWidth: StyleSheet.hairlineWidth, borderColor: btnBorder, shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: btnShadowOpacity + 0.06, shadowRadius: 14, elevation: 4 },
+    mapButtonActive: { backgroundColor: t.text },
+    mapButtonBadge: { position: 'absolute', top: 5, right: 5, minWidth: 15, height: 15, borderRadius: 8, paddingHorizontal: 4, alignItems: 'center', justifyContent: 'center', backgroundColor: t.accent },
+    mapButtonBadgeText: { fontSize: 8, fontWeight: '900', color: '#fff' },
     searchRow: { flex: 1, height: 44, borderRadius: 16, overflow: 'hidden', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, gap: 8, borderWidth: StyleSheet.hairlineWidth, borderColor: btnBorder, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: btnShadowOpacity, shadowRadius: 16, elevation: 2 },
     searchInput: { flex: 1, fontSize: 15, fontWeight: '300', color: t.text, height: 44, paddingVertical: 0 },
     sheet: { position: 'absolute', left: 14, right: 14, bottom: 14, maxHeight: '48%', borderRadius: Radius.sheet, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: t.isDark ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.18)', shadowColor: '#000', shadowOffset: { width: 0, height: 12 }, shadowOpacity: t.isDark ? 0.20 : 0.08, shadowRadius: 32, elevation: 8 },
@@ -101,53 +104,65 @@ function PulsingDot({ style, delay = 0 }: { style: object; delay?: number }) {
   return <Animated.View style={[style, { transform: [{ scale }] }]} />;
 }
 
-const INITIAL_REGION: Region = {
-  latitude: 19.4429,
-  longitude: -99.2044,
-  latitudeDelta: 0.012,
-  longitudeDelta: 0.012,
-};
-
 export default function ExplorarScreen() {
   const { theme } = useTheme();
   const s = makeStyles(theme);
   const insets = useSafeAreaInsets();
-
-  // selectedId: which pin is highlighted. showHeader: user explicitly tapped a pin/row.
-  // These two are always moved together via selectPatio/deselect — never set independently.
-  const [allPatios, setAllPatios] = useState<Patio[]>([]);
-  const [initialLoading, setInitialLoading] = useState(true);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [showHeader, setShowHeader] = useState(false);
-  const [savedIds, setSavedIds] = useState<string[]>([]);
-  const [searchActive, setSearchActive] = useState(false);
-  const [query, setQuery] = useState('');
-  const [visibleRegion, setVisibleRegion] = useState<Region>(INITIAL_REGION);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
-  const searchInputRef = useRef<TextInput>(null);
   const shimmerAnim = useRef(new Animated.Value(0)).current;
   const idleLayerOpacity = useRef(new Animated.Value(1)).current;
   const searchBlurOpacity = useRef(new Animated.Value(0)).current;
+  const {
+    allPatios,
+    closeSheet,
+    closeSearch,
+    featuredMatch,
+    handleQueryChange,
+    handleShareSelected,
+    idleMode,
+    initialLoading,
+    isFiltering,
+    matchingPatioIds,
+    openSearch,
+    openNearby,
+    openSaved,
+    query,
+    savedIds,
+    savedPatios,
+    searchActive,
+    searchInputRef,
+    searchPending,
+    selectPatio,
+    selectedId,
+    selectedDistanceLabel,
+    selectedPatio,
+    selectedSaved,
+    setVisibleRegion,
+    sheetMode,
+    showHeader,
+    toggleSaved,
+    topMatchPerPatio,
+    visiblePatios,
+  } = useFoodieExploreController();
+  const sheetPanResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_event, gesture) => gesture.dy > 12 && Math.abs(gesture.dx) < 28,
+      onPanResponderRelease: (_event, gesture) => {
+        if (gesture.dy > 36) closeSheet();
+      },
+    })
+  ).current;
+  const showSelectedHeader = showHeader;
+  const showSheet = showSelectedHeader || isFiltering || sheetMode !== null;
+  const listPatios = sheetMode === 'saved' ? savedPatios : allPatios;
+  const activeIconColor = theme.surface;
+  const inactiveIconColor = theme.text;
 
   useEffect(() => {
     const show = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow', (e) => setKeyboardHeight(e.endCoordinates.height));
     const hide = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide', () => setKeyboardHeight(0));
     return () => { show.remove(); hide.remove(); };
   }, []);
-
-  useEffect(() => {
-    if (!query.trim()) { setLiveResults([]); setSearchPending(false); return; }
-    let cancelled = false;
-    setSearchPending(true);
-    // Debounce corto: no buscar (ni declarar "sin resultados") en cada tecla.
-    const timer = setTimeout(() => {
-      searchLiveMenus(query, allPatios).then((r) => {
-        if (!cancelled) { setLiveResults(r); setSearchPending(false); }
-      });
-    }, 300);
-    return () => { cancelled = true; clearTimeout(timer); };
-  }, [query, allPatios]);
-
 
   // Shimmer sobre mapa
   useEffect(() => {
@@ -156,43 +171,6 @@ export default function ExplorarScreen() {
     ).start();
     return () => shimmerAnim.stopAnimation();
   }, [shimmerAnim]);
-
-  useEffect(() => {
-    let cancelled = false;
-    // Carga inicial: muestra el FoodieLoading mientras llegan las fonditas reales.
-    const minDelay = new Promise((r) => setTimeout(r, 900));
-    const prepare = __DEV__
-      ? import('@/lib/demo').then((demo) => demo.seedDemoFoodie()).then(fetchPublicFonditas)
-      : fetchPublicFonditas();
-    Promise.all([prepare, minDelay]).then(([db]) => {
-      if (cancelled) return;
-      setAllPatios(db as Patio[]);
-      setInitialLoading(false);
-    }).catch(() => { if (!cancelled) setInitialLoading(false); });
-    return () => { cancelled = true; };
-  }, []);
-
-  const visiblePatios = useMemo(() => {
-    const { latitude, longitude, latitudeDelta, longitudeDelta } = visibleRegion;
-    const minLat = latitude - latitudeDelta / 2;
-    const maxLat = latitude + latitudeDelta / 2;
-    const minLng = longitude - longitudeDelta / 2;
-    const maxLng = longitude + longitudeDelta / 2;
-    return allPatios.filter(
-      (p) => p.latitude > 0 && p.latitude >= minLat && p.latitude <= maxLat && p.longitude >= minLng && p.longitude <= maxLng
-    );
-  }, [visibleRegion, allPatios]);
-
-  const [liveResults, setLiveResults] = useState<PatioDishMatch[]>([]);
-  const [searchPending, setSearchPending] = useState(false);
-  const searchResults = useMemo(() => {
-    if (!query.trim()) return [];
-    return [...liveResults].sort((a, b) => b.score - a.score);
-  }, [liveResults, query]);
-  const matchingPatioIds = useMemo(() => new Set(searchResults.map((r) => r.patio.id)), [searchResults]);
-  // Con 1-2 letras todavía no es una búsqueda: no filtrar ni declarar "sin resultados".
-  const isFiltering = query.trim().length >= 3;
-  const idleMode = !searchActive && !showHeader && !isFiltering;
 
   // Halo Xbox: idle = mapa nítido (sin blur), buscando vacío = blur intenso,
   // buscando con query = blur baja para ver los pins activos
@@ -205,80 +183,13 @@ export default function ExplorarScreen() {
     ]).start();
   }, [searchActive, isFiltering, idleLayerOpacity, searchBlurOpacity]);
 
-  const topMatchPerPatio = useMemo(() => {
-    const seen = new Set<string>();
-    return searchResults.filter((r) => {
-      if (seen.has(r.patio.id)) return false;
-      seen.add(r.patio.id);
-      return true;
-    });
-  }, [searchResults]);
-
-  const selectedPatio = selectedId ? (allPatios.find((p) => p.id === selectedId) ?? null) : null;
-  const featuredMatch = showHeader && isFiltering && selectedId
-    ? (searchResults.find((r) => r.patio.id === selectedId) ?? null)
-    : null;
-  const selectedSaved = selectedId ? savedIds.includes(selectedId) : false;
-
-  useFocusEffect(
-    useCallback(() => {
-      let mounted = true;
-      getFavoritePatioIds().then((ids) => { if (mounted) setSavedIds(ids); });
-      return () => { mounted = false; };
-    }, [])
-  );
-
-  // Explicit user selection — shows the header panel
-  const selectPatio = useCallback((id: string) => {
-    setSelectedId(id);
-    setShowHeader(true);
-  }, []);
-
-  // Explicit deselect — hides the header panel
-  const deselect = useCallback(() => {
-    setSelectedId(null);
-    setShowHeader(false);
-  }, []);
-
-  const toggleSaved = async () => {
-    if (!selectedId) return;
-    const next = await toggleFavoritePatio(selectedId);
-    setSavedIds(next);
-  };
-
-  const handleShareSelected = () => {
-    if (!selectedPatio) return;
-    const mapsUrl = `https://maps.apple.com/?q=${selectedPatio.latitude},${selectedPatio.longitude}`;
-    Share.share({
-      message: `${selectedPatio.name}\n${selectedPatio.category} · ${selectedPatio.area}\n${selectedPatio.open}\n\n📍 ${selectedPatio.address}\n${mapsUrl}`,
-    });
-  };
-
-  const openSearch = useCallback(() => {
-    setSearchActive(true);
-    setTimeout(() => searchInputRef.current?.focus(), 80);
-  }, []);
-
-  const closeSearch = useCallback(() => {
-    Keyboard.dismiss();
-    setSearchActive(false);
-    setQuery('');
-    deselect();
-  }, [deselect]);
-
-  const handleQueryChange = useCallback((text: string) => {
-    setQuery(text);
-    // Clearing the query returns to neutral — no selection
-    if (!text.trim()) deselect();
-  }, [deselect]);
-
   return (
     <View style={s.container}>
       <Stack.Screen options={{ headerShown: false }} />
 
       <View style={s.map}>
         <MapView
-          initialRegion={INITIAL_REGION}
+          initialRegion={FOODIE_INITIAL_REGION}
           customMapStyle={theme.isDark ? MAP_STYLE_DARK : MAP_STYLE_LIGHT}
           loadingEnabled
           mapType="mutedStandard"
@@ -292,16 +203,19 @@ export default function ExplorarScreen() {
           style={s.mapView}
           toolbarEnabled={false}
           userInterfaceStyle={theme.isDark ? 'dark' : 'light'}
-          onPress={() => (searchActive ? closeSearch() : deselect())}
+          onPress={() => (searchActive ? closeSearch() : closeSheet())}
           onRegionChangeComplete={setVisibleRegion}>
           {visiblePatios.map((patio, idx) => {
-            const isSelected = patio.id === selectedId && showHeader;
+            const isSelected = patio.id === selectedId && showSelectedHeader;
             const isMuted = isFiltering && !matchingPatioIds.has(patio.id);
             return (
               <Marker
                 key={patio.id}
                 coordinate={{ latitude: patio.latitude, longitude: patio.longitude }}
-                onPress={() => selectPatio(patio.id)}
+                onPress={(event: any) => {
+                  event.stopPropagation?.();
+                  selectPatio(patio.id);
+                }}
                 tracksViewChanges={false}>
                 <View style={[s.pinHitArea, isMuted && s.pinMuted]}>
                   {isSelected ? (
@@ -330,26 +244,52 @@ export default function ExplorarScreen() {
         </Animated.View>
       </View>
 
-      {/* IDLE LAYER: identidad editorial + buscador centrado (oculto cuando buscas) */}
-      <Animated.View
-        pointerEvents={idleMode ? 'box-none' : 'none'}
-        style={[StyleSheet.absoluteFillObject, { alignItems: 'center', justifyContent: 'center', opacity: idleLayerOpacity }]}>
-        <View style={{ position: 'absolute', left: 24, right: 24 }}>
-          <TouchableOpacity activeOpacity={0.82} onPress={openSearch} style={s.searchPill}>
-            <BlurView intensity={theme.isDark ? 28 : 36} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
-            <Ionicons name="search-outline" size={18} color={theme.textSecondary} />
-            <Text style={{ fontSize: 16, fontWeight: '300', color: theme.textSecondary }}>
-              ¿Qué hay hoy?
-            </Text>
-          </TouchableOpacity>
+      {!searchActive && !isFiltering && (
+        <View style={[s.mapButtons, { top: insets.top + 18 }]} pointerEvents="box-none">
+          <View style={s.mapButtonStack}>
+            <TouchableOpacity
+              accessibilityLabel="Ver lugares cerca"
+              activeOpacity={0.82}
+              onPress={openNearby}
+              style={[s.mapButton, sheetMode === 'nearby' && s.mapButtonActive]}>
+              <Ionicons name="restaurant-outline" size={21} color={sheetMode === 'nearby' ? activeIconColor : inactiveIconColor} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              accessibilityLabel="Ver guardados"
+              activeOpacity={0.82}
+              onPress={openSaved}
+              style={[s.mapButton, sheetMode === 'saved' && s.mapButtonActive]}>
+              <Ionicons name={sheetMode === 'saved' ? 'heart' : 'heart-outline'} size={22} color={sheetMode === 'saved' ? activeIconColor : inactiveIconColor} />
+              {savedIds.length > 0 && (
+                <View style={s.mapButtonBadge}>
+                  <Text style={s.mapButtonBadgeText}>{Math.min(savedIds.length, 99)}</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          </View>
         </View>
-      </Animated.View>
+      )}
+
+      {!showSheet && (
+        <Animated.View
+          pointerEvents={idleMode ? 'box-none' : 'none'}
+          style={[StyleSheet.absoluteFillObject, { alignItems: 'center', justifyContent: 'center', opacity: idleLayerOpacity }]}>
+          <View style={{ position: 'absolute', left: 24, right: 24 }}>
+            <TouchableOpacity activeOpacity={0.82} onPress={openSearch} style={s.searchPill}>
+              <BlurView intensity={theme.isDark ? 28 : 36} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
+              <Ionicons name="search-outline" size={18} color={theme.textSecondary} />
+              <Text style={{ fontSize: 16, fontWeight: '300', color: theme.textSecondary }}>
+                ¿Qué hay hoy?
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </Animated.View>
+      )}
 
       {/* Buscador activo — anclado ENCIMA del teclado */}
       {searchActive && (
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          style={{ position: 'absolute', left: 0, right: 0, bottom: 0 }}
+        <View
+          style={{ position: 'absolute', left: 0, right: 0, bottom: keyboardHeight > 0 ? keyboardHeight : insets.bottom + 82 }}
           pointerEvents="box-none">
           <View style={{ paddingHorizontal: 16, paddingBottom: 12, paddingTop: 8 }}>
             <View style={s.searchRow}>
@@ -368,6 +308,8 @@ export default function ExplorarScreen() {
                 autoCapitalize="none"
                 autoFocus
                 returnKeyType="search"
+                blurOnSubmit={false}
+                onSubmitEditing={Keyboard.dismiss}
                 selectionColor={theme.accent}
               />
               {query.length > 0 && (
@@ -377,16 +319,18 @@ export default function ExplorarScreen() {
               )}
             </View>
           </View>
-        </KeyboardAvoidingView>
+        </View>
       )}
 
-      {(showHeader || isFiltering) && (
-        <View style={[s.sheet, { bottom: keyboardHeight > 0 ? keyboardHeight + 70 : insets.bottom + 82, paddingBottom: insets.bottom ? 4 : 8 }]}>
+      {showSheet && (
+        <View
+          {...sheetPanResponder.panHandlers}
+          style={[s.sheet, { bottom: keyboardHeight > 0 ? keyboardHeight + 70 : insets.bottom + 82, paddingBottom: insets.bottom ? 4 : 8 }]}>
           <BlurView intensity={theme.isDark ? 16 : 22} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
           <View style={s.grabber} />
 
           {/* Header panel — only on explicit selection */}
-          {showHeader && selectedPatio && (
+          {showSelectedHeader && selectedPatio && (
             <>
               <View style={s.selectedPanel}>
                 <View style={s.selectedHeader}>
@@ -402,16 +346,16 @@ export default function ExplorarScreen() {
                 </View>
                 <Text style={s.selectedMeta} allowFontScaling={true}>
                   {featuredMatch
-                    ? `${featuredMatch.section} · ${selectedPatio.area} · ${selectedPatio.open}`
-                    : `${selectedPatio.category} · ${selectedPatio.area} · ${selectedPatio.open}`}
+                    ? [selectedPatio.category, selectedPatio.area, selectedDistanceLabel, selectedPatio.open].filter(Boolean).join(' · ')
+                    : [selectedPatio.category, selectedPatio.area, selectedDistanceLabel, selectedPatio.open].filter(Boolean).join(' · ')}
                 </Text>
                 <View style={s.selectedStats}>
                   <View>
                     {featuredMatch ? (
                       <>
-                        <Text style={s.dishName} allowFontScaling={true}>{featuredMatch.item.name}</Text>
+                        <Text style={s.dishName} allowFontScaling={true}>Tiene {featuredMatch.item.name}</Text>
                         <Text style={s.priceCaption} allowFontScaling={true}>
-                          {featuredMatch.item.price ?? selectedPatio.price}
+                          {featuredMatch.section} · {featuredMatch.item.price ?? selectedPatio.price}
                         </Text>
                       </>
                     ) : (
@@ -449,10 +393,23 @@ export default function ExplorarScreen() {
                   <Text style={s.listFilterText} allowFontScaling={true}>Limpiar</Text>
                 </TouchableOpacity>
               </>
-            ) : <Text style={s.listTitle} allowFontScaling={true}>CERCA DE TI</Text>}
+            ) : (
+              <>
+                <Text style={s.listTitle} allowFontScaling={true}>{sheetMode === 'saved' ? 'GUARDADOS' : 'CERCA DE TI'}</Text>
+                <TouchableOpacity style={s.listFilter} onPress={closeSheet} activeOpacity={0.76}>
+                  <Ionicons name="chevron-down" size={13} color={theme.accent} />
+                  <Text style={s.listFilterText} allowFontScaling={true}>Ocultar</Text>
+                </TouchableOpacity>
+              </>
+            )}
           </View>
 
-          <ScrollView style={s.list} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+          <ScrollView
+            style={s.list}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="on-drag"
+            onScrollBeginDrag={Keyboard.dismiss}>
             {isFiltering ? (
               topMatchPerPatio.length === 0 ? (
                 searchPending ? null : (
@@ -475,12 +432,15 @@ export default function ExplorarScreen() {
                 )
               ) : (
                 topMatchPerPatio.map((match) => {
-                  const active = match.patio.id === selectedId && showHeader;
+                  const active = match.patio.id === selectedId && showSelectedHeader;
                   return (
                     <TouchableOpacity
                       key={`${match.patio.id}-${match.item.name}`}
                       style={[s.patioRow, active && s.patioRowActive]}
-                      onPress={() => selectPatio(match.patio.id)}
+                      onPress={() => {
+                        Keyboard.dismiss();
+                        selectPatio(match.patio.id);
+                      }}
                       activeOpacity={0.76}>
                       <View style={[s.addBox, !active && s.addBoxMuted]}>
                         <Ionicons name="restaurant" size={14} color={active ? theme.surface : theme.textSecondary} />
@@ -497,9 +457,18 @@ export default function ExplorarScreen() {
                   );
                 })
               )
+            ) : listPatios.length === 0 ? (
+              <View style={s.emptyResults}>
+                <View style={s.emptyIconCircle}>
+                  <Ionicons name="heart-outline" size={32} color={theme.accent} />
+                </View>
+                <Text style={s.emptyEyebrow} allowFontScaling={true}>Guardados</Text>
+                <Text style={s.emptyTitle} allowFontScaling={true}>{noWidow('Todavía no has guardado patios.')}</Text>
+                <Text style={s.emptySub} allowFontScaling={true}>{noWidow('Toca un punto o un lugar cercano y usa el corazón para guardarlo aquí.')}</Text>
+              </View>
             ) : (
-              allPatios.map((patio, index) => {
-                const active = patio.id === selectedId && showHeader;
+              listPatios.map((patio, index) => {
+                const active = patio.id === selectedId && showSelectedHeader;
                 return (
                   <TouchableOpacity
                     key={patio.id}

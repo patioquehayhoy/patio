@@ -1,12 +1,9 @@
-import { router, Stack, useFocusEffect } from 'expo-router';
-import { useCallback, useRef, useState } from 'react';
-import { Alert, Image, Platform, ScrollView, Share, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Stack } from 'expo-router';
+import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import * as Sharing from 'expo-sharing';
-import { captureRef } from 'react-native-view-shot';
 
-import { getFonditaName, getMenuData, type MenuData } from '@/lib/menu-store';
+import { useMenuPreviewController } from '@/lib/controllers/useMenuPreviewController';
 import { Fonts, useTheme } from '@/lib/theme';
 import { fonderoPalette, type FonderoColors } from '@/lib/fondero-palette';
 import { GlassIconButton } from '@/components/glass-button';
@@ -22,37 +19,7 @@ export default function PreviewScreen() {
   const { theme } = useTheme();
   const c = fonderoPalette(theme.isDark);
   const s = makeStyles(c);
-  const [menuData, setMenuData] = useState<MenuData | null>(null);
-  const [businessName, setBusinessName] = useState('Tu Patio');
-  const posterRef = useRef<View | null>(null);
-
-  useFocusEffect(
-    useCallback(() => {
-      setMenuData(getMenuData());
-      setBusinessName(getFonditaName() || 'Tu Patio');
-    }, [])
-  );
-
-  const sections = (menuData?.secciones ?? [])
-    .map(section => ({ ...section, platillos: section.platillos.filter(dish => dish.nombre.trim()) }))
-    .filter(section => section.platillos.length);
-  const dayPrice = sections.find(section => section.precio.trim())?.precio.trim();
-  const priceLabel = dayPrice ? `$${dayPrice}` : null;
-  const fecha = new Date().toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' }).toUpperCase();
-
-  const handleShare = async () => {
-    if (!posterRef.current) return;
-    try {
-      const uri = await captureRef(posterRef, { format: 'png', quality: 1, result: 'tmpfile' });
-      if (Platform.OS !== 'web' && (await Sharing.isAvailableAsync())) {
-        await Sharing.shareAsync(uri, { mimeType: 'image/png', dialogTitle: 'Compartir menú', UTI: 'public.png' });
-      } else {
-        await Share.share({ url: uri });
-      }
-    } catch {
-      Alert.alert('No se pudo compartir', 'Intentemos de nuevo.');
-    }
-  };
+  const { businessName, fecha, handleBack, handleShare, posterRef, priceLabel, sections } = useMenuPreviewController();
 
   return (
     <View style={s.root}>
@@ -60,7 +27,7 @@ export default function PreviewScreen() {
 
       {/* Top bar */}
       <View style={[s.top, { top: insets.top + 6 }]}>
-        <GlassIconButton icon="chevron-back" accessibilityLabel="Volver" onPress={() => router.replace('/menu')} />
+        <GlassIconButton icon="chevron-back" accessibilityLabel="Volver" onPress={handleBack} />
         <Text style={s.topTitle} allowFontScaling={true}>Compartir</Text>
         <View style={s.navBtn} />
       </View>

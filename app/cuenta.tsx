@@ -1,21 +1,16 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, Stack } from 'expo-router';
 import { Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useCallback, useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useFocusEffect } from '@react-navigation/native';
 
 import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { ToggleSwitch } from '@/components/toggle-switch';
+import { useFoodieAccountController } from '@/lib/controllers/useFoodieAccountController';
 import { useTabBarScroll } from '@/lib/tab-bar-visibility';
-import { getFoodieStats, type FoodieStats } from '@/lib/stats';
-import { supabase } from '@/lib/supabase';
 import { Fonts, useTheme, type Theme } from '@/lib/theme';
 
 const SUPPORT_EMAIL = 'quehayhoy.patio@gmail.com';
-const ROLE_KEY = '@patio_user_role';
 
 function makeStyles(t: Theme) {
   return StyleSheet.create({
@@ -93,26 +88,7 @@ export default function CuentaScreen() {
   const s = makeStyles(theme);
   const insets = useSafeAreaInsets();
   const { onScroll } = useTabBarScroll();
-  const [stats, setStats] = useState<FoodieStats>({ viewed: 0, saved: 0 });
-  const [hasSession, setHasSession] = useState(false);
-
-  useFocusEffect(
-    useCallback(() => {
-      getFoodieStats().then(setStats);
-      supabase.auth.getSession().then(({ data }) => setHasSession(!!data.session));
-    }, [])
-  );
-
-  const handleSignOut = async () => {
-    await supabase.auth.signOut().catch(() => {});
-    await AsyncStorage.removeItem(ROLE_KEY).catch(() => {});
-    router.replace('/');
-  };
-
-  const handleDevFondero = async () => {
-    await AsyncStorage.setItem(ROLE_KEY, 'fondero').catch(() => {});
-    router.replace('/menu');
-  };
+  const { handleDevFondero, handleSignOut, hasSession, stats } = useFoodieAccountController();
 
   return (
     <View style={[s.root, { paddingTop: insets.top }]}>

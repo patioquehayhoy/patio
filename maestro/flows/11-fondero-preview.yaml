@@ -1,8 +1,7 @@
 appId: com.parcomx.patio
 ---
 - launchApp
-- tapOn: "Dev Fondero"
+- openLink: "patio://preview"
 - waitForAnimationToEnd
-- tapOn: "Compartir"
-- waitForAnimationToEnd
+- assertVisible: "Crear menú"
 - takeScreenshot: maestro/screenshots/11-fondero-preview

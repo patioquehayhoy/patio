@@ -1,10 +1,13 @@
 appId: com.parcomx.patio
 ---
 - launchApp
-- tapOn: "Dev Foodie"
+- openLink: "patio://"
+- tapOn: "Explorar comida"
+- tapOn: "Ver lugares cerca"
 - assertVisible: "CERCA DE TI"
-- tapOn: "Cochitacos"
+- tapOn: "Abrir Cochitacos"
 - waitForAnimationToEnd
-- tapOn: "Ver"
+- tapOn: "Ver Cochitacos"
 - waitForAnimationToEnd
+- assertVisible: "Cómo llegar a Cochitacos"
 - takeScreenshot: maestro/screenshots/05-foodie-patio-detail

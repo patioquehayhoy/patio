@@ -86,7 +86,8 @@ export function usePatioDetailController(id: PatioParam) {
   }, [patioId]);
 
   const status = useMemo(() => (patio ? patioStatus(patio) : null), [patio]);
-  const soldOut = status === false;
+  const isClosed = status === false;
+  const soldOut = patio?.soldOut === true;
   const sections = useMemo(() => liveMenu ?? patio?.menu ?? [], [liveMenu, patio]);
   const hoy = useMemo(() => (patio ? horarioDeHoy(patio.weeklyHours) : null), [patio]);
   const rangoHoy = useMemo(() => {
@@ -138,7 +139,7 @@ export function usePatioDetailController(id: PatioParam) {
     const mapsUrl = `https://maps.apple.com/?q=${patio.latitude},${patio.longitude}`;
     const horarioTexto = resumenHorario(patio.weeklyHours) || patio.open;
     Share.share({
-      message: `${patio.name}\n${patio.category} · ${patio.area}\n${horarioTexto}\n\n📍 ${patio.address}\n${mapsUrl}`,
+      message: `${patio.name}\n${patio.category} · ${patio.area}\n${horarioTexto}\n\n${patio.address}\n${mapsUrl}`,
     });
   }, [patio]);
 
@@ -156,6 +157,7 @@ export function usePatioDetailController(id: PatioParam) {
     handleStarPress,
     handleToggleSaved,
     hoy,
+    isClosed,
     isSaved,
     loading,
     notifyOn,

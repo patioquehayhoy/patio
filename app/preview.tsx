@@ -1,4 +1,4 @@
-import { Stack } from 'expo-router';
+import { router, Stack } from 'expo-router';
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -20,6 +20,22 @@ export default function PreviewScreen() {
   const c = fonderoPalette(theme.isDark);
   const s = makeStyles(c);
   const { businessName, fecha, handleBack, handleShare, posterRef, priceLabel, sections } = useMenuPreviewController();
+
+  if (sections.length === 0) {
+    return (
+      <View style={[s.root, s.emptyRoot, { paddingTop: insets.top + 32, paddingBottom: insets.bottom + 24 }]}>
+        <Stack.Screen options={{ headerShown: false }} />
+        <View style={s.emptyIcon}>
+          <Ionicons name="receipt-outline" size={28} color={c.accent} />
+        </View>
+        <Text style={s.emptyTitle}>Primero publica lo de hoy</Text>
+        <Text style={s.emptyBody}>Cuando tu menú esté listo, aquí aparecerá el póster para compartirlo.</Text>
+        <TouchableOpacity style={s.emptyButton} onPress={() => router.replace('/menu')} activeOpacity={0.84}>
+          <Text style={s.emptyButtonText}>Crear menú</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   return (
     <View style={s.root}>
@@ -86,6 +102,12 @@ export default function PreviewScreen() {
 function makeStyles(c: FonderoColors) {
   return StyleSheet.create({
   root: { flex: 1, backgroundColor: c.bg },
+  emptyRoot: { paddingHorizontal: 28, alignItems: 'center', justifyContent: 'center' },
+  emptyIcon: { width: 58, height: 58, borderRadius: 20, backgroundColor: c.iconBg, alignItems: 'center', justifyContent: 'center' },
+  emptyTitle: { marginTop: 18, fontSize: 26, lineHeight: 30, fontWeight: '900', color: c.text, textAlign: 'center', fontFamily: Fonts.brand },
+  emptyBody: { maxWidth: 310, marginTop: 9, fontSize: 14, lineHeight: 20, fontWeight: '300', color: c.textSecondary, textAlign: 'center' },
+  emptyButton: { width: '100%', maxWidth: 330, minHeight: 54, marginTop: 24, borderRadius: 18, backgroundColor: c.accent, alignItems: 'center', justifyContent: 'center' },
+  emptyButtonText: { color: '#fff', fontSize: 16, fontWeight: '700' },
   top: { position: 'absolute', left: 16, right: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', zIndex: 20 },
   navBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: c.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: c.border, alignItems: 'center', justifyContent: 'center' },
   topTitle: { fontSize: 14, fontWeight: '600', color: c.text },

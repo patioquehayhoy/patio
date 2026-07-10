@@ -69,7 +69,9 @@
         {
           "locationWhenInUsePermission": "Usamos tu ubicación para mostrarte en el mapa de Patio"
         }
-      ]
+      ],
+      "expo-font",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,

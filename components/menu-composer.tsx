@@ -66,7 +66,8 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
         </View>
 
         <ScrollView
-          contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 24, paddingBottom: insets.bottom + 150 }}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 24, paddingBottom: 28 }}
+          keyboardDismissMode="interactive"
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}>
           <Text style={s.eyebrow}>{source === 'foto' ? 'PATIO LEYÓ LA FOTO' : 'LO DE HOY'}</Text>
@@ -253,7 +254,7 @@ function makeStyles(c: FonderoColors) {
     addDishText: { fontSize: 13, fontWeight: '600', color: c.accent },
     addSection: { minHeight: 52, borderTopWidth: StyleSheet.hairlineWidth, borderColor: c.border, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
     addSectionText: { fontSize: 13, fontWeight: '500', color: c.textSecondary },
-    publishDock: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 20, paddingTop: 12, backgroundColor: c.bg },
+    publishDock: { paddingHorizontal: 20, paddingTop: 12, backgroundColor: c.bg },
     publishButton: { minHeight: 54, borderRadius: 17, alignItems: 'center', justifyContent: 'center', backgroundColor: c.accent },
     publishText: { fontSize: 16, fontWeight: '700', color: '#fff' },
   });

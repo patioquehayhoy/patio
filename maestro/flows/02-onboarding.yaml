@@ -1,6 +1,7 @@
 appId: com.parcomx.patio
 ---
 - launchApp
-- tapOn: "Dev Onboarding"
+- openLink: "patio://"
+- tapOn: "DEV · Onboarding"
 - waitForAnimationToEnd
 - takeScreenshot: maestro/screenshots/02-onboarding

@@ -11,7 +11,7 @@ import { Fonts, useTheme } from '@/lib/theme';
 
 const ROLE_KEY = '@patio_user_role';
 const ONBOARDING_KEY = 'onboarding_done';
-const DEV_VERSION = 'HOY · 2026.07.04 · 12:52';
+const DEV_VERSION = 'HOY · 2026.07.10';
 
 export default function LoginScreen() {
   const { theme } = useTheme();
@@ -99,7 +99,7 @@ export default function LoginScreen() {
             style={[styles.primaryBtn, { backgroundColor: theme.text }]}
             onPress={handleExplore}
             activeOpacity={0.86}>
-            <Text style={[styles.primaryBtnText, { color: theme.bg }]}>Explorar cocinas</Text>
+            <Text style={[styles.primaryBtnText, { color: theme.bg }]}>Explorar comida</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.secondaryBtn}

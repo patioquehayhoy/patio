@@ -1,61 +1,44 @@
 # Próxima sesión — empieza aquí
 
-> Última actualización: 2026-05-17 — handoff QA + Claude Design.
+> Última actualización: 2026-07-10 — cierre local comprobado.
 
 ## Dónde estamos
 
-El repo tiene el MVP funcional de Foodie + Fondero y está en fase de **QA en dispositivo + handoff a Claude Design**.
+Patio es un MVP funcional con controllers separados. La rama `rebuild/patio-final`
+contiene la estabilización; Figma Make quedó únicamente como referencia histórica.
+Los recorridos esenciales ya pasaron en simulador, incluido publicar y compartir.
 
-No asumir que existe un paquete nuevo de screenshots en `docs/design/screenshots/`: actualmente la fuente vigente es `assets/screenshots/` + `docs/design/SCREENSHOT_INDEX.md`.
+## Qué hacer al continuar
 
-## Lo que el usuario va a hacer
+1. Leer la sección superior de `docs/HANDOFF.md`.
+2. Desplegar `supabase/functions/read-menu` y cargar `ANTHROPIC_API_KEY`.
+3. Rotar/eliminar la antigua variable local `EXPO_PUBLIC_ANTHROPIC_API_KEY`.
+4. Hacer barrido humano en iPhone de magic link, cámara, GPS, share, push y mapas.
+5. Corregir solo hallazgos reproducibles y decidir después si se distribuye build.
 
-1. Pasar a Claude Design screenshots reales del flujo actual en orden de navegación.
-2. Pasar el flujo escrito Foodie/Fondero en 2 líneas.
-3. Pasar definición exacta de Fondero.
-4. Pasar referencias de spinner/radar.
-5. Volver con mockups o dirección visual.
+## Baseline verificado
 
-## Lo que TÚ (Claude) debes hacer si te invocan sin contexto
+- `npm run typecheck`: verde.
+- `npm run lint`: verde.
+- `npx expo install --check`: verde.
+- Exports iOS y Android: verdes.
+- Maestro: detalle y publicación E2E verdes; evidencia en `maestro/screenshots/`.
+- `lib/vision.ts` ya no ejecuta Anthropic desde el cliente.
 
-### Si el usuario regresa con mockups de Claude Design
-→ Implementar pantalla por pantalla siguiendo el orden en `docs/TASKS.md` sección "POST-CLAUDE-DESIGN"
-→ Empezar siempre por `explorar.tsx` (más crítica del Foodie)
-→ Validar cada cambio con `npx tsc --noEmit` antes de commitear
+## Reglas no negociables
 
-### Si el usuario pide preparar contexto para Claude Design
-→ Usar `docs/STATE.md`, `docs/design/FLOW_V2.md`, `docs/design/SCREENSHOT_INDEX.md` y `docs/PATIO_PRD.md`
-→ Aclarar que screenshots son evidencia de flujo, no referencia estética
-→ Aclarar que no existe reserva ni ficha individual de platillo todavía
+- No modificar ni parafrasear `Saaaaaaabes.`.
+- No usar “Foodie” o “Fondero” en copy visible.
+- No convertir Patio en delivery, reservas, pedidos o marketplace.
+- No lanzar EAS build sin confirmación.
+- No sustituir comportamiento real por una maqueta web.
+- Validar con TypeScript y lint antes de cerrar cada ciclo.
 
-### Si el usuario reporta bug del magic link Fondero
-→ Pedirle screenshot del texto de diagnóstico que ahora aparece en `/login-callback`
-→ Con ese texto investigar — ver `~/.claude/.../memory/supabase_magic_link.md`
+## QA externo todavía necesario
 
-### Si el usuario quiere agregar AGENTE_VOZ
-→ Recordarle: gating Pro decidido. Ver `~/.claude/.../memory/monetization_strategy.md`
-→ Arrancar con MVP texto primero (sin captura de audio)
-
-## Lo que NO debes hacer sin permiso explícito
-
-- Tocar el bloque de precio en `menu.tsx`
-- Modificar/parafrasear `"Saaaaaaabes."`
-- Borrar `onboarding.tsx` (sigue huérfano pero útil)
-- Lanzar EAS build (cuesta cuota, siempre confirmar antes)
-- Hacer commit con cuentas/secrets
-- Revertir capturas o carpetas nuevas del usuario en `docs/design/references/`
-
-## Estado de cuentas y servicios
-
-Ver `~/.claude/.../memory/patio_accounts.md`:
-- `quehayhoy.patio@gmail.com` → soporte público
-- `contacto.parco@gmail.com` → admin Supabase/Vercel
-- `dubzon@live.com.mx` → Apple ID (Team JK2N262L7X)
-
-## Agentes Patio disponibles
-
-En `.claude/agents/`:
-- `design-system` — validar/proponer UI
-- `fondero-ops` — bugs/features del flujo Fondero
-- `content-cdmx` — copy, voz, assets (Higgsfield MCP)
-- `qa-patio` — QA estático antes de builds
+- Magic link y deep link real.
+- Cámara/galería.
+- Lectura IA con fotografías reales.
+- GPS.
+- Poster/share.
+- Push y apertura de mapas.

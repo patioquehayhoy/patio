@@ -4,6 +4,7 @@ import { Alert, Platform, Share, type View } from 'react-native';
 import * as Sharing from 'expo-sharing';
 import { captureRef } from 'react-native-view-shot';
 
+import { getLatestLocalMenu } from '@/lib/menu-history';
 import { getFonditaName, getMenuData, type MenuData } from '@/lib/menu-store';
 
 export function useMenuPreviewController() {
@@ -13,8 +14,18 @@ export function useMenuPreviewController() {
 
   useFocusEffect(
     useCallback(() => {
-      setMenuData(getMenuData());
+      let active = true;
+      const inMemory = getMenuData();
+      if (inMemory) setMenuData(inMemory);
+      else {
+        getLatestLocalMenu().then((latest) => {
+          if (active) setMenuData(latest);
+        });
+      }
       setBusinessName(getFonditaName() || 'Tu Patio');
+      return () => {
+        active = false;
+      };
     }, [])
   );
 

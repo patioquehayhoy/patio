@@ -1,11 +1,13 @@
 appId: com.parcomx.patio
 ---
 - launchApp
-- tapOn: "Dev Foodie"
-- assertVisible: "CERCA DE TI"
+- openLink: "patio://"
+- tapOn: "Explorar comida"
+- tapOn: "Buscar comida"
+- waitForAnimationToEnd
+- inputText: "mole"
 - tapOn:
-    point: "12%,12%"
-- waitForAnimationToEnd
-- tapOn: "Buscar"
-- waitForAnimationToEnd
+    text: "Continue"
+    optional: true
+- assertVisible: "Abrir resultado Mole rojo con arroz en Don Bonachón"
 - takeScreenshot: maestro/screenshots/07-foodie-buscar

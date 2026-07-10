@@ -275,7 +275,7 @@ export default function ExplorarScreen() {
           pointerEvents={idleMode ? 'box-none' : 'none'}
           style={[StyleSheet.absoluteFillObject, { alignItems: 'center', justifyContent: 'center', opacity: idleLayerOpacity }]}>
           <View style={{ position: 'absolute', left: 24, right: 24 }}>
-            <TouchableOpacity activeOpacity={0.82} onPress={openSearch} style={s.searchPill}>
+            <TouchableOpacity accessibilityLabel="Buscar comida" activeOpacity={0.82} onPress={openSearch} style={s.searchPill}>
               <BlurView intensity={theme.isDark ? 28 : 36} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
               <Ionicons name="search-outline" size={18} color={theme.textSecondary} />
               <Text style={{ fontSize: 16, fontWeight: '300', color: theme.textSecondary }}>
@@ -298,6 +298,7 @@ export default function ExplorarScreen() {
                 <Ionicons name="chevron-back" size={20} color={theme.text} />
               </TouchableOpacity>
               <TextInput
+                accessibilityLabel="Buscar comida"
                 ref={searchInputRef}
                 style={s.searchInput}
                 value={query}
@@ -368,7 +369,7 @@ export default function ExplorarScreen() {
                     )}
                   </View>
                   {selectedPatio.latitude > 0 && (
-                    <TouchableOpacity style={s.cta} onPress={() => router.push(`/patio/${selectedPatio.id}`)} activeOpacity={0.82}>
+                    <TouchableOpacity accessibilityLabel={`Ver ${selectedPatio.name}`} style={s.cta} onPress={() => router.push(`/patio/${selectedPatio.id}`)} activeOpacity={0.82}>
                       <Text style={s.ctaText} allowFontScaling={true}>Ver</Text>
                       <Ionicons name="chevron-forward" size={15} color={theme.surface} />
                     </TouchableOpacity>
@@ -435,6 +436,7 @@ export default function ExplorarScreen() {
                   const active = match.patio.id === selectedId && showSelectedHeader;
                   return (
                     <TouchableOpacity
+                      accessibilityLabel={`Abrir resultado ${match.item.name} en ${match.patio.name}`}
                       key={`${match.patio.id}-${match.item.name}`}
                       style={[s.patioRow, active && s.patioRowActive]}
                       onPress={() => {
@@ -471,6 +473,7 @@ export default function ExplorarScreen() {
                 const active = patio.id === selectedId && showSelectedHeader;
                 return (
                   <TouchableOpacity
+                    accessibilityLabel={`Abrir ${patio.name}`}
                     key={patio.id}
                     style={[s.patioRow, active && s.patioRowActive]}
                     onPress={() => selectPatio(patio.id)}

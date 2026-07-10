@@ -1,5 +1,66 @@
 # HANDOFF
 
+## Estado vigente — 2026-07-10 (cierre local comprobado en código)
+
+Leer esta sección primero. La bitácora histórica debajo conserva contexto, pero ya
+no define la estrategia activa.
+
+### Decisión de producto
+
+- Figma Make deja de ser la herramienta responsable de terminar Patio.
+- `v01` y `v02` se conservan únicamente como referencias visuales y de ideas.
+- El intento `v03` de Figma Make no se incorpora al repo: produjo una galería de
+  cuatro pantallas técnicamente completa, pero visualmente genérica y ajena a Patio.
+- Patio Vivo sigue siendo la verdad funcional.
+- La reconstrucción final se hará en React Native/Expo, sobre una línea separada,
+  reutilizando controllers, servicios, Supabase, persistencia y activos existentes.
+
+### Método aprobado
+
+1. Auditoría corta y ejecutable de arquitectura, datos, flujo y salud técnica.
+2. Fijar contratos de comportamiento antes de reemplazar UI.
+3. Reconstruir una pantalla maestra en una versión separada.
+4. Revisión visual de Alejandro.
+5. Solo después de aprobación, propagar el sistema al resto.
+
+No volver a generar veinte pantallas antes de validar el ADN visual. No traducir
+Figma Make literalmente. No refactorizar backend estable por motivos visuales.
+
+### Baseline técnico verificado el 2026-07-10
+
+- `npm run typecheck`: verde.
+- `npm run lint`: verde.
+- `npx expo install --check`: verde; patches Expo alineados.
+- Exports iOS y Android: verdes.
+- `lib/vision.ts` invoca `read-menu`; la clave Anthropic vive del lado servidor.
+- Maestro comprobó detalle y publicación completa hasta póster/Compartir.
+- `credentials.json` fue retirado del índice de Git e ignorado.
+- QA nativo vigente: magic link, cámara/galería, GPS, compartir, push y mapas.
+
+### Único bloque externo para lectura IA
+
+Seguir `supabase/functions/README.md`: desplegar `read-menu`, guardar
+`ANTHROPIC_API_KEY` como secreto y rotar la antigua clave pública. El código local
+está terminado, pero la lectura de fotos no debe declararse operativa en producción
+hasta completar ese despliegue y probar una fotografía real.
+
+### Primera frontera de reconstrucción
+
+Se conserva:
+
+- `lib/controllers/`, `lib/db.ts`, `lib/auth.ts`, `lib/patios.ts` y servicios.
+- esquema Supabase y modelos funcionales actuales;
+- assets, marca, paleta y comportamiento real de los flujos.
+
+Se puede reemplazar gradualmente:
+
+- composición de pantallas;
+- navegación visual y componentes compartidos;
+- tokens, jerarquía, estados visuales y motion.
+
+La primera pantalla maestra será Entrada o Explorar, elegida tras cerrar el contrato
+visual mínimo. Patio Vivo debe permanecer recuperable durante todo el trabajo.
+
 ## Estado vigente — 2026-07-07 (QA en device + plan de 4 frentes hacia MVP lanzable)
 
 Leer esta sección primero. Abajo es bitácora.

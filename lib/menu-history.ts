@@ -63,6 +63,11 @@ export async function getLocalMenus(): Promise<LocalMenuEntry[]> {
   }
 }
 
+export async function getLatestLocalMenu(): Promise<MenuData | null> {
+  const menus = await getLocalMenus();
+  return menus[0]?.secciones ?? null;
+}
+
 // ─── Modo demo (solo DEV) ─────────────────────────────────────────────────────
 // Siembra menús de ejemplo en días pasados para poder recorrer historial /
 // "usar menú anterior" sin depender de la imaginación. No corre en producción.

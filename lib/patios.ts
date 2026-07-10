@@ -36,6 +36,8 @@ export type Patio = {
   menu: PatioMenuSection[];
   payments: string[];
   weeklyHours: HorarioSemanal | null;
+  // Agotado es disponibilidad de inventario, no estado de horario.
+  soldOut?: boolean;
 };
 
 // Deriva el horario semanal de una fila: jsonb nuevo, o fallback al string viejo.

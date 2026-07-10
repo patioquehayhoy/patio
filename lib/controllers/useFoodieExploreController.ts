@@ -210,7 +210,7 @@ export function useFoodieExploreController() {
     if (!selectedPatio) return;
     const mapsUrl = `https://maps.apple.com/?q=${selectedPatio.latitude},${selectedPatio.longitude}`;
     Share.share({
-      message: `${selectedPatio.name}\n${selectedPatio.category} · ${selectedPatio.area}\n${selectedPatio.open}\n\n📍 ${selectedPatio.address}\n${mapsUrl}`,
+      message: `${selectedPatio.name}\n${selectedPatio.category} · ${selectedPatio.area}\n${selectedPatio.open}\n\n${selectedPatio.address}\n${mapsUrl}`,
     });
   }, [selectedPatio]);
 

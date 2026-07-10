@@ -1,6 +1,7 @@
 appId: com.parcomx.patio
 ---
 - launchApp
-- tapOn: "Dev Foodie"
-- assertVisible: "CERCA DE TI"
+- openLink: "patio://"
+- tapOn: "Explorar comida"
+- assertVisible: "Buscar comida"
 - takeScreenshot: maestro/screenshots/03-foodie-explorar

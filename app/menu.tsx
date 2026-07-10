@@ -43,7 +43,7 @@ export default function HoyScreen() {
         <Text style={s.sub} allowFontScaling={true}>{noWidow('Publica lo que vendes hoy. Patio lo ordena por ti.')}</Text>
 
         {/* Héroe: tomar foto */}
-        <TouchableOpacity activeOpacity={0.9} onPress={() => router.push('/foto-menu')} style={s.heroCard}>
+        <TouchableOpacity accessibilityLabel="Crear menú desde foto" activeOpacity={0.9} onPress={() => router.push('/foto-menu')} style={s.heroCard}>
           <LinearGradient
             colors={['#FF8458', '#F2612F']}
             start={{ x: 0, y: 0 }}
@@ -64,7 +64,7 @@ export default function HoyScreen() {
         <Text style={s.orLabel} allowFontScaling={true}>o hazlo a mano</Text>
 
         {/* Opción: escribir */}
-        <TouchableOpacity activeOpacity={0.85} onPress={() => router.push('/menu-editar')} style={s.optionRow}>
+        <TouchableOpacity accessibilityLabel="Escribir menú manualmente" activeOpacity={0.85} onPress={() => router.push('/menu-editar')} style={s.optionRow}>
           <View style={s.optionIcon}>
             <Ionicons name="create-outline" size={20} color={c.text} />
           </View>
@@ -76,7 +76,7 @@ export default function HoyScreen() {
         </TouchableOpacity>
 
         {/* Opción: usar anterior */}
-        <TouchableOpacity activeOpacity={0.85} onPress={() => router.push('/historial')} style={s.optionRow}>
+        <TouchableOpacity accessibilityLabel="Usar menú anterior" activeOpacity={0.85} onPress={() => router.push('/historial')} style={s.optionRow}>
           <View style={s.optionIcon}>
             <Ionicons name="refresh-outline" size={20} color={c.text} />
           </View>

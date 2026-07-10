@@ -1,7 +1,32 @@
 # TASKS — Cola de trabajo para agentes
 
-> Última actualización: 2026-07-08.
+> Última actualización: 2026-07-10.
 > Estado: `[ ]` pendiente | `[x]` hecho | `[~]` en progreso.
+
+## CICLO 2026-07-09 — Cierre en código
+
+- [x] **Descartar Figma Make como fuente final** — v01/v02 quedan como referencia;
+  el intento v03 no se incorpora porque reconstruyó estados, pero perdió la identidad
+  visual de Patio.
+- [x] **Baseline técnico** — `npm run typecheck` y `npm run lint` pasan.
+- [x] **Auditoría ejecutable de arquitectura** — contratos críticos corregidos y
+  recorridos Foodie/Fondero comprobados con Maestro.
+- [x] **Alinear salud Expo** — actualizar los ocho patch versions reportados por
+  `npx expo install --check` y retirar `@types/react-native` si sigue siendo directo.
+- [ ] **Definir contrato visual mínimo** — tokens, tipografía, navegación, superficies,
+  estados y componentes permitidos; rescatar únicamente lo útil de v01/v02.
+- [x] **Crear línea separada de reconstrucción** — trabajo activo en
+  `rebuild/patio-final`; Patio Vivo permanece recuperable.
+- [ ] **Implementar una pantalla maestra** — Entrada o Explorar; no ampliar sin revisión
+  visual de Alejandro.
+- [ ] **Propagar sistema aprobado** — completar primero el recorrido Foodie y después
+  el recorrido de publicación.
+- [x] **P0 código de producción** — `lib/vision.ts` invoca la Edge Function
+  `read-menu`; la clave ya no se consume desde React Native.
+- [ ] **P0 despliegue IA** — desplegar `read-menu`, guardar `ANTHROPIC_API_KEY` como
+  secreto de Supabase y rotar/eliminar cualquier antigua clave `EXPO_PUBLIC_*`.
+- [x] **QA simulador** — flows Maestro `01`–`12`; publicación y detalle pasan E2E.
+- [ ] **QA iPhone** — magic link, cámara/galería, IA, GPS, poster/share, push y mapas.
 
 ## CICLO 2026-07-08 - Estabilizacion arquitectura
 
@@ -21,7 +46,8 @@
 - [x] **Simulador DEV end-to-end** - Explorar ya muestra lista de lugares desde el inicio; búsqueda consulta menús demo/locales; publicar menú en Fondero crea/actualiza `Mi Patio Demo` para verlo luego desde Foodie, detalle, guardados y búsqueda.
 - [x] **Explorar tipo mapa/capas** - sheet de `Cerca de ti`/`Guardados` ya se puede ocultar con tap en mapa, botón `Ocultar` o swipe hacia abajo; búsqueda y guardados viven como botones flotantes estilo mapa.
 - [ ] **Siguiente panorámico real** - QA manual en iPhone + revisar navegación completa Foodie/Fondero antes de rediseñar Make/Tahoe.
-- [ ] **P0: sacar IA de cliente antes de producción** - `lib/vision.ts` usa `EXPO_PUBLIC_ANTHROPIC_API_KEY` + `dangerouslyAllowBrowser`; mover a backend/proxy/Edge Function.
+- [x] **P0: sacar IA de cliente antes de producción** - movida a
+  `supabase/functions/read-menu`; despliegue/secret registrados como tarea externa.
 - [ ] **P0: confirmar magic link real** - validar `patio://login-callback` en Supabase Dashboard y en iPhone con correo real.
 - [ ] **P1: corregir expo-doctor** - correr `npx expo install --check`, alinear patch versions Expo y remover `@types/react-native` directo.
 - [ ] **P1: limpiar archivo temporal** - revisar y borrar `app/.perfil.tsx.swp` si no contiene trabajo pendiente.

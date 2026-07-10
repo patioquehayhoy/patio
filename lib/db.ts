@@ -41,8 +41,7 @@ export async function upsertFondita(email: string): Promise<string | null> {
 
 export async function saveMenuHoy(fonditaId: string, data: MenuData): Promise<void> {
   if (!isUuid(fonditaId)) {
-    console.warn('[db] saveMenuHoy skipped: fonditaId inválido para UUID', { fonditaId });
-    return;
+    throw new Error(`fonditaId inválido para UUID: ${fonditaId}`);
   }
   const fecha = hoy();
   debugLog('[db] saveMenuHoy →', { fonditaId, fecha });
@@ -52,8 +51,8 @@ export async function saveMenuHoy(fonditaId: string, data: MenuData): Promise<vo
       { fondita_id: fonditaId, secciones: data, fecha },
       { onConflict: 'fondita_id,fecha' }
     );
-  if (error) console.error('[db] saveMenuHoy error:', error);
-  else debugLog('[db] saveMenuHoy OK');
+  if (error) throw error;
+  debugLog('[db] saveMenuHoy OK');
 }
 
 export async function deleteMenuHoy(fonditaId: string): Promise<void> {
@@ -96,8 +95,7 @@ export async function deleteCarta(fonditaId: string): Promise<void> {
 
 export async function saveCarta(fonditaId: string, data: MenuData): Promise<void> {
   if (!isUuid(fonditaId)) {
-    console.warn('[db] saveCarta skipped: fonditaId inválido para UUID', { fonditaId });
-    return;
+    throw new Error(`fonditaId inválido para UUID: ${fonditaId}`);
   }
   debugLog('[db] saveCarta →', { fonditaId });
   const { error } = await supabase
@@ -106,8 +104,8 @@ export async function saveCarta(fonditaId: string, data: MenuData): Promise<void
       { fondita_id: fonditaId, secciones: data },
       { onConflict: 'fondita_id' }
     );
-  if (error) console.error('[db] saveCarta error:', error);
-  else debugLog('[db] saveCarta OK');
+  if (error) throw error;
+  debugLog('[db] saveCarta OK');
 }
 
 export async function loadCarta(fonditaId: string): Promise<MenuData | null> {

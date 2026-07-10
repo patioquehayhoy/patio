@@ -1,0 +1,15 @@
+appId: com.parcomx.patio
+---
+- launchApp
+- openLink: "patio://"
+- tapOn: "Publicar mi menú"
+- assertVisible: "Lo de hoy"
+- tapOn: "Escribir menú manualmente"
+- assertVisible: "Arma tu menú"
+- tapOn: "Platillo"
+- inputText: "Mole de olla"
+- tapOn: "Publicar menú"
+- assertVisible: "Tu menú está vivo."
+- tapOn: "Abrir póster para compartir"
+- assertVisible: "Compartir"
+- takeScreenshot: maestro/screenshots/12-fondero-publicar-e2e

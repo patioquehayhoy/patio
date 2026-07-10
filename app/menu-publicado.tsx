@@ -37,7 +37,7 @@ export default function MenuPublicadoScreen() {
 
         <View style={s.spacer} />
 
-        <TouchableOpacity style={s.primaryBtn} onPress={() => router.replace('/preview')} activeOpacity={0.86}>
+        <TouchableOpacity accessibilityLabel="Abrir póster para compartir" style={s.primaryBtn} onPress={() => router.replace('/preview')} activeOpacity={0.86}>
           <Ionicons name="share-social-outline" size={16} color="#F8F8F5" />
           <Text style={s.primaryText} allowFontScaling={true}>Ver y compartir</Text>
         </TouchableOpacity>

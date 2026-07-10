@@ -141,6 +141,7 @@ export default function PatioDetailScreen() {
     handleStarPress,
     handleToggleSaved,
     hoy,
+    isClosed,
     isSaved,
     loading,
     notifyOn,
@@ -225,7 +226,7 @@ export default function PatioDetailScreen() {
             <View style={s.statusRow}>
               <View style={[s.statusDot, { backgroundColor: status ? OPEN_GREEN : theme.textMute }]} />
               <Text style={[s.statusText, { color: status ? OPEN_GREEN : theme.textMute }]} allowFontScaling={true}>
-                {status ? `Abierto · ${rangoHoy}` : (proxTexto ? `Cerrado · ${proxTexto}` : 'Sin existencia · vuelve mañana')}
+                {status ? `Abierto · ${rangoHoy}` : (proxTexto ? `Cerrado · ${proxTexto}` : 'Cerrado por hoy')}
               </Text>
             </View>
           )}
@@ -345,14 +346,14 @@ export default function PatioDetailScreen() {
                 <Ionicons name={notifyOn ? 'notifications' : 'notifications-outline'} size={16} color={theme.bg} />
                 <Text style={s.ctaText}>{notifyOn ? 'Te avisamos mañana' : 'Avísame mañana'}</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={s.ctaSquare} onPress={handleComoLlegar} activeOpacity={0.86}>
+              <TouchableOpacity accessibilityLabel={`Cómo llegar a ${patio.name}`} style={s.ctaSquare} onPress={handleComoLlegar} activeOpacity={0.86}>
                 <Ionicons name="location-outline" size={18} color={theme.text} />
               </TouchableOpacity>
             </View>
           ) : (
-            <TouchableOpacity style={s.ctaBtn} onPress={handleComoLlegar} activeOpacity={0.86}>
+            <TouchableOpacity accessibilityLabel={`Cómo llegar a ${patio.name}`} style={s.ctaBtn} onPress={handleComoLlegar} activeOpacity={0.86}>
               <Ionicons name="navigate" size={16} color={theme.bg} />
-              <Text style={s.ctaText}>Cómo llegar</Text>
+              <Text style={s.ctaText}>{isClosed ? 'Ver cómo llegar' : 'Cómo llegar'}</Text>
             </TouchableOpacity>
           )}
         </View>

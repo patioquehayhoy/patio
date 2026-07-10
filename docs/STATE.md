@@ -1,6 +1,35 @@
 # STATE
 
-> Fuente de verdad operativa. Última actualización: 2026-05-17.
+> Fuente de verdad operativa. Última actualización: 2026-07-10.
+
+## Decisión vigente
+
+El cierre de Patio pasa a implementación directa en React Native. Figma Make queda
+como archivo de referencia (`v01`/`v02`), no como fuente final ni generador de las
+pantallas restantes. El intento v03 no se adopta.
+
+La app actual permanece como baseline funcional en `rebuild/patio-final`. En vez de
+una reescritura destructiva, se estabilizaron sus contratos y se comprobó el flujo
+real sobre la UI vigente; la rama anterior conserva Patio Vivo recuperable.
+
+## Salud técnica — 2026-07-10
+
+- TypeScript: pasa.
+- ESLint: pasa.
+- Expo dependency check: dependencias alineadas; `npx expo install --check` pasa.
+- Producción: Anthropic Vision ya sale por la Edge Function `read-menu`; falta
+  desplegarla y registrar `ANTHROPIC_API_KEY` en Supabase.
+- Exports: bundles iOS y Android generados correctamente.
+- Seguridad: `credentials.json` dejó de estar versionado y quedó ignorado.
+- Dispositivo real: pendientes magic link, cámara/galería, GPS, compartir, push y
+  apertura de mapas.
+
+## Estrategia inmediata
+
+1. Desplegar `read-menu` y guardar su secreto en Supabase.
+2. Ejecutar el barrido humano en iPhone de las integraciones nativas.
+3. Corregir únicamente hallazgos reproducibles del barrido.
+4. Preparar build de distribución solo con autorización de Alejandro.
 
 ## Estado ejecutivo
 
@@ -72,12 +101,13 @@ El foco actual es **QA en dispositivo + rediseño visual homologado**, no constr
 5. Registrar UDID de iPhone para builds internos si aplica.
 6. Configurar API key Google Maps restringida antes de builds Android reales.
 
-### Rediseño visual / Figma
+### QA automatizado local
 
-1. Usar `docs/design/FIGMA_REDESIGN_BRIEF.md` como brief práctico para aterrizar tokens, componentes, glass, corners Tahoe-style, jerarquía tipográfica y estados.
-2. Usar screenshots reales como evidencia funcional, no como estética final.
-3. Rediseñar primero las pantallas críticas: `explorar`, `patio/[id]`, `foto-menu`, `menu`.
-4. Aclarar que no existe reserva ni ficha individual de platillo todavía.
+- Maestro comprobó entrada, Explorar, selección, detalle, Cuenta, búsqueda,
+  Favoritos, Perfil, menú y preview.
+- El flujo de publicación quedó comprobado completo: crear menú manual, publicar,
+  confirmar “Tu menú está vivo”, abrir póster y llegar a Compartir.
+- Evidencia vigente en `maestro/screenshots/` y flows `01` a `12`.
 
 ### Auditoría visual de implementación
 
@@ -104,6 +134,7 @@ El foco actual es **QA en dispositivo + rediseño visual homologado**, no constr
 
 ## Validación
 
-- Último estado documentado: `npx tsc --noEmit` en verde.
+- Último estado documentado: typecheck, lint, Expo dependency check y
+  `git diff --check` en verde el 2026-07-10.
 - Antes de cerrar cualquier ciclo de código: correr `npx tsc --noEmit`.
 - Para cambios visuales sustanciales: validar en simulador primero; build EAS solo cuando el simulador no alcance.

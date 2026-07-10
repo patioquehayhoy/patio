@@ -1,11 +1,10 @@
 appId: com.parcomx.patio
 ---
 - launchApp
-- tapOn: "Dev Foodie"
-- assertVisible: "CERCA DE TI"
+- openLink: "patio://"
+- tapOn: "Explorar comida"
 - tapOn:
-    point: "12%,12%"
+    point: "50%,92%"
 - waitForAnimationToEnd
-- tapOn: "Favoritos"
-- waitForAnimationToEnd
+- assertVisible: "Guardados"
 - takeScreenshot: maestro/screenshots/08-foodie-favoritos

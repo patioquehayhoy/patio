@@ -1,8 +1,8 @@
 appId: com.parcomx.patio
 ---
 - launchApp
-- tapOn: "Dev Fondero"
+- openLink: "patio://"
+- tapOn: "Publicar mi menú"
 - waitForAnimationToEnd
-- tapOn: "Menú"
-- waitForAnimationToEnd
+- assertVisible: "Lo de hoy"
 - takeScreenshot: maestro/screenshots/10-fondero-menu

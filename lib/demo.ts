@@ -185,6 +185,7 @@ export const DEMO_PATIOS: Patio[] = [
     ],
     payments: ['Efectivo', 'Tarjeta'],
     weeklyHours: null,
+    soldOut: true,
   },
   {
     id: 'demo-cocina-carmelita',

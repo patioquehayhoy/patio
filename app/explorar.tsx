@@ -30,12 +30,8 @@ function makeStyles(t: Theme) {
     pinDot: { width: 3, height: 3, borderRadius: 2, backgroundColor: t.surface },
     pinSmallDot: { width: 14, height: 14, borderRadius: 7, backgroundColor: t.accent, borderWidth: 2.5, borderColor: t.isDark ? 'rgba(25,26,27,0.70)' : 'rgba(255,255,255,0.85)', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.22, shadowRadius: 3, elevation: 2 },
     searchPill: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingVertical: 15, borderRadius: 18, overflow: 'hidden', backgroundColor: t.isDark ? 'rgba(20,21,24,0.55)' : 'rgba(255,255,255,0.78)', borderWidth: StyleSheet.hairlineWidth, borderColor: btnBorder, shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: btnShadowOpacity + 0.04, shadowRadius: 22, elevation: 4 },
-    mapButtons: { position: 'absolute', left: 16, right: 16, zIndex: 12, flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
-    mapButtonStack: { gap: 8 },
-    mapButton: { width: 44, height: 44, borderRadius: 14, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', backgroundColor: t.isDark ? 'rgba(20,21,24,0.78)' : 'rgba(255,255,255,0.88)', borderWidth: StyleSheet.hairlineWidth, borderColor: btnBorder, shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: btnShadowOpacity + 0.06, shadowRadius: 14, elevation: 4 },
-    mapButtonActive: { backgroundColor: t.text },
-    mapButtonBadge: { position: 'absolute', top: 5, right: 5, minWidth: 15, height: 15, borderRadius: 8, paddingHorizontal: 4, alignItems: 'center', justifyContent: 'center', backgroundColor: t.accent },
-    mapButtonBadgeText: { fontSize: 8, fontWeight: '900', color: '#fff' },
+    bottomControls: { flexDirection: 'row', alignItems: 'stretch', gap: 8 },
+    nearbyButton: { width: 50, borderRadius: 18, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', backgroundColor: t.isDark ? 'rgba(20,21,24,0.55)' : 'rgba(255,255,255,0.78)', borderWidth: StyleSheet.hairlineWidth, borderColor: btnBorder, shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: btnShadowOpacity + 0.04, shadowRadius: 22, elevation: 4 },
     searchRow: { flex: 1, height: 44, borderRadius: 16, overflow: 'hidden', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, gap: 8, borderWidth: StyleSheet.hairlineWidth, borderColor: btnBorder, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: btnShadowOpacity, shadowRadius: 16, elevation: 2 },
     searchInput: { flex: 1, fontSize: 15, fontWeight: '300', color: t.text, height: 44, paddingVertical: 0 },
     sheet: { position: 'absolute', left: 14, right: 14, bottom: 14, maxHeight: '48%', borderRadius: Radius.sheet, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: t.isDark ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.18)', shadowColor: '#000', shadowOffset: { width: 0, height: 12 }, shadowOpacity: t.isDark ? 0.20 : 0.08, shadowRadius: 32, elevation: 8 },
@@ -124,10 +120,7 @@ export default function ExplorarScreen() {
     isFiltering,
     matchingPatioIds,
     openSearch,
-    openNearby,
-    openSaved,
     query,
-    savedIds,
     savedPatios,
     searchActive,
     searchInputRef,
@@ -155,7 +148,6 @@ export default function ExplorarScreen() {
   const showSelectedHeader = showHeader;
   const showSheet = showSelectedHeader || isFiltering || sheetMode !== null;
   const listPatios = sheetMode === 'saved' ? savedPatios : allPatios;
-  const activeIconColor = theme.surface;
   const inactiveIconColor = theme.text;
 
   useEffect(() => {
@@ -244,43 +236,30 @@ export default function ExplorarScreen() {
         </Animated.View>
       </View>
 
-      {!searchActive && !isFiltering && (
-        <View style={[s.mapButtons, { top: insets.top + 18 }]} pointerEvents="box-none">
-          <View style={s.mapButtonStack}>
-            <TouchableOpacity
-              accessibilityLabel="Ver lugares cerca"
-              activeOpacity={0.82}
-              onPress={openNearby}
-              style={[s.mapButton, sheetMode === 'nearby' && s.mapButtonActive]}>
-              <Ionicons name="restaurant-outline" size={21} color={sheetMode === 'nearby' ? activeIconColor : inactiveIconColor} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              accessibilityLabel="Ver guardados"
-              activeOpacity={0.82}
-              onPress={openSaved}
-              style={[s.mapButton, sheetMode === 'saved' && s.mapButtonActive]}>
-              <Ionicons name={sheetMode === 'saved' ? 'heart' : 'heart-outline'} size={22} color={sheetMode === 'saved' ? activeIconColor : inactiveIconColor} />
-              {savedIds.length > 0 && (
-                <View style={s.mapButtonBadge}>
-                  <Text style={s.mapButtonBadgeText}>{Math.min(savedIds.length, 99)}</Text>
-                </View>
-              )}
-            </TouchableOpacity>
-          </View>
-        </View>
-      )}
-
+      {/* Todo lo accionable vive abajo, junto a la tab bar: buscador + "cerca".
+          El mapa queda limpio arriba — sin botones flotantes sueltos. */}
       {!showSheet && (
         <Animated.View
           pointerEvents={idleMode ? 'box-none' : 'none'}
-          style={[StyleSheet.absoluteFillObject, { alignItems: 'center', justifyContent: 'center', opacity: idleLayerOpacity }]}>
-          <View style={{ position: 'absolute', left: 24, right: 24 }}>
-            <TouchableOpacity accessibilityLabel="Buscar comida" activeOpacity={0.82} onPress={openSearch} style={s.searchPill}>
+          style={[
+            { position: 'absolute', left: 20, right: 20, bottom: insets.bottom + 96 },
+            { opacity: idleLayerOpacity },
+          ]}>
+          <View style={s.bottomControls}>
+            <TouchableOpacity accessibilityLabel="Buscar comida" activeOpacity={0.82} onPress={openSearch} style={[s.searchPill, { flex: 1 }]}>
               <BlurView intensity={theme.isDark ? 28 : 36} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
               <Ionicons name="search-outline" size={18} color={theme.textSecondary} />
               <Text style={{ fontSize: 16, fontWeight: '300', color: theme.textSecondary }}>
                 ¿Qué hay hoy?
               </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              accessibilityLabel="Buscar por voz"
+              activeOpacity={0.82}
+              onPress={openSearch}
+              style={s.nearbyButton}>
+              <BlurView intensity={theme.isDark ? 28 : 36} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
+              <Ionicons name="mic-outline" size={21} color={inactiveIconColor} />
             </TouchableOpacity>
           </View>
         </Animated.View>

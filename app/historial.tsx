@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, Stack } from 'expo-router';
+import { useState } from 'react';
 import { Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -15,6 +16,9 @@ export default function HistorialScreen() {
   const c = fonderoPalette(theme.isDark);
   const { onScroll } = useTabBarScroll();
   const { closeRename, draftName, editing, loading, menus, openRename, reuse, saveName, setDraftName } = useMenuHistoryController();
+  // Acciones por menú detrás de "···", homologado con el patrón de secciones
+  // del composer: un solo gesto para descubrir acciones en toda la app.
+  const [actionsFor, setActionsFor] = useState<string | null>(null);
 
   return (
     <View style={[s.root, { backgroundColor: c.bg, paddingTop: insets.top }]}>
@@ -35,34 +39,43 @@ export default function HistorialScreen() {
           </View>
         ) : (
           <View style={[s.list, { borderColor: c.border }]}>
-            {menus.map((menu, index) => (
-              <View
-                key={`${menu.fecha}-${index}`}
-                style={[s.row, index > 0 && { borderTopColor: c.border, borderTopWidth: StyleSheet.hairlineWidth }]}>
-                <TouchableOpacity style={{ flex: 1 }} onPress={() => reuse(menu.secciones)} activeOpacity={0.74}>
-                  <Text style={[s.date, { color: c.accent }]}>
-                    {dateLabel(menu.fecha)}
-                  </Text>
-                  <Text style={[s.summary, { color: c.text }]} numberOfLines={2}>{menu.nombre || defaultHistoryTitle(menu)}</Text>
-                </TouchableOpacity>
-                <View style={s.rowActions}>
-                  <TouchableOpacity
-                    accessibilityLabel="Nombrar menú"
-                    style={[s.iconBtn, { backgroundColor: c.iconBg }]}
-                    onPress={() => openRename(menu)}
-                    activeOpacity={0.72}>
-                    <Ionicons name="pencil" size={16} color={c.textSecondary} />
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    accessibilityLabel="Usar menú"
-                    style={[s.iconBtn, { backgroundColor: c.iconBg }]}
-                    onPress={() => reuse(menu.secciones)}
-                    activeOpacity={0.72}>
-                    <Ionicons name="refresh" size={17} color={c.textSecondary} />
-                  </TouchableOpacity>
+            {menus.map((menu, index) => {
+              const key = `${menu.fecha}-${index}`;
+              const actionsOpen = actionsFor === key;
+              return (
+                <View
+                  key={key}
+                  style={index > 0 && { borderTopColor: c.border, borderTopWidth: StyleSheet.hairlineWidth }}>
+                  <View style={s.row}>
+                    <TouchableOpacity style={{ flex: 1 }} onPress={() => reuse(menu.secciones)} activeOpacity={0.74}>
+                      <Text style={[s.date, { color: c.accent }]}>
+                        {dateLabel(menu.fecha)}
+                      </Text>
+                      <Text style={[s.summary, { color: c.text }]} numberOfLines={2}>{menu.nombre || defaultHistoryTitle(menu)}</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      accessibilityLabel="Acciones del menú"
+                      style={[s.iconBtn, { backgroundColor: c.iconBg }]}
+                      onPress={() => setActionsFor(actionsOpen ? null : key)}
+                      activeOpacity={0.72}>
+                      <Ionicons name="ellipsis-horizontal" size={17} color={c.textSecondary} />
+                    </TouchableOpacity>
+                  </View>
+                  {actionsOpen && (
+                    <View style={[s.actionsRow, { backgroundColor: c.iconBg }]}>
+                      <TouchableOpacity onPress={() => { setActionsFor(null); reuse(menu.secciones); }} style={s.action}>
+                        <Ionicons name="create-outline" size={15} color={c.text} />
+                        <Text style={[s.actionText, { color: c.text }]}>Editar y usar</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity onPress={() => { setActionsFor(null); openRename(menu); }} style={s.action}>
+                        <Ionicons name="text-outline" size={15} color={c.text} />
+                        <Text style={[s.actionText, { color: c.text }]}>Nombrar</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
                 </View>
-              </View>
-            ))}
+              );
+            })}
           </View>
         )}
       </ScrollView>
@@ -111,8 +124,10 @@ const s = StyleSheet.create({
   row: { minHeight: 84, paddingHorizontal: 17, paddingVertical: 15, flexDirection: 'row', alignItems: 'center', gap: 14 },
   date: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.8 },
   summary: { marginTop: 5, fontSize: 15, lineHeight: 20, fontWeight: '500' },
-  rowActions: { flexDirection: 'row', gap: 8 },
   iconBtn: { width: 38, height: 38, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
+  actionsRow: { alignSelf: 'flex-end', flexDirection: 'row', gap: 4, padding: 5, borderRadius: 12, marginRight: 17, marginBottom: 12 },
+  action: { minHeight: 34, paddingHorizontal: 10, flexDirection: 'row', alignItems: 'center', gap: 5 },
+  actionText: { fontSize: 12, fontWeight: '500' },
   modalBackdrop: { flex: 1, paddingHorizontal: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.42)' },
   modalCard: { width: '100%', maxWidth: 360, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, padding: 18 },
   modalTitle: { fontSize: 22, fontWeight: '900', fontFamily: Fonts.brand },

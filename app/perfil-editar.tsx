@@ -369,7 +369,7 @@ export default function PerfilScreen() {
             <View style={s.divider} />
             <TouchableOpacity style={s.settingRow} onPress={handleSignOut} activeOpacity={0.7}>
               <Ionicons name="log-out-outline" size={20} color={DARK.textSecondary} style={s.settingIcon} />
-              <Text style={s.rowLabel} allowFontScaling={true}>{email ? 'Cerrar sesión' : 'Salir del modo Fondero'}</Text>
+              <Text style={s.rowLabel} allowFontScaling={true}>Cerrar sesión</Text>
               <Ionicons name="chevron-forward" size={15} color={DARK.textMute} />
             </TouchableOpacity>
           </View>

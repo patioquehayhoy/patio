@@ -36,6 +36,28 @@ const SECCION_DEFAULTS: Record<string, string[]> = {
   otro:       ['SECCIÓN 1'],
 };
 
+// Nombres de sección típicos del giro, para sugerir mientras el fondero arma
+// su menú. Con el tiempo esto puede alimentarse de su historial real.
+export function seccionSugerencias(tipo?: string | null): string[] {
+  return (tipo ? SECCION_DEFAULTS[tipo] : null) ?? SECCION_DEFAULTS['fondita'];
+}
+
+// Forma canónica de un nombre de sección para comparar equivalencias:
+// "PRIMER TIEMPO" ≡ "1ER TIEMPO", sin acentos, sin espacios dobles. Evita
+// sugerir una sección que el fondero ya escribió con otras palabras.
+export function canonicalSeccion(nombre: string): string {
+  return nombre
+    .trim()
+    .toUpperCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/\bPRIMERO?\b/g, '1ER')
+    .replace(/\bSEGUNDO\b/g, '2DO')
+    .replace(/\bTERCERO?\b/g, '3ER')
+    .replace(/\bCUARTO\b/g, '4TO')
+    .replace(/\s+/g, ' ');
+}
+
 export function makeDefaultMenu(tipo?: string | null): MenuData {
   const nombres: string[] = (tipo ? SECCION_DEFAULTS[tipo] : null) ?? SECCION_DEFAULTS['fondita'];
   return {

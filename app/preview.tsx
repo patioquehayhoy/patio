@@ -1,5 +1,5 @@
 import { router, Stack } from 'expo-router';
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -51,21 +51,18 @@ export default function PreviewScreen() {
       {/* Póster editorial, scrolleable si el menú real es largo. */}
       <ScrollView contentContainerStyle={[s.posterWrap, { paddingTop: insets.top + 74, paddingBottom: insets.bottom + 132 }]} showsVerticalScrollIndicator={false}>
         <View ref={posterRef} collapsable={false} style={s.poster}>
-          {/* Header de marca */}
+          {/* Header editorial: fecha y nombre a la izquierda, precio del día
+              arriba a la derecha. La marca vive abajo, sutil. */}
           <View style={s.posterHead}>
-            <View style={s.brandRow}>
-              <Image source={require('../assets/images/p-icon-transparent.png')} style={s.brandMark} resizeMode="contain" />
+            <View style={s.posterHeadLeft}>
+              <Text style={s.posterDate} allowFontScaling={true}>{fecha}</Text>
+              <Text style={s.posterName} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.6} allowFontScaling={true}>{businessName}</Text>
             </View>
-            <Text style={s.posterDate} allowFontScaling={true}>{fecha}</Text>
-            <Text style={s.posterName} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} allowFontScaling={true}>{businessName}</Text>
+            {priceLabel ? <Text style={s.posterPrice} allowFontScaling={true}>{priceLabel}</Text> : null}
           </View>
 
-          {/* Card de menú */}
+          {/* Card de menú: las secciones hablan solas, sin label redundante. */}
           <View style={s.menuCard}>
-            <View style={s.menuCardHead}>
-              <Text style={s.menuCardLabel} allowFontScaling={true}>Menú del día</Text>
-              {priceLabel ? <Text style={s.menuCardPrice} allowFontScaling={true}>{priceLabel}</Text> : null}
-            </View>
             {sections.map((section, sectionIndex) => (
               <View key={section.id} style={sectionIndex > 0 && s.menuSection}>
                 <Text style={s.menuSectionTitle}>{section.nombre}</Text>
@@ -82,8 +79,11 @@ export default function PreviewScreen() {
             ))}
           </View>
 
-          {/* Firma */}
-          <Text style={s.posterSign} allowFontScaling={true}>¿Qué hay hoy? Saaaaaaabes.</Text>
+          {/* Firma de marca: minimalista — una línea sutil en light, nada más. */}
+          <View style={s.posterFoot}>
+            <View style={s.footRule} />
+            <Text style={s.posterSign} allowFontScaling={true}>¿Qué hay hoy? Saaaaaaabes.</Text>
+          </View>
         </View>
       </ScrollView>
 
@@ -106,33 +106,36 @@ function makeStyles(c: FonderoColors) {
   emptyIcon: { width: 58, height: 58, borderRadius: 20, backgroundColor: c.iconBg, alignItems: 'center', justifyContent: 'center' },
   emptyTitle: { marginTop: 18, fontSize: 26, lineHeight: 30, fontWeight: '900', color: c.text, textAlign: 'center', fontFamily: Fonts.brand },
   emptyBody: { maxWidth: 310, marginTop: 9, fontSize: 14, lineHeight: 20, fontWeight: '300', color: c.textSecondary, textAlign: 'center' },
-  emptyButton: { width: '100%', maxWidth: 330, minHeight: 54, marginTop: 24, borderRadius: 18, backgroundColor: c.accent, alignItems: 'center', justifyContent: 'center' },
+  emptyButton: { width: '100%', maxWidth: 330, minHeight: 56, marginTop: 24, borderRadius: 18, backgroundColor: c.accent, alignItems: 'center', justifyContent: 'center' },
   emptyButtonText: { color: '#fff', fontSize: 16, fontWeight: '700' },
   top: { position: 'absolute', left: 16, right: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', zIndex: 20 },
-  navBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: c.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: c.border, alignItems: 'center', justifyContent: 'center' },
+  // Espaciador de la top bar: mismo ancho que el botón de volver, SIN fondo —
+  // solo existe para centrar el título.
+  navBtn: { width: 40, height: 40 },
   topTitle: { fontSize: 14, fontWeight: '600', color: c.text },
 
   posterWrap: { alignItems: 'center', paddingHorizontal: 22 },
   poster: { width: 330, borderRadius: 26, backgroundColor: LIGHT.bg, overflow: 'hidden', shadowColor: '#000', shadowOffset: { width: 0, height: 24 }, shadowOpacity: 0.24, shadowRadius: 34, elevation: 12 },
-  posterHead: { paddingHorizontal: 22, paddingTop: 22, paddingBottom: 16 },
-  brandRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 },
-  brandMark: { width: 30, height: 30 },
-  brandClaim: { fontSize: 16, fontWeight: '900', letterSpacing: -0.3, color: LIGHT.ink, fontFamily: Fonts.brand },
-  posterDate: { fontSize: 11, fontWeight: '700', letterSpacing: 1.4, textTransform: 'uppercase', color: LIGHT.accent, marginBottom: 6 },
-  posterName: { fontSize: 28, fontWeight: '900', letterSpacing: -0.8, color: LIGHT.ink, fontFamily: Fonts.brand },
+  posterHead: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, paddingHorizontal: 22, paddingTop: 26, paddingBottom: 18 },
+  posterHeadLeft: { flex: 1 },
+  posterDate: { fontSize: 11, fontWeight: '700', letterSpacing: 1.4, textTransform: 'uppercase', color: LIGHT.accent, marginBottom: 7 },
+  posterName: { fontSize: 32, lineHeight: 35, fontWeight: '900', letterSpacing: -1, color: LIGHT.ink, fontFamily: Fonts.brand },
+  posterPrice: { fontSize: 24, lineHeight: 28, fontWeight: '900', letterSpacing: -0.5, color: LIGHT.accent, fontFamily: Fonts.brand, marginTop: 20 },
 
+  // Densidad editorial (regla HIG): nombre+descripción son una unidad óptica
+  // (1px de separación), filas a 5px, secciones a 10px — el aire vive ENTRE
+  // grupos, nunca dentro de ellos.
   menuCard: { marginHorizontal: 18, padding: 18, borderRadius: 18, backgroundColor: LIGHT.card, borderWidth: StyleSheet.hairlineWidth, borderColor: LIGHT.sep },
-  menuCardHead: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 12 },
-  menuCardLabel: { fontSize: 10.5, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase', color: LIGHT.mute },
-  menuCardPrice: { fontSize: 20, fontWeight: '900', letterSpacing: -0.4, color: LIGHT.accent, fontFamily: Fonts.brand },
-  menuSection: { marginTop: 14 },
-  menuSectionTitle: { marginBottom: 3, fontSize: 10, fontWeight: '800', letterSpacing: 1, color: LIGHT.accent, textTransform: 'uppercase' },
-  menuRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', paddingVertical: 7, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: LIGHT.sep },
-  menuRowName: { fontSize: 14, lineHeight: 18, fontWeight: '500', color: LIGHT.ink, marginRight: 10 },
-  menuRowDescription: { marginTop: 2, fontSize: 11.5, lineHeight: 15, color: LIGHT.inkSoft },
+  menuSection: { marginTop: 10 },
+  menuSectionTitle: { marginBottom: 2, fontSize: 10, fontWeight: '800', letterSpacing: 1, color: LIGHT.accent, textTransform: 'uppercase' },
+  menuRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', paddingVertical: 5, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: LIGHT.sep },
+  menuRowName: { fontSize: 14, lineHeight: 17, fontWeight: '500', color: LIGHT.ink, marginRight: 10 },
+  menuRowDescription: { marginTop: 1, fontSize: 11.5, lineHeight: 14, color: LIGHT.inkSoft },
   menuRowPrice: { fontSize: 13, fontWeight: '300', color: LIGHT.inkSoft },
 
-  posterSign: { paddingHorizontal: 22, paddingTop: 16, paddingBottom: 20, textAlign: 'center', fontSize: 15, fontWeight: '900', letterSpacing: -0.3, color: LIGHT.ink, fontFamily: Fonts.brand },
+  posterFoot: { paddingHorizontal: 22, paddingTop: 16, paddingBottom: 18 },
+  footRule: { height: StyleSheet.hairlineWidth, backgroundColor: LIGHT.sep, marginBottom: 12 },
+  posterSign: { textAlign: 'center', fontSize: 11, fontWeight: '300', letterSpacing: 0.4, color: LIGHT.mute },
 
   ctaWrap: { paddingHorizontal: 22, paddingTop: 12 },
   cta: { height: 56, borderRadius: 18, backgroundColor: '#25D366', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },

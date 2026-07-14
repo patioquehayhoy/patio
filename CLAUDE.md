@@ -41,6 +41,13 @@ Cuando varios campos de texto forman un bloque semántico
 - Sin separadores visuales dentro del bloque
 - Referencia: densidad tipográfica de Apple Music (título/artista)
 
+## Densidad de listas y menús (regla HIG)
+En cualquier lista de contenido (menú, póster, historial, resultados):
+- Nombre + descripción de un item son UNA unidad óptica: 1-2px de separación
+- Filas de items: `paddingVertical 5-7` máximo
+- Separación entre secciones: `10-14` — el doble que entre filas, nunca más
+- El aire vive ENTRE grupos, no dentro de ellos (ley dictada 2026-07-13)
+
 ## Paleta
 
 | Token   | Hex       | Uso                                      |

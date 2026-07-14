@@ -51,13 +51,11 @@ export default function PerfilScreen() {
   const [name, setName] = useState('');
   const [address, setAddress] = useState('');
   const [hasMenu, setHasMenu] = useState(false);
-  const [hasSession, setHasSession] = useState(false);
 
   useFocusEffect(useCallback(() => {
     setName(getFonditaName());
     setAddress(getFonditaDireccion());
     setHasMenu(!!getMenuData()?.secciones.some(section => section.platillos.some(dish => dish.nombre.trim())));
-    supabase.auth.getSession().then(({ data }) => setHasSession(!!data.session));
   }, []));
 
   const signOut = async () => {
@@ -82,14 +80,19 @@ export default function PerfilScreen() {
           {address ? ` · ${address}` : ''}
         </Text>
 
-        <TouchableOpacity style={[s.primary, { backgroundColor: c.accent }]} onPress={() => router.push('/perfil-editar')} activeOpacity={0.86}>
-          <Ionicons name="create-outline" size={19} color="#fff" />
-          <Text style={s.primaryText}>Editar mi negocio</Text>
-        </TouchableOpacity>
-
+        {/* Jerarquía espejo de Cuenta (Foodie): primero tu negocio, después la
+            puerta al otro lado, al final preferencias, marca y salida. Sin
+            botonzote — editar el negocio es una acción ocasional, no LA acción. */}
         <View style={[s.group, { backgroundColor: c.surface, borderColor: c.border }]}>
           <Row c={c} icon="restaurant-outline" title="Publicar menú" onPress={() => router.replace('/menu')} />
-          <Row c={c} icon="map-outline" title="Explorar como cliente" onPress={exploreAsClient} />
+          <Row c={c} icon="create-outline" title="Editar mi negocio" last onPress={() => router.push('/perfil-editar')} />
+        </View>
+
+        <View style={[s.group, { backgroundColor: c.surface, borderColor: c.border }]}>
+          <Row c={c} icon="map-outline" title="Explorar como cliente" last onPress={exploreAsClient} />
+        </View>
+
+        <View style={[s.group, { backgroundColor: c.surface, borderColor: c.border }]}>
           <Row
             c={c}
             icon="moon-outline"
@@ -98,7 +101,7 @@ export default function PerfilScreen() {
           />
           <Row c={c} icon="sparkles-outline" title="Nuestro manifiesto" onPress={() => router.push('/manifiesto')} />
           <Row c={c} icon="help-circle-outline" title="Soporte" onPress={() => Linking.openURL(`mailto:${SUPPORT_EMAIL}?subject=Soporte%20Patio`)} />
-          <Row c={c} icon="log-out-outline" title={hasSession ? 'Cerrar sesión' : 'Salir del modo Fondero'} last onPress={signOut} />
+          <Row c={c} icon="log-out-outline" title="Cerrar sesión" last onPress={signOut} />
         </View>
       </ScrollView>
       <BottomTabBar variant="fondero" />
@@ -111,9 +114,9 @@ const s = StyleSheet.create({
   eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.5, marginBottom: 8 },
   title: { fontSize: 38, lineHeight: 41, fontWeight: '900', letterSpacing: -1.3, fontFamily: Fonts.brand },
   status: { marginTop: 10, fontSize: 14, lineHeight: 20 },
-  primary: { minHeight: 56, marginTop: 28, borderRadius: 18, paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 9 },
-  primaryText: { fontSize: 16, fontWeight: '700', color: '#fff' },
-  group: { marginTop: 18, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
-  row: { minHeight: 62, paddingHorizontal: 17, flexDirection: 'row', alignItems: 'center', gap: 13 },
+  group: { marginTop: 16, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
+  // minHeight 56: altura estándar de fila tocable en toda la app (Foodie y
+  // Fondero comparten la misma métrica).
+  row: { minHeight: 56, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 12 },
   rowText: { flex: 1, fontSize: 16, fontWeight: '500' },
 });

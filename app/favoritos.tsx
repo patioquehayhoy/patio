@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, Stack } from 'expo-router';
+import { useMemo, useState } from 'react';
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -40,6 +41,14 @@ function makeStyles(t: Theme) {
     title: { fontSize: 36, fontWeight: '900', letterSpacing: -1.2, lineHeight: 36, color: t.text, marginBottom: 4, fontFamily: Fonts.brand },
     subtitle: { fontSize: 13, fontWeight: '300', color: t.textSecondary },
 
+    // Filtros
+    filters: { paddingHorizontal: 18, paddingBottom: 14, gap: 8, flexDirection: 'row' },
+    filterChip: { paddingHorizontal: 14, minHeight: 34, borderRadius: 100, alignItems: 'center', justifyContent: 'center', backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
+    filterChipActive: { backgroundColor: t.text, borderColor: t.text },
+    filterChipText: { fontSize: 13, fontWeight: '300', color: t.text },
+    filterChipTextActive: { color: t.surface, fontWeight: '700' },
+    filterEmpty: { paddingHorizontal: 10, paddingVertical: 24, fontSize: 14, lineHeight: 20, fontWeight: '300', color: t.textSecondary, textAlign: 'center' },
+
     // Lista
     list: { paddingHorizontal: 18, gap: 10 },
     card: { flexDirection: 'row', gap: 12, backgroundColor: t.surface, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, padding: 12 },
@@ -73,6 +82,20 @@ export default function FavoritosScreen() {
   const { onScroll } = useTabBarScroll();
   const { patios, withMenu } = useFavoritePatiosController();
 
+  // Filtros: pensados para cuando los guardados crecen (~70 items). 'hoy'
+  // filtra por menú publicado; el resto son las categorías reales de lo
+  // guardado — se construyen solas, sin taxonomía inventada.
+  const [filter, setFilter] = useState<'all' | 'hoy' | string>('all');
+  const categories = useMemo(
+    () => [...new Set(patios.map((patio) => patio.category).filter(Boolean))].sort(),
+    [patios]
+  );
+  const filtered = useMemo(() => {
+    if (filter === 'all') return patios;
+    if (filter === 'hoy') return patios.filter((patio) => todayDish(patio) !== null);
+    return patios.filter((patio) => patio.category === filter);
+  }, [patios, filter]);
+
   return (
     <View style={[s.container, { paddingTop: insets.top }]}>
       <Stack.Screen options={{ headerShown: false }} />
@@ -90,6 +113,30 @@ export default function FavoritosScreen() {
           </Text>
         </View>
 
+        {patios.length > 0 && (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={s.filters}>
+            {[
+              { key: 'all', label: 'Todos' },
+              { key: 'hoy', label: 'Con menú hoy' },
+              ...categories.map((cat) => ({ key: cat, label: cat })),
+            ].map(({ key, label }) => {
+              const active = filter === key;
+              return (
+                <TouchableOpacity
+                  key={key}
+                  onPress={() => setFilter(active ? 'all' : key)}
+                  activeOpacity={0.78}
+                  style={[s.filterChip, active && s.filterChipActive]}>
+                  <Text style={[s.filterChipText, active && s.filterChipTextActive]} allowFontScaling={true}>{label}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        )}
+
         {patios.length === 0 ? (
           <View style={s.empty}>
             <View style={s.emptyIcon}>
@@ -103,7 +150,10 @@ export default function FavoritosScreen() {
           </View>
         ) : (
           <View style={s.list}>
-            {patios.map((patio) => {
+            {filtered.length === 0 && (
+              <Text style={s.filterEmpty} allowFontScaling={true}>Ninguno de tus guardados entra en ese filtro hoy.</Text>
+            )}
+            {filtered.map((patio) => {
               const today = todayDish(patio);
               const hasMenu = today !== null;
               return (

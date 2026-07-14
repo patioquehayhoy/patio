@@ -1,13 +1,16 @@
 import { router } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Alert } from 'react-native';
 
 import { saveMenuHoy } from '@/lib/db';
 import { saveDevPublishedMenu } from '@/lib/demo';
 import { saveLocalMenu } from '@/lib/menu-history';
 import {
+  canonicalSeccion,
+  getTipoNegocio,
   makePlatilloId,
   makeSectionId,
+  seccionSugerencias,
   setMenuData,
   type MenuData,
   type Platillo,
@@ -119,15 +122,55 @@ export function useFonderoMenuDraftController(initialData: MenuData) {
     setDetails((prev) => ({ ...prev, [dishId]: true }));
   }, []);
 
-  const addDish = useCallback((section: Seccion) => {
-    patchSection(section.id, { platillos: [...section.platillos, blankDish()] });
+  const addDish = useCallback((section: Seccion): string => {
+    const dish = blankDish();
+    patchSection(section.id, { platillos: [...section.platillos, dish] });
+    return dish.id;
   }, [patchSection]);
 
-  const addSection = useCallback(() => {
+  const addSection = useCallback((nombre?: string) => {
     setData((prev) => ({
-      secciones: [...prev.secciones, blankSection(`SECCIÓN ${prev.secciones.length + 1}`)],
+      secciones: [...prev.secciones, blankSection(nombre ?? `SECCIÓN ${prev.secciones.length + 1}`)],
     }));
   }, []);
+
+  // Precio del día: UN precio para el menú de hoy, guardado en la primera
+  // sección (el modelo Seccion.precio ya existía; la UI lo eleva a primera
+  // clase). Los platillos con precio propio se cobran a la carta — el modelo
+  // original de Patio: precio del día + extras coexisten.
+  const dayPrice = data.secciones.find((section) => section.precio.trim())?.precio ?? '';
+
+  const setDayPrice = useCallback((precio: string) => {
+    const clean = precio.replace(/[^0-9.]/g, '');
+    setData((prev) => ({
+      secciones: prev.secciones.map((section, index) => ({
+        ...section,
+        precio: index === 0 ? clean : '',
+      })),
+    }));
+  }, []);
+
+  // Nombres de sección del giro que el fondero todavía no usa hoy. La
+  // comparación es canónica: "PRIMER TIEMPO" ya cuenta como "1ER TIEMPO".
+  const sectionSuggestions = useMemo(() => {
+    const used = new Set(data.secciones.map((section) => canonicalSeccion(section.nombre)));
+    return seccionSugerencias(getTipoNegocio()).filter((nombre) => !used.has(canonicalSeccion(nombre)));
+  }, [data.secciones]);
+
+  // Guardar sin publicar: para el fondero que ajusta su menú de mañana o sube
+  // un precio, sin anunciarlo todavía. Publicar sigue siendo el acto final.
+  const [savedFlash, setSavedFlash] = useState(false);
+  const saveDraft = useCallback(async () => {
+    const clean = cleanMenu(data);
+    if (!clean.secciones.length) {
+      Alert.alert('Nada que guardar', 'Escribe al menos un platillo.');
+      return;
+    }
+    setMenuData(clean);
+    await saveLocalMenu(clean).catch(() => {});
+    setSavedFlash(true);
+    setTimeout(() => setSavedFlash(false), 1600);
+  }, [data]);
 
   const publish = useCallback(async () => {
     if (publishing) return;
@@ -156,6 +199,7 @@ export function useFonderoMenuDraftController(initialData: MenuData) {
     addSection,
     collapsed,
     data,
+    dayPrice,
     details,
     moveSection,
     patchDish,
@@ -165,7 +209,11 @@ export function useFonderoMenuDraftController(initialData: MenuData) {
     removeDish,
     removeSection,
     revealDetails,
+    saveDraft,
+    savedFlash,
     sectionActions,
+    sectionSuggestions,
+    setDayPrice,
     toggleCollapsed,
     toggleSectionActions,
   };

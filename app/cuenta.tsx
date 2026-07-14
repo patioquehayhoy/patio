@@ -23,7 +23,7 @@ function makeStyles(t: Theme) {
     eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', color: t.accent, marginBottom: 6 },
     title: { fontSize: 36, fontWeight: '900', letterSpacing: -1.2, lineHeight: 36, color: t.text, fontFamily: Fonts.brand },
 
-    body: { paddingHorizontal: 18, gap: 18, paddingTop: 12 },
+    body: { paddingHorizontal: 18, gap: 16, paddingTop: 12 },
 
     // Identidad card con degradado tibio
     idCard: { borderRadius: 22, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, overflow: 'hidden' },
@@ -37,7 +37,9 @@ function makeStyles(t: Theme) {
     group: {},
     groupLabel: { fontSize: 10.5, fontWeight: '700', letterSpacing: 1.4, textTransform: 'uppercase', color: t.textMute, paddingHorizontal: 6, paddingBottom: 8 },
     card: { borderRadius: 18, backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, overflow: 'hidden' },
-    row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 14, paddingHorizontal: 16 },
+    // minHeight 56: altura estándar de fila tocable en toda la app (Foodie y
+    // Fondero comparten la misma métrica).
+    row: { minHeight: 56, flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10, paddingHorizontal: 16 },
     rowDivider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border },
     iconBox: { width: 32, height: 32, borderRadius: 10, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
     rowBody: { flex: 1, minWidth: 0 },
@@ -122,24 +124,37 @@ export default function CuentaScreen() {
             </LinearGradient>
           </View>}
 
-          {/* Una sola lista: Cuenta tiene un trabajo, no tres paneles compitiendo. */}
+          {/* Jerarquía por intención: las stats de arriba YA son la puerta a
+              vistos/guardados (y Guardados vive en la tab bar) — sin filas
+              redundantes. Después la puerta al otro lado, y al final
+              preferencias, marca y salida. */}
           <View style={s.card}>
-              <Row theme={theme} icon="heart-outline" title="Guardados" onPress={() => router.push('/favoritos')} />
-              <Row theme={theme} icon="moon-outline" title="Modo oscuro" divider toggle={{ value: theme.isDark, onValueChange: toggleTheme }} />
-              {__DEV__ && (
-                <Row
-                  theme={theme}
-                  icon="construct-outline"
-                  title="Publicar mi menú · DEV"
-                  sub="Entrar sin iniciar sesión"
-                  accent
-                  onPress={handleDevFondero}
-                />
-              )}
-              {!__DEV__ && <Row theme={theme} icon="storefront-outline" title="Publicar mi menú" divider accent onPress={() => router.push('/fondero-acceso')} />}
-              <Row theme={theme} icon="sparkles-outline" title="Nuestro manifiesto" divider onPress={() => router.push('/manifiesto')} />
-              <Row theme={theme} icon="chatbubble-outline" title="Contactar soporte" divider onPress={() => Linking.openURL(`mailto:${SUPPORT_EMAIL}?subject=Soporte%20Patio`)} />
-              {hasSession && <Row theme={theme} icon="log-out-outline" title="Cerrar sesión" divider onPress={handleSignOut} />}
+            {__DEV__ ? (
+              <Row
+                theme={theme}
+                icon="construct-outline"
+                title="Publicar mi menú · DEV"
+                sub="Entrar sin iniciar sesión"
+                accent
+                onPress={handleDevFondero}
+              />
+            ) : (
+              <Row
+                theme={theme}
+                icon="storefront-outline"
+                title="Publicar mi menú"
+                sub="Para cocinas y fonditas"
+                accent
+                onPress={() => router.push('/fondero-acceso')}
+              />
+            )}
+          </View>
+
+          <View style={s.card}>
+            <Row theme={theme} icon="moon-outline" title="Modo oscuro" toggle={{ value: theme.isDark, onValueChange: toggleTheme }} />
+            <Row theme={theme} icon="sparkles-outline" title="Nuestro manifiesto" divider onPress={() => router.push('/manifiesto')} />
+            <Row theme={theme} icon="chatbubble-outline" title="Contactar soporte" divider onPress={() => Linking.openURL(`mailto:${SUPPORT_EMAIL}?subject=Soporte%20Patio`)} />
+            {(hasSession || __DEV__) && <Row theme={theme} icon="log-out-outline" title="Cerrar sesión" divider onPress={handleSignOut} />}
           </View>
 
           <View style={s.footer}>

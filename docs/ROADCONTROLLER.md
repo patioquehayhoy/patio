@@ -1,6 +1,6 @@
 # ROADCONTROLLER — Patio
 
-> Estado: v1 · 2026-07-07
+> Estado: v2 · 2026-07-13
 > Uso: mapa operativo superior de `/Users/parco/Patio`.
 > Función: decidir qué frente leer, qué carpeta tocar, qué está activo, qué está pausado y cómo no mezclar sistemas.
 > Inspirado en `~/T1all/ROADCONTROLLER.md` (solo el formato; los sistemas no se mezclan).
@@ -50,12 +50,13 @@ Patio/
 
 | Frente | Dónde | Estado | Siguiente útil |
 |---|---|---|---|
-| Código RN (producto) | `app/` `components/` `lib/` | **Activo — va ADELANTE del diseño** | Cerrar pendientes de diseño jun-21 (ver §9) |
-| Rama de trabajo | `v2-look-figma` | Limpia, **sin push** (no existe en origin) | `git push -u origin v2-look-figma` (auth GitHub pendiente, lo corre Alejandro) |
-| Figma Make | nube + `design-source/figma-make/` | v02 congelado (2026-06-14) · **créditos disponibles de nuevo** | Flujo inverso: subir estado actual del código a Make y pedir ajustes puntuales (ver §7) |
-| Docs de estado | `docs/HANDOFF.md` `STATE.md` `TASKS.md` | **Desactualizados** — reflejan 2026-06-21/22; el commit `b8b810b` (4 jul) no está documentado | Escribir HANDOFF de la sesión del 4 jul |
-| QA dispositivo | iPhone 15 Pro "Parco" | Dev build instalada, itera por WiFi | Magic link, cámara/galería, GPS real |
-| TestFlight | build 1.0.0 (45+) | Congelado en versión vieja | Build nuevo solo al cerrar bloque de cambios (economía EAS) |
+| Código RN (producto) | `app/` `components/` `lib/` | **Estabilizado** — baseline verde 2026-07-10 (typecheck, lint, exports, Maestro E2E) | Barrido humano en iPhone (magic link, cámara, GPS, share, push, mapas) |
+| Rama de trabajo | `rebuild/patio-final` | Activa, limpia · reemplaza a `v2-look-figma` | Push a origin (auth GitHub pendiente, lo corre Alejandro) |
+| Edge function `read-menu` | `supabase/functions/` | **BLOQUEANTE** — código listo, sin desplegar; requiere `supabase login` de Alejandro | Deploy + secreto `ANTHROPIC_API_KEY` + rotar clave vieja `EXPO_PUBLIC_ANTHROPIC_API_KEY` (ver `supabase/functions/README.md`) |
+| Figma Make | `design-source/figma-make/` | **Cerrado como herramienta** (decisión 2026-07-10) — v01/v02 quedan solo como referencia visual; v03 descartado | Nada — no retomar |
+| Docs de estado | `docs/HANDOFF.md` `NEXT_SESSION.md` | Vigentes al 2026-07-10 | Actualizar tras el barrido en iPhone |
+| QA dispositivo | iPhone 15 Pro "Parco" | Dev build instalada, itera por WiFi | Magic link, cámara/galería, GPS real, póster/share, push, mapas |
+| TestFlight | build 1.0.0 (45+) | Congelado en versión vieja | Build nuevo solo al cerrar el bloque de QA (economía EAS) |
 | Supabase | proyecto `lafondita` (org Parco Apps) | Funcional; plan Free se pausa solo → dar Resume | No migrar correo todavía |
 | EAS Update (OTA) | — | **No configurado** | Decisión pendiente: lo resolvería "última versión sin build" fuera de casa |
 
@@ -108,7 +109,7 @@ Gotchas conocidos:
 **Lo que existe en código y Make NO conoce** (si se retoma Make, hay que alimentárselo con capturas, no al revés):
 horario semanal por día · stats vivas + `vistos.tsx` · collapsing-header (Large Title) · modo claro Fondero · navegación pestañas-puras · manifiesto · hints one-time · menu-composer nuevo.
 
-**Regla de dirección:** con créditos nuevos, Figma Make sirve para **explorar look de pantallas específicas** partiendo de capturas del estado actual — NO para rediseñar flujos que el código ya resolvió. Recordar: Make es bueno generando de cero, malo/caro ajustando (learning Ciclo 5).
+**Regla de dirección (actualizada 2026-07-10):** Figma Make quedó **cerrado como herramienta de producción** — v01/v02 son solo referencia visual, v03 se descartó. No retomar Make para diseñar ni ajustar; la reconstrucción vive en React Native sobre `rebuild/patio-final`.
 
 ## 8. Reglas de no mezcla
 
@@ -124,16 +125,17 @@ horario semanal por día · stats vivas + `vistos.tsx` · collapsing-header (Lar
 ## 9. Prioridades actuales
 
 ```txt
-1. Documentar b8b810b (4 jul): escribir el HANDOFF que falta + validar qué
-   pendientes de jun-21 cerró (horarios ✅ aparente, menú ✅ aparente).
-2. Push de v2-look-figma a origin (Alejandro; auth GitHub pendiente).
-3. Validar en iPhone los pendientes de diseño restantes:
-   header system (propagar o no) · "usar menú anterior" con preview ·
-   onboarding sheet "Ponle nombre".
-4. QA dispositivo: magic link, cámara, GPS.
-5. Decidir EAS Update (OTA) para "última versión sin build".
-6. Datos falsos hardcoded (312 vistas, +18%, etc.): conectar o quitar
+1. BLOQUEANTE: desplegar supabase/functions/read-menu + secreto
+   ANTHROPIC_API_KEY + rotar la clave vieja EXPO_PUBLIC_ANTHROPIC_API_KEY.
+   Requiere `supabase login` (Alejandro). Probar con foto real antes de
+   declarar la lectura IA operativa.
+2. Barrido humano en iPhone: magic link, cámara/galería, GPS, póster/share,
+   push, apertura de mapas. Corregir solo hallazgos reproducibles.
+3. Push de rebuild/patio-final a origin (Alejandro; auth GitHub pendiente).
+4. Datos falsos hardcoded (312 vistas, +18%, etc.): conectar o quitar
    antes de usuarios reales.
+5. Decidir EAS Update (OTA) para "última versión sin build".
+6. Build/TestFlight nuevo solo al cerrar el bloque de QA (economía EAS).
 7. Radar: organización de Guardados a escala (~70 items → filtros).
 ```
 

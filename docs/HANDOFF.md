@@ -1,5 +1,51 @@
 # HANDOFF
 
+## Estado vigente — 2026-07-13 (QA en device + 2 rondas de diseño global)
+
+Sesión de QA en vivo: Alejandro probó en iPhone por WiFi (Metro) y dio feedback en
+dos rondas; todo se corrigió en caliente con Fast Refresh. Typecheck y lint verdes.
+
+### Leyes de diseño dictadas (ya aplicadas y documentadas)
+
+- **Todo lo accionable vive abajo** — cero botones flotantes arriba; buscador + mic
+  junto a la tab bar en el mapa.
+- **Tab bar liquid glass**: se ENCOGE al scrollear (escala 0.82 + baja 12px), no
+  desaparece. El mecanismo vive en `lib/tab-bar-visibility.tsx` + interpolaciones
+  en `components/bottom-tab-bar.tsx`.
+- **Acciones secundarias detrás de `···`** — homologado en composer e historial
+  (Editar y usar / Nombrar; el lapicito murió).
+- **Densidad HIG**: regla nueva en CLAUDE.md — el aire vive ENTRE grupos.
+- **Botones HIG**: cápsulas que abrazan su contenido; nada full-width invasivo.
+  Filas tocables = 56pt en ambos lados.
+- **Corazón = guardar** en toda la app (tab bar incluida).
+- **"Cerrar sesión"** siempre — "Salir del modo Fondero" eliminado.
+
+### Cambios funcionales de la sesión
+
+- **Precio del día**: campo compacto de primera clase en el composer; se guarda en
+  `secciones[0].precio`; explicación del modelo (día + a la carta) como hint de
+  una sola vez (`fondero_precio` en `lib/hints.ts`). Sale en el póster arriba-derecha.
+- **Cadena de foco en captura**: platillo → descripción → siguiente platillo (el
+  precio fuera de la cadena; cambia poco). El teclado ya no se cierra.
+- **Guardar cambios ≠ Publicar**: guardar (borrador local) y publicar como cierre
+  del scroll, en cápsulas.
+- **Chips de sección sugeridas** por giro, con equivalencia canónica
+  ("PRIMER TIEMPO" ≡ "1ER TIEMPO", `canonicalSeccion` en menu-store).
+- **Póster reestructurado**: fecha+nombre / precio arriba-derecha / menú sin label
+  redundante / firma sutil light sin logo. Círculo fantasma (spacer con fondo) fuera.
+- **Guardados con filtros**: chips Todos / Con menú hoy / categorías reales.
+- **Buscar en mapa abre lista "Cerca de ti"** de inmediato; botón mic (dictado del
+  teclado iOS; el agente de voz real sigue en backlog Pro).
+- **Cuenta y Mi Patio rejerarquizados** en cards espejo; redundancias fuera.
+
+### Pendientes que dejó la sesión
+
+- Drag & drop de platillos: Alejandro autorizó skip si es complejo; queda en radar.
+- Filtros de Guardados v2: jerarquizar según "mapa vectorial" del foodie.
+- Fricción/ceremonia para volverse Fondero (bloque 5) y agente de voz (Pro).
+- Sigue el BLOQUEANTE externo: desplegar `read-menu` + rotar clave (ver 2026-07-10).
+- Warning en log: "Unsupported dashed/dotted border style" — cazar el borde punteado.
+
 ## Estado vigente — 2026-07-10 (cierre local comprobado en código)
 
 Leer esta sección primero. La bitácora histórica debajo conserva contexto, pero ya

@@ -125,18 +125,16 @@ horario semanal por día · stats vivas + `vistos.tsx` · collapsing-header (Lar
 ## 9. Prioridades actuales
 
 ```txt
-1. BLOQUEANTE: desplegar supabase/functions/read-menu + secreto
-   ANTHROPIC_API_KEY + rotar la clave vieja EXPO_PUBLIC_ANTHROPIC_API_KEY.
-   Requiere `supabase login` (Alejandro). Probar con foto real antes de
-   declarar la lectura IA operativa.
-2. Barrido humano en iPhone: magic link, cámara/galería, GPS, póster/share,
-   push, apertura de mapas. Corregir solo hallazgos reproducibles.
-3. Push de rebuild/patio-final a origin (Alejandro; auth GitHub pendiente).
-4. Datos falsos hardcoded (312 vistas, +18%, etc.): conectar o quitar
-   antes de usuarios reales.
-5. Decidir EAS Update (OTA) para "última versión sin build".
-6. Build/TestFlight nuevo solo al cerrar el bloque de QA (economía EAS).
-7. Radar: organización de Guardados a escala (~70 items → filtros).
+1. BLOQUEANTE: rotar la antigua clave Anthropic; después desplegar
+   supabase/functions/read-menu con una clave nueva en el secreto
+   ANTHROPIC_API_KEY. Requiere `supabase login` (Alejandro). Probar con foto
+   real antes de declarar la lectura IA operativa.
+2. Push de rebuild/patio-final a origin (HEAD local `efdbddd`; auth GitHub pendiente).
+3. Barrido humano en iPhone: magic link, cámara/galería, IA, GPS, póster/share,
+   push y apertura de mapas. Corregir solo hallazgos reproducibles.
+4. Decidir EAS Update (OTA) para "última versión sin build".
+5. Build/TestFlight nuevo solo al cerrar el bloque de QA (economía EAS).
+6. Radar: organización de Guardados a escala (~70 items → filtros).
 ```
 
 ## 10. Callgraph raíz

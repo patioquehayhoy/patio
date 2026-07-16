@@ -1,5 +1,66 @@
 # HANDOFF
 
+## CLAUDE: EMPIEZA AQUÍ — corte exacto 2026-07-16
+
+### TL;DR
+
+Patio ya es un MVP funcional en React Native/Expo. La rama activa es
+`rebuild/patio-final`, HEAD local `efdbddd`. Los recorridos principales pasaron en
+simulador y el código está sano. No reconstruyas pantallas, no retomes Figma Make y
+no abras features nuevas: el siguiente bloque es infraestructura externa + QA nativo.
+
+### Estado verificable
+
+- Worktree limpio al entregar este handoff.
+- `npm run typecheck`: verde.
+- `npm run lint`: verde.
+- `npx expo install --check`: verde.
+- Expo alineado de `54.0.35` a `54.0.36`.
+- `git diff --check`: verde antes del commit.
+- Commit local nuevo: `efdbddd chore: preparar Patio para QA nativo`.
+- El push de `rebuild/patio-final` falló por falta de autenticación GitHub; el commit
+  solo existe localmente hasta que Alejandro haga login/push.
+- `npm audit` reporta 19 vulnerabilidades moderadas transitivas. No ejecutar
+  `npm audit fix --force`: propone Expo 57 y sería una migración mayor fuera de scope.
+
+### Lo que ya quedó resuelto
+
+- Warning `Unsupported dashed/dotted border style`: removidos los dos estilos fuente
+  en `app/patio/[id].tsx` y `app/resena/[id].tsx`.
+- Antigua `EXPO_PUBLIC_ANTHROPIC_API_KEY`: eliminada del `.env` local.
+- Estado temporal `supabase/.temp/`: eliminado del índice y agregado a `.gitignore`.
+- Métricas ficticias `312 vistas` / `+18%`: no existen en el código actual.
+- Documentación operativa actualizada: `HANDOFF`, `STATE`, `TASKS`, `NEXT_SESSION`.
+
+### Bloqueos que requieren a Alejandro
+
+1. **GitHub:** autenticar y ejecutar `git push -u origin rebuild/patio-final`.
+2. **Anthropic:** revocar/rotar la clave antigua que estuvo expuesta como pública.
+3. **Supabase:** `npx supabase login`; guardar la clave nueva como
+   `ANTHROPIC_API_KEY`; desplegar `read-menu`.
+4. **iPhone físico:** magic link, cámara/galería, foto IA, GPS, publicación,
+   póster/share, push y apertura de mapas.
+5. **Distribución:** build/TestFlight nuevo solo tras cerrar ese QA y con autorización.
+
+### Orden de continuación para Claude
+
+1. Verificar rama `rebuild/patio-final` y HEAD `efdbddd`.
+2. Ayudar a Alejandro con GitHub/Supabase sin imprimir secretos en consola o docs.
+3. Ejecutar el QA nativo como un solo recorrido; registrar únicamente fallos
+   reproducibles con pantalla, pasos y resultado esperado/real.
+4. Corregir esos fallos sin refactors laterales.
+5. Repetir typecheck, lint y Expo check; actualizar esta sección al cerrar.
+
+### Reglas que no se negocian
+
+- Leer `CLAUDE.md` y `docs/ROADCONTROLLER.md` antes de tocar código.
+- No modificar ni parafrasear `Saaaaaaabes.`.
+- No usar “Foodie” o “Fondero” en copy visible.
+- No tocar el bloque de precio protegido del editor.
+- No convertir Patio en delivery, reservas, pedidos o marketplace.
+- No retomar Figma Make como herramienta de producción.
+- No ejecutar build EAS ni TestFlight sin autorización de Alejandro.
+
 ## Estado vigente — 2026-07-16 (limpieza autónoma previa a QA)
 
 - `npm run typecheck` y `npm run lint` pasan.

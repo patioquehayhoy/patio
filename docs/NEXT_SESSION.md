@@ -2,6 +2,9 @@
 
 > Última actualización: 2026-07-16 — limpieza autónoma comprobada.
 
+> Handoff principal para Claude: leer primero `docs/HANDOFF.md`, sección
+> **CLAUDE: EMPIEZA AQUÍ — corte exacto 2026-07-16**.
+
 ## Dónde estamos
 
 Patio es un MVP funcional con controllers separados. La rama `rebuild/patio-final`

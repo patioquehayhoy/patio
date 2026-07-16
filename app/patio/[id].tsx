@@ -84,7 +84,7 @@ function makeStyles(t: Theme) {
     groupItem: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: 12, marginBottom: 3 },
     groupItemName: { flex: 1, fontSize: 15, color: t.text, letterSpacing: -0.2, lineHeight: 21 },
     groupItemPrice: { fontSize: 15, fontWeight: '700', color: t.accent },
-    groupDashed: { borderBottomWidth: StyleSheet.hairlineWidth, borderStyle: 'dashed', borderBottomColor: t.border, marginTop: 12 },
+    groupDashed: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.border, marginTop: 12 },
 
     // ── Detalles + mapa ──
     section: { paddingTop: 24 },

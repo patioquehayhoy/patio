@@ -1,6 +1,16 @@
 # STATE
 
-> Fuente de verdad operativa. Última actualización: 2026-07-10.
+> Fuente de verdad operativa. Última actualización: 2026-07-16.
+
+## Corte operativo — 2026-07-16
+
+- TypeScript y ESLint pasan sobre `rebuild/patio-final`.
+- Se eliminaron los dos estilos `dashed` que producían el warning nativo.
+- La antigua `EXPO_PUBLIC_ANTHROPIC_API_KEY` se retiró del `.env` local; la clave
+  expuesta debe rotarse en Anthropic antes de configurar el secreto servidor.
+- No se encontraron métricas hardcodeadas `312 vistas` / `+18%` en el código actual.
+- El despliegue de `read-menu` sigue bloqueado por autenticación del CLI de Supabase.
+- El QA de integraciones nativas sigue requiriendo el iPhone físico.
 
 ## Decisión vigente
 
@@ -12,7 +22,7 @@ La app actual permanece como baseline funcional en `rebuild/patio-final`. En vez
 una reescritura destructiva, se estabilizaron sus contratos y se comprobó el flujo
 real sobre la UI vigente; la rama anterior conserva Patio Vivo recuperable.
 
-## Salud técnica — 2026-07-10
+## Salud técnica — 2026-07-16
 
 - TypeScript: pasa.
 - ESLint: pasa.

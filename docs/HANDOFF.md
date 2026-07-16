@@ -1,5 +1,17 @@
 # HANDOFF
 
+## Estado vigente — 2026-07-16 (limpieza autónoma previa a QA)
+
+- `npm run typecheck` y `npm run lint` pasan.
+- Retirados los dos bordes `dashed` que originaban el warning nativo.
+- Retirada del `.env` local la antigua `EXPO_PUBLIC_ANTHROPIC_API_KEY`.
+- No hay métricas hardcodeadas `312 vistas` / `+18%` en el código actual.
+- `supabase/.temp/` queda tratado como estado local, no como fuente versionable.
+- El CLI de Supabase no tiene sesión: desplegar `read-menu` requiere `supabase login`.
+- La clave antigua debe rotarse antes de guardar la nueva como secreto servidor.
+- El siguiente bloque real es QA en iPhone: magic link, cámara/galería, foto IA, GPS,
+  publicación, póster/share, push y mapas.
+
 ## Estado vigente — 2026-07-13 (QA en device + 2 rondas de diseño global)
 
 Sesión de QA en vivo: Alejandro probó en iPhone por WiFi (Metro) y dio feedback en

@@ -1,7 +1,17 @@
 # TASKS — Cola de trabajo para agentes
 
-> Última actualización: 2026-07-10.
+> Última actualización: 2026-07-16.
 > Estado: `[ ]` pendiente | `[x]` hecho | `[~]` en progreso.
+
+## CICLO 2026-07-16 — Limpieza autónoma previa a QA
+
+- [x] Retirar `borderStyle: dashed` de ficha y reseña para eliminar el warning nativo.
+- [x] Eliminar `EXPO_PUBLIC_ANTHROPIC_API_KEY` del entorno local.
+- [x] Confirmar que las métricas ficticias `312 vistas` / `+18%` ya no existen en código.
+- [x] Ignorar el estado temporal de Supabase CLI (`supabase/.temp/`).
+- [ ] Rotar la clave Anthropic anteriormente expuesta.
+- [ ] Autenticar Supabase CLI, desplegar `read-menu` y registrar el secreto nuevo.
+- [ ] Ejecutar QA nativo en iPhone y confirmar que desapareció el warning visual.
 
 ## CICLO 2026-07-09 — Cierre en código
 

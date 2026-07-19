@@ -15,7 +15,7 @@
         "ITSAppUsesNonExemptEncryption": false,
         "NSCameraUsageDescription": "Toma foto del menú para subirlo automáticamente",
         "NSPhotoLibraryUsageDescription": "Elige una foto del menú desde tu galería",
-        "NSLocationWhenInUseUsageDescription": "Usamos tu ubicación para mostrarte patios cercanos"
+        "NSLocationWhenInUseUsageDescription": "Usamos tu ubicación para colocar tu negocio en el mapa de Patio"
       }
     },
     "android": {

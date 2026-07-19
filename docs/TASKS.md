@@ -1,7 +1,128 @@
 # TASKS — Cola de trabajo para agentes
 
-> Última actualización: 2026-07-16.
+> Última actualización: 2026-07-19.
 > Estado: `[ ]` pendiente | `[x]` hecho | `[~]` en progreso.
+
+> Las entradas Patio Smart v1–v6 registran iteraciones históricas y no son una
+> especificación vigente. El flujo canónico es v7 y vive en
+> `docs/PATIO_SYSTEM_MAP.md`.
+
+## PENDIENTES POR URGENCIA — corte 2026-07-16
+
+### Memoria durable — corte 2026-07-18
+
+- [x] Actualizar el esquema técnico vigente en `docs/ARCHITECTURE.md`.
+- [x] Crear esquema maestro de producto y producción en `docs/PATIO_SYSTEM_MAP.md`.
+- [x] Guardar notas de recurrencia, Airbnb, IA, Voronoi, incentivos, estatus,
+  comunidades, gobernanza y privacidad en
+  `docs/PRODUCT_EVOLUTION_ROADMAP_2026-07-18.md`.
+- [x] Añadir entrada directa “Elige de Fotos” con selector nativo de galería.
+- [x] Corregir lectura IA descartada cuando no existe precio único — la Edge
+  Function ahora normaliza siempre `precio`, secciones y platillos; el cliente
+  conserva además los precios individuales. Desplegado y smoke test OK 2026-07-18.
+- [ ] QA iPhone de cámara/galería y consolidar cambios locales.
+- [ ] Siguiente bloque recomendado: modelo `lastPublishedAt` + estados de actividad.
+- [x] Primera rebanada Patio Smart: relato libre → extracción estructurada → revisión
+  → editor de perfil; Edge Function desplegada y smoke test OK 2026-07-18.
+- [x] Patio Smart v2: revisión editable + preguntas de faltantes una por una,
+  con “Después”; función desplegada y smoke test OK 2026-07-18.
+- [x] Reencuadre panorámico Patio Smart: onboarding solo en primer acceso, categoría
+  interna oculta, pagos sin repetición, horario verificable día por día, guardado
+  directo y salida a Hoy. Edge Function v3 desplegada 2026-07-18.
+- [x] Alta v4: IA invisible en el copy, dictado del teclado como entrada principal,
+  escritura secundaria y flujo de cuatro pasos sin preguntas duplicadas; horario
+  multiselección + presets + resumen abierto/cerrado. 2026-07-19.
+- [x] Corrección QA v5: retirar micrófonos del alta y mapa hasta que exista voz real;
+  copy “Confirma tu información”; horario independiente por día con estados visibles
+  y atajos opcionales. Recargado en iPhone 2026-07-19.
+- [x] Corrección panorámica v6: retirar “Cuéntanos de tu negocio” y extracción previa;
+  comenzar directamente en datos/pagos, después horarios y resumen. Cada dato se
+  solicita una sola vez. Recargado en iPhone 2026-07-19.
+- [x] Alta v7 canónica: elegir intención primero; negocio = correo → nombre →
+  días/horarios → guardar → celebración → primer menú. Sin relato, pagos,
+  descripción, ubicación ni revisión duplicada. 2026-07-19.
+- [x] Horarios v7: días binarios de un toque, presets, ruleta nativa en intervalos
+  de 15 minutos y conservación de horas al cerrar/reabrir durante la edición.
+- [x] Persistencia v7: solo nombre + horario, guardado antes de celebrar, sin borrar
+  campos diferidos y sin bloquear 15 días el primer nombre.
+- [x] QA simulador v7: ancho iPhone, teclado visible, ruleta, cierre y Dynamic Type
+  normal/máximo; sin viudas en el recorrido.
+- [x] Enrutamiento v7: la introducción conserva intención Foodie/Fondero; activar,
+  omitir o cerrar avisos continúa al destino correcto. También se eliminó la
+  carrera al persistir el rol y se blindaron Cuenta, acceso y magic link.
+- [x] Alta v8 HIG: nombre sin ejemplo flotante, ubicación como dato esencial,
+  horarios con selector compacto anclado al campo (sin sheet inferior), CTA
+  compactos sin bloques naranjas y cierre centrado en el nombre del negocio.
+- [x] Persistencia v8: dirección y coordenadas se guardan junto con nombre y horario
+  cuando están disponibles; la dirección manual no bloquea el alta si el
+  geocodificador falla temporalmente.
+- [x] Flujo v9: introducción visual → intención por resultado; avisos solo en la
+  rama “Ver qué hay hoy” y acceso/alta directo desde “Publicar lo que preparo”.
+- [x] Alta v9: pagos como cuarto paso ligero y persistencia conjunta con nombre,
+  ubicación y horario.
+- [x] Sistema v9: alta y “Editar mi negocio” comparten editor canónico de días,
+  selector horario compacto y pagos. La ruleta confirma y cierra tras 1.1 s sin
+  movimiento.
+- [x] QA simulador v9: introducción/intención, rama Fondero, rama Foodie/avisos,
+  alta completa con pagos y edición de perfil.
+- [ ] QA iPhone físico v8: nombre, ubicación, teclado, días, horas compactas,
+  guardar y primer menú.
+- [ ] Push real por publicación: tokens, guardados remotos, evento de publicación y
+  entrega. Hasta entonces el onboarding promete únicamente recordatorio diario.
+- [ ] Seguir `docs/AIRBNB_TO_PATIO_SYSTEM.md` para perfil, guardados, reseñas,
+  comparación, explicación y soporte contextual.
+
+### A. Bloquean funcionalidad (requieren a Alejandro)
+
+- [x] Desplegar `read-menu` en Supabase + secreto `ANTHROPIC_API_KEY` — RESUELTO
+  2026-07-18: proyecto reactivado (estaba pausado por plan Free), función
+  desplegada, llave NUEVA registrada como secreto (rotación de facto; falta solo
+  desactivar la llave vieja "Patio" en console.anthropic.com). Smoke test OK.
+- [ ] Confirmar magic link real: `patio://login-callback` en Supabase Dashboard + iPhone.
+- [ ] QA iPhone completo: magic link, cámara/galería, IA, GPS, póster/share, push, mapas.
+
+### B. Diseño — pantallas/flujos (escoger una y cerrarla)
+
+- [~] Onboarding/intro — RECONSTRUIDO 2026-07-17 en código: botánica full-bleed
+  (la imagen gana), crossfade auto tipo ruleta + Ken Burns, barras de progreso
+  estilo stories, texto editorial abajo, CTAs chicos en glass. Verificado en
+  simulador (3 slides). Falta revisión visual de Alejandro en device.
+  OJO QA: tap de Maestro en `DEV · Onboarding` no navega (¿quirk sim o
+  regresión de la entrada?) — confirmar botones de entrada en iPhone.
+- [~] Entrada + login/sesión — `fondero-acceso.tsx` CERRADO 2026-07-18: Alejandro
+  eligió mix A+B (botánica full-bleed + logo y par de marca al centro, campo en
+  glass abajo); variantes y switcher DEV eliminados. Copy a identidad verbal
+  ("Ver lo de hoy →", fuera "cocinas"). Entrada `index.tsx` rediseñada
+  2026-07-18: botánica full-bleed (cempasúchil), logo anclado al centro exacto
+  con par de marca debajo, CTA glass, barra DEV en pills discretas. Onboarding
+  sin auto-avance (solo Continuar/tap), sin barras de progreso (tache glass),
+  sin contornos en cápsulas.
+- [ ] Contrato visual mínimo — tokens, tipografía, superficies, componentes permitidos.
+- [ ] Pantalla maestra Explorar → propagar sistema (Foodie primero, luego publicación).
+- [ ] Póster de compartir: recomponer (logo P ilegible, espacio raro arriba).
+- [ ] Spinner de visión estilo ChatGPT (shimmer progresivo).
+- [ ] Blur del mapa al buscar: algo vivo (botánica, patios prendiéndose).
+- [ ] Guardados organizados (categoría/cercanía/abierto hoy).
+- [ ] "Botonzote" naranja de Editar mi negocio: bajar jerarquía.
+- [ ] Navegación simétrica Foodie↔Fondero (incl. onboarding al cambiar rol).
+- [ ] Recorte de galería libre (el nativo cuadrado se siente "chafa").
+- [ ] Captura robusta: catálogo de casos reales de foto de menú y respuesta de la visión.
+- [x] Foto→menú SOLO con cámara del sistema — RESUELTO 2026-07-18: se eliminó la
+  pantalla intermedia ("Patio lo lee" + tarjeta naranja); entrar a foto-menu
+  lanza directo la cámara nativa iOS; cancelar regresa al menú; fallo de
+  lectura ofrece "Otra foto" / "Escribirlo a mano".
+- [x] BUG lectura de menú — RESUELTO 2026-07-18: las fotos de cámara (12MP) se
+  mandaban SIN redimensionar y excedían el límite de la API de visión → fallo
+  silencioso. Ahora resize a 1600px + compress 0.8 (~300KB). Backend verificado
+  OK con imagen de prueba real (secciones/platillos/precio perfectos).
+- [ ] Botones glass del onboarding: no convencen del todo a Alejandro (aunque
+  prefiere glass vs contorno) — explorar variante en otra iteración.
+
+### C. Al final (decisión 2026-07-16: no urgente)
+
+- [ ] Rotar la clave Anthropic anteriormente expuesta.
+- [ ] Generar más botánicas hero con `FLORES_ENDEMICAS_PROMPT.md` (hoy son 8).
+- [ ] Features futuras (ver sección al fondo).
 
 ## CICLO 2026-07-16 — Limpieza autónoma previa a QA
 
@@ -9,9 +130,18 @@
 - [x] Eliminar `EXPO_PUBLIC_ANTHROPIC_API_KEY` del entorno local.
 - [x] Confirmar que las métricas ficticias `312 vistas` / `+18%` ya no existen en código.
 - [x] Ignorar el estado temporal de Supabase CLI (`supabase/.temp/`).
-- [ ] Rotar la clave Anthropic anteriormente expuesta.
-- [ ] Autenticar Supabase CLI, desplegar `read-menu` y registrar el secreto nuevo.
+- [x] Optimizar botánicas hero: 8 PNG (13 MB) → JPEG q80 (2 MB), 941×1672 intactas;
+  referencias actualizadas en onboarding, favoritos, vistos, push-prompt,
+  fondero-acceso y patio/[id]. Typecheck y lint verdes.
+- [x] Borrar `app/.perfil.tsx.swp` — swap viejo de vim (proyecto "lafondita");
+  el ToggleSwitch que contenía ya vive en `components/toggle-switch.tsx`.
+- [x] `npx expo install --check` — dependencias al día; `@types/react-native`
+  ya no es dependencia directa.
+- [x] Autenticar Supabase CLI, desplegar `read-menu` y registrar el secreto nuevo —
+  RESUELTO 2026-07-18 (ver sección PENDIENTES POR URGENCIA).
 - [ ] Ejecutar QA nativo en iPhone y confirmar que desapareció el warning visual.
+- [ ] Rotar la clave Anthropic anteriormente expuesta — decisión 2026-07-16 (Alejandro):
+  va AL FINAL, no es urgente.
 
 ## CICLO 2026-07-09 — Cierre en código
 
@@ -33,8 +163,8 @@
   el recorrido de publicación.
 - [x] **P0 código de producción** — `lib/vision.ts` invoca la Edge Function
   `read-menu`; la clave ya no se consume desde React Native.
-- [ ] **P0 despliegue IA** — desplegar `read-menu`, guardar `ANTHROPIC_API_KEY` como
-  secreto de Supabase y rotar/eliminar cualquier antigua clave `EXPO_PUBLIC_*`.
+- [x] **P0 despliegue IA** — RESUELTO 2026-07-18: `read-menu` desplegada, llave
+  nueva como secreto de Supabase; solo falta desactivar la llave vieja en consola.
 - [x] **QA simulador** — flows Maestro `01`–`12`; publicación y detalle pasan E2E.
 - [ ] **QA iPhone** — magic link, cámara/galería, IA, GPS, poster/share, push y mapas.
 
@@ -59,8 +189,8 @@
 - [x] **P0: sacar IA de cliente antes de producción** - movida a
   `supabase/functions/read-menu`; despliegue/secret registrados como tarea externa.
 - [ ] **P0: confirmar magic link real** - validar `patio://login-callback` en Supabase Dashboard y en iPhone con correo real.
-- [ ] **P1: corregir expo-doctor** - correr `npx expo install --check`, alinear patch versions Expo y remover `@types/react-native` directo.
-- [ ] **P1: limpiar archivo temporal** - revisar y borrar `app/.perfil.tsx.swp` si no contiene trabajo pendiente.
+- [x] **P1: corregir expo-doctor** - RESUELTO 2026-07-16: `npx expo install --check` reporta dependencias al día; `@types/react-native` ya no es directo.
+- [x] **P1: limpiar archivo temporal** - RESUELTO 2026-07-16: `app/.perfil.tsx.swp` borrado (contenía un ToggleSwitch ya existente en `components/toggle-switch.tsx`).
 
 ## CICLO 2026-07-07 — Feedback de Alejandro en device (transcript de voz)
 
@@ -109,7 +239,8 @@ tab bar y botones, inicio Fondero (foto/a mano/anterior), spinner de visión, re
 
 ### Decisiones de diseño (validar con Alejandro / explorar en Figma Make)
 
-- [ ] **Intro/onboarding de la app** — "asqueroso", siempre lo ha querido cambiar. Candidato #1 para Figma Make (generar de cero es su fuerte).
+- [~] **Intro/onboarding de la app** — reconstruido en código 2026-07-17 (ver
+  sección PENDIENTES POR URGENCIA); pendiente visto bueno de Alejandro.
 - [ ] Logo de Patio arriba-izquierda en el póster — ¿es el lugar idóneo?
 - [ ] "Botonzote" naranja de Editar mi negocio — ¿bajarle jerarquía?
 

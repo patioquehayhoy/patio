@@ -1,0 +1,11 @@
+appId: com.parcomx.patio
+---
+- launchApp
+- openLink: "patio://onboarding"
+- waitForAnimationToEnd
+- assertVisible: "Saber qué.*hoy\\."
+- tapOn:
+    point: "92%,10%"
+- assertVisible: "Publicar lo que.*preparo"
+- tapOn: "Publicar lo que.*preparo"
+- assertVisible: "Tu menú, en un.*correo\\."

@@ -138,6 +138,15 @@ claridad funcional.
   Nunca frases enteras en mayúsculas para "dar énfasis".
 - **Cifras y horarios** como los diría la gente: "13–16 h", "a 2 cuadras",
   "hace 12 min".
+- **Cero viudas, sin excepción.** Ningún título, subtítulo, párrafo, ayuda,
+  alerta o CTA de varias palabras termina con una palabra aislada. Todo copy
+  estático de interfaz pasa por `noWidow()`; el contenido dinámico se protege
+  cuando funciona como bloque editorial. La composición se valida en el ancho
+  real del dispositivo, no solo leyendo el código.
+- **La pantalla debe entenderse sola.** Nunca trasladar al producto el contexto
+  de una conversación, una decisión interna o una lista de datos que se
+  completarán después. Cada texto explica únicamente la acción visible y su
+  beneficio inmediato.
 
 ---
 
@@ -251,3 +260,6 @@ Antes de cerrar cualquier copy:
 3. ¿Respeta el modelo de nombres? (§2 — nombre propio primero, sin etiquetar al actor)
 4. ¿Se entiende en 2 segundos?
 5. ¿Pasaría junto a `Saaaaaaabes.` sin desentonar?
+6. ¿La pantalla se entiende sin haber leído una conversación previa?
+7. ¿Quedó alguna palabra sola en la última línea, incluido al cambiar el tamaño
+   de texto?

@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase';
 
 export interface MenuSeccion {
   nombre: string;
-  platillos: { nombre: string; descripcion: string }[];
+  platillos: { nombre: string; descripcion: string; precio?: string }[];
   precioSeccion?: string;
 }
 
@@ -18,7 +18,8 @@ export interface MenuVisualResult {
 function isMenuVisualResult(value: unknown): value is MenuVisualResult {
   if (!value || typeof value !== 'object') return false;
   const result = value as Partial<MenuVisualResult>;
-  return Array.isArray(result.secciones) && typeof result.precio === 'string';
+  return Array.isArray(result.secciones)
+    && (typeof result.precio === 'string' || typeof result.precio === 'undefined');
 }
 
 export async function leerMenuDeFoto(imageUri: string): Promise<MenuVisualResult> {
@@ -36,5 +37,5 @@ export async function leerMenuDeFoto(imageUri: string): Promise<MenuVisualResult
 
   if (error) throw new Error(error.message || 'No se pudo leer el menú');
   if (!isMenuVisualResult(data)) throw new Error('La lectura devolvió un formato inválido');
-  return data;
+  return { ...data, precio: data.precio ?? '' };
 }

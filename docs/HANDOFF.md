@@ -1,6 +1,218 @@
 # HANDOFF
 
-## CLAUDE: EMPIEZA AQUÍ — corte exacto 2026-07-16
+## EMPIEZA AQUÍ — corte exacto 2026-07-19
+
+> Esta es la especificación operativa vigente. Las secciones fechadas anteriores
+> permanecen debajo como bitácora y no deben usarse para revertir este flujo.
+
+### TL;DR vigente
+
+Patio sigue en React Native/Expo, rama `rebuild/patio-final`, HEAD `a65f314` al
+momento de este corte. El worktree **no está limpio**: contiene el bloque amplio de
+cambios locales de Alejandro, Claude y Codex. No resetear, descartar ni sobrescribir
+cambios ajenos. El flujo nuevo fue probado en simulador y abierto en el iPhone
+físico conectado.
+
+La decisión panorámica cerrada es:
+
+```txt
+Portada
+└── introducción visual
+    └── intención
+        ├── Ver qué hay hoy
+        │   └── avisos opcionales → mapa Foodie
+        └── Publicar lo que preparo
+            └── correo → nombre → ubicación → horarios → pagos
+                → guardar → celebración → primer menú
+```
+
+“Foodie” y “Fondero” siguen siendo nombres internos para arquitectura y QA. Nunca
+son la pregunta ni las opciones visibles para la persona.
+
+### Estado técnico comprobado al cierre
+
+- `npm run typecheck`: verde.
+- `npm run lint`: verde.
+- `git diff --check`: verde.
+- Maestro, ejecutado flujo por flujo en iPhone 17 Pro / iOS 26.3:
+  - `02-onboarding.yaml`: introducción visual + puerta de intención;
+  - `13-alta-negocio.yaml`: nombre + ubicación + horario + pagos + celebración;
+  - `14-onboarding-fondero-route.yaml`: publicar termina en acceso por correo;
+  - `15-onboarding-fondero-notifications.yaml`: explorar → avisos → mapa;
+  - `16-editar-perfil-negocio.yaml`: horario y pagos en edición posterior.
+- Dev build físico `com.parcomx.patio` lanzado por cable en
+  `patio://onboarding` el 2026-07-19.
+- La advertencia de Maestro sobre `picocli`/Java es de la herramienta. Un fallo
+  intermitente `kAXErrorInvalidUIElement` apareció durante el crossfade; se evitó
+  usando coordenada estable para saltar la introducción. No es un crash de Patio.
+
+### Nomenclatura correcta
+
+- **Introducción visual:** las pantallas botánicas que presentan Patio. En código
+  la ruta conserva `/onboarding` por compatibilidad, pero en producto no se le
+  presenta como un formulario de alta.
+- **Puerta de intención:** elección por resultado: “Ver qué hay hoy” o “Publicar
+  lo que preparo”. No preguntar “¿eres Foodie o Fondero?”.
+- **Alta del negocio:** nombre, ubicación, horarios y pagos.
+- **Avisos:** permiso contextual del camino de quien explora. No pertenece al alta
+  del negocio.
+
+### Arquitectura de entrada y rutas
+
+| Responsabilidad | Fuente vigente | Contrato |
+|---|---|---|
+| Portada | `app/index.tsx` | Un CTA: “Entrar a Patio”. La intención no se pregunta antes de presentar el producto. |
+| Introducción + intención | `app/onboarding.tsx` | Tres escenas botánicas; la última muestra dos resultados accionables. Cerrar/saltar avanza a esta decisión, no al mapa. |
+| Persistencia de intención | `lib/entry-flow.ts` | `@patio_user_role` guarda `foodie`/`fondero`; `onboarding_done` marca introducción terminada. Un parámetro explícito gana a un valor histórico. |
+| Camino explorar | `app/push-prompt.tsx` | Explica el beneficio, permite activar u omitir y siempre termina en `/explorar`. |
+| Camino publicar | `app/fondero-acceso.tsx` | Omite avisos; pide correo y continúa por magic link. Si la persona cambia a explorar desde aquí, ve primero el contexto de avisos. |
+| Alta negocio | `app/patio-smart.tsx` | Cuatro pasos operativos y celebración. “Patio Smart” no aparece en copy visible. |
+| Magic link | `app/login-callback.tsx` | Si falta setup, `/patio-smart`; si existe, `/menu`. Nunca caer al mapa por un fallo de hidratación. |
+
+No volver a mezclar introducción, permiso, rol y alta en una secuencia universal.
+Cada pantalla pertenece a una rama y debe prometer únicamente lo que esa rama hace.
+
+### Alta del negocio — contrato cerrado
+
+1. **Nombre.** Label persistente `NOMBRE`; sin ejemplo que actúe como etiqueta.
+2. **Ubicación.** Opción de usar ubicación actual + dirección manual. La dirección
+   permite avanzar aunque el geocodificador falle temporalmente.
+3. **Días y horarios.** Presets, siete estados binarios y hora editable por día.
+4. **Pagos.** Selección múltiple: efectivo, transferencia y tarjeta. Se exige al
+   menos una opción; no se piden números de tarjeta ni datos bancarios.
+5. **Celebración.** El nombre del negocio vive en el centro geométrico exacto; la
+   instrucción y los CTA quedan abajo. Primaria: “Crear mi primer menú”. Secundaria:
+   “Editar datos”.
+
+Se guardan nombre, dirección/coordenadas disponibles, horario semanal y tres
+booleanos de pago. Descripción, giro, especialidades y relato con IA quedan fuera
+del alta inicial. No explicar esa decisión interna dentro de la UI.
+
+### Componentes canónicos: no duplicar
+
+- `components/business-schedule-editor.tsx`
+  - se usa en `app/patio-smart.tsx` y `app/perfil-editar.tsx`;
+  - contiene presets, días abiertos/cerrados y `DateTimePicker` compacto;
+  - conserva horas al cerrar/reabrir un día;
+  - tras 1100 ms sin movimiento remonta el picker para confirmar el valor y cerrar
+    el popover nativo.
+- `components/business-payment-selector.tsx`
+  - se usa en alta y perfil;
+  - presenta las mismas tres opciones, estados y accesibilidad;
+  - naranja solo en borde/icono/check seleccionado.
+
+Ley: alta y edición posterior importan estos componentes. No copiar su JSX a otra
+pantalla ni reconstruir una variante “parecida”. Si cambia la interacción, cambia
+el componente compartido y se vuelve a probar en ambos contextos.
+
+### Persistencia
+
+- `lib/smart-setup.ts` conserva el tipo histórico `SmartSetupResult`, pero el flujo
+  actual ya no invoca relato libre ni extracción IA.
+- `saveSmartSetup()` actualiza `fonditas.nombre`, `direccion`, coordenadas cuando
+  existen, `horario_semanal`, `pagos_efectivo`, `pagos_transferencia` y
+  `pagos_tarjeta`.
+- `app/patio-smart.tsx` refleja también nombre, dirección, horario y pagos en
+  `lib/menu-store.ts` para continuidad local inmediata.
+- `useFonderoProfileController` conserva Supabase + estado local + dirty state; el
+  editor visual recibe `semanal`/`setSemanal` y los setters de pago.
+- El primer nombre no debe activar por accidente el candado de 15 días. Ese control
+  pertenece a cambios posteriores del perfil.
+
+### Avisos: promesa actual y límite real
+
+- La pantalla visible dice “Te avisamos si hay.”, pero el cuerpo explica la
+  capacidad real: un recordatorio a la hora de la comida para revisar guardados.
+- Hoy `lib/notifications.ts` programa preferencia/recordatorio local. **No existe
+  todavía push remoto disparado cuando un negocio publica.**
+- No escribir “te avisamos cuando publiquen” hasta tener tokens remotos, guardados
+  sincronizados, evento de publicación, APNs/backend y pruebas reales.
+- Activar u omitir avisos debe terminar en el mapa. Publicar un negocio no debe
+  atravesar esta solicitud de permiso.
+
+### Fundamentos visuales y verbales aprendidos
+
+1. **Diseñar el recorrido, no el link.** Antes de cambiar una pantalla, recorrer
+   todas sus entradas, salidas, permisos, teclado, regreso y estado persistido.
+2. **La pantalla funciona sin el chat.** Nunca mostrar frases como “los detalles
+   pueden esperar”, decisiones de backlog ni explicaciones para el equipo.
+3. **Cero viudas.** Ningún título, párrafo, ayuda, alerta o CTA deja una palabra
+   sola al final. Copy estático pasa por `noWidow()` y se revisa en dispositivo.
+4. **Resultado antes que rol.** Las personas eligen lo que quieren hacer, no una
+   taxonomía interna de producto.
+5. **Una pregunta por paso.** Nombre, ubicación, horario y pagos tienen propósito
+   propio. No pedir relato para después volver a pedir los mismos datos.
+6. **Tinta neutra, naranja como orientación.** Primarias en negro/blanco. Naranja
+   en navegación superior, progreso actual, selección y confirmación.
+7. **Control junto al dato.** La hora se edita al lado del día; no abrir un sheet
+   adicional alrededor de un picker que ya tiene su propio contexto.
+8. **Jerarquía geométrica.** Cuando el nombre es la celebración, se centra respecto
+   a toda la pantalla, no respecto al espacio sobrante entre header y botones.
+9. **Teclado sin secuestro.** `keyboardDismissMode="interactive"`, insets
+   automáticos, scroll que lo cierra y tecla Return que avanza cuando corresponde.
+10. **Identidad en fotografía, ritmo y voz.** Los controles básicos permanecen
+    familiares; Patio se expresa en la composición botánica, el contraste y el
+    lenguaje, no inventando controles difíciles de aprender.
+
+### Apple HIG — extracción aplicada, no decoración
+
+Fuentes oficiales consultadas el 2026-07-19:
+
+- [Human Interface Guidelines](https://developer.apple.com/design/human-interface-guidelines)
+- [Onboarding](https://developer.apple.com/design/human-interface-guidelines/onboarding)
+- [Layout](https://developer.apple.com/design/human-interface-guidelines/layout)
+- [Text fields](https://developer.apple.com/design/human-interface-guidelines/text-fields)
+- [Pickers](https://developer.apple.com/design/human-interface-guidelines/pickers)
+- [Buttons](https://developer.apple.com/design/human-interface-guidelines/buttons)
+- [Privacy](https://developer.apple.com/design/human-interface-guidelines/privacy)
+- [Asking permission to use notifications](https://developer.apple.com/documentation/UserNotifications/asking-permission-to-use-notifications)
+
+| Guía de Apple | Aplicación concreta en Patio |
+|---|---|
+| Jerarquía, armonía y consistencia con la plataforma | Botones compactos, navegación reconocible y controles nativos; la marca no compite con la tarea. |
+| La introducción debe ayudar a empezar, no convertirse en burocracia | Introducción visual breve y puerta de intención; el alta pide solo datos operativos. |
+| Un placeholder desaparece al escribir; una etiqueta separada conserva el propósito | Label persistente `NOMBRE` y `DIRECCIÓN`; placeholder solo ayuda con formato. |
+| Usar el teclado apropiado, secuencia de foco lógica y Clear cuando aporta | Email usa teclado de correo; campos cortos; Return avanza; `clearButtonMode` durante edición. |
+| Pickers sirven para valores compuestos o listas medianas/largas; listas cortas pueden usar botones | Hora usa picker del sistema; días, presets y pagos usan opciones directas visibles. |
+| Componentes táctiles cómodos y reconocibles | Targets mínimos cercanos o superiores a 44×44 pt; back/cierre tienen hit area propia. |
+| Pedir permisos cuando el beneficio es comprensible | Notificaciones solo después de elegir explorar y ver la promesa; ubicación dentro del paso que explica el mapa. |
+| Layout adaptativo y Dynamic Type | Safe areas, scroll, `maxFontSizeMultiplier`, push-out/noWidow y QA con tamaño de texto máximo. |
+
+No copiar una captura de Apple. Aplicar el principio y conservar la identidad Patio.
+“Apple-like” aquí significa: jerarquía clara, controles familiares, contexto justo,
+feedback inmediato, accesibilidad y ausencia de pasos administrativos inútiles.
+
+### QA pendiente real
+
+1. **iPhone físico:** sentir el cierre automático de la ruleta tras 1100 ms. Ajustar
+   solo si impide cambiar hora y minutos; rango sugerido de prueba: 900–1400 ms.
+2. **Ubicación física:** aceptar/denegar permiso, reverse geocode, dirección manual
+   y precisión del pin.
+3. **Magic link real:** publicar → correo → callback → alta → menú.
+4. **Persistencia real:** cerrar/reabrir app y comprobar horario/pagos en perfil y
+   ficha Foodie.
+5. **Avisos:** validar diálogo nativo en instalación limpia. El simulador ya tenía
+   permiso y por eso Maestro marcó “Permitir” como opcional/no encontrado.
+6. **Push remoto por publicación:** sigue pendiente de backend; no confundir con el
+   recordatorio local actual.
+7. **QA nativo restante:** cámara, galería, lectura IA real, póster/share, Maps y
+   manejo de red sin conexión.
+
+### Próximo paso recomendado
+
+Recorrer en el iPhone físico, en este orden y sin abrir nuevas features:
+
+1. `Entrar a Patio → Ver qué hay hoy → Ahora no/Activar avisos → mapa`;
+2. reinstalación o limpieza de estado → `Entrar a Patio → Publicar lo que preparo`;
+3. magic link → nombre → ubicación → fin de semana → mover hora → pagos → guardar;
+4. `Mi Patio → Editar mi negocio` y comprobar que horario/pagos son idénticos;
+5. crear el primer menú y publicar.
+
+Registrar solamente fallos reproducibles con pasos, resultado real, resultado
+esperado y captura. Corregirlos en el componente/fuente responsable; no maquillar
+la pantalla consumidora.
+
+## Archivo anterior — corte 2026-07-16
 
 ### TL;DR
 

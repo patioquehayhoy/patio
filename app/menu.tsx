@@ -63,6 +63,22 @@ export default function HoyScreen() {
 
         <Text style={s.orLabel} allowFontScaling={true}>o hazlo a mano</Text>
 
+        {/* Opción: elegir una imagen existente con el selector nativo */}
+        <TouchableOpacity
+          accessibilityLabel="Elegir foto de la galería"
+          activeOpacity={0.85}
+          onPress={() => router.push({ pathname: '/foto-menu', params: { source: 'library' } })}
+          style={s.optionRow}>
+          <View style={s.optionIcon}>
+            <Ionicons name="images-outline" size={20} color={c.text} />
+          </View>
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <Text style={s.optionTitle} allowFontScaling={true}>Elige de Fotos</Text>
+            <Text style={s.optionSub} allowFontScaling={true}>Usa una imagen que ya tienes</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={16} color={c.textMute} />
+        </TouchableOpacity>
+
         {/* Opción: escribir */}
         <TouchableOpacity accessibilityLabel="Escribir menú manualmente" activeOpacity={0.85} onPress={() => router.push('/menu-editar')} style={s.optionRow}>
           <View style={s.optionIcon}>

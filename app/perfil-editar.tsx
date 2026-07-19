@@ -3,7 +3,6 @@ import { BlurView } from 'expo-blur';
 import { HintSheet } from '@/components/hint-sheet';
 import { useRef } from 'react';
 import {
-  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -11,17 +10,14 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useFonderoProfileController } from '@/lib/controllers/useFonderoProfileController';
-import {
-  dateToHHMM, hhmmToDate,
-  DIAS_ORDEN_LUNES,
-} from '@/lib/horario';
 import { Fonts, useTheme, type Theme } from '@/lib/theme';
 import { GlassIconButton } from '@/components/glass-button';
+import { BusinessPaymentSelector } from '@/components/business-payment-selector';
+import { BusinessScheduleEditor } from '@/components/business-schedule-editor';
 
 // Paleta oscura fija estilo Figma FonderoFonda (flujo Fondero siempre oscuro).
 const DARK = {
@@ -41,21 +37,6 @@ const MAX_NOMBRE      = 30;
 const MAX_DESCRIPCION = 80;
 const MAX_UBICACION   = 80;
 
-function defaultApertura(): Date {
-  const d = new Date(); d.setHours(8, 0, 0, 0); return d;
-}
-function defaultCierre(): Date {
-  const d = new Date(); d.setHours(16, 0, 0, 0); return d;
-}
-
-function formatTime(date: Date): string {
-  const h = date.getHours();
-  const m = date.getMinutes();
-  const ampm = h >= 12 ? 'pm' : 'am';
-  const h12 = h % 12 || 12;
-  return m === 0 ? `${h12}${ampm}` : `${h12}:${m.toString().padStart(2, '0')}${ampm}`;
-}
-
 function makeStyles(theme: Theme) {
   const t: Theme = { ...theme, ...DARK, isDark: true };
   return StyleSheet.create({
@@ -71,8 +52,8 @@ function makeStyles(theme: Theme) {
     // Barra Guardar fija abajo (glass)
     saveBar:            { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 20, paddingTop: 12, overflow: 'hidden' },
     saveBarBorder:      { position: 'absolute', top: 0, left: 0, right: 0, height: StyleSheet.hairlineWidth, backgroundColor: t.border },
-    saveBtn:            { height: 52, borderRadius: 16, backgroundColor: t.accent, alignItems: 'center', justifyContent: 'center' },
-    saveBtnText:        { fontSize: 16, fontWeight: '700', color: '#fff' },
+    saveBtn:            { height: 52, borderRadius: 26, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' },
+    saveBtnText:        { fontSize: 16, fontWeight: '700', color: '#111214' },
     // Card de campos
     fieldCard:          { backgroundColor: t.surface, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, paddingHorizontal: 16, paddingVertical: 14 },
     fieldLabel:         { fontSize: 11, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', color: t.textMute, marginBottom: 4 },
@@ -84,6 +65,7 @@ function makeStyles(theme: Theme) {
     block:              { paddingTop: 24 },
     blockFirst:         { paddingTop: 32 },
     blockLabel:         { fontSize: 11, fontWeight: '900', color: t.textSecondary, marginBottom: 8, paddingLeft: 2 },
+    blockHelp:          { marginTop: -2, marginBottom: 14, paddingLeft: 2, fontSize: 13, lineHeight: 18, fontWeight: '300', color: t.textSecondary },
     // Cards planas (horario)
     plainCard:          { backgroundColor: t.surface, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, overflow: 'hidden' },
     opSection:          { paddingHorizontal: 16, paddingVertical: 16 },
@@ -153,10 +135,6 @@ export default function PerfilScreen() {
   const insets = useSafeAreaInsets();
   const nombreInputRef     = useRef<TextInput>(null);
   const {
-    apertura,
-    aplicarATodos,
-    aplicarHora,
-    cierre,
     descripcion,
     email,
     handleBack,
@@ -173,21 +151,15 @@ export default function PerfilScreen() {
     pagosTarjeta,
     pagosTrans,
     ready,
-    seleccion,
     semanal,
     setDescripcion,
     setNombre,
     setPagosEfectivoState,
     setPagosTarjetaState,
     setPagosTransState,
-    setShowApertura,
-    setShowCierre,
+    setSemanal,
     setUbicacion,
-    showApertura,
-    showCierre,
     showPerfilHint,
-    toggleCerrado,
-    toggleDia,
     ubicacion,
   } = useFonderoProfileController();
 
@@ -268,94 +240,23 @@ export default function PerfilScreen() {
         {/* ── HORARIO ── */}
         <View style={s.block}>
           <Text style={s.blockLabel} allowFontScaling={true}>HORARIO</Text>
-          <View style={s.plainCard}>
-            {DIAS_ORDEN_LUNES.map((dia, index) => {
-              const d = semanal.find(x => x.dia === dia)!;
-              const selected = seleccion[0] === dia;
-              const label = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'][dia];
-              return (
-                <View key={dia}>
-                  <TouchableOpacity
-                    style={[s.dayRow, index > 0 && s.dayRowBorder]}
-                    onPress={() => toggleDia(dia)}
-                    activeOpacity={0.72}>
-                    <Text style={s.dayName}>{label}</Text>
-                    <Text style={[s.dayHours, d.cerrado && { color: DARK.textMute }]}>
-                      {d.cerrado
-                        ? 'Cerrado'
-                        : `${d.abre ? formatTime(hhmmToDate(d.abre)) : '—'} – ${d.cierra ? formatTime(hhmmToDate(d.cierra)) : '—'}`}
-                    </Text>
-                    <Ionicons name={selected ? 'chevron-up' : 'chevron-down'} size={15} color={DARK.textMute} />
-                  </TouchableOpacity>
-
-                  {selected && (
-                    <View style={s.dayEditor}>
-                      <TouchableOpacity style={s.closedRow} onPress={toggleCerrado} activeOpacity={0.72}>
-                        <Text style={s.closedLabel}>Cerrado este día</Text>
-                        <Ionicons name={d.cerrado ? 'checkmark-circle' : 'ellipse-outline'} size={22} color={d.cerrado ? DARK.accent : DARK.textMute} />
-                      </TouchableOpacity>
-
-                      {!d.cerrado && (
-                        <>
-                          <TouchableOpacity style={s.timeRow} onPress={() => { setShowCierre(false); setShowApertura(v => !v); }} activeOpacity={0.72}>
-                            <Text style={s.timeRowLabel}>Apertura</Text>
-                            <Text style={s.timeRowValue}>{apertura ? formatTime(apertura) : 'Definir'}</Text>
-                          </TouchableOpacity>
-                          {showApertura && (
-                            <DateTimePicker
-                              mode="time"
-                              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                              value={apertura ?? defaultApertura()}
-                              onChange={(_, value) => value && aplicarHora('abre', dateToHHMM(value))}
-                              minuteInterval={15}
-                              textColor={DARK.text}
-                              accentColor={DARK.accent}
-                            />
-                          )}
-                          <TouchableOpacity style={s.timeRow} onPress={() => { setShowApertura(false); setShowCierre(v => !v); }} activeOpacity={0.72}>
-                            <Text style={s.timeRowLabel}>Cierre</Text>
-                            <Text style={s.timeRowValue}>{cierre ? formatTime(cierre) : 'Definir'}</Text>
-                          </TouchableOpacity>
-                          {showCierre && (
-                            <DateTimePicker
-                              mode="time"
-                              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                              value={cierre ?? defaultCierre()}
-                              onChange={(_, value) => value && aplicarHora('cierra', dateToHHMM(value))}
-                              minuteInterval={15}
-                              textColor={DARK.text}
-                              accentColor={DARK.accent}
-                            />
-                          )}
-                        </>
-                      )}
-
-                      <TouchableOpacity style={s.applyAll} onPress={aplicarATodos} activeOpacity={0.7}>
-                        <Text style={s.applyAllText}>Usar este horario todos los días</Text>
-                      </TouchableOpacity>
-                    </View>
-                  )}
-                </View>
-              );
-            })}
-          </View>
+          <Text style={s.blockHelp} allowFontScaling={true}>Toca los días que abres y ajusta cada hora.</Text>
+          <BusinessScheduleEditor colors={DARK} value={semanal} onChange={setSemanal} isDark />
         </View>
 
         {/* ── PAGOS ── */}
         <View style={s.block}>
           <Text style={s.blockLabel} allowFontScaling={true}>CÓMO COBRAS</Text>
-          <View style={s.paymentChips}>
-            {([['cash', 'Efectivo', pagosEfectivo, setPagosEfectivoState], ['transfer', 'Transferencia', pagosTrans, setPagosTransState], ['card', 'Tarjeta', pagosTarjeta, setPagosTarjetaState]] as const).map(([key, label, active, toggle]) => (
-              <TouchableOpacity
-                key={key}
-                style={[s.paymentChip, active && s.paymentChipActive]}
-                onPress={() => toggle(!active)}
-                activeOpacity={0.75}>
-                {active && <Ionicons name="checkmark" size={13} color="#fff" style={{ marginRight: 4 }} />}
-                <Text style={[s.paymentChipText, active && s.paymentChipTextActive]} allowFontScaling={true}>{label}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+          <Text style={s.blockHelp} allowFontScaling={true}>Marca todas las formas que aceptas.</Text>
+          <BusinessPaymentSelector
+            colors={DARK}
+            value={{ efectivo: pagosEfectivo, transferencia: pagosTrans, tarjeta: pagosTarjeta }}
+            onChange={(pagos) => {
+              setPagosEfectivoState(pagos.efectivo);
+              setPagosTransState(pagos.transferencia);
+              setPagosTarjetaState(pagos.tarjeta);
+            }}
+          />
         </View>
 
         {/* ── CUENTA: correo + cerrar sesión ── */}
@@ -399,7 +300,7 @@ export default function PerfilScreen() {
         visible={showPerfilHint}
         icon="storefront"
         title="Ponle nombre a tu negocio"
-        body="Nombre, tipo de negocio, horario y cómo cobras. Dos minutos y tu perfil está listo."
+        body="Nombre, ubicación, horario y formas de pago. Eso es todo para aparecer en Patio."
         primaryLabel="Empezar"
         onPrimary={() => {
           markPerfilHintDone();

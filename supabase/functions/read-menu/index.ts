@@ -9,6 +9,39 @@ type MenuRequest = {
   tipo?: string | null;
 };
 
+type UnknownRecord = Record<string, unknown>;
+
+function text(value: unknown): string {
+  return typeof value === 'string' ? value : '';
+}
+
+function normalizeResult(value: unknown) {
+  const raw = value && typeof value === 'object' ? value as UnknownRecord : {};
+  const rawSections = Array.isArray(raw.secciones) ? raw.secciones : [];
+
+  return {
+    secciones: rawSections.map((section) => {
+      const item = section && typeof section === 'object' ? section as UnknownRecord : {};
+      const rawDishes = Array.isArray(item.platillos) ? item.platillos : [];
+      return {
+        nombre: text(item.nombre) || 'MENÚ DE HOY',
+        platillos: rawDishes.map((dish) => {
+          const entry = dish && typeof dish === 'object' ? dish as UnknownRecord : {};
+          return {
+            nombre: text(entry.nombre),
+            descripcion: text(entry.descripcion),
+            precio: text(entry.precio),
+          };
+        }).filter((dish) => dish.nombre.trim()),
+        precioSeccion: text(item.precioSeccion),
+      };
+    }).filter((section) => section.platillos.length),
+    // El modelo suele omitir precio cuando no existe un precio único. El contrato
+    // móvil siempre recibe string para que una lectura válida no se descarte.
+    precio: text(raw.precio),
+  };
+}
+
 const REGLAS = `
 REGLA FIDELIDAD: Transcribe únicamente lo que realmente aparece en la imagen. No inventes platillos, tiempos, acompañamientos ni precios.
 
@@ -84,7 +117,8 @@ Deno.serve(async (request) => {
 
     const payload = await anthropic.json();
     const text = payload?.content?.find((item: { type?: string }) => item.type === 'text')?.text ?? '';
-    const result = JSON.parse(text.replace(/```json|```/g, '').trim());
+    const parsed = JSON.parse(text.replace(/```json|```/g, '').trim());
+    const result = normalizeResult(parsed);
     return Response.json(result, { headers: { ...corsHeaders, 'content-type': 'application/json' } });
   } catch (error) {
     console.error(error);

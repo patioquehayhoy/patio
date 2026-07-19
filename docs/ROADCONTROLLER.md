@@ -1,6 +1,6 @@
 # ROADCONTROLLER — Patio
 
-> Estado: v2 · 2026-07-13
+> Estado: v3 · 2026-07-18
 > Uso: mapa operativo superior de `/Users/parco/Patio`.
 > Función: decidir qué frente leer, qué carpeta tocar, qué está activo, qué está pausado y cómo no mezclar sistemas.
 > Inspirado en `~/T1all/ROADCONTROLLER.md` (solo el formato; los sistemas no se mezclan).
@@ -83,6 +83,10 @@ Gotchas conocidos:
 | Reglas de diseño (paleta, tipo, glass) | `CLAUDE.md` + `docs/DESIGN_SYSTEM.md` |
 | Identidad verbal (mata copy de Figma) | `docs/design/foundations/IDENTITY_VERBAL.md` |
 | Filosofía de producto | `docs/GOAL.md` + `docs/PATIO_DESIGN_PRINCIPLES.md` |
+| Esquema maestro: marca → producto → producción | `docs/PATIO_SYSTEM_MAP.md` |
+| Arquitectura técnica vigente | `docs/ARCHITECTURE.md` |
+| Evolución, IA, recurrencia y red | `docs/PRODUCT_EVOLUTION_ROADMAP_2026-07-18.md` |
+| Traducción Airbnb → Patio | `docs/AIRBNB_TO_PATIO_SYSTEM.md` |
 | Diseño Figma Make (snapshot) | `design-source/figma-make/v02/` + `VERSIONS.md` |
 | Tokens reales de la app | `lib/colors.ts` + `lib/theme.tsx` + `lib/fondero-palette.ts` |
 | Costos / burn | `docs/COSTOS.md` |

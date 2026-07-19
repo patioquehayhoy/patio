@@ -18,14 +18,14 @@ const OPEN_GREEN = '#1F9D55';
 // Fotos botánicas para el hero. Se elige una de forma determinística por id
 // para que cada lugar conserve siempre la misma y la galería se vea variada.
 const HERO_PHOTOS = [
-  require('../../assets/hero/botanica-1.png'),
-  require('../../assets/hero/botanica-2.png'),
-  require('../../assets/hero/botanica-3.png'),
-  require('../../assets/hero/botanica-4.png'),
-  require('../../assets/hero/botanica-5.png'),
-  require('../../assets/hero/botanica-6.png'),
-  require('../../assets/hero/botanica-7.png'),
-  require('../../assets/hero/botanica-8.png'),
+  require('../../assets/hero/botanica-1.jpg'),
+  require('../../assets/hero/botanica-2.jpg'),
+  require('../../assets/hero/botanica-3.jpg'),
+  require('../../assets/hero/botanica-4.jpg'),
+  require('../../assets/hero/botanica-5.jpg'),
+  require('../../assets/hero/botanica-6.jpg'),
+  require('../../assets/hero/botanica-7.jpg'),
+  require('../../assets/hero/botanica-8.jpg'),
 ];
 
 function heroPhotoFor(id: string) {

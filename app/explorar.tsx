@@ -148,8 +148,6 @@ export default function ExplorarScreen() {
   const showSelectedHeader = showHeader;
   const showSheet = showSelectedHeader || isFiltering || sheetMode !== null;
   const listPatios = sheetMode === 'saved' ? savedPatios : allPatios;
-  const inactiveIconColor = theme.text;
-
   useEffect(() => {
     const show = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow', (e) => setKeyboardHeight(e.endCoordinates.height));
     const hide = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide', () => setKeyboardHeight(0));
@@ -252,14 +250,6 @@ export default function ExplorarScreen() {
               <Text style={{ fontSize: 16, fontWeight: '300', color: theme.textSecondary }}>
                 ¿Qué hay hoy?
               </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              accessibilityLabel="Buscar por voz"
-              activeOpacity={0.82}
-              onPress={openSearch}
-              style={s.nearbyButton}>
-              <BlurView intensity={theme.isDark ? 28 : 36} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
-              <Ionicons name="mic-outline" size={21} color={inactiveIconColor} />
             </TouchableOpacity>
           </View>
         </Animated.View>

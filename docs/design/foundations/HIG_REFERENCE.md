@@ -137,3 +137,27 @@ Implementar al menos swipe-down en sheets. Los otros son deseables cuando el con
 - ❌ Touch targets menores a 44×44 — revisar pins de mapa y botones de share/rating
 - ❌ Animaciones mayores a 400ms (estándar Patio: 200ms)
 - ❌ Scroll horizontal sin indicador visible de que hay más contenido
+
+---
+
+## Alta y formularios secuenciales — contrato Patio
+
+- Navegación superior: back/cierre con hit target mínimo de 44×44; el icono y el
+  indicador del paso actual pueden usar `t.accent` como tinta de orientación.
+- Botón primario: compacto, neutral y reconocible. El naranja se reserva para
+  selección/progreso; no usar un rectángulo naranja dominante como salida por
+  defecto de cada paso.
+- Campos: label persistente + control. El placeholder ayuda a dar formato, pero
+  nunca sustituye el nombre del campo.
+- Hora: `DateTimePicker` con `display="compact"` en iOS, montado junto al día y al
+  valor que modifica. El popover del sistema sustituye cualquier sheet manual y
+  se remonta tras una pausa breve para confirmar el valor y cerrarse.
+- Ubicación: pedirla en el paso donde se explica que coloca el negocio en el mapa;
+  ofrecer ubicación actual y dirección manual.
+- Celebración: la identidad dinámica principal (nombre del negocio) se centra con
+  `StyleSheet.absoluteFillObject + alignItems/justifyContent: center`, sin offsets
+  derivados del bloque inferior. El contenido operativo se ancla abajo.
+- Introducción: presenta el valor compartido y termina en una puerta de intención.
+  Notificaciones se solicitan solo después de elegir explorar; publicar omite el
+  permiso y continúa al acceso/alta del negocio.
+- Consistencia: alta y perfil importan el mismo editor de horario y pagos.

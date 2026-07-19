@@ -6,6 +6,7 @@ import * as Linking from 'expo-linking';
 
 import { AgentSpinner } from '@/components/agent-spinner';
 import { initializeSignedInUser } from '@/lib/auth';
+import { saveUserRole } from '@/lib/entry-flow';
 import { supabase } from '@/lib/supabase';
 
 const OTP_TYPES: EmailOtpType[] = ['signup', 'invite', 'magiclink', 'recovery', 'email_change', 'email'];
@@ -50,7 +51,7 @@ export default function LoginCallback() {
   useEffect(() => {
     let isCancelled = false;
 
-    const safeRedirect = (path: '/' | '/perfil' | '/menu', delayMs = 0) => {
+    const safeRedirect = (path: '/' | '/perfil' | '/menu' | '/patio-smart', delayMs = 0) => {
       setTimeout(() => { if (!isCancelled) router.replace(path); }, delayMs);
     };
 
@@ -99,8 +100,9 @@ export default function LoginCallback() {
 
       if (session) {
         setDiag('¡Listo! Entrando…');
-        await initializeSignedInUser(session);
-        safeRedirect('/menu');
+        await saveUserRole('fondero').catch(() => {});
+        const { needsSetup } = await initializeSignedInUser(session);
+        safeRedirect(needsSetup ? '/patio-smart' : '/menu');
         return;
       }
 

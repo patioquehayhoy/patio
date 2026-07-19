@@ -90,7 +90,7 @@ export default function CuentaScreen() {
   const s = makeStyles(theme);
   const insets = useSafeAreaInsets();
   const { onScroll } = useTabBarScroll();
-  const { handleDevFondero, handleSignOut, hasSession, stats } = useFoodieAccountController();
+  const { handleDevFondero, handleFonderoAccess, handleSignOut, hasSession, stats } = useFoodieAccountController();
 
   return (
     <View style={[s.root, { paddingTop: insets.top }]}>
@@ -145,7 +145,7 @@ export default function CuentaScreen() {
                 title="Publicar mi menú"
                 sub="Para cocinas y fonditas"
                 accent
-                onPress={() => router.push('/fondero-acceso')}
+                onPress={handleFonderoAccess}
               />
             )}
           </View>

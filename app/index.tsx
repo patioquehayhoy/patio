@@ -1,4 +1,5 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router, Stack } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -6,15 +7,20 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AgentSpinner } from '@/components/agent-spinner';
 import { initializeSignedInUser } from '@/lib/auth';
+import { getUserRole, hasCompletedOnboarding, saveUserRole } from '@/lib/entry-flow';
 import { supabase } from '@/lib/supabase';
-import { Fonts, useTheme } from '@/lib/theme';
+import { Fonts } from '@/lib/theme';
+import { noWidow } from '@/lib/typography';
 
-const ROLE_KEY = '@patio_user_role';
-const ONBOARDING_KEY = 'onboarding_done';
-const DEV_VERSION = 'HOY · 2026.07.10';
+const DEV_VERSION = 'HOY · 2026.07.18';
+
+// Entrada rediseñada 2026-07-18: mismo idioma que onboarding/acceso —
+// botánica full-bleed, logo + par de marca al centro, acciones abajo en glass.
+// Siempre oscura: el texto vive sobre la imagen.
+const HERO = require('../assets/hero/botanica-5.jpg');
+const LOGO_BLANCO = require('../assets/images/logo-blanco.png');
 
 export default function LoginScreen() {
-  const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   const [checkingSession, setCheckingSession] = useState(true);
 
@@ -27,22 +33,18 @@ export default function LoginScreen() {
           setCheckingSession(false);
           return;
         }
-        const onboardingDone = await AsyncStorage.getItem(ONBOARDING_KEY);
-        if (onboardingDone !== '1') {
-          router.replace('/onboarding');
-          return;
-        }
-        const [{ data }, savedRole] = await Promise.all([
+        const [{ data }, savedRole, onboardingDone] = await Promise.all([
           supabase.auth.getSession(),
-          AsyncStorage.getItem(ROLE_KEY),
+          getUserRole(),
+          hasCompletedOnboarding(),
         ]);
-        if (data.session) await initializeSignedInUser(data.session);
+        const setup = data.session ? await initializeSignedInUser(data.session) : null;
         if (savedRole === 'fondero' && data.session) {
-          router.replace('/menu');
+          router.replace(setup?.needsSetup ? '/patio-smart' : '/menu');
           return;
         }
         if (savedRole === 'foodie') {
-          router.replace('/explorar');
+          router.replace(onboardingDone ? '/explorar' : { pathname: '/onboarding', params: { intent: 'foodie' } });
           return;
         }
       } catch {}
@@ -50,113 +52,111 @@ export default function LoginScreen() {
     })();
   }, []);
 
-  const handleExplore = () => {
-    AsyncStorage.setItem(ROLE_KEY, 'foodie').catch(() => {});
+  const handleStart = () => {
+    // La primera entrada presenta Patio antes de pedir una intención. La
+    // decisión entre explorar y publicar vive al final de la introducción.
+    router.push('/onboarding');
+  };
+
+  const handleDevFoodie = async () => {
+    await saveUserRole('foodie').catch(() => {});
     router.replace('/explorar');
   };
 
-  const handlePublishMenu = () => {
-    AsyncStorage.setItem(ROLE_KEY, 'fondero').catch(() => {});
-    // En dev entra directo al flujo Fondero sin magic link, para poder probar.
-    if (__DEV__) { router.replace('/menu'); return; }
-    router.push('/fondero-acceso');
+  const handleDevFondero = async () => {
+    await saveUserRole('fondero').catch(() => {});
+    router.replace('/patio-smart');
   };
 
-  const handleDevFoodie = () => {
-    AsyncStorage.setItem(ROLE_KEY, 'foodie').catch(() => {});
-    router.replace('/explorar');
-  };
-
-  const handleDevFondero = () => {
-    AsyncStorage.setItem(ROLE_KEY, 'fondero').catch(() => {});
-    router.replace('/menu');
+  const handleDevOnboarding = async () => {
+    router.replace('/onboarding');
   };
 
   if (checkingSession) {
     return (
-      <View style={[styles.centered, { backgroundColor: theme.bg }]}>
-        <AgentSpinner variant="arc" size={28} color={theme.text} />
+      <View style={s.centered}>
+        <AgentSpinner variant="arc" size={28} color="#F8F8F5" />
       </View>
     );
   }
 
-  const logo = theme.isDark
-    ? require('../assets/images/logo-blanco.png')
-    : require('../assets/images/logo-negro.png');
-
   return (
-    <View style={[styles.root, { backgroundColor: theme.bg, paddingTop: insets.top }]}>
+    <View style={s.root}>
       <Stack.Screen options={{ headerShown: false }} />
 
-      <View style={[styles.choiceRoot, { paddingBottom: insets.bottom + 18 }]}>
-        <View style={styles.logoArea}>
-          <Image source={logo} style={styles.logo} resizeMode="contain" />
-          <Text style={[styles.taglineBold, { color: theme.text }]}>¿Qué hay hoy?</Text>
-          <Text style={[styles.tagline, { color: theme.textSecondary }]}>Saaaaaaabes.</Text>
+      {/* Botánica full-bleed + velo */}
+      <Image source={HERO} style={s.bg} resizeMode="cover" />
+      <LinearGradient
+        colors={['rgba(0,0,0,0.35)', 'rgba(0,0,0,0.1)', 'rgba(0,0,0,0.78)']}
+        locations={[0, 0.4, 1]}
+        style={StyleSheet.absoluteFill}
+      />
+
+      {/* Logo en el centro EXACTO de la pantalla (overlay independiente del
+          layout); el par de marca cuelga debajo sin mover el ancla */}
+      <View style={s.brandOverlay} pointerEvents="none">
+        <View>
+          <Image source={LOGO_BLANCO} style={s.logo} resizeMode="contain" />
+          <View style={s.pairBelow}>
+            <Text style={s.claim} allowFontScaling={true}>{noWidow('¿Qué hay hoy?')}</Text>
+            <Text style={s.tagline} allowFontScaling={true}>Saaaaaaabes.</Text>
+          </View>
         </View>
-        <View style={styles.choiceActions}>
-          <TouchableOpacity
-            style={[styles.primaryBtn, { backgroundColor: theme.text }]}
-            onPress={handleExplore}
-            activeOpacity={0.86}>
-            <Text style={[styles.primaryBtnText, { color: theme.bg }]}>Explorar comida</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.secondaryBtn}
-            onPress={handlePublishMenu}
-            activeOpacity={0.7}>
-            <Text style={[styles.secondaryBtnText, { color: theme.textSecondary }]}>Publicar mi menú</Text>
+      </View>
+
+      <View style={[s.content, { paddingBottom: insets.bottom + 18 }]}>
+        {/* Acciones abajo */}
+        <View style={s.actions}>
+          <TouchableOpacity style={s.ctaGlass} onPress={handleStart} activeOpacity={0.86}>
+            <BlurView intensity={16} tint="dark" style={s.ctaGlassInner}>
+              <Text style={s.ctaGlassText} allowFontScaling={true}>{noWidow('Entrar a Patio')}</Text>
+            </BlurView>
           </TouchableOpacity>
 
           {__DEV__ && (
             <>
-              <Text style={[styles.devVersion, { color: theme.textMute }]}>DEV · {DEV_VERSION}</Text>
-              <View style={[styles.devBar, { borderColor: theme.border }]}>
-                <TouchableOpacity
-                  style={[styles.devBtn, { borderColor: theme.border }]}
-                  onPress={handleDevFoodie}
-                  activeOpacity={0.7}>
-                  <Text style={[styles.devBtnText, { color: theme.textSecondary }]}>DEV · Foodie</Text>
+              <Text style={s.devVersion} allowFontScaling={true}>DEV · {DEV_VERSION}</Text>
+              <View style={s.devBar}>
+                <TouchableOpacity style={s.devBtn} onPress={handleDevFoodie} activeOpacity={0.7}>
+                  <Text style={s.devBtnText} allowFontScaling={true}>Foodie</Text>
                 </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.devBtn, { borderColor: theme.border }]}
-                  onPress={handleDevFondero}
-                  activeOpacity={0.7}>
-                  <Text style={[styles.devBtnText, { color: theme.textSecondary }]}>DEV · Fondero</Text>
+                <TouchableOpacity style={s.devBtn} onPress={handleDevFondero} activeOpacity={0.7}>
+                  <Text style={s.devBtnText} allowFontScaling={true}>Fondero</Text>
                 </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.devBtn, { borderColor: theme.border }]}
-                  onPress={() => router.replace('/onboarding')}
-                  activeOpacity={0.7}>
-                  <Text style={[styles.devBtnText, { color: theme.textSecondary }]}>DEV · Onboarding</Text>
+                <TouchableOpacity style={s.devBtn} onPress={handleDevOnboarding} activeOpacity={0.7}>
+                  <Text style={s.devBtnText} allowFontScaling={true}>Onboarding</Text>
                 </TouchableOpacity>
               </View>
             </>
           )}
         </View>
       </View>
-
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  centered: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  root: { flex: 1, paddingHorizontal: 24 },
+const s = StyleSheet.create({
+  centered: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#0B0B0C' },
+  root: { flex: 1, backgroundColor: '#0B0B0C' },
+  bg: { ...StyleSheet.absoluteFillObject, width: '100%', height: '100%' },
 
-  // Choice layout
-  choiceRoot: { flex: 1, justifyContent: 'space-between' },
-  logoArea: { alignItems: 'center', paddingTop: 150 },
-  logo: { width: 270, height: 100, marginLeft: -6, marginBottom: 14 },
-  taglineBold: { fontSize: 15, fontWeight: '900', fontFamily: Fonts.brand, textAlign: 'center' },
-  tagline: { fontSize: 15, fontWeight: '300', fontFamily: Fonts.brand, textAlign: 'center' },
-  choiceActions: { gap: 10 },
-  primaryBtn: { minHeight: 56, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
-  primaryBtnText: { fontSize: 17, fontWeight: '700', letterSpacing: -0.3 },
-  secondaryBtn: { minHeight: 44, alignItems: 'center', justifyContent: 'center' },
-  secondaryBtnText: { fontSize: 14, fontWeight: '300' },
-  devVersion: { marginTop: 8, textAlign: 'center', fontSize: 10, fontWeight: '600', letterSpacing: 0.8 },
-  devBar: { flexDirection: 'row', gap: 8, marginTop: 8, paddingTop: 12, borderTopWidth: StyleSheet.hairlineWidth },
-  devBtn: { flex: 1, minHeight: 38, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
-  devBtnText: { fontSize: 12, fontWeight: '300' },
+  content: { flex: 1, paddingHorizontal: 28, justifyContent: 'flex-end' },
+
+  brandOverlay: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center' },
+  logo: { width: 230, height: 86 },
+  pairBelow: { position: 'absolute', top: '100%', left: 0, right: 0, alignItems: 'center', marginTop: 14 },
+  claim: { fontSize: 15, fontWeight: '900', fontFamily: Fonts.brand, textAlign: 'center', color: '#F8F8F5' },
+  tagline: { fontSize: 15, fontWeight: '300', fontFamily: Fonts.brand, textAlign: 'center', color: 'rgba(248,248,245,0.7)' },
+
+  actions: { alignItems: 'center', gap: 2 },
+  ctaGlass: { alignSelf: 'stretch', borderRadius: 14, overflow: 'hidden' },
+  ctaGlassInner: { height: 52, alignItems: 'center', justifyContent: 'center' },
+  ctaGlassText: { fontSize: 16, fontWeight: '900', color: '#FFFFFF', letterSpacing: -0.2 },
+  secondaryBtn: { height: 44, alignItems: 'center', justifyContent: 'center', alignSelf: 'stretch' },
+  secondaryText: { fontSize: 14, fontWeight: '300', color: 'rgba(248,248,245,0.7)' },
+
+  devVersion: { marginTop: 6, fontSize: 10, fontWeight: '900', letterSpacing: 0.8, color: 'rgba(248,248,245,0.35)' },
+  devBar: { flexDirection: 'row', gap: 8, marginTop: 8 },
+  devBtn: { paddingHorizontal: 14, height: 32, borderRadius: 100, backgroundColor: 'rgba(255,255,255,0.10)', alignItems: 'center', justifyContent: 'center' },
+  devBtnText: { fontSize: 12, fontWeight: '300', color: 'rgba(248,248,245,0.7)' },
 });

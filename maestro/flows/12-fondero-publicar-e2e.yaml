@@ -2,7 +2,7 @@ appId: com.parcomx.patio
 ---
 - launchApp
 - openLink: "patio://"
-- tapOn: "Publicar mi menú"
+- tapOn: "Fondero"
 - assertVisible: "Lo de hoy"
 - tapOn: "Escribir menú manualmente"
 - assertVisible: "Arma tu menú"

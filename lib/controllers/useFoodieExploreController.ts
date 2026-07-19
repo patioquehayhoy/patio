@@ -216,7 +216,7 @@ export function useFoodieExploreController() {
 
   const openSearch = useCallback(() => {
     // Buscar abre también la lista "cerca de ti": el foodie ve opciones desde
-    // el primer toque y el teclado (con su mic de dictado) queda listo.
+    // el primer toque y el teclado quedan listos.
     setSheetMode('nearby');
     setSearchActive(true);
     setTimeout(() => searchInputRef.current?.focus(), 80);

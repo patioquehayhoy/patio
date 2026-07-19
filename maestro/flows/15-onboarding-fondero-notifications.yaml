@@ -1,0 +1,17 @@
+appId: com.parcomx.patio
+---
+- launchApp
+- openLink: "patio://onboarding"
+- waitForAnimationToEnd
+- tapOn:
+    point: "92%,10%"
+- tapOn: "Ver qué hay.*hoy"
+- waitForAnimationToEnd
+- assertVisible: "Te avisamos si.*hay\\."
+- assertVisible: "Activar.*avisos"
+- tapOn: "Activar.*avisos"
+- tapOn:
+    text: "Permitir|Allow"
+    optional: true
+- waitForAnimationToEnd
+- assertVisible: "Buscar comida"

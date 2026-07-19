@@ -178,4 +178,41 @@ Antes de implementar una pantalla, pregúntate:
 
 ---
 
-**Última revisión:** 2026-05-17 — Documento fundacional, no expira.
+## 7. Patrón confirmado: altas y formularios Patio
+
+> Decisión aprobada en producto el 2026-07-19. Es fundamento vigente para
+> onboarding, alta de negocio y formularios secuenciales.
+
+1. **Tinta neutra, acento naranja.** Las acciones primarias usan negro/blanco
+   según el tema. El naranja comunica selección, progreso actual y navegación;
+   no se extiende como bloque dominante de ancho completo.
+2. **El control vive con el dato.** Una edición atómica aparece junto al campo
+   que modifica. Los horarios usan el selector compacto nativo anclado a la hora;
+   no abren una segunda hoja inferior creada por Patio.
+3. **Etiqueta estable antes que ejemplo.** Un ejemplo o placeholder nunca carga
+   por sí solo con el significado del campo. El nombre visible permanece aunque
+   la persona empiece a escribir.
+4. **Solo lo esencial para cumplir la promesa.** Nombre identifica; ubicación
+   coloca el negocio en el mapa; horario permite saber cuándo abre; pagos aclara
+   cómo comprar sin pedir datos financieros. Descripción y giro aparecen después.
+5. **Jerarquía de identidad antes que jerarquía operativa.** En una celebración,
+   el nombre del negocio ocupa el centro geométrico exacto de la pantalla. Las
+   instrucciones y acciones se subordinan y viven abajo.
+6. **Una acción gana.** La primaria es compacta, claramente tappeable y usa un
+   verbo. La secundaria baja de peso y describe el alcance real, por ejemplo
+   “Editar datos”, no un solo campo arbitrario.
+7. **Plataforma primero.** Cuando iOS ya ofrece un control familiar, accesible y
+   adaptativo, Patio lo usa y concentra su identidad en jerarquía, ritmo, voz,
+   fotografía y acentos.
+8. **Cero viudas.** Estas reglas se aplican junto con la ley tipográfica de
+   `IDENTITY_VERBAL.md`; ningún refinamiento visual justifica romperla.
+9. **Bienvenida antes que rol.** La introducción presenta el producto y después
+   ofrece intenciones expresadas como resultados, nunca identidades internas.
+   Los permisos aparecen únicamente en la rama donde explican un beneficio real.
+10. **Un editor, dos momentos.** Alta inicial y edición posterior reutilizan los
+    mismos controles de horario y pagos; cambiar de contexto no cambia el idioma
+    de interacción.
+
+---
+
+**Última revisión:** 2026-07-19 — Documento fundacional, no expira.

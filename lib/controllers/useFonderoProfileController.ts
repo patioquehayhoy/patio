@@ -383,6 +383,7 @@ export function useFonderoProfileController() {
     ready,
     seleccion,
     semanal,
+    setSemanal,
     setDescripcion,
     setNombre,
     setPagosEfectivoState,

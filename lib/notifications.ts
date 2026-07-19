@@ -59,7 +59,7 @@ async function scheduleDailyReminder() {
     identifier: DAILY_ID,
     content: {
       title: '¿Qué hay hoy?',
-      body: 'Tus fonditas guardadas ya publicaron menú. Saaaaaaabes.',
+      body: 'Revisa tus lugares guardados. Saaaaaaabes.',
     },
     trigger: {
       type: N.SchedulableTriggerInputTypes.DAILY,
@@ -69,20 +69,20 @@ async function scheduleDailyReminder() {
   });
 }
 
-// La PREFERENCIA del usuario (el toggle) se respeta siempre y se guarda, aunque
-// el permiso nativo del sistema no esté disponible (Expo Go) o no se conceda.
-// Intentamos programar el recordatorio en best-effort, pero NUNCA revertimos el
-// toggle por eso — antes el switch "rebotaba" a apagado en simulador.
+// La preferencia nunca puede afirmar que los avisos están activos si el sistema
+// no concedió permiso. Esto mantiene alineados la UI, Ajustes y el estado real.
 export async function setAvisar(value: boolean): Promise<boolean> {
-  await AsyncStorage.setItem(PREF_AVISAR, value ? '1' : '0');
   if (value) {
-    // best-effort: pide permiso y programa, pero no afecta el valor devuelto.
-    ensurePermission().then((ok) => { if (ok) scheduleDailyReminder().catch(() => {}); });
-  } else {
-    const N = getModule();
-    if (N) await N.cancelScheduledNotificationAsync(DAILY_ID).catch(() => {});
+    const granted = await ensurePermission();
+    await AsyncStorage.setItem(PREF_AVISAR, granted ? '1' : '0');
+    if (granted) await scheduleDailyReminder().catch(() => {});
+    return granted;
   }
-  return value;
+
+  await AsyncStorage.setItem(PREF_AVISAR, '0');
+  const N = getModule();
+  if (N) await N.cancelScheduledNotificationAsync(DAILY_ID).catch(() => {});
+  return false;
 }
 
 export async function setCercanas(value: boolean): Promise<boolean> {

@@ -1,7 +1,13 @@
 appId: com.parcomx.patio
 ---
 - launchApp
-- openLink: "patio://"
-- tapOn: "DEV · Onboarding"
+- openLink: "patio://onboarding"
 - waitForAnimationToEnd
+- assertVisible: "Saber qué.*hoy\\."
+- tapOn: "Continuar"
+- assertVisible: "Lo escribe quien.*cocina\\."
+- tapOn: "Continuar"
+- assertVisible: "Entra por donde.*quieras\\."
+- assertVisible: "Ver qué hay.*hoy"
+- assertVisible: "Publicar lo que.*preparo"
 - takeScreenshot: maestro/screenshots/02-onboarding

@@ -1,0 +1,25 @@
+appId: com.parcomx.patio
+---
+- launchApp
+- openLink: "patio://patio-smart"
+- assertVisible: "Nombre de tu.*negocio"
+- tapOn: "Nombre del negocio"
+- inputText: "Esquites Lupita"
+- tapOn: "Continuar"
+- assertVisible: "Ubicación del.*negocio"
+- tapOn: "Dirección del negocio"
+- inputText: "Presa Las Virgenes 101"
+- tapOn: "Continuar"
+- assertVisible: "Días y.*horarios"
+- tapOn: "Fin de semana"
+- assertVisible: "Sábado"
+- assertVisible: "Domingo"
+- tapOn: "Continuar"
+- assertVisible: ".*Cómo te pueden.*pagar.*"
+- tapOn: "Efectivo: no aceptado"
+- tapOn: "Continuar"
+- assertVisible: "Esquites.*Lupita"
+- assertVisible: "Publica lo de.*hoy\\."
+- assertVisible: "Crear mi primer.*menú"
+- assertVisible: "Editar.*datos"
+- takeScreenshot: maestro/screenshots/13-alta-negocio

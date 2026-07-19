@@ -19,7 +19,15 @@ Antes de cualquier cambio de UI, copy o flujo, leer los siguientes documentos en
 - **PROHIBIDO el lenguaje comparativo** "no es X, es Y" ("Esto no es un delivery…", "no es solo un menú…"). Es contaminación de identidad verbal: se afirma lo que Patio ES, sin apoyarse en negaciones (ley dictada 2026-07-07)
 - El tono es humano, local, editorial — nunca genérico ni de marketing
 - Fondero y Foodie son roles distintos con JTBDs distintos — no mezclar ni contaminar sus flujos
-- Sin viudas en textos de UI: envolver copys largos con `noWidow()` de `lib/typography`
+- **LEY TIPOGRÁFICA ABSOLUTA — CERO VIUDAS:** ningún título, subtítulo, párrafo,
+  ayuda, alerta o CTA de varias palabras puede dejar una palabra sola en la
+  última línea. Todo copy estático de UI debe pasar por `noWidow()` de
+  `lib/typography`; el contenido dinámico se protege cuando se presenta como
+  bloque editorial. Esta revisión es obligatoria en cada cambio de pantalla.
+- **La pantalla funciona sin conocer el chat:** jamás exponer decisiones
+  internas, campos pospuestos, arquitectura o contexto de implementación. El
+  copy solo explica la acción presente y el beneficio que la persona necesita
+  para decidir.
 
 ## Tipografía
 
@@ -65,6 +73,24 @@ En cualquier lista de contenido (menú, póster, historial, resultados):
 - **Separadores**: `StyleSheet.hairlineWidth`, color `t.sep`
 - **Placeholders**: `BLACK60`
 - **Cards / inputs**: fondo `WHITE`, `borderRadius 14`
+
+## Ley visual — altas y formularios
+
+- Acciones primarias compactas en tinta neutra; naranja solo como acento de
+  selección, progreso actual y navegación.
+- Campos con label persistente. Un ejemplo/placeholder nunca reemplaza la etiqueta.
+- Controles nativos junto al dato que editan. Horas en iOS usan picker compacto
+  anclado; prohibido envolver una edición atómica en un sheet inferior adicional.
+- Ubicación se pide en contexto y ofrece ubicación actual + dirección manual.
+- La introducción visual ocurre antes de elegir intención. “Ver qué hay hoy”
+  conduce a avisos opcionales y mapa; “Publicar lo que preparo” omite avisos y
+  conduce al acceso/alta del negocio.
+- Alta y perfil deben importar el mismo editor de horarios y pagos; nunca mantener
+  dos versiones visuales o conductuales de esos controles.
+- En celebraciones, el nombre/identidad ocupa el centro geométrico exacto de la
+  pantalla; instrucciones y acciones viven abajo con una primaria y una secundaria.
+- Fuente completa: `docs/design/foundations/ESSENTIAL_DESIGN_PRINCIPLES.md`,
+  sección “Patrón confirmado: altas y formularios Patio”.
 
 ## Precio en menu.tsx — NO TOCAR
 El bloque del precio tiene esta estructura exacta que NO debe modificarse:

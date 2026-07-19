@@ -1,17 +1,17 @@
 # HANDOFF
 
-## EMPIEZA AQUÍ — corte exacto 2026-07-19
+## EMPIEZA AQUÍ — corte exacto 2026-07-19 · guardado remoto
 
 > Esta es la especificación operativa vigente. Las secciones fechadas anteriores
 > permanecen debajo como bitácora y no deben usarse para revertir este flujo.
 
 ### TL;DR vigente
 
-Patio sigue en React Native/Expo, rama `rebuild/patio-final`, HEAD `a65f314` al
-momento de este corte. El worktree **no está limpio**: contiene el bloque amplio de
-cambios locales de Alejandro, Claude y Codex. No resetear, descartar ni sobrescribir
-cambios ajenos. El flujo nuevo fue probado en simulador y abierto en el iPhone
-físico conectado.
+Patio sigue en React Native/Expo, rama `rebuild/patio-final`. El baseline funcional
+es `d0a5e8d`; este documento se publica en el commit de cierre inmediatamente
+posterior. Al apagar, el worktree está limpio y la rama sigue sincronizada con
+`origin/rebuild/patio-final`. El flujo nuevo fue probado en simulador y abierto en
+el iPhone físico conectado.
 
 La decisión panorámica cerrada es:
 
@@ -42,9 +42,55 @@ son la pregunta ni las opciones visibles para la persona.
   - `16-editar-perfil-negocio.yaml`: horario y pagos en edición posterior.
 - Dev build físico `com.parcomx.patio` lanzado por cable en
   `patio://onboarding` el 2026-07-19.
+- Commit publicado: `d0a5e8d feat: refine onboarding and business setup flows`.
+- `git status -sb`: `rebuild/patio-final...origin/rebuild/patio-final`, sin
+  archivos modificados, staged ni sin seguimiento.
+- GitHub CLI autenticado como `patioquehayhoy`; la credencial vive en el llavero
+  de macOS y persiste después de reiniciar.
 - La advertencia de Maestro sobre `picocli`/Java es de la herramienta. Un fallo
   intermitente `kAXErrorInvalidUIElement` apareció durante el crossfade; se evitó
   usando coordenada estable para saltar la introducción. No es un crash de Patio.
+
+### Reinicio seguro de la Mac
+
+Es seguro cerrar Codex, terminales, Metro, Simulator, Xcode y reiniciar. Nada del
+avance vigente depende únicamente de un proceso o caché en memoria.
+
+**Persistente y protegido:**
+
+- código, assets y pruebas: baseline `d0a5e8d` publicado en GitHub; documentos de
+  reinicio: commit de cierre inmediatamente posterior en la misma rama;
+- acceso de GitHub CLI: cuenta `patioquehayhoy`, guardada en Keychain;
+- `node_modules/`, `ios/`, `.expo/` y `supabase/.temp/`: ignorados por Git pero
+  presentes en disco; reiniciar no los elimina;
+- `.env`: existe, está ignorado y actualmente está vacío; no contiene una clave
+  local que haya que rescatar antes de apagar;
+- datos remotos en Supabase: no dependen de Metro ni del reinicio de la Mac;
+- app, permisos y AsyncStorage del Simulator/iPhone normalmente sobreviven al
+  reinicio. Sí se pierden si se desinstala Patio o se ejecuta “Erase All Content
+  and Settings”; no hacerlo antes del QA de persistencia.
+
+**Temporal y reconstruible:**
+
+- el proceso Metro y el puerto `8081` se cierran al apagar;
+- cachés de Metro/Expo se pueden regenerar sin perder código ni datos remotos;
+- la IP LAN puede cambiar al reconectar la Mac al WiFi.
+
+**Primer arranque después del reinicio:**
+
+```bash
+cd /Users/parco/Patio
+git status -sb
+gh auth status
+npm run typecheck
+npm run lint
+npx expo start --dev-client --host lan
+```
+
+En el iPhone, abrir la dev build Patio y elegir el servidor de la Mac. Si no
+aparece, obtener la IP nueva con `ipconfig getifaddr en0` y usar
+`http://<IP>:8081`. Usar `--clear` solo si Metro muestra un bundle viejo o un error
+de resolución; esa limpieza no afecta el código ni Supabase.
 
 ### Nomenclatura correcta
 

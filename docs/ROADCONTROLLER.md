@@ -51,10 +51,10 @@ Patio/
 | Frente | Dónde | Estado | Siguiente útil |
 |---|---|---|---|
 | Código RN (producto) | `app/` `components/` `lib/` | **Estabilizado** — baseline verde 2026-07-10 (typecheck, lint, exports, Maestro E2E) | Barrido humano en iPhone (magic link, cámara, GPS, share, push, mapas) |
-| Rama de trabajo | `rebuild/patio-final` | Activa, limpia · reemplaza a `v2-look-figma` | Push a origin (auth GitHub pendiente, lo corre Alejandro) |
+| Rama de trabajo | `rebuild/patio-final` | Activa, limpia y sincronizada · incluye baseline `d0a5e8d` + handoff de reinicio · reemplaza a `v2-look-figma` | Continuar QA; GitHub CLI ya está autenticado como `patioquehayhoy` |
 | Edge function `read-menu` | `supabase/functions/` | **BLOQUEANTE** — código listo, sin desplegar; requiere `supabase login` de Alejandro | Deploy + secreto `ANTHROPIC_API_KEY` + rotar clave vieja `EXPO_PUBLIC_ANTHROPIC_API_KEY` (ver `supabase/functions/README.md`) |
 | Figma Make | `design-source/figma-make/` | **Cerrado como herramienta** (decisión 2026-07-10) — v01/v02 quedan solo como referencia visual; v03 descartado | Nada — no retomar |
-| Docs de estado | `docs/HANDOFF.md` `NEXT_SESSION.md` | Vigentes al 2026-07-10 | Actualizar tras el barrido en iPhone |
+| Docs de estado | `docs/HANDOFF.md` `NEXT_SESSION.md` | Vigentes al 2026-07-19 | Actualizar tras el barrido en iPhone |
 | QA dispositivo | iPhone 15 Pro "Parco" | Dev build instalada, itera por WiFi | Magic link, cámara/galería, GPS real, póster/share, push, mapas |
 | TestFlight | build 1.0.0 (45+) | Congelado en versión vieja | Build nuevo solo al cerrar el bloque de QA (economía EAS) |
 | Supabase | proyecto `lafondita` (org Parco Apps) | Funcional; plan Free se pausa solo → dar Resume | No migrar correo todavía |
@@ -133,12 +133,11 @@ horario semanal por día · stats vivas + `vistos.tsx` · collapsing-header (Lar
    supabase/functions/read-menu con una clave nueva en el secreto
    ANTHROPIC_API_KEY. Requiere `supabase login` (Alejandro). Probar con foto
    real antes de declarar la lectura IA operativa.
-2. Push de rebuild/patio-final a origin (HEAD local `efdbddd`; auth GitHub pendiente).
-3. Barrido humano en iPhone: magic link, cámara/galería, IA, GPS, póster/share,
+2. Barrido humano en iPhone: magic link, cámara/galería, IA, GPS, póster/share,
    push y apertura de mapas. Corregir solo hallazgos reproducibles.
-4. Decidir EAS Update (OTA) para "última versión sin build".
-5. Build/TestFlight nuevo solo al cerrar el bloque de QA (economía EAS).
-6. Radar: organización de Guardados a escala (~70 items → filtros).
+3. Decidir EAS Update (OTA) para "última versión sin build".
+4. Build/TestFlight nuevo solo al cerrar el bloque de QA (economía EAS).
+5. Radar: organización de Guardados a escala (~70 items → filtros).
 ```
 
 ## 10. Callgraph raíz

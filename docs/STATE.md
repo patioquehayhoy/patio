@@ -1,6 +1,23 @@
 # STATE
 
-> Fuente de verdad operativa. Última actualización: 2026-07-16.
+> Fuente de verdad operativa. Última actualización: 2026-07-19.
+
+## Corte operativo — 2026-07-19
+
+- Rama `rebuild/patio-final` limpia y sincronizada con GitHub; incluye el baseline
+  funcional `d0a5e8d` y el commit documental de cierre posterior.
+- TypeScript, ESLint y `git diff --check` pasan.
+- La introducción visual separa intención: explorar → avisos opcionales → mapa;
+  publicar → correo → alta del negocio → primer menú.
+- El alta pide únicamente nombre, ubicación, días/horarios y pagos; alta y perfil
+  comparten los editores canónicos de horario y métodos de pago.
+- La lectura de foto y el setup inteligente viven detrás de Edge Functions; el QA
+  real de credenciales, despliegue y fotografías sigue pendiente.
+- Reiniciar la Mac es seguro. El procedimiento exacto y los límites de caché están
+  en la sección superior de `docs/HANDOFF.md`.
+
+Las secciones anteriores permanecen como bitácora. Si contradicen este corte o el
+handoff superior, prevalece el estado del 2026-07-19.
 
 ## Corte operativo — 2026-07-16
 

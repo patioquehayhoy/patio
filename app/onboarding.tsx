@@ -26,19 +26,19 @@ const SLIDES: Slide[] = [
   {
     eyebrow: 'Lo de hoy',
     title: 'Saber qué hay hoy.',
-    body: 'Sin asomarte, sin preguntar. El menú del día está en Patio antes de que llegues.',
+    body: 'Qué hicieron, en cuánto y qué tan lejos queda. Sin preguntar: está en Patio antes de que llegues.',
     image: require('../assets/hero/botanica-3.jpg'),
   },
   {
-    eyebrow: 'El menú',
-    title: 'Lo escribe quien cocina.',
-    body: 'Tinga, bistec, sopa de fideo. Como te lo dirían en el mostrador.',
+    eyebrow: 'Si tú cocinas',
+    title: 'Publicar lo que preparas.',
+    body: 'Una foto y listo: lo de hoy le llega a quien anda cerca buscando dónde comer.',
     image: require('../assets/hero/botanica-1.jpg'),
   },
   {
     eyebrow: 'Tu Patio',
-    title: 'Entra por donde quieras.',
-    body: 'Busca qué comer o publica lo que preparas hoy.',
+    title: 'Pásale, aquí es.',
+    body: 'Ve qué hay cerca de ti o publica lo que preparas hoy.',
     image: require('../assets/hero/botanica-2.jpg'),
   },
 ];
@@ -185,7 +185,7 @@ export default function OnboardingScreen() {
               </TouchableOpacity>
               <TouchableOpacity accessibilityLabel="Publicar lo que preparo" disabled={routing} style={s.roleButton} onPress={() => chooseRole('fondero')} activeOpacity={0.84}>
                 <BlurView intensity={24} tint="dark" style={s.roleButtonInner}>
-                  <View style={s.roleIcon}><Ionicons name="restaurant-outline" size={19} color="#FF6A3D" /></View>
+                  <View style={s.roleIcon}><Ionicons name="storefront-outline" size={19} color="#FF6A3D" /></View>
                   <View style={s.roleCopy}>
                     <Text style={s.roleTitle} numberOfLines={1} maxFontSizeMultiplier={1.3}>{noWidow('Publicar lo que preparo')}</Text>
                     <Text style={s.roleHint} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.4}>Crear el perfil de tu negocio</Text>

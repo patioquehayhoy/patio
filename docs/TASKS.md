@@ -65,8 +65,15 @@
   movimiento.
 - [x] QA simulador v9: introducción/intención, rama Fondero, rama Foodie/avisos,
   alta completa con pagos y edición de perfil.
+- [x] Pulido HIG del recorrido de primera vez (sesión 2026-07-19 tarde):
+  animación de cierre de la ruleta, ley global del switch de lado (final de
+  Cuenta/Mi Patio en tinta neutra), arco verbal del onboarding por audiencias,
+  avisos con texto abajo y copy sin redundancia, flujo de foto sin recorte
+  cuadrado + cancelar lectura + salidas en diálogos, flujos Maestro 02/15
+  actualizados y verdes en simulador. Ver HANDOFF sección superior.
 - [ ] QA iPhone físico v8: nombre, ubicación, teclado, días, horas compactas,
-  guardar y primer menú.
+  guardar y primer menú. Incluir: animación de ruleta, recorrido primera vez
+  con copy nuevo, foto vertical sin recorte.
 - [ ] Push real por publicación: tokens, guardados remotos, evento de publicación y
   entrega. Hasta entonces el onboarding promete únicamente recordatorio diario.
 - [ ] Seguir `docs/AIRBNB_TO_PATIO_SYSTEM.md` para perfil, guardados, reseñas,

@@ -126,8 +126,15 @@ export default function CuentaScreen() {
 
           {/* Jerarquía por intención: las stats de arriba YA son la puerta a
               vistos/guardados (y Guardados vive en la tab bar) — sin filas
-              redundantes. Después la puerta al otro lado, y al final
-              preferencias, marca y salida. */}
+              redundantes. Después preferencias y marca; al final, las salidas
+              del contexto juntas: la puerta al otro lado en tinta neutra
+              (acción ocasional, no compite con el contenido) y cerrar sesión. */}
+          <View style={s.card}>
+            <Row theme={theme} icon="moon-outline" title="Modo oscuro" toggle={{ value: theme.isDark, onValueChange: toggleTheme }} />
+            <Row theme={theme} icon="sparkles-outline" title="Nuestro manifiesto" divider onPress={() => router.push('/manifiesto')} />
+            <Row theme={theme} icon="chatbubble-outline" title="Contactar soporte" divider onPress={() => Linking.openURL(`mailto:${SUPPORT_EMAIL}?subject=Soporte%20Patio`)} />
+          </View>
+
           <View style={s.card}>
             {__DEV__ ? (
               <Row
@@ -135,7 +142,6 @@ export default function CuentaScreen() {
                 icon="construct-outline"
                 title="Publicar mi menú · DEV"
                 sub="Entrar sin iniciar sesión"
-                accent
                 onPress={handleDevFondero}
               />
             ) : (
@@ -144,16 +150,9 @@ export default function CuentaScreen() {
                 icon="storefront-outline"
                 title="Publicar mi menú"
                 sub="Para cocinas y fonditas"
-                accent
                 onPress={handleFonderoAccess}
               />
             )}
-          </View>
-
-          <View style={s.card}>
-            <Row theme={theme} icon="moon-outline" title="Modo oscuro" toggle={{ value: theme.isDark, onValueChange: toggleTheme }} />
-            <Row theme={theme} icon="sparkles-outline" title="Nuestro manifiesto" divider onPress={() => router.push('/manifiesto')} />
-            <Row theme={theme} icon="chatbubble-outline" title="Contactar soporte" divider onPress={() => Linking.openURL(`mailto:${SUPPORT_EMAIL}?subject=Soporte%20Patio`)} />
             {(hasSession || __DEV__) && <Row theme={theme} icon="log-out-outline" title="Cerrar sesión" divider onPress={handleSignOut} />}
           </View>
 

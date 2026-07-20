@@ -5,9 +5,9 @@ appId: com.parcomx.patio
 - waitForAnimationToEnd
 - assertVisible: "Saber qué.*hoy\\."
 - tapOn: "Continuar"
-- assertVisible: "Lo escribe quien.*cocina\\."
+- assertVisible: "Publicar lo que.*preparas\\."
 - tapOn: "Continuar"
-- assertVisible: "Entra por donde.*quieras\\."
+- assertVisible: "Pásale, aquí.*es\\."
 - assertVisible: "Ver qué hay.*hoy"
 - assertVisible: "Publicar lo que.*preparo"
 - takeScreenshot: maestro/screenshots/02-onboarding

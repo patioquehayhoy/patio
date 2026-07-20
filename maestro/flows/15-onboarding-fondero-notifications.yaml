@@ -7,7 +7,7 @@ appId: com.parcomx.patio
     point: "92%,10%"
 - tapOn: "Ver qué hay.*hoy"
 - waitForAnimationToEnd
-- assertVisible: "Te avisamos si.*hay\\."
+- assertVisible: "Te avisamos qué hay.*hoy\\."
 - assertVisible: "Activar.*avisos"
 - tapOn: "Activar.*avisos"
 - tapOn:

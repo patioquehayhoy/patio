@@ -1,7 +1,7 @@
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Animated, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import type { HorarioSemanal } from '@/lib/horario';
 
@@ -100,11 +100,21 @@ export function BusinessScheduleEditor({ colors, value, onChange, isDark = false
     }));
   };
 
+  const confirmAnims = useRef<Record<string, Animated.Value>>({});
+  const confirmAnim = (key: string) => {
+    if (!confirmAnims.current[key]) confirmAnims.current[key] = new Animated.Value(1);
+    return confirmAnims.current[key];
+  };
+
   const confirmAfterPause = (key: string) => {
     clearTimeout(dismissTimers.current[key]);
     dismissTimers.current[key] = setTimeout(() => {
-      setPickerRevision((current) => ({ ...current, [key]: (current[key] ?? 0) + 1 }));
       delete dismissTimers.current[key];
+      const anim = confirmAnim(key);
+      Animated.timing(anim, { toValue: 0, duration: 90, useNativeDriver: true }).start(() => {
+        setPickerRevision((current) => ({ ...current, [key]: (current[key] ?? 0) + 1 }));
+        Animated.timing(anim, { toValue: 1, duration: 140, useNativeDriver: true }).start();
+      });
     }, 1100);
   };
 
@@ -175,19 +185,25 @@ export function BusinessScheduleEditor({ colors, value, onChange, isDark = false
                         <Text style={[s.timeLabel, { color: colors.textMute }]} maxFontSizeMultiplier={1.3}>
                           {field === 'abre' ? 'ABRE' : 'CIERRA'}
                         </Text>
-                        <DateTimePicker
-                          key={`${pickerKey}-${pickerRevision[pickerKey] ?? 0}`}
-                          accessibilityLabel={`${field === 'abre' ? 'Apertura' : 'Cierre'} de ${item.label}`}
-                          value={dateFromTime(day[field], field === 'abre' ? '08:00' : '16:00')}
-                          mode="time"
-                          display={Platform.OS === 'ios' ? 'compact' : 'default'}
-                          minuteInterval={15}
-                          locale="es-MX"
-                          themeVariant={isDark ? 'dark' : 'light'}
-                          accentColor={colors.accent}
-                          style={s.compactTime}
-                          onChange={(_, next) => next && updateTime(item.id, field, next)}
-                        />
+                        <Animated.View
+                          style={{
+                            opacity: confirmAnim(pickerKey).interpolate({ inputRange: [0, 1], outputRange: [0.35, 1] }),
+                            transform: [{ scale: confirmAnim(pickerKey).interpolate({ inputRange: [0, 1], outputRange: [0.94, 1] }) }],
+                          }}>
+                          <DateTimePicker
+                            key={`${pickerKey}-${pickerRevision[pickerKey] ?? 0}`}
+                            accessibilityLabel={`${field === 'abre' ? 'Apertura' : 'Cierre'} de ${item.label}`}
+                            value={dateFromTime(day[field], field === 'abre' ? '08:00' : '16:00')}
+                            mode="time"
+                            display={Platform.OS === 'ios' ? 'compact' : 'default'}
+                            minuteInterval={15}
+                            locale="es-MX"
+                            themeVariant={isDark ? 'dark' : 'light'}
+                            accentColor={colors.accent}
+                            style={s.compactTime}
+                            onChange={(_, next) => next && updateTime(item.id, field, next)}
+                          />
+                        </Animated.View>
                       </View>
                     );
                   })}

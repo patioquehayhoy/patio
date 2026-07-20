@@ -1,5 +1,71 @@
 # HANDOFF
 
+## Sesión 2026-07-19 (tarde) — pulido HIG del recorrido de primera vez
+
+Sesión en vivo con Alejandro dirigiendo desde el iPhone (Metro por WiFi,
+IP de la Mac ese día: `192.168.100.141`). Typecheck y lint verdes al cierre.
+Maestro `02-onboarding` y `15-onboarding-fondero-notifications` verdes en
+simulador iPhone 17 Pro con el copy nuevo; capturas revisadas visualmente.
+Cambios sin commit al cerrar la sesión (los corre Alejandro).
+
+### Decisiones de producto (con fuente HIG)
+
+- **Foodie sin sesión, Fondero con correo** — confirmado contra HIG *Managing
+  accounts* ("require an account only if core functionality requires it").
+  No pedir sign-in a ambos lados.
+- **Sin splash extra por rama** — HIG pide explicar el beneficio DENTRO de la
+  vista de sign-in; `fondero-acceso` ya lo hace ("Tu menú, en un correo…").
+  No agregar pantalla de bienvenida Fondero.
+- **Ley global del switch de lado:** la puerta al otro lado vive en un solo
+  lugar por lado, al FINAL de Cuenta / Mi Patio, en tinta neutra, agrupada con
+  "Cerrar sesión" (las salidas de contexto viven juntas). Nunca en tab bar,
+  mapa ni flujos primarios. Excepción: el escape de `fondero-acceso`.
+- **Los 6 casos reales del Foodie** (oficina, explorador, referencia ambigua,
+  pasó por enfrente, chisme, leal que compara) quedaron en la memoria
+  `foodie_jtbd`. Tres incertidumbres: qué hicieron, en cuánto, qué tan lejos.
+
+### Cambios aplicados
+
+1. **Ruleta de horarios** (`components/business-schedule-editor.tsx`): el
+   cierre tras 1100 ms ya no brinca — animación de confirmación fade+scale
+   (90 ms salida / 140 ms regreso) sincronizada con el remount. Regla HIG
+   Motion: "brevity and precision in feedback animations".
+2. **Switch de lado** (`app/cuenta.tsx`, `app/perfil.tsx`): "Publicar mi menú"
+   perdió el naranja y bajó a la última card junto a "Cerrar sesión"; Mi Patio
+   quedó espejo exacto ("Explorar como cliente" + "Cerrar sesión").
+3. **Onboarding verbal** (`app/onboarding.tsx`): arco por audiencias —
+   escena 1 busca ("Qué hicieron, en cuánto y qué tan lejos queda. Sin
+   preguntar: está en Patio antes de que llegues."), escena 2 cocina
+   ("SI TÚ COCINAS / Publicar lo que preparas." — antes era ambigua),
+   escena 3 puerta ("Pásale, aquí es." — "Entra por donde quieras" sonaba a
+   albur). Títulos infinitivos gemelos que hacen eco con los dos CTA.
+   Icono de publicar: storefront (antes restaurant = comer, lado equivocado);
+   mismo símbolo que la puerta en Cuenta.
+4. **Avisos** (`app/push-prompt.tsx`): texto y acciones abajo (misma anatomía
+   y velo que la intro), escala editorial 40/900, título "Te avisamos qué hay
+   hoy.", cuerpo "Solo un recordatorio a la hora de la comida. Sin spam, sin
+   ruido." (honesto: sigue siendo recordatorio local). Columna de acciones
+   compacta; murió el badge naranja flotante.
+5. **Foto del menú HIG** (`app/foto-menu.tsx`,
+   `lib/controllers/useFotoMenuController.ts`):
+   - fuera `allowsEditing` de cámara (el recorte cuadrado mutilaba menús
+     verticales; queda la confirmación nativa Repetir/Usar foto);
+   - galería sin `requestMediaLibraryPermissions` (PHPicker no lo necesita);
+   - cámara denegada → diálogo con Elegir de Fotos / Abrir Ajustes / Ahora no
+     (antes saltaba a galería sin avisar);
+   - "Cancelar" durante la lectura (antes no había salida);
+   - diálogo de error con tercera opción "Ahora no";
+   - ✕ de la revisión sale a Hoy — antes dejaba pantalla en blanco (bug).
+6. **Maestro** (`maestro/flows/02`, `15`): aserciones actualizadas al copy
+   nuevo. Ambos flujos verdes.
+
+### QA pendiente en iPhone físico (además del listado del corte anterior)
+
+- Sentir la animación nueva de la ruleta (ajustar 90/140 ms solo si se siente).
+- Recorrido primera vez completo con el copy nuevo (botón DEV en portada).
+- Foto de menú vertical sin recorte + Cancelar durante lectura + salidas de
+  los diálogos nuevos.
+
 ## EMPIEZA AQUÍ — corte exacto 2026-07-19 · guardado remoto
 
 > Esta es la especificación operativa vigente. Las secciones fechadas anteriores

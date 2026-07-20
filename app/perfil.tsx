@@ -80,16 +80,13 @@ export default function PerfilScreen() {
           {address ? ` · ${address}` : ''}
         </Text>
 
-        {/* Jerarquía espejo de Cuenta (Foodie): primero tu negocio, después la
-            puerta al otro lado, al final preferencias, marca y salida. Sin
+        {/* Jerarquía espejo de Cuenta (Foodie): primero tu negocio, después
+            preferencias y marca; al final, las salidas del contexto juntas:
+            la puerta al otro lado en tinta neutra y cerrar sesión. Sin
             botonzote — editar el negocio es una acción ocasional, no LA acción. */}
         <View style={[s.group, { backgroundColor: c.surface, borderColor: c.border }]}>
           <Row c={c} icon="restaurant-outline" title="Publicar menú" onPress={() => router.replace('/menu')} />
           <Row c={c} icon="create-outline" title="Editar mi negocio" last onPress={() => router.push('/perfil-editar')} />
-        </View>
-
-        <View style={[s.group, { backgroundColor: c.surface, borderColor: c.border }]}>
-          <Row c={c} icon="map-outline" title="Explorar como cliente" last onPress={exploreAsClient} />
         </View>
 
         <View style={[s.group, { backgroundColor: c.surface, borderColor: c.border }]}>
@@ -100,7 +97,11 @@ export default function PerfilScreen() {
             trailing={<ToggleSwitch value={theme.isDark} onValueChange={toggleTheme} activeColor={c.accent} />}
           />
           <Row c={c} icon="sparkles-outline" title="Nuestro manifiesto" onPress={() => router.push('/manifiesto')} />
-          <Row c={c} icon="help-circle-outline" title="Soporte" onPress={() => Linking.openURL(`mailto:${SUPPORT_EMAIL}?subject=Soporte%20Patio`)} />
+          <Row c={c} icon="help-circle-outline" title="Soporte" last onPress={() => Linking.openURL(`mailto:${SUPPORT_EMAIL}?subject=Soporte%20Patio`)} />
+        </View>
+
+        <View style={[s.group, { backgroundColor: c.surface, borderColor: c.border }]}>
+          <Row c={c} icon="map-outline" title="Explorar como cliente" onPress={exploreAsClient} />
           <Row c={c} icon="log-out-outline" title="Cerrar sesión" last onPress={signOut} />
         </View>
       </ScrollView>

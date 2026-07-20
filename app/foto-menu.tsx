@@ -1,6 +1,6 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef } from 'react';
-import { StyleSheet, Text } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AgentSpinner } from '@/components/agent-spinner';
@@ -17,7 +17,7 @@ export default function FotoMenuScreen() {
   const { theme } = useTheme();
   const c = fonderoPalette(theme.isDark);
   const s = makeStyles(theme);
-  const { choosePhoto, menu, openCamera, resetToIdle, state } = useFotoMenuController({
+  const { cancelRead, choosePhoto, menu, openCamera, state } = useFotoMenuController({
     onExit: () => router.replace('/menu'),
     onManual: () => router.replace('/menu-editar'),
   });
@@ -35,7 +35,9 @@ export default function FotoMenuScreen() {
       <MenuComposer
         initialData={menu}
         source="foto"
-        onBack={resetToIdle}
+        // Cerrar la revisión sale del flujo — regresar a 'idle' dejaba una
+        // pantalla en blanco sin cámara ni salida.
+        onBack={() => router.replace('/menu')}
         onRetake={openCamera}
       />
     );
@@ -48,6 +50,9 @@ export default function FotoMenuScreen() {
         <AgentSpinner variant="dots" size={34} color={c.accent} />
         <Text style={s.processingTitle}>Leyendo tu menú…</Text>
         <Text style={s.processingBody}>Detectando cada platillo.</Text>
+        <TouchableOpacity style={s.cancelBtn} onPress={cancelRead} accessibilityLabel="Cancelar lectura" activeOpacity={0.7}>
+          <Text style={s.cancelText}>Cancelar</Text>
+        </TouchableOpacity>
       </SafeAreaView>
     );
   }
@@ -67,5 +72,7 @@ function makeStyles(theme: Theme) {
     center: { alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 },
     processingTitle: { marginTop: 18, fontSize: 20, fontWeight: '900', color: c.text },
     processingBody: { maxWidth: 280, marginTop: 7, textAlign: 'center', fontSize: 13, lineHeight: 19, fontWeight: '300', color: c.textSecondary },
+    cancelBtn: { marginTop: 28, minHeight: 44, paddingHorizontal: 20, alignItems: 'center', justifyContent: 'center' },
+    cancelText: { fontSize: 15, fontWeight: '300', color: c.textSecondary },
   });
 }

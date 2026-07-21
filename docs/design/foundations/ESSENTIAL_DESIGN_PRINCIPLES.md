@@ -13,6 +13,14 @@
 > Los detalles de implementación (radios, blur, pesos, paleta) viven en `DESIGN_SYSTEM.md`
 > y pueden cambiar; estos principios no.
 
+**Fuentes primarias verificadas:** [transcripción y video completos de WWDC17
+Session 802](https://developer.apple.com/videos/play/wwdc2017/802/),
+[HIG · Design principles](https://developer.apple.com/design/human-interface-guidelines/design-principles),
+[HIG · Layout](https://developer.apple.com/design/human-interface-guidelines/layout) y
+[HIG · Pickers](https://developer.apple.com/design/human-interface-guidelines/pickers).
+Este texto separa deliberadamente tres cosas que antes se mezclaban: lo que Stern
+explica en la charla, la guía vigente de plataforma y la decisión particular de Patio.
+
 ---
 
 ## 1. Premisa — Humano, no Usuario
@@ -144,7 +152,11 @@ de explicarla.
 **Pregunta al dominio Patio:** ¿qué información pertenece a la misma "unidad semántica" para el rol que lee la pantalla? (Ejemplo: el nombre de un platillo, su descripción y su precio son una unidad — deben sentirse así visualmente, sin importar cómo se implemente).
 
 ### 3.7 Grouping (Agrupación)
-Contenedores visuales (cards, secciones, paneles) refuerzan la proximidad y crean unidades semánticas.
+Agrupar es dar estructura haciendo que elementos relacionados se perciban como una
+unidad y que los no relacionados se perciban aparte. **Una card es solo una técnica
+posible**, no la definición del principio. Espacio, alineación, repetición, separadores,
+un encabezado común o un contenedor pueden agrupar; sumar cajas sin necesidad puede
+crear más ruido que estructura.
 
 **Mecanismo real:** en herramientas de creación como Keynote o Sketch, las herramientas de
 crear objetos viven pegadas al lienzo (porque ahí es donde el objeto va a aparecer), y los
@@ -154,8 +166,19 @@ pertenecen al mismo trabajo.
 
 **Pregunta al dominio Patio:** ¿qué jerarquía de agrupación tiene sentido para el dominio? Platillo dentro de sección, sección dentro de menú, menú dentro de fondita. La forma visual de comunicar esa jerarquía es decisión de diseño abierta — no fijar el método aquí.
 
+**Prueba operativa:** tapa títulos y bordes. ¿Todavía se entiende qué elementos hacen
+el mismo trabajo? Después tapa el espacio. ¿La jerarquía sobrevive con alineación y
+repetición? Si solo se entiende gracias a muchas cajas, la agrupación es débil.
+
 ### 3.8 Mapping (Mapeo)
-Los controles deben mapear su función de forma intuitiva. El "grifo de Mortimer" del WWDC (una manija sube y baja para temperatura) es ANTI-mapping — confunde porque el modelo físico real (dos manijas, dos válvulas) no se respeta.
+Los controles deben reflejar intuitivamente la propiedad, dirección o disposición que
+modifican. Una persiana que sube y baja se entiende mejor con un control vertical; tres
+interruptores se recuerdan mejor si su orden reproduce el de las tres luces.
+
+> **Corrección de fuente:** Mortimer pertenece al principio de *mental model*, no al
+> ejemplo de mapping. Stern explica mapping con una persiana cuyo control refleja el
+> movimiento arriba/abajo y con interruptores cuyo orden refleja la posición de las
+> luces. No volver a usar el grifo como evidencia de mapping.
 
 **Mecanismo real:** una cortina que sube y baja se controla mejor con algo que también
 "sube y baja" — no hay ambigüedad. Switches de luz acomodados en el mismo layout físico
@@ -218,22 +241,28 @@ Tres tipos:
 
 La simetría comunica orden, estabilidad, belleza.
 
-**Mecanismo real:** el dato clave, y el más accionable de los doce principios: **elementos
+**Mecanismo real:** el dato clave: **elementos
 simétricos se perciben como una sola unidad conectada aunque no estén físicamente unidos.**
 Dos corchetes enfrentados `[ ]` se leen como un objeto, no como dos trazos sueltos, solo
-porque comparten eje. Lo mismo aplica al revés: dos elementos relacionados (una etiqueta y
-su control, dos columnas de un mismo dato) que NO comparten el eje que deberían compartir se
-perciben como rotos o descuadrados, aun si cada uno por separado está bien diseñado. La
-traslación (filas repetidas del World Clock, ciudades y horas) da sensación de orden por
-tener el mismo ritmo y alineación de principio a fin, no por decoración.
+porque comparten eje. En Weather, la reflexión aparece en el contrapeso de elementos
+alrededor de una mediana. En World Clock, la traslación aparece en la cadencia estable de
+ciudades y horas.
 
-**Caso real resuelto en Patio (2026-07-20):** en el editor de horarios, la etiqueta `ABRE`
-y el picker de hora debajo tenían un `marginLeft: -8` en el picker que no existía en la
-etiqueta — rompía el eje compartido entre las dos. Cada elemento por separado se veía bien;
-juntos, se sentían descuadrados. La corrección fue quitar la compensación y dejar que
-etiqueta y control compartan el mismo borde izquierdo real.
+La charla **no** dice que todo deba compartir el borde izquierdo ni que dos controles
+deban empujarse mecánicamente hacia extremos opuestos. Alineación y simetría cooperan,
+pero no son sinónimos. Forzar reflexión en una tabla puede empeorar su lectura; ahí suele
+dominar la simetría traslacional: mismas columnas, alturas, intervalos y ritmo.
 
-**Pregunta al dominio Patio:** ¿la composición de la pantalla comunica orden y equilibrio? Para cada par etiqueta+control o cada fila repetida, ¿comparten un eje real (mismo borde, misma altura), o solo "se ven parecidos"? Tipo de simetría y su intensidad son decisión de diseño — pueden cambiar por completo entre versiones, pero el eje compartido entre elementos relacionados no es negociable.
+**Caso Patio corregido (2026-07-20):** quitar el `marginLeft: -8` eliminó una
+desalineación local, pero no resolvió el sistema. ABRE/CIERRA seguían repitiéndose dentro
+de cada día y cada fila estaba compuesta como dos bloques enfrentados. El editor definitivo
+usa un único encabezado `DÍA · ABRE · CIERRA` y repite exactamente esos tres ejes en cada
+fila. La unidad perceptiva ahora es el horario semanal completo, no cada par aislado.
+
+**Pregunta al dominio Patio:** ¿qué tipo de simetría corresponde al contenido: reflexión
+para contrapesar, rotación para un sistema radial o traslación para listas/tablas? ¿La
+repetición conserva ejes, altura y cadencia? No usar “simetría” como permiso para centrar
+todo o reflejar elementos que semánticamente deben leerse en secuencia.
 
 ---
 
@@ -249,20 +278,31 @@ etiqueta y control compartan el mismo borde izquierdo real.
 
 Antes de implementar una pantalla, pregúntate:
 
-| Principio | Pregunta de verificación |
-|-----------|--------------------------|
-| Wayfinding | ¿Sé dónde estoy y cómo salir? |
-| Feedback | Si tappeo algo, ¿la app me responde? |
-| Visibility | ¿La acción principal está visible al primer vistazo? |
-| Consistency | ¿Esto se ve y se comporta como el resto de Patio? |
-| Mental Model | ¿Esto coincide con cómo el Foodie/Fondero piensa? |
-| Proximity | ¿Lo relacionado está junto? ¿Lo distinto, separado? |
-| Grouping | ¿Las secciones son unidades claras? |
-| Mapping | ¿El icono/control significa lo que hace? |
-| Affordance | ¿Se ve que es tappeable/arrastrable? |
-| Progressive Disclosure | ¿Mostré primero lo simple? |
-| 80/20 | ¿Optimicé el flujo principal, no el raro? |
-| Symmetry | ¿Hay orden visual? |
+No aprobar por intuición con un “sí”. Para cada principio hay que identificar una señal
+observable y tratar de romperla con la prueba indicada.
+
+| Principio | Evidencia que debe existir | Falla típica | Prueba de diseño |
+|---|---|---|---|
+| Wayfinding | Contexto, opciones y salida legibles | Pantalla bonita pero huérfana | Entrar por deep link y explicar dónde estás |
+| Feedback | Respuesta inmediata, proporcional y comprensible | Acción silenciosa o confirmación invasiva | Tocar cada control y narrar qué pasó |
+| Visibility | Lo necesario para decidir está a la vista | Minimalismo que esconde estado o acción | Prueba de cinco segundos |
+| Consistency | Patrones iguales se ven y actúan igual; iOS gana en controles comunes | Marca inventa un patrón para algo ya aprendido | Comparar con el resto de Patio y con iOS |
+| Mental Model | Palabras y secuencia coinciden con la tarea real | La UI expone el modelo de datos | Pedir a una persona que anticipe el siguiente paso |
+| Proximity | Control y objeto afectado están juntos | El control parece afectar otra cosa | Aislar cada pareja dato–control |
+| Grouping | Las unidades semánticas se reconocen sin explicación | Una card por todo o separadores sin jerarquía | Tapa bordes y títulos; revisa si la estructura sobrevive |
+| Mapping | Dirección, orden o gesto reflejan el resultado | Etiquetas intentan rescatar un control arbitrario | Oculta las etiquetas y predice el efecto |
+| Affordance | Lo interactivo se reconoce y tiene blanco táctil suficiente | Texto que parece botón o botón que parece texto | Encontrar qué se puede tocar sin instrucciones |
+| Progressive Disclosure | Complejidad aparece cuando se necesita | Todo visible o demasiados pasos para expertos | Completar caso básico y caso excepcional |
+| 80/20 | El caso frecuente es directo; lo raro sigue disponible | Optimizar excepciones en la vista principal | Contar decisiones del recorrido habitual |
+| Symmetry | Contrapeso o cadencia coherente según el contenido | Centrar/reflejar por decoración | Superponer ejes y comparar todas las filas |
+
+### Regla de resolución
+
+Los principios no se votan ni se aplican todos con el mismo peso. Primero se protege la
+tarea y el modelo mental; después claridad y feedback; después jerarquía, agrupación y
+visibilidad; finalmente balance y belleza. Si dos principios chocan, el documento debe
+anotar cuál domina **en ese contexto** y qué costo se acepta. “Se ve más limpio” nunca es
+evidencia suficiente.
 
 ---
 
@@ -310,9 +350,10 @@ Antes de cualquier pieza visual nueva (no solo de interacción), cargar el skill
 1. **Tinta neutra, acento naranja.** Las acciones primarias usan negro/blanco
    según el tema. El naranja comunica selección, progreso actual y navegación;
    no se extiende como bloque dominante de ancho completo.
-2. **El control vive con el dato.** Una edición atómica aparece junto al campo
-   que modifica. Los horarios usan el selector compacto nativo anclado a la hora;
-   no abren una segunda hoja inferior creada por Patio.
+2. **El control vive con el dato.** Una edición atómica se activa desde el campo
+   que modifica. En horarios, la cápsula activa abre la misma ruleta nativa centrada
+   para apertura y cierre; el título conserva el contexto día/campo. No se abre una
+   segunda hoja inferior ni se deja que el popover compacto rompa la retícula.
 3. **Etiqueta estable antes que ejemplo.** Un ejemplo o placeholder nunca carga
    por sí solo con el significado del campo. El nombre visible permanece aunque
    la persona empiece a escribir.
@@ -339,6 +380,38 @@ Antes de cualquier pieza visual nueva (no solo de interacción), cargar el skill
 
 ---
 
-**Última revisión:** 2026-07-20 — enriquecido con el mecanismo real de cada principio
-(narración de la charla, no solo los títulos de las slides) y un caso resuelto en Patio
-(alineación ABRE/CIERRA). Documento fundacional, no expira.
+## 8. Caso patrón — editor semanal de horarios
+
+Esta auditoría es el ejemplo de cómo aplicar los principios como sistema, no como
+adjetivos. Sirve de referencia para futuros formularios de Patio.
+
+| Principio dominante | Decisión comprobable en horarios |
+|---|---|
+| Mental model | Primero se eligen los días que el negocio abre; después se ajusta de cuándo a cuándo. |
+| 80/20 | `Lun–Vie`, `Fin de semana` y `Todos` resuelven configuraciones frecuentes sin impedir ajustes día por día. |
+| Visibility | Días activos, apertura y cierre permanecen visibles; no se esconden en una pantalla por cada día. |
+| Grouping + proximity | Los atajos forman un grupo; los siete días, otro; la tabla de horas aparece junto a los días activos que controla. |
+| Mapping | El orden visual `DÍA → ABRE → CIERRA` coincide con la lectura temporal y con el resultado guardado. |
+| Symmetry | Cada día usa reflexión bilateral: nombre en la mediana; ABRE y CIERRA en mitades idénticas; conector sobre el eje. Las filas repiten esa geometría por traslación. |
+| Consistency | Se usa la ruleta nativa de iOS, centrada en un marco estable y con intervalos previsibles de 15 minutos. |
+| Affordance | Chips seleccionables conservan forma y blanco táctil; la selección naranja y el check comunican estado. |
+| Feedback | El cambio de día es inmediato, el conteo de abiertos se actualiza, hay respuesta háptica y la hora elegida queda visible con una transición breve. |
+| Progressive disclosure | Solo aparecen filas de hora para días abiertos; cerrar un día conserva sus horas para poder recuperarlas. |
+| Wayfinding | El título define la tarea, el progreso ubica el paso, volver ofrece salida y Continuar expresa el avance. |
+
+**Criterio de aceptación visual:** el nombre de cada día y el conector ocupan la mediana.
+ABRE y CIERRA tienen mitades, anchos y distancia al eje idénticos; sus etiquetas y cápsulas
+comparten centro. Todas las filas repiten altura y geometría. Ningún estado seleccionado
+puede desplazar el texto vecino. Martes y miércoles se distinguen sin depender de posición
+(`MA`/`MI`). Las cápsulas conservan aire visible y nunca invaden el conector.
+
+**Criterio de aceptación funcional:** cambiar un preset, alternar cualquier día y editar
+ambas horas debe actualizar el estado de inmediato; cero días se comunica con el conteo
+`0 abiertos`, sin una card redundante; reabrir un día recupera sus horas; el control mantiene etiquetas accesibles y blancos de
+toque de al menos 44 pt. La prueba final se hace en simulador y en iPhone físico.
+
+---
+
+**Última revisión:** 2026-07-20 — contrastado contra la transcripción oficial completa,
+separadas charla/HIG/decisiones Patio, corregidas las distorsiones de mapping y symmetry,
+y añadidas pruebas operativas y el caso patrón de horarios. Documento fundacional, no expira.

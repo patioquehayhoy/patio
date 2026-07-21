@@ -11,9 +11,26 @@ appId: com.parcomx.patio
 - inputText: "Presa Las Virgenes 101"
 - tapOn: "Continuar"
 - assertVisible: "Días y.*horarios"
+- assertVisible: "DÍAS QUE ABRES"
 - tapOn: "Fin de semana"
+- assertVisible: "ABRE"
+- assertVisible: "CIERRA"
 - assertVisible: "Sábado"
 - assertVisible: "Domingo"
+- takeScreenshot: maestro/screenshots/13-horarios
+- tapOn: "Apertura de Sábado"
+- takeScreenshot: maestro/screenshots/13-horarios-picker
+- swipe:
+    start: "31%,54%"
+    end: "31%,46%"
+    duration: 400
+- extendedWaitUntil:
+    notVisible: "Ruleta de apertura de Sábado"
+    timeout: 3000
+- tapOn: "Cierre de Sábado"
+- takeScreenshot: maestro/screenshots/13-horarios-picker-cierre
+- tapOn:
+    point: "50%,20%"
 - tapOn: "Continuar"
 - assertVisible: ".*Cómo te pueden.*pagar.*"
 - tapOn: "Efectivo: no aceptado"

@@ -4,9 +4,20 @@
 
 ## Corte operativo — 2026-07-20
 
-- Editor de horarios (`components/business-schedule-editor.tsx`) corregido: fila
-  ABRE/CIERRA en reflexión real (ABRE al borde izquierdo, CIERRA al borde derecho de
-  su columna) y remount del picker compacto suavizado con doble `requestAnimationFrame`.
+- Editor de horarios reconstruido como composición bilateral por día. Los días usan
+  abreviaturas inequívocas (`MA`/`MI`), los atajos no desplazan texto al activarse y
+  cero días se comunica solo mediante `0 abiertos`. La revisión visual final usa
+  reflexión bilateral por día: nombre y `→` en la mediana; ABRE/CIERRA en mitades
+  idénticas; conteo de días y feedback háptico. Las cápsulas ya no colisionan. La edición
+  usa una ruleta nativa `spinner` en una superficie propia centrada de 320 pt, por lo que
+  apertura y cierre tienen el mismo marco y padding; Maestro verifica además el autocierre.
+- `ESSENTIAL_DESIGN_PRINCIPLES.md` contrastado contra la transcripción oficial completa:
+  separa charla/HIG/decisiones Patio, corrige Mortimer (mental model, no mapping),
+  distingue alineación de simetría y añade pruebas operativas por principio.
+- Maestro `13-alta-negocio` y `16-editar-perfil-negocio` pasan con el editor compartido;
+  evidencia específica en `maestro/screenshots/13-horarios.png`.
+- La corrección previa de ABRE/CIERRA en extremos y remount del picker compacto queda
+  reemplazada por la composición bilateral y la ruleta centrada descritas arriba.
 - `docs/design/foundations/ESSENTIAL_DESIGN_PRINCIPLES.md` reescrito con el mecanismo
   real de cada uno de los 12 principios del WWDC17 802 (antes solo tenía el título de
   cada slide) y una nota de vigencia: Liquid Glass (WWDC25) es el material actual vía

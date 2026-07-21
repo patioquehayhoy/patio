@@ -1,5 +1,28 @@
 # HANDOFF
 
+## Sesión 2026-07-20 — principios recuperados + horarios sistémicos
+
+- `ESSENTIAL_DESIGN_PRINCIPLES.md` fue contrastado contra la transcripción oficial
+  completa de WWDC17 802 y la HIG vigente. Se corrigieron dos distorsiones que afectaban
+  decisiones reales: Mortimer pertenece a mental model, no a mapping; alineación y
+  simetría cooperan, pero no son sinónimos.
+- El editor semanal usa una composición bilateral por día: nombre y conector en la
+  mediana, con ABRE/CIERRA en mitades idénticas. Las filas repiten la misma geometría.
+- Días abreviados como `LU MA MI JU VI SÁ DO`; pills con texto ópticamente centrado,
+  blancos táctiles de 44 pt y cero días comunicado solo por `0 abiertos`. La revisión
+  renderizada detectó que el ancho anterior de 86 pt hacía chocar las cápsulas nativas:
+  ahora cada hora reserva 104 pt, ABRE/CIERRA se conectan con `→` y la composición comparte
+  una retícula bilateral: nombre y conector en la mediana, ABRE/CIERRA en mitades
+  idénticas. El conteo de días + háptica confirman la selección. El popover compacto fue
+  reemplazado por una ruleta nativa `spinner` dentro de una superficie centrada de 320 pt:
+  apertura y cierre comparten exactamente marco, padding y eje, sin desplazamiento lateral.
+- QA verde: TypeScript, ESLint, `git diff --check`, Maestro `13-alta-negocio` y
+  `16-editar-perfil-negocio`. Capturas: `13-horarios.png`,
+  `13-horarios-picker.png` y `13-horarios-picker-cierre.png`; las dos últimas verifican
+  la geometría idéntica de apertura y cierre.
+- Maestro también mueve la ruleta de apertura y verifica su autocierre tras 1100 ms.
+- Pendiente humano: confirmar en iPhone físico la sensación final del nuevo selector centrado.
+
 ## Sesión 2026-07-20 — simetría real en horarios + enriquecimiento del 802
 
 Sesión en vivo con Alejandro dirigiendo desde el iPhone (dev build por cable,

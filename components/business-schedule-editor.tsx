@@ -1,7 +1,7 @@
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Animated, Easing, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import type { HorarioSemanal } from '@/lib/horario';
 
@@ -111,9 +111,26 @@ export function BusinessScheduleEditor({ colors, value, onChange, isDark = false
     dismissTimers.current[key] = setTimeout(() => {
       delete dismissTimers.current[key];
       const anim = confirmAnim(key);
-      Animated.timing(anim, { toValue: 0, duration: 90, useNativeDriver: true }).start(() => {
-        setPickerRevision((current) => ({ ...current, [key]: (current[key] ?? 0) + 1 }));
-        Animated.timing(anim, { toValue: 1, duration: 140, useNativeDriver: true }).start();
+      Animated.timing(anim, {
+        toValue: 0,
+        duration: 110,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }).start(() => {
+        // El remount nativo del picker no es instantáneo: se espera un frame
+        // limpio antes de pedirlo y otro antes de reaparecer, para que el
+        // fade-in no arranque sobre una vista que React todavía no montó.
+        requestAnimationFrame(() => {
+          setPickerRevision((current) => ({ ...current, [key]: (current[key] ?? 0) + 1 }));
+          requestAnimationFrame(() => {
+            Animated.timing(anim, {
+              toValue: 1,
+              duration: 180,
+              easing: Easing.out(Easing.cubic),
+              useNativeDriver: true,
+            }).start();
+          });
+        });
       });
     }, 1100);
   };
@@ -180,9 +197,10 @@ export function BusinessScheduleEditor({ colors, value, onChange, isDark = false
                 <View style={s.timeEditors}>
                   {(['abre', 'cierra'] as const).map((field) => {
                     const pickerKey = `${item.id}-${field}`;
+                    const isEnd = field === 'cierra';
                     return (
-                      <View style={s.timeEditor} key={field}>
-                        <Text style={[s.timeLabel, { color: colors.textMute }]} maxFontSizeMultiplier={1.3}>
+                      <View style={[s.timeEditor, isEnd && s.timeEditorEnd]} key={field}>
+                        <Text style={[s.timeLabel, isEnd && s.timeLabelEnd, { color: colors.textMute }]} maxFontSizeMultiplier={1.3}>
                           {field === 'abre' ? 'ABRE' : 'CIERRA'}
                         </Text>
                         <Animated.View
@@ -200,7 +218,7 @@ export function BusinessScheduleEditor({ colors, value, onChange, isDark = false
                             locale="es-MX"
                             themeVariant={isDark ? 'dark' : 'light'}
                             accentColor={colors.accent}
-                            style={s.compactTime}
+                            style={[s.compactTime, isEnd && s.compactTimeEnd]}
                             onChange={(_, next) => next && updateTime(item.id, field, next)}
                           />
                         </Animated.View>
@@ -229,6 +247,9 @@ const s = StyleSheet.create({
   scheduleDay: { fontSize: 15, lineHeight: 20, fontWeight: '600' },
   timeEditors: { marginTop: 8, flexDirection: 'row', alignItems: 'flex-end', gap: 20 },
   timeEditor: { flex: 1 },
+  timeEditorEnd: { alignItems: 'flex-end' },
   timeLabel: { marginBottom: 2, fontSize: 9, lineHeight: 12, fontWeight: '700', letterSpacing: 0.8 },
-  compactTime: { alignSelf: 'flex-start', marginLeft: -8 },
+  timeLabelEnd: { textAlign: 'right' },
+  compactTime: { alignSelf: 'flex-start' },
+  compactTimeEnd: { alignSelf: 'flex-end' },
 });

@@ -1,5 +1,47 @@
 # HANDOFF
 
+## Sesión 2026-07-20 — simetría real en horarios + enriquecimiento del 802
+
+Sesión en vivo con Alejandro dirigiendo desde el iPhone (dev build por cable,
+Metro por USB además del intento inicial por WiFi). Typecheck y lint verdes
+al cierre.
+
+### Cambios aplicados
+
+1. **Editor de horarios** (`components/business-schedule-editor.tsx`):
+   - Se quitó un `marginLeft: -8` que desalineaba el picker de hora respecto
+     a su propia etiqueta ABRE/CIERRA (rompía el eje compartido — violación
+     directa de Symmetry/Reflection del 802).
+   - El remount que fuerza el cierre del picker compacto tras 1100ms de pausa
+     ahora usa doble `requestAnimationFrame` + `Easing.out(Easing.cubic)` en
+     vez de encadenar el fade-in en el mismo tick: evita que la animación
+     arranque sobre una vista nativa que React todavía no montó (causa real
+     del glitch reportado).
+   - La fila ABRE/CIERRA pasó de "dos columnas izquierda-alineadas" a
+     reflexión real: ABRE pegado al borde izquierdo de su columna, CIERRA
+     pegado al borde derecho de la suya (`timeEditorEnd`, `timeLabelEnd`,
+     `compactTimeEnd`) — el espacio vacío queda centrado entre ambos en vez
+     de acumulado a la derecha de toda la tarjeta.
+2. **`docs/design/foundations/ESSENTIAL_DESIGN_PRINCIPLES.md` reescrito**:
+   los 12 principios traían solo el título de cada slide del WWDC17 802; se
+   enriquecieron con el mecanismo real de la charla (parafraseado de la
+   transcripción oficial, no solo las slides) — aeropuerto en Wayfinding,
+   tablero del coche en Feedback, grifo de Mortimer en Mental Model, mesero
+   de hamburguesa en Progressive Disclosure, diálogo de imprimir en 80/20,
+   etc. Symmetry (3.12) documenta el caso ABRE/CIERRA como ejemplo resuelto.
+   Nueva sección aclara qué es vigente hoy: Liquid Glass (WWDC25) es el
+   material actual, cubierto por el skill `apple-design`; y se corrigió que
+   "múltiplos de 8px" **no es una regla real de Apple** — es convención
+   propia de Patio documentada en `CLAUDE.md`, no una cita de la HIG. Lo que
+   Apple exige es alineación real entre componentes, no un múltiplo fijo.
+
+### QA pendiente
+
+- Confirmar en iPhone físico que la fila ABRE/CIERRA ya se siente en espejo
+  y no descuadrada.
+- Sentir de nuevo la animación del picker con el doble `requestAnimationFrame`
+  (ajustar solo si se sigue viendo el glitch).
+
 ## Sesión 2026-07-19 (tarde) — pulido HIG del recorrido de primera vez
 
 Sesión en vivo con Alejandro dirigiendo desde el iPhone (Metro por WiFi,

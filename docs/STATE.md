@@ -1,6 +1,20 @@
 # STATE
 
-> Fuente de verdad operativa. Última actualización: 2026-07-19.
+> Fuente de verdad operativa. Última actualización: 2026-07-20.
+
+## Corte operativo — 2026-07-20
+
+- Editor de horarios (`components/business-schedule-editor.tsx`) corregido: fila
+  ABRE/CIERRA en reflexión real (ABRE al borde izquierdo, CIERRA al borde derecho de
+  su columna) y remount del picker compacto suavizado con doble `requestAnimationFrame`.
+- `docs/design/foundations/ESSENTIAL_DESIGN_PRINCIPLES.md` reescrito con el mecanismo
+  real de cada uno de los 12 principios del WWDC17 802 (antes solo tenía el título de
+  cada slide) y una nota de vigencia: Liquid Glass (WWDC25) es el material actual vía
+  el skill `apple-design`; "múltiplos de 8px" no es regla de Apple, es convención propia
+  de Patio.
+- TypeScript y ESLint pasan sobre los archivos tocados.
+- QA pendiente: confirmar en iPhone físico que la simetría de horarios y la animación
+  del picker ya se sienten resueltas (ver `docs/HANDOFF.md`).
 
 ## Corte operativo — 2026-07-19
 

@@ -191,9 +191,13 @@ una marca tratando de venderte? Si es lo segundo, reescríbelo.
 **Copy que YA está bien (conservar — esto es voz Patio):**
 - "Como lo diría tu mamá."
 - "Sin spam, sin notificaciones inútiles."
-- "Esto no es delivery."
 - "Tu ubicación nunca sale del teléfono."
 - `Saaaaaaabes.`
+
+> ⚠️ Retirado 2026-07-22: `"Esto no es delivery."` — es exactamente el ejemplo que
+> CLAUDE.md cita como lenguaje comparativo prohibido ("no es X, es Y", ley
+> 2026-07-07). Este documento lo aprobaba como voz Patio pese a ser posterior
+> a esa ley. Sustituir por una afirmación directa de lo que Patio ES.
 
 **Copy que parecía bien pero NO lo está (corregir):**
 - ❌ "Lo que se cocina, en su voz." → el remate "en su voz" personifica de más

@@ -1,6 +1,26 @@
 # STATE
 
-> Fuente de verdad operativa. Última actualización: 2026-07-20.
+> Fuente de verdad operativa. Última actualización: 2026-07-22.
+
+## Corte operativo — 2026-07-22
+
+- Documentación: 53 → 49 `.md` (4 legacy borrados); tipografía real (`Fonts.brand`,
+  pesos 900/700/300) reconciliada entre `CLAUDE.md`/`DESIGN_SYSTEM.md` y el código;
+  color de botones homologado (acción de confirmación prominente = acento naranja,
+  una sola por pantalla, con cita de Apple HIG). Detalle completo en
+  `docs/DOCS_AUDIT_2026-07-22.md` y sesión en `docs/HANDOFF.md`.
+- Agentes: `foodie-ops` nuevo (Foodie no tenía dueño); `fondero-ops` ahora declara
+  explícitamente las Edge Functions/migraciones como su territorio.
+- Historial (`app/historial.tsx`) ahora permite **eliminar** un menú (local +
+  Supabase) — no existía antes. También: botón "+ Menú nuevo", "Renombrar" en vez
+  de "Nombrar", ícono de tab coherente (`receipt-outline`), sin fecha duplicada en
+  el título por defecto.
+- `menu-composer.tsx`: pills de sección con revelación progresiva real (abre y
+  cierra); secciones nuevas nacen sin nombre falso pre-llenado.
+- Feedback de guardado (haptic + visual) homologado entre menú y perfil.
+- Bug corregido: `saveDraft` podía fallar en silencio y decir "Guardado" sin
+  verificar — pendiente confirmar con Alejandro si esto resolvió el reporte
+  original o si hace falta más diagnóstico (Guardar vs. Publicar, sesión vs. DEV).
 
 ## Corte operativo — 2026-07-20
 
@@ -180,7 +200,7 @@ El foco actual es **QA en dispositivo + rediseño visual homologado**, no constr
 
 ## Capturas
 
-- Fuente vigente de screenshots históricos: `assets/screenshots/` y `docs/design/SCREENSHOT_INDEX.md`.
+- Fuente vigente de screenshots históricos: `assets/screenshots/` (el índice `docs/design/SCREENSHOT_INDEX.md` se retiró el 2026-07-22 por no tener más referencia que documentos legacy).
 - `docs/design/screenshots/` no existe actualmente en el worktree.
 - No documentar un paquete de screenshots nuevo hasta que los archivos existan físicamente.
 

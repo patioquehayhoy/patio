@@ -100,7 +100,7 @@ Todos los paneles flotantes, sheets y overlays usan BlurView — nunca fondo só
 ## Componentes clave
 
 ### Botones
-- **Primario**: `borderRadius 14`, bg `#292929`, texto blanco, `fontWeight '900'`
+- **Primario**: `borderRadius 14`, bg `#292929`, texto blanco, `fontWeight '700'` (corregido 2026-07-22 para coincidir con CLAUDE.md y el código real)
 - **Contorno**: `borderWidth 1.5`, `borderColor BLACK`, fondo transparente
 
 ### Gradientes (LinearGradient)

@@ -15,7 +15,7 @@ export default function HistorialScreen() {
   const { theme } = useTheme();
   const c = fonderoPalette(theme.isDark);
   const { onScroll } = useTabBarScroll();
-  const { closeRename, draftName, editing, loading, menus, openRename, reuse, saveName, setDraftName } = useMenuHistoryController();
+  const { closeRename, deleteMenu, draftName, editing, loading, menus, openRename, reuse, saveName, setDraftName } = useMenuHistoryController();
   // Acciones por menú detrás de "···", homologado con el patrón de secciones
   // del composer: un solo gesto para descubrir acciones en toda la app.
   const [actionsFor, setActionsFor] = useState<string | null>(null);
@@ -24,9 +24,18 @@ export default function HistorialScreen() {
     <View style={[s.root, { backgroundColor: c.bg, paddingTop: insets.top }]}>
       <Stack.Screen options={{ headerShown: false }} />
       <ScrollView onScroll={onScroll} scrollEventThrottle={16} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 24, paddingBottom: insets.bottom + 120 }} showsVerticalScrollIndicator={false}>
-        <Text style={[s.eyebrow, { color: c.accent }]}>PUBLICACIONES</Text>
+        <Text style={[s.eyebrow, { color: c.accent }]}>TUS MENÚS</Text>
         <Text style={[s.title, { color: c.text }]}>Historial</Text>
-        <Text style={[s.subtitle, { color: c.textSecondary }]}>Vuelve a usar cualquiera de tus menús publicados.</Text>
+        <Text style={[s.subtitle, { color: c.textSecondary }]}>Vuelve a usar cualquiera de tus menús publicados, o empieza uno nuevo.</Text>
+
+        <TouchableOpacity
+          accessibilityLabel="Empezar un menú nuevo desde cero"
+          style={[s.newButton, { backgroundColor: c.iconBg }]}
+          onPress={() => router.push('/menu-editar')}
+          activeOpacity={0.72}>
+          <Ionicons name="add" size={17} color={c.text} />
+          <Text style={[s.newButtonText, { color: c.text }]}>Menú nuevo</Text>
+        </TouchableOpacity>
 
         {!loading && menus.length === 0 ? (
           <View style={[s.empty, { borderColor: c.border }]}>
@@ -69,7 +78,11 @@ export default function HistorialScreen() {
                       </TouchableOpacity>
                       <TouchableOpacity onPress={() => { setActionsFor(null); openRename(menu); }} style={s.action}>
                         <Ionicons name="text-outline" size={15} color={c.text} />
-                        <Text style={[s.actionText, { color: c.text }]}>Nombrar</Text>
+                        <Text style={[s.actionText, { color: c.text }]}>Renombrar</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity onPress={() => { setActionsFor(null); deleteMenu(menu); }} style={s.action}>
+                        <Ionicons name="trash-outline" size={15} color={c.danger} />
+                        <Text style={[s.actionText, { color: c.danger }]}>Eliminar</Text>
                       </TouchableOpacity>
                     </View>
                   )}
@@ -82,7 +95,7 @@ export default function HistorialScreen() {
       <Modal visible={!!editing} transparent animationType="fade" onRequestClose={closeRename}>
         <View style={s.modalBackdrop}>
           <View style={[s.modalCard, { backgroundColor: c.surface, borderColor: c.border }]}>
-            <Text style={[s.modalTitle, { color: c.text }]}>Nombrar menú</Text>
+            <Text style={[s.modalTitle, { color: c.text }]}>Renombrar menú</Text>
             <TextInput
               value={draftName}
               onChangeText={(value) => setDraftName(value.slice(0, 48))}
@@ -115,6 +128,8 @@ const s = StyleSheet.create({
   eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.5, marginBottom: 8 },
   title: { fontSize: 38, lineHeight: 41, fontWeight: '900', letterSpacing: -1.3, fontFamily: Fonts.brand },
   subtitle: { marginTop: 8, fontSize: 14, lineHeight: 20 },
+  newButton: { alignSelf: 'flex-start', marginTop: 18, minHeight: 42, paddingHorizontal: 16, borderRadius: 14, flexDirection: 'row', alignItems: 'center', gap: 6 },
+  newButtonText: { fontSize: 14, fontWeight: '700' },
   empty: { marginTop: 34, padding: 24, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center' },
   emptyTitle: { marginTop: 14, fontSize: 20, fontWeight: '800' },
   emptyBody: { maxWidth: 270, marginTop: 7, textAlign: 'center', fontSize: 14, lineHeight: 20 },

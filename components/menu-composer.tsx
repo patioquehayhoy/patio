@@ -62,6 +62,10 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
   // La explicación del modelo de precio se muestra UNA vez (onboarding suave);
   // después el campo habla solo.
   const [showPriceHint, setShowPriceHint] = useState(false);
+  // Revelación progresiva: las sugerencias de sección son secundarias una vez
+  // que ya hay secciones armadas — no compiten por espacio con el contenido
+  // (Apple HIG: "essential info gets sufficient space, don't crowd it").
+  const [showSectionSuggestions, setShowSectionSuggestions] = useState(false);
   useEffect(() => {
     shouldShowHint('fondero_precio').then((show) => {
       if (show) {
@@ -168,7 +172,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                     style={s.sectionName}
                     value={section.nombre}
                     onChangeText={nombre => patchSection(section.id, { nombre: nombre.toUpperCase() })}
-                    placeholder="SECCIÓN"
+                    placeholder={sectionIndex === 0 ? 'PRIMER TIEMPO' : 'SECCIÓN'}
                     placeholderTextColor={c.textMute}
                     returnKeyType="done"
                   />
@@ -272,21 +276,59 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
             );
           })}
 
-          {/* Secciones sugeridas según el giro: un toque y aparece la sección. */}
+          {/* Secciones sugeridas según el giro. Con el menú vacío se muestran
+              directas (es la acción esencial); en cuanto ya hay al menos una
+              sección quedan detrás de un "+" que se puede abrir Y cerrar —
+              revelación progresiva de verdad, no solo de un sentido
+              (Apple HIG: chevron.right cerrado / chevron.down abierto). */}
           <View style={s.addSectionBlock}>
-            <Text style={s.addSectionLabel}>AGREGAR SECCIÓN</Text>
-            <View style={s.chipsRow}>
-              {sectionSuggestions.map((nombre) => (
-                <TouchableOpacity key={nombre} style={s.chip} onPress={() => addSection(nombre)} activeOpacity={0.7}>
-                  <Ionicons name="add" size={13} color={c.accent} />
-                  <Text style={s.chipText}>{nombre}</Text>
-                </TouchableOpacity>
-              ))}
-              <TouchableOpacity style={s.chip} onPress={() => addSection()} activeOpacity={0.7}>
-                <Ionicons name="add" size={13} color={c.textSecondary} />
-                <Text style={[s.chipText, { color: c.textSecondary }]}>OTRA</Text>
+            {data.secciones.length > 0 && !showSectionSuggestions ? (
+              <TouchableOpacity
+                style={s.addSectionToggle}
+                onPress={() => setShowSectionSuggestions(true)}
+                activeOpacity={0.7}>
+                <Ionicons name="add-circle" size={20} color={c.accent} />
+                <Text style={s.addSectionToggleText}>Agregar sección</Text>
               </TouchableOpacity>
-            </View>
+            ) : (
+              <>
+                <TouchableOpacity
+                  style={s.addSectionHeader}
+                  activeOpacity={data.secciones.length > 0 ? 0.7 : 1}
+                  disabled={data.secciones.length === 0}
+                  onPress={() => setShowSectionSuggestions(false)}>
+                  <Text style={s.addSectionLabel}>AGREGAR SECCIÓN</Text>
+                  {data.secciones.length > 0 && (
+                    <Ionicons name="chevron-up" size={14} color={c.textMute} />
+                  )}
+                </TouchableOpacity>
+                <View style={s.chipsRow}>
+                  {sectionSuggestions.map((nombre) => (
+                    <TouchableOpacity
+                      key={nombre}
+                      style={s.chip}
+                      onPress={() => {
+                        addSection(nombre);
+                        setShowSectionSuggestions(false);
+                      }}
+                      activeOpacity={0.7}>
+                      <Ionicons name="add" size={13} color={c.accent} />
+                      <Text style={s.chipText}>{nombre}</Text>
+                    </TouchableOpacity>
+                  ))}
+                  <TouchableOpacity
+                    style={s.chip}
+                    onPress={() => {
+                      addSection();
+                      setShowSectionSuggestions(false);
+                    }}
+                    activeOpacity={0.7}>
+                    <Ionicons name="add" size={13} color={c.textSecondary} />
+                    <Text style={[s.chipText, { color: c.textSecondary }]}>SECCIÓN NUEVA</Text>
+                  </TouchableOpacity>
+                </View>
+              </>
+            )}
           </View>
 
           {/* Cierre del flujo, dentro del contenido: cápsulas HIG en fila —
@@ -345,7 +387,10 @@ function makeStyles(c: FonderoColors) {
     addDishText: { fontSize: 13, fontWeight: '600', color: c.accent },
 
     addSectionBlock: { borderTopWidth: StyleSheet.hairlineWidth, borderColor: c.border, paddingTop: 14 },
-    addSectionLabel: { fontSize: 10.5, fontWeight: '900', letterSpacing: 1.4, color: c.textMute, marginBottom: 10 },
+    addSectionToggle: { flexDirection: 'row', alignItems: 'center', gap: 7, minHeight: 40 },
+    addSectionToggleText: { fontSize: 14, fontWeight: '600', color: c.accent },
+    addSectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 28, marginBottom: 10 },
+    addSectionLabel: { fontSize: 10.5, fontWeight: '900', letterSpacing: 1.4, color: c.textMute },
     chipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
     chip: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingLeft: 10, paddingRight: 14, minHeight: 36, borderRadius: 100, backgroundColor: c.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: c.border },
     chipText: { fontSize: 12, fontWeight: '800', letterSpacing: 0.6, color: c.text },

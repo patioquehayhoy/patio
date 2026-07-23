@@ -1,22 +1,20 @@
 # Patio — PRD (Product Requirements Document)
 
-> Documento general de producto: dominio, personas, arquitectura de pantallas,
-> sistema de diseño vigente y pain points. Sirve como fuente de verdad para
-> cualquier trabajo de diseño o desarrollo, independiente de la herramienta.
-> Última actualización: 2026-06-07
-
-> **Lectura complementaria:**
-> 1. [`design/foundations/ESSENTIAL_DESIGN_PRINCIPLES.md`](design/foundations/ESSENTIAL_DESIGN_PRINCIPLES.md) — biblia fundacional (12 principios WWDC17)
-> 2. [`design/FLOW_V2.md`](design/FLOW_V2.md) — flujo navegacional Foodie/Fondero
-> 3. [`DESIGN_SYSTEM.md`](DESIGN_SYSTEM.md) — sistema de diseño completo
-> 4. [`design/FIGMA_REDESIGN_BRIEF.md`](design/FIGMA_REDESIGN_BRIEF.md) — brief práctico para aterrizar el rediseño en Figma
-> 5. [`design/REDESIGN_BLUEPRINT_V1.md`](design/REDESIGN_BLUEPRINT_V1.md) — blueprint previo a Figma para rediseñar con sistema
-> 6. [`design/DESIGN_VERSION_REGISTRY.md`](design/DESIGN_VERSION_REGISTRY.md) — nombres de versiones: Patio Vivo, Patio Tahoe, Patio Agent
-> 7. [`design/FIGMA_AGENT_CODE_PROMPT.md`](design/FIGMA_AGENT_CODE_PROMPT.md) — prompt para Figma Agent con contexto curado de código
+> ⚠️ **ARCHIVO — superado.** Este documento dejó de ser la fuente de verdad el
+> 2026-06-07 y no se actualizó desde entonces. Para dominio, arquitectura y
+> estado vigente usar:
+> - [`PATIO_SYSTEM_MAP.md`](PATIO_SYSTEM_MAP.md) — esquema maestro de producto v7 canónico
+> - [`ARCHITECTURE.md`](ARCHITECTURE.md) — stack, capas, flujos críticos
+> - [`ROADCONTROLLER.md`](ROADCONTROLLER.md) — mapa de frentes y estado vigente
 >
-> **Reglas duras de marca (no negociables):** `Saaaaaaabes.` (tagline literal),
-> Foodie/Fondero separados, "lo cotidiano elevado", y el bloque de precio en
-> `menu.tsx` (ver CLAUDE.md).
+> Se conserva como snapshot histórico (dominio, personas, pain points de
+> junio). Los links de "lectura complementaria" originales apuntaban a
+> `FLOW_V2.md` y otros documentos del proceso Figma Make ya retirados —
+> ver `docs/DOCS_AUDIT_2026-07-22.md` para el estado real de cada doc.
+>
+> **Reglas duras de marca (no negociables, estas sí vigentes):** `Saaaaaaabes.`
+> (tagline literal), Foodie/Fondero separados, "lo cotidiano elevado", y el
+> bloque de precio en `menu.tsx` (ver CLAUDE.md).
 
 ---
 
@@ -223,8 +221,8 @@ Estilos a los que queremos llegar. Cada uno tiene slug funcional:
 
 ## 10. Insumos disponibles para diseñar
 
-- **Screenshots reales del flujo actual** — `assets/screenshots/` + `docs/design/SCREENSHOT_INDEX.md`.
-- **Flujo escrito Foodie/Fondero** — `docs/design/FLOW_V2.md`, `docs/STATE.md`.
+- **Screenshots reales del flujo actual** — `assets/screenshots/`.
+- **Flujo escrito Foodie/Fondero** — `docs/PATIO_SYSTEM_MAP.md`, `docs/STATE.md`.
 - **Definición de Fondero** — dueño/encargado/cocinera/cocinero u operador de una fondita que publica qué hay hoy.
 - **Referencias de spinner/radar** — Linear / Tesla / Apple system activity / tech glow silencioso.
 - **Referencias aspiracionales** — `docs/design/references/`.

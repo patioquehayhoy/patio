@@ -27,7 +27,7 @@ const FOODIE_TABS: Tab[] = [
 
 const FONDERO_TABS: Tab[] = [
   { path: '/menu',      label: 'Hoy',       icon: 'sparkles-outline' },
-  { path: '/historial', label: 'Historial', icon: 'stats-chart-outline' },
+  { path: '/historial', label: 'Historial', icon: 'receipt-outline' },
   { path: '/perfil',    label: 'Mi Patio',  icon: 'person-outline' },
 ];
 

@@ -9,7 +9,7 @@ export default function MenuEditarScreen() {
     <MenuComposer
       initialData={reuse === '1' ? (getMenuData() ?? emptyMenu()) : emptyMenu()}
       source="manual"
-      onBack={() => router.replace('/menu')}
+      onBack={() => router.replace('/historial')}
     />
   );
 }

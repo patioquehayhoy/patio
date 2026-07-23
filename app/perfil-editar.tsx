@@ -52,8 +52,8 @@ function makeStyles(theme: Theme) {
     // Barra Guardar fija abajo (glass)
     saveBar:            { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 20, paddingTop: 12, overflow: 'hidden' },
     saveBarBorder:      { position: 'absolute', top: 0, left: 0, right: 0, height: StyleSheet.hairlineWidth, backgroundColor: t.border },
-    saveBtn:            { height: 52, borderRadius: 26, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' },
-    saveBtnText:        { fontSize: 16, fontWeight: '700', color: '#111214' },
+    saveBtn:            { height: 52, borderRadius: 26, flexDirection: 'row', backgroundColor: t.accent, alignItems: 'center', justifyContent: 'center' },
+    saveBtnText:        { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
     // Card de campos
     fieldCard:          { backgroundColor: t.surface, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, paddingHorizontal: 16, paddingVertical: 14 },
     fieldLabel:         { fontSize: 11, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', color: t.textMute, marginBottom: 4 },
@@ -143,6 +143,7 @@ export default function PerfilScreen() {
     handleSignOut,
     isDirty,
     isSaving,
+    savedFlash,
     isSavingLocation,
     locationSaved,
     markPerfilHintDone,
@@ -280,17 +281,18 @@ export default function PerfilScreen() {
 
       {/* Guardar: barra fija abajo, glass, solo con cambios pendientes.
           Visibility + 80/20: la acción principal del Fondero siempre al alcance. */}
-      {isDirty && (
+      {(isDirty || savedFlash) && (
         <View style={[s.saveBar, { paddingBottom: insets.bottom || 16 }]}>
           <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill} />
           <View style={s.saveBarBorder} />
           <TouchableOpacity
             style={[s.saveBtn, isSaving && { opacity: 0.6 }]}
             onPress={handleSaveAll}
-            disabled={isSaving}
+            disabled={isSaving || savedFlash}
             activeOpacity={0.85}>
+            {savedFlash && <Ionicons name="checkmark" size={16} color="#fff" style={{ marginRight: 6 }} />}
             <Text style={s.saveBtnText} allowFontScaling={true}>
-              {isSaving ? 'Guardando…' : 'Guardar cambios'}
+              {isSaving ? 'Guardando…' : savedFlash ? 'Guardado' : 'Guardar cambios'}
             </Text>
           </TouchableOpacity>
         </View>

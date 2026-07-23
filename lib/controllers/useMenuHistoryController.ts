@@ -1,7 +1,8 @@
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
+import { Alert } from 'react-native';
 
-import { getLocalMenus, renameLocalMenu, seedDemoHistory } from '@/lib/menu-history';
+import { deleteLocalMenu, getLocalMenus, renameLocalMenu, seedDemoHistory } from '@/lib/menu-history';
 import { setMenuData, type MenuData } from '@/lib/menu-store';
 import { supabase } from '@/lib/supabase';
 import { getFonditaId } from '@/lib/user-store';
@@ -22,8 +23,10 @@ export function dateLabel(fecha: string): string {
 }
 
 export function defaultHistoryTitle(menu: PublishedMenu): string {
+  // La fecha ya se muestra por separado en la fila (dateLabel) — repetirla
+  // aquí era redundante (ley dictada 2026-07-22: quitar la fecha al inicio).
   const dishes = summary(menu.secciones);
-  return dishes ? `${dateLabel(menu.fecha)} · ${dishes}` : `${dateLabel(menu.fecha)} · Menú publicado`;
+  return dishes || 'Menú publicado';
 }
 
 export function useMenuHistoryController() {
@@ -93,8 +96,29 @@ export function useMenuHistoryController() {
     closeRename();
   }, [closeRename, draftName, editing]);
 
+  const deleteMenu = useCallback((menu: PublishedMenu) => {
+    Alert.alert(
+      'Eliminar menú',
+      `Se borrará "${menu.nombre || defaultHistoryTitle(menu)}" del historial. No se puede deshacer.`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: async () => {
+            await deleteLocalMenu(menu.fecha);
+            const id = getFonditaId();
+            if (id) await supabase.from('menus').delete().eq('fondita_id', id).eq('fecha', menu.fecha);
+            setMenus((prev) => prev.filter((m) => m.fecha !== menu.fecha));
+          },
+        },
+      ],
+    );
+  }, []);
+
   return {
     closeRename,
+    deleteMenu,
     draftName,
     editing,
     loading,

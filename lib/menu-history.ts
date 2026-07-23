@@ -14,14 +14,19 @@ function hoy(): string {
   return new Date().toISOString().split('T')[0];
 }
 
-export async function saveLocalMenu(data: MenuData): Promise<void> {
+// Devuelve si de verdad se guardó — antes fallaba en silencio y la UI decía
+// "Guardado" sin que fuera cierto (ley dictada 2026-07-22: nunca mentir sobre
+// un guardado). Sigue siendo best-effort para no bloquear la publicación,
+// pero ahora quien llama puede saber y avisar si falló.
+export async function saveLocalMenu(data: MenuData): Promise<boolean> {
   try {
     const list = await getLocalMenus();
     const current = list.find((m) => m.fecha === hoy());
     const next = [{ fecha: hoy(), secciones: data, nombre: current?.nombre }, ...list.filter((m) => m.fecha !== hoy())].slice(0, MAX);
     await AsyncStorage.setItem(KEY, JSON.stringify(next));
+    return true;
   } catch {
-    // Persistencia local es best-effort: nunca debe bloquear la publicación.
+    return false;
   }
 }
 
@@ -41,6 +46,16 @@ export async function renameLocalMenu(fecha: string, nombre: string, secciones: 
     await AsyncStorage.setItem(KEY, JSON.stringify(next));
   } catch {
     // El nombre es un nicety local; si falla, el historial sigue funcionando.
+  }
+}
+
+export async function deleteLocalMenu(fecha: string): Promise<void> {
+  try {
+    const list = await getLocalMenus();
+    const next = list.filter((menu) => menu.fecha !== fecha);
+    await AsyncStorage.setItem(KEY, JSON.stringify(next));
+  } catch {
+    // Best-effort: si falla, el menú sigue en el historial local.
   }
 }
 

@@ -31,10 +31,20 @@ Antes de cualquier cambio de UI, copy o flujo, leer los siguientes documentos en
 
 ## Tipografía
 
-- **SF Pro Display** para textos ≥ 20pt (títulos, nombre de fondita, precios)
-- **SF Pro Text** para textos ≤ 19pt (labels, inputs, botones, descripciones)
-- **fontWeight permitidos**: `'900'` (títulos, énfasis) y `'300'` (cuerpo, secundario) únicamente
-  - Excepciones documentadas: `'500'` en nombres de platillo en preview, `'700'` en botón WhatsApp
+> Corregido 2026-07-22 tras auditoría de contenido: esta sección describía un
+> sistema aspiracional que nunca coincidió con lo que corre en producción.
+> Lo de abajo es lo real, verificado contra 40+ estilos en `app/` y `components/`.
+
+- **`Fonts.brand`** (Plus Jakarta Sans 800 ExtraBold, `lib/theme.tsx`) para
+  identidad ≥ 20pt: títulos de pantalla, nombre de fondita, hero text, precios
+  destacados. Es el sistema real — no SF Pro Display.
+- **SF Pro Text** (default del sistema iOS, sin `fontFamily` explícito) para
+  textos ≤ 19pt: labels, inputs, botones, descripciones, metadata.
+- **fontWeight real**: `'900'` (títulos grandes con `Fonts.brand`) · `'700'`
+  (eyebrows/labels UPPERCASE, texto de botón primario, tags) · `'300'` (cuerpo,
+  secundario). `'600'` aparece de forma puntual en subtítulos de opción — no
+  generalizar sin revisión. Excepción documentada: `'500'` en nombres de
+  platillo en preview.
 
 ## Espaciado
 
@@ -67,7 +77,22 @@ En cualquier lista de contenido (menú, póster, historial, resultados):
 
 ## Componentes
 
-- **Botones primarios**: `borderRadius 14`, fondo `BLACK (#292929)`, texto blanco `fontWeight '600'`
+> **Regla de color de botones — homologada 2026-07-22.** Apple HIG (`color.txt`,
+> sección Buttons): *"To emphasize primary actions, apply color to the
+> background rather than to symbols or text... the system applies the app
+> accent color to the background in prominent buttons... Refrain from adding
+> color to the background of multiple controls."* Y: *"In apps with primarily
+> monochromatic content... choosing your brand color as the app accent color
+> can be an effective way to reflect your company's identity."* Patio es
+> exactamente ese caso: paleta mono negro/blanco/gris + un acento de marca.
+>
+> Aplicación: **la única acción de confirmación/guardado más prominente de
+> cada pantalla** lleva el acento naranja de fondo. Todo lo demás — botones
+> secundarios, de contorno, navegación — se queda neutro. Nunca dos botones
+> con fondo de color en la misma pantalla.
+
+- **Botón de confirmación prominente** (guardar/publicar, uno por pantalla): `borderRadius 14`, fondo `ACCENT` (naranja), texto blanco `fontWeight '700'`. Ver `publishButton` en `menu-composer.tsx` y `saveBtn` en `perfil-editar.tsx`.
+- **Botones primarios compactos genéricos** (cuando no hay una única acción prominente que destacar): `borderRadius 14`, fondo `BLACK (#292929)`, texto blanco `fontWeight '700'`.
 - **Botones de contorno**: `borderWidth 1.5`, `borderColor BLACK`, fondo transparente
 - **Segmented control**: `borderRadius 14`, `borderWidth 1`, `overflow hidden`
 - **Separadores**: `StyleSheet.hairlineWidth`, color `t.sep`
@@ -76,8 +101,10 @@ En cualquier lista de contenido (menú, póster, historial, resultados):
 
 ## Ley visual — altas y formularios
 
-- Acciones primarias compactas en tinta neutra; naranja solo como acento de
-  selección, progreso actual y navegación.
+- Acciones primarias compactas en tinta neutra; naranja como acento de
+  selección, progreso actual y navegación, **y** como fondo de la acción de
+  confirmación más prominente de la pantalla (ver "Componentes" arriba —
+  regla homologada 2026-07-22).
 - Campos con label persistente. Un ejemplo/placeholder nunca reemplaza la etiqueta.
 - Controles nativos junto al dato que editan. Horas en iOS usan picker compacto
   anclado; prohibido envolver una edición atómica en un sheet inferior adicional.
@@ -125,10 +152,10 @@ Usar `LinearGradient` de `expo-linear-gradient` para:
 
 ## Tipografía — jerarquía visual
 
-- Títulos de pantalla: `fontSize 32`, `fontWeight '900'`, `letterSpacing -0.5`
-- Labels de sección: `fontSize 11`, `fontWeight '900'`, `letterSpacing 1.8`, `UPPERCASE`
+- Títulos de pantalla: `fontSize 32-38`, `fontWeight '900'`, `fontFamily Fonts.brand`, `letterSpacing -0.5` a `-1.3`
+- Labels de sección: `fontSize 11`, `fontWeight '700'`, `letterSpacing 1.6-1.8`, `UPPERCASE` (no `'900'` — corregido 2026-07-22, así es como corre en producción)
 - Metadata/subtítulo: `fontSize 13`, `fontWeight '300'`, `opacity 0.6`
-- El contraste 900 vs 300 es el mecanismo principal de jerarquía — evitar pesos intermedios
+- El contraste 900 (identidad) / 700 (labels y CTA primario) / 300 (cuerpo) es el mecanismo de jerarquía — evitar pesos intermedios fuera de estos tres
 
 ## Radios y geometría
 

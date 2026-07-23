@@ -29,8 +29,14 @@ que **pegarlos a mano** en el dashboard de Supabase.
 ## Reglas de marca
 
 - Copy regido por `docs/design/foundations/IDENTITY_VERBAL.md`: humano, local,
-  sin "fonda/fondero" paraguas. Cierre con `Saaaaaaabes.`
-- Paleta: ink `#111214`, accent `#F2612F`, bg `#F8F8F5`, soft `#FBE7DD`.
+  sin "fonda/fondero" paraguas, sin lenguaje comparativo.
+- `"¿Qué hay hoy?"` y `"Saaaaaaabes."` van SIEMPRE juntos como par de marca —
+  viven en la firma final del correo, nunca separados en piezas distintas.
+- Paleta vigente (CLAUDE.md, corregida 2026-07-22): fondo `#EFEFEF`, ink `#292929`,
+  card `#FFFFFF`, accent naranja `#F2612F` sin cambio, hairline `rgba(0,0,0,0.08)`.
+- Tipografía: system-ui (`-apple-system, Segoe UI, Roboto, Helvetica, Arial`) —
+  la fuente de marca (`Fonts.brand` / Plus Jakarta) no se carga de forma
+  confiable en clientes de correo.
 - HTML de email: maquetado con `<table>` y estilos inline. Nada de flexbox/grid
   ni `<style>` en `<head>` (Gmail los ignora).
 

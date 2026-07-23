@@ -1,11 +1,53 @@
 # TASKS — Cola de trabajo para agentes
 
-> Última actualización: 2026-07-19.
+> Última actualización: 2026-07-22.
 > Estado: `[ ]` pendiente | `[x]` hecho | `[~]` en progreso.
 
 > Las entradas Patio Smart v1–v6 registran iteraciones históricas y no son una
 > especificación vigente. El flujo canónico es v7 y vive en
 > `docs/PATIO_SYSTEM_MAP.md`.
+
+## CICLO 2026-07-22 — Gobernanza de docs + homologación Apple + fixes Fondero
+
+- [x] Auditoría completa de los 53 `.md` del repo (contenido, no solo fecha) —
+  3 agentes en paralelo, ver `docs/DOCS_AUDIT_2026-07-22.md`. 4 legacy borrados
+  (`AGENT.md`, `FLOW_V2.md`, `PRODUCT_PRINCIPLES.md`, `SCREENSHOT_INDEX.md`),
+  `PATIO_PRD.md` archivado con banner, `ROADCONTROLLER.md` corregido.
+- [x] Agentes: `foodie-ops` creado (explorar/ficha/favoritos/vistos/cuenta/reseña,
+  no tenía dueño); `fondero-ops` ampliado con Edge Functions + migraciones.
+- [x] Sistema tipográfico real vs. documentado reconciliado: `CLAUDE.md` decía
+  SF Pro Display + solo pesos 900/300; el código real usa `Fonts.brand` (Plus
+  Jakarta) + 900/700/300. Corregido en `CLAUDE.md`/`DESIGN_SYSTEM.md`; borrado
+  `Type` en `lib/theme.tsx` (escala muerta, 0 usos).
+- [x] Color de botones homologado con cita real de Apple HIG (`color.txt`):
+  la única acción de confirmación prominente por pantalla lleva el acento
+  naranja; el resto se queda neutro. Corregido `perfil-editar.tsx` (era blanco).
+- [x] Email de magic link (`supabase/templates/magic-link.html`) rediseñado con
+  paleta vigente; corregida violación de marca (`"¿Qué hay hoy?"` y
+  `"Saaaaaaabes."` estaban separados, ahora van juntos). Sigue sin instalarse
+  en Supabase Dashboard — pendiente de Alejandro.
+- [x] `menu-composer.tsx`: pills de "Agregar sección" ahora son revelación
+  progresiva real (abre y cierra, no solo abre); secciones nuevas nacen sin
+  nombre pre-llenado (antes decían "SECCIÓN 6"/"MENÚ DE HOY" como si fuera
+  contenido real); placeholder de la primera sección dice "PRIMER TIEMPO".
+- [x] Feedback de guardado homologado (haptic + check visual) en
+  `saveDraft`/`publish` (menú) y `handleSaveAll` (perfil) — antes solo uno
+  de los dos tenía feedback, y sin haptic.
+- [x] Historial: agregar **eliminar menú** (no existía); quitada fecha
+  duplicada en el título por defecto; ícono del tab cambiado de
+  `stats-chart-outline` a `receipt-outline` (coherente con "tus menús");
+  botón "+ Menú nuevo" agregado (dentro del alcance del pulgar, no arriba a
+  la derecha); "Nombrar" → "Renombrar"; eyebrow "PUBLICACIONES" → "TUS MENÚS".
+- [x] `menu-editar.tsx`: cerrar/tache regresa a `/historial`, no a `/menu`.
+- [x] Bug real corregido: `saveDraft` podía fallar en silencio y la UI decía
+  "Guardado" sin verificar — ahora `saveLocalMenu` devuelve éxito/fallo y se
+  avisa si de verdad falla.
+- [ ] Sin confirmar con Alejandro: si el bug de "guardado que no aparece en
+  historial" reportado el 22-jul quedó resuelto del todo, o si hay un camino
+  específico (Guardar vs. Publicar, sesión real vs. DEV) que sigue fallando.
+- [ ] Anotado para el futuro (no implementado): los textos tipo kicker/hint
+  fijos (ej. "Publica lo que vendes hoy...") deberían comportarse como hints
+  temporales de primera vez, no quedar fijos — extender `lib/hints.ts`.
 
 ## PENDIENTES POR URGENCIA — corte 2026-07-16
 
@@ -71,6 +113,24 @@
   avisos con texto abajo y copy sin redundancia, flujo de foto sin recorte
   cuadrado + cancelar lectura + salidas en diálogos, flujos Maestro 02/15
   actualizados y verdes en simulador. Ver HANDOFF sección superior.
+- [x] Editor de horarios — simetría real (2026-07-20, sesión en vivo en iPhone):
+  quitado `marginLeft:-8` que desalineaba picker/etiqueta; fila ABRE/CIERRA
+  pasa a reflexión real (bordes opuestos, no dos columnas izquierda-alineadas);
+  remount del picker compacto usa doble `requestAnimationFrame` + easing para
+  quitar el glitch al autocerrar tras 1100ms.
+- [x] Editor de horarios — simetría bilateral + ruleta centrada (2026-07-20,
+  perfeccionamiento): composición bilateral por día (nombre/`→` en la mediana,
+  ABRE/CIERRA en mitades idénticas), pills de día con texto ópticamente
+  centrado y blancos táctiles de 44pt, ancho de hora 104pt para no chocar
+  cápsulas nativas, ruleta nativa `spinner` en superficie centrada de 320pt
+  (apertura/cierre con marco y padding idénticos). `ESSENTIAL_DESIGN_PRINCIPLES.md`
+  reescrito contra la transcripción oficial WWDC17 802 (no solo títulos de
+  slides); corrige Mortimer→mental model y separa alineación de simetría.
+  Maestro `13-alta-negocio`/`16-editar-perfil-negocio` verdes; capturas nuevas
+  en `maestro/screenshots/13-horarios*.png`.
+- [ ] QA iPhone físico: confirmar que la simetría de horarios y la animación
+  del picker (remount sin glitch) ya se sienten resueltas — pendiente explícito
+  de la sesión 2026-07-20 (ver `docs/STATE.md`).
 - [ ] QA iPhone físico v8: nombre, ubicación, teclado, días, horas compactas,
   guardar y primer menú. Incluir: animación de ruleta, recorrido primera vez
   con copy nuevo, foto vertical sin recorte.
@@ -302,6 +362,12 @@ Implementar mockups pantalla por pantalla. Orden recomendado:
 
 ## FEATURES FUTURAS
 
+- [ ] Textos tipo kicker/explicación (ej. "Publica lo que vendes hoy. Patio lo
+  ordena por ti." en Hoy) son en realidad guía de onboarding — deberían
+  comportarse como hints temporales que se retiran solas tras las primeras
+  veces de uso, no quedar fijas en la pantalla para siempre (planteado
+  2026-07-22). Ya existe el patrón `lib/hints.ts` (`shouldShowHint`/
+  `markHintSeen`) usado en otras pantallas — evaluar extenderlo aquí.
 - [ ] Ruta dentro del mapa en vez de abrir Apple/Google Maps.
 - [ ] Zoom-out automático cuando una búsqueda tiene matches dispersos.
 - [ ] AGENTE_VOZ MVP texto con búsqueda live de menús.
@@ -338,4 +404,4 @@ Las referencias aspiracionales viven en `docs/design/references/`.
 2. Validar con `npx tsc --noEmit` antes de cerrar cambios de código.
 3. No tocar el bloque de precio en `menu.tsx`.
 4. No modificar ni parafrasear `"Saaaaaaabes."`.
-5. Leer primero `CLAUDE.md`, `docs/GOAL.md`, `docs/STATE.md`, `docs/design/PRODUCT_PRINCIPLES.md` y `docs/design/FLOW_V2.md`.
+5. Leer primero `CLAUDE.md`, `docs/ROADCONTROLLER.md`, `docs/HANDOFF.md` y `docs/STATE.md`.

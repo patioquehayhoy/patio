@@ -1,3 +1,4 @@
+import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { Alert } from 'react-native';
@@ -33,7 +34,9 @@ const blankSection = (name = 'MENÚ DE HOY'): Seccion => ({
 });
 
 export function emptyMenu(): MenuData {
-  return { secciones: [blankSection()] };
+  // Sin nombre pre-llenado: "MENÚ DE HOY" se leía como contenido ya escrito,
+  // no como guía. El placeholder de la primera sección hace ese trabajo.
+  return { secciones: [blankSection('')] };
 }
 
 function cleanMenu(data: MenuData): MenuData {
@@ -129,8 +132,10 @@ export function useFonderoMenuDraftController(initialData: MenuData) {
   }, [patchSection]);
 
   const addSection = useCallback((nombre?: string) => {
+    // Sin nombre sugerido: la sección nace vacía y el placeholder "SECCIÓN"
+    // del campo guía al Fondero — nunca simular contenido con "SECCIÓN 6".
     setData((prev) => ({
-      secciones: [...prev.secciones, blankSection(nombre ?? `SECCIÓN ${prev.secciones.length + 1}`)],
+      secciones: [...prev.secciones, blankSection(nombre ?? '')],
     }));
   }, []);
 
@@ -167,7 +172,12 @@ export function useFonderoMenuDraftController(initialData: MenuData) {
       return;
     }
     setMenuData(clean);
-    await saveLocalMenu(clean).catch(() => {});
+    const ok = await saveLocalMenu(clean);
+    if (!ok) {
+      Alert.alert('No se pudo guardar', 'Inténtalo otra vez.');
+      return;
+    }
+    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     setSavedFlash(true);
     setTimeout(() => setSavedFlash(false), 1600);
   }, [data]);
@@ -187,6 +197,7 @@ export function useFonderoMenuDraftController(initialData: MenuData) {
       if (__DEV__) await saveDevPublishedMenu(clean);
       const fonditaId = getFonditaId();
       if (fonditaId) await saveMenuHoy(fonditaId, clean);
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       router.replace('/menu-publicado');
     } catch {
       Alert.alert('No se pudo publicar', 'Revisa tu conexión e inténtalo otra vez.');

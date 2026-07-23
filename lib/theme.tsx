@@ -88,16 +88,6 @@ export const Spacing = {
   hero: 56, // hero
 } as const;
 
-// Tipografía editorial extrema (SF Pro · sistema). { size, weight, line }
-export const Type = {
-  display: { fontSize: 48, fontWeight: '800' as const, lineHeight: 50 },
-  title:   { fontSize: 36, fontWeight: '800' as const, lineHeight: 38 },
-  section: { fontSize: 22, fontWeight: '700' as const, lineHeight: 26 },
-  body:    { fontSize: 15, fontWeight: '400' as const, lineHeight: 21 },
-  eyebrow: { fontSize: 11, fontWeight: '700' as const, letterSpacing: 1.6 }, // UPPERCASE
-  caption: { fontSize: 12, fontWeight: '500' as const, lineHeight: 16 },
-} as const;
-
 // Motion — spring iOS, sin distracciones
 export const Motion = {
   sheetSpring:  { stiffness: 380, damping: 32 },

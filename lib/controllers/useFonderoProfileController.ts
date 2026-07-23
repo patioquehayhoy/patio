@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Haptics from 'expo-haptics';
 import * as Location from 'expo-location';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -79,6 +80,7 @@ export function useFonderoProfileController() {
   const [email, setEmail] = useState('');
   const [ready, setReady] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [savedFlash, setSavedFlash] = useState(false);
   const [locationSaved, setLocationSaved] = useState(false);
   const [isSavingLocation, setIsSavingLocation] = useState(false);
   const [savedValues, setSavedValues] = useState<SavedProfileValues>(() => savedFromLocal(initialSchedule));
@@ -311,6 +313,9 @@ export function useFonderoProfileController() {
       }
 
       setSavedValues(newSaved);
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      setSavedFlash(true);
+      setTimeout(() => setSavedFlash(false), 1600);
     } finally {
       setIsSaving(false);
     }
@@ -373,6 +378,7 @@ export function useFonderoProfileController() {
     handleSignOut,
     isDirty,
     isSaving,
+    savedFlash,
     isSavingLocation,
     locationSaved,
     markPerfilHintDone,

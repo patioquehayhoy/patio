@@ -410,8 +410,30 @@ ambas horas debe actualizar el estado de inmediato; cero días se comunica con e
 `0 abiertos`, sin una card redundante; reabrir un día recupera sus horas; el control mantiene etiquetas accesibles y blancos de
 toque de al menos 44 pt. La prueba final se hace en simulador y en iPhone físico.
 
+## 9. Caso patrón — homologación de menú, historial y color de botones (2026-07-22)
+
+A diferencia de los casos 7 y 8 (contra el WWDC17 802), este caso se resolvió
+contra la **HIG oficial vigente** (`developer.apple.com/design`, fuente cruda en
+`apple-design/fuentes/color.txt`) porque el problema — qué color lleva un botón,
+cuándo esconder una acción secundaria — no lo resuelve la charla de 2017, lo
+resuelve la guía de Materials/Color actual.
+
+| Principio dominante | Decisión comprobable |
+|---|---|
+| Progressive disclosure | Pills de "Agregar sección" en `menu-composer.tsx`: visibles siempre que el menú está vacío (es la acción esencial); detrás de un solo "+" reversible en cuanto ya existe una sección. Antes solo abría, nunca cerraba — revelación progresiva real exige las dos direcciones. |
+| Consistency | Cita textual HIG: *"Avoid using the same color to mean different things. Use color consistently throughout your interface."* Antes: el botón de confirmación más importante de cada pantalla tenía tres tratamientos distintos (naranja en menú, blanco en perfil, negro en la ley escrita) — ninguno de acuerdo con los otros dos. |
+| Affordance | Cita textual HIG: *"To emphasize primary actions, apply color to the background... the system applies the app accent color to the background in prominent buttons... Refrain from adding color to the background of multiple controls."* Regla resultante: la única acción de confirmación prominente por pantalla lleva el acento; el resto queda neutro. Nunca dos botones de color en la misma pantalla. |
+| Mapping | Placeholder vs. contenido real: un campo de texto vacío debe *parecer* vacío. `addSection()`/`emptyMenu()` pre-llenaban el campo con `"SECCIÓN 6"` o `"MENÚ DE HOY"` como si fuera texto ya escrito por la persona — el placeholder (`color.txt`: *"Placeholder text"* es un rol de color semántico distinto de `Label`) existe justo para evitar esa ambigüedad. |
+| Feedback | `saveDraft` (menú) tenía swap de texto sin haptic; `handleSaveAll` (perfil) no tenía ninguna confirmación. Homologado: haptic de éxito + check visual en los dos, mismo patrón. |
+| Wayfinding | Un control debe comportarse igual en sus dos estados: el placeholder de un campo que fuerza mayúsculas al escribir (`.toUpperCase()`) debe mostrarse en mayúsculas también antes de escribir — si no, el primer toque de teclado produce un salto de caso que no anticipa nada. |
+
+**Criterio de aceptación:** ningún botón de confirmación comparte pantalla con
+otro botón de color. Ningún campo de texto nace con contenido simulado — vacío
+real + placeholder, o valor real, nunca un intermedio. Todo guardado que se
+presenta como exitoso fue verificado, no asumido.
+
 ---
 
-**Última revisión:** 2026-07-20 — contrastado contra la transcripción oficial completa,
-separadas charla/HIG/decisiones Patio, corregidas las distorsiones de mapping y symmetry,
-y añadidas pruebas operativas y el caso patrón de horarios. Documento fundacional, no expira.
+**Última revisión:** 2026-07-22 — añadido el caso patrón de homologación de menú/
+historial/botones contra la HIG oficial vigente (no solo WWDC17 802). Documento
+fundacional, no expira.

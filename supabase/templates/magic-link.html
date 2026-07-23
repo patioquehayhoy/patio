@@ -2,8 +2,10 @@
   Patio — Template de email "Magic Link"
   ───────────────────────────────────────────────────────────────────────────
   DÓNDE SE PEGA: Supabase Dashboard → Authentication → Email Templates → "Magic Link"
-  (y conviene replicarlo en "Confirm signup" porque signInWithOtp con
-   shouldCreateUser:true manda el de signup la primera vez).
+  (y replicarlo en "Confirm signup" — signInWithOtp con shouldCreateUser:true
+   manda el de signup la primera vez; el repo solo confirma signInWithOtp,
+   no hay reset de password ni cambio de correo en la app, así que este es
+   el único correo real que Patio dispara).
 
   Variables de Supabase usadas:
     {{ .ConfirmationURL }}  → enlace que abre patio://login-callback con el token
@@ -12,8 +14,16 @@
   Notas:
   - HTML de email: maquetado con <table>, estilos inline. NADA de flexbox/grid:
     los clientes (Gmail, Apple Mail, Outlook) los ignoran.
-  - Paleta de marca: ink #111214, accent #F2612F, bg #F8F8F5, soft #FBE7DD.
-  - Copy regido por IDENTITY_VERBAL: humano, local, sin "fonda/fondero" paraguas.
+  - Paleta vigente (CLAUDE.md, corregida 2026-07-22): BG #EFEFEF, BLACK #292929,
+    WHITE #FFFFFF, hairline rgba(0,0,0,0.08). Accent naranja #F2612F sin cambio.
+  - Tipografía: system-ui (Plus Jakarta / Fonts.brand no se puede cargar de forma
+    confiable en clientes de correo — Gmail ignora @font-face).
+  - "¿Qué hay hoy?" y "Saaaaaaabes." van SIEMPRE juntos como par de marca — antes
+    estaban separados (uno en el header, el otro solo en el footer). Corregido:
+    ahora viven juntos en la firma final.
+  - Copy regido por IDENTITY_VERBAL: humano, local, sin "fonda/fondero" paraguas,
+    sin lenguaje comparativo. Widows evitadas a mano con &nbsp; (no hay JS/noWidow
+    disponible en email).
 -->
 <!DOCTYPE html>
 <html lang="es">
@@ -26,7 +36,7 @@
   <body style="margin:0; padding:0; background:#EFEFEF; -webkit-text-size-adjust:100%;">
     <!-- preheader oculto (preview en la bandeja) -->
     <div style="display:none; max-height:0; overflow:hidden; opacity:0;">
-      Tu enlace para entrar a Patio. Válido 15 minutos. ¿Qué hay hoy? Saaaaaaabes.
+      Tu enlace para entrar a Patio. Válido 15&nbsp;minutos.
     </div>
 
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#EFEFEF;">
@@ -34,19 +44,18 @@
         <td align="center" style="padding:32px 16px;">
 
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
-                 style="max-width:480px; background:#FFFFFF; border-radius:22px; overflow:hidden; border:1px solid rgba(17,18,20,0.06);">
+                 style="max-width:480px; background:#FFFFFF; border-radius:20px; overflow:hidden; border:1px solid rgba(0,0,0,0.08);">
 
             <!-- Header de marca -->
             <tr>
-              <td style="padding:22px 32px 0;">
+              <td style="padding:24px 32px 0;">
                 <table role="presentation" cellpadding="0" cellspacing="0">
                   <tr>
-                    <td style="width:38px; height:38px; background:#111214; border-radius:19px; text-align:center; vertical-align:middle;">
-                      <span style="font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:18px; font-weight:700; color:#F8F8F5; line-height:38px;">P</span>
+                    <td style="width:38px; height:38px; background:#292929; border-radius:14px; text-align:center; vertical-align:middle;">
+                      <span style="font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:18px; font-weight:700; color:#FFFFFF; line-height:38px;">P</span>
                     </td>
                     <td style="padding-left:12px; vertical-align:middle;">
-                      <div style="font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:15px; font-weight:700; color:#111214; letter-spacing:-0.2px;">Patio</div>
-                      <div style="font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:12px; font-weight:400; color:#8A8A85; margin-top:1px;">¿Qué hay hoy?</div>
+                      <div style="font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:15px; font-weight:800; color:#292929; letter-spacing:-0.2px;">Patio</div>
                     </td>
                   </tr>
                 </table>
@@ -55,21 +64,21 @@
 
             <!-- Título -->
             <tr>
-              <td style="padding:24px 32px 0;">
-                <div style="font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:26px; font-weight:800; letter-spacing:-0.7px; color:#111214; line-height:1.2;">
-                  Tu enlace para entrar.
+              <td style="padding:26px 32px 0;">
+                <div style="font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:26px; font-weight:800; letter-spacing:-0.6px; color:#292929; line-height:1.2;">
+                  Tu enlace para&nbsp;entrar.
                 </div>
               </td>
             </tr>
 
             <!-- Cuerpo -->
             <tr>
-              <td style="padding:16px 32px 4px;">
-                <p style="margin:0 0 14px; font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:16px; color:#111214; line-height:1.55;">
-                  Pediste entrar a tu cuenta de Patio para publicar el menú de hoy.
+              <td style="padding:14px 32px 4px;">
+                <p style="margin:0 0 12px; font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:16px; color:#292929; line-height:1.55;">
+                  Pediste entrar a tu cuenta de Patio para publicar el menú de&nbsp;hoy.
                 </p>
-                <p style="margin:0 0 24px; font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:16px; color:#4A4A47; line-height:1.55;">
-                  Toca el botón de abajo. Válido los próximos 15 minutos.
+                <p style="margin:0 0 24px; font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:16px; color:#7A7A76; line-height:1.55;">
+                  Toca el botón de abajo. Válido los próximos 15&nbsp;minutos.
                 </p>
               </td>
             </tr>
@@ -82,7 +91,7 @@
                     <td style="background:#F2612F; border-radius:14px;">
                       <a href="{{ .ConfirmationURL }}" target="_blank"
                          style="display:inline-block; padding:16px 28px; font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:16px; font-weight:700; color:#FFFFFF; text-decoration:none; letter-spacing:-0.2px;">
-                        Entrar a Patio &nbsp;&rarr;
+                        Entrar a Patio&nbsp;&rarr;
                       </a>
                     </td>
                   </tr>
@@ -93,7 +102,7 @@
             <!-- Enlace de respaldo -->
             <tr>
               <td style="padding:0 32px 24px;">
-                <div style="padding:12px 14px; background:#F8F8F5; border:1px solid rgba(17,18,20,0.06); border-radius:10px; font-family:'SF Mono',Menlo,Consolas,monospace; font-size:12px; color:#8A8A85; word-break:break-all;">
+                <div style="padding:12px 14px; background:#F4F4F1; border:1px solid rgba(0,0,0,0.08); border-radius:10px; font-family:'SF Mono',Menlo,Consolas,monospace; font-size:12px; color:#7A7A76; word-break:break-all;">
                   {{ .ConfirmationURL }}
                 </div>
               </td>
@@ -102,21 +111,21 @@
             <!-- Nota de seguridad -->
             <tr>
               <td style="padding:0 32px 28px;">
-                <p style="margin:0; padding-top:20px; border-top:1px solid rgba(17,18,20,0.06); font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:13px; color:#8A8A85; line-height:1.55;">
-                  ¿No fuiste tú? Ignora este correo — nadie puede entrar sin abrirlo desde tu bandeja. ¿Dudas? Escríbenos a quehayhoy.patio@gmail.com.
+                <p style="margin:0; padding-top:20px; border-top:1px solid rgba(0,0,0,0.08); font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:13px; color:#7A7A76; line-height:1.55;">
+                  ¿No fuiste tú? Ignora este correo — nadie puede entrar sin abrirlo desde tu bandeja. ¿Dudas? Escríbenos a&nbsp;quehayhoy.patio@gmail.com.
                 </p>
               </td>
             </tr>
 
-            <!-- Footer -->
+            <!-- Footer: firma de marca (par completo, junto) -->
             <tr>
-              <td style="padding:18px 32px; background:#F8F8F5; border-top:1px solid rgba(17,18,20,0.06);">
+              <td style="padding:20px 32px; background:#EFEFEF; border-top:1px solid rgba(0,0,0,0.08);">
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                   <tr>
-                    <td style="font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:11px; color:#8A8A85;">
-                      Patio · CDMX
+                    <td style="font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:12px; color:#7A7A76;">
+                      ¿Qué hay&nbsp;hoy?
                     </td>
-                    <td align="right" style="font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:13px; font-weight:800; letter-spacing:-0.2px; color:#111214;">
+                    <td align="right" style="font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:13px; font-weight:800; letter-spacing:-0.2px; color:#292929;">
                       Saaaaaaabes.
                     </td>
                   </tr>
@@ -128,7 +137,7 @@
 
           <!-- línea legal mínima fuera de la tarjeta -->
           <div style="max-width:480px; margin:16px auto 0; font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:11px; color:#A8A8A3; text-align:center; line-height:1.5;">
-            Te llegó este correo porque alguien pidió entrar a Patio con {{ .Email }}.
+            Te llegó este correo porque alguien pidió entrar a Patio con&nbsp;{{ .Email }}.
           </div>
 
         </td>

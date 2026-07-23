@@ -1,5 +1,89 @@
 # HANDOFF
 
+## Sesión 2026-07-22 — gobernanza de documentación + homologación Apple + fixes Fondero
+
+Sesión larga, en dos mitades. Primera mitad: auditoría y limpieza de toda la
+documentación del repo. Segunda mitad: en vivo con Alejandro en el iPhone
+(dev build por cable, luego Metro por WiFi ya en el depa), corrigiendo UI real
+del flujo Fondero a partir de su uso directo. Typecheck y lint verdes en cada
+punto de cierre. Nada de esto está comiteado hasta el commit de cierre de esta
+misma sesión (ver más abajo).
+
+### Mitad 1 — documentación
+
+- Auditoría de contenido completo (no solo fecha/nombre) de los 53 `.md` del
+  repo, 3 agentes en paralelo. Resultado en `docs/DOCS_AUDIT_2026-07-22.md`.
+  Hallazgos reales, no solo cosméticos: `PATIO_PRD.md` se autodeclaraba fuente
+  de verdad estando superado por `PATIO_SYSTEM_MAP.md`; `IDENTITY_VERBAL.md`
+  aprobaba `"Esto no es delivery."` como voz Patio siendo el ejemplo exacto que
+  la ley anti-comparativo prohíbe; `ROADCONTROLLER.md` y `NEXT_SESSION.md`
+  daban instrucciones ya resueltas; `AGENT_STATUS.md` con 5 semanas de atraso
+  (por eso `/status` daba panorama viejo).
+- 4 documentos legacy borrados: `docs/AGENT.md`, `docs/design/FLOW_V2.md`,
+  `docs/design/PRODUCT_PRINCIPLES.md`, `docs/design/SCREENSHOT_INDEX.md`.
+  `PATIO_PRD.md` archivado con banner (no borrado, se conserva como snapshot).
+  `README.md` raíz reescrito (era boilerplate de Expo sin tocar).
+- Dos agentes nuevos en `.claude/agents/`: `foodie-ops` (no existía dueño del
+  lado Foodie) y `fondero-ops` ampliado con Edge Functions/migraciones, que ya
+  eran su territorio de facto.
+- **Hallazgo mayor:** el sistema tipográfico documentado en `CLAUDE.md` (SF Pro
+  Display, pesos solo 900/300) no coincidía con el código real (`Fonts.brand` /
+  Plus Jakarta en 40+ estilos, pesos reales 900/700/300). Se corrigió la
+  documentación para reflejar lo ya shippeado — cero cambios visuales. De paso,
+  `lib/theme.tsx` perdió `Type`, una escala tipográfica completa sin un solo uso
+  real (confirmado por grep + `tsc --noEmit` verde).
+- Color de botones homologado con cita textual de Apple HIG (`color.txt`):
+  *"apply the app accent color to the background in prominent buttons...
+  refrain from adding color to the background of multiple controls."* Regla:
+  una sola acción de confirmación prominente por pantalla lleva el naranja: el
+  resto neutro. Corrigió una inconsistencia real (`perfil-editar.tsx` tenía su
+  botón de guardar en blanco).
+- `supabase/templates/magic-link.html` rediseñado con la paleta vigente;
+  corregida una violación de marca que llevaba tiempo ahí: `"¿Qué hay hoy?"` y
+  `"Saaaaaaabes."` vivían separados (uno en el header, el otro en el footer) —
+  la ley exige que vayan siempre juntos. Sigue sin instalarse en Supabase
+  Dashboard (acción manual de Alejandro, no automatizable).
+
+### Mitad 2 — fixes de UI en vivo (flujo Fondero)
+
+Todo a partir de que Alejandro probó `menu-composer.tsx` y `historial.tsx`
+en el device real:
+
+- Pills de "Agregar sección": eran ruido permanente → revelación progresiva
+  real (abre y cierra con un solo "+", antes solo abría). Secciones nuevas ya
+  no nacen con nombre falso pre-llenado (`"SECCIÓN 6"`, `"MENÚ DE HOY"`) —
+  nacen vacías con placeholder; la primera sección sugiere "PRIMER TIEMPO".
+- Feedback de guardado homologado (haptic de éxito + check visual) entre
+  `saveDraft`/`publish` del menú y `handleSaveAll` del perfil — antes solo uno
+  de los dos daba alguna señal, y ninguno tenía haptic.
+- Historial ganó **eliminar menú** (no existía en absoluto — ni local ni
+  Supabase). Se quitó una fecha duplicada en el título por defecto de cada
+  fila. Ícono del tab cambiado (`stats-chart-outline` → `receipt-outline`,
+  coherente con "tus menús" en vez de leerse como analytics). Botón
+  "+ Menú nuevo" agregado — primero se puso arriba a la derecha, Alejandro
+  señaló que quedaba fuera del alcance del pulgar, se movió debajo del
+  subtítulo. "Nombrar" → "Renombrar". Eyebrow "PUBLICACIONES" → "TUS MENÚS".
+- `menu-editar.tsx`: cerrar/tache ahora regresa a `/historial`, no a `/menu`
+  — aplica tanto a "Escribe tu menú" como a "Usa un menú anterior" porque
+  ambas pasan por la misma pantalla.
+- **Bug real corregido:** `saveDraft` podía fallar en silencio (catch vacío en
+  `saveLocalMenu`) y la UI decía "Guardado" sin haber verificado nada.
+  `saveLocalMenu` ahora devuelve éxito/fallo real; si falla, se avisa. **Sin
+  confirmar con Alejandro si esto resuelve del todo el reporte original** —
+  falta saber si el camino que falló fue Guardar o Publicar, con sesión real
+  o en DEV.
+
+### Qué sigue
+
+1. Confirmar con Alejandro si el bug de guardado quedó resuelto o si necesita
+   más diagnóstico (ver nota arriba).
+2. Retomar la cola real de QA en iPhone: magic link, cámara/galería, GPS, alta
+   v8 completa — quedó pausada por esta sesión de gobernanza + UI.
+3. Instalar el template de email en Supabase Dashboard (manual, Alejandro).
+4. Backlog anotado, no implementado: convertir los textos tipo kicker/hint
+   fijos en hints temporales de primera vez (`lib/hints.ts` ya tiene el
+   mecanismo, falta extenderlo a estas pantallas).
+
 ## Sesión 2026-07-20 — principios recuperados + horarios sistémicos
 
 - `ESSENTIAL_DESIGN_PRINCIPLES.md` fue contrastado contra la transcripción oficial

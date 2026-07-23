@@ -52,7 +52,7 @@ Patio/
 |---|---|---|---|
 | Código RN (producto) | `app/` `components/` `lib/` | **Estabilizado** — baseline verde 2026-07-10 (typecheck, lint, exports, Maestro E2E) | Barrido humano en iPhone (magic link, cámara, GPS, share, push, mapas) |
 | Rama de trabajo | `rebuild/patio-final` | Activa, limpia y sincronizada · incluye baseline `d0a5e8d` + handoff de reinicio · reemplaza a `v2-look-figma` | Continuar QA; GitHub CLI ya está autenticado como `patioquehayhoy` |
-| Edge function `read-menu` | `supabase/functions/` | **BLOQUEANTE** — código listo, sin desplegar; requiere `supabase login` de Alejandro | Deploy + secreto `ANTHROPIC_API_KEY` + rotar clave vieja `EXPO_PUBLIC_ANTHROPIC_API_KEY` (ver `supabase/functions/README.md`) |
+| Edge functions `read-menu` + `smart-setup` | `supabase/functions/` | **Desplegadas** — RESUELTO 2026-07-18: función activa, secreto `ANTHROPIC_API_KEY` registrado, smoke test OK | Falta solo desactivar la llave vieja `EXPO_PUBLIC_ANTHROPIC_API_KEY`/"Patio" en console.anthropic.com |
 | Figma Make | `design-source/figma-make/` | **Cerrado como herramienta** (decisión 2026-07-10) — v01/v02 quedan solo como referencia visual; v03 descartado | Nada — no retomar |
 | Docs de estado | `docs/HANDOFF.md` `NEXT_SESSION.md` | Vigentes al 2026-07-19 | Actualizar tras el barrido en iPhone |
 | QA dispositivo | iPhone 15 Pro "Parco" | Dev build instalada, itera por WiFi | Magic link, cámara/galería, GPS real, póster/share, push, mapas |
@@ -129,16 +129,27 @@ horario semanal por día · stats vivas + `vistos.tsx` · collapsing-header (Lar
 ## 9. Prioridades actuales
 
 ```txt
-1. BLOQUEANTE: rotar la antigua clave Anthropic; después desplegar
-   supabase/functions/read-menu con una clave nueva en el secreto
-   ANTHROPIC_API_KEY. Requiere `supabase login` (Alejandro). Probar con foto
-   real antes de declarar la lectura IA operativa.
-2. Barrido humano en iPhone: magic link, cámara/galería, IA, GPS, póster/share,
+1. Barrido humano en iPhone: magic link, cámara/galería, IA, GPS, póster/share,
    push y apertura de mapas. Corregir solo hallazgos reproducibles.
+2. Al final: rotar la clave vieja `EXPO_PUBLIC_ANTHROPIC_API_KEY`/"Patio" en
+   console.anthropic.com — no urgente (decisión 2026-07-16).
 3. Decidir EAS Update (OTA) para "última versión sin build".
 4. Build/TestFlight nuevo solo al cerrar el bloque de QA (economía EAS).
 5. Radar: organización de Guardados a escala (~70 items → filtros).
 ```
+
+## 11. Agentes especializados
+
+| Agente | Territorio | Incluye |
+|---|---|---|
+| `foodie-ops` | Descubrir | explorar, ficha, favoritos, vistos, cuenta, reseña |
+| `fondero-ops` | Publicar | foto-menú, Hoy, historial, Mi Patio, alta Patio Smart + **todo el backend real** (Edge Functions, migraciones) |
+| `design-system` | Sistema visual | paleta, tipografía, glass, spacing, componentes compartidos |
+| `content-cdmx` | Voz de marca | copy, campañas, naming |
+| `qa-patio` | QA estático | typecheck, lint, botones zombi, copy legacy |
+
+Auditoría de los 53 documentos del repo (vigente / revisar / archivo):
+`docs/DOCS_AUDIT_2026-07-22.md`.
 
 ## 10. Callgraph raíz
 

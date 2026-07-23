@@ -19,6 +19,7 @@ export type FonderoColors = {
   accent: string;
   iconBg: string;        // fondo de los círculos de ícono
   green: string;         // tendencia positiva (historial)
+  danger: string;        // acciones destructivas (eliminar)
 };
 
 const DARK: FonderoColors = {
@@ -31,6 +32,7 @@ const DARK: FonderoColors = {
   accent: '#FF6A3D',
   iconBg: 'rgba(255,255,255,0.06)',
   green: '#5BCB8B',
+  danger: '#FF453A',
 };
 
 const LIGHT: FonderoColors = {
@@ -43,6 +45,7 @@ const LIGHT: FonderoColors = {
   accent: '#F2612F',
   iconBg: '#F1EFE9',
   green: '#2E9E63',
+  danger: '#FF3B30',
 };
 
 export function fonderoPalette(isDark: boolean): FonderoColors {

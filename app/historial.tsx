@@ -25,13 +25,13 @@ export default function HistorialScreen() {
       <Stack.Screen options={{ headerShown: false }} />
       <ScrollView onScroll={onScroll} scrollEventThrottle={16} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 24, paddingBottom: insets.bottom + 120 }} showsVerticalScrollIndicator={false}>
         <Text style={[s.eyebrow, { color: c.accent }]}>TUS MENÚS</Text>
-        <Text style={[s.title, { color: c.text }]}>Historial</Text>
-        <Text style={[s.subtitle, { color: c.textSecondary }]}>Vuelve a usar cualquiera de tus menús publicados, o empieza uno nuevo.</Text>
+        <Text style={[s.title, { color: c.text }]}>Menús</Text>
+        <Text style={[s.subtitle, { color: c.textSecondary }]}>Publicados y guardados, listos para volver a usar.</Text>
 
         <TouchableOpacity
-          accessibilityLabel="Empezar un menú nuevo desde cero"
+          accessibilityLabel="Crear un menú nuevo"
           style={[s.newButton, { backgroundColor: c.iconBg }]}
-          onPress={() => router.push('/menu-editar')}
+          onPress={() => router.push('/menu')}
           activeOpacity={0.72}>
           <Ionicons name="add" size={17} color={c.text} />
           <Text style={[s.newButtonText, { color: c.text }]}>Menú nuevo</Text>

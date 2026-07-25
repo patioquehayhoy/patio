@@ -6,6 +6,7 @@ import type { Region } from 'react-native-maps';
 import { getFavoritePatioIds, toggleFavoritePatio } from '@/lib/favorites';
 import { searchLiveMenus } from '@/lib/menu';
 import { fetchPublicFonditas, type Patio, type PatioDishMatch } from '@/lib/patios';
+import { getSavedMapCategories, setSavedMapCategories } from '@/lib/saved-map-filters';
 
 type FoodieSheetMode = 'nearby' | 'saved' | null;
 
@@ -43,6 +44,7 @@ export function useFoodieExploreController() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showHeader, setShowHeader] = useState(false);
   const [savedIds, setSavedIds] = useState<string[]>([]);
+  const [activeSavedCategories, setActiveSavedCategories] = useState<string[]>([]);
   const [sheetMode, setSheetMode] = useState<FoodieSheetMode>(null);
   const [searchActive, setSearchActive] = useState(false);
   const [query, setQuery] = useState('');
@@ -100,8 +102,10 @@ export function useFoodieExploreController() {
   useFocusEffect(
     useCallback(() => {
       let mounted = true;
-      getFavoritePatioIds().then((ids) => {
-        if (mounted) setSavedIds(ids);
+      Promise.all([getFavoritePatioIds(), getSavedMapCategories()]).then(([ids, categories]) => {
+        if (!mounted) return;
+        setSavedIds(ids);
+        setActiveSavedCategories(categories);
       });
       if (__DEV__) {
         import('@/lib/demo')
@@ -126,13 +130,27 @@ export function useFoodieExploreController() {
     const maxLng = longitude + longitudeDelta / 2;
     return allPatios.filter(
       (patio) =>
+        (activeSavedCategories.length === 0 ||
+          (savedIds.includes(patio.id) && activeSavedCategories.includes(patio.category))) &&
         patio.latitude > 0 &&
         patio.latitude >= minLat &&
         patio.latitude <= maxLat &&
         patio.longitude >= minLng &&
         patio.longitude <= maxLng
     );
-  }, [visibleRegion, allPatios]);
+  }, [visibleRegion, allPatios, activeSavedCategories, savedIds]);
+
+  const mapFilteredPatios = useMemo(
+    () => activeSavedCategories.length === 0
+      ? allPatios
+      : allPatios.filter((patio) => savedIds.includes(patio.id) && activeSavedCategories.includes(patio.category)),
+    [activeSavedCategories, allPatios, savedIds],
+  );
+
+  const clearSavedMapFilter = useCallback(async () => {
+    setActiveSavedCategories([]);
+    await setSavedMapCategories([]);
+  }, []);
 
   const searchResults = useMemo(() => {
     if (!query.trim()) return [];
@@ -236,7 +254,9 @@ export function useFoodieExploreController() {
   }, [deselect]);
 
   return {
+    activeSavedCategories,
     allPatios,
+    clearSavedMapFilter,
     closeSheet,
     closeSearch,
     deselect,
@@ -247,6 +267,7 @@ export function useFoodieExploreController() {
     initialLoading,
     isFiltering,
     matchingPatioIds,
+    mapFilteredPatios,
     openSearch,
     openNearby,
     openSaved,

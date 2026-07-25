@@ -1,0 +1,13 @@
+appId: com.parcomx.patio
+---
+- launchApp
+- openLink: "patio://menu-publicado"
+- assertVisible: "Tu menú está vivo."
+- tapOn: "Abrir menú publicado"
+- assertVisible: "Menú publicado"
+- assertVisible: "Caldo o Sopa"
+- tapOn: ".*Ver en mi perfil"
+- assertVisible: "Mi Patio Demo"
+- assertVisible: "Caldo o Sopa"
+- assertVisible: ".*700"
+- takeScreenshot: maestro/screenshots/15-published-poster-profile

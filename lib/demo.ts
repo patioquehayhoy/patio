@@ -8,6 +8,7 @@ import { setFavoritePatioIds, getFavoritePatioIds } from './favorites';
 import { makePlatilloId, makeSectionId, type MenuData } from './menu-store';
 import { registerPatioView, getViewedPatioIds } from './stats';
 import type { Patio, PatioMenuSection } from './patios';
+import { publicCurrency } from './prices';
 
 export const DEV_MY_PATIO_ID = 'demo-mi-patio';
 const DEV_PUBLISHED_MENU_KEY = '@patio_demo_published_menu';
@@ -16,12 +17,13 @@ function menuToSections(data: MenuData): PatioMenuSection[] {
   return data.secciones
     .map((section) => ({
       section: section.nombre.trim() || 'MENÚ DEL DÍA',
-      price: section.precio.trim() || undefined,
+      price: publicCurrency(section.precio) || undefined,
       items: section.platillos
         .filter((dish) => dish.nombre.trim())
         .map((dish) => ({
           name: dish.nombre.trim(),
-          price: dish.precio.trim() ? `$${dish.precio.trim().replace(/^\$/, '')}` : undefined,
+          description: dish.descripcion.trim() || undefined,
+          price: publicCurrency(dish.precio) || undefined,
           tags: [dish.nombre, dish.descripcion, section.nombre].filter(Boolean),
         })),
     }))

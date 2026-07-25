@@ -3,8 +3,10 @@ import { useCallback, useRef, useState } from 'react';
 import { Alert, Linking } from 'react-native';
 
 import {
+  clearMenuExtractionSnapshot,
   makePlatilloId,
   makeSectionId,
+  setMenuExtractionSnapshot,
   type MenuData,
 } from '@/lib/menu-store';
 import { leerMenuDeFoto, type MenuSeccion } from '@/lib/vision';
@@ -18,6 +20,34 @@ type FotoMenuHandlers = {
   onManual?: () => void;
 };
 
+function visionSize(width?: number, height?: number): { width: number; height: number } | null {
+  if (!width || !height || width <= 0 || height <= 0) return null;
+  const maxEdge = 1568;
+  const maxTokens = 1568;
+  const fits = (w: number, h: number) =>
+    Math.ceil(w / 28) * 28 <= maxEdge
+    && Math.ceil(h / 28) * 28 <= maxEdge
+    && Math.ceil(w / 28) * Math.ceil(h / 28) <= maxTokens;
+
+  if (fits(width, height)) return { width, height };
+
+  let low = 1;
+  let high = Math.max(width, height);
+  const landscape = width >= height;
+  const ratio = width / height;
+  while (low + 1 < high) {
+    const middle = Math.floor((low + high) / 2);
+    const candidateWidth = landscape ? middle : Math.max(1, Math.round(middle * ratio));
+    const candidateHeight = landscape ? Math.max(1, Math.round(middle / ratio)) : middle;
+    if (fits(candidateWidth, candidateHeight)) low = middle;
+    else high = middle;
+  }
+
+  return landscape
+    ? { width: low, height: Math.max(1, Math.round(low / ratio)) }
+    : { width: Math.max(1, Math.round(low * ratio)), height: low };
+}
+
 function visionToMenu(sections: MenuSeccion[], menuPrice: string): MenuData {
   const price = (value?: string) => (value ?? '').replace(/[^0-9.]/g, '');
   const clean = (value: string) => value
@@ -30,12 +60,21 @@ function visionToMenu(sections: MenuSeccion[], menuPrice: string): MenuData {
     secciones: sections.map((section, index) => ({
       id: makeSectionId(),
       nombre: clean(section.nombre) || 'MENÚ DE HOY',
-      precio: index === 0 ? price(menuPrice) : price(section.precioSeccion),
+      // El proveedor puede clasificar un precio alineado con la primera
+      // sección como precio general o como precio de sección. En ambos casos
+      // la revisión de Patio debe conservarlo en el campo visible del día.
+      precio: index === 0
+        ? price(menuPrice || section.precioSeccion)
+        : price(section.precioSeccion),
       platillos: section.platillos.map((dish) => ({
         id: makePlatilloId(),
         nombre: clean(dish.nombre),
         descripcion: clean(dish.descripcion ?? ''),
         precio: price(dish.precio),
+        confianza: dish.confianza,
+        revision: dish.requiereRevision
+          ? (dish.motivoRevision?.trim() || 'Confirma que este texto sea un platillo.')
+          : undefined,
       })),
     })),
   };
@@ -51,28 +90,35 @@ export function useFotoMenuController(handlers?: FotoMenuHandlers) {
   // animación/proceso sin salida). La promesa en vuelo se ignora al volver.
   const cancelledRef = useRef(false);
 
-  const analyze = useCallback(async (uri: string) => {
+  const analyze = useCallback(async (uri: string, width?: number, height?: number) => {
     cancelledRef.current = false;
     setState('processing');
     try {
       const ImageManipulator = await import('expo-image-manipulator');
-      // Redimensionar es obligatorio: una foto de cámara (12MP, ~4MB) excede
-      // el límite de imagen de la API de visión y truena la lectura completa.
-      // 1600px de ancho conserva el texto del menú legible y pesa ~300KB.
+      // Preparamos exactamente una imagen que cabe en los límites visuales del
+      // modelo. Así las coordenadas y el texto no cambian por un segundo resize
+      // silencioso dentro del proveedor.
+      const target = visionSize(width, height);
       const normalized = await ImageManipulator.manipulateAsync(
         uri,
-        [{ resize: { width: 1600 } }],
+        target ? [{ resize: target }] : [{ resize: { width: 1568 } }],
         { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG }
       );
       const result = await leerMenuDeFoto(normalized.uri);
       if (cancelledRef.current) return;
       const hasDishes = result.secciones.some((section) => section.platillos.some((dish) => dish.nombre.trim()));
       if (result.error || !hasDishes) throw new Error(result.error || 'sin platillos');
-      setMenu(visionToMenu(result.secciones, result.precio));
+      const extractedMenu = visionToMenu(result.secciones, result.precio);
+      setMenuExtractionSnapshot({
+        menu: extractedMenu,
+        warnings: result.advertencias ?? [],
+      });
+      setMenu(extractedMenu);
       setState('review');
     } catch (error) {
       if (cancelledRef.current) return;
       console.warn('[foto-menu] lectura falló:', error);
+      clearMenuExtractionSnapshot();
       setState('idle');
       Alert.alert('No pudimos leerlo', 'Prueba con otra foto o escríbelo a mano.', [
         { text: 'Otra foto', onPress: () => { void openCameraRef.current(); } },
@@ -103,7 +149,7 @@ export function useFotoMenuController(handlers?: FotoMenuHandlers) {
       quality: 0.85,
     });
     const asset = !result.canceled ? result.assets[0] : null;
-    if (asset) await analyze(asset.uri);
+    if (asset) await analyze(asset.uri, asset.width, asset.height);
     else handlers?.onExit?.();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [analyze]);
@@ -118,7 +164,7 @@ export function useFotoMenuController(handlers?: FotoMenuHandlers) {
       quality: 0.85,
     });
     const asset = !result.canceled ? result.assets[0] : null;
-    if (asset) await analyze(asset.uri);
+    if (asset) await analyze(asset.uri, asset.width, asset.height);
     else handlers?.onExit?.();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [analyze]);
@@ -127,6 +173,7 @@ export function useFotoMenuController(handlers?: FotoMenuHandlers) {
 
   const cancelRead = useCallback(() => {
     cancelledRef.current = true;
+    clearMenuExtractionSnapshot();
     setState('idle');
     handlers?.onExit?.();
     // eslint-disable-next-line react-hooks/exhaustive-deps

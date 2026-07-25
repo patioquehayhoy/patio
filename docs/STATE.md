@@ -1,6 +1,82 @@
 # STATE
 
-> Fuente de verdad operativa. Última actualización: 2026-07-23.
+> Fuente de verdad operativa. Última actualización: 2026-07-25.
+
+## Corte de producto — 2026-07-25 (navegación y continuidad)
+
+- Checkpoint aceptado como **“medio me gustó”**: conservar, probar en iPhone e
+  iterar; no interpretar como aprobación visual definitiva.
+- Navegación vigente: Foodie = **Buscar/Lugares/Perfil**; Fondero =
+  **Menús/Actividad/Perfil**.
+- Publicar es una acción dentro de Menús. El selector de creación ofrece cámara,
+  Fotos o escritura; la reutilización se resuelve desde cada menú del historial.
+- Mapa y búsqueda abren el perfil público directamente. Ya no existe una ficha
+  intermedia redundante ni numeración de negocios.
+- Lugares agrupa favoritos por categoría y persiste qué categorías filtran los
+  puntos del mapa.
+- La barra raíz es estable y no se encoge u oculta con scroll.
+- El éxito de publicación lleva al perfil o al share sheet nativo.
+- Notificaciones Foodie y Fondero tienen preferencias locales independientes.
+  Falta backend para seguir un Patio y recibir push cuando publique.
+- La tarjeta de métricas sintéticas Fondero se retiró. Reseñas, vistas y
+  actividad multiusuario continúan como trabajo de backend.
+- QA de este corte: TypeScript, ESLint y diff check verdes. Revisión visual
+  pendiente de Alejandro; no se usó simulador por instrucción explícita.
+
+## Corte de producto — 2026-07-24 (menú inteligente, póster y monetización)
+
+- Núcleo confirmado: **perfil público + menú vivo + póster**. El perfil sostiene
+  la relación, el menú es la fuente estructurada y el póster es una sola vista
+  canónica dentro de Patio. Compartir distribuye el enlace a esa misma vista.
+- Implementado: `read-menu` usa JSON Schema estricto, reglas explícitas para
+  platillo/ingrediente/opción/precio, confianza y revisión dirigida. La Edge
+  Function quedó desplegada en el proyecto `lafondita`.
+- La app conserva extracción y versión aprobada para formar ejemplos de
+  corrección locales; falta centralizar ese conjunto con metadatos de
+  modelo/prompt antes de hablar de entrenamiento.
+- La ficha pública conserva secciones, descripciones, precio general, precios por
+  platillo y la reseña local. El póster es una sola vista canónica, scrolleable,
+  abre el perfil y comparte su deep link; no genera archivos ni formatos alternos.
+- Esta navegación fue reemplazada el 2026-07-25 por
+  Buscar/Lugares/Perfil y Menús/Actividad/Perfil.
+- QA real de simulador completado con una imagen de menú: foto → extracción →
+  revisión → publicación → recompensa → póster → perfil. Se validaron el precio
+  general `$700`, precios individuales, descripciones y reseña en perfil con
+  Maestro.
+- Decisión IA: primero contrato, JSON Schema, ontología, validación y revisión
+  humana dirigida. El uso no entrena automáticamente al modelo; Patio debe formar
+  su conjunto de evaluación con correcciones explícitas.
+- Los vectores se reservan para búsqueda semántica, recuperación de casos
+  parecidos y recomendaciones. No son fuente de verdad ni sustituyen la
+  clasificación visual de platillo, ingrediente, variante y precio.
+- Fotografías fuera del camino crítico: el alta y la publicación funcionan con
+  identidad + menú. Las fotos llegan después, curadas y solo cuando aporten valor.
+- Monetización diversificada por etapas: perfil + menú vigente + póster canónico
+  gratis; suscripción con hipótesis principal de $99 MXN/mes o $990/año;
+  consumo IA, promoción local, servicios de puesta en marcha y comisión solo
+  cuando exista una transacción real.
+- Fuente técnica:
+  `docs/MENU_INTELLIGENCE_AND_POSTER.md`.
+- Fuente de crecimiento y cobro:
+  `docs/NETWORK_COLD_START_AND_MONETIZATION.md`.
+
+## Corte de producto — 2026-07-24 (red, perfil público y arranque en frío)
+
+- Decisión confirmada: conservar la app y reestructurar secciones; el onboarding,
+  los avisos iniciales y el alta del negocio quedan como base aprobada.
+- El perfil público de cada Patio será la unidad central de la red: identidad,
+  menú vigente, menús visibles anteriores, seguir/guardar, reseñas y actividad.
+- Esta navegación objetivo fue refinada en el corte 2026-07-25.
+- `The Cold Start Problem` gobierna el lanzamiento: primera red atómica alrededor
+  de Polanco, diez negocios incorporados personalmente, lado difícil subsidiado y
+  expansión por zonas adyacentes después de validar densidad.
+- Monetización definida como hipótesis: núcleo gratuito y varias fuentes de
+  ingreso por etapas; fundadores reciben seis meses de funciones completas.
+- Fuente completa:
+  `docs/NETWORK_COLD_START_AND_MONETIZATION.md`.
+- La arquitectura de navegación y la primera versión del perfil ya están
+  aterrizadas. El siguiente bloque de red requiere backend social real:
+  follows, reseñas, vistas, versiones visibles y entregas de notificación.
 
 ## Corte operativo — 2026-07-23 (parte 2: redisño HIG + panel de estadísticas)
 

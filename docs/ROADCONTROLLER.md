@@ -1,6 +1,6 @@
 # ROADCONTROLLER — Patio
 
-> Estado: v3 · 2026-07-18
+> Estado: v3 · 2026-07-25
 > Uso: mapa operativo superior de `/Users/parco/Patio`.
 > Función: decidir qué frente leer, qué carpeta tocar, qué está activo, qué está pausado y cómo no mezclar sistemas.
 > Inspirado en `~/T1all/ROADCONTROLLER.md` (solo el formato; los sistemas no se mezclan).
@@ -33,7 +33,7 @@ Patio/
 ├── app/               ← pantallas Expo Router (el producto real)
 │   ├── explorar.tsx      home Foodie (mapa)
 │   ├── patio/[id].tsx    ficha pública
-│   ├── menu.tsx          Hoy (Fondero) — bloque de precio INTOCABLE
+│   ├── menu.tsx          selector hijo de Menú nuevo (foto/Fotos/escritura)
 │   ├── menu-editar.tsx / foto-menu.tsx / preview.tsx   pipeline publicar
 │   ├── perfil.tsx / perfil-editar.tsx   Mi Patio + horario semanal
 │   └── historial / favoritos / vistos / cuenta / resena / onboarding
@@ -50,11 +50,11 @@ Patio/
 
 | Frente | Dónde | Estado | Siguiente útil |
 |---|---|---|---|
-| Código RN (producto) | `app/` `components/` `lib/` | **Estabilizado** — baseline verde 2026-07-10 (typecheck, lint, exports, Maestro E2E) | Barrido humano en iPhone (magic link, cámara, GPS, share, push, mapas) |
-| Rama de trabajo | `rebuild/patio-final` | Activa, limpia y sincronizada · incluye baseline `d0a5e8d` + handoff de reinicio · reemplaza a `v2-look-figma` | Continuar QA; GitHub CLI ya está autenticado como `patioquehayhoy` |
-| Edge functions `read-menu` + `smart-setup` | `supabase/functions/` | **Desplegadas** — RESUELTO 2026-07-18: función activa, secreto `ANTHROPIC_API_KEY` registrado, smoke test OK | Falta solo desactivar la llave vieja `EXPO_PUBLIC_ANTHROPIC_API_KEY`/"Patio" en console.anthropic.com |
+| Código RN (producto) | `app/` `components/` `lib/` | **Checkpoint panorámico 2026-07-25** — Buscar/Lugares/Perfil y Menús/Actividad/Perfil; aprobación visual parcial | Alejandro revisa en iPhone y reporta problemas concretos |
+| Rama de trabajo | `rebuild/patio-final` | Activa; checkpoint completo solicitado el 2026-07-25 | Continuar desde el commit del corte; GitHub autenticado como `patioquehayhoy` |
+| Edge functions `read-menu` + `smart-setup` | `supabase/functions/` | **Desplegadas** — `read-menu` v2 con JSON Schema y revisión dirigida, 2026-07-24 | Ampliar corpus real; al final desactivar llave vieja |
 | Figma Make | `design-source/figma-make/` | **Cerrado como herramienta** (decisión 2026-07-10) — v01/v02 quedan solo como referencia visual; v03 descartado | Nada — no retomar |
-| Docs de estado | `docs/HANDOFF.md` `NEXT_SESSION.md` | Vigentes al 2026-07-19 | Actualizar tras el barrido en iPhone |
+| Docs de estado | `docs/HANDOFF.md` `docs/STATE.md` `docs/TASKS.md` | Vigentes al 2026-07-25 | Actualizar tras la revisión humana en iPhone |
 | QA dispositivo | iPhone 15 Pro "Parco" | Dev build instalada, itera por WiFi | Magic link, cámara/galería, GPS real, póster/share, push, mapas |
 | TestFlight | build 1.0.0 (45+) | Congelado en versión vieja | Build nuevo solo al cerrar el bloque de QA (economía EAS) |
 | Supabase | proyecto `lafondita` (org Parco Apps) | Funcional; plan Free se pausa solo → dar Resume | No migrar correo todavía |
@@ -83,6 +83,8 @@ Gotchas conocidos:
 | Reglas de diseño (paleta, tipo, glass) | `CLAUDE.md` + `docs/DESIGN_SYSTEM.md` |
 | Identidad verbal (mata copy de Figma) | `docs/design/foundations/IDENTITY_VERBAL.md` |
 | Filosofía de producto | `docs/GOAL.md` + `docs/PATIO_DESIGN_PRINCIPLES.md` |
+| Red, arranque en frío y monetización | `docs/NETWORK_COLD_START_AND_MONETIZATION.md` |
+| Menú inteligente, revisión y póster | `docs/MENU_INTELLIGENCE_AND_POSTER.md` |
 | Esquema maestro: marca → producto → producción | `docs/PATIO_SYSTEM_MAP.md` |
 | Arquitectura técnica vigente | `docs/ARCHITECTURE.md` |
 | Evolución, IA, recurrencia y red | `docs/PRODUCT_EVOLUTION_ROADMAP_2026-07-18.md` |
@@ -129,13 +131,18 @@ horario semanal por día · stats vivas + `vistos.tsx` · collapsing-header (Lar
 ## 9. Prioridades actuales
 
 ```txt
-1. Barrido humano en iPhone: magic link, cámara/galería, IA, GPS, póster/share,
-   push y apertura de mapas. Corregir solo hallazgos reproducibles.
-2. Al final: rotar la clave vieja `EXPO_PUBLIC_ANTHROPIC_API_KEY`/"Patio" en
+1. Validar en iPhone una foto real de una de las diez primeras fonditas:
+   extracción → corrección → publicación → póster → perfil.
+2. Construir backend social mínimo: follows, reseñas, vistas agregadas, versiones
+   de menú, preferencias y entregas de avisos con RLS.
+3. Instrumentar tiempo a primera publicación/interacción, densidad de la
+   microzona y retorno antes de implementar cobro.
+4. Mantener el barrido humano en iPhone: magic link, IA, póster/share, push y
+   apertura de mapas. Corregir solo hallazgos reproducibles.
+5. Al final: rotar la clave vieja `EXPO_PUBLIC_ANTHROPIC_API_KEY`/"Patio" en
    console.anthropic.com — no urgente (decisión 2026-07-16).
-3. Decidir EAS Update (OTA) para "última versión sin build".
-4. Build/TestFlight nuevo solo al cerrar el bloque de QA (economía EAS).
-5. Radar: organización de Guardados a escala (~70 items → filtros).
+6. Decidir EAS Update (OTA) para "última versión sin build".
+7. Build/TestFlight nuevo solo al cerrar un bloque completo (economía EAS).
 ```
 
 ## 11. Agentes especializados

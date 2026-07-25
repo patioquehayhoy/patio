@@ -42,6 +42,7 @@ function RootStack() {
         <Stack.Screen name="fondero-acceso" options={{ headerShown: false }} />
         <Stack.Screen name="cuenta" options={{ headerShown: false }} />
         <Stack.Screen name="explorar" options={{ headerShown: false }} />
+        <Stack.Screen name="actividad" options={{ headerShown: false }} />
         <Stack.Screen name="favoritos" options={{ headerShown: false }} />
         <Stack.Screen name="vistos" options={{ headerShown: false }} />
         <Stack.Screen name="onboarding" options={{ headerShown: false }} />

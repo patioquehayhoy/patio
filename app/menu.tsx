@@ -1,134 +1,107 @@
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { router, Stack } from 'expo-router';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { BottomTabBar } from '@/components/bottom-tab-bar';
-import { useTabBarScroll } from '@/lib/tab-bar-visibility';
-import { Fonts, useTheme } from '@/lib/theme';
 import { fonderoPalette, type FonderoColors } from '@/lib/fondero-palette';
+import { Fonts, useTheme } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
 
-// Pantalla "Hoy" del Fondero: elección de cómo armar el menú del día.
-// La foto es el héroe (Patio lo lee por ti = la magia que vendemos).
-// Respeta el tema claro/oscuro vía fonderoPalette.
+type CreationOption = {
+  icon: keyof typeof Ionicons.glyphMap;
+  title: string;
+  body: string;
+  onPress: () => void;
+};
 
-function todayLabel(): string {
-  try {
-    return new Date().toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' }).toUpperCase();
-  } catch { return 'HOY'; }
-}
-
-export default function HoyScreen() {
+export default function NuevoMenuScreen() {
   const insets = useSafeAreaInsets();
-  const { onScroll } = useTabBarScroll();
   const { theme } = useTheme();
   const c = fonderoPalette(theme.isDark);
   const s = makeStyles(c);
 
+  const options: CreationOption[] = [
+    {
+      icon: 'camera-outline',
+      title: 'Tomar una foto',
+      body: 'Patio la lee y prepara el menú para que lo revises.',
+      onPress: () => router.push('/foto-menu'),
+    },
+    {
+      icon: 'images-outline',
+      title: 'Elegir de Fotos',
+      body: 'Usa una imagen que ya tengas en el iPhone.',
+      onPress: () => router.push({ pathname: '/foto-menu', params: { source: 'library' } }),
+    },
+    {
+      icon: 'create-outline',
+      title: 'Escribirlo',
+      body: 'Empieza vacío y agrega sólo lo que vendes hoy.',
+      onPress: () => router.push('/menu-editar'),
+    },
+  ];
+
   return (
-    <View style={s.root}>
+    <View style={[s.root, { paddingTop: insets.top + 8, paddingBottom: insets.bottom + 24 }]}>
       <Stack.Screen options={{ headerShown: false }} />
 
-      <ScrollView
-        contentContainerStyle={{ paddingTop: insets.top + 20, paddingHorizontal: 22, paddingBottom: 140 }}
-        showsVerticalScrollIndicator={false}
-        onScroll={onScroll}
-        scrollEventThrottle={16}>
+      <TouchableOpacity
+        accessibilityLabel="Cerrar nuevo menú"
+        style={s.close}
+        onPress={() => (router.canGoBack() ? router.back() : router.replace('/historial'))}
+        activeOpacity={0.72}>
+        <Ionicons name="close" size={22} color={c.text} />
+      </TouchableOpacity>
 
-        {/* Header editorial */}
-        <Text style={s.eyebrow} allowFontScaling={true}>{todayLabel()}</Text>
-        <Text style={s.title} allowFontScaling={true}>Lo de hoy</Text>
-        <Text style={s.sub} allowFontScaling={true}>{noWidow('Publica lo que vendes hoy. Patio lo ordena por ti.')}</Text>
+      <View style={s.header}>
+        <Text style={s.eyebrow}>NUEVO MENÚ</Text>
+        <Text style={s.title}>{noWidow('¿Cómo quieres empezar?')}</Text>
+        <Text style={s.subtitle}>{noWidow('Elige el camino más fácil para lo que tienes hoy.')}</Text>
+      </View>
 
-        {/* Héroe: tomar foto */}
-        <TouchableOpacity accessibilityLabel="Crear menú desde foto" activeOpacity={0.9} onPress={() => router.push('/foto-menu')} style={s.heroCard}>
-          <LinearGradient
-            colors={['#FF8458', '#F2612F']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={s.heroGradient}>
-            <View style={s.heroIcon}>
-              <Ionicons name="camera" size={30} color="#fff" />
+      <View style={s.options}>
+        {options.map((option, index) => (
+          <TouchableOpacity
+            key={option.title}
+            accessibilityLabel={option.title}
+            style={[s.option, index === 0 && s.featured]}
+            onPress={option.onPress}
+            activeOpacity={0.82}>
+            <View style={[s.optionIcon, index === 0 && s.featuredIcon]}>
+              <Ionicons name={option.icon} size={23} color={index === 0 ? '#fff' : c.text} />
             </View>
-            <Text style={s.heroTitle} allowFontScaling={true}>Toma foto de tu menú</Text>
-            <Text style={s.heroBody} allowFontScaling={true}>{noWidow('Patio lee la foto y prepara el menú para que solo lo revises.')}</Text>
-            <View style={s.heroTag}>
-              <Ionicons name="sparkles" size={12} color="#fff" />
-              <Text style={s.heroTagText} allowFontScaling={true}>Lo más rápido</Text>
+            <View style={s.optionCopy}>
+              <Text style={s.optionTitle}>{option.title}</Text>
+              <Text style={s.optionBody}>{option.body}</Text>
             </View>
-          </LinearGradient>
-        </TouchableOpacity>
+            <Ionicons name="chevron-forward" size={18} color={c.textMute} />
+          </TouchableOpacity>
+        ))}
+      </View>
 
-        <Text style={s.orLabel} allowFontScaling={true}>o hazlo a mano</Text>
-
-        {/* Opción: elegir una imagen existente con el selector nativo */}
-        <TouchableOpacity
-          accessibilityLabel="Elegir foto de la galería"
-          activeOpacity={0.85}
-          onPress={() => router.push({ pathname: '/foto-menu', params: { source: 'library' } })}
-          style={s.optionRow}>
-          <View style={s.optionIcon}>
-            <Ionicons name="images-outline" size={20} color={c.text} />
-          </View>
-          <View style={{ flex: 1, minWidth: 0 }}>
-            <Text style={s.optionTitle} allowFontScaling={true}>Elige de Fotos</Text>
-            <Text style={s.optionSub} allowFontScaling={true}>Usa una imagen que ya tienes</Text>
-          </View>
-          <Ionicons name="chevron-forward" size={16} color={c.textMute} />
-        </TouchableOpacity>
-
-        {/* Opción: escribir */}
-        <TouchableOpacity accessibilityLabel="Escribir menú manualmente" activeOpacity={0.85} onPress={() => router.push('/menu-editar')} style={s.optionRow}>
-          <View style={s.optionIcon}>
-            <Ionicons name="create-outline" size={20} color={c.text} />
-          </View>
-          <View style={{ flex: 1, minWidth: 0 }}>
-            <Text style={s.optionTitle} allowFontScaling={true}>Escribe tu menú</Text>
-            <Text style={s.optionSub} allowFontScaling={true}>{noWidow('Empieza vacío y agrega solo lo necesario')}</Text>
-          </View>
-          <Ionicons name="chevron-forward" size={16} color={c.textMute} />
-        </TouchableOpacity>
-
-        {/* Opción: usar anterior */}
-        <TouchableOpacity accessibilityLabel="Usar menú anterior" activeOpacity={0.85} onPress={() => router.push('/historial')} style={s.optionRow}>
-          <View style={s.optionIcon}>
-            <Ionicons name="refresh-outline" size={20} color={c.text} />
-          </View>
-          <View style={{ flex: 1, minWidth: 0 }}>
-            <Text style={s.optionTitle} allowFontScaling={true}>Usa un menú anterior</Text>
-            <Text style={s.optionSub} allowFontScaling={true}>Repite uno que ya publicaste</Text>
-          </View>
-          <Ionicons name="chevron-forward" size={16} color={c.textMute} />
-        </TouchableOpacity>
-      </ScrollView>
-
-      <BottomTabBar variant="fondero" />
+      <Text style={s.historyHint}>
+        Para repetir uno anterior, vuelve a Menús y toca el que quieras usar.
+      </Text>
     </View>
   );
 }
 
 function makeStyles(c: FonderoColors) {
   return StyleSheet.create({
-    root: { flex: 1, backgroundColor: c.bg },
-    eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.6, textTransform: 'uppercase', color: c.accent, marginBottom: 8 },
-    title: { fontSize: 38, fontWeight: '900', letterSpacing: -1.3, lineHeight: 38, color: c.text, marginBottom: 6, fontFamily: Fonts.brand },
-    sub: { fontSize: 14, fontWeight: '300', lineHeight: 20, color: c.textSecondary, marginBottom: 24 },
-
-    heroCard: { borderRadius: 24, overflow: 'hidden', shadowColor: '#F2612F', shadowOffset: { width: 0, height: 14 }, shadowOpacity: 0.4, shadowRadius: 28, elevation: 8 },
-    heroGradient: { padding: 24, minHeight: 200, justifyContent: 'flex-end' },
-    heroIcon: { width: 56, height: 56, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
-    heroTitle: { fontSize: 24, fontWeight: '900', letterSpacing: -0.6, color: '#fff', marginBottom: 6, fontFamily: Fonts.brand },
-    heroBody: { fontSize: 14, fontWeight: '300', lineHeight: 19, color: 'rgba(255,255,255,0.9)', marginBottom: 14, maxWidth: 280 },
-    heroTag: { flexDirection: 'row', alignItems: 'center', gap: 5, alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 100, backgroundColor: 'rgba(255,255,255,0.18)' },
-    heroTagText: { fontSize: 11, fontWeight: '700', letterSpacing: 0.5, color: '#fff' },
-
-    orLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase', color: c.textMute, textAlign: 'center', marginVertical: 20 },
-
-    optionRow: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 16, borderRadius: 18, backgroundColor: c.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: c.border, marginBottom: 10 },
-    optionIcon: { width: 44, height: 44, borderRadius: 14, backgroundColor: c.iconBg, alignItems: 'center', justifyContent: 'center' },
-    optionTitle: { fontSize: 16, fontWeight: '600', letterSpacing: -0.2, color: c.text, marginBottom: 2 },
-    optionSub: { fontSize: 13, fontWeight: '300', color: c.textSecondary },
+    root: { flex: 1, backgroundColor: c.bg, paddingHorizontal: 20 },
+    close: { width: 42, height: 42, marginLeft: -8, borderRadius: 21, alignItems: 'center', justifyContent: 'center' },
+    header: { marginTop: 24 },
+    eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.5, color: c.accent, marginBottom: 8 },
+    title: { maxWidth: 330, fontSize: 36, lineHeight: 39, fontWeight: '900', letterSpacing: -1.2, color: c.text, fontFamily: Fonts.brand },
+    subtitle: { maxWidth: 310, marginTop: 9, fontSize: 14, lineHeight: 20, fontWeight: '300', color: c.textSecondary },
+    options: { marginTop: 30, gap: 10 },
+    option: { minHeight: 92, padding: 16, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, borderColor: c.border, backgroundColor: c.surface, flexDirection: 'row', alignItems: 'center', gap: 14 },
+    featured: { borderColor: c.accent, backgroundColor: c.surface },
+    optionIcon: { width: 48, height: 48, borderRadius: 16, backgroundColor: c.iconBg, alignItems: 'center', justifyContent: 'center' },
+    featuredIcon: { backgroundColor: c.accent },
+    optionCopy: { flex: 1 },
+    optionTitle: { fontSize: 16, fontWeight: '700', color: c.text, letterSpacing: -0.2 },
+    optionBody: { marginTop: 4, fontSize: 13, lineHeight: 18, fontWeight: '300', color: c.textSecondary },
+    historyHint: { marginTop: 22, paddingHorizontal: 12, textAlign: 'center', fontSize: 12, lineHeight: 18, fontWeight: '300', color: c.textMute },
   });
 }

@@ -7,7 +7,9 @@ import { Platform } from 'react-native';
 // se programan hasta que haya build.
 const PREF_AVISAR = '@patio_notif_avisar';
 const PREF_CERCANAS = '@patio_notif_cercanas';
+const PREF_FONDERO = '@patio_notif_fondero';
 const DAILY_ID = 'patio-daily-menu-check';
+const FONDERO_DAILY_ID = 'patio-fondero-daily-menu';
 
 type NotifModule = typeof import('expo-notifications');
 let Notifications: NotifModule | null | undefined;
@@ -31,12 +33,13 @@ function getModule(): NotifModule | null {
   return Notifications;
 }
 
-export async function getNotifPrefs(): Promise<{ avisar: boolean; cercanas: boolean }> {
-  const [a, c] = await Promise.all([
+export async function getNotifPrefs(): Promise<{ avisar: boolean; cercanas: boolean; fondero: boolean }> {
+  const [a, c, f] = await Promise.all([
     AsyncStorage.getItem(PREF_AVISAR),
     AsyncStorage.getItem(PREF_CERCANAS),
+    AsyncStorage.getItem(PREF_FONDERO),
   ]);
-  return { avisar: a === '1', cercanas: c === '1' };
+  return { avisar: a === '1', cercanas: c === '1', fondero: f === '1' };
 }
 
 async function ensurePermission(): Promise<boolean> {
@@ -93,4 +96,35 @@ export async function setCercanas(value: boolean): Promise<boolean> {
     ensurePermission().catch(() => {});
   }
   return value;
+}
+
+export async function setFonderoAvisos(value: boolean): Promise<boolean> {
+  if (value) {
+    const granted = await ensurePermission();
+    await AsyncStorage.setItem(PREF_FONDERO, granted ? '1' : '0');
+    if (granted) {
+      const N = getModule();
+      if (N) {
+        await N.cancelScheduledNotificationAsync(FONDERO_DAILY_ID).catch(() => {});
+        await N.scheduleNotificationAsync({
+          identifier: FONDERO_DAILY_ID,
+          content: {
+            title: 'Tu Patio está listo',
+            body: 'Publica o actualiza lo que vendes hoy.',
+          },
+          trigger: {
+            type: N.SchedulableTriggerInputTypes.DAILY,
+            hour: 10,
+            minute: 0,
+          },
+        }).catch(() => {});
+      }
+    }
+    return granted;
+  }
+
+  await AsyncStorage.setItem(PREF_FONDERO, '0');
+  const N = getModule();
+  if (N) await N.cancelScheduledNotificationAsync(FONDERO_DAILY_ID).catch(() => {});
+  return false;
 }

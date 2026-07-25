@@ -7,6 +7,7 @@ import { Animated, Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { fetchFonditaById, getPatioById, type Patio } from '@/lib/patios';
+import { publicPrice } from '@/lib/prices';
 import { getPatioRating, savePatioRating } from '@/lib/ratings';
 import { REVIEW_TAGS as TAGS } from '@/lib/review-tags';
 import { Fonts, Radius, useTheme, type Theme } from '@/lib/theme';
@@ -112,7 +113,7 @@ export default function ResenaScreen() {
 
   const subtitle = (() => {
     const dishes = patio?.menu?.[0]?.items?.slice(0, 2).map((it) => it.name).join(' · ');
-    return [dishes, patio?.price].filter(Boolean).join(' · ');
+    return [dishes, publicPrice(patio?.price)].filter(Boolean).join(' · ');
   })();
 
   const submit = async () => {
@@ -172,6 +173,7 @@ export default function ResenaScreen() {
             onChangeText={setNote}
             placeholder="¿Qué tal estuvo? Cuéntale a quien anda buscando…"
             placeholderTextColor={theme.textSecondary}
+            accessibilityLabel="Comentario de la reseña"
             multiline
             selectionColor={theme.accent}
             allowFontScaling={true}

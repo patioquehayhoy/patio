@@ -1,13 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
+import { useFocusEffect } from '@react-navigation/native';
 import { router, Stack } from 'expo-router';
-import { Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useCallback, useState } from 'react';
+import { Linking, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { SettingsGroup, SettingsRow, type SettingsColors } from '@/components/settings-list';
 import { ToggleSwitch } from '@/components/toggle-switch';
 import { useFoodieAccountController } from '@/lib/controllers/useFoodieAccountController';
+import { getNotifPrefs, setAvisar } from '@/lib/notifications';
 import { useTabBarScroll } from '@/lib/tab-bar-visibility';
 import { Fonts, useTheme, type Theme } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
@@ -26,14 +28,6 @@ function makeStyles(t: Theme) {
     title: { fontSize: 36, fontWeight: '900', letterSpacing: -1.2, lineHeight: 36, color: t.text, fontFamily: Fonts.brand },
 
     body: { paddingHorizontal: 18, paddingTop: 12 },
-
-    // Identidad card con degradado tibio
-    idCard: { borderRadius: 22, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, overflow: 'hidden' },
-    statsRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 20, paddingHorizontal: 18 },
-    statCol: { flex: 1, alignItems: 'center' },
-    statNum: { fontSize: 28, fontWeight: '900', letterSpacing: -0.8, color: t.text, lineHeight: 30, fontFamily: Fonts.brand },
-    statLabel: { marginTop: 4, fontSize: 10.5, fontWeight: '300', letterSpacing: 0.4, textTransform: 'uppercase', color: t.textSecondary },
-    statDivider: { width: StyleSheet.hairlineWidth, alignSelf: 'stretch', marginVertical: 4, backgroundColor: t.border },
 
     // Footer marca
     footer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 20 },
@@ -60,7 +54,16 @@ export default function CuentaScreen() {
   const sc = settingsColors(theme);
   const insets = useSafeAreaInsets();
   const { onScroll } = useTabBarScroll();
-  const { handleDevFondero, handleFonderoAccess, handleSignOut, hasSession, stats } = useFoodieAccountController();
+  const { handleDevFondero, handleFonderoAccess, handleSignOut, hasSession } = useFoodieAccountController();
+  const [notificationsOn, setNotificationsOn] = useState(false);
+
+  useFocusEffect(useCallback(() => {
+    let mounted = true;
+    getNotifPrefs().then((prefs) => {
+      if (mounted) setNotificationsOn(prefs.avisar);
+    });
+    return () => { mounted = false; };
+  }, []));
 
   return (
     <View style={[s.root, { paddingTop: insets.top }]}>
@@ -69,39 +72,22 @@ export default function CuentaScreen() {
         {/* Pestaña raíz: sin flecha 'atrás' — se navega con la tab bar (modelo
             Instagram). El back solo existe en pantallas hijas. */}
         <View style={s.header}>
-          <Text style={s.eyebrow} allowFontScaling={true}>Cuenta</Text>
-          <Text style={s.title} allowFontScaling={true}>{noWidow('Tu Patio')}</Text>
+          <Text style={s.eyebrow} allowFontScaling={true}>Perfil</Text>
+          <Text style={s.title} allowFontScaling={true}>{noWidow('Tu cuenta')}</Text>
         </View>
 
         <View style={s.body}>
-          {/* Resumen útil: solo datos reales, sin métricas decorativas. */}
-          {(stats.viewed > 0 || stats.saved > 0) && <View style={s.idCard}>
-            <LinearGradient
-              colors={theme.isDark ? [theme.surface, theme.surface] : ['#FFFFFF', theme.accentSoft]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}>
-              <View style={s.statsRow}>
-                <TouchableOpacity style={s.statCol} activeOpacity={0.7} onPress={() => router.push('/vistos' as any)}>
-                  <Text style={s.statNum} allowFontScaling={true}>{stats.viewed}</Text>
-                  <Text style={s.statLabel} allowFontScaling={true}>lugares vistos</Text>
-                </TouchableOpacity>
-                <View style={s.statDivider} />
-                <TouchableOpacity style={s.statCol} activeOpacity={0.7} onPress={() => router.push('/favoritos' as any)}>
-                  <Text style={s.statNum} allowFontScaling={true}>{stats.saved}</Text>
-                  <Text style={s.statLabel} allowFontScaling={true}>guardadas</Text>
-                </TouchableOpacity>
-              </View>
-            </LinearGradient>
-          </View>}
-
-          {/* Grupos por propósito, no por lo que "quepa junto": preferencias
-              de la app, después ayuda/marca, y al final las salidas del
-              contexto juntas — la puerta al otro lado en tinta neutra
-              (acción ocasional, no compite con el contenido) y cerrar sesión.
-              Las stats de arriba YA son la puerta a vistos/guardados, sin
-              filas redundantes aquí. */}
+          {/* El historial de uso vive en Actividad; Perfil conserva solamente
+              preferencias, ayuda y cuenta. */}
           <SettingsGroup c={sc} label="Preferencias">
-            <SettingsRow c={sc} icon="moon-outline" title="Modo oscuro" trailing={<ToggleSwitch value={theme.isDark} onValueChange={toggleTheme} />} />
+            <SettingsRow
+              c={sc}
+              icon="notifications-outline"
+              title="Avisos de tus Patios"
+              sub="Recibe novedades de los lugares que guardas"
+              trailing={<ToggleSwitch value={notificationsOn} onValueChange={async (value) => setNotificationsOn(await setAvisar(value))} />}
+            />
+            <SettingsRow c={sc} icon="moon-outline" title="Modo oscuro" divider trailing={<ToggleSwitch value={theme.isDark} onValueChange={toggleTheme} />} />
           </SettingsGroup>
 
           <SettingsGroup c={sc} label="Ayuda">

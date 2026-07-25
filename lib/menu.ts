@@ -1,6 +1,7 @@
 import { supabase } from './supabase';
 import type { Patio, PatioMenuSection, PatioDishMatch } from './patios';
 import type { MenuData } from './menu-store';
+import { publicCurrency } from './prices';
 
 function hoy(): string {
   return new Date().toISOString().split('T')[0];
@@ -11,22 +12,20 @@ function menuDataToSections(data: MenuData): PatioMenuSection[] {
     .filter((sec) => sec.platillos.some((p) => p.nombre))
     .map((sec) => ({
       section: sec.nombre,
-      price: sec.precio || undefined,
+      price: publicCurrency(sec.precio) || undefined,
       items: sec.platillos
         .filter((p) => p.nombre)
-        .map((p) => ({ name: p.nombre, price: p.precio || undefined })),
+        .map((p) => ({
+          name: p.nombre,
+          description: p.descripcion || undefined,
+          price: publicCurrency(p.precio) || undefined,
+        })),
     }));
 }
 
 export async function fetchMenuForFondita(fonditaId: string): Promise<PatioMenuSection[]> {
-  const { data: carta } = await supabase
-    .from('cartas')
-    .select('secciones')
-    .eq('fondita_id', fonditaId)
-    .maybeSingle();
-
-  if (carta?.secciones) return menuDataToSections(carta.secciones as MenuData);
-
+  // Lo publicado hoy manda; la carta permanente es el fallback para el
+  // negocio que no cambia menú todos los días.
   const { data: menuHoy } = await supabase
     .from('menus')
     .select('secciones')
@@ -35,6 +34,14 @@ export async function fetchMenuForFondita(fonditaId: string): Promise<PatioMenuS
     .maybeSingle();
 
   if (menuHoy?.secciones) return menuDataToSections(menuHoy.secciones as MenuData);
+
+  const { data: carta } = await supabase
+    .from('cartas')
+    .select('secciones')
+    .eq('fondita_id', fonditaId)
+    .maybeSingle();
+
+  if (carta?.secciones) return menuDataToSections(carta.secciones as MenuData);
 
   return [];
 }
@@ -74,6 +81,7 @@ function extractPatioMenuMatches(patio: Patio, query: string): PatioDishMatch[] 
     for (const item of section.items) {
       const haystack = [
         item.name,
+        item.description ?? '',
         item.price ?? '',
         section.section,
         patio.name,
@@ -116,8 +124,9 @@ export async function searchLiveMenus(query: string, patios: Patio[]): Promise<P
     supabase.from('menus').select('fondita_id, secciones').eq('fecha', hoy()).filter('secciones::text', 'ilike', `%${query}%`),
   ]);
 
-  for (const row of cartas.data ?? []) addResults(row.fondita_id, row.secciones as MenuData);
+  // El menú de hoy tiene prioridad sobre una coincidencia duplicada de carta.
   for (const row of menus.data ?? []) addResults(row.fondita_id, row.secciones as MenuData);
+  for (const row of cartas.data ?? []) addResults(row.fondita_id, row.secciones as MenuData);
 
   if (__DEV__) {
     for (const patio of patios) {

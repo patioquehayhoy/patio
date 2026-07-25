@@ -1,0 +1,24 @@
+appId: com.parcomx.patio
+---
+- launchApp
+- openLink: "patio://patio/demo-mi-patio"
+- assertVisible: "Mi Patio Demo"
+- openLink: "patio://resena/demo-mi-patio?stars=5"
+- assertVisible: "¿Cómo estuvo Mi Patio Demo?"
+- assertVisible: "Caldo o Sopa"
+- tapOn: "Comentario de la reseña"
+- eraseText: 100
+- inputText: "Se come muy rico y atienden con cariño."
+- hideKeyboard
+- tapOn: "Publicar reseña"
+- scrollUntilVisible:
+    element:
+      text: "Tu reseña"
+    direction: DOWN
+- assertVisible: "Tu reseña"
+- scrollUntilVisible:
+    element:
+      text: ".*Se come muy rico y atienden con cariño.*"
+    direction: DOWN
+- assertVisible: ".*Se come muy rico y atienden con cariño.*"
+- takeScreenshot: maestro/screenshots/13-foodie-review-profile

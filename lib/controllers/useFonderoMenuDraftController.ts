@@ -6,8 +6,11 @@ import { Alert } from 'react-native';
 import { saveMenuHoy } from '@/lib/db';
 import { saveDevPublishedMenu } from '@/lib/demo';
 import { saveLocalMenu } from '@/lib/menu-history';
+import { recordMenuCorrection } from '@/lib/menu-learning';
 import {
   canonicalSeccion,
+  clearMenuExtractionSnapshot,
+  getMenuExtractionSnapshot,
   getTipoNegocio,
   makePlatilloId,
   makeSectionId,
@@ -49,7 +52,7 @@ function cleanMenu(data: MenuData): MenuData {
         platillos: section.platillos
           .filter((dish) => dish.nombre.trim())
           .map((dish) => ({
-            ...dish,
+            id: dish.id,
             nombre: dish.nombre.trim(),
             descripcion: dish.descripcion.trim(),
             precio: dish.precio.trim(),
@@ -59,7 +62,7 @@ function cleanMenu(data: MenuData): MenuData {
   };
 }
 
-export function useFonderoMenuDraftController(initialData: MenuData) {
+export function useFonderoMenuDraftController(initialData: MenuData, source: 'foto' | 'manual' = 'manual') {
   const [data, setData] = useState<MenuData>(() =>
     initialData.secciones.length ? initialData : emptyMenu()
   );
@@ -78,7 +81,20 @@ export function useFonderoMenuDraftController(initialData: MenuData) {
     setData((prev) => ({
       secciones: prev.secciones.map((section) =>
         section.id === sectionId
-          ? { ...section, platillos: section.platillos.map((dish) => dish.id === dishId ? { ...dish, ...patch } : dish) }
+          ? {
+              ...section,
+              platillos: section.platillos.map((dish) =>
+                dish.id === dishId
+                  ? {
+                      ...dish,
+                      ...patch,
+                      ...(patch.nombre !== undefined || patch.descripcion !== undefined || patch.precio !== undefined
+                        ? { revision: undefined }
+                        : {}),
+                    }
+                  : dish
+              ),
+            }
           : section
       ),
     }));
@@ -197,13 +213,20 @@ export function useFonderoMenuDraftController(initialData: MenuData) {
       if (__DEV__) await saveDevPublishedMenu(clean);
       const fonditaId = getFonditaId();
       if (fonditaId) await saveMenuHoy(fonditaId, clean);
+      if (source === 'foto') {
+        const snapshot = getMenuExtractionSnapshot();
+        if (snapshot) {
+          await recordMenuCorrection(snapshot.menu, clean, snapshot.warnings);
+          clearMenuExtractionSnapshot();
+        }
+      }
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       router.replace('/menu-publicado');
     } catch {
       Alert.alert('No se pudo publicar', 'Revisa tu conexión e inténtalo otra vez.');
       setPublishing(false);
     }
-  }, [data, publishing]);
+  }, [data, publishing, source]);
 
   return {
     addDish,

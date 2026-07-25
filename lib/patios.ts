@@ -9,6 +9,7 @@ import {
 
 export type PatioMenuItem = {
   name: string;
+  description?: string;
   price?: string;
   tags?: string[];
 };

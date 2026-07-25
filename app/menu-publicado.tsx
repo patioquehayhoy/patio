@@ -1,9 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, Stack } from 'expo-router';
 import { useEffect, useRef } from 'react';
-import { Animated, Easing, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Animated, Easing, Share, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { DEV_MY_PATIO_ID } from '@/lib/demo';
+import { getFonditaId, getFonditaName } from '@/lib/menu-store';
 import { Fonts, Radius } from '@/lib/theme';
 
 export default function MenuPublicadoScreen() {
@@ -17,6 +19,17 @@ export default function MenuPublicadoScreen() {
   }, [scale, fade]);
 
   const now = new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+  const patioId = getFonditaId() || (__DEV__ ? DEV_MY_PATIO_ID : null);
+  const openProfile = () => patioId ? router.replace(`/patio/${patioId}`) : router.replace('/perfil');
+  const shareMenu = () => {
+    const name = getFonditaName() || 'Mi Patio';
+    const url = patioId ? `patio://patio/${patioId}` : 'patio://explorar';
+    Share.share({
+      title: `${name} en Patio`,
+      message: `Ya está publicado el menú de hoy de ${name}.\n\n${url}`,
+      url,
+    });
+  };
 
   return (
     <View style={s.root}>
@@ -31,18 +44,19 @@ export default function MenuPublicadoScreen() {
         <Animated.View style={{ opacity: fade, alignItems: 'center' }}>
           <Text style={s.eyebrow} allowFontScaling={true}>Publicado · {now}</Text>
           <Text style={s.title} allowFontScaling={true}>Tu menú está vivo.</Text>
-          <Text style={s.body} allowFontScaling={true}>Quien anda cerca ya puede verlo. Se oculta solo a las 17:30.</Text>
+          <Text style={s.body} allowFontScaling={true}>Ya aparece en tu perfil, tal como lo publicaste.</Text>
 
         </Animated.View>
 
         <View style={s.spacer} />
 
-        <TouchableOpacity accessibilityLabel="Abrir póster para compartir" style={s.primaryBtn} onPress={() => router.replace('/preview')} activeOpacity={0.86}>
-          <Ionicons name="share-social-outline" size={16} color="#F8F8F5" />
-          <Text style={s.primaryText} allowFontScaling={true}>Ver y compartir</Text>
+        <TouchableOpacity accessibilityLabel="Ver menú en mi perfil" style={s.primaryBtn} onPress={openProfile} activeOpacity={0.86}>
+          <Ionicons name="person-circle-outline" size={17} color="#F8F8F5" />
+          <Text style={s.primaryText} allowFontScaling={true}>Ver en mi perfil</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={s.ghostBtn} onPress={() => router.replace('/menu')} activeOpacity={0.7}>
-          <Text style={s.ghostText} allowFontScaling={true}>Volver a Hoy</Text>
+        <TouchableOpacity style={s.ghostBtn} onPress={shareMenu} activeOpacity={0.7}>
+          <Ionicons name="share-outline" size={16} color="rgba(248,248,245,0.62)" />
+          <Text style={s.ghostText} allowFontScaling={true}>Compartir menú</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -63,6 +77,6 @@ const s = StyleSheet.create({
   spacer: { flex: 1 },
   primaryBtn: { alignSelf: 'stretch', height: 54, borderRadius: Radius.card, backgroundColor: 'rgba(255,255,255,0.08)', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.12)', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 10 },
   primaryText: { fontSize: 15, fontWeight: '600', color: '#F8F8F5' },
-  ghostBtn: { height: 48, alignItems: 'center', justifyContent: 'center' },
+  ghostBtn: { height: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7 },
   ghostText: { fontSize: 14, fontWeight: '500', color: 'rgba(248,248,245,0.5)' },
 });

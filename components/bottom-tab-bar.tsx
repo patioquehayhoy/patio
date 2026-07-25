@@ -1,15 +1,13 @@
 import { router, usePathname } from 'expo-router';
 import { BlurView } from 'expo-blur';
-import { Animated, Keyboard, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Keyboard, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
-import { useTabBarTranslate } from '@/lib/tab-bar-visibility';
 import { useTheme } from '@/lib/theme';
 
-// TabBar exacta a Figma Make: pill flotante glass con 3 tabs.
-// Foodie (claro): Hoy / Guardados / Yo.
-// Fondero (oscuro): Hoy / Historial / Fonda.
+// Destinos raíz por tarea. Crear un menú es una acción dentro de Menús,
+// no una sección que compita permanentemente con el resto de la app.
 
 type Tab = {
   path: string;
@@ -18,17 +16,15 @@ type Tab = {
 };
 
 const FOODIE_TABS: Tab[] = [
-  { path: '/explorar',  label: 'Hoy',       icon: 'map-outline' },
-  // Corazón: guardar SIEMPRE es corazón en toda la app (pin del mapa, ficha,
-  // guardados) — un solo símbolo para un solo concepto.
-  { path: '/favoritos', label: 'Guardados', icon: 'heart-outline' },
-  { path: '/cuenta',    label: 'Yo',        icon: 'person-outline' },
+  { path: '/explorar',  label: 'Buscar',    icon: 'search-outline' },
+  { path: '/actividad', label: 'Lugares',   icon: 'map-outline' },
+  { path: '/cuenta',    label: 'Perfil',    icon: 'person-outline' },
 ];
 
 const FONDERO_TABS: Tab[] = [
-  { path: '/menu',      label: 'Hoy',       icon: 'sparkles-outline' },
-  { path: '/historial', label: 'Historial', icon: 'receipt-outline' },
-  { path: '/perfil',    label: 'Mi Patio',  icon: 'person-outline' },
+  { path: '/historial', label: 'Menús',     icon: 'restaurant-outline' },
+  { path: '/resenas',   label: 'Actividad', icon: 'chatbubble-ellipses-outline' },
+  { path: '/perfil',    label: 'Perfil',    icon: 'person-outline' },
 ];
 
 const DARK = {
@@ -52,21 +48,6 @@ export function BottomTabBar({ variant = 'fondero' }: { variant?: 'foodie' | 'fo
   const pathname = usePathname();
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
-  // Al scrollear hacia abajo la barra se ENCOGE (estilo liquid glass): baja un
-  // poco, se hace chica y pierde presencia, pero sigue visible y tocable. Al
-  // jalar hacia arriba recupera tamaño. El provider vive en el root; las
-  // pantallas con scroll alimentan onScroll de useTabBarScroll. El driver va
-  // de 0 (reposo) a 120 (scrolleando) y aquí se mapea a escala/desplazamiento.
-  const { translateY, reveal } = useTabBarTranslate();
-  const shrink = translateY
-    ? {
-        opacity: translateY.interpolate({ inputRange: [0, 120], outputRange: [1, 0.88] }),
-        transform: [
-          { translateY: translateY.interpolate({ inputRange: [0, 120], outputRange: [0, 12] }) },
-          { scale: translateY.interpolate({ inputRange: [0, 120], outputRange: [1, 0.82] }) },
-        ],
-      }
-    : null;
   // El COLOR de la barra sigue el tema real de la app (claro/oscuro), no el rol.
   // Antes usaba `variant === 'fondero'` → en modo oscuro + pantalla Foodie la barra
   // salía blanca. `variant` ahora SOLO decide qué tabs se muestran.
@@ -74,12 +55,7 @@ export function BottomTabBar({ variant = 'fondero' }: { variant?: 'foodie' | 'fo
   const c = isDark ? DARK : LIGHT;
   const tabs = variant === 'foodie' ? FOODIE_TABS : FONDERO_TABS;
   return (
-    <Animated.View
-      style={[
-        styles.wrap,
-        { bottom: (insets.bottom || 10) + 4 },
-        shrink,
-      ]}>
+    <View style={[styles.wrap, { bottom: (insets.bottom || 10) + 4 }]}>
       {__DEV__ && <Text style={[styles.version, { color: c.mute }]}>DEV</Text>}
       <View style={[styles.pill, { backgroundColor: c.pill, borderColor: c.border }]}>
         <BlurView
@@ -92,9 +68,6 @@ export function BottomTabBar({ variant = 'fondero' }: { variant?: 'foodie' | 'fo
           const active = pathname === path;
           const onTabPress = () => {
             Keyboard.dismiss();
-            // La nueva pantalla arranca en y=0: la barra debe verse y resetear
-            // su referencia de scroll.
-            reveal();
             // Navegamos SIEMPRE, sin guard. Antes el `if (!active)` dependía de
             // usePathname (que puede ir un frame atrasado) y "a veces no navegaba".
             // router.replace a la ruta actual es no-op visual en expo-router, así que
@@ -114,7 +87,7 @@ export function BottomTabBar({ variant = 'fondero' }: { variant?: 'foodie' | 'fo
           );
         })}
       </View>
-    </Animated.View>
+    </View>
   );
 }
 

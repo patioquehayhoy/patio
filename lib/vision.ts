@@ -5,13 +5,21 @@ import { supabase } from '@/lib/supabase';
 
 export interface MenuSeccion {
   nombre: string;
-  platillos: { nombre: string; descripcion: string; precio?: string }[];
+  platillos: {
+    nombre: string;
+    descripcion: string;
+    precio?: string;
+    confianza?: number;
+    requiereRevision?: boolean;
+    motivoRevision?: string;
+  }[];
   precioSeccion?: string;
 }
 
 export interface MenuVisualResult {
   secciones: MenuSeccion[];
   precio: string;
+  advertencias?: string[];
   error?: string;
 }
 
@@ -19,7 +27,14 @@ function isMenuVisualResult(value: unknown): value is MenuVisualResult {
   if (!value || typeof value !== 'object') return false;
   const result = value as Partial<MenuVisualResult>;
   return Array.isArray(result.secciones)
-    && (typeof result.precio === 'string' || typeof result.precio === 'undefined');
+    && result.secciones.every((section) =>
+      !!section
+      && typeof section.nombre === 'string'
+      && Array.isArray(section.platillos)
+      && section.platillos.every((dish) => !!dish && typeof dish.nombre === 'string')
+    )
+    && (typeof result.precio === 'string' || typeof result.precio === 'undefined')
+    && (typeof result.advertencias === 'undefined' || Array.isArray(result.advertencias));
 }
 
 export async function leerMenuDeFoto(imageUri: string): Promise<MenuVisualResult> {

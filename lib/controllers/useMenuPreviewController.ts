@@ -1,16 +1,16 @@
 import { router, useFocusEffect } from 'expo-router';
-import { useCallback, useRef, useState } from 'react';
-import { Alert, Platform, Share, type View } from 'react-native';
-import * as Sharing from 'expo-sharing';
-import { captureRef } from 'react-native-view-shot';
+import { useCallback, useState } from 'react';
+import { Share } from 'react-native';
 
+import { DEV_MY_PATIO_ID } from '@/lib/demo';
 import { getLatestLocalMenu } from '@/lib/menu-history';
 import { getFonditaName, getMenuData, type MenuData } from '@/lib/menu-store';
+import { getFonditaId } from '@/lib/user-store';
 
 export function useMenuPreviewController() {
   const [menuData, setMenuData] = useState<MenuData | null>(null);
   const [businessName, setBusinessName] = useState('Tu Patio');
-  const posterRef = useRef<View | null>(null);
+  const [patioId, setPatioId] = useState<string | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -23,6 +23,7 @@ export function useMenuPreviewController() {
         });
       }
       setBusinessName(getFonditaName() || 'Tu Patio');
+      setPatioId(getFonditaId() || (__DEV__ ? DEV_MY_PATIO_ID : null));
       return () => {
         active = false;
       };
@@ -40,26 +41,28 @@ export function useMenuPreviewController() {
     router.replace('/menu');
   }, []);
 
+  const handleOpenProfile = useCallback(() => {
+    if (!patioId) return;
+    router.push(`/patio/${patioId}` as any);
+  }, [patioId]);
+
   const handleShare = useCallback(async () => {
-    if (!posterRef.current) return;
-    try {
-      const uri = await captureRef(posterRef, { format: 'png', quality: 1, result: 'tmpfile' });
-      if (Platform.OS !== 'web' && (await Sharing.isAvailableAsync())) {
-        await Sharing.shareAsync(uri, { mimeType: 'image/png', dialogTitle: 'Compartir menú', UTI: 'public.png' });
-      } else {
-        await Share.share({ url: uri });
-      }
-    } catch {
-      Alert.alert('No se pudo compartir', 'Intentemos de nuevo.');
-    }
-  }, [posterRef]);
+    if (!patioId) return;
+    const url = `patio://patio/${patioId}`;
+    await Share.share({
+      title: `${businessName} en Patio`,
+      message: `${businessName}\nMira el menú publicado en Patio:\n${url}`,
+      url,
+    });
+  }, [businessName, patioId]);
 
   return {
     businessName,
     fecha,
     handleBack,
+    handleOpenProfile,
     handleShare,
-    posterRef,
+    patioId,
     priceLabel,
     sections,
   };

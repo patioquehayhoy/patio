@@ -1,5 +1,162 @@
 # HANDOFF
 
+## Sesión 2026-07-25 — reestructura panorámica tras revisión humana
+
+Alejandro calificó el corte como **“medio me gustó”** y pidió guardarlo completo.
+Esto significa que la dirección mejora y merece checkpoint, pero **no equivale a
+aprobación visual final**. La siguiente sesión debe partir de este commit y de su
+revisión en iPhone; no rehacer desde memoria ni presentar esta iteración como
+cerrada.
+
+Se corrigió la arquitectura de las secciones a partir del transcript, sin abrir
+el simulador porque Alejandro pidió reservarse la revisión visual:
+
+- Foodie queda en **Buscar / Lugares / Perfil**. “Actividad” dejó de ser una
+  tarjeta de contadores y ahora organiza guardados por categoría; cada categoría
+  puede activar o desactivar los Patios visibles en el mapa.
+- Fondero queda en **Menús / Actividad / Perfil**. Publicar ya no compite como
+  pestaña raíz: `Menú nuevo` abre un selector hijo con cámara, Fotos o escritura;
+  reutilizar vive en el historial.
+- Tocar un pin, resultado o fila abre directamente el perfil público. Se eliminó
+  el resumen intermedio redundante con otro nombre, metadatos y botón “Ver”.
+- La lista del mapa dejó de numerar negocios y presenta nombre, contexto,
+  dirección, horario y precio con menor peso visual.
+- La barra inferior permanece estable; se eliminó su encogimiento/ocultamiento
+  parcial al hacer scroll.
+- Publicar termina en **Ver en mi perfil** o **Compartir menú** con el share sheet
+  nativo, sin el doble salto obligatorio publicación → póster → perfil.
+- El perfil público evita repetir “Menú del día” y “Menú de hoy”, usa un marcador
+  de ubicación reconocible e incorpora campana junto a compartir/guardar.
+- Cuenta Foodie y Perfil Fondero exponen preferencias de notificación separadas.
+  Hoy son recordatorios locales; las suscripciones por Patio y los avisos por
+  publicación siguen necesitando backend.
+- Actividad Fondero eliminó la gran tarjeta de vistas/promedio/reseñas
+  sintéticas. Conserva la superficie de reseñas; los datos compartidos reales
+  continúan pendientes.
+
+Verificación deliberadamente limitada a `npm run typecheck`, `npm run lint` y
+`git diff --check`, todos verdes. **No hubo QA de simulador en este corte.**
+
+### Aprendido hoy
+
+1. En Patio, “panorámico” significa modificar jerarquía, destinos y continuidad
+   del flujo; no sumar botones o pestañas y después contabilizar el recorrido del
+   simulador como si fueran cambios de producto.
+2. Nunca cuantificar el trabajo por créditos, pantallas recorridas o tiempo de
+   revisión. El reporte debe enumerar únicamente cambios observables.
+3. Cuando Alejandro se reserva la revisión visual, implementar y verificar
+   estáticamente. No consumir el turno en simulador ni atribuir aprobación humana
+   inexistente.
+4. El perfil público es el destino canónico de interacción. Mapa, búsqueda,
+   compartir, notificaciones y publicación deben conducir a él sin fichas
+   duplicadas.
+5. No mostrar métricas sintéticas como propuesta de valor. Hasta tener eventos y
+   backend, es mejor una superficie honesta y vacía que números convincentes pero
+   falsos.
+
+## Sesión 2026-07-24 — implementación y QA del núcleo Patio
+
+Se ejecutó el bloque que antes estaba solo definido. Patio conserva la app
+existente y ahora organiza sus dos lados alrededor de una navegación estable:
+Foodie = Buscar/Actividad/Perfil; Fondero =
+Publicar/Menús/Actividad/Perfil. Historial dejó de competir con reseñas y las
+instrucciones persistentes se redujeron a estados o avisos contextuales.
+
+La lectura de foto quedó endurecida de punta a punta. `read-menu` corrige el
+contrato de precios, diferencia platillo de ingrediente/opción/variante, devuelve
+confianza y motivos de revisión y obliga salida por JSON Schema. La imagen se
+normaliza antes de enviarla, el runtime valida la respuesta y la revisión solo
+subraya dudas reales. Extracción y versión publicada se registran localmente para
+capturar correcciones. La Edge Function se desplegó en Supabase `lafondita`.
+
+El menú ya conserva la misma verdad en revisión, póster y perfil: secciones,
+descripciones, precio general y precios individuales. El póster es una única
+vista dentro de Patio, admite menús largos mediante scroll, abre el perfil y
+comparte `patio://patio/{id}`. No exporta imágenes ni ofrece formatos/impresión.
+La pantalla posterior a publicar confirma que el menú ya está visible y conduce
+al póster.
+
+El perfil público muestra menú vigente, guardar/compartir, calificación y la
+reseña/comentario local. Esto prueba la interacción, pero no pretende ser red
+multiusuario todavía: follows, reseñas compartidas, vistas agregadas y
+notificaciones de publicación siguen requiriendo tablas, RLS y entrega backend.
+
+QA del simulador iPhone 17 Pro:
+
+- `npm run typecheck`, `npm run lint` y `git diff --check`: verdes.
+- Maestro `14-photo-menu-e2e`: foto real → extracción → revisión → publicación →
+  póster, verde.
+- Maestro `15-published-poster-profile`: recompensa → póster → perfil con menú y
+  `$700`, verde.
+- Maestro `13-foodie-review-profile`: comentario → publicación → reseña visible
+  dentro del perfil, verde.
+- Recorrido visual verificado en Buscar, Actividad, Perfil, Publicar, Menús y
+  Actividad Fondero.
+
+Siguiente validación humana mínima: abrir la dev build en el iPhone y publicar
+una foto real de una de las primeras fonditas. Si ese recorrido se siente bien,
+el siguiente bloque ya no es rediseño: es backend social y cohorte Polanco.
+
+## Sesión 2026-07-24 — perfil, menú inteligente y póster
+
+Alejandro cerró la prioridad de producto en tres superficies inseparables:
+**perfil público, menú vivo y póster**. El perfil es la identidad y relación; el
+menú es el contenido estructurado; el póster es adquisición fuera de Patio y debe
+regresar al perfil mediante enlace o QR.
+
+La auditoría del flujo vigente encontró cinco riesgos principales: el prompt de
+`read-menu` contradice el contrato de precios; la respuesta se parsea como JSON
+libre; no hay tipos para ingrediente/variante/opción, confianza o evidencia; las
+correcciones no forman un conjunto de evaluación; y `preview.tsx` utiliza una sola
+composición fija. Además, la ficha pública descarta las descripciones al convertir
+el menú.
+
+Se creó `docs/MENU_INTELLIGENCE_AND_POSTER.md`. La decisión técnica es empezar por
+contrato, salida estructurada, ontología, validadores y revisión dirigida. El uso
+no entrena automáticamente el modelo. Los vectores llegan para búsqueda
+semántica, ejemplos similares y recomendaciones; no determinan la verdad del
+menú.
+
+El benchmark cambió la hipótesis económica. Perfil + menú vigente + póster canónico
+permanecen gratis. La suscripción se prueba en $49/$99/$149 MXN al mes y la
+hipótesis principal pasa a $99/mes o $990/año. Patio diversifica por etapas con
+consumo IA, promoción local etiquetada, servicios de puesta en marcha y comisión
+únicamente cuando exista una transacción real. Los fundadores reciben seis meses
+de funciones completas.
+
+Corrección posterior de Alejandro: el póster es una sola vista que vive en Patio.
+No hay formatos por canal ni impresión en el MVP; compartir abre el mismo menú.
+Las fotos también salen del camino crítico: primero identidad + menú y, después,
+fotografía opcional, contextual y curada.
+
+Este bloque quedó ejecutado y probado en la sesión posterior de la misma fecha.
+
+## Sesión 2026-07-24 — definición de red, cold start y monetización
+
+Alejandro confirmó por transcript que Patio se conserva y se termina mediante
+cambios estructurales por sección. Onboarding, avisos iniciales y alta del negocio
+quedan aprobados. La ficha pública evoluciona a perfil canónico tipo Instagram:
+identidad estable, menú vigente, menús visibles, seguir/guardar, reseñas y
+actividad. El mapa es descubrimiento; el perfil es la relación.
+
+Se creó `docs/NETWORK_COLD_START_AND_MONETIZATION.md` como fuente de verdad. La
+estrategia adopta `The Cold Start Problem` como ley de crecimiento: lado difícil =
+negocios que publican, primera red atómica = diez negocios en una microzona
+alrededor de Polanco, incorporación manual, QR/enlaces a clientes habituales y
+expansión solo después de densidad real.
+
+Decisiones económicas: el núcleo que alimenta la red permanece gratis. La
+hipótesis de precio y mezcla de ingresos fue refinada en el corte posterior de
+esta misma fecha. Las estadísticas avanzadas, automatización, IA y presentación
+pagan; publicar, seguir y avisar a seguidores permanecen gratis.
+“Quién vio tu perfil” se resuelve con datos agregados y seguidores, nunca con una
+lista de visitantes. Un futuro alcance pagado a no seguidores debe ser local,
+limitado y etiquetado como Promocionado; en iOS usaría In-App Purchase.
+
+No hubo cambios de producto ejecutable en esta sesión. Orden acordado para el
+siguiente bloque: navegación → perfil público → persistencia social →
+Actividad/notificaciones → medición → suscripción.
+
 ## Sesión 2026-07-24 — bug "no puedo entrar" en TestFlight + rediseño email magic link
 
 Alejandro reportó que en el build 47 de TestFlight, el botón "Entrar a Patio"

@@ -1,0 +1,24 @@
+appId: com.parcomx.patio
+---
+- launchApp
+- openLink: "patio://foto-menu?source=library"
+- tapOn:
+    text: "Foto, 11-mayo.*"
+- extendedWaitUntil:
+    visible: "¿Así queda?"
+    timeout: 60000
+- assertVisible: "Caldo o Sopa"
+- assertVisible: "Arroz o Pasta"
+- assertVisible: "Filete de pescado"
+- scrollUntilVisible:
+    element:
+      text: "Publicar menú"
+    direction: DOWN
+- tapOn: "Publicar menú"
+- extendedWaitUntil:
+    visible: "Tu menú está vivo."
+    timeout: 20000
+- tapOn: "Abrir menú publicado"
+- assertVisible: "Menú publicado"
+- assertVisible: "Caldo o Sopa"
+- takeScreenshot: maestro/screenshots/14-photo-menu-e2e

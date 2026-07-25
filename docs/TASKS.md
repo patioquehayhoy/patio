@@ -1,11 +1,89 @@
 # TASKS — Cola de trabajo para agentes
 
-> Última actualización: 2026-07-24.
+> Última actualización: 2026-07-25.
 > Estado: `[ ]` pendiente | `[x]` hecho | `[~]` en progreso.
 
 > Las entradas Patio Smart v1–v6 registran iteraciones históricas y no son una
 > especificación vigente. El flujo canónico es v7 y vive en
 > `docs/PATIO_SYSTEM_MAP.md`.
+
+## CICLO 2026-07-25 — reestructura panorámica por transcript
+
+- [x] Foodie reorganizado en Buscar/Lugares/Perfil.
+- [x] Fondero reorganizado en Menús/Actividad/Perfil; publicar pasó a ser una
+  acción hija de Menús.
+- [x] Eliminada ficha intermedia del mapa; pin, fila y resultado abren perfil.
+- [x] Lista del mapa sin numeración, con información útil y precio discreto.
+- [x] Guardados agrupados por categoría con filtro persistente del mapa.
+- [x] Barra inferior estable, sin ocultamiento parcial al hacer scroll.
+- [x] Publicación termina en perfil público o compartir nativo.
+- [x] Preferencias locales de notificación separadas para Foodie y Fondero.
+- [x] Eliminada tarjeta grande de métricas sintéticas en Actividad Fondero.
+- [x] TypeScript, ESLint y diff check verdes.
+- [ ] **QA humano del checkpoint:** Alejandro lo calificó “medio me gustó” y
+  revisará la interacción visual en iPhone. Registrar problemas concretos antes
+  de otra ronda.
+- [ ] **Backend social mínimo:** follows/suscripciones por Patio, push por
+  publicación, reseñas compartidas y vistas agregadas reales.
+
+## CICLO 2026-07-24 — perfil + menú vivo + póster
+
+- [x] **Núcleo definido:** perfil público → menú vigente → póster → regreso
+  medible al perfil.
+- [x] **Auditoría de lectura actual:** detectada contradicción entre prompt y
+  contrato de precio, parsing libre, ausencia de tipos/confianza/evidencia y falta
+  de captura de correcciones.
+- [x] **Fuente técnica nueva:**
+  `docs/MENU_INTELLIGENCE_AND_POSTER.md` define ontología, pipeline, revisión,
+  evaluación, papel de vectores y sistema adaptable de póster.
+- [x] **Benchmark de monetización:** el núcleo permanece gratis; hipótesis
+  principal de suscripción = $99 MXN/mes o $990/año, con pruebas de $49/$99/$149.
+  Ingresos futuros incluyen IA por consumo, promoción local, servicios y comisión
+  sobre transacción real.
+- [x] **Contrato de extracción v2:** corregir precio y definir entidades,
+  relaciones, confianza, evidencia y razones de revisión.
+- [x] **Salida estructurada:** migrar `read-menu` a JSON Schema y añadir
+  validadores determinísticos.
+- [~] **Datos de mejora:** ya se guarda localmente extracción, versión aprobada,
+  advertencias y corrección; falta persistencia central de modelo/prompt, tipo de
+  error y tiempo de revisión.
+- [x] **Perfil fiel:** conservar descripción, variantes, disponibilidad y señal de
+  vigencia en `app/patio/[id].tsx`.
+- [x] **Póster canónico:** una sola vista dentro de Patio, legible con menús
+  cortos y largos, enlace compartible y atribución. Sin formatos ni impresión MVP.
+- [x] **Fotos fuera del camino crítico:** perfil y publicación requieren identidad
+  + menú; la fotografía será posterior, opcional, contextual y curada.
+- [ ] **Evaluación:** construir conjunto real de los primeros negocios y medir
+  entidad, precio, secciones, pérdida de texto y tiempo hasta publicar.
+
+## CICLO 2026-07-24 — perfil público, red atómica y monetización
+
+- [x] **Decisión de producto:** conservar la app y terminarla por secciones.
+  Onboarding, avisos iniciales y alta del negocio permanecen como base aprobada.
+- [x] **Fuente de verdad nueva:**
+  `docs/NETWORK_COLD_START_AND_MONETIZATION.md` define perfil público, seguimiento,
+  menús visibles, reseñas, notificaciones, primera red atómica y suscripción.
+- [x] **Bucle mínimo acordado:** perfil → seguir → publicar → avisar → regresar →
+  medir → volver a publicar.
+- [x] **Contradicciones cerradas:** publicación y avisos a seguidores gratuitos;
+  métricas de visitantes agregadas; comentarios después de moderación; promoción
+  pagada futura local, limitada y etiquetada.
+- [x] **Arquitectura de navegación:** aterrizada y refinada el 2026-07-25; ver
+  ciclo superior para los destinos vigentes.
+- [~] **Perfil público canónico:** ya muestra menú vigente fiel, precio general,
+  descripciones, guardar/compartir, calificar y reseña local; faltan versiones
+  públicas anteriores, seguimiento y reseñas compartidas por backend.
+- [ ] **Modelo de datos social:** diseñar migraciones y RLS para follows, vistas,
+  reseñas, visibilidad/versiones de menú y preferencias/entregas de avisos.
+- [~] **Actividad:** ya existen superficies raíz para ambos lados; falta reemplazar
+  estadísticas sintéticas/locales por backend real.
+- [ ] **Notificaciones de red:** publicación → seguidores, con consentimiento,
+  deduplicación, límite de frecuencia y baja.
+- [ ] **Instrumentación:** medir tiempo a primera publicación/interacción,
+  negocios activos, conexiones, densidad por microzona y retorno.
+- [ ] **Monetización:** validar $49/$99/$149 con la cohorte antes de implementar
+  StoreKit/entitlements. Hipótesis principal: $99 MXN/mes o $990/año; fundadores
+  reciben seis meses de funciones completas.
 
 ## CICLO 2026-07-24 — bug botón "Entrar a Patio" en TestFlight + email magic link
 

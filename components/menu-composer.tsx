@@ -57,7 +57,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
     setDayPrice,
     toggleCollapsed,
     toggleSectionActions,
-  } = useFonderoMenuDraftController(initialData);
+  } = useFonderoMenuDraftController(initialData, source);
 
   // La explicación del modelo de precio se muestra UNA vez (onboarding suave);
   // después el campo habla solo.
@@ -207,6 +207,12 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                       const showDetails = details[dish.id] || !!dish.descripcion || !!dish.precio;
                       return (
                         <View key={dish.id} style={[s.dish, dishIndex > 0 && s.dishDivider]}>
+                          {!!dish.revision && (
+                            <View style={s.reviewNote}>
+                              <Ionicons name="alert-circle-outline" size={13} color={c.accent} />
+                              <Text style={s.reviewNoteText}>{dish.revision}</Text>
+                            </View>
+                          )}
                           <View style={s.dishMainRow}>
                             <TextInput
                               ref={registerInput(`n-${dish.id}`)}
@@ -376,6 +382,8 @@ function makeStyles(c: FonderoColors) {
     currency: { fontSize: 13, color: c.textMute },
     dish: { paddingVertical: 7, paddingLeft: 30 },
     dishDivider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: c.border },
+    reviewNote: { marginBottom: 3, flexDirection: 'row', alignItems: 'center', gap: 5 },
+    reviewNoteText: { flex: 1, fontSize: 11, lineHeight: 15, fontWeight: '500', color: c.accent },
     dishMainRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
     dishName: { flex: 1, paddingVertical: 3, fontSize: 17, lineHeight: 22, fontWeight: '600', color: c.text },
     removeDish: { width: 30, height: 30, alignItems: 'flex-end', justifyContent: 'center' },

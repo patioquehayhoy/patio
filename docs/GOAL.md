@@ -32,6 +32,40 @@ Construir una app móvil (Patio) para negocios de comida y personas que buscan c
 1. Herramientas simples para que un negocio publique perfil, ubicación, horario y menú.
 2. Una experiencia de descubrimiento para que una persona encuentre dónde comer con poca fricción.
 
+## Núcleo de producto
+
+Patio se termina alrededor de una tríada:
+
+```txt
+perfil público → menú vivo → póster → regreso al perfil
+```
+
+- El **perfil** es la identidad estable y el lugar donde vive la relación.
+- El **menú** es el contenido vigente, estructurado y compartido por todo el
+  producto.
+- El **póster** es la expresión canónica del menú publicado dentro de Patio.
+  Compartir distribuye su enlace y devuelve a las personas al mismo perfil.
+
+La extracción, estructura, revisión y aprendizaje del menú se especifican en
+`docs/MENU_INTELLIGENCE_AND_POSTER.md`.
+
+## Filosofía de red y arranque
+
+`The Cold Start Problem`, de Andrew Chen, es la ley de crecimiento de Patio.
+La estrategia completa vive en `docs/NETWORK_COLD_START_AND_MONETIZATION.md`.
+
+- La unidad de la red es el perfil público de cada Patio.
+- El mapa descubre; el perfil concentra menú vigente, menús visibles, seguimiento,
+  reseñas y actividad.
+- El lado difícil son los negocios que crean y mantienen la oferta.
+- La primera red atómica se construye en una microzona densa alrededor de Polanco
+  con diez negocios incorporados personalmente.
+- Publicar, seguir y avisar a seguidores forman el bucle gratuito esencial.
+- La monetización llega después de demostrar recurrencia y combina suscripción,
+  consumo de IA, promoción medible, servicios y transacción real por etapas.
+- Perfil, menú vigente y póster canónico permanecen gratis porque forman la oferta y
+  distribución que la red necesita.
+
 El acceso de negocio debe existir sin contaminar la experiencia principal de exploración. Filosofía tipo Uber: la persona que busca comida no necesita ver ni entender el modo operador; quien tiene negocio encuentra una entrada discreta para registrar o administrar su Patio.
 
 ## Objetivo técnico actual
@@ -41,13 +75,16 @@ El MVP ya tiene el esqueleto funcional de ambos lados:
 2. **Fondero:** login por magic link, perfil de negocio, ubicación GPS/lat-lng, creación/edición de menú, guardado en Supabase, preview/share y publicación visible para Foodie.
 3. **Datos reales:** `fonditas`, `menus` y `cartas` conectan Fondero -> Foodie; favoritos y fallback de fonditas reales ya leen Supabase.
 
-El objetivo inmediato ya no es crear esas piezas, sino **cerrar QA y preparar rediseño visual sin romper flujo**:
+El objetivo inmediato es **validar el núcleo 1.0 con la primera red atómica y
+conectar la interacción a datos compartidos**:
 
-1. Verificar build/dispositivo real: magic link, cámara/galería, ubicación GPS y flujo Fondero -> Foodie.
-2. Auditar visualmente Foodie contra `docs/design/VISUAL_SYSTEM.md`, empezando por `app/explorar.tsx` y `app/patio/[id].tsx`.
-3. Entregar a Claude Design screenshots + flujo escrito como contrato, no como referencia estética.
-4. Mantener `/buscar` fuera del MVP visible; la búsqueda vive dentro de `/explorar`.
-5. Decidir si `/share` sigue existiendo como ruta separada o si `preview` cubre por completo la tarea de compartir.
+1. Probar en iPhone foto real → revisión → publicación → póster → perfil.
+2. Incorporar personalmente los primeros diez negocios de la microzona Polanco.
+3. Medir tiempo a primera publicación, retorno y conexiones por negocio.
+4. Implementar el backend social mínimo para follows, reseñas, vistas agregadas,
+   versiones visibles y avisos.
+5. Mantener gratis perfil, menú vigente, póster y avisos que alimentan la red;
+   validar disposición de pago antes de implementar suscripción.
 
 ## Criterio de éxito de corto plazo
 Un fondero puede entrar, configurar su negocio, marcar ubicación, publicar menú y ver ese menú reflejado en la ficha Foodie sin pérdida de datos.
@@ -78,8 +115,10 @@ El mapa no es un directorio georeferenciado. Es la respuesta visual a la pregunt
 
 - El estado neutro del mapa es un campo abierto de puntos iguales — sin jerarquía impuesta, sin selección por defecto.
 - La búsqueda colapsa el problema de zoom: escribir "mole" filtra pins directamente, sin necesidad de navegar niveles del mapa.
-- La selección es siempre un acto explícito del usuario. El sistema no pre-selecciona ni asume intención.
-- El header de detalle de un lugar aparece solo cuando el usuario toca un pin o una fila — nunca como consecuencia de búsqueda automática.
+- La selección es siempre un acto explícito del usuario. El sistema no
+  preselecciona ni asume intención.
+- Tocar un pin, resultado o fila abre el perfil público canónico. El mapa no
+  intercala otra ficha con la misma identidad y un botón “Ver”.
 
 ### Escala progresiva (MVP → producción)
 1. **Viewport filtering** (inmediato): renderizar solo los patios visibles en la región actual del mapa. Costo mínimo, escalabilidad a miles de pins.

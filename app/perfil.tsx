@@ -13,6 +13,7 @@ import {
   getFonditaName,
   getMenuData,
 } from '@/lib/menu-store';
+import { getNotifPrefs, setFonderoAvisos } from '@/lib/notifications';
 import { supabase } from '@/lib/supabase';
 import { Fonts, useTheme } from '@/lib/theme';
 import { useTabBarScroll } from '@/lib/tab-bar-visibility';
@@ -42,11 +43,13 @@ export default function PerfilScreen() {
   const [name, setName] = useState('');
   const [address, setAddress] = useState('');
   const [hasMenu, setHasMenu] = useState(false);
+  const [notificationsOn, setNotificationsOn] = useState(false);
 
   useFocusEffect(useCallback(() => {
     setName(getFonditaName());
     setAddress(getFonditaDireccion());
     setHasMenu(!!getMenuData()?.secciones.some(section => section.platillos.some(dish => dish.nombre.trim())));
+    getNotifPrefs().then((prefs) => setNotificationsOn(prefs.fondero));
   }, []));
 
   const signOut = async () => {
@@ -88,16 +91,22 @@ export default function PerfilScreen() {
             botonzote — editar el negocio es una acción ocasional, no LA
             acción. */}
         <SettingsGroup c={sc} label="Negocio">
-          <SettingsRow c={sc} icon="restaurant-outline" title="Publicar menú" onPress={() => router.replace('/menu')} />
-          <SettingsRow c={sc} icon="create-outline" title="Editar mi negocio" sub={address || undefined} divider onPress={() => router.push('/perfil-editar')} />
-          <SettingsRow c={sc} icon="star-outline" title="Reseñas" divider onPress={() => router.push('/resenas' as any)} />
+          <SettingsRow c={sc} icon="create-outline" title="Editar mi negocio" sub={address || undefined} onPress={() => router.push('/perfil-editar')} />
         </SettingsGroup>
 
         <SettingsGroup c={sc} label="Preferencias">
           <SettingsRow
             c={sc}
+            icon="notifications-outline"
+            title="Notificaciones"
+            sub="Avisos sobre tu menú y tu Patio"
+            trailing={<ToggleSwitch value={notificationsOn} onValueChange={async (value) => setNotificationsOn(await setFonderoAvisos(value))} activeColor={c.accent} />}
+          />
+          <SettingsRow
+            c={sc}
             icon="moon-outline"
             title="Modo oscuro"
+            divider
             trailing={<ToggleSwitch value={theme.isDark} onValueChange={toggleTheme} activeColor={c.accent} />}
           />
         </SettingsGroup>

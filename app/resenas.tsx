@@ -1,13 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
-import { router, Stack } from 'expo-router';
+import { Stack } from 'expo-router';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { GlassIconButton } from '@/components/glass-button';
+import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { useMenuHistoryController } from '@/lib/controllers/useMenuHistoryController';
 import { fonderoPalette } from '@/lib/fondero-palette';
 import { getFonditaId, getFonditaName } from '@/lib/menu-store';
 import { getDemoPatioStats } from '@/lib/patio-stats';
+import { useTabBarScroll } from '@/lib/tab-bar-visibility';
 import { Fonts, useTheme } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
 
@@ -16,6 +17,7 @@ export default function ResenasScreen() {
   const { theme } = useTheme();
   const c = fonderoPalette(theme.isDark);
   const { menus } = useMenuHistoryController();
+  const { onScroll } = useTabBarScroll();
 
   // Sin backend real todavía (ver docs/TASKS.md ciclo 2026-07-23): sintético
   // y solo en __DEV__, visible cuando ya publicó al menos un menú antes.
@@ -24,36 +26,14 @@ export default function ResenasScreen() {
   return (
     <View style={[s.root, { backgroundColor: c.bg, paddingTop: insets.top }]}>
       <Stack.Screen options={{ headerShown: false }} />
-      <View style={{ marginLeft: 14, marginTop: 4, marginBottom: 4 }}>
-        <GlassIconButton icon="chevron-back" accessibilityLabel="Volver" onPress={() => router.back()} size={38} iconSize={19} />
-      </View>
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: insets.bottom + 40 }} showsVerticalScrollIndicator={false}>
+      <ScrollView onScroll={onScroll} scrollEventThrottle={16} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 24, paddingBottom: insets.bottom + 130 }} showsVerticalScrollIndicator={false}>
         <Text style={[s.eyebrow, { color: c.accent }]}>MI PATIO</Text>
-        <Text style={[s.title, { color: c.text }]}>Reseñas</Text>
-        <Text style={[s.subtitle, { color: c.textSecondary }]}>{noWidow('Lo que dice la gente que te visita.')}</Text>
+        <Text style={[s.title, { color: c.text }]}>Actividad</Text>
+        <Text style={[s.subtitle, { color: c.textSecondary }]}>{noWidow('Cómo responde la gente a lo que publicas.')}</Text>
 
         {stats ? (
           <>
-            <View style={[s.statsCard, { borderColor: c.border, backgroundColor: c.surface }]}>
-              <View style={s.statsRow}>
-                <View style={s.statCol}>
-                  <Text style={[s.statNum, { color: c.text }]}>{stats.views}</Text>
-                  <Text style={[s.statLabel, { color: c.textSecondary }]}>VISTAS</Text>
-                </View>
-                <View style={[s.statDivider, { backgroundColor: c.border }]} />
-                <View style={s.statCol}>
-                  <Text style={[s.statNum, { color: c.text }]}>{stats.ratingAvg}</Text>
-                  <Text style={[s.statLabel, { color: c.textSecondary }]}>PROMEDIO</Text>
-                </View>
-                <View style={[s.statDivider, { backgroundColor: c.border }]} />
-                <View style={s.statCol}>
-                  <Text style={[s.statNum, { color: c.text }]}>{stats.ratingCount}</Text>
-                  <Text style={[s.statLabel, { color: c.textSecondary }]}>RESEÑAS</Text>
-                </View>
-              </View>
-            </View>
-
-            <Text style={[s.sectionLabel, { color: c.textMute }]}>LO MÁS RECIENTE</Text>
+            <Text style={[s.sectionLabel, { color: c.textMute }]}>RESEÑAS RECIENTES</Text>
             <View style={[s.list, { borderColor: c.border }]}>
               {stats.reviews.map((review, index) => (
                 <View
@@ -89,11 +69,12 @@ export default function ResenasScreen() {
             <Ionicons name="chatbubble-ellipses-outline" size={28} color={c.textMute} />
             <Text style={[s.emptyTitle, { color: c.text }]}>Aún no hay nada que mostrar</Text>
             <Text style={[s.emptyBody, { color: c.textSecondary }]}>
-              {noWidow('En cuanto publiques y la gente te visite, aquí verás cuántos te vieron y qué opinan.')}
+              {noWidow('Cuando alguien deje una reseña en tu perfil, aparecerá aquí.')}
             </Text>
           </View>
         )}
       </ScrollView>
+      <BottomTabBar variant="fondero" />
     </View>
   );
 }
@@ -103,13 +84,6 @@ const s = StyleSheet.create({
   eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.5, marginBottom: 8 },
   title: { fontSize: 34, lineHeight: 37, fontWeight: '900', letterSpacing: -1.2, fontFamily: Fonts.brand },
   subtitle: { marginTop: 8, fontSize: 14, lineHeight: 20 },
-
-  statsCard: { marginTop: 24, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
-  statsRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 18, paddingHorizontal: 14 },
-  statCol: { flex: 1, alignItems: 'center' },
-  statNum: { fontSize: 22, fontWeight: '900', letterSpacing: -0.6, fontFamily: Fonts.brand },
-  statLabel: { marginTop: 4, fontSize: 10, fontWeight: '300', letterSpacing: 0.4 },
-  statDivider: { width: StyleSheet.hairlineWidth, alignSelf: 'stretch', marginVertical: 4 },
 
   sectionLabel: { marginTop: 28, marginBottom: 8, fontSize: 11, fontWeight: '700', letterSpacing: 1.6, textTransform: 'uppercase' },
   list: { borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },

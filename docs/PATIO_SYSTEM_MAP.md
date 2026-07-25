@@ -80,7 +80,21 @@ en una rama superior.
 
 **Promesa:** saber qué hay hoy cerca y permitir publicarlo en segundos.
 
-**Fuente:** `docs/GOAL.md`.
+**Navegación vigente (2026-07-25):**
+
+```txt
+Foodie:   Buscar → Lugares → Perfil
+Fondero:  Menús → Actividad → Perfil
+```
+
+Publicar es una acción dentro de Menús. El perfil público es el destino canónico
+desde mapa, búsqueda, compartir y publicación; no existe una ficha intermedia.
+
+**Fuentes:**
+
+1. `docs/GOAL.md`;
+2. `docs/NETWORK_COLD_START_AND_MONETIZATION.md` para red, crecimiento y cobro.
+3. `docs/MENU_INTELLIGENCE_AND_POSTER.md` para el núcleo perfil, menú y póster.
 
 **Límites:** Patio no incorpora delivery, pedidos, reservas o marketplace dentro del
 núcleo. Nuevas ideas pasan por `docs/PRODUCT_EVOLUTION_ROADMAP_2026-07-18.md`.
@@ -128,7 +142,8 @@ de producción.
 
 ```txt
 Entrada → onboarding/rol → Explorar → búsqueda/mapa
-→ detalle → guardar/reseñar/compartir/abrir mapas → Cuenta
+→ perfil público → menú vivo
+→ guardar/seguir/reseñar/compartir/abrir mapas → Actividad/Cuenta
 ```
 
 ### Quien publica
@@ -139,7 +154,8 @@ Acceso → perfil del negocio → Hoy
 ├── Fotos
 ├── captura manual
 └── historial
-→ revisión → publicar → póster/compartir
+→ extracción estructurada → revisión dirigida → publicar
+→ perfil público + póster canónico/compartir enlace
 ```
 
 Las acciones principales viven cerca del pulgar; destinos raíz viven en tab bar;
@@ -263,5 +279,6 @@ solicitar autorización explícita.
 ¿Dónde implementarlo?           → ARCHITECTURE
 ¿Está listo para personas?      → PATIO_SYSTEM_MAP / gates
 ¿Qué sigue después del MVP?     → PRODUCT_EVOLUTION_ROADMAP
+¿Cómo crece y cuándo cobra?     → NETWORK_COLD_START_AND_MONETIZATION
 ¿Cuál es el estado de hoy?      → HANDOFF + STATE + TASKS
 ```

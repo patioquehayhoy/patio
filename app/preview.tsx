@@ -8,10 +8,8 @@ import { Fonts, useTheme } from '@/lib/theme';
 import { fonderoPalette, type FonderoColors } from '@/lib/fondero-palette';
 import { GlassIconButton } from '@/components/glass-button';
 
-// MenuPoster exacto a Figma: tarjeta vertical de marca que se comparte como imagen.
-// El PÓSTER (tarjeta blanca) es SIEMPRE claro — es una imagen de marca que se
-// comparte, no debe cambiar con el tema. Solo el chrome (fondo, top bar, hint)
-// sigue el tema claro/oscuro de la app.
+// Vista canónica del menú publicado. Vive dentro de Patio y siempre conserva la
+// misma identidad; compartir distribuye un enlace a esta publicación.
 const LIGHT = { bg: '#F8F8F5', card: '#FFFFFF', ink: '#111214', inkSoft: '#4A4A47', mute: '#8A8A85', sep: 'rgba(17,18,20,0.06)', accent: '#F2612F' };
 
 export default function PreviewScreen() {
@@ -19,7 +17,7 @@ export default function PreviewScreen() {
   const { theme } = useTheme();
   const c = fonderoPalette(theme.isDark);
   const s = makeStyles(c);
-  const { businessName, fecha, handleBack, handleShare, posterRef, priceLabel, sections } = useMenuPreviewController();
+  const { businessName, fecha, handleBack, handleOpenProfile, handleShare, patioId, priceLabel, sections } = useMenuPreviewController();
 
   if (sections.length === 0) {
     return (
@@ -29,7 +27,7 @@ export default function PreviewScreen() {
           <Ionicons name="receipt-outline" size={28} color={c.accent} />
         </View>
         <Text style={s.emptyTitle}>Primero publica lo de hoy</Text>
-        <Text style={s.emptyBody}>Cuando tu menú esté listo, aquí aparecerá el póster para compartirlo.</Text>
+        <Text style={s.emptyBody}>Cuando tu menú esté listo, aquí aparecerá publicado.</Text>
         <TouchableOpacity style={s.emptyButton} onPress={() => router.replace('/menu')} activeOpacity={0.84}>
           <Text style={s.emptyButtonText}>Crear menú</Text>
         </TouchableOpacity>
@@ -44,13 +42,13 @@ export default function PreviewScreen() {
       {/* Top bar */}
       <View style={[s.top, { top: insets.top + 6 }]}>
         <GlassIconButton icon="chevron-back" accessibilityLabel="Volver" onPress={handleBack} />
-        <Text style={s.topTitle} allowFontScaling={true}>Compartir</Text>
+        <Text style={s.topTitle} allowFontScaling={true}>Menú publicado</Text>
         <View style={s.navBtn} />
       </View>
 
       {/* Póster editorial, scrolleable si el menú real es largo. */}
       <ScrollView contentContainerStyle={[s.posterWrap, { paddingTop: insets.top + 74, paddingBottom: insets.bottom + 132 }]} showsVerticalScrollIndicator={false}>
-        <View ref={posterRef} collapsable={false} style={s.poster}>
+        <View style={s.poster}>
           {/* Header editorial: fecha y nombre a la izquierda, precio del día
               arriba a la derecha. La marca vive abajo, sutil. */}
           <View style={s.posterHead}>
@@ -87,13 +85,17 @@ export default function PreviewScreen() {
         </View>
       </ScrollView>
 
-      {/* CTA compartir */}
+      {/* El resultado vive en Patio. Abrir perfil es la acción principal;
+          compartir solo distribuye el enlace a esta misma publicación. */}
       <View style={[s.ctaWrap, { paddingBottom: (insets.bottom || 10) + 24 }]}>
-        <TouchableOpacity style={s.cta} onPress={handleShare} activeOpacity={0.86}>
-          <Ionicons name="logo-whatsapp" size={18} color="#fff" />
-          <Text style={s.ctaText} allowFontScaling={true}>Compartir en WhatsApp</Text>
+        <TouchableOpacity style={s.cta} onPress={handleOpenProfile} disabled={!patioId} activeOpacity={0.86}>
+          <Ionicons name="person-circle-outline" size={18} color={c.bg} />
+          <Text style={[s.ctaText, { color: c.bg }]} allowFontScaling={true}>Ver en mi perfil</Text>
         </TouchableOpacity>
-        <Text style={s.ctaHint} allowFontScaling={true}>Se manda como imagen, lista para reenviar</Text>
+        <TouchableOpacity style={s.shareLink} onPress={handleShare} disabled={!patioId} activeOpacity={0.72}>
+          <Ionicons name="share-outline" size={16} color={c.textSecondary} />
+          <Text style={[s.shareLinkText, { color: c.textSecondary }]} allowFontScaling={true}>Compartir enlace</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -138,8 +140,9 @@ function makeStyles(c: FonderoColors) {
   posterSign: { textAlign: 'center', fontSize: 11, fontWeight: '300', letterSpacing: 0.4, color: LIGHT.mute },
 
   ctaWrap: { paddingHorizontal: 22, paddingTop: 12 },
-  cta: { height: 56, borderRadius: 18, backgroundColor: '#25D366', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
-  ctaText: { fontSize: 16, fontWeight: '700', color: '#fff', letterSpacing: -0.2 },
-  ctaHint: { marginTop: 10, fontSize: 11.5, fontWeight: '300', color: c.textMute, textAlign: 'center' },
+  cta: { height: 56, borderRadius: 18, backgroundColor: c.text, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  ctaText: { fontSize: 16, fontWeight: '700', letterSpacing: -0.2 },
+  shareLink: { minHeight: 44, marginTop: 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7 },
+  shareLinkText: { fontSize: 13.5, fontWeight: '500' },
   });
 }

@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CollapsingHeader, CollapsingTitle } from '@/components/collapsing-header';
 import { todayDish } from '@/lib/controllers/patioListHelpers';
 import { useViewedPatiosController } from '@/lib/controllers/useViewedPatiosController';
+import { publicPrice } from '@/lib/prices';
 import { Fonts, Radius, useTheme, type Theme } from '@/lib/theme';
 
 const OPEN_GREEN = '#1F9D55';
@@ -81,7 +82,7 @@ export default function VistosScreen() {
       <CollapsingHeader
         scrollY={scrollY}
         c={theme}
-        onBack={() => router.back()}
+        onBack={() => router.replace('/actividad')}
         title="Lo que viste"
       />
 
@@ -140,7 +141,9 @@ export default function VistosScreen() {
                         <Ionicons name="location-outline" size={11} color={theme.textSecondary} />
                         <Text style={s.metaAreaText} numberOfLines={1} allowFontScaling={true}>{patio.area}</Text>
                       </View>
-                      {hasMenu ? <Text style={s.price} allowFontScaling={true}>{patio.price}</Text> : null}
+                      {hasMenu && publicPrice(patio.price) ? (
+                        <Text style={s.price} allowFontScaling={true}>{publicPrice(patio.price)}</Text>
+                      ) : null}
                     </View>
                   </View>
                 </TouchableOpacity>

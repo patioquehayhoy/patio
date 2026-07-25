@@ -31,6 +31,9 @@ function normalizeResult(value: unknown) {
             nombre: text(entry.nombre),
             descripcion: text(entry.descripcion),
             precio: text(entry.precio),
+            confianza: typeof entry.confianza === 'number' ? entry.confianza : 0,
+            requiereRevision: entry.requiereRevision === true,
+            motivoRevision: text(entry.motivoRevision),
           };
         }).filter((dish) => dish.nombre.trim()),
         precioSeccion: text(item.precioSeccion),
@@ -39,6 +42,9 @@ function normalizeResult(value: unknown) {
     // El modelo suele omitir precio cuando no existe un precio único. El contrato
     // móvil siempre recibe string para que una lectura válida no se descarte.
     precio: text(raw.precio),
+    advertencias: Array.isArray(raw.advertencias)
+      ? raw.advertencias.filter((warning): warning is string => typeof warning === 'string')
+      : [],
   };
 }
 
@@ -49,12 +55,60 @@ REGLA FLEXIBILIDAD: Un negocio puede vender un único especial ese día. En ese 
 
 REGLA SECCIONES: Respeta los encabezados visibles. Si no hay encabezados claros, agrupa con nombres simples como "MENÚ DE HOY", "EXTRAS" o "BEBIDAS".
 
-REGLA AGRUPACIÓN: Variantes del mismo platillo van en un solo item. No repitas el mismo platillo.
+REGLA ENTIDAD: Un platillo es algo que una persona puede pedir. Un ingrediente, acompañamiento, tamaño, opción o nota nunca es un platillo independiente, salvo que la imagen lo venda por separado.
 
-REGLA PRECIO: Si hay precio único ponlo en "precio". Si una sección tiene precio común usa "precioSeccion". Los precios propios de platillos van en la descripción.
+REGLA AGRUPACIÓN: Ingredientes, acompañamientos, opciones y variantes pertenecen a la descripción del platillo. No repitas el mismo platillo. Si una variante tiene precio propio, conserva ese precio en la descripción del platillo padre.
 
-Responde SOLO con JSON válido:
-{"secciones":[{"nombre":"MENÚ DE HOY","platillos":[{"nombre":"Sopa","descripcion":"De fideo o verduras"}],"precioSeccion":"$95"}],"precio":"$95"}`;
+REGLA PRECIO: Si todo el menú tiene un precio único, ponlo en "precio". Si una sección tiene precio común, usa "precioSeccion". Si un platillo tiene precio propio, ponlo exclusivamente en "platillo.precio". Nunca escondas un precio en la descripción. Cuando exista un precio general o de sección, no marques para revisión un platillo solo porque no tenga precio individual: se entiende incluido. Textos como "Carta" o "a la carta" sí distinguen platillos independientes y deben conservarse en la descripción.
+
+REGLA DUDA: Marca "requiereRevision" cuando no sea claro si un texto es platillo, ingrediente, opción o precio. Explica la duda brevemente en "motivoRevision" y agrega una advertencia general. La confianza va de 0 a 1 y debe ser conservadora.
+
+Mantén vacíos los campos que no aparezcan.`;
+
+const MENU_SCHEMA = {
+  type: 'object',
+  additionalProperties: false,
+  properties: {
+    precio: { type: 'string' },
+    advertencias: { type: 'array', items: { type: 'string' } },
+    secciones: {
+      type: 'array',
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          nombre: { type: 'string' },
+          precioSeccion: { type: 'string' },
+          platillos: {
+            type: 'array',
+            items: {
+              type: 'object',
+              additionalProperties: false,
+              properties: {
+                nombre: { type: 'string' },
+                descripcion: { type: 'string' },
+                precio: { type: 'string' },
+                confianza: { type: 'number' },
+                requiereRevision: { type: 'boolean' },
+                motivoRevision: { type: 'string' },
+              },
+              required: [
+                'nombre',
+                'descripcion',
+                'precio',
+                'confianza',
+                'requiereRevision',
+                'motivoRevision',
+              ],
+            },
+          },
+        },
+        required: ['nombre', 'precioSeccion', 'platillos'],
+      },
+    },
+  },
+  required: ['precio', 'advertencias', 'secciones'],
+} as const;
 
 function buildPrompt(tipo: string | null | undefined) {
   const context: Record<string, string> = {
@@ -91,7 +145,13 @@ Deno.serve(async (request) => {
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
-        max_tokens: 1200,
+        max_tokens: 2200,
+        output_config: {
+          format: {
+            type: 'json_schema',
+            schema: MENU_SCHEMA,
+          },
+        },
         messages: [{
           role: 'user',
           content: [
@@ -116,8 +176,11 @@ Deno.serve(async (request) => {
     }
 
     const payload = await anthropic.json();
+    if (payload?.stop_reason === 'max_tokens' || payload?.stop_reason === 'refusal') {
+      throw new Error('La lectura no pudo completarse');
+    }
     const text = payload?.content?.find((item: { type?: string }) => item.type === 'text')?.text ?? '';
-    const parsed = JSON.parse(text.replace(/```json|```/g, '').trim());
+    const parsed = JSON.parse(text);
     const result = normalizeResult(parsed);
     return Response.json(result, { headers: { ...corsHeaders, 'content-type': 'application/json' } });
   } catch (error) {

@@ -4,9 +4,9 @@ import { useMemo, useState } from 'react';
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { BottomTabBar } from '@/components/bottom-tab-bar';
+import { GlassIconButton } from '@/components/glass-button';
 import { todayDish, useFavoritePatiosController } from '@/lib/controllers/useFavoritePatiosController';
-import { useTabBarScroll } from '@/lib/tab-bar-visibility';
+import { publicPrice } from '@/lib/prices';
 import { Fonts, Radius, useTheme, type Theme } from '@/lib/theme';
 
 const OPEN_GREEN = '#1F9D55';
@@ -79,7 +79,6 @@ export default function FavoritosScreen() {
   const { theme } = useTheme();
   const s = makeStyles(theme);
   const insets = useSafeAreaInsets();
-  const { onScroll } = useTabBarScroll();
   const { patios, withMenu } = useFavoritePatiosController();
 
   // Filtros: pensados para cuando los guardados crecen (~70 items). 'hoy'
@@ -99,9 +98,11 @@ export default function FavoritosScreen() {
   return (
     <View style={[s.container, { paddingTop: insets.top }]}>
       <Stack.Screen options={{ headerShown: false }} />
-      <ScrollView contentContainerStyle={[s.content, { paddingBottom: insets.bottom + 130 }]} showsVerticalScrollIndicator={false} onScroll={onScroll} scrollEventThrottle={16}>
-        {/* Pestaña raíz: sin flecha 'atrás' — se navega con la tab bar. */}
+      <ScrollView contentContainerStyle={[s.content, { paddingBottom: insets.bottom + 40 }]} showsVerticalScrollIndicator={false}>
         <View style={s.header}>
+          <View style={s.backButton}>
+            <GlassIconButton icon="chevron-back" accessibilityLabel="Volver a Actividad" onPress={() => router.replace('/actividad')} size={38} iconSize={19} />
+          </View>
           <Text style={s.eyebrow} allowFontScaling={true}>
             {patios.length} {patios.length === 1 ? 'guardado' : 'guardados'}
           </Text>
@@ -181,7 +182,9 @@ export default function FavoritosScreen() {
                         <Ionicons name="location-outline" size={11} color={theme.textSecondary} />
                         <Text style={s.metaAreaText} numberOfLines={1} allowFontScaling={true}>{patio.area}</Text>
                       </View>
-                      {hasMenu ? <Text style={s.price} allowFontScaling={true}>{patio.price}</Text> : null}
+                      {hasMenu && publicPrice(patio.price) ? (
+                        <Text style={s.price} allowFontScaling={true}>{publicPrice(patio.price)}</Text>
+                      ) : null}
                     </View>
                   </View>
                 </TouchableOpacity>
@@ -190,7 +193,6 @@ export default function FavoritosScreen() {
           </View>
         )}
       </ScrollView>
-      <BottomTabBar variant="foodie" />
     </View>
   );
 }

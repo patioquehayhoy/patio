@@ -8,6 +8,7 @@ import MapView, { Marker } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { MAP_STYLE_DARK, MAP_STYLE_LIGHT } from '@/lib/map-style';
+import { publicPrice } from '@/lib/prices';
 import { FoodieLoading } from '@/components/foodie-loading';
 import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { FOODIE_INITIAL_REGION, useFoodieExploreController } from '@/lib/controllers/useFoodieExploreController';
@@ -64,7 +65,7 @@ function makeStyles(t: Theme) {
     patioName: { fontSize: 15, fontWeight: '900', fontFamily: Fonts.brand, color: t.text },
     patioMeta: { marginTop: 4, fontSize: 12, lineHeight: 16, fontWeight: '300', color: t.textSecondary },
     patioRight: { alignItems: 'flex-end', gap: 3 },
-    patioPrice: { fontSize: 16, fontWeight: '900', color: t.accent, letterSpacing: -0.3 },
+    patioPrice: { fontSize: 14, fontWeight: '400', color: t.textSecondary, letterSpacing: -0.1 },
     patioOpen: { fontSize: 12, fontWeight: '300', color: t.textSecondary },
     patioRating: { flexDirection: 'row', alignItems: 'center', gap: 3 },
     patioRatingText: { fontSize: 12, fontWeight: '900', color: t.text },
@@ -109,31 +110,24 @@ export default function ExplorarScreen() {
   const idleLayerOpacity = useRef(new Animated.Value(1)).current;
   const searchBlurOpacity = useRef(new Animated.Value(0)).current;
   const {
+    activeSavedCategories,
     allPatios,
+    clearSavedMapFilter,
     closeSheet,
     closeSearch,
-    featuredMatch,
     handleQueryChange,
-    handleShareSelected,
     idleMode,
     initialLoading,
     isFiltering,
     matchingPatioIds,
     openSearch,
     query,
-    savedPatios,
+    mapFilteredPatios,
     searchActive,
     searchInputRef,
     searchPending,
-    selectPatio,
-    selectedId,
-    selectedDistanceLabel,
-    selectedPatio,
-    selectedSaved,
     setVisibleRegion,
     sheetMode,
-    showHeader,
-    toggleSaved,
     topMatchPerPatio,
     visiblePatios,
   } = useFoodieExploreController();
@@ -145,9 +139,8 @@ export default function ExplorarScreen() {
       },
     })
   ).current;
-  const showSelectedHeader = showHeader;
-  const showSheet = showSelectedHeader || isFiltering || sheetMode !== null;
-  const listPatios = sheetMode === 'saved' ? savedPatios : allPatios;
+  const showSheet = isFiltering || sheetMode !== null;
+  const listPatios = activeSavedCategories.length ? mapFilteredPatios : allPatios;
   useEffect(() => {
     const show = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow', (e) => setKeyboardHeight(e.endCoordinates.height));
     const hide = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide', () => setKeyboardHeight(0));
@@ -196,7 +189,6 @@ export default function ExplorarScreen() {
           onPress={() => (searchActive ? closeSearch() : closeSheet())}
           onRegionChangeComplete={setVisibleRegion}>
           {visiblePatios.map((patio, idx) => {
-            const isSelected = patio.id === selectedId && showSelectedHeader;
             const isMuted = isFiltering && !matchingPatioIds.has(patio.id);
             return (
               <Marker
@@ -204,19 +196,11 @@ export default function ExplorarScreen() {
                 coordinate={{ latitude: patio.latitude, longitude: patio.longitude }}
                 onPress={(event: any) => {
                   event.stopPropagation?.();
-                  selectPatio(patio.id);
+                  router.push(`/patio/${patio.id}`);
                 }}
                 tracksViewChanges={false}>
                 <View style={[s.pinHitArea, isMuted && s.pinMuted]}>
-                  {isSelected ? (
-                    <View style={s.pin}>
-                      <View style={s.pinCoreSelected}>
-                        <View style={s.pinDot} />
-                      </View>
-                    </View>
-                  ) : (
-                    <PulsingDot style={s.pinSmallDot} delay={(idx % 6) * 280} />
-                  )}
+                  <PulsingDot style={s.pinSmallDot} delay={(idx % 6) * 280} />
                 </View>
               </Marker>
             );
@@ -233,6 +217,19 @@ export default function ExplorarScreen() {
           <BlurView intensity={theme.isDark ? 44 : 48} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
         </Animated.View>
       </View>
+
+      {!!activeSavedCategories.length && !searchActive && (
+        <TouchableOpacity
+          style={[s.listFilter, { position: 'absolute', top: insets.top + 12, alignSelf: 'center' }]}
+          onPress={clearSavedMapFilter}
+          activeOpacity={0.78}>
+          <Ionicons name="map-outline" size={13} color={theme.accent} />
+          <Text style={s.listFilterText} numberOfLines={1}>
+            {activeSavedCategories.join(' · ')}
+          </Text>
+          <Ionicons name="close" size={13} color={theme.accent} />
+        </TouchableOpacity>
+      )}
 
       {/* Todo lo accionable vive abajo, junto a la tab bar: buscador + "cerca".
           El mapa queda limpio arriba — sin botones flotantes sueltos. */}
@@ -299,56 +296,6 @@ export default function ExplorarScreen() {
           <BlurView intensity={theme.isDark ? 16 : 22} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
           <View style={s.grabber} />
 
-          {/* Header panel — only on explicit selection */}
-          {showSelectedHeader && selectedPatio && (
-            <>
-              <View style={s.selectedPanel}>
-                <View style={s.selectedHeader}>
-                  <Text style={s.selectedTitle} allowFontScaling={true}>{selectedPatio.name}</Text>
-                  <View style={{ flexDirection: 'row', gap: 4 }}>
-                    <TouchableOpacity style={s.heartButton} onPress={handleShareSelected} activeOpacity={0.76}>
-                      <Ionicons name="share-outline" size={20} color={theme.textSecondary} />
-                    </TouchableOpacity>
-                    <TouchableOpacity style={s.heartButton} onPress={toggleSaved} activeOpacity={0.76}>
-                      <Ionicons name={selectedSaved ? 'heart' : 'heart-outline'} size={22} color={selectedSaved ? theme.accent : theme.textSecondary} />
-                    </TouchableOpacity>
-                  </View>
-                </View>
-                <Text style={s.selectedMeta} allowFontScaling={true}>
-                  {featuredMatch
-                    ? [selectedPatio.category, selectedPatio.area, selectedDistanceLabel, selectedPatio.open].filter(Boolean).join(' · ')
-                    : [selectedPatio.category, selectedPatio.area, selectedDistanceLabel, selectedPatio.open].filter(Boolean).join(' · ')}
-                </Text>
-                <View style={s.selectedStats}>
-                  <View>
-                    {featuredMatch ? (
-                      <>
-                        <Text style={s.dishName} allowFontScaling={true}>Tiene {featuredMatch.item.name}</Text>
-                        <Text style={s.priceCaption} allowFontScaling={true}>
-                          {featuredMatch.section} · {featuredMatch.item.price ?? selectedPatio.price}
-                        </Text>
-                      </>
-                    ) : (
-                      <>
-                        <Text style={s.price} allowFontScaling={true}>
-                          {selectedPatio.price === '$' ? 'Precio pendiente' : selectedPatio.price}
-                        </Text>
-                        <Text style={s.priceCaption} allowFontScaling={true}>{selectedPatio.reason}</Text>
-                      </>
-                    )}
-                  </View>
-                  {selectedPatio.latitude > 0 && (
-                    <TouchableOpacity accessibilityLabel={`Ver ${selectedPatio.name}`} style={s.cta} onPress={() => router.push(`/patio/${selectedPatio.id}`)} activeOpacity={0.82}>
-                      <Text style={s.ctaText} allowFontScaling={true}>Ver</Text>
-                      <Ionicons name="chevron-forward" size={15} color={theme.surface} />
-                    </TouchableOpacity>
-                  )}
-                </View>
-              </View>
-              <View style={s.divider} />
-            </>
-          )}
-
           {/* List */}
           <View style={s.listHeader}>
             {isFiltering ? (
@@ -402,26 +349,27 @@ export default function ExplorarScreen() {
                 )
               ) : (
                 topMatchPerPatio.map((match) => {
-                  const active = match.patio.id === selectedId && showSelectedHeader;
                   return (
                     <TouchableOpacity
                       accessibilityLabel={`Abrir resultado ${match.item.name} en ${match.patio.name}`}
                       key={`${match.patio.id}-${match.item.name}`}
-                      style={[s.patioRow, active && s.patioRowActive]}
+                      style={s.patioRow}
                       onPress={() => {
                         Keyboard.dismiss();
-                        selectPatio(match.patio.id);
+                        router.push(`/patio/${match.patio.id}`);
                       }}
                       activeOpacity={0.76}>
-                      <View style={[s.addBox, !active && s.addBoxMuted]}>
-                        <Ionicons name="restaurant" size={14} color={active ? theme.surface : theme.textSecondary} />
+                      <View style={[s.addBox, s.addBoxMuted]}>
+                        <Ionicons name="restaurant-outline" size={15} color={theme.textSecondary} />
                       </View>
                       <View style={s.patioInfo}>
                         <Text style={s.patioName} allowFontScaling={true}>{match.item.name}</Text>
                         <Text style={s.patioMeta} allowFontScaling={true}>{match.patio.name} · {match.patio.category}</Text>
                       </View>
                       <View style={s.patioRight}>
-                        <Text style={s.patioPrice} allowFontScaling={true}>{match.item.price ?? match.patio.price}</Text>
+                        {!!publicPrice(match.item.price ?? match.patio.price) && (
+                          <Text style={s.patioPrice} allowFontScaling={true}>{publicPrice(match.item.price ?? match.patio.price)}</Text>
+                        )}
                         <Text style={s.patioOpen} allowFontScaling={true}>{match.patio.open}</Text>
                       </View>
                     </TouchableOpacity>
@@ -438,24 +386,26 @@ export default function ExplorarScreen() {
                 <Text style={s.emptySub} allowFontScaling={true}>{noWidow('Toca un punto o un lugar cercano y usa el corazón para guardarlo aquí.')}</Text>
               </View>
             ) : (
-              listPatios.map((patio, index) => {
-                const active = patio.id === selectedId && showSelectedHeader;
+              listPatios.map((patio) => {
                 return (
                   <TouchableOpacity
                     accessibilityLabel={`Abrir ${patio.name}`}
                     key={patio.id}
-                    style={[s.patioRow, active && s.patioRowActive]}
-                    onPress={() => selectPatio(patio.id)}
+                    style={s.patioRow}
+                    onPress={() => router.push(`/patio/${patio.id}`)}
                     activeOpacity={0.76}>
-                    <View style={[s.addBox, !active && s.addBoxMuted]}>
-                      <Text style={[s.indexNum, { color: active ? theme.surface : theme.textSecondary }]}>{index + 1}</Text>
+                    <View style={[s.addBox, s.addBoxMuted]}>
+                      <Ionicons name="location-outline" size={16} color={theme.textSecondary} />
                     </View>
                     <View style={s.patioInfo}>
                       <Text style={s.patioName} allowFontScaling={true}>{patio.name}</Text>
-                      <Text style={s.patioMeta} allowFontScaling={true}>{patio.category} · {patio.address}</Text>
+                      <Text style={s.patioMeta} allowFontScaling={true}>{patio.reason || `${patio.category} · ${patio.address}`}</Text>
+                      <Text style={s.patioMeta} allowFontScaling={true}>{patio.address}</Text>
                     </View>
                     <View style={s.patioRight}>
-                      <Text style={s.patioPrice} allowFontScaling={true}>{patio.price}</Text>
+                      {!!publicPrice(patio.price) && (
+                        <Text style={s.patioPrice} allowFontScaling={true}>{publicPrice(patio.price)}</Text>
+                      )}
                       <Text style={s.patioOpen} allowFontScaling={true}>{patio.open}</Text>
                     </View>
                   </TouchableOpacity>

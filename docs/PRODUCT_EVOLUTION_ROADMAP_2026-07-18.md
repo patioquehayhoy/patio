@@ -2,6 +2,10 @@
 
 > Captura durable de las notas de Alejandro · 2026-07-18.
 > Estado: discovery priorizado. No todo lo listado está autorizado para producción.
+>
+> La decisión posterior sobre perfil público, red atómica, seguimiento,
+> notificaciones y suscripción vive en
+> `docs/NETWORK_COLD_START_AND_MONETIZATION.md` y prevalece en esos temas.
 
 ## Objetivo
 
@@ -14,6 +18,12 @@ marketplace o feed genérico.
 Primero recurrencia y utilidad. Después crecimiento. Luego inteligencia de red.
 Comunidades, mensajería, estatus y gobernanza llegan cuando exista densidad local y
 capacidad de moderación.
+
+El bucle aprobado es:
+
+```txt
+perfil público → seguir → publicar → avisar → regresar → medir → volver a publicar
+```
 
 ## Fase 0 — Cerrar el núcleo
 

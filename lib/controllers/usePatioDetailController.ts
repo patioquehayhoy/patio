@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Linking, Platform, Share } from 'react-native';
 
@@ -12,9 +12,10 @@ import {
   resumenHorario,
 } from '@/lib/horario';
 import { fetchMenuForFondita } from '@/lib/menu';
-import { setAvisar } from '@/lib/notifications';
+import { getNotifPrefs, setAvisar } from '@/lib/notifications';
 import { fetchFonditaById, getPatioById, type Patio, type PatioMenuSection } from '@/lib/patios';
-import { getPatioRating } from '@/lib/ratings';
+import { publicCurrency, publicPrice } from '@/lib/prices';
+import { getPatioRating, type PatioRating } from '@/lib/ratings';
 import { registerPatioView } from '@/lib/stats';
 
 type PatioParam = string | string[] | undefined;
@@ -49,7 +50,7 @@ export function usePatioDetailController(id: PatioParam) {
   const [loading, setLoading] = useState(true);
   const [liveMenu, setLiveMenu] = useState<PatioMenuSection[] | null>(null);
   const [isSaved, setIsSaved] = useState(false);
-  const [userRating, setUserRating] = useState<number | null>(null);
+  const [userReview, setUserReview] = useState<PatioRating | null>(null);
   const [notifyOn, setNotifyOn] = useState(false);
   const cleanId = cleanParam(id);
   const patioId = patio?.id;
@@ -77,13 +78,24 @@ export function usePatioDetailController(id: PatioParam) {
     if (!patioId) return;
     registerPatioView(patioId);
     getFavoritePatioIds().then((ids) => setIsSaved(ids.includes(patioId)));
-    getPatioRating(patioId).then((rating) => {
-      if (rating) setUserRating(rating.stars);
-    });
+    getNotifPrefs().then((prefs) => setNotifyOn(prefs.avisar));
     fetchMenuForFondita(patioId).then((sections) => {
       if (sections.length > 0) setLiveMenu(sections);
     });
   }, [patioId]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!patioId) return undefined;
+      let active = true;
+      getPatioRating(patioId).then((rating) => {
+        if (active) setUserReview(rating);
+      });
+      return () => {
+        active = false;
+      };
+    }, [patioId]),
+  );
 
   const status = useMemo(() => (patio ? patioStatus(patio) : null), [patio]);
   const isClosed = status === false;
@@ -100,7 +112,8 @@ export function usePatioDetailController(id: PatioParam) {
     const prox = patio ? proximaApertura(patio.weeklyHours) : null;
     return prox ? `${DIA_CORTO[prox.dia]} abre a las ${formatHHMM12(prox.abre)}` : null;
   }, [patio]);
-  const priceLabel = patio?.price === '$' ? 'Precio pendiente' : patio?.price ?? '';
+  const menuPrice = sections.find((section) => publicPrice(section.price))?.price;
+  const priceLabel = menuPrice ? publicCurrency(menuPrice) : publicPrice(patio?.price);
   const todayLabel = DIA_CORTO[hoy?.dia ?? new Date().getDay()];
 
   const handleBack = useCallback(() => {
@@ -120,13 +133,13 @@ export function usePatioDetailController(id: PatioParam) {
 
   const handleAvisarManana = useCallback(async () => {
     if (!patio) return;
-    if (!isSaved) {
+    if (!notifyOn && !isSaved) {
       const next = await toggleFavoritePatio(patio.id);
       setIsSaved(next.includes(patio.id));
     }
-    const ok = await setAvisar(true);
+    const ok = await setAvisar(!notifyOn);
     setNotifyOn(ok);
-  }, [isSaved, patio]);
+  }, [isSaved, notifyOn, patio]);
 
   const handleToggleSaved = useCallback(async () => {
     if (!patio) return;
@@ -136,10 +149,13 @@ export function usePatioDetailController(id: PatioParam) {
 
   const handleShare = useCallback(() => {
     if (!patio) return;
+    const patioUrl = `patio://patio/${patio.id}`;
     const mapsUrl = `https://maps.apple.com/?q=${patio.latitude},${patio.longitude}`;
     const horarioTexto = resumenHorario(patio.weeklyHours) || patio.open;
     Share.share({
-      message: `${patio.name}\n${patio.category} · ${patio.area}\n${horarioTexto}\n\n${patio.address}\n${mapsUrl}`,
+      title: `${patio.name} en Patio`,
+      message: `${patio.name}\n${patio.category} · ${patio.area}\n${horarioTexto}\n\nVer menú en Patio:\n${patioUrl}\n\nCómo llegar:\n${mapsUrl}`,
+      url: patioUrl,
     });
   }, [patio]);
 
@@ -170,6 +186,7 @@ export function usePatioDetailController(id: PatioParam) {
     soldOut,
     status,
     todayLabel,
-    userRating,
+    userRating: userReview?.stars ?? null,
+    userReview,
   };
 }

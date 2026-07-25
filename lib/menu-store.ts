@@ -14,6 +14,8 @@ export interface Platillo {
   nombre: string;
   descripcion: string;
   precio: string;
+  confianza?: number;
+  revision?: string;
 }
 
 export interface Seccion {
@@ -25,6 +27,11 @@ export interface Seccion {
 
 export type MenuData = {
   secciones: Seccion[];
+};
+
+export type MenuExtractionSnapshot = {
+  menu: MenuData;
+  warnings: string[];
 };
 
 // ─── Defaults ─────────────────────────────────────────────────────────────────
@@ -137,6 +144,7 @@ export function normalizeMenuData(raw: any): MenuData | null {
 // ─── In-memory store ──────────────────────────────────────────────────────────
 let _menuData: MenuData | null = null;
 let _cartaData: MenuData | null = null;
+let _menuExtractionSnapshot: MenuExtractionSnapshot | null = null;
 let _fonditaName = '';
 let _fonditaDescription = '';
 let _tipoNegocio: string | null = null;
@@ -145,6 +153,15 @@ export function setMenuData(data: MenuData)  { _menuData  = data; }
 export function getMenuData(): MenuData | null  { return _menuData; }
 export function setCartaData(data: MenuData) { _cartaData = data; }
 export function getCartaData(): MenuData | null { return _cartaData; }
+export function setMenuExtractionSnapshot(snapshot: MenuExtractionSnapshot | null) {
+  _menuExtractionSnapshot = snapshot;
+}
+export function getMenuExtractionSnapshot(): MenuExtractionSnapshot | null {
+  return _menuExtractionSnapshot;
+}
+export function clearMenuExtractionSnapshot() {
+  _menuExtractionSnapshot = null;
+}
 export function getFonditaName(): string { return _fonditaName; }
 export function setFonditaName(name: string) { _fonditaName = name; }
 export function getFonditaDescription(): string { return _fonditaDescription; }

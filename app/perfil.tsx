@@ -1,11 +1,11 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Ionicons } from '@expo/vector-icons';
 import { router, Stack, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Linking, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BottomTabBar } from '@/components/bottom-tab-bar';
+import { SettingsGroup, SettingsRow, type SettingsColors } from '@/components/settings-list';
 import { ToggleSwitch } from '@/components/toggle-switch';
 import { fonderoPalette, type FonderoColors } from '@/lib/fondero-palette';
 import {
@@ -16,31 +16,22 @@ import {
 import { supabase } from '@/lib/supabase';
 import { Fonts, useTheme } from '@/lib/theme';
 import { useTabBarScroll } from '@/lib/tab-bar-visibility';
+import { noWidow } from '@/lib/typography';
 
 const ROLE_KEY = '@patio_user_role';
 const SUPPORT_EMAIL = 'quehayhoy.patio@gmail.com';
 
-type RowProps = {
-  c: FonderoColors;
-  icon: keyof typeof Ionicons.glyphMap;
-  title: string;
-  onPress?: () => void;
-  last?: boolean;
-  trailing?: React.ReactNode;
-};
-
-function Row({ c, icon, title, onPress, last, trailing }: RowProps) {
-  return (
-    <TouchableOpacity
-      style={[s.row, !last && { borderBottomColor: c.border, borderBottomWidth: StyleSheet.hairlineWidth }]}
-      onPress={onPress}
-      disabled={!onPress}
-      activeOpacity={0.7}>
-      <Ionicons name={icon} size={20} color={c.textSecondary} />
-      <Text style={[s.rowText, { color: c.text }]}>{title}</Text>
-      {trailing ?? <Ionicons name="chevron-forward" size={16} color={c.textMute} />}
-    </TouchableOpacity>
-  );
+function settingsColorsFrom(c: FonderoColors, accentBg: string): SettingsColors {
+  return {
+    surface: c.surface,
+    border: c.border,
+    text: c.text,
+    textSecondary: c.textSecondary,
+    textMute: c.textMute,
+    accent: c.accent,
+    iconBg: c.iconBg,
+    accentBg,
+  };
 }
 
 export default function PerfilScreen() {
@@ -69,41 +60,57 @@ export default function PerfilScreen() {
     router.replace('/explorar');
   };
 
+  const sc = settingsColorsFrom(c, theme.accentSoft);
+
   return (
     <View style={[s.root, { backgroundColor: c.bg, paddingTop: insets.top }]}>
       <Stack.Screen options={{ headerShown: false }} />
       <ScrollView onScroll={onScroll} scrollEventThrottle={16} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 24, paddingBottom: insets.bottom + 110 }} showsVerticalScrollIndicator={false}>
         <Text style={[s.eyebrow, { color: c.accent }]}>MI PATIO</Text>
         <Text style={[s.title, { color: c.text }]} numberOfLines={2}>{name || 'Tu negocio'}</Text>
-        <Text style={[s.status, { color: c.textSecondary }]}>
-          {hasMenu ? 'Menú publicado hoy' : 'Aún no publicas el menú de hoy'}
-          {address ? ` · ${address}` : ''}
-        </Text>
 
-        {/* Jerarquía espejo de Cuenta (Foodie): primero tu negocio, después
-            preferencias y marca; al final, las salidas del contexto juntas:
-            la puerta al otro lado en tinta neutra y cerrar sesión. Sin
-            botonzote — editar el negocio es una acción ocasional, no LA acción. */}
-        <View style={[s.group, { backgroundColor: c.surface, borderColor: c.border }]}>
-          <Row c={c} icon="restaurant-outline" title="Publicar menú" onPress={() => router.replace('/menu')} />
-          <Row c={c} icon="create-outline" title="Editar mi negocio" last onPress={() => router.push('/perfil-editar')} />
+        {/* Estado en vivo (¿publiqué hoy o no?), separado de la dirección: son
+            dos tipos de información distintos y no deben vivir en una sola
+            línea. El punto de color es el indicador de estado; la dirección
+            se mueve a la fila "Editar mi negocio", que es donde realmente
+            vive ese dato. */}
+        <View style={s.statusRow}>
+          <View style={[s.statusDot, { backgroundColor: hasMenu ? c.accent : c.textMute }]} />
+          <Text style={[s.statusText, { color: hasMenu ? c.accent : c.textSecondary }]} numberOfLines={1}>
+            {noWidow(hasMenu ? 'Menú publicado hoy' : 'Aún no publicas el menú de hoy')}
+          </Text>
         </View>
 
-        <View style={[s.group, { backgroundColor: c.surface, borderColor: c.border }]}>
-          <Row
-            c={c}
+        {/* Grupos por propósito, no por lo que "quepa junto" — espejo real
+            de Cuenta (Foodie): tu negocio primero, después preferencias y
+            ayuda/marca; al final, las salidas del contexto juntas: la
+            puerta al otro lado en tinta neutra y cerrar sesión. Sin
+            botonzote — editar el negocio es una acción ocasional, no LA
+            acción. */}
+        <SettingsGroup c={sc} label="Negocio">
+          <SettingsRow c={sc} icon="restaurant-outline" title="Publicar menú" onPress={() => router.replace('/menu')} />
+          <SettingsRow c={sc} icon="create-outline" title="Editar mi negocio" sub={address || undefined} divider onPress={() => router.push('/perfil-editar')} />
+          <SettingsRow c={sc} icon="star-outline" title="Reseñas" divider onPress={() => router.push('/resenas' as any)} />
+        </SettingsGroup>
+
+        <SettingsGroup c={sc} label="Preferencias">
+          <SettingsRow
+            c={sc}
             icon="moon-outline"
             title="Modo oscuro"
             trailing={<ToggleSwitch value={theme.isDark} onValueChange={toggleTheme} activeColor={c.accent} />}
           />
-          <Row c={c} icon="sparkles-outline" title="Nuestro manifiesto" onPress={() => router.push('/manifiesto')} />
-          <Row c={c} icon="help-circle-outline" title="Soporte" last onPress={() => Linking.openURL(`mailto:${SUPPORT_EMAIL}?subject=Soporte%20Patio`)} />
-        </View>
+        </SettingsGroup>
 
-        <View style={[s.group, { backgroundColor: c.surface, borderColor: c.border }]}>
-          <Row c={c} icon="map-outline" title="Explorar como cliente" onPress={exploreAsClient} />
-          <Row c={c} icon="log-out-outline" title="Cerrar sesión" last onPress={signOut} />
-        </View>
+        <SettingsGroup c={sc} label="Ayuda">
+          <SettingsRow c={sc} icon="sparkles-outline" title="Nuestro manifiesto" onPress={() => router.push('/manifiesto')} />
+          <SettingsRow c={sc} icon="help-circle-outline" title="Soporte" divider onPress={() => Linking.openURL(`mailto:${SUPPORT_EMAIL}?subject=Soporte%20Patio`)} />
+        </SettingsGroup>
+
+        <SettingsGroup c={sc} label="Cuenta">
+          <SettingsRow c={sc} icon="map-outline" title="Explorar como cliente" onPress={exploreAsClient} />
+          <SettingsRow c={sc} icon="log-out-outline" title="Cerrar sesión" divider onPress={signOut} />
+        </SettingsGroup>
       </ScrollView>
       <BottomTabBar variant="fondero" />
     </View>
@@ -114,10 +121,7 @@ const s = StyleSheet.create({
   root: { flex: 1 },
   eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.5, marginBottom: 8 },
   title: { fontSize: 38, lineHeight: 41, fontWeight: '900', letterSpacing: -1.3, fontFamily: Fonts.brand },
-  status: { marginTop: 10, fontSize: 14, lineHeight: 20 },
-  group: { marginTop: 16, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
-  // minHeight 56: altura estándar de fila tocable en toda la app (Foodie y
-  // Fondero comparten la misma métrica).
-  row: { minHeight: 56, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 12 },
-  rowText: { flex: 1, fontSize: 16, fontWeight: '500' },
+  statusRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 10 },
+  statusDot: { width: 7, height: 7, borderRadius: 4 },
+  statusText: { fontSize: 13, fontWeight: '600' },
 });

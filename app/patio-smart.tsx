@@ -21,6 +21,7 @@ import { BusinessPaymentSelector } from '@/components/business-payment-selector'
 import { BusinessScheduleEditor } from '@/components/business-schedule-editor';
 import { saveUserRole } from '@/lib/entry-flow';
 import { fonderoPalette, type FonderoColors } from '@/lib/fondero-palette';
+import { sanitizeNombreInput } from '@/lib/fondita-name';
 import {
   setFonditaDireccion,
   setFonditaHorarioSemanal,
@@ -29,7 +30,7 @@ import {
   setPagosTarjeta,
   setPagosTrans,
 } from '@/lib/menu-store';
-import { confirmedSchedule, saveSmartSetup, type SmartSetupResult } from '@/lib/smart-setup';
+import { confirmedSchedule, NombreDuplicadoError, saveSmartSetup, type SmartSetupResult } from '@/lib/smart-setup';
 import { Fonts, useTheme } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
 
@@ -210,8 +211,13 @@ export default function PatioSmartScreen() {
     try {
       await persistSetup();
       setStage('finish');
-    } catch {
-      Alert.alert(noWidow('No pudimos guardarlo'), noWidow('Revisa tu conexión e inténtalo otra vez.'));
+    } catch (err) {
+      if (err instanceof NombreDuplicadoError) {
+        Alert.alert(noWidow('Ese nombre ya existe'), noWidow('Ya hay un negocio con ese nombre en Patio. Elige otro.'));
+        setStage('name');
+      } else {
+        Alert.alert(noWidow('No pudimos guardarlo'), noWidow('Revisa tu conexión e inténtalo otra vez.'));
+      }
     } finally {
       setLoading(false);
     }
@@ -319,7 +325,7 @@ export default function PatioSmartScreen() {
               <TextInput
                 accessibilityLabel="Nombre del negocio"
                 value={result.nombre}
-                onChangeText={(nombre) => update({ nombre })}
+                onChangeText={(nombre) => update({ nombre: sanitizeNombreInput(nombre) })}
                 selectionColor={colors.accent}
                 returnKeyType="next"
                 clearButtonMode="while-editing"

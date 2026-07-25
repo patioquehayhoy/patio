@@ -14,10 +14,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useFonderoProfileController } from '@/lib/controllers/useFonderoProfileController';
+import { sanitizeNombreInput } from '@/lib/fondita-name';
 import { Fonts, useTheme, type Theme } from '@/lib/theme';
 import { GlassIconButton } from '@/components/glass-button';
 import { BusinessPaymentSelector } from '@/components/business-payment-selector';
 import { BusinessScheduleEditor } from '@/components/business-schedule-editor';
+import { SettingsGroup, SettingsRow, type SettingsColors } from '@/components/settings-list';
 
 // Paleta oscura fija estilo Figma FonderoFonda (flujo Fondero siempre oscuro).
 const DARK = {
@@ -33,7 +35,6 @@ const DARK = {
   accentLight: 'rgba(255,106,61,0.15)',
 };
 
-const MAX_NOMBRE      = 30;
 const MAX_DESCRIPCION = 80;
 const MAX_UBICACION   = 80;
 
@@ -119,14 +120,19 @@ function makeStyles(theme: Theme) {
     paymentChipActive:  { backgroundColor: t.accent, borderColor: t.accent },
     paymentChipText:    { fontSize: 12.5, fontWeight: '700', color: t.text },
     paymentChipTextActive: { color: '#fff' },
-    // Settings
-    settingGroup:       { marginTop: 2, backgroundColor: t.surface, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, overflow: 'hidden' },
-    settingRow:         { flexDirection: 'row', alignItems: 'center', minHeight: 62, paddingHorizontal: 14 },
-    rowLabel:           { flex: 1, fontSize: 17, fontWeight: '300', color: t.text },
-    emailText:          { flex: 1, fontSize: 16, fontWeight: '300', color: t.textSecondary },
-    settingIcon:        { marginRight: 12, opacity: 0.42 },
   });
 }
+
+const SETTINGS_COLORS: SettingsColors = {
+  surface: DARK.surface,
+  border: DARK.border,
+  text: DARK.text,
+  textSecondary: DARK.textSecondary,
+  textMute: DARK.textMute,
+  accent: DARK.accent,
+  iconBg: 'rgba(255,255,255,0.06)',
+  accentBg: DARK.accentLight,
+};
 
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 export default function PerfilScreen() {
@@ -187,7 +193,7 @@ export default function PerfilScreen() {
               ref={nombreInputRef}
               style={s.fieldValue}
               value={nombre}
-              onChangeText={(v) => setNombre(v.slice(0, MAX_NOMBRE))}
+              onChangeText={(v) => setNombre(sanitizeNombreInput(v))}
               placeholder="Nombre de tu negocio"
               placeholderTextColor={DARK.textSecondary}
               selectionColor={DARK.accent}
@@ -263,18 +269,10 @@ export default function PerfilScreen() {
         {/* ── CUENTA: correo + cerrar sesión ── */}
         <View style={s.block}>
           <Text style={s.blockLabel} allowFontScaling={true}>CUENTA</Text>
-          <View style={s.settingGroup}>
-            <View style={s.settingRow}>
-              <Ionicons name="mail-outline" size={20} color={DARK.textSecondary} style={s.settingIcon} />
-              <Text style={s.emailText} numberOfLines={1} allowFontScaling={true}>{email || 'Sin correo'}</Text>
-            </View>
-            <View style={s.divider} />
-            <TouchableOpacity style={s.settingRow} onPress={handleSignOut} activeOpacity={0.7}>
-              <Ionicons name="log-out-outline" size={20} color={DARK.textSecondary} style={s.settingIcon} />
-              <Text style={s.rowLabel} allowFontScaling={true}>Cerrar sesión</Text>
-              <Ionicons name="chevron-forward" size={15} color={DARK.textMute} />
-            </TouchableOpacity>
-          </View>
+          <SettingsGroup c={SETTINGS_COLORS}>
+            <SettingsRow c={SETTINGS_COLORS} icon="mail-outline" title={email || 'Sin correo'} />
+            <SettingsRow c={SETTINGS_COLORS} icon="log-out-outline" title="Cerrar sesión" divider onPress={handleSignOut} />
+          </SettingsGroup>
         </View>
 
       </ScrollView>

@@ -1,5 +1,196 @@
 # HANDOFF
 
+## Sesión 2026-07-24 — bug "no puedo entrar" en TestFlight + rediseño email magic link
+
+Alejandro reportó que en el build 47 de TestFlight, el botón "Entrar a Patio"
+de la pantalla de entrada no responde — ni el efecto visual de presionado.
+Sesión larga de diagnóstico en simulador que terminó en un callejón sin
+salida — pero realmente informativo: lo que se reprodujo NO es el bug de
+producción. Documentado en detalle para no repetir la misma investigación.
+
+### Diagnóstico del botón — lo que se descartó
+
+Con Maestro (tap por coordenada real, no por texto) se reprodujo un patrón
+consistente en el **dev client** del simulador: en cold start, el primer
+montaje de cualquier pantalla del Stack no entrega touches a sus
+`TouchableOpacity` (ni el CTA con `BlurView` ni botones planos sin nada
+raro), pero el mismo tap funciona perfecto si se espera ~15s tras el
+arranque, o si se revisita la misma pantalla una segunda vez. Se probó y
+descartó como causa: `BlurView`, Maestro como culpable (el elemento existe
+en el árbol de accesibilidad con bounds válidos), el header dinámico de
+`Stack.Screen`, el timing de `SplashScreen.hideAsync()`, el orden de montaje
+de pantallas (se armó y probó una arquitectura boot→warmup→entrada que
+tampoco lo arregló).
+
+**El hallazgo real:** se compiló un build en configuración **Release** del
+mismo proyecto (`npx expo run:ios --configuration Release`, sin Metro, bundle
+optimizado — lo más parecido a TestFlight que se puede probar sin gastar un
+build de EAS) y ahí el mismo tap respondió **de inmediato** en cold start,
+sin ningún retraso. Conclusión: el retraso de varios segundos en el primer
+touch es un **artefacto exclusivo del dev client** (bundle sin optimizar /
+overhead de Metro), no algo que exista en producción. Se revirtió por
+completo la arquitectura boot/warmup/entrada — `app/index.tsx` y
+`app/_layout.tsx` quedaron exactamente como estaban antes de la sesión.
+
+**Conclusión práctica:** el bug real de Alejandro en TestFlight sigue sin
+explicación de código confirmada. Puede ser: instalación atorada (se
+resuelve con forzar cierre o reinstalar desde TestFlight), un build viejo
+cacheado, o algo específico del device que no se puede reproducir en
+simulador. Antes de seguir cazándolo en código, pedir a Alejandro que:
+1. Fuerce cierre + reabra la app y pruebe el botón otra vez.
+2. Confirme en la app TestFlight que tiene el build más reciente instalado
+   (no un botón de "Actualizar" pendiente).
+3. Si sigue igual, borre la app por completo y reinstale desde TestFlight.
+
+Alejandro pidió lanzar un build de todos modos para tener una versión fresca
+que probar mientras hace ese triage — build lanzado al cierre de esta
+sesión, ver abajo.
+
+### Rediseño del email "Magic Link" — Apple HIG real
+
+`supabase/templates/magic-link.html` se rediseñó en 3 rondas de feedback:
+- v1→v2: logo oficial (wordmark real embebido como `data:image/png;base64`
+  de `assets/images/logo-negro.png`, no había hosting público del asset),
+  pesos de la firma de marca corregidos ("¿Qué hay hoy?" pesado 800 /
+  "Saaaaaaabes." ligero 300 — antes al revés y en negritas ambas), CTA
+  centrado en vez de alineado a la izquierda.
+- v2→v3: Alejandro marcó que seguía "con mucha info" y que el bloque de
+  copiar/pegar el link crudo metía fricción sin aportar ("se ve como
+  código"). Se cortó el cuerpo a una sola línea, se eliminó por completo el
+  bloque de URL cruda (el fallback ahora es humano: escribir a soporte, no
+  pegar un link tokenizado), y se dejó de centrar todo el texto utilitario
+  (solo el hero —logo/título/CTA/firma— va centrado; seguridad/soporte
+  volvió a alineación izquierda, como se lee un correo real).
+- Sigue **pendiente de pegar en el Dashboard de Supabase** (Authentication →
+  Email Templates → pestañas Magic Link y Confirm signup, mismo HTML en
+  ambas) — no tengo acceso al Dashboard desde aquí, es un paso manual de
+  Alejandro. El archivo en el repo ya refleja el diseño final aprobado.
+
+### Build de TestFlight
+
+- **Build 48 enviado y aceptado por Apple** — `eas build -p ios --profile
+  production --auto-submit` desde `rebuild/patio-final`, "Submitted your app
+  to Apple App Store Connect!" (2026-07-24, ~14:5x). Sin ningún fix de código
+  para el bug del botón (no hay uno confirmado todavía) — Alejandro lo pidió
+  para tener un build fresco mientras hace el triage de device de arriba.
+  Apple procesa 5-10 min antes de aparecer en
+  https://appstoreconnect.apple.com/apps/6760884735/testflight/ios.
+
+## Sesión 2026-07-23 — triage en vivo + HIG grouping en perfil/cuenta + Reseñas
+
+Sesión en tres partes: (1) Alejandro confirmó/corrigió pendientes de la sesión
+anterior por voz; (2) redisño de `cuenta.tsx`/`perfil.tsx`/`perfil-editar.tsx`
+aplicando principios de grouping y status de Apple HIG, con una ronda de
+feedback real que corrigió el resultado; (3) build de TestFlight (producción,
+`--auto-submit`) lanzado al cerrar. Typecheck y lint verdes en cada punto de
+cierre.
+
+### Parte 1 — confirmaciones y triage (sin código)
+
+- **Bug de guardado en historial (abierto el 22-jul): confirmado resuelto.**
+  Cualquier menú que Alejandro guarda o crea se queda guardado.
+- **Cámara/galería:** confirmado funcionando en dispositivo real.
+- **GPS:** confirmado funcionando — marcar ubicación al crear/editar perfil
+  Fondero no da problema (cobertura: happy path, permiso concedido).
+- **Templates de email:** siguen pendientes de instalar en Supabase Dashboard,
+  pero confirmado que no se descartan — son dos pestañas (Magic Link +
+  Confirm signup), no una.
+- **Rotar clave Anthropic vieja:** confirmado que sigue sin urgencia, al final.
+- Hallazgo nuevo sin resolver: el campo NOMBRE del alta no valida longitud
+  (backlog, no urgente).
+- Detalle completo en `docs/TASKS.md`, ciclo 2026-07-23.
+
+### Parte 2 — HIG real en perfil/cuenta (con una corrección de Alejandro)
+
+**Primer pase:** se auditaron `cuenta.tsx`, `perfil.tsx` y `perfil-editar.tsx`
+contra los principios de *grouping* y *status* de Apple HIG. Hallazgos reales:
+tres implementaciones distintas de "fila de ajustes" para la misma cosa en el
+repo (una sin caja de ícono, otra con caja neutra, otra con caja tibia); el
+estilo `groupLabel` de `cuenta.tsx` existía en el código pero **nunca se
+usaba** — los grupos no tenían título; el estado "menú publicado hoy" vivía
+pegado a la dirección con un " · ", mezclando un indicador de estado en vivo
+con un dato estático.
+
+Se creó `components/settings-list.tsx` (`SettingsGroup` + `SettingsRow`) como
+única fuente de ese patrón, y se reagruparon las tres pantallas por
+**propósito** (Negocio → Preferencias → Ayuda → salidas de contexto), con el
+status separado en un punto de color + texto propio, y la dirección movida
+como subtítulo de "Editar mi negocio" (que es donde ese dato realmente vive).
+
+**Corrección de Alejandro tras ver el resultado en el iPhone:** el último
+grupo (Explorar como cliente/Cerrar sesión en Mi Patio; Publicar mi
+menú/Cerrar sesión en Cuenta) se quedó sin título — inconsistente contra el
+resto. Se agregó el label **"Cuenta"** a ambos, reciclando el nombre que ya
+usaba `perfil-editar.tsx` para su propio bloque de correo + cerrar sesión, en
+vez de inventar un cuarto término. Lección: agrupar por propósito no exime de
+titular *todos* los grupos — un grupo sin nombre sigue leyéndose como relleno
+suelto, aunque el contenido esté bien agrupado.
+
+### Parte 3 — Reseñas: de panel embebido a pantalla propia
+
+Alejandro pidió estadísticas (vistas + reseñas) visibles después de la
+primera vez que se publica, inspirado en un video de Airbnb sobre cómo
+categorizan sus reseñas. Antes de construir, investigación real: **no existe
+backend para esto.** `lib/ratings.ts` guarda reseñas solo en el AsyncStorage
+de cada teléfono (nunca llegan a Supabase, nadie más las puede leer) y no hay
+ningún contador de vistas por fondita en ningún lado del código. Decisión de
+Alejandro: construir la interacción completa con datos sintéticos ahora
+(mismo patrón que `seedDemoHistory()`), migrar a datos reales cuando exista
+el backend — nunca mostrar números inventados fuera de `__DEV__`.
+
+Primer intento: panel embebido arriba de la lista en `historial.tsx`.
+**Corrección de Alejandro:** "más que tener un espacio de reseñas dentro de
+la pestaña de menús, sería hacer otro botón con reseñas" — pensado con HIG,
+esto aterrizó en el patrón de Apple "Calificaciones y reseñas" del App
+Store: resumen agregado arriba (vistas / promedio / total) + tarjetas de
+reseña individuales abajo, en una **pantalla propia** (`app/resenas.tsx`),
+no un widget dentro de una pestaña que ya tiene otro propósito. Se revirtió
+por completo el panel de `historial.tsx` y se agregó una fila "Reseñas" al
+grupo "Negocio" de `perfil.tsx`.
+
+Las etiquetas de las reseñas sintéticas se movieron a `lib/review-tags.ts`
+(antes vivían solo dentro de `app/resena/[id].tsx`) para que el generador
+sintético (`lib/patio-stats.ts`) use exactamente el mismo vocabulario que el
+flujo real de escribir una reseña — no dos taxonomías. La taxonomía
+aspiracional que menciona el video de Airbnb (comida/porción/servicio/
+precio/ambiente/accesibilidad) ya estaba registrada en
+`docs/AIRBNB_TO_PATIO_SYSTEM.md` §D "Reseñas inteligentes" — no hizo falta
+que Alejandro la reenviara.
+
+### Lecciones de HIG que quedaron aplicadas (no solo documentadas)
+
+1. **Todo grupo necesita nombre**, incluido el que contiene "Cerrar sesión" —
+   agrupar visualmente no sustituye titular; un grupo sin label se lee como
+   relleno aunque el contenido esté bien organizado.
+2. **Status en vivo ≠ dato estático** — no compartir línea entre un indicador
+   que cambia (¿publiqué hoy?) y un hecho fijo (dirección); cada uno vive
+   donde tiene sentido leerlo.
+3. **Un patrón, un componente** — cuando dos pantallas son "espejo" a
+   propósito (Cuenta/Mi Patio), deben compartir el componente real, no una
+   reconstrucción parecida; tres variantes divergentes de la misma fila es
+   una señal de que faltaba extraer el patrón antes.
+4. **Las reseñas son su propio destino**, no un widget adjunto a una pantalla
+   con otro propósito — el patrón de referencia (App Store "Calificaciones y
+   reseñas": resumen + lista) ya vive nativo en iOS y es la comparación más
+   directa disponible sin copiar literal ningún control.
+
+### Build
+
+`eas build -p ios --profile production --auto-submit` lanzado al cierre de
+esta sesión (buildNumber 46→47, incrementado por EAS). Motivo: Alejandro
+quiere probar fuera de casa y mostrar el avance a otras personas — no
+depende de un permiso nativo nuevo, es la primera vez que se agrupa un
+bloque completo de UI desde el build anterior (economía de builds).
+
+### Qué sigue
+
+1. Confirmar resultado del build/submit y registrar en `docs/TASKS.md` →
+   REGISTRO DE BUILDS.
+2. QA en iPhone físico pendiente de la parte 1: magic link real, recorte de
+   galería, blur del mapa (Alejandro los comprueba él mismo).
+3. Instalar los templates de email en Supabase Dashboard (dos pestañas).
+4. Backend real de vistas/reseñas sigue en backlog — ver `docs/TASKS.md`.
+
 ## Sesión 2026-07-22 — gobernanza de documentación + homologación Apple + fixes Fondero
 
 Sesión larga, en dos mitades. Primera mitad: auditoría y limpieza de toda la

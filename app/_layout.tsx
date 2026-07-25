@@ -36,7 +36,9 @@ function RootStack() {
           headerTintColor: theme.text,
           contentStyle: { backgroundColor: theme.bg },
         }}>
-        <Stack.Screen name="index" options={{ title: 'Login / Registro' }} />
+        <Stack.Screen name="index" options={{ title: 'Login / Registro', headerShown: false, animation: 'none' }} />
+        <Stack.Screen name="warmup" options={{ headerShown: false, animation: 'none' }} />
+        <Stack.Screen name="entrada" options={{ headerShown: false }} />
         <Stack.Screen name="fondero-acceso" options={{ headerShown: false }} />
         <Stack.Screen name="cuenta" options={{ headerShown: false }} />
         <Stack.Screen name="explorar" options={{ headerShown: false }} />

@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert } from 'react-native';
 
 import { FONDITA_ID_KEY } from '@/lib/db';
+import { nombreDisponible } from '@/lib/fondita-name';
 import {
   deserialize,
   horarioDefault,
@@ -262,6 +263,8 @@ export function useFonderoProfileController() {
         if (blocked) {
           const fechaDisponible = new Date(new Date(lastUpdated).getTime() + 15 * 24 * 60 * 60 * 1000);
           Alert.alert('Nombre en pausa', `Tu nombre está bloqueado hasta el ${fechaDisponible.toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })}. Los demás cambios sí se guardaron.`);
+        } else if (!(await nombreDisponible(nombre, fonditaId ?? undefined))) {
+          Alert.alert('Ese nombre ya existe', 'Ya hay un negocio con ese nombre en Patio. Elige otro. Los demás cambios sí se guardaron.');
         } else {
           payload.nombre = nombre.trim();
           payload.nombre_updated_at = new Date().toISOString();

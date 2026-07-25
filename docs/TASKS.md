@@ -1,11 +1,153 @@
 # TASKS — Cola de trabajo para agentes
 
-> Última actualización: 2026-07-22.
+> Última actualización: 2026-07-24.
 > Estado: `[ ]` pendiente | `[x]` hecho | `[~]` en progreso.
 
 > Las entradas Patio Smart v1–v6 registran iteraciones históricas y no son una
 > especificación vigente. El flujo canónico es v7 y vive en
 > `docs/PATIO_SYSTEM_MAP.md`.
+
+## CICLO 2026-07-24 — bug botón "Entrar a Patio" en TestFlight + email magic link
+
+- [x] **Diagnóstico a fondo del botón que no responde en TestFlight.**
+  Reproducido en simulador (dev client): primer touch tras cold start no
+  dispara `onPress` en ninguna pantalla del Stack, se arregla solo esperando
+  ~15s o revisitando la pantalla. Confirmado con build en configuración
+  Release (sin Metro) que el mismo tap responde de inmediato — es un
+  artefacto del dev client, NO el bug real de producción. Se armó y luego se
+  revirtió por completo una arquitectura boot→warmup→entrada; `index.tsx` y
+  `_layout.tsx` quedaron sin cambios netos. Detalle completo en
+  `docs/HANDOFF.md` sesión 2026-07-24.
+- [ ] **Bug real sin explicación de código confirmada — pendiente de triage
+  de device.** Pedir a Alejandro: forzar cierre + reabrir, confirmar que
+  TestFlight no tiene un update pendiente (sigue en build 47 o el que se
+  lance hoy), y si sigue igual, borrar la app y reinstalar desde cero.
+- [x] **Rediseño Apple HIG del email "Magic Link"** (`supabase/templates/
+  magic-link.html`), 3 rondas de feedback: logo oficial embebido, pesos de
+  firma de marca corregidos, CTA centrado, cuerpo recortado a una línea,
+  bloque de URL cruda eliminado (fallback humano vía soporte), alineación
+  mixta (hero centrado, utilitario a la izquierda). Sigue pendiente que
+  Alejandro lo pegue manualmente en Supabase Dashboard — no hay acceso desde
+  aquí.
+- [x] **Build 48 enviado a Apple** — `eas build -p ios --profile production
+  --auto-submit` desde `rebuild/patio-final`, sin fix de código para el bug
+  del botón (no hay uno confirmado); lanzado a petición de Alejandro para
+  tener un build fresco mientras hace el triage de arriba.
+
+## CICLO 2026-07-23 (parte 2) — Redisño HIG perfil/cuenta + panel de estadísticas
+
+- [x] **Corrección de atribución:** el kicker fijo "Publica lo que vendes hoy.
+  Patio lo ordena por ti." vive en `app/menu.tsx` (Hoy), NO en Historial. La
+  entrada de más abajo que lo anotaba como "hint de Historial" estaba mal
+  atribuida — sigue pendiente tal cual, sin tocar hoy.
+- [x] **Componente compartido `components/settings-list.tsx`** (`SettingsGroup`
+  + `SettingsRow`): grupo con label opcional (mayúsculas, HIG grouped list) +
+  fila con icono en caja tintada, título/subtítulo y trailing. Antes
+  `cuenta.tsx`, `perfil.tsx` y `perfil-editar.tsx` tenían tres implementaciones
+  de fila visualmente distintas para la misma cosa.
+- [x] **`app/cuenta.tsx` reagrupada por propósito**, no por lo que "cupiera
+  junto": "Preferencias" (modo oscuro) separado de "Ayuda" (manifiesto,
+  soporte) separado de las salidas de contexto (publicar mi menú / cerrar
+  sesión). El estilo `groupLabel` existía pero nunca se usaba — ahora si
+  tiene contenido real.
+- [x] **`app/perfil.tsx` (Mi Patio) reagrupada espejo de Cuenta**: "Negocio"
+  (Publicar menú, Editar mi negocio) → "Preferencias" → "Ayuda" → salidas.
+  El estado "Menú publicado hoy"/"Aún no publicas" se separó de la
+  dirección — antes vivían en una sola línea con un " · ", mezclando dos
+  tipos de información distintos (status en vivo vs. dato estático). El
+  status ahora es un punto de color + texto; la dirección se movió como
+  subtítulo de la fila "Editar mi negocio", que es donde realmente vive ese
+  dato.
+- [x] **`app/perfil-editar.tsx`**: el bloque "CUENTA" (correo + cerrar sesión)
+  al fondo también migrado al componente compartido — era la tercera
+  variante de fila divergente en el repo.
+- [x] Typecheck, ESLint y verificación visual en simulador (claro) para las
+  tres pantallas — ver capturas en la sesión. Modo oscuro no se pudo forzar
+  vía tap del simulador (posible quirk de Maestro/simulador, no del código);
+  la lógica de color no cambió respecto al original, así que el riesgo es
+  bajo, pero vale la pena que Alejandro lo confirme en su iPhone.
+- [x] **Panel de estadísticas + reseñas en Historial** (`app/historial.tsx`):
+  aparece arriba de la lista solo cuando `menus.length > 0` (ya no es la
+  primera vez que publica). Muestra vistas, calificación promedio + número
+  de reseñas, y un fragmento de la reseña más reciente. **Datos sintéticos,
+  solo en `__DEV__`** vía `lib/patio-stats.ts::getDemoPatioStats()` — determinista
+  por seed (fondita id/nombre) para que no “salte” entre renders. Decisión
+  explícita de Alejandro (2026-07-23): construir la interacción completa con
+  datos sintéticos ahora; migrar a datos reales cuando exista el backend.
+- [ ] **Pendiente real, sin resolver:** no existe backend para esto. Las
+  reseñas (`lib/ratings.ts`) viven solo en el `AsyncStorage` de cada
+  teléfono — nunca llegan a Supabase, nadie más las puede leer. No hay
+  ningún contador de vistas por fondita en ningún lado del código. Para que
+  el panel muestre datos reales hace falta: tabla de reseñas en Supabase +
+  RLS, migrar `savePatioRating` para escribir ahí, y un contador de vistas
+  real (incrementar al abrir `app/patio/[id].tsx`). Alcance de una sesión
+  aparte, no trivial.
+- [x] **Corrección tras feedback de Alejandro (misma sesión):** los grupos
+  "Explorar como cliente/Cerrar sesión" y "Publicar mi menú/Cerrar sesión" en
+  `perfil.tsx` y `cuenta.tsx` no tenían label — quedó inconsistente contra el
+  resto de grupos que sí tienen título. Ahora ambos llevan label "Cuenta"
+  (mismo nombre que ya usaba `perfil-editar.tsx` para su bloque de correo +
+  cerrar sesión — vocabulario reciclado, no inventado).
+- [x] **Corrección de estructura — reseñas como su propio destino, no un
+  panel embebido en Historial:** Alejandro pidió pensar esto con HIG y
+  aterrizó en el patrón de Apple "Calificaciones y reseñas" del App Store —
+  resumen (vistas/promedio/reseñas) arriba + tarjetas individuales abajo, en
+  una pantalla propia (`app/resenas.tsx`), no un widget dentro de la pestaña
+  de menús. Nueva fila "Reseñas" en el grupo "Negocio" de `perfil.tsx`. El
+  panel que se había agregado a `historial.tsx` se revirtió por completo.
+  Las etiquetas de la reseña sintética reusan `REVIEW_TAGS`
+  (`lib/review-tags.ts`, extraído de `app/resena/[id].tsx` para no tener dos
+  taxonomías) — enlaza con la taxonomía aspiracional "comida/porción/
+  servicio/precio/ambiente/accesibilidad" ya anotada en
+  `docs/AIRBNB_TO_PATIO_SYSTEM.md` sección D (Reseñas inteligentes), que
+  Alejandro reconoció como la referencia del video de Airbnb que ya
+  teníamos registrada — no hubo que pedírselo de nuevo.
+  Sigue sintético/`__DEV__` únicamente; el backend real sigue pendiente
+  (ver nota de arriba).
+- [x] Typecheck + ESLint verdes; verificado en simulador (grupos con label,
+  fila Reseñas, pantalla de reseñas con datos sintéticos renderizando bien).
+- [x] **Build de TestFlight lanzado y enviado** — `eas build -p ios --profile
+  production --auto-submit`, buildNumber 47, subido y **"Submitted your app
+  to Apple App Store Connect!"** (2026-07-23, ~23:08). Apple procesa el
+  binario (5-10 min típico) antes de aparecer en
+  https://appstoreconnect.apple.com/apps/6760884735/testflight/ios — pendiente
+  que Alejandro reciba el correo de Apple y lo instale para probar fuera de
+  casa. QA de la parte 1 (magic link real, recorte de galería, blur del mapa)
+  sigue sin resolver — no bloqueó el build, lo adelantó.
+
+## CICLO 2026-07-23 — Confirmaciones de Alejandro en vivo (triage, sin código)
+
+- [x] **Bug de guardado en historial — CONFIRMADO RESUELTO** por Alejandro:
+  cualquier menú que guarda o crea se queda guardado. Cierra el pendiente
+  abierto el 22-jul sobre `saveDraft`/`saveLocalMenu`.
+- [ ] **Templates de email — sigue pendiente, NO se descarta.** Confirmado que
+  sí hay que instalarlos, solo que no es lo urgente ahora. Recordar que son
+  **dos pestañas** en Supabase Dashboard (Magic Link + Confirm signup, mismo
+  HTML en ambas — ver `supabase/templates/README.md`), no una.
+- [ ] **QA magic link real** — sigue pendiente de probar en iPhone.
+- [x] **QA cámara/galería (captura de menú) — CONFIRMADO funcionando** en
+  dispositivo real.
+- [x] **QA GPS — CONFIRMADO funcionando** vía uso real: Alejandro marca su
+  ubicación sin problema al crear/editar perfil de Fondero. Cobertura: happy
+  path (permiso concedido, geocode normal). No se probó explícitamente permiso
+  denegado ni el fallback de dirección manual — dejar en radar si aparece un
+  reporte real, no bloquea nada hoy.
+- [ ] **Nuevo hallazgo, backlog (no urgente):** el campo NOMBRE del alta acepta
+  cualquier longitud/contenido sin validación ni límite de caracteres.
+- [x] **Idea de producto implementada** (ver CICLO 2026-07-23 parte 2 arriba):
+  panel de estadísticas + reseñas en Historial, visible cuando ya no es la
+  primera vez que publica. Corrección de atribución: el kicker "Publica lo
+  que vendes hoy..." vive en `app/menu.tsx` (Hoy), no en Historial — son dos
+  cosas distintas, esta nota original las mezclaba.
+- [ ] **Recorte de galería** — pendiente que Alejandro lo compruebe él mismo
+  antes de decidir si se toca.
+- [ ] **Blur del mapa al buscar** — Alejandro cree que ya está bien; pendiente
+  confirmación final suya antes de cerrarlo del backlog.
+- [ ] **Próximo hito acordado:** hacer un build de **TestFlight** para mostrar
+  Patio a otras personas desde su celular, una vez cerrada esta ronda (magic
+  link real probado, recorte de galería y blur del mapa confirmados). Antes de
+  proponerlo formalmente: confirmar rama activa y agrupar los cambios ya
+  probados en simulador/device, por economía de builds EAS (ver `CLAUDE.md`).
 
 ## CICLO 2026-07-22 — Gobernanza de docs + homologación Apple + fixes Fondero
 
@@ -42,9 +184,9 @@
 - [x] Bug real corregido: `saveDraft` podía fallar en silencio y la UI decía
   "Guardado" sin verificar — ahora `saveLocalMenu` devuelve éxito/fallo y se
   avisa si de verdad falla.
-- [ ] Sin confirmar con Alejandro: si el bug de "guardado que no aparece en
-  historial" reportado el 22-jul quedó resuelto del todo, o si hay un camino
-  específico (Guardar vs. Publicar, sesión real vs. DEV) que sigue fallando.
+- [x] Confirmado con Alejandro 2026-07-23: el bug de "guardado que no aparece
+  en historial" quedó resuelto — cualquier menú que guarda o crea se queda
+  guardado. Ver CICLO 2026-07-23 arriba.
 - [ ] Anotado para el futuro (no implementado): los textos tipo kicker/hint
   fijos (ej. "Publica lo que vendes hoy...") deberían comportarse como hints
   temporales de primera vez, no quedar fijos — extender `lib/hints.ts`.
@@ -362,6 +504,10 @@ Implementar mockups pantalla por pantalla. Orden recomendado:
 
 ## FEATURES FUTURAS
 
+- [ ] Reseñas del propio Patio para el Fondero — hoy solo Foodie puede reseñar
+  (`app/resena/[id].tsx`); no existe lectura de esas reseñas del lado Fondero.
+  Ligado a la idea del panel de Historial que evoluciona con estadísticas +
+  reseñas después de la primera vez (planteado 2026-07-23).
 - [ ] Textos tipo kicker/explicación (ej. "Publica lo que vendes hoy. Patio lo
   ordena por ti." en Hoy) son en realidad guía de onboarding — deberían
   comportarse como hints temporales que se retiran solas tras las primeras
@@ -385,6 +531,7 @@ Implementar mockups pantalla por pantalla. Orden recomendado:
 | 1.0.0 (43) | 2026-05-16 | Role-picker, blur Halo, mic placeholder, foto-menu Fondero |
 | 1.0.0 (44) | 2026-05-16 | Cleanup, botones zombi arreglados, cerrar sesión real, email oficial |
 | 1.0.0 (45) | 2026-05-17 | Blur baja al filtrar, sheet sobre teclado, dev nav completa, cuenta simplificada, diag magic link |
+| 1.0.0 (47) | 2026-07-23 | Perfil/Cuenta reagrupados por HIG (grupos con label, status separado de dirección), pantalla nueva Reseñas (App Store pattern, datos sintéticos DEV). Submit automático a TestFlight vía `eas build --auto-submit`, procesando en Apple. |
 
 ## REFERENCIAS VISUALES
 

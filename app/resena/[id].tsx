@@ -8,9 +8,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { fetchFonditaById, getPatioById, type Patio } from '@/lib/patios';
 import { getPatioRating, savePatioRating } from '@/lib/ratings';
+import { REVIEW_TAGS as TAGS } from '@/lib/review-tags';
 import { Fonts, Radius, useTheme, type Theme } from '@/lib/theme';
-
-const TAGS = ['Caldoso', 'Bien servido', 'Recién hecho', 'Salsa picosa', 'Trato amable', 'Tortillas hechas a mano'];
 
 function makeStyles(t: Theme) {
   return StyleSheet.create({

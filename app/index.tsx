@@ -1,36 +1,39 @@
-import { BlurView } from 'expo-blur';
-import { LinearGradient } from 'expo-linear-gradient';
-import { router, Stack } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
+import { useEffect } from 'react';
+import { View } from 'react-native';
 
 import { AgentSpinner } from '@/components/agent-spinner';
 import { initializeSignedInUser } from '@/lib/auth';
-import { getUserRole, hasCompletedOnboarding, saveUserRole } from '@/lib/entry-flow';
+import { getUserRole, hasCompletedOnboarding } from '@/lib/entry-flow';
 import { supabase } from '@/lib/supabase';
-import { Fonts } from '@/lib/theme';
-import { noWidow } from '@/lib/typography';
 
-const DEV_VERSION = 'HOY · 2026.07.18';
+// Boot puro: decide a dónde mandar a la persona (sesión guardada o /entrada
+// si no hay nada que resolver) y SIEMPRE pasa por /warmup antes de mostrar
+// esa pantalla.
+//
+// index.tsx dejó de pintar la UI de bienvenida — reproducido en simulador
+// 2026-07-24 en dos builds distintos (dev client Y build Release con
+// instalación limpia, sin Metro — descartado que fuera artefacto de
+// desarrollo): en cold start, el PRIMER montaje nativo de cualquier pantalla
+// en este Stack (New Architecture + react-native-screens) no entrega
+// touches a sus TouchableOpacity, sea /entrada, /menu o cualquier otra. Un
+// SEGUNDO montaje de una pantalla DISTINTA sí responde de inmediato —
+// confirmado con tap real (no solo texto) navegando fuera y de regreso.
+// /warmup existe solo para ser ese primer montaje desechable antes del
+// destino real. Ver docs/HANDOFF.md sesión 2026-07-24 para el resto del
+// diagnóstico (incluye por qué la primera versión de este fix parecía no
+// funcionar: se probó por error contra un build que seguía conectado a
+// Metro).
+function goVia(destination: { pathname: string; params?: Record<string, string> }) {
+  router.replace({ pathname: '/warmup', params: { to: JSON.stringify(destination) } });
+}
 
-// Entrada rediseñada 2026-07-18: mismo idioma que onboarding/acceso —
-// botánica full-bleed, logo + par de marca al centro, acciones abajo en glass.
-// Siempre oscura: el texto vive sobre la imagen.
-const HERO = require('../assets/hero/botanica-5.jpg');
-const LOGO_BLANCO = require('../assets/images/logo-blanco.png');
-
-export default function LoginScreen() {
-  const insets = useSafeAreaInsets();
-  const [checkingSession, setCheckingSession] = useState(true);
-
+export default function BootScreen() {
   useEffect(() => {
     (async () => {
       try {
-        // En desarrollo siempre mostramos esta entrada: sirve como selector de
-        // rol y como prueba visible de que el iPhone cargó el bundle actual.
         if (__DEV__) {
-          setCheckingSession(false);
+          goVia({ pathname: '/entrada' });
           return;
         }
         const [{ data }, savedRole, onboardingDone] = await Promise.all([
@@ -40,123 +43,25 @@ export default function LoginScreen() {
         ]);
         const setup = data.session ? await initializeSignedInUser(data.session) : null;
         if (savedRole === 'fondero' && data.session) {
-          router.replace(setup?.needsSetup ? '/patio-smart' : '/menu');
+          goVia({ pathname: setup?.needsSetup ? '/patio-smart' : '/menu' });
           return;
         }
         if (savedRole === 'foodie') {
-          router.replace(onboardingDone ? '/explorar' : { pathname: '/onboarding', params: { intent: 'foodie' } });
+          goVia(
+            onboardingDone
+              ? { pathname: '/explorar' }
+              : { pathname: '/onboarding', params: { intent: 'foodie' } }
+          );
           return;
         }
       } catch {}
-      setCheckingSession(false);
+      goVia({ pathname: '/entrada' });
     })();
   }, []);
 
-  const handleStart = () => {
-    // La primera entrada presenta Patio antes de pedir una intención. La
-    // decisión entre explorar y publicar vive al final de la introducción.
-    router.push('/onboarding');
-  };
-
-  const handleDevFoodie = async () => {
-    await saveUserRole('foodie').catch(() => {});
-    router.replace('/explorar');
-  };
-
-  const handleDevFondero = async () => {
-    await saveUserRole('fondero').catch(() => {});
-    router.replace('/patio-smart');
-  };
-
-  const handleDevOnboarding = async () => {
-    router.replace('/onboarding');
-  };
-
-  if (checkingSession) {
-    return (
-      <View style={s.centered}>
-        <AgentSpinner variant="arc" size={28} color="#F8F8F5" />
-      </View>
-    );
-  }
-
   return (
-    <View style={s.root}>
-      <Stack.Screen options={{ headerShown: false }} />
-
-      {/* Botánica full-bleed + velo */}
-      <Image source={HERO} style={s.bg} resizeMode="cover" />
-      <LinearGradient
-        colors={['rgba(0,0,0,0.35)', 'rgba(0,0,0,0.1)', 'rgba(0,0,0,0.78)']}
-        locations={[0, 0.4, 1]}
-        style={StyleSheet.absoluteFill}
-      />
-
-      {/* Logo en el centro EXACTO de la pantalla (overlay independiente del
-          layout); el par de marca cuelga debajo sin mover el ancla */}
-      <View style={s.brandOverlay} pointerEvents="none">
-        <View>
-          <Image source={LOGO_BLANCO} style={s.logo} resizeMode="contain" />
-          <View style={s.pairBelow}>
-            <Text style={s.claim} allowFontScaling={true}>{noWidow('¿Qué hay hoy?')}</Text>
-            <Text style={s.tagline} allowFontScaling={true}>Saaaaaaabes.</Text>
-          </View>
-        </View>
-      </View>
-
-      <View style={[s.content, { paddingBottom: insets.bottom + 18 }]}>
-        {/* Acciones abajo */}
-        <View style={s.actions}>
-          <TouchableOpacity style={s.ctaGlass} onPress={handleStart} activeOpacity={0.86}>
-            <BlurView intensity={16} tint="dark" style={s.ctaGlassInner}>
-              <Text style={s.ctaGlassText} allowFontScaling={true}>{noWidow('Entrar a Patio')}</Text>
-            </BlurView>
-          </TouchableOpacity>
-
-          {__DEV__ && (
-            <>
-              <Text style={s.devVersion} allowFontScaling={true}>DEV · {DEV_VERSION}</Text>
-              <View style={s.devBar}>
-                <TouchableOpacity style={s.devBtn} onPress={handleDevFoodie} activeOpacity={0.7}>
-                  <Text style={s.devBtnText} allowFontScaling={true}>Foodie</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={s.devBtn} onPress={handleDevFondero} activeOpacity={0.7}>
-                  <Text style={s.devBtnText} allowFontScaling={true}>Fondero</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={s.devBtn} onPress={handleDevOnboarding} activeOpacity={0.7}>
-                  <Text style={s.devBtnText} allowFontScaling={true}>Onboarding</Text>
-                </TouchableOpacity>
-              </View>
-            </>
-          )}
-        </View>
-      </View>
+    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#0B0B0C' }}>
+      <AgentSpinner variant="arc" size={28} color="#F8F8F5" />
     </View>
   );
 }
-
-const s = StyleSheet.create({
-  centered: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#0B0B0C' },
-  root: { flex: 1, backgroundColor: '#0B0B0C' },
-  bg: { ...StyleSheet.absoluteFillObject, width: '100%', height: '100%' },
-
-  content: { flex: 1, paddingHorizontal: 28, justifyContent: 'flex-end' },
-
-  brandOverlay: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center' },
-  logo: { width: 230, height: 86 },
-  pairBelow: { position: 'absolute', top: '100%', left: 0, right: 0, alignItems: 'center', marginTop: 14 },
-  claim: { fontSize: 15, fontWeight: '900', fontFamily: Fonts.brand, textAlign: 'center', color: '#F8F8F5' },
-  tagline: { fontSize: 15, fontWeight: '300', fontFamily: Fonts.brand, textAlign: 'center', color: 'rgba(248,248,245,0.7)' },
-
-  actions: { alignItems: 'center', gap: 2 },
-  ctaGlass: { alignSelf: 'stretch', borderRadius: 14, overflow: 'hidden' },
-  ctaGlassInner: { height: 52, alignItems: 'center', justifyContent: 'center' },
-  ctaGlassText: { fontSize: 16, fontWeight: '900', color: '#FFFFFF', letterSpacing: -0.2 },
-  secondaryBtn: { height: 44, alignItems: 'center', justifyContent: 'center', alignSelf: 'stretch' },
-  secondaryText: { fontSize: 14, fontWeight: '300', color: 'rgba(248,248,245,0.7)' },
-
-  devVersion: { marginTop: 6, fontSize: 10, fontWeight: '900', letterSpacing: 0.8, color: 'rgba(248,248,245,0.35)' },
-  devBar: { flexDirection: 'row', gap: 8, marginTop: 8 },
-  devBtn: { paddingHorizontal: 14, height: 32, borderRadius: 100, backgroundColor: 'rgba(255,255,255,0.10)', alignItems: 'center', justifyContent: 'center' },
-  devBtnText: { fontSize: 12, fontWeight: '300', color: 'rgba(248,248,245,0.7)' },
-});

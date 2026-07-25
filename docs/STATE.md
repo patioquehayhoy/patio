@@ -1,6 +1,46 @@
 # STATE
 
-> Fuente de verdad operativa. Última actualización: 2026-07-22.
+> Fuente de verdad operativa. Última actualización: 2026-07-23.
+
+## Corte operativo — 2026-07-23 (parte 2: redisño HIG + panel de estadísticas)
+
+- `cuenta.tsx`, `perfil.tsx` y `perfil-editar.tsx` reagrupadas por propósito
+  (Negocio/Preferencias/Ayuda/salidas) con un componente compartido nuevo
+  (`components/settings-list.tsx`) — antes cada pantalla tenía su propia fila
+  visualmente distinta. Status de "menú publicado hoy" separado de la
+  dirección en Mi Patio. Typecheck/lint verdes; verificado en simulador claro.
+- Nuevo panel de estadísticas + reseñas en `historial.tsx`, visible cuando
+  `menus.length > 0`. Datos **sintéticos, solo `__DEV__`** vía
+  `lib/patio-stats.ts` — decisión explícita de Alejandro de construir la
+  interacción completa antes de tener backend real. El backend real (tabla
+  de reseñas + RLS + contador de vistas) sigue sin existir — detalle en
+  `docs/TASKS.md`.
+- Ajuste tras feedback de Alejandro: los grupos finales de `perfil.tsx`/
+  `cuenta.tsx` (salidas de contexto) ahora llevan label "Cuenta" — antes eran
+  el único grupo sin título. Reseñas dejó de ser un panel embebido en
+  Historial: ahora es pantalla propia (`app/resenas.tsx`, patrón App Store
+  "Calificaciones y reseñas"), con entrada desde el grupo "Negocio" de Mi
+  Patio. Sigue con datos sintéticos `__DEV__` — sin backend real todavía.
+- Build de TestFlight lanzado 2026-07-23 con este bloque completo.
+
+## Corte operativo — 2026-07-23 (confirmaciones de Alejandro, sin código)
+
+- Bug de guardado en historial (abierto el 22-jul): **confirmado resuelto**
+  por Alejandro — cualquier menú que guarda o crea se queda guardado.
+- QA nativo con avance real: **cámara/galería confirmada funcionando**; **GPS
+  confirmado funcionando** (Alejandro marca ubicación sin problema al crear/
+  editar perfil Fondero — cobertura happy path). Sigue pendiente **magic link
+  real** en iPhone.
+- Templates de email siguen pendientes de instalar en Supabase Dashboard —
+  confirmado que no se descartan, solo no son la prioridad inmediata.
+- Nuevo backlog (no urgente): el campo NOMBRE del alta no valida longitud.
+- Nueva idea de producto sin definir: panel de Historial que, después de la
+  primera vez, muestre estadísticas del menú + reseñas del Patio en vez del
+  hint fijo — depende de una feature de reseñas del lado Fondero que no
+  existe hoy. Detalle en `docs/TASKS.md` ciclo 2026-07-23.
+- Próximo hito acordado: build de TestFlight para mostrar Patio a otras
+  personas, una vez cerrada esta ronda de QA (magic link, recorte de
+  galería, blur del mapa).
 
 ## Corte operativo — 2026-07-22
 
@@ -167,9 +207,11 @@ El foco actual es **QA en dispositivo + rediseño visual homologado**, no constr
 ### QA humano / dispositivo
 
 1. Verificar build iOS/TestFlight o preview en dispositivo real.
-2. Probar magic link Fondero con diagnóstico visible si falla.
-3. Probar cámara/galería y permisos nativos.
-4. Probar GPS real en `perfil.tsx`.
+2. Probar magic link Fondero con diagnóstico visible si falla — **pendiente**.
+3. ~~Probar cámara/galería y permisos nativos.~~ **Confirmado 2026-07-23:
+   funciona.**
+4. ~~Probar GPS real en `perfil.tsx`.~~ **Confirmado 2026-07-23: funciona**
+   (happy path — permiso concedido, marcar ubicación al crear/editar perfil).
 5. Registrar UDID de iPhone para builds internos si aplica.
 6. Configurar API key Google Maps restringida antes de builds Android reales.
 

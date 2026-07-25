@@ -56,6 +56,7 @@ function RootStack() {
         <Stack.Screen name="preview" options={{ headerShown: false }} />
         <Stack.Screen name="perfil" options={{ headerShown: false }} />
         <Stack.Screen name="perfil-editar" options={{ headerShown: false }} />
+        <Stack.Screen name="resenas" options={{ headerShown: false }} />
         <Stack.Screen name="patio-smart" options={{ headerShown: false }} />
         <Stack.Screen name="patio/[id]" options={{ headerShown: false }} />
         <Stack.Screen name="resena/[id]" options={{ headerShown: false }} />

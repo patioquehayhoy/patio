@@ -1,5 +1,134 @@
 # HANDOFF
 
+## Corte 2026-07-28 · composición Apple, red y cierre de pasos duplicados
+
+Se recompusieron como sistemas completos el perfil público, Guardados,
+Colecciones, filtros de mapa, Actividad Fondero, Plan, Privacidad, Avisos y el
+flujo posterior a publicar.
+
+- Guardados y Colecciones son una sola pestaña: tarjeta principal para ver todos
+  en mapa y tarjetas de colección con acceso directo al mapa. Los estados
+  técnicos de visibilidad dejaron de competir en la superficie principal.
+- El mapa conserva filtros rápidos y añade `Filtrar`, que revela categorías y
+  colecciones en una segunda línea temporal.
+- Regla de precio vigente: el precio pertenece al platillo junto al que aparece.
+  `Precio único` salió del editor, perfil y póster.
+- El perfil público agrupa identidad, menú, información práctica, ubicación y
+  reputación. `Cómo llegar` vive dentro del grupo de ubicación; reseñas vive al
+  final y muestra comunidad, reseña propia y una respuesta oficial del Patio.
+- Actividad Fondero dejó de usar estadísticas sintéticas. Es una bandeja de
+  acontecimientos con reseñas reales y una sola respuesta oficial, sin hilos.
+- Avisos solicita verificación únicamente al activar una preferencia protegida.
+  Privacidad explica que ocultar el perfil no elimina reseñas ya publicadas.
+- Plan distingue Patio Gratis de Patio Pro próximo, sin simular cobro activo.
+- Editar mi negocio dejó de forzar la paleta oscura y respeta el tema vigente.
+- La confirmación de publicación ya no usa el icono de recuadro ambiguo.
+
+Verificación: TypeScript, ESLint y `git diff --check` verdes. Supabase remoto
+tenía aplicadas las migraciones hasta `20260802`. Se aplicó
+`20260803_create_business_review_replies.sql` y se redesplegaron `read-menu` y
+`send-publication-notifications`. La respuesta oficial usa un RPC restringido
+que no permite al negocio editar la reseña original.
+
+## Corte funcional cerrado · mapa, criterio y red
+
+La definición operativa es: **un mapa vivo de comida donde guardas lugares,
+organizas tu criterio y descubres el criterio de personas en quienes confías**.
+La tesis de distribución es **ven por la herramienta, quédate por la red**.
+
+Flujo Foodie implementado:
+
+- Invitado: explora, busca y guarda localmente.
+- Cuenta verificada: magic link, nombre + primer apellido y foto opcional.
+- El nombre acepta letras, espacios, apóstrofe y guion; un cambio posterior queda
+  limitado a 30 días y genera historial interno.
+- Ninguna reseña es anónima: exige perfil completo y persiste ligada a usuario.
+- Bookmark guarda inmediatamente con háptico. Organizar después permite nota
+  privada, `Quiero ir`, `Ya fui` y una o varias colecciones.
+- Colecciones: nombre, descripción, lugares y visibilidad privada/por
+  enlace/pública. Las compartidas se publican a Supabase y generan deep link.
+- Perfil público: foto, identidad editorial, colecciones públicas y follow.
+- Una colección ajena puede guardarse en la biblioteca.
+- El mapa contiene directamente Todos, Guardados, Con menú hoy, Abiertos,
+  categorías y colecciones propias como capas.
+- Perfil se agrupó en Cuenta, Perfil, Avisos, Privacidad, Plan y Ayuda.
+- Avisos solo muestra controles funcionales; Ajustes de iOS aparece únicamente
+  si el permiso está bloqueado.
+- El detalle prioriza menú; el mapa bajó de tamaño y Cómo llegar es una cápsula
+  compacta con símbolo del sistema y háptico.
+
+Backend desplegado en migraciones 20260728–20260801: perfiles, follows,
+colecciones, lugares de colección, listas guardadas, avatares, guardados
+sincronizados, historial de nombre y reseñas verificadas.
+
+Fuera por decisión de alcance: Notion, mensajes, feed algorítmico, rutas
+avanzadas, tours, colaboración y monetización activa.
+
+## Decisión guardada — búsqueda conversacional y Agente Patio
+
+Se registró la necesidad de expresar un antojo completo como “quiero algo estilo
+focaccia o club sándwich, rico y cerca del Metro Xola” y recibir recomendaciones
+situadas sobre el mapa.
+
+La dirección es un agente controlado, no chat abierto. El modelo traduce lenguaje
+natural a intención estructurada; Patio resuelve candidatos mediante menús reales,
+embeddings, ubicación, precio, horario, distancia y vigencia. Devuelve 3–5
+opciones explicables y permite refinamientos breves.
+
+La primera búsqueda útil permanece gratis porque genera demanda para la red.
+Patio Pro puede incluir voz, conversación extensa, preferencias persistentes,
+alertas semánticas y mayor frecuencia. Fuente detallada:
+`docs/PRODUCT_EVOLUTION_ROADMAP_2026-07-18.md`.
+
+## Sesión 2026-07-25 — cierre de giro, precios, jerarquía y panel de mapa
+
+Feedback humano adicional cerró cuatro detalles:
+
+- El giro visible queda como **Fondita**, sin “Fondita / comida corrida”. El
+  perfil técnico continúa entendiendo menú del día, tiempos y carta, pero la
+  etiqueta de alta expresa una sola categoría.
+- Las secciones permanecen en mayúsculas. Jerarquía del editor revisada:
+  pantalla 36/38, sección 18/22 bold, platillo 16/21 semibold y descripción 13.
+  Los niveles se distinguen por tamaño, peso, espacio y mayúsculas, no únicamente
+  por color.
+- Los precios por platillo dejaron de ocultarse detrás de divulgación progresiva:
+  ahora viven en la misma fila que el platillo. El precio global se llama
+  **Precio único**, es opcional y vive después de las secciones dentro de
+  “DETALLES DEL MENÚ”. La proximidad expresa correctamente qué objeto afecta
+  cada control.
+- La lectura visual asocia precio por renglón/columna, no promueve un precio
+  individual a global sin evidencia y nunca concatena precios de variantes.
+
+El panel de resultados del mapa desaparecía al soltar el gesto porque no tenía
+animación de salida. Ahora sigue el dedo, decide por distancia/velocidad, vuelve
+con spring si no alcanza el umbral y solo desmonta después de completar el slide.
+
+Pendiente humano: probar en iPhone precios reales por platillo y minimizar el
+panel con arrastre corto, arrastre completo y botón Ocultar.
+
+## Sesión 2026-07-25 — QA humano: acceso, menú y confianza
+
+El iPhone reprodujo el fallo real del magic link. Metro registró
+`[auth] login callback url: null`: iOS/Expo había consumido la URL antes de que
+`login-callback.tsx` la leyera y la pantalla volvía al inicio sin consultar la
+sesión. El callback ahora recupera una sesión ya verificada y el boot DEV respeta
+la sesión Fondero. Pendiente: repetir el enlace real con Metro.
+
+La cámara mostrada por `expo-image-picker` es la interfaz nativa de iOS, no una
+pantalla diseñada por Patio. Se declaró español como localización del binario;
+esto requiere nuevo dev build y no cambia por Fast Refresh.
+
+`read-menu` quedó desplegada con contrato de redacción canónica, separación
+nombre/descripción, estructura de tiempos para fondita y precios improbables
+marcados para revisión sin inventar correcciones. El precio general dejó de ser
+el primer dato y bajó jerarquía en el póster. Publicar ofrece corrección explícita
+que reemplaza el menú vigente del día.
+
+También se agregó soporte guiado, SF Symbol de ubicación, limpieza de Lugares,
+templates completos de correo y documentos de avisos, reseñas/confianza,
+finanzas y glosario. TypeScript, ESLint y diff check quedaron verdes antes del
+último ajuste puntual del callback; repetirlos al cierre.
+
 ## Sesión 2026-07-25 — reestructura panorámica tras revisión humana
 
 Alejandro calificó el corte como **“medio me gustó”** y pidió guardarlo completo.
@@ -1784,3 +1913,49 @@ Probar en simulador `Busco comida -> Explorar` con `MapView` real; si el mapa no
 - Aunque el callback es más robusto en código, aún falta prueba manual en dispositivo real.
 - Hay cambios locales previos en el working tree que deben respetarse para no pisar trabajo en curso.
 - Hay secretos/configuración sensible en el repo que conviene revisar antes de release.
+# Actualización de producto · 26 julio 2026
+
+## Tesis cerrada
+
+**Ven por la herramienta, quédate por la red.**
+
+Patio adquiere por utilidad: buscar en el mapa, guardar y crear colecciones. Crece
+por distribución: una persona comparte su colección; sus amigos llegan por esa
+lista y después crean las suyas. Creadores como Tacotíos o Soyelarturito no son
+un vertical aparte: son nodos de distribución dentro de la misma red local.
+
+## Modelo de interacción
+
+- **Guardar** (`bookmark`): conservar un lugar. No significa seguir ni activa avisos.
+- **Colección**: mapa/lista con nombre propio. Puede ser privada, compartida por
+  enlace o pública en el perfil.
+- **Seguir**: relación entre personas/curadores. Permite descubrir sus colecciones.
+- **Avisos**: preferencia explícita; nunca se infiere de guardar.
+- El permiso de iOS se solicita justo cuando el usuario activa un aviso. Ajustes
+  solo aparece si el sistema lo bloqueó.
+
+## Navegación Foodie
+
+1. **Mapa** — buscar, filtrar y ver resultados.
+2. **Colecciones** — Guardados y mapas propios.
+3. **Perfil** — identidad, perfil público, avisos y cuenta.
+
+Se eliminó el flujo doble de activar categorías en “Lugares” y regresar al mapa.
+Los filtros pertenecen al mapa. Los textos tipo onboarding no viven
+permanentemente arriba de pantallas raíz.
+
+## Identidad y confianza
+
+El visitante puede explorar y guardar localmente sin cuenta. Para reseñar,
+publicar una colección o seguir personas verifica correo y completa nombre +
+primer apellido. Se muestra `Nombre A.`; el correo nunca es público. Foto y bio
+son opcionales y secundarios. No hay reseñas anónimas.
+
+## Alcance de esta entrega
+
+Incluido: colecciones locales, visibilidad de colección, onboarding de identidad
+y esquema Supabase para perfiles, colecciones y follows.
+
+Fuera por ahora: importar Notion, mensajes directos, tours, constructor avanzado
+de rutas, ruleta visual y monetización activa. Son expansión, no requisitos para
+cerrar el núcleo.

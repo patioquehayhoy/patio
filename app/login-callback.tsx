@@ -1,13 +1,17 @@
 import { type EmailOtpType, type Session } from '@supabase/supabase-js';
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useGlobalSearchParams, useRouter } from 'expo-router';
 import * as Linking from 'expo-linking';
 
 import { AgentSpinner } from '@/components/agent-spinner';
 import { initializeSignedInUser } from '@/lib/auth';
-import { saveUserRole } from '@/lib/entry-flow';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+import { COMMUNITY_RETURN_TO_KEY } from '@/lib/community-auth';
+import { getUserRole, saveUserRole } from '@/lib/entry-flow';
 import { supabase } from '@/lib/supabase';
+import { syncLocalLibraryToCloud } from '@/lib/collections';
 
 const OTP_TYPES: EmailOtpType[] = ['signup', 'invite', 'magiclink', 'recovery', 'email_change', 'email'];
 
@@ -46,19 +50,48 @@ function extractAuthParams(rawUrl: string): {
 
 export default function LoginCallback() {
   const router = useRouter();
+  const routeParams = useGlobalSearchParams();
   const [diag, setDiag] = useState<string>('Verificando link...');
 
   useEffect(() => {
     let isCancelled = false;
 
-    const safeRedirect = (path: '/' | '/perfil' | '/menu' | '/patio-smart', delayMs = 0) => {
-      setTimeout(() => { if (!isCancelled) router.replace(path); }, delayMs);
+    const safeRedirect = (path: string, delayMs = 0) => {
+      setTimeout(() => { if (!isCancelled) router.replace(path as any); }, delayMs);
+    };
+
+    const continueWithSession = async (session: Session) => {
+      const role = await getUserRole();
+      if (role === 'foodie') {
+        await syncLocalLibraryToCloud().catch(() => {});
+        const pending = await AsyncStorage.getItem(COMMUNITY_RETURN_TO_KEY).catch(() => null);
+        if (!session.user.user_metadata?.profile_complete) {
+          safeRedirect(`/perfil-comunidad${pending ? `?returnTo=${encodeURIComponent(pending)}` : ''}`);
+          return;
+        }
+        await AsyncStorage.removeItem(COMMUNITY_RETURN_TO_KEY).catch(() => {});
+        safeRedirect(pending?.startsWith('/') ? pending : '/explorar');
+        return;
+      }
+      await saveUserRole('fondero').catch(() => {});
+      const { needsSetup } = await initializeSignedInUser(session);
+      safeRedirect(needsSetup ? '/patio-smart' : '/menu');
     };
 
     async function handle() {
       // Si la app ya estaba abierta y tapeas el link, getInitialURL es null.
       // Hay que esperar el evento de Linking durante un tick.
       let rawUrl: string | null = await Linking.getInitialURL();
+      // Expo Router ya pudo consumir el deep link antes de que Linking lo
+      // entregue. Reconstruimos la URL con los parámetros visibles de la ruta.
+      if (!rawUrl && Object.keys(routeParams).length) {
+        const params = new URLSearchParams();
+        Object.entries(routeParams).forEach(([key, value]) => {
+          const first = Array.isArray(value) ? value[0] : value;
+          if (typeof first === 'string') params.set(key, first);
+        });
+        rawUrl = `patio://login-callback?${params.toString()}`;
+      }
       if (!rawUrl) {
         rawUrl = await new Promise<string | null>((resolve) => {
           const sub = Linking.addEventListener('url', ({ url }) => { sub.remove(); resolve(url); });
@@ -68,8 +101,17 @@ export default function LoginCallback() {
       debugLog('[auth] login callback url:', rawUrl);
 
       if (!rawUrl) {
-        setDiag('Link vacío — regresando a inicio');
-        safeRedirect('/', 1500);
+        // iOS puede entregar el enlace a Supabase/Expo antes de que esta
+        // pantalla alcance a leerlo. Si la verificación ya creó una sesión,
+        // continuar es correcto; "URL vacía" no equivale a login fallido.
+        setDiag('Recuperando tu sesión…');
+        const { data } = await supabase.auth.getSession();
+        if (data.session) {
+          await continueWithSession(data.session);
+          return;
+        }
+        setDiag('No pudimos recuperar el enlace. Solicita uno nuevo.');
+        safeRedirect('/fondero-acceso', 2200);
         return;
       }
 
@@ -100,9 +142,7 @@ export default function LoginCallback() {
 
       if (session) {
         setDiag('¡Listo! Entrando…');
-        await saveUserRole('fondero').catch(() => {});
-        const { needsSetup } = await initializeSignedInUser(session);
-        safeRedirect(needsSetup ? '/patio-smart' : '/menu');
+        await continueWithSession(session);
         return;
       }
 
@@ -118,7 +158,7 @@ export default function LoginCallback() {
     });
 
     return () => { isCancelled = true; };
-  }, [router]);
+  }, [routeParams, router]);
 
   return (
     <View style={s.root}>
@@ -132,5 +172,5 @@ export default function LoginCallback() {
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#111214', justifyContent: 'center', alignItems: 'center', padding: 28 },
   glow: { position: 'absolute', top: -150, left: -100, right: -100, height: 600, backgroundColor: 'rgba(255,106,61,0.10)', borderRadius: 300 },
-  diag: { marginTop: 20, fontSize: 14, color: 'rgba(248,248,245,0.7)', textAlign: 'center', fontWeight: '300', lineHeight: 20 },
+  diag: { marginTop: 20, fontSize: 14, color: 'rgba(248,248,245,0.7)', textAlign: 'center', fontWeight: '400', lineHeight: 20 },
 });

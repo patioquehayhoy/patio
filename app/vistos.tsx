@@ -40,7 +40,7 @@ function makeStyles(t: Theme) {
     backButton: { width: 40, height: 40, borderRadius: 20, marginLeft: -8, marginBottom: 8, alignItems: 'center', justifyContent: 'center' },
     eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', color: t.accent, marginBottom: 6 },
     title: { fontSize: 36, fontWeight: '900', letterSpacing: -1.2, lineHeight: 36, color: t.text, marginBottom: 4, fontFamily: Fonts.brand },
-    subtitle: { fontSize: 13, fontWeight: '300', color: t.textSecondary },
+    subtitle: { fontSize: 13, fontWeight: '400', color: t.textSecondary },
 
     // Lista
     list: { paddingHorizontal: 18, gap: 10, marginTop: 16 },
@@ -52,17 +52,17 @@ function makeStyles(t: Theme) {
     dot: { width: 6, height: 6, borderRadius: 3 },
     statusText: { fontSize: 10.5, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase' },
     name: { fontSize: 18, fontWeight: '900', letterSpacing: -0.3, color: t.text, lineHeight: 21, marginBottom: 4 },
-    today: { fontSize: 13, fontWeight: '300', color: t.text, marginBottom: 6 },
+    today: { fontSize: 13, fontWeight: '400', color: t.text, marginBottom: 6 },
     metaRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
     metaArea: { flexDirection: 'row', alignItems: 'center', gap: 5, flex: 1, minWidth: 0 },
-    metaAreaText: { fontSize: 12, fontWeight: '300', color: t.textSecondary, flexShrink: 1 },
+    metaAreaText: { fontSize: 12, fontWeight: '400', color: t.textSecondary, flexShrink: 1 },
     price: { fontSize: 16, fontWeight: '900', letterSpacing: -0.3, color: t.accent },
 
     // Empty
     empty: { minHeight: 520, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 28 },
     emptyIcon: { width: 68, height: 68, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, backgroundColor: t.surface, alignItems: 'center', justifyContent: 'center', marginBottom: 18 },
     emptyTitle: { fontSize: 22, fontWeight: '900', letterSpacing: -0.5, color: t.text, textAlign: 'center', fontFamily: Fonts.brand },
-    emptyText: { marginTop: 10, fontSize: 15, lineHeight: 21, fontWeight: '300', color: t.textSecondary, textAlign: 'center' },
+    emptyText: { marginTop: 10, fontSize: 15, lineHeight: 21, fontWeight: '400', color: t.textSecondary, textAlign: 'center' },
     cta: { marginTop: 26, height: 54, paddingHorizontal: 24, borderRadius: Radius.card, backgroundColor: t.text, alignItems: 'center', justifyContent: 'center' },
     ctaText: { fontSize: 16, fontWeight: '700', color: t.surface },
   });

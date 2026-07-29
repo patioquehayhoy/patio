@@ -29,7 +29,7 @@ export async function hasCompletedOnboarding(): Promise<boolean> {
 /**
  * Closes the shared introduction without losing the user's original intent.
  * An explicit route param wins; persisted role is the safe fallback for old
- * deep links and the legacy push-prompt screen.
+ * deep links and older persisted sessions.
  */
 export async function completeOnboarding(intent?: unknown): Promise<PostOnboardingRoute> {
   const explicitRole = parseRole(intent);

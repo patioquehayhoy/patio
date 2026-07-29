@@ -1,6 +1,33 @@
 # STATE
 
-> Fuente de verdad operativa. Última actualización: 2026-07-25.
+> Fuente de verdad operativa. Última actualización: 2026-07-28.
+
+## Corte de producto — 2026-07-28
+
+- Guardados/Colecciones unificados; cada lista abre su proyección en el mapa.
+- Filtros rápidos del mapa + selector temporal de categorías y colecciones.
+- Precio únicamente por platillo; retirado el precio global de las superficies.
+- Perfil público recompuesto y reseñas comunitarias al final.
+- Una respuesta oficial del Patio por reseña, sin conversación anidada.
+- Actividad Fondero basada en acontecimientos reales, sin datos sintéticos.
+- Plan y Privacidad explican estado y consecuencias; Avisos evita verificación
+  duplicada.
+- Edición Fondero respeta modo claro/oscuro.
+- QA estático verde; revisión visual humana en iPhone pendiente.
+
+## Corte de producto — 2026-07-25 (perfil de lectura y cierre de QA)
+
+- El giro del negocio es dato persistente y editable. La etiqueta visible usa
+  **Fondita**; visión selecciona internamente el perfil correspondiente.
+- Las secciones del menú se conservan en mayúsculas. Jerarquía del editor:
+  H1 36/38, sección 18/22, platillo 16/21 y descripción 13.
+- Precio por platillo siempre visible y próximo a su platillo. **Precio único**
+  es opcional y queda agrupado al final del contenido como detalle del menú.
+- `read-menu` usa asociación espacial de precios, distingue precio único/de
+  sección/por platillo y deriva variantes múltiples a revisión descriptiva.
+- El panel de mapa tiene transición interactiva y cierre completo antes del
+  desmontaje; elimina el salto visual del cierre inmediato.
+- QA estático pendiente de repetir tras despliegue; QA humano iPhone pendiente.
 
 ## Corte de producto — 2026-07-25 (navegación y continuidad)
 

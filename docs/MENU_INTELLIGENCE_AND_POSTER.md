@@ -3,6 +3,53 @@
 > Decisión de producto y arquitectura · 2026-07-24.
 > Fuente de verdad para la tríada perfil público, menú vigente y póster.
 
+## Arquitectura por perfil de negocio
+
+La lectura nunca parte de una plantilla universal. El contexto se resuelve antes
+de invocar visión:
+
+```txt
+perfil Fondero.tipo_negocio
+→ perfil de lectura
+→ encabezados visibles de la foto
+→ ontología general de producto
+→ secciones + platillos + precios
+→ validadores contextuales
+→ revisión humana dirigida
+```
+
+Los encabezados visibles siempre tienen prioridad. El perfil ayuda a resolver
+ambigüedad, no autoriza inventar estructura.
+
+Perfiles iniciales:
+
+- fondita: menú del día, tiempos, carta y bebidas;
+- taquería: tacos, especialidades, complementos y bebidas;
+- antojitos: familia + relleno, extras y bebidas;
+- elotes/botanas: producto, tamaño/presentación, toppings y extras;
+- repostería: producto, sabor, tamaño/porción, relleno y cobertura;
+- mariscos: especie, preparación, presentación y tamaño;
+- bebidas: familia, sabor, volumen, temperatura y extras;
+- restaurante: conservar secciones explícitas de carta;
+- otro: estructura conservadora basada únicamente en la imagen.
+
+La ontología de cualquier elemento pedible separa:
+
+1. familia/identidad;
+2. variante o sabor;
+3. proteína/relleno;
+4. técnica/preparación;
+5. presentación, tamaño o cantidad;
+6. ingredientes/toppings;
+7. acompañamientos;
+8. disponibilidad;
+9. precio.
+
+El nombre canónico contiene la identidad buscable y los modificadores necesarios
+para distinguir cómo se pide. La descripción contiene el resto sin repetir el
+nombre. Esta regla aplica a cualquier producto; los ejemplos del prompt son
+pruebas, no casos programados.
+
 ## 1. El núcleo
 
 Patio se construye alrededor de un solo objeto de producto:

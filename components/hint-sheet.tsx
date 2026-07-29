@@ -82,10 +82,10 @@ function makeStyles(t: Theme) {
     closeBtn:     { position: 'absolute', top: 16, right: 16, width: 44, height: 44, alignItems: 'center', justifyContent: 'center', opacity: 0.4 },
     iconBadge:    { alignSelf: 'center', width: 56, height: 56, borderRadius: 16, backgroundColor: t.accentSoft, alignItems: 'center', justifyContent: 'center', marginBottom: 16, marginTop: 12 },
     title:        { fontSize: 24, fontWeight: '900', fontFamily: Fonts.brand, textAlign: 'center', color: t.text, marginBottom: 10 },
-    body:         { fontSize: 15, fontWeight: '300', fontFamily: Fonts.brand, textAlign: 'center', color: t.textSecondary, lineHeight: 22, marginBottom: 28 },
+    body:         { fontSize: 15, fontWeight: '400', fontFamily: Fonts.brand, textAlign: 'center', color: t.textSecondary, lineHeight: 22, marginBottom: 28 },
     primaryBtn:   { minHeight: 56, borderRadius: 16, backgroundColor: t.text, alignItems: 'center', justifyContent: 'center' },
     primaryText:  { fontSize: 16, fontWeight: '900', fontFamily: Fonts.brand, color: t.bg },
     secondaryBtn: { marginTop: 10, minHeight: 48, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, alignItems: 'center', justifyContent: 'center' },
-    secondaryText:{ fontSize: 15, fontWeight: '300', fontFamily: Fonts.brand, color: t.text },
+    secondaryText:{ fontSize: 15, fontWeight: '400', fontFamily: Fonts.brand, color: t.text },
   });
 }

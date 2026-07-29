@@ -1,7 +1,9 @@
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Linking, Platform, Share } from 'react-native';
+import * as Haptics from 'expo-haptics';
 
+import { syncSavedPatioNotificationSubscriptions } from '@/lib/community-notifications';
 import { getFavoritePatioIds, toggleFavoritePatio } from '@/lib/favorites';
 import {
   DIA_CORTO,
@@ -12,10 +14,9 @@ import {
   resumenHorario,
 } from '@/lib/horario';
 import { fetchMenuForFondita } from '@/lib/menu';
-import { getNotifPrefs, setAvisar } from '@/lib/notifications';
 import { fetchFonditaById, getPatioById, type Patio, type PatioMenuSection } from '@/lib/patios';
 import { publicCurrency, publicPrice } from '@/lib/prices';
-import { getPatioRating, type PatioRating } from '@/lib/ratings';
+import { getPatioRating, getPublicPatioReviews, type PatioRating, type PublicPatioReview } from '@/lib/ratings';
 import { registerPatioView } from '@/lib/stats';
 
 type PatioParam = string | string[] | undefined;
@@ -51,7 +52,7 @@ export function usePatioDetailController(id: PatioParam) {
   const [liveMenu, setLiveMenu] = useState<PatioMenuSection[] | null>(null);
   const [isSaved, setIsSaved] = useState(false);
   const [userReview, setUserReview] = useState<PatioRating | null>(null);
-  const [notifyOn, setNotifyOn] = useState(false);
+  const [reviews, setReviews] = useState<PublicPatioReview[]>([]);
   const cleanId = cleanParam(id);
   const patioId = patio?.id;
 
@@ -78,7 +79,6 @@ export function usePatioDetailController(id: PatioParam) {
     if (!patioId) return;
     registerPatioView(patioId);
     getFavoritePatioIds().then((ids) => setIsSaved(ids.includes(patioId)));
-    getNotifPrefs().then((prefs) => setNotifyOn(prefs.avisar));
     fetchMenuForFondita(patioId).then((sections) => {
       if (sections.length > 0) setLiveMenu(sections);
     });
@@ -88,8 +88,11 @@ export function usePatioDetailController(id: PatioParam) {
     useCallback(() => {
       if (!patioId) return undefined;
       let active = true;
-      getPatioRating(patioId).then((rating) => {
-        if (active) setUserReview(rating);
+      Promise.all([getPatioRating(patioId), getPublicPatioReviews(patioId)]).then(([rating, publicReviews]) => {
+        if (active) {
+          setUserReview(rating);
+          setReviews(publicReviews);
+        }
       });
       return () => {
         active = false;
@@ -128,23 +131,18 @@ export function usePatioDetailController(id: PatioParam) {
       ios: `maps://maps.apple.com/?daddr=${latitude},${longitude}&dirflg=d`,
       android: `google.navigation:q=${latitude},${longitude}`,
     });
-    if (url) Linking.openURL(url);
-  }, [patio]);
-
-  const handleAvisarManana = useCallback(async () => {
-    if (!patio) return;
-    if (!notifyOn && !isSaved) {
-      const next = await toggleFavoritePatio(patio.id);
-      setIsSaved(next.includes(patio.id));
+    if (url) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+      Linking.openURL(url);
     }
-    const ok = await setAvisar(!notifyOn);
-    setNotifyOn(ok);
-  }, [isSaved, notifyOn, patio]);
+  }, [patio]);
 
   const handleToggleSaved = useCallback(async () => {
     if (!patio) return;
     const next = await toggleFavoritePatio(patio.id);
     setIsSaved(next.includes(patio.id));
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    syncSavedPatioNotificationSubscriptions(next).catch(() => {});
   }, [patio]);
 
   const handleShare = useCallback(() => {
@@ -166,7 +164,6 @@ export function usePatioDetailController(id: PatioParam) {
 
   return {
     cleanId,
-    handleAvisarManana,
     handleBack,
     handleComoLlegar,
     handleShare,
@@ -176,12 +173,12 @@ export function usePatioDetailController(id: PatioParam) {
     isClosed,
     isSaved,
     loading,
-    notifyOn,
     patio,
     patioId,
     priceLabel,
     proxTexto,
     rangoHoy,
+    reviews,
     sections,
     soldOut,
     status,

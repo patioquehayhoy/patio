@@ -49,7 +49,13 @@ function visionSize(width?: number, height?: number): { width: number; height: n
 }
 
 function visionToMenu(sections: MenuSeccion[], menuPrice: string): MenuData {
-  const price = (value?: string) => (value ?? '').replace(/[^0-9.]/g, '');
+  const price = (value?: string) => {
+    const matches = (value ?? '').match(/\d+(?:[.,]\d{1,2})?/g) ?? [];
+    // Dos cifras suelen ser tamaños/variantes. No las concatenamos: deben
+    // permanecer en la descripción para que la persona las confirme.
+    if (matches.length !== 1) return '';
+    return matches[0].replace(',', '.');
+  };
   const clean = (value: string) => value
     .replace(/\((?:men[uú]|menu)\)/gi, '')
     .replace(/\b(?:men[uú]|menu)\b/gi, '')
@@ -59,7 +65,7 @@ function visionToMenu(sections: MenuSeccion[], menuPrice: string): MenuData {
   return {
     secciones: sections.map((section, index) => ({
       id: makeSectionId(),
-      nombre: clean(section.nombre) || 'MENÚ DE HOY',
+      nombre: (clean(section.nombre) || 'MENÚ DE HOY').toUpperCase(),
       // El proveedor puede clasificar un precio alineado con la primera
       // sección como precio general o como precio de sección. En ambos casos
       // la revisión de Patio debe conservarlo en el campo visible del día.
@@ -83,8 +89,8 @@ function visionToMenu(sections: MenuSeccion[], menuPrice: string): MenuData {
 export function useFotoMenuController(handlers?: FotoMenuHandlers) {
   const [state, setState] = useState<FotoMenuState>('idle');
   const [menu, setMenu] = useState<MenuData>({ secciones: [] });
-  // analyze necesita relanzar la cámara/galería desde el Alert sin ciclo de deps.
-  const openCameraRef = useRef<() => Promise<void>>(async () => {});
+  // analyze necesita volver a preparar la cámara desde el Alert sin ciclo de deps.
+  const prepareCameraRef = useRef<() => Promise<boolean>>(async () => false);
   const choosePhotoRef = useRef<() => Promise<void>>(async () => {});
   // Cancelación humana durante la lectura (HIG: no obligar a esperar una
   // animación/proceso sin salida). La promesa en vuelo se ignora al volver.
@@ -121,7 +127,7 @@ export function useFotoMenuController(handlers?: FotoMenuHandlers) {
       clearMenuExtractionSnapshot();
       setState('idle');
       Alert.alert('No pudimos leerlo', 'Prueba con otra foto o escríbelo a mano.', [
-        { text: 'Otra foto', onPress: () => { void openCameraRef.current(); } },
+        { text: 'Otra foto', onPress: () => { void prepareCameraRef.current(); } },
         { text: 'Escribirlo a mano', onPress: () => handlers?.onManual?.() },
         { text: 'Ahora no', style: 'cancel', onPress: () => handlers?.onExit?.() },
       ]);
@@ -129,7 +135,7 @@ export function useFotoMenuController(handlers?: FotoMenuHandlers) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const openCamera = useCallback(async () => {
+  const prepareCamera = useCallback(async (): Promise<boolean> => {
     const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
     if (!permissionResult.granted) {
       // Sin permiso: explicar y dar control (HIG Privacy) — nunca saltar a
@@ -139,22 +145,14 @@ export function useFotoMenuController(handlers?: FotoMenuHandlers) {
         { text: 'Abrir Ajustes', onPress: () => { void Linking.openSettings(); handlers?.onExit?.(); } },
         { text: 'Ahora no', style: 'cancel', onPress: () => handlers?.onExit?.() },
       ]);
-      return;
+      return false;
     }
-    // Sin allowsEditing: forzaba un recorte cuadrado que mutila un menú
-    // vertical. La cámara nativa conserva su confirmación Repetir/Usar foto
-    // y la lectura recibe la foto completa (mismo criterio que la galería).
-    const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ['images'],
-      quality: 0.85,
-    });
-    const asset = !result.canceled ? result.assets[0] : null;
-    if (asset) await analyze(asset.uri, asset.width, asset.height);
-    else handlers?.onExit?.();
+    setState('idle');
+    return true;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [analyze]);
+  }, []);
 
-  openCameraRef.current = openCamera;
+  prepareCameraRef.current = prepareCamera;
 
   const choosePhoto = useCallback(async () => {
     // El selector del sistema (PHPicker / Photo Picker) corre fuera del
@@ -183,7 +181,8 @@ export function useFotoMenuController(handlers?: FotoMenuHandlers) {
     cancelRead,
     choosePhoto,
     menu,
-    openCamera,
+    analyzePhoto: analyze,
+    prepareCamera,
     state,
   };
 }

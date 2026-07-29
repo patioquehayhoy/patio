@@ -1,7 +1,8 @@
 import { BlurView } from 'expo-blur';
 
 import { HintSheet } from '@/components/hint-sheet';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
+import * as ImagePicker from 'expo-image-picker';
 import {
   ScrollView,
   StyleSheet,
@@ -9,6 +10,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -20,6 +22,7 @@ import { GlassIconButton } from '@/components/glass-button';
 import { BusinessPaymentSelector } from '@/components/business-payment-selector';
 import { BusinessScheduleEditor } from '@/components/business-schedule-editor';
 import { SettingsGroup, SettingsRow, type SettingsColors } from '@/components/settings-list';
+import { supabase } from '@/lib/supabase';
 
 // Paleta oscura fija estilo Figma FonderoFonda (flujo Fondero siempre oscuro).
 const DARK = {
@@ -37,9 +40,20 @@ const DARK = {
 
 const MAX_DESCRIPCION = 80;
 const MAX_UBICACION   = 80;
+const BUSINESS_TYPES = [
+  ['fondita', 'Fondita'],
+  ['taqueria', 'Tacos'],
+  ['antojitos', 'Antojitos'],
+  ['elotes', 'Elotes'],
+  ['reposteria', 'Postres'],
+  ['mariscos', 'Mariscos'],
+  ['bebidas', 'Bebidas'],
+  ['restaurante', 'Restaurante'],
+  ['otro', 'Otro'],
+] as const;
 
 function makeStyles(theme: Theme) {
-  const t: Theme = { ...theme, ...DARK, isDark: true };
+  const t = theme;
   return StyleSheet.create({
     container:          { flex: 1, backgroundColor: t.bg },
     scroll:             { flex: 1 },
@@ -49,7 +63,7 @@ function makeStyles(theme: Theme) {
     titleRow:           { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
     eyebrowOrange:      { fontSize: 11, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', color: t.accent, marginBottom: 6 },
     screenTitle:        { fontSize: 34, fontWeight: '900', letterSpacing: -1.2, lineHeight: 36, color: t.text, marginBottom: 6, fontFamily: Fonts.brand },
-    screenSub:          { fontSize: 14, fontWeight: '300', lineHeight: 19, color: t.textSecondary, marginBottom: 4 },
+    screenSub:          { fontSize: 14, fontWeight: '400', lineHeight: 19, color: t.textSecondary, marginBottom: 4 },
     // Barra Guardar fija abajo (glass)
     saveBar:            { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 20, paddingTop: 12, overflow: 'hidden' },
     saveBarBorder:      { position: 'absolute', top: 0, left: 0, right: 0, height: StyleSheet.hairlineWidth, backgroundColor: t.border },
@@ -58,15 +72,24 @@ function makeStyles(theme: Theme) {
     // Card de campos
     fieldCard:          { backgroundColor: t.surface, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, paddingHorizontal: 16, paddingVertical: 14 },
     fieldLabel:         { fontSize: 11, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', color: t.textMute, marginBottom: 4 },
-    fieldValue:         { fontSize: 16, fontWeight: '300', color: t.text, paddingVertical: 0, paddingHorizontal: 0, backgroundColor: 'transparent' },
+    fieldValue:         { fontSize: 16, fontWeight: '400', color: t.text, paddingVertical: 0, paddingHorizontal: 0, backgroundColor: 'transparent' },
     fieldDivider:       { height: StyleSheet.hairlineWidth, backgroundColor: t.border, marginVertical: 12 },
+    logoRow:            { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 16 },
+    logo:               { width: 58, height: 58, borderRadius: 16, backgroundColor: t.surface2, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+    logoImage:          { width: 58, height: 58 },
+    logoText:           { fontSize: 13, fontWeight: '600', color: t.textSecondary },
+    typeRow:            { gap: 7, paddingTop: 8, paddingBottom: 2 },
+    typeChip:           { minHeight: 34, paddingHorizontal: 12, borderRadius: 17, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, alignItems: 'center', justifyContent: 'center' },
+    typeChipSelected:   { backgroundColor: t.accent, borderColor: t.accent },
+    typeChipText:       { fontSize: 12, fontWeight: '600', color: t.textSecondary },
+    typeChipTextSelected:{ color: '#fff' },
     locationBtn:        { flexDirection: 'row', alignItems: 'center', gap: 6, paddingTop: 12, paddingBottom: 2, alignSelf: 'flex-start' },
-    locationBtnText:    { fontSize: 13, fontWeight: '300', color: t.textSecondary },
+    locationBtnText:    { fontSize: 13, fontWeight: '400', color: t.textSecondary },
     // Sections
     block:              { paddingTop: 24 },
     blockFirst:         { paddingTop: 32 },
     blockLabel:         { fontSize: 11, fontWeight: '900', color: t.textSecondary, marginBottom: 8, paddingLeft: 2 },
-    blockHelp:          { marginTop: -2, marginBottom: 14, paddingLeft: 2, fontSize: 13, lineHeight: 18, fontWeight: '300', color: t.textSecondary },
+    blockHelp:          { marginTop: -2, marginBottom: 14, paddingLeft: 2, fontSize: 13, lineHeight: 18, fontWeight: '400', color: t.textSecondary },
     // Cards planas (horario)
     plainCard:          { backgroundColor: t.surface, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, overflow: 'hidden' },
     opSection:          { paddingHorizontal: 16, paddingVertical: 16 },
@@ -83,14 +106,14 @@ function makeStyles(theme: Theme) {
     resumenCard:        { marginBottom: 12, gap: 2 },
     resumenFila:        { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', paddingVertical: 4 },
     resumenDias:        { fontSize: 14, fontWeight: '900', color: t.text, fontFamily: Fonts.brand, minWidth: 70 },
-    resumenHoras:       { fontSize: 14, fontWeight: '300', color: t.textSecondary, flex: 1, textAlign: 'right' },
+    resumenHoras:       { fontSize: 14, fontWeight: '400', color: t.textSecondary, flex: 1, textAlign: 'right' },
     resumenCerrado:     { color: t.textMute },
-    cerradoNota:        { fontSize: 12.5, fontWeight: '300', color: t.accent, marginBottom: 10 },
+    cerradoNota:        { fontSize: 12.5, fontWeight: '400', color: t.accent, marginBottom: 10 },
     horarioSep:         { height: StyleSheet.hairlineWidth, backgroundColor: t.border, marginVertical: 16 },
     editingContext:     { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 14 },
     editingContextLabel:{ fontSize: 11, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase', color: t.textMute },
     editingContextValue:{ fontSize: 15, fontWeight: '900', color: t.accent, fontFamily: Fonts.brand },
-    diasHint:           { fontSize: 11.5, fontWeight: '300', color: t.textMute, marginBottom: 10 },
+    diasHint:           { fontSize: 11.5, fontWeight: '400', color: t.textMute, marginBottom: 10 },
     dayChipsRow:        { flexDirection: 'row', gap: 6 },
     dayChip:            { flex: 1, aspectRatio: 1, maxWidth: 44, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, backgroundColor: t.bg, alignItems: 'center', justifyContent: 'center', position: 'relative' },
     dayChipDot:         { position: 'absolute', top: 6, right: 6, width: 5, height: 5, borderRadius: 3, backgroundColor: t.accent },
@@ -105,7 +128,7 @@ function makeStyles(theme: Theme) {
     dayRow:             { minHeight: 58, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 10 },
     dayRowBorder:       { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border },
     dayName:            { flex: 1, fontSize: 16, fontWeight: '600', color: t.text },
-    dayHours:           { fontSize: 14, fontWeight: '300', color: t.textSecondary },
+    dayHours:           { fontSize: 14, fontWeight: '400', color: t.textSecondary },
     dayEditor:          { paddingHorizontal: 16, paddingBottom: 16, backgroundColor: t.bg, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border },
     closedRow:          { minHeight: 52, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
     closedLabel:        { fontSize: 14, fontWeight: '500', color: t.text },
@@ -140,6 +163,7 @@ export default function PerfilScreen() {
   const s = makeStyles(theme);
   const insets = useSafeAreaInsets();
   const nombreInputRef     = useRef<TextInput>(null);
+  const [logoUri, setLogoUri] = useState<string | null>(null);
   const {
     descripcion,
     email,
@@ -164,9 +188,11 @@ export default function PerfilScreen() {
     setPagosEfectivoState,
     setPagosTarjetaState,
     setPagosTransState,
+    setTipoNegocioState,
     setSemanal,
     setUbicacion,
     showPerfilHint,
+    tipoNegocio,
     ubicacion,
   } = useFonderoProfileController();
 
@@ -187,6 +213,25 @@ export default function PerfilScreen() {
         {/* ── IDENTIDAD ── */}
         <View style={s.block}>
           <Text style={s.blockLabel} allowFontScaling={true}>IDENTIDAD</Text>
+          <TouchableOpacity style={s.logoRow} onPress={async () => {
+            const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], allowsEditing: true, aspect: [1, 1], quality: 0.75 });
+            if (result.canceled || !email) return;
+            const uri = result.assets[0].uri;
+            setLogoUri(uri);
+            const { data: user } = await supabase.auth.getUser();
+            if (!user.user) return;
+            const bytes = await (await fetch(uri)).arrayBuffer();
+            const path = `${user.user.id}/logo.jpg`;
+            const uploaded = await supabase.storage.from('business-logos').upload(path, bytes, { contentType: 'image/jpeg', upsert: true });
+            if (!uploaded.error) {
+              const url = supabase.storage.from('business-logos').getPublicUrl(path).data.publicUrl;
+              await supabase.from('fonditas').update({ logo_url: url }).eq('telefono', email);
+              setLogoUri(url);
+            }
+          }}>
+            <View style={s.logo}>{logoUri ? <Image source={{ uri: logoUri }} style={s.logoImage} /> : <Ionicons name="camera-outline" size={22} color={DARK.textSecondary} />}</View>
+            <Text style={s.logoText}>{logoUri ? 'Cambiar imagen del negocio' : 'Añadir imagen del negocio'}</Text>
+          </TouchableOpacity>
           <View style={s.fieldCard}>
             <Text style={s.fieldLabel} allowFontScaling={true}>Nombre</Text>
             <TextInput
@@ -201,6 +246,23 @@ export default function PerfilScreen() {
               editable={ready}
               returnKeyType="next"
             />
+            <View style={s.fieldDivider} />
+            <Text style={s.fieldLabel} allowFontScaling={true}>Tipo de lugar</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.typeRow}>
+              {BUSINESS_TYPES.map(([id, label]) => {
+                const selected = tipoNegocio === id;
+                return (
+                  <TouchableOpacity
+                    key={id}
+                    accessibilityRole="radio"
+                    accessibilityState={{ selected }}
+                    onPress={() => setTipoNegocioState(id)}
+                    style={[s.typeChip, selected && s.typeChipSelected]}>
+                    <Text style={[s.typeChipText, selected && s.typeChipTextSelected]}>{label}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
             <View style={s.fieldDivider} />
             <Text style={s.fieldLabel} allowFontScaling={true}>Descripción</Text>
             <TextInput
@@ -281,7 +343,7 @@ export default function PerfilScreen() {
           Visibility + 80/20: la acción principal del Fondero siempre al alcance. */}
       {(isDirty || savedFlash) && (
         <View style={[s.saveBar, { paddingBottom: insets.bottom || 16 }]}>
-          <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill} />
+          <BlurView intensity={40} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
           <View style={s.saveBarBorder} />
           <TouchableOpacity
             style={[s.saveBtn, isSaving && { opacity: 0.6 }]}

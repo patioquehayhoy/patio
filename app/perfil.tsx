@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router, Stack, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { Linking, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BottomTabBar } from '@/components/bottom-tab-bar';
@@ -13,15 +13,12 @@ import {
   getFonditaName,
   getMenuData,
 } from '@/lib/menu-store';
-import { getNotifPrefs, setFonderoAvisos } from '@/lib/notifications';
 import { supabase } from '@/lib/supabase';
 import { Fonts, useTheme } from '@/lib/theme';
 import { useTabBarScroll } from '@/lib/tab-bar-visibility';
 import { noWidow } from '@/lib/typography';
 
 const ROLE_KEY = '@patio_user_role';
-const SUPPORT_EMAIL = 'quehayhoy.patio@gmail.com';
-
 function settingsColorsFrom(c: FonderoColors, accentBg: string): SettingsColors {
   return {
     surface: c.surface,
@@ -43,13 +40,11 @@ export default function PerfilScreen() {
   const [name, setName] = useState('');
   const [address, setAddress] = useState('');
   const [hasMenu, setHasMenu] = useState(false);
-  const [notificationsOn, setNotificationsOn] = useState(false);
 
   useFocusEffect(useCallback(() => {
     setName(getFonditaName());
     setAddress(getFonditaDireccion());
     setHasMenu(!!getMenuData()?.secciones.some(section => section.platillos.some(dish => dish.nombre.trim())));
-    getNotifPrefs().then((prefs) => setNotificationsOn(prefs.fondero));
   }, []));
 
   const signOut = async () => {
@@ -98,9 +93,9 @@ export default function PerfilScreen() {
           <SettingsRow
             c={sc}
             icon="notifications-outline"
-            title="Notificaciones"
-            sub="Avisos sobre tu menú y tu Patio"
-            trailing={<ToggleSwitch value={notificationsOn} onValueChange={async (value) => setNotificationsOn(await setFonderoAvisos(value))} activeColor={c.accent} />}
+            title="Avisos"
+            sub="Actividad, recordatorios y permisos"
+            onPress={() => router.push({ pathname: '/avisos', params: { role: 'fondero' } })}
           />
           <SettingsRow
             c={sc}
@@ -113,7 +108,7 @@ export default function PerfilScreen() {
 
         <SettingsGroup c={sc} label="Ayuda">
           <SettingsRow c={sc} icon="sparkles-outline" title="Nuestro manifiesto" onPress={() => router.push('/manifiesto')} />
-          <SettingsRow c={sc} icon="help-circle-outline" title="Soporte" divider onPress={() => Linking.openURL(`mailto:${SUPPORT_EMAIL}?subject=Soporte%20Patio`)} />
+          <SettingsRow c={sc} icon="help-circle-outline" title="Ayuda y soporte" divider onPress={() => router.push('/soporte')} />
         </SettingsGroup>
 
         <SettingsGroup c={sc} label="Cuenta">

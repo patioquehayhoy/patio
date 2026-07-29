@@ -156,8 +156,8 @@ export function BusinessScheduleEditor({ colors, value, onChange, isDark = false
               key={preset.label}
               onPress={() => applyPreset(preset.days)}
               activeOpacity={0.72}
-              style={[s.preset, { borderColor: active ? colors.text : colors.border, backgroundColor: colors.surface }]}>
-              <Text style={[s.presetText, { color: colors.text }]} numberOfLines={1} maxFontSizeMultiplier={1.25}>
+              style={[s.preset, { borderColor: active ? colors.accent : colors.border, backgroundColor: active ? `${colors.accent}18` : colors.surface }]}>
+              <Text style={[s.presetText, { color: active ? colors.accent : colors.text }]} numberOfLines={1} maxFontSizeMultiplier={1.25}>
                 {preset.label}
               </Text>
             </TouchableOpacity>

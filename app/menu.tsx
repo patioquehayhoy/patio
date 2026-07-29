@@ -93,7 +93,7 @@ function makeStyles(c: FonderoColors) {
     header: { marginTop: 24 },
     eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.5, color: c.accent, marginBottom: 8 },
     title: { maxWidth: 330, fontSize: 36, lineHeight: 39, fontWeight: '900', letterSpacing: -1.2, color: c.text, fontFamily: Fonts.brand },
-    subtitle: { maxWidth: 310, marginTop: 9, fontSize: 14, lineHeight: 20, fontWeight: '300', color: c.textSecondary },
+    subtitle: { maxWidth: 310, marginTop: 9, fontSize: 14, lineHeight: 20, fontWeight: '400', color: c.textSecondary },
     options: { marginTop: 30, gap: 10 },
     option: { minHeight: 92, padding: 16, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, borderColor: c.border, backgroundColor: c.surface, flexDirection: 'row', alignItems: 'center', gap: 14 },
     featured: { borderColor: c.accent, backgroundColor: c.surface },
@@ -101,7 +101,7 @@ function makeStyles(c: FonderoColors) {
     featuredIcon: { backgroundColor: c.accent },
     optionCopy: { flex: 1 },
     optionTitle: { fontSize: 16, fontWeight: '700', color: c.text, letterSpacing: -0.2 },
-    optionBody: { marginTop: 4, fontSize: 13, lineHeight: 18, fontWeight: '300', color: c.textSecondary },
-    historyHint: { marginTop: 22, paddingHorizontal: 12, textAlign: 'center', fontSize: 12, lineHeight: 18, fontWeight: '300', color: c.textMute },
+    optionBody: { marginTop: 4, fontSize: 13, lineHeight: 18, fontWeight: '400', color: c.textSecondary },
+    historyHint: { marginTop: 22, paddingHorizontal: 12, textAlign: 'center', fontSize: 12, lineHeight: 18, fontWeight: '400', color: c.textMute },
   });
 }

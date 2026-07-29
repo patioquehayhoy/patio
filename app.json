@@ -12,6 +12,11 @@
       "supportsTablet": false,
       "bundleIdentifier": "com.parcomx.patio",
       "infoPlist": {
+        "CFBundleDevelopmentRegion": "es_MX",
+        "CFBundleLocalizations": [
+          "es",
+          "es_MX"
+        ],
         "ITSAppUsesNonExemptEncryption": false,
         "NSCameraUsageDescription": "Toma foto del menú para subirlo automáticamente",
         "NSPhotoLibraryUsageDescription": "Elige una foto del menú desde tu galería",

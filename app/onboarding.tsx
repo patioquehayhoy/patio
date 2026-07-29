@@ -54,7 +54,7 @@ function makeStyles(_t: Theme) {
     content: { position: 'absolute', left: 28, right: 28 },
     eyebrow: { fontSize: 11, fontWeight: '900', letterSpacing: 1.8, textTransform: 'uppercase', color: 'rgba(255,255,255,0.55)', marginBottom: 10 },
     title: { fontSize: 40, fontWeight: '900', letterSpacing: -1.2, lineHeight: 42, color: '#FFFFFF', marginBottom: 10, fontFamily: Fonts.brand },
-    body: { fontSize: 15, fontWeight: '300', color: 'rgba(255,255,255,0.72)', lineHeight: 22 },
+    body: { fontSize: 15, fontWeight: '400', color: 'rgba(255,255,255,0.72)', lineHeight: 22 },
     ctaCol: { alignItems: 'stretch', gap: 2, marginTop: 28 },
     ctaGlass: { borderRadius: 14, overflow: 'hidden', alignSelf: 'center' },
     ctaGlassInner: { paddingHorizontal: 26, height: 42, alignItems: 'center', justifyContent: 'center' },
@@ -64,7 +64,7 @@ function makeStyles(_t: Theme) {
     roleIcon: { width: 38, height: 38, borderRadius: 12, backgroundColor: 'rgba(255,106,61,0.16)', alignItems: 'center', justifyContent: 'center' },
     roleCopy: { flex: 1 },
     roleTitle: { fontSize: 15, lineHeight: 19, fontWeight: '700', color: '#FFFFFF' },
-    roleHint: { marginTop: 2, fontSize: 12, lineHeight: 16, fontWeight: '300', color: 'rgba(255,255,255,0.62)' },
+    roleHint: { marginTop: 2, fontSize: 12, lineHeight: 16, fontWeight: '400', color: 'rgba(255,255,255,0.62)' },
   });
 }
 
@@ -91,11 +91,10 @@ export default function OnboardingScreen() {
     finishingRef.current = true;
     setRouting(true);
     await saveUserRole(role).catch(() => {});
-    if (role === 'foodie') {
-      router.replace({ pathname: '/push-prompt', params: { intent: 'foodie' } });
-      return;
-    }
-    const destination = await completeOnboarding('fondero');
+    // iOS notification permission is requested later, after a person follows
+    // a Patio or enables a concrete reminder. Onboarding should earn intent,
+    // not spend the system prompt.
+    const destination = await completeOnboarding(role);
     router.replace(destination);
   };
 

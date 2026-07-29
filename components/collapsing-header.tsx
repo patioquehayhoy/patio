@@ -169,5 +169,5 @@ const styles = StyleSheet.create({
   bigWrap: { paddingHorizontal: 22 },
   eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.6, textTransform: 'uppercase', marginBottom: 8 },
   bigTitle: { fontSize: 38, fontWeight: '900', letterSpacing: -1.3, lineHeight: 40, fontFamily: Fonts.brand },
-  subtitle: { fontSize: 14, fontWeight: '300', lineHeight: 20, marginTop: 6 },
+  subtitle: { fontSize: 14, fontWeight: '400', lineHeight: 20, marginTop: 6 },
 });

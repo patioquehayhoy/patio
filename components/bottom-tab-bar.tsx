@@ -16,8 +16,8 @@ type Tab = {
 };
 
 const FOODIE_TABS: Tab[] = [
-  { path: '/explorar',  label: 'Buscar',    icon: 'search-outline' },
-  { path: '/actividad', label: 'Lugares',   icon: 'map-outline' },
+  { path: '/explorar',  label: 'Mapa',      icon: 'map-outline' },
+  { path: '/actividad', label: 'Colecciones', icon: 'bookmark-outline' },
   { path: '/cuenta',    label: 'Perfil',    icon: 'person-outline' },
 ];
 

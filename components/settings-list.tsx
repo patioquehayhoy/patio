@@ -82,5 +82,5 @@ const styles = StyleSheet.create({
   iconBox: { width: 32, height: 32, borderRadius: 10, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   body: { flex: 1, minWidth: 0 },
   title: { fontSize: 14.5, fontWeight: '500', letterSpacing: -0.1, lineHeight: 18 },
-  sub: { marginTop: 2, fontSize: 12, fontWeight: '300' },
+  sub: { marginTop: 2, fontSize: 12, fontWeight: '400' },
 });

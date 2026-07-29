@@ -1,5 +1,8 @@
 import { router, Stack } from 'expo-router';
+import * as Sharing from 'expo-sharing';
+import { useRef, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { captureRef } from 'react-native-view-shot';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -17,7 +20,28 @@ export default function PreviewScreen() {
   const { theme } = useTheme();
   const c = fonderoPalette(theme.isDark);
   const s = makeStyles(c);
-  const { businessName, fecha, handleBack, handleOpenProfile, handleShare, patioId, priceLabel, sections } = useMenuPreviewController();
+  const { businessName, fecha, handleBack, handleOpenProfile, handleShare, patioId, sections } = useMenuPreviewController();
+  const posterRef = useRef<View>(null);
+  const [sharing, setSharing] = useState(false);
+
+  const sharePoster = async () => {
+    if (sharing || !posterRef.current) return;
+    setSharing(true);
+    try {
+      const uri = await captureRef(posterRef, { format: 'jpg', quality: 1, result: 'tmpfile' });
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(uri, {
+          mimeType: 'image/jpeg',
+          UTI: 'public.jpeg',
+          dialogTitle: `Compartir póster de ${businessName}`,
+        });
+      } else {
+        await handleShare();
+      }
+    } finally {
+      setSharing(false);
+    }
+  };
 
   if (sections.length === 0) {
     return (
@@ -42,21 +66,20 @@ export default function PreviewScreen() {
       {/* Top bar */}
       <View style={[s.top, { top: insets.top + 6 }]}>
         <GlassIconButton icon="chevron-back" accessibilityLabel="Volver" onPress={handleBack} />
-        <Text style={s.topTitle} allowFontScaling={true}>Menú publicado</Text>
+        <Text style={s.topTitle} allowFontScaling={true}>Póster</Text>
         <View style={s.navBtn} />
       </View>
 
       {/* Póster editorial, scrolleable si el menú real es largo. */}
       <ScrollView contentContainerStyle={[s.posterWrap, { paddingTop: insets.top + 74, paddingBottom: insets.bottom + 132 }]} showsVerticalScrollIndicator={false}>
-        <View style={s.poster}>
-          {/* Header editorial: fecha y nombre a la izquierda, precio del día
-              arriba a la derecha. La marca vive abajo, sutil. */}
+        <View ref={posterRef} collapsable={false} style={s.poster}>
+          {/* Header editorial: identidad primero. El precio único es un dato
+              secundario y nunca compite con el nombre o los platillos. */}
           <View style={s.posterHead}>
             <View style={s.posterHeadLeft}>
               <Text style={s.posterDate} allowFontScaling={true}>{fecha}</Text>
               <Text style={s.posterName} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.6} allowFontScaling={true}>{businessName}</Text>
             </View>
-            {priceLabel ? <Text style={s.posterPrice} allowFontScaling={true}>{priceLabel}</Text> : null}
           </View>
 
           {/* Card de menú: las secciones hablan solas, sin label redundante. */}
@@ -85,16 +108,15 @@ export default function PreviewScreen() {
         </View>
       </ScrollView>
 
-      {/* El resultado vive en Patio. Abrir perfil es la acción principal;
-          compartir solo distribuye el enlace a esta misma publicación. */}
+      {/* El póster es un objeto compartible real: la acción principal genera
+          un JPG y abre la hoja nativa de iOS. */}
       <View style={[s.ctaWrap, { paddingBottom: (insets.bottom || 10) + 24 }]}>
-        <TouchableOpacity style={s.cta} onPress={handleOpenProfile} disabled={!patioId} activeOpacity={0.86}>
-          <Ionicons name="person-circle-outline" size={18} color={c.bg} />
-          <Text style={[s.ctaText, { color: c.bg }]} allowFontScaling={true}>Ver en mi perfil</Text>
+        <TouchableOpacity style={s.cta} onPress={sharePoster} disabled={sharing} activeOpacity={0.86}>
+          <Ionicons name="share-outline" size={18} color="#FFFFFF" />
+          <Text style={s.ctaText} allowFontScaling={true}>{sharing ? 'Preparando…' : 'Compartir como imagen'}</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={s.shareLink} onPress={handleShare} disabled={!patioId} activeOpacity={0.72}>
-          <Ionicons name="share-outline" size={16} color={c.textSecondary} />
-          <Text style={[s.shareLinkText, { color: c.textSecondary }]} allowFontScaling={true}>Compartir enlace</Text>
+        <TouchableOpacity style={s.shareLink} onPress={handleOpenProfile} disabled={!patioId} activeOpacity={0.72}>
+          <Text style={[s.shareLinkText, { color: c.textSecondary }]} allowFontScaling={true}>Ver en mi perfil</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -107,7 +129,7 @@ function makeStyles(c: FonderoColors) {
   emptyRoot: { paddingHorizontal: 28, alignItems: 'center', justifyContent: 'center' },
   emptyIcon: { width: 58, height: 58, borderRadius: 20, backgroundColor: c.iconBg, alignItems: 'center', justifyContent: 'center' },
   emptyTitle: { marginTop: 18, fontSize: 26, lineHeight: 30, fontWeight: '900', color: c.text, textAlign: 'center', fontFamily: Fonts.brand },
-  emptyBody: { maxWidth: 310, marginTop: 9, fontSize: 14, lineHeight: 20, fontWeight: '300', color: c.textSecondary, textAlign: 'center' },
+  emptyBody: { maxWidth: 310, marginTop: 9, fontSize: 14, lineHeight: 20, fontWeight: '400', color: c.textSecondary, textAlign: 'center' },
   emptyButton: { width: '100%', maxWidth: 330, minHeight: 56, marginTop: 24, borderRadius: 18, backgroundColor: c.accent, alignItems: 'center', justifyContent: 'center' },
   emptyButtonText: { color: '#fff', fontSize: 16, fontWeight: '700' },
   top: { position: 'absolute', left: 16, right: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', zIndex: 20 },
@@ -122,7 +144,6 @@ function makeStyles(c: FonderoColors) {
   posterHeadLeft: { flex: 1 },
   posterDate: { fontSize: 11, fontWeight: '700', letterSpacing: 1.4, textTransform: 'uppercase', color: LIGHT.accent, marginBottom: 7 },
   posterName: { fontSize: 32, lineHeight: 35, fontWeight: '900', letterSpacing: -1, color: LIGHT.ink, fontFamily: Fonts.brand },
-  posterPrice: { fontSize: 24, lineHeight: 28, fontWeight: '900', letterSpacing: -0.5, color: LIGHT.accent, fontFamily: Fonts.brand, marginTop: 20 },
 
   // Densidad editorial (regla HIG): nombre+descripción son una unidad óptica
   // (1px de separación), filas a 5px, secciones a 10px — el aire vive ENTRE
@@ -133,15 +154,15 @@ function makeStyles(c: FonderoColors) {
   menuRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', paddingVertical: 5, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: LIGHT.sep },
   menuRowName: { fontSize: 14, lineHeight: 17, fontWeight: '500', color: LIGHT.ink, marginRight: 10 },
   menuRowDescription: { marginTop: 1, fontSize: 11.5, lineHeight: 14, color: LIGHT.inkSoft },
-  menuRowPrice: { fontSize: 13, fontWeight: '300', color: LIGHT.inkSoft },
+  menuRowPrice: { fontSize: 13, fontWeight: '400', color: LIGHT.inkSoft },
 
   posterFoot: { paddingHorizontal: 22, paddingTop: 16, paddingBottom: 18 },
   footRule: { height: StyleSheet.hairlineWidth, backgroundColor: LIGHT.sep, marginBottom: 12 },
-  posterSign: { textAlign: 'center', fontSize: 11, fontWeight: '300', letterSpacing: 0.4, color: LIGHT.mute },
+  posterSign: { textAlign: 'center', fontSize: 11, fontWeight: '400', letterSpacing: 0.4, color: LIGHT.mute },
 
   ctaWrap: { paddingHorizontal: 22, paddingTop: 12 },
-  cta: { height: 56, borderRadius: 18, backgroundColor: c.text, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
-  ctaText: { fontSize: 16, fontWeight: '700', letterSpacing: -0.2 },
+  cta: { height: 54, borderRadius: 27, backgroundColor: c.accent, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  ctaText: { fontSize: 15, fontWeight: '700', letterSpacing: -0.2, color: '#FFFFFF' },
   shareLink: { minHeight: 44, marginTop: 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7 },
   shareLinkText: { fontSize: 13.5, fontWeight: '500' },
   });

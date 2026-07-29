@@ -20,7 +20,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AgentSpinner } from '@/components/agent-spinner';
 import { LOGIN_CALLBACK_URL } from '@/lib/auth';
-import { saveUserRole } from '@/lib/entry-flow';
+import { completeOnboarding, saveUserRole } from '@/lib/entry-flow';
 import { supabase } from '@/lib/supabase';
 import { Fonts } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
@@ -104,7 +104,8 @@ export default function FonderoAccesoScreen() {
 
   const exploreInstead = async () => {
     await saveUserRole('foodie').catch(() => {});
-    router.replace({ pathname: '/push-prompt', params: { intent: 'foodie' } });
+    const destination = await completeOnboarding('foodie');
+    router.replace(destination);
   };
 
   return (
@@ -221,26 +222,26 @@ const s = StyleSheet.create({
   logo: { width: 230, height: 86 },
   pairBelow: { position: 'absolute', top: '100%', left: 0, right: 0, alignItems: 'center', marginTop: 14 },
   claim: { fontSize: 15, fontWeight: '900', fontFamily: Fonts.brand, textAlign: 'center', color: '#F8F8F5' },
-  tagline: { fontSize: 15, fontWeight: '300', fontFamily: Fonts.brand, textAlign: 'center', color: 'rgba(248,248,245,0.7)' },
+  tagline: { fontSize: 15, fontWeight: '400', fontFamily: Fonts.brand, textAlign: 'center', color: 'rgba(248,248,245,0.7)' },
 
   actionArea: { alignItems: 'center' },
   title: { fontSize: 26, fontWeight: '900', letterSpacing: -0.8, lineHeight: 30, color: '#F8F8F5', textAlign: 'center', marginBottom: 8, fontFamily: Fonts.brand },
-  sub: { fontSize: 14, fontWeight: '300', lineHeight: 20, color: 'rgba(248,248,245,0.7)', textAlign: 'center', marginBottom: 18, maxWidth: 320 },
+  sub: { fontSize: 14, fontWeight: '400', lineHeight: 20, color: 'rgba(248,248,245,0.7)', textAlign: 'center', marginBottom: 18, maxWidth: 320 },
   sentLead: { marginBottom: 4 },
   emailHi: { maxWidth: 320, fontSize: 14, fontWeight: '900', color: '#F8F8F5', textAlign: 'center' },
-  sentHint: { marginTop: 8, maxWidth: 320, fontSize: 14, fontWeight: '300', lineHeight: 20, color: 'rgba(248,248,245,0.7)', textAlign: 'center' },
+  sentHint: { marginTop: 8, maxWidth: 320, fontSize: 14, fontWeight: '400', lineHeight: 20, color: 'rgba(248,248,245,0.7)', textAlign: 'center' },
 
   field: { alignSelf: 'stretch', borderRadius: 14, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.18)' },
   fieldInner: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingLeft: 18, paddingRight: 5, paddingVertical: 5 },
-  input: { flex: 1, minHeight: 46, fontSize: 16, fontWeight: '300', color: '#F8F8F5', paddingVertical: 0 },
+  input: { flex: 1, minHeight: 46, fontSize: 16, fontWeight: '400', color: '#F8F8F5', paddingVertical: 0 },
   sendBtn: { width: 44, height: 44, borderRadius: 12, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' },
   sendBtnOff: { opacity: 0.5 },
-  errorText: { marginTop: 10, fontSize: 13, fontWeight: '300', color: '#FF8A8E', textAlign: 'center' },
+  errorText: { marginTop: 10, fontSize: 13, fontWeight: '400', color: '#FF8A8E', textAlign: 'center' },
 
   changeLink: { marginTop: 6 },
-  changeText: { fontSize: 14, fontWeight: '300', color: '#F8F8F5', textDecorationLine: 'underline' },
+  changeText: { fontSize: 14, fontWeight: '400', color: '#F8F8F5', textDecorationLine: 'underline' },
 
   footer: { alignItems: 'center', paddingTop: 22 },
-  footerText: { fontSize: 13, fontWeight: '300', color: 'rgba(248,248,245,0.45)' },
+  footerText: { fontSize: 13, fontWeight: '400', color: 'rgba(248,248,245,0.45)' },
   footerAccent: { fontWeight: '900', color: 'rgba(248,248,245,0.7)' },
 });

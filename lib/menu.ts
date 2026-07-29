@@ -104,6 +104,19 @@ function extractPatioMenuMatches(patio: Patio, query: string): PatioDishMatch[] 
   return matches;
 }
 
+function extractPatioIdentityMatch(patio: Patio, query: string): PatioDishMatch | null {
+  const q = normalize(query);
+  const stem = q.replace(/(?:es|s)$/u, '');
+  const identity = normalize([patio.name, patio.category, patio.reason, patio.area].join(' '));
+  if (!identity.includes(q) && (stem.length < 3 || !identity.includes(stem))) return null;
+  return {
+    patio,
+    section: 'LUGAR',
+    item: { name: patio.name, description: patio.category, price: patio.price },
+    score: normalize(patio.name).includes(q) ? 65 : normalize(patio.category).includes(stem || q) ? 48 : 28,
+  };
+}
+
 export async function searchLiveMenus(query: string, patios: Patio[]): Promise<PatioDishMatch[]> {
   if (!query.trim()) return [];
   const patioMap = new Map(patios.map((p) => [p.id, p]));
@@ -118,6 +131,17 @@ export async function searchLiveMenus(query: string, patios: Patio[]): Promise<P
       if (!seen.has(key)) { seen.add(key); results.push(match); }
     }
   };
+
+  // A query can express a dish ("mole") or a type of place ("bares").
+  // Place matches use the same result model but are labeled as LUGAR so the
+  // UI can explain why they appeared.
+  for (const patio of patios) {
+    const match = extractPatioIdentityMatch(patio, query);
+    if (!match) continue;
+    const key = `${patio.id}-LUGAR`;
+    seen.add(key);
+    results.push(match);
+  }
 
   const [cartas, menus] = await Promise.all([
     supabase.from('cartas').select('fondita_id, secciones').filter('secciones::text', 'ilike', `%${query}%`),

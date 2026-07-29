@@ -154,11 +154,21 @@ export function useFoodieExploreController() {
 
   const searchResults = useMemo(() => {
     if (!query.trim()) return [];
-    return [...liveResults].sort((a, b) => b.score - a.score);
-  }, [liveResults, query]);
+    return [...liveResults].sort((a, b) => {
+      // Relevance decides the tier; distance from the current map center
+      // orders equivalent matches. This prevents a nearby weak tag from
+      // outranking an exact dish while keeping useful results walkable.
+      const relevanceTierA = Math.floor(a.score / 20);
+      const relevanceTierB = Math.floor(b.score / 20);
+      if (relevanceTierA !== relevanceTierB) return relevanceTierB - relevanceTierA;
+      const distanceA = distanceKm(visibleRegion, a.patio);
+      const distanceB = distanceKm(visibleRegion, b.patio);
+      return distanceA - distanceB || b.score - a.score;
+    });
+  }, [liveResults, query, visibleRegion]);
 
   const matchingPatioIds = useMemo(() => new Set(searchResults.map((result) => result.patio.id)), [searchResults]);
-  const isFiltering = query.trim().length >= 3;
+  const isFiltering = query.trim().length > 0;
   const idleMode = !searchActive && !showHeader && !isFiltering;
 
   const topMatchPerPatio = useMemo(() => {
@@ -178,6 +188,10 @@ export function useFoodieExploreController() {
   const selectedDistanceLabel = selectedPatio && selectedPatio.latitude > 0
     ? formatDistance(distanceKm(visibleRegion, selectedPatio))
     : null;
+  const distanceLabelForPatio = useCallback(
+    (patio: Patio) => patio.latitude > 0 ? formatDistance(distanceKm(visibleRegion, patio)) : null,
+    [visibleRegion],
+  );
   const featuredMatch = showHeader && isFiltering && selectedId
     ? (searchResults.find((result) => result.patio.id === selectedId) ?? null)
     : null;
@@ -233,9 +247,9 @@ export function useFoodieExploreController() {
   }, [selectedPatio]);
 
   const openSearch = useCallback(() => {
-    // Buscar abre también la lista "cerca de ti": el foodie ve opciones desde
-    // el primer toque y el teclado quedan listos.
-    setSheetMode('nearby');
+    // Focus is not a query. Keep the map quiet until the person types; then
+    // results appear continuously and are ranked around the map center.
+    setSheetMode(null);
     setSearchActive(true);
     setTimeout(() => searchInputRef.current?.focus(), 80);
   }, []);
@@ -260,6 +274,7 @@ export function useFoodieExploreController() {
     closeSheet,
     closeSearch,
     deselect,
+    distanceLabelForPatio,
     featuredMatch,
     handleQueryChange,
     handleShareSelected,

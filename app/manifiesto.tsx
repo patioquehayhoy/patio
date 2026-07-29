@@ -46,7 +46,7 @@ function makeStyles(t: Theme) {
     },
     introSub: {
       fontSize: 14,
-      fontWeight: '300',
+      fontWeight: '400',
       fontFamily: Fonts.brand,
       color: t.gray,
       textAlign: 'center',
@@ -65,7 +65,7 @@ function makeStyles(t: Theme) {
     },
     body: {
       fontSize: 14,
-      fontWeight: '300',
+      fontWeight: '400',
       color: t.text,
       lineHeight: 18,
       marginBottom: 6,
@@ -73,7 +73,7 @@ function makeStyles(t: Theme) {
     },
     closing: {
       fontSize: 14,
-      fontWeight: '300',
+      fontWeight: '400',
       color: t.text,
       lineHeight: 19,
       marginTop: 10,

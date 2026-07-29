@@ -225,6 +225,10 @@ function tipoLabel(tipo: string | null): string {
     taqueria: 'Taquería',
     reposteria: 'Repostería',
     mariscos: 'Mariscos',
+    antojitos: 'Antojitos',
+    elotes: 'Elotes y botanas',
+    bebidas: 'Bebidas',
+    restaurante: 'Restaurante',
     otro: 'Fondita',
   };
   return (tipo && map[tipo]) || 'Fondita';

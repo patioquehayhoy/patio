@@ -29,12 +29,13 @@ import {
   setPagosEfectivo,
   setPagosTarjeta,
   setPagosTrans,
+  setTipoNegocio,
 } from '@/lib/menu-store';
-import { confirmedSchedule, NombreDuplicadoError, saveSmartSetup, type SmartSetupResult } from '@/lib/smart-setup';
+import { confirmedSchedule, NombreDuplicadoError, saveSmartSetup, type BusinessType, type SmartSetupResult } from '@/lib/smart-setup';
 import { Fonts, useTheme } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
 
-type Stage = 'name' | 'location' | 'schedule' | 'payments' | 'finish';
+type Stage = 'name' | 'category' | 'location' | 'schedule' | 'payments' | 'finish';
 
 const INITIAL_RESULT: SmartSetupResult = {
   nombre: '',
@@ -57,10 +58,23 @@ const INITIAL_RESULT: SmartSetupResult = {
 
 const STEP_BY_STAGE: Record<Exclude<Stage, 'finish'>, number> = {
   name: 0,
-  location: 1,
-  schedule: 2,
-  payments: 3,
+  category: 1,
+  location: 2,
+  schedule: 3,
+  payments: 4,
 };
+
+const BUSINESS_TYPES: { id: BusinessType; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
+  { id: 'fondita', label: 'Fondita', icon: 'restaurant-outline' },
+  { id: 'taqueria', label: 'Tacos', icon: 'flame-outline' },
+  { id: 'antojitos', label: 'Antojitos', icon: 'fast-food-outline' },
+  { id: 'elotes', label: 'Elotes y botanas', icon: 'leaf-outline' },
+  { id: 'reposteria', label: 'Postres y pan', icon: 'cafe-outline' },
+  { id: 'mariscos', label: 'Mariscos', icon: 'fish-outline' },
+  { id: 'bebidas', label: 'Bebidas', icon: 'wine-outline' },
+  { id: 'restaurante', label: 'Restaurante', icon: 'book-outline' },
+  { id: 'otro', label: 'Otro', icon: 'ellipsis-horizontal' },
+];
 
 function formatPlacemark(place?: Location.LocationGeocodedAddress): string {
   if (!place) return '';
@@ -185,6 +199,7 @@ export default function PatioSmartScreen() {
     await saveSmartSetup(result);
     setFonditaName(result.nombre);
     setFonditaDireccion(result.direccion);
+    setTipoNegocio(result.tipo);
     const schedule = confirmedSchedule(result);
     if (schedule) setFonditaHorarioSemanal(schedule);
     setPagosEfectivo(result.pagos.efectivo);
@@ -226,7 +241,8 @@ export default function PatioSmartScreen() {
   const goBack = () => {
     Keyboard.dismiss();
     if (stage === 'name') router.back();
-    else if (stage === 'location') setStage('name');
+    else if (stage === 'category') setStage('name');
+    else if (stage === 'location') setStage('category');
     else if (stage === 'schedule') setStage('location');
     else setStage('schedule');
   };
@@ -293,8 +309,8 @@ export default function PatioSmartScreen() {
           style={[s.close, { backgroundColor: colors.surface }]}>
           <Ionicons name={stage === 'name' ? 'close' : 'chevron-back'} size={20} color={colors.accent} />
         </TouchableOpacity>
-        <View style={s.progress} accessibilityLabel={`Paso ${stepIndex + 1} de 4`}>
-          {[0, 1, 2, 3].map((step) => (
+        <View style={s.progress} accessibilityLabel={`Paso ${stepIndex + 1} de 5`}>
+          {[0, 1, 2, 3, 4].map((step) => (
             <View
               key={step}
               style={[
@@ -333,7 +349,7 @@ export default function PatioSmartScreen() {
                 onSubmitEditing={() => {
                   if (!result.nombre.trim()) return;
                   Keyboard.dismiss();
-                  setStage('location');
+                  setStage('category');
                 }}
                 maxFontSizeMultiplier={1.4}
                 style={[s.fieldInput, { color: colors.text }]}
@@ -342,8 +358,39 @@ export default function PatioSmartScreen() {
             <ContinueButton
               colors={colors}
               disabled={!result.nombre.trim()}
-              onPress={() => { Keyboard.dismiss(); setStage('location'); }}
+              onPress={() => { Keyboard.dismiss(); setStage('category'); }}
             />
+          </>
+        )}
+
+        {stage === 'category' && (
+          <>
+            <StepHeader
+              colors={colors}
+              title="¿Qué tipo de lugar es?"
+              subtitle="Esto ayuda a Patio a leer y ordenar tu menú correctamente."
+            />
+            <View style={s.typeGrid}>
+              {BUSINESS_TYPES.map((item) => {
+                const selected = result.tipo === item.id;
+                return (
+                  <TouchableOpacity
+                    key={item.id}
+                    accessibilityRole="radio"
+                    accessibilityState={{ selected }}
+                    onPress={() => update({ tipo: item.id })}
+                    style={[
+                      s.typeOption,
+                      { backgroundColor: colors.surface, borderColor: selected ? colors.accent : colors.border },
+                    ]}>
+                    <Ionicons name={item.icon} size={19} color={selected ? colors.accent : colors.textSecondary} />
+                    <Text style={[s.typeLabel, { color: colors.text }]}>{item.label}</Text>
+                    {selected ? <Ionicons name="checkmark-circle" size={18} color={colors.accent} /> : null}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+            <ContinueButton colors={colors} onPress={() => setStage('location')} />
           </>
         )}
 
@@ -468,6 +515,9 @@ const s = StyleSheet.create({
   locationAction: { minHeight: 76, marginTop: 28, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 12 },
   locationIcon: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   locationCopy: { flex: 1, minWidth: 0 },
+  typeGrid: { marginTop: 26, gap: 8 },
+  typeOption: { minHeight: 52, borderRadius: 15, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 11 },
+  typeLabel: { flex: 1, fontSize: 14, fontWeight: '600' },
   locationTitle: { fontSize: 15, lineHeight: 19, fontWeight: '600' },
   locationHint: { marginTop: 3, fontSize: 12, lineHeight: 16, fontWeight: '400' },
   scheduleEditor: { marginTop: 24 },

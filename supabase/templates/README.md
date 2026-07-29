@@ -7,13 +7,17 @@ que **pegarlos a mano** en el dashboard de Supabase.
 ## Cómo instalar
 
 1. Supabase Dashboard → **Authentication → Email Templates**.
-2. Para `magic-link.html`:
-   - Pestaña **Magic Link** → pega el HTML completo.
-   - Pestaña **Confirm signup** → pega el mismo HTML. *(La app usa
-     `signInWithOtp({ shouldCreateUser: true })`, así que la PRIMERA vez que un
-     correo entra, Supabase manda el de "Confirm signup", no el de "Magic Link".
-     Si solo actualizas uno, los usuarios nuevos ven el template viejo.)*
-3. **Subject** sugerido (ambas pestañas):
+2. Pega cada archivo en su pestaña correspondiente:
+   - `magic-link.html` → **Magic Link**.
+   - `confirm-signup.html` → **Confirm signup**.
+   - `invite.html` → **Invite user**.
+   - `change-email.html` → **Change email address**.
+   - `reset-password.html` → **Reset password**.
+   - `reauthentication.html` → **Reauthentication**.
+3. **Magic Link** y **Confirm signup** son obligatorios hoy. La app usa
+   `signInWithOtp({ shouldCreateUser: true })`: la primera entrada dispara
+   Confirm signup y las siguientes Magic Link.
+4. **Subject** sugerido para acceso:
 
    ```
    Tu enlace para entrar a Patio
@@ -28,6 +32,10 @@ que **pegarlos a mano** en el dashboard de Supabase.
 
 ## Reglas de marca
 
+- La P oficial es el único logo del encabezado y está embebida como PNG. Cuando
+  exista un CDN público de Patio debe migrarse a HTTPS para reducir peso.
+- Fondo neutro, tarjeta blanca, una sola acción y texto utilitario alineado a la
+  izquierda: minimalismo funcional, no decoración “tipo Apple”.
 - Copy regido por `docs/design/foundations/IDENTITY_VERBAL.md`: humano, local,
   sin "fonda/fondero" paraguas, sin lenguaje comparativo.
 - `"¿Qué hay hoy?"` y `"Saaaaaaabes."` van SIEMPRE juntos como par de marca —

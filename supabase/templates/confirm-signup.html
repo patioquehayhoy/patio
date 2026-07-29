@@ -1,0 +1,139 @@
+<!--
+  Patio — Template de email "Magic Link"
+  ───────────────────────────────────────────────────────────────────────────
+  DÓNDE SE PEGA: Supabase Dashboard → Authentication → Email Templates → "Magic Link"
+  (y replicarlo en "Confirm signup" — signInWithOtp con shouldCreateUser:true
+   manda el de signup la primera vez; el repo solo confirma signInWithOtp,
+   no hay reset de password ni cambio de correo en la app, así que este es
+   el único correo real que Patio dispara).
+
+  Variables de Supabase usadas:
+    {{ .ConfirmationURL }}  → enlace que abre patio://login-callback con el token
+    {{ .Email }}            → correo del destinatario
+
+  Rediseño 2026-07-24 v3 — dos rondas de feedback de Alejandro:
+  v2 arregló logo/pesos/CTA centrado pero seguía "con mucha info" y el bloque
+  de copiar-y-pegar-en-el-navegador metía fricción sin aportar ("qué onda con
+  eso"). v3:
+  - Se cortó el párrafo explicativo del botón: el cuerpo ahora es una sola
+    línea ("Válido los próximos 15 minutos"), no dos.
+  - Se eliminó por completo el bloque de URL cruda para copiar/pegar. No
+    resuelve nada que el botón no resuelva (ambos abren el mismo enlace) y
+    era exactamente lo que se leía "como código". Si el botón falla, la
+    salida ahora es humana: escribir a soporte, no pegar un link tokenizado.
+  - Se dejó de centrar TODO: logo/título/CTA/firma siguen centrados (el
+    momento hero), pero el texto utilitario (seguridad, soporte, legal)
+    volvió a alineación izquierda — así se lee la mayoría del correo
+    transaccional real, un párrafo largo centrado es más difícil de leer.
+  - Repaso de viudas: cada línea de copy lleva &nbsp; entre sus últimas dos
+    palabras (ley CLAUDE.md, sin excepción para email aunque no haya noWidow
+    disponible aquí).
+  - Logo real: wordmark oficial (assets/images/logo-negro.png) embebido como
+    data URI — no hay hosting público del asset todavía, así que no se puede
+    usar una URL remota; data URI renderiza nativo en Apple Mail/iOS (el
+    cliente principal del usuario). Si algún día se sube el logo a un bucket
+    público de Supabase Storage, cambiar a <img src="https://.../logo-negro.png">
+    es más robusto entre clientes (Outlook desktop no siempre soporta data URI).
+  - Paleta vigente (CLAUDE.md, corregida 2026-07-22): BG #EFEFEF, BLACK #292929,
+    WHITE #FFFFFF, hairline rgba(0,0,0,0.08). Accent naranja #F2612F sin cambio.
+  - Tipografía: system-ui (Plus Jakarta / Fonts.brand no se puede cargar de forma
+    confiable en clientes de correo — Gmail ignora @font-face).
+  - HTML de email: maquetado con <table>, estilos inline. NADA de flexbox/grid:
+    los clientes (Gmail, Apple Mail, Outlook) los ignoran.
+  - Copy regido por IDENTITY_VERBAL: humano, local, sin "fonda/fondero" paraguas,
+    sin lenguaje comparativo.
+-->
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light only" />
+    <title>Confirma tu correo para entrar a Patio</title>
+  </head>
+  <body style="margin:0; padding:0; background:#EFEFEF; -webkit-text-size-adjust:100%;">
+    <!-- preheader oculto (preview en la bandeja) -->
+    <div style="display:none; max-height:0; overflow:hidden; opacity:0;">
+      Confirma tu correo para entrar a Patio. Válido 15&nbsp;minutos.
+    </div>
+
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#EFEFEF;">
+      <tr>
+        <td align="center" style="padding:36px 16px;">
+
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+                 style="max-width:480px; background:#FFFFFF; border-radius:20px; overflow:hidden; border:1px solid rgba(0,0,0,0.08);">
+
+            <!-- Header de marca: logo oficial, centrado -->
+            <tr>
+              <td align="center" style="padding:36px 32px 0;">
+                <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABAAAAAQACAIAAADwf7zUAAAACXBIWXMAAAsSAAALEgHS3X78AAAgAElEQVR4nO3dPVcbab7uYc2sSYsPIHWOlG+KHGnHRsoBxwbFAzg2qGNs4gFysOONO3d5x0d03nI8S/oCJ1Bvd7fHL7xIeqrqf13rBHPO2sET7OOpn+qpm7/NZv9uAAAAMfw99QEAAIDVEQAAABCIAAAAgEAEAAAABCIAAAAgEAEAAACBCAAAAAhEAAAAQCACAAAAAhEAAAAQiAAAAIBABAAAAAQiAAAAIBABAAAAgQgAAAAIRAAAAEAgAgAAAAIRAAAAEIgAAACAQAQAAAAEIgAAACAQAQAAAIEIAAAACEQAAABAIAIAAAACEQAAABCIAAAAgEAEAAAABCIAAAAgEAEAAACBCAAAAAhEAAAAQCACAAAAAhEAAAAQiAAAAIBABAAAAAQiAAAAIBABAAAAgQgAAAAIRAAAAEAgAgAAAAIRAAAAEIgAAACAQAQAAAAEIgAAACAQAQAAAIEIAAAACEQAAABAIAIAAAACEQAAABCIAAAAgEAEAAAABCIAAAAgEAEAAACBCAAAAAhEAAAAQCACAAAAAhEAAAAQiAAAAIBABAAAAAQiAAAAIBABAAAAgQgAAAAIRAAAAEAgAgAAAAIRAAAAEIgAAACAQAQAAAAEIgAAACAQAQAAAIEIAAAACEQAAABAIAIAAAACEQAAABCIAAAAgEAEAAAABCIAAAAgEAEAAACBCAAAAAhEAAAAQCACAAAAAhEAAAAQiAAAAIBABAAAAAQiAAAAIBABAAAAgQgAAAAIRAAAAEAgAgAAAAIRAAAAEIgAAACAQAQAAAAEIgAAACAQAQAAAIEIAAAACEQAAABAIAIAAAACEQAAABCIAAAAgEAEAAAABCIAAAAgEAEAAACBCAAAAAhEAAAAQCACAAAAAhEAAAAQiAAAAIBABAAAAAQiAAAAIBABAAAAgQgAAAAIRAAAAEAgAgAAAAIRAAAAEIgAAACAQAQAAAAEIgAAACAQAQAAAIEIAAAACEQAAABAIAIAAAACEQAAABCIAAAAgEAEAAAABCIAAAAgEAEAAACBCAAAAAhEAAAAQCACAAAAAhEAAAAQiAAAAIBABAAAAAQiAAAAIBABAAAAgQgAAAAIRAAAAEAgAgAAAAIRAAAAEIgAAACAQAQAAAAEIgAAACAQAQAAAIEIAAAACEQAAABAIAIAAAACEQAAABCIAAAAgEAEAAAABCIAAAAgEAEAAACBCAAAAAhEAAAAQCACAAAAAhEAAAAQiAAAAIBABAAAAAQiAAAAIBABAAAAgQgAAAAIRAAAAEAgAgAAAAIRAAAAEIgAAACAQAQAAAAEIgAAACAQAQAAAIEIAAAACEQAAABAIAIAAAACEQAAABCIAAAAgEAEAAAABCIAAAAgEAEAAACBCAAAAAhEAAAAQCACAAAAAhEAAAAQiAAAAIBABAAAAAQiAAAAIBABAAAAgQgAAAAIRAAAAEAgAgAAAAIRAAAAEIgAAACAQAQAAAAEIgAAACAQAQAAAIEIAAAACEQAAABAIAIAAAACEQAAABCIAAAAgEAEAAAABCIAAAAgEAEAAACBCAAAAAhEAAAAQCACAAAAAhEAAAAQiAAAAIBABAAAAAQiAAAAIBABAAAAgQgAAAAIRAAAAEAgAgAAAAIRAAAAEIgAAACAQAQAAAAEIgAAACAQAQAAAIEIAAAACEQAAABAIAIAAAACEQAAABCIAAAAgEAEAAAABCIAAAAgEAEAAACBCAAAAAhEAAAAQCACAAAAAhEAAAAQiAAAAIBABAAAAAQiAAAAIBABAAAAgQgAAAAIRAAAAEAgAgAAAAIRAAAAEIgAAACAQAQAAAAEIgAAACAQAQAAAIEIAAAACEQAAABAIAIAAAACEQAAABCIAAAAgEAEAAAABCIAAAAgEAEAAACBCAAAAAhEAAAAQCACAAAAAhEAAAAQiAAAAIBABAAAAAQiAAAAIBABAAAAgQgAAAAIRAAAAEAgAgAAAAIRAAAAEIgAAACAQAQAAAAEIgAAACAQAQAAAIEIAAAACEQAAABAIAIAAAACEQAAABCIAAAAgEAEAAAABCIAAAAgEAEAAACBCAAAAAhEAAAAQCACAAAAAhEAAAAQiAAAAIBABAAAAAQiAAAAIBABAAAAgQgAAAAIRAAAAEAgAgAAAAIRAAAAEIgAAACAQAQAAAAEIgAAACAQAQAAAIEIAAAACEQAAABAIAIAAAACEQAAABCIAAAAgEAEAAAABCIAAAAgEAEAAACBCAAAAAhEAAAAQCACAAAAAhEAAAAQiAAAAIBABAAAAAQiAAAAIBABAAAAgQgAAAAIRAAAAEAgAgAAAAIRAAAA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IAIAAAACEQAAABCIAAAAgEAEAAAABCIAAAAgEAEAAACBCAAAAAhEAAAAQCACAAAAAhEAAAAQiAAAAIBABAAAAAQiAAAAIBABAAAAgQgAAAAIRAAAAEAgAgAAAAIRAAAAEIgAAACAQAQAAAAEIgAAACAQAQAAAIEIAAAACEQAAABAIAIAAAACEQAAABCIAAAAgEAEAAAABCIAAAAgEAEAAACBCAAAAAhEAAAAQCACAAAAAhEAAAAQiAAAAIBABAAAAAQiAAAAIBABAAAAgQgAAAAIRAAAAEAgAgAAAAIRAAAAEIgAAACAQAQAAAAEIgAAACAQAQAAAIEIAAAACEQAAABAIAIAAAACEQAAABCIAAAAgEAEAAAABCIAAAAgEAEAAACBCAAAAAhEAAAAQCACAAAAAhEAAAAQiAAAAIBABAAAAAQiAAAAIBABAAAAgQgAAAAIRAAAAEAgAgAAAAIRAAAAEIgAAACAQAQAAAAEIgAAACAQAQAAAIEIAAAACEQAAABAIAIAAAACEQAAABCIAAAAgEAEAAAABCIAAAAgEAEAAACBCAAAAAhEAAAAQCACAAAAAhEAAAAQiAAAAIBABAAAAAQiAAAAIBABAAAAgQgAAAAIRAAAAEAgAgAAAAIRAAAAEIgAAACAQAQAAAAEIgAAACAQAQAAAIEIAAAACEQAAABAIAIAAAACEQAAABCIAAAAgEAEAAAABCIAAAAgEAEAAACBCAAAAAhEAAAAQCACAAAAAhEAAAAQiAAAAIBABAAAAAQiAAAAIBABAAAAgQgAAAAIRAAAAEAgAgAAAAIRAAAAEIgAAACAQAQAAAAEIgAAACAQAQAAAIEIAAAACEQAAABAIAIAAAACEQAAABCIAAAAgEAEAAAABCIAAAAgEAEAAACBCAAAAAhEAAAAQCACAAAAAhEAAAAQiAAAAIBABAAAAAQiAAAAIBABAAAAgQgAAAAIRAAAAEAgAgAAAAIRAAAAEIgAAACAQAQAAAAEIgAAACAQAQAAAIEIAAAACEQAAABAIAIAAAACEQAAABCIAAAAgEAEAAAABCIAAAAgEAEAAACBCAAAAAhEAAAAQCACAAAAAhEAAAAQiAAAAIBABAAAAAQiAAAAIBABAAAAgQgAAAAIRAAAAEAgAgAAAAIRAAAAEIgAAACAQAQAAAAEIgAAACAQAQAAAIEIAAAACEQAAABAIAIAAAACEQAAABCIAAAAgEAEAAAABCIAAAAgEAEAAACBCAAAAAhEAAAAQCACAAAAAhEAAAAQiAAAAIBABAAAAAQiAAAAIBABAAAAgQgAAAAIRAAAAEAgAgAAAAIRAAAAEIgAAACAQAQAAAAEIgAAACAQAQAAAIEIAAAACEQAAABAIAIAAAACEQAAABCIAAAAgEAEAAAABCIAAAAgEAEAAACBCAAAAAhEAAAAQCACAAAAAhEAAAAQiAAAAIBABAAAAAQiAAAAIBABAAAAgQgAAAAIRAAAAEAgAgAAAAIRAAAAEIgAAACAQAQAAAAEIgAAACAQAQAAAIEIAAAACEQAAABAIAIAAAACEQAAABCIAAAAgEAEAAAABCIAAAAgEAEAAACBCAAAAAhEAAAAQCACAAAAAhEAAAAQiAAAAIBABAAAAAQiAAAAIBABAAAAgQgAAAAIRAAAAEAgAgAAAAIRAAAAEIgAAACAQAQAAAAEIgAAACAQAQAAAIEIAAAACEQAAABAIAIAAAACEQAAABCIAAAAgEAEAAAABCIAAAAgEAEAAACBCAAAAAhEAAAAQCACAAAAAhEAAAAQiAAAAIBABAAAAAQiAAAAIBABAAAAgQgAAAAIRAAAAEAgAgAAAAIRAAAAEIgAAACAQAQAAAAEIgAAACAQAQAAAIEIAAAACEQAAABAIAIAAAACEQAAABCIAAAAgEAEAAAABCIAAAAgEAEAAACBCAAAAAhEAAAAQCACAAAAAhEAAAAQiAAAAIBABAAAAAQiAAAAIBABAAAAgQgAAAAIRAAAAEAgAgAAAAIRAAAAEIgAAACAQAQAAAAEIgAAACCQ/w+Q2rSq8H07UQAAAABJRU5ErkJggg=="
+                     alt="Patio" width="112" height="21"
+                     style="display:block; width:112px; height:21px; border:0;" />
+              </td>
+            </tr>
+
+            <!-- Título + subtexto: el momento hero, centrado -->
+            <tr>
+              <td align="center" style="padding:28px 32px 0;">
+                <div style="font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:26px; font-weight:800; letter-spacing:-0.6px; color:#292929; line-height:1.2; text-align:center;">
+                  Tu enlace para&nbsp;entrar.
+                </div>
+                <div style="margin-top:8px; font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:15px; color:#7A7A76; line-height:1.5; text-align:center;">
+                  Confirma tu correo. Válido 15&nbsp;minutos.
+                </div>
+              </td>
+            </tr>
+
+            <!-- Botón: centrado, patrón real de CTA de Apple en correo -->
+            <tr>
+              <td align="center" style="padding:24px 32px 32px;">
+                <table role="presentation" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td style="background:#F2612F; border-radius:14px;">
+                      <a href="{{ .ConfirmationURL }}" target="_blank"
+                         style="display:inline-block; padding:16px 34px; font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:16px; font-weight:700; color:#FFFFFF; text-decoration:none; letter-spacing:-0.2px;">
+                        Confirmar&nbsp;correo
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Utilitario: alineado a la izquierda, chico, sin URL cruda -->
+            <tr>
+              <td style="padding:0 32px 28px;">
+                <p style="margin:0 0 4px; font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:13px; color:#7A7A76; line-height:1.5; text-align:left;">
+                  ¿No fuiste tú? Ignora este&nbsp;correo.
+                </p>
+                <p style="margin:0; padding-top:16px; border-top:1px solid rgba(0,0,0,0.08); font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:13px; color:#7A7A76; line-height:1.5; text-align:left;">
+                  ¿Problemas para entrar? Escríbenos a&nbsp;quehayhoy.patio@gmail.com.
+                </p>
+              </td>
+            </tr>
+
+            <!-- Footer: firma de marca, apilada y centrada — mismo patrón que app/index.tsx -->
+            <tr>
+              <td align="center" style="padding:24px 32px; background:#EFEFEF; border-top:1px solid rgba(0,0,0,0.08);">
+                <div style="font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:14px; font-weight:800; letter-spacing:-0.2px; color:#292929;">
+                  ¿Qué hay&nbsp;hoy?
+                </div>
+                <div style="margin-top:2px; font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:14px; font-weight:300; color:rgba(41,41,41,0.55);">
+                  Saaaaaaabes.
+                </div>
+              </td>
+            </tr>
+
+          </table>
+
+          <!-- línea legal mínima fuera de la tarjeta -->
+          <div style="max-width:480px; margin:14px auto 0; font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:11px; color:#A8A8A3; text-align:center; line-height:1.5;">
+            Correo enviado a&nbsp;{{ .Email }}.
+          </div>
+
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

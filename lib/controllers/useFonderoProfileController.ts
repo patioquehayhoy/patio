@@ -26,6 +26,7 @@ import {
   getPagosEfectivo,
   getPagosTarjeta,
   getPagosTrans,
+  getTipoNegocio,
   setFonditaDescription,
   setFonditaDireccion,
   setFonditaHorario,
@@ -34,6 +35,7 @@ import {
   setPagosEfectivo,
   setPagosTarjeta,
   setPagosTrans,
+  setTipoNegocio,
 } from '@/lib/menu-store';
 import { supabase } from '@/lib/supabase';
 import { getFonditaId, setFonditaId } from '@/lib/user-store';
@@ -46,6 +48,7 @@ type SavedProfileValues = {
   pagosEfectivo: boolean;
   pagosTrans: boolean;
   pagosTarjeta: boolean;
+  tipoNegocio: string;
 };
 
 const FONDITA_SELECT = 'id, nombre, nombre_updated_at, descripcion, direccion, direccion_visible, horario, horario_semanal, pagos_efectivo, pagos_transferencia, pagos_tarjeta, tipo_negocio, latitude, longitude';
@@ -63,6 +66,7 @@ function savedFromLocal(semanal: HorarioSemanal): SavedProfileValues {
     pagosEfectivo: getPagosEfectivo(),
     pagosTrans: getPagosTrans(),
     pagosTarjeta: getPagosTarjeta(),
+    tipoNegocio: getTipoNegocio() ?? 'otro',
   };
 }
 
@@ -78,6 +82,7 @@ export function useFonderoProfileController() {
   const [pagosEfectivo, setPagosEfectivoState] = useState(getPagosEfectivo());
   const [pagosTrans, setPagosTransState] = useState(getPagosTrans());
   const [pagosTarjeta, setPagosTarjetaState] = useState(getPagosTarjeta());
+  const [tipoNegocio, setTipoNegocioState] = useState(getTipoNegocio() ?? 'otro');
   const [email, setEmail] = useState('');
   const [ready, setReady] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -105,7 +110,8 @@ export function useFonderoProfileController() {
     semanalJSON !== savedValues.horarioJSON ||
     pagosEfectivo !== savedValues.pagosEfectivo ||
     pagosTrans !== savedValues.pagosTrans ||
-    pagosTarjeta !== savedValues.pagosTarjeta;
+    pagosTarjeta !== savedValues.pagosTarjeta ||
+    tipoNegocio !== savedValues.tipoNegocio;
 
   const aplicarHora = useCallback((campo: 'abre' | 'cierra', value: string) => {
     const target = new Set(seleccion);
@@ -197,6 +203,7 @@ export function useFonderoProfileController() {
         const nextPagosEfectivo = fondita.pagos_efectivo ?? false;
         const nextPagosTrans = fondita.pagos_transferencia ?? false;
         const nextPagosTarjeta = fondita.pagos_tarjeta ?? false;
+        const nextTipoNegocio = (fondita as any).tipo_negocio ?? 'otro';
         const nextSemanal = deserialize((fondita as any).horario_semanal)
           ?? migrarStringLegacy(horario)
           ?? horarioDefault();
@@ -208,6 +215,8 @@ export function useFonderoProfileController() {
         setUbicacion(nextUbicacion);
         setFonditaDireccion(nextUbicacion);
         setFonditaHorario(horario);
+        setTipoNegocio(nextTipoNegocio);
+        setTipoNegocioState(nextTipoNegocio);
         setSemanal(nextSemanal);
         setFonditaHorarioSemanal(nextSemanal);
         setSeleccion([]);
@@ -226,6 +235,7 @@ export function useFonderoProfileController() {
           pagosEfectivo: nextPagosEfectivo,
           pagosTrans: nextPagosTrans,
           pagosTarjeta: nextPagosTarjeta,
+          tipoNegocio: nextTipoNegocio,
         });
 
         if (fondita.nombre_updated_at) nombreUpdatedAtRef.current = fondita.nombre_updated_at;
@@ -297,6 +307,10 @@ export function useFonderoProfileController() {
         payload.pagos_tarjeta = pagosTarjeta;
         newSaved.pagosTarjeta = pagosTarjeta;
       }
+      if (tipoNegocio !== savedValues.tipoNegocio) {
+        payload.tipo_negocio = tipoNegocio;
+        newSaved.tipoNegocio = tipoNegocio;
+      }
 
       if (Object.keys(payload).length > 0) {
         if (fonditaId) await supabase.from('fonditas').update(payload).eq('id', fonditaId);
@@ -313,6 +327,7 @@ export function useFonderoProfileController() {
         if ('pagos_efectivo' in payload) setPagosEfectivo(pagosEfectivo);
         if ('pagos_transferencia' in payload) setPagosTrans(pagosTrans);
         if ('pagos_tarjeta' in payload) setPagosTarjeta(pagosTarjeta);
+        if ('tipo_negocio' in payload) setTipoNegocio(tipoNegocio);
       }
 
       setSavedValues(newSaved);
@@ -333,6 +348,7 @@ export function useFonderoProfileController() {
     savedValues,
     semanal,
     semanalJSON,
+    tipoNegocio,
     ubicacion,
   ]);
 
@@ -389,6 +405,7 @@ export function useFonderoProfileController() {
     pagosEfectivo,
     pagosTarjeta,
     pagosTrans,
+    tipoNegocio,
     ready,
     seleccion,
     semanal,
@@ -398,6 +415,7 @@ export function useFonderoProfileController() {
     setPagosEfectivoState,
     setPagosTarjetaState,
     setPagosTransState,
+    setTipoNegocioState,
     setShowApertura,
     setShowCierre,
     setUbicacion,

@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
+import { SymbolView } from 'expo-symbols';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useMemo } from 'react';
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
@@ -68,37 +69,47 @@ function makeStyles(t: Theme) {
     // ── Menú agrupado ──
     menuHead: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 14 },
     menuEyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.3, textTransform: 'uppercase', color: t.textMute },
-    menuPrice: { fontSize: 22, fontWeight: '900', letterSpacing: -0.4, color: t.accent },
-    menuPriceStruck: { color: t.text, textDecorationLine: 'line-through' },
     menuSoldWrap: { position: 'relative', borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, borderRadius: 18, padding: 16, marginBottom: 16, backgroundColor: t.surface },
     agotadoBadge: { position: 'absolute', right: 14, bottom: 14, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 10, backgroundColor: t.text },
     agotadoBadgeText: { fontSize: 10.5, fontWeight: '900', letterSpacing: 1, textTransform: 'uppercase', color: t.bg },
     mananaCard: { padding: 16, borderRadius: 18, backgroundColor: t.accentSoft, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(242,97,47,0.2)', marginBottom: 16 },
     mananaHead: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 },
     mananaEyebrow: { fontSize: 11, fontWeight: '900', letterSpacing: 1, textTransform: 'uppercase', color: t.accent },
-    mananaBody: { fontSize: 14, fontWeight: '300', lineHeight: 20, color: t.text },
+    mananaBody: { fontSize: 14, fontWeight: '400', lineHeight: 20, color: t.text },
     group: { marginBottom: 16 },
     groupHead: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 },
     groupTitle: { fontSize: 11, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', color: t.textMute },
     chooseTag: { fontSize: 10, fontWeight: '600', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 5, backgroundColor: t.accentSoft, color: t.accent, letterSpacing: 0.4, textTransform: 'uppercase', overflow: 'hidden' },
     groupItem: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 7 },
     groupItemName: { flex: 1, fontSize: 15, color: t.text, letterSpacing: -0.2, lineHeight: 21 },
-    groupItemDescription: { marginTop: 2, fontSize: 12.5, lineHeight: 17, fontWeight: '300', color: t.textSecondary },
+    groupItemDescription: { marginTop: 2, fontSize: 12.5, lineHeight: 17, fontWeight: '400', color: t.textSecondary },
     groupItemPrice: { fontSize: 15, fontWeight: '700', color: t.accent },
     groupDashed: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.border, marginTop: 12 },
-    reviewSection: { marginTop: 4, marginBottom: 22 },
+    organizeButton: { alignSelf: 'flex-start', minHeight: 38, marginTop: 12, paddingHorizontal: 14, borderRadius: 19, flexDirection: 'row', alignItems: 'center', gap: 7, backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
+    organizeButtonText: { color: t.text, fontSize: 13, fontWeight: '600' },
+    reviewSection: { paddingTop: 28, marginBottom: 22 },
+    reviewsSummary: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
+    reviewsTitle: { fontSize: 22, lineHeight: 27, fontWeight: '900', fontFamily: Fonts.brand, color: t.text },
+    reviewsCount: { fontSize: 12, color: t.textSecondary },
     reviewCard: { padding: 16, borderRadius: 18, backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
+    reviewCardGap: { marginTop: 10 },
+    reviewAuthor: { fontSize: 14, fontWeight: '700', color: t.text, marginBottom: 8 },
     reviewStars: { flexDirection: 'row', gap: 2, marginBottom: 10 },
     reviewReasons: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 10 },
     reviewReason: { paddingHorizontal: 9, paddingVertical: 5, borderRadius: 100, backgroundColor: t.accentSoft },
     reviewReasonText: { fontSize: 11, fontWeight: '600', color: t.textSecondary },
     reviewNote: { fontSize: 14, lineHeight: 20, color: t.text },
     reviewEdit: { marginTop: 12, fontSize: 12, fontWeight: '700', color: t.accent },
+    businessReply: { marginTop: 14, paddingTop: 12, paddingLeft: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border, borderLeftWidth: 2, borderLeftColor: t.accent },
+    businessReplyLabel: { fontSize: 10.5, fontWeight: '800', letterSpacing: 0.8, textTransform: 'uppercase', color: t.accent, marginBottom: 5 },
+    businessReplyText: { fontSize: 13.5, lineHeight: 19, color: t.textSecondary },
+    reviewPrompt: { minHeight: 46, borderRadius: 23, paddingHorizontal: 17, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, backgroundColor: t.surface },
+    reviewPromptText: { fontSize: 14, fontWeight: '700', color: t.text },
 
     // ── Detalles + mapa ──
     section: { paddingTop: 24 },
     sectionTitle: { fontSize: 11, fontWeight: '700', letterSpacing: 1.3, textTransform: 'uppercase', color: t.textMute, marginBottom: 12 },
-    mapPanel: { height: 160, borderRadius: Radius.card, backgroundColor: t.isDark ? '#191A1B' : '#D8D6D0', overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, marginBottom: 12 },
+    mapPanel: { height: 112, borderRadius: Radius.card, backgroundColor: t.isDark ? '#191A1B' : '#D8D6D0', overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, marginBottom: 12 },
     mapView: { ...StyleSheet.absoluteFillObject },
     mapPin: { width: 38, height: 42, alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 7 }, shadowOpacity: 0.2, shadowRadius: 12, elevation: 4 },
     panel: { borderRadius: Radius.card, backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, overflow: 'hidden' },
@@ -106,28 +117,22 @@ function makeStyles(t: Theme) {
     rowIcon: { width: 24, marginRight: 8, opacity: 0.48 },
     rowText: { flex: 1, fontSize: 14, lineHeight: 18, color: t.textSecondary },
     divider: { height: StyleSheet.hairlineWidth, backgroundColor: t.border, marginLeft: 52 },
-
-    // ── CTA sticky ──
-    ctaWrap: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 20, paddingTop: 10, backgroundColor: t.bg },
-    ctaBtn: { height: 54, borderRadius: Radius.card, backgroundColor: t.text, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8 },
-    ctaText: { fontSize: 16, fontWeight: '700', color: t.bg, letterSpacing: -0.2 },
-    ctaRow: { flexDirection: 'row', gap: 8 },
-    ctaBtnFlex: { flex: 1 },
-    ctaSquare: { width: 54, height: 54, borderRadius: Radius.card, backgroundColor: t.isDark ? 'rgba(255,255,255,0.08)' : 'rgba(17,18,20,0.06)', alignItems: 'center', justifyContent: 'center' },
+    directionsButton: { minHeight: 46, marginTop: 12, paddingHorizontal: 16, borderRadius: 23, alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 7, backgroundColor: t.text },
+    directionsText: { fontSize: 14, fontWeight: '700', color: t.bg },
 
     // ── Rating (estrellas en card) ──
     starsRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 10 },
-    ratingDone: { fontSize: 13, fontWeight: '300', color: t.textSecondary, marginLeft: 4 },
+    ratingDone: { fontSize: 13, fontWeight: '400', color: t.textSecondary, marginLeft: 4 },
     overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.32)' },
     ratingSheet: { backgroundColor: t.surface, borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingTop: 12, paddingBottom: 36, paddingHorizontal: 24 },
     sheetHandle: { alignSelf: 'center', width: 44, height: 4, borderRadius: 2, backgroundColor: t.border, marginBottom: 20 },
     sheetTitle: { fontSize: 22, fontWeight: '900', fontFamily: Fonts.brand, color: t.text, marginBottom: 4 },
-    sheetSub: { fontSize: 14, fontWeight: '300', color: t.textSecondary, marginBottom: 20 },
+    sheetSub: { fontSize: 14, fontWeight: '400', color: t.textSecondary, marginBottom: 20 },
     sheetStars: { flexDirection: 'row', gap: 10, justifyContent: 'center', marginBottom: 24 },
     reasonsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 28 },
     reasonPill: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 100, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
     reasonPillActive: { backgroundColor: t.accentLight, borderColor: t.accent },
-    reasonText: { fontSize: 13, fontWeight: '300', color: t.text },
+    reasonText: { fontSize: 13, fontWeight: '400', color: t.text },
     reasonTextActive: { color: t.accent, fontWeight: '900' },
     submitBtn: { minHeight: 52, borderRadius: 14, backgroundColor: t.text, alignItems: 'center', justifyContent: 'center' },
     submitText: { fontSize: 16, fontWeight: '900', color: t.surface },
@@ -141,22 +146,19 @@ export default function PatioDetailScreen() {
   const insets = useSafeAreaInsets();
   const {
     cleanId,
-    handleAvisarManana,
     handleBack,
     handleComoLlegar,
     handleShare,
     handleStarPress,
     handleToggleSaved,
     hoy,
-    isClosed,
     isSaved,
     loading,
-    notifyOn,
     patio,
     patioId,
-    priceLabel,
     proxTexto,
     rangoHoy,
+    reviews,
     sections,
     soldOut,
     status,
@@ -167,7 +169,11 @@ export default function PatioDetailScreen() {
   const heroPhoto = useMemo(() => heroPhotoFor(patioId ?? cleanId ?? ''), [patioId, cleanId]);
 
   const GlassIcon = ({ name, size = 17, onPress, color }: { name: keyof typeof Ionicons.glyphMap; size?: number; onPress: () => void; color?: string }) => (
-    <TouchableOpacity style={s.glassIcon} onPress={onPress} activeOpacity={0.76}>
+    <TouchableOpacity
+      style={s.glassIcon}
+      onPress={onPress}
+      activeOpacity={0.76}
+      accessibilityRole="button">
       <BlurView intensity={theme.isDark ? 24 : 40} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
       <View style={[StyleSheet.absoluteFillObject, { backgroundColor: theme.glass }]} />
       <Ionicons name={name} size={size} color={color ?? theme.text} />
@@ -223,8 +229,7 @@ export default function PatioDetailScreen() {
             <GlassIcon name="chevron-back" size={20} onPress={handleBack} />
             <View style={{ flexDirection: 'row', gap: 8 }}>
               <GlassIcon name="share-outline" size={17} onPress={handleShare} />
-              <GlassIcon name={notifyOn ? 'notifications' : 'notifications-outline'} size={17} onPress={handleAvisarManana} color={notifyOn ? theme.accent : theme.text} />
-              <GlassIcon name={isSaved ? 'heart' : 'heart-outline'} size={17} onPress={handleToggleSaved} color={isSaved ? theme.accent : theme.text} />
+              <GlassIcon name={isSaved ? 'bookmark' : 'bookmark-outline'} size={17} onPress={handleToggleSaved} color={isSaved ? theme.accent : theme.text} />
             </View>
           </View>
         </View>
@@ -241,6 +246,15 @@ export default function PatioDetailScreen() {
           )}
           <Text style={s.title} allowFontScaling={true}>{patio.name}</Text>
           <Text style={s.subtitle} allowFontScaling={true}>{patio.category} · {patio.area}</Text>
+          {isSaved && (
+            <TouchableOpacity
+              onPress={() => router.push({ pathname: '/guardar/[id]', params: { id: patio.id } })}
+              activeOpacity={0.72}
+              style={s.organizeButton}>
+              <Ionicons name="folder-outline" size={15} color={theme.accent} />
+              <Text style={s.organizeButtonText}>Organizar guardado</Text>
+            </TouchableOpacity>
+          )}
 
           {/* Solo señales reales: calificación propia y horario configurado. */}
           <View style={s.metaRow}>
@@ -266,9 +280,6 @@ export default function PatioDetailScreen() {
             <View style={soldOut ? { opacity: 0.42 } : undefined}>
               <View style={s.menuHead}>
                 <Text style={s.menuEyebrow} allowFontScaling={true}>{soldOut ? 'Lo que había hoy' : 'Menú del día · Hoy'}</Text>
-                {!!priceLabel && (
-                  <Text style={[s.menuPrice, soldOut && s.menuPriceStruck]} allowFontScaling={true}>{priceLabel}</Text>
-                )}
               </View>
               {sections.map((section, si) => (
                 <View key={section.section} style={s.group}>
@@ -304,40 +315,6 @@ export default function PatioDetailScreen() {
             )}
           </View>
 
-          {!!userReview && (
-            <View style={s.reviewSection}>
-              <Text style={s.sectionTitle} allowFontScaling={true}>Tu reseña</Text>
-              <TouchableOpacity
-                style={s.reviewCard}
-                onPress={() => handleStarPress(userReview.stars)}
-                activeOpacity={0.82}>
-                <View style={s.reviewStars}>
-                  {Array.from({ length: 5 }, (_, index) => (
-                    <Ionicons
-                      key={index}
-                      name={index < userReview.stars ? 'star' : 'star-outline'}
-                      size={16}
-                      color={theme.accent}
-                    />
-                  ))}
-                </View>
-                {!!userReview.reasons?.length && (
-                  <View style={s.reviewReasons}>
-                    {userReview.reasons.map((reason) => (
-                      <View key={reason} style={s.reviewReason}>
-                        <Text style={s.reviewReasonText}>{reason}</Text>
-                      </View>
-                    ))}
-                  </View>
-                )}
-                {!!userReview.note && (
-                  <Text style={s.reviewNote} allowFontScaling={true}>{userReview.note}</Text>
-                )}
-                <Text style={s.reviewEdit}>Editar reseña</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-
           {soldOut && (
             <View style={s.mananaCard}>
               <View style={s.mananaHead}>
@@ -370,7 +347,13 @@ export default function PatioDetailScreen() {
                   zoomEnabled={false}>
                   <Marker coordinate={{ latitude: patio.latitude, longitude: patio.longitude }} tracksViewChanges={false}>
                     <View style={s.mapPin}>
-                      <Ionicons name="location" size={38} color={theme.accent} />
+                      <SymbolView
+                        name="mappin.circle.fill"
+                        size={34}
+                        weight="semibold"
+                        tintColor={theme.accent}
+                        fallback={<Ionicons name="location" size={34} color={theme.accent} />}
+                      />
                     </View>
                   </Marker>
                 </MapView>
@@ -378,7 +361,14 @@ export default function PatioDetailScreen() {
             )}
             <View style={s.panel}>
               <View style={s.row}>
-                <Ionicons name="location-outline" size={22} color={theme.text} style={s.rowIcon} />
+                <SymbolView
+                  name="mappin"
+                  size={19}
+                  weight="regular"
+                  tintColor={theme.text}
+                  style={s.rowIcon}
+                  fallback={<Ionicons name="location-outline" size={20} color={theme.text} />}
+                />
                 <Text style={s.rowText} allowFontScaling={true}>{patio.address}</Text>
               </View>
               <View style={s.divider} />
@@ -387,31 +377,56 @@ export default function PatioDetailScreen() {
                 <Text style={s.rowText} allowFontScaling={true}>{patio.payments.join(' · ')}</Text>
               </View>
             </View>
+            <TouchableOpacity accessibilityLabel={`Cómo llegar a ${patio.name}`} style={s.directionsButton} onPress={handleComoLlegar} activeOpacity={0.84}>
+              <Ionicons name="navigate-outline" size={17} color={theme.bg} />
+              <Text style={s.directionsText}>Cómo llegar</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={s.reviewSection}>
+            <View style={s.reviewsSummary}>
+              <Text style={s.reviewsTitle}>Reseñas</Text>
+              <Text style={s.reviewsCount}>{reviews.length} {reviews.length === 1 ? 'experiencia' : 'experiencias'}</Text>
+            </View>
+            {!userReview && (
+              <TouchableOpacity style={s.reviewPrompt} onPress={() => handleStarPress(0)} activeOpacity={0.8}>
+                <Ionicons name="star-outline" size={17} color={theme.accent} />
+                <Text style={s.reviewPromptText}>Escribir una reseña</Text>
+              </TouchableOpacity>
+            )}
+            {reviews.map((review, index) => (
+              <TouchableOpacity
+                key={`${review.userId}-${review.timestamp}`}
+                style={[s.reviewCard, (index > 0 || !userReview) && s.reviewCardGap]}
+                onPress={review.isMine ? () => handleStarPress(review.stars) : undefined}
+                activeOpacity={review.isMine ? 0.82 : 1}>
+                <Text style={s.reviewAuthor}>{review.isMine ? 'Tu reseña' : review.author}</Text>
+                <View style={s.reviewStars}>
+                  {Array.from({ length: 5 }, (_, star) => (
+                    <Ionicons key={star} name={star < review.stars ? 'star' : 'star-outline'} size={15} color={theme.accent} />
+                  ))}
+                </View>
+                {!!review.reasons?.length && (
+                  <View style={s.reviewReasons}>
+                    {review.reasons.map((reason) => <View key={reason} style={s.reviewReason}><Text style={s.reviewReasonText}>{reason}</Text></View>)}
+                  </View>
+                )}
+                {!!review.note && <Text style={s.reviewNote}>{review.note}</Text>}
+                {review.isMine && <Text style={s.reviewEdit}>Editar reseña</Text>}
+                {!!review.businessReply && (
+                  <View style={s.businessReply}>
+                    <Text style={s.businessReplyLabel}>Respuesta del Patio</Text>
+                    <Text style={s.businessReplyText}>{review.businessReply}</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            ))}
+            {!reviews.length && userReview && (
+              <Text style={s.reviewNote}>Tu reseña será la primera experiencia compartida sobre este Patio.</Text>
+            )}
           </View>
         </View>
       </ScrollView>
-
-      {/* CTA sticky */}
-      <View style={[s.ctaWrap, { paddingBottom: insets.bottom + 16 }]}>
-        <View style={{ backgroundColor: theme.bg }}>
-          {soldOut ? (
-            <View style={s.ctaRow}>
-              <TouchableOpacity style={[s.ctaBtn, s.ctaBtnFlex]} onPress={handleAvisarManana} activeOpacity={0.86}>
-                <Ionicons name={notifyOn ? 'notifications' : 'notifications-outline'} size={16} color={theme.bg} />
-                <Text style={s.ctaText}>{notifyOn ? 'Te avisamos mañana' : 'Avísame mañana'}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity accessibilityLabel={`Cómo llegar a ${patio.name}`} style={s.ctaSquare} onPress={handleComoLlegar} activeOpacity={0.86}>
-                <Ionicons name="location-outline" size={18} color={theme.text} />
-              </TouchableOpacity>
-            </View>
-          ) : (
-            <TouchableOpacity accessibilityLabel={`Cómo llegar a ${patio.name}`} style={s.ctaBtn} onPress={handleComoLlegar} activeOpacity={0.86}>
-              <Ionicons name="navigate" size={16} color={theme.bg} />
-              <Text style={s.ctaText}>{isClosed ? 'Ver cómo llegar' : 'Cómo llegar'}</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-      </View>
 
     </View>
   );

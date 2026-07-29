@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Stack } from 'expo-router';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -15,7 +15,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { emptyMenu, useFonderoMenuDraftController } from '@/lib/controllers/useFonderoMenuDraftController';
 import { fonderoPalette, type FonderoColors } from '@/lib/fondero-palette';
-import { markHintSeen, shouldShowHint } from '@/lib/hints';
 import type { MenuData, Platillo, Seccion } from '@/lib/menu-store';
 import { Fonts, useTheme } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
@@ -40,7 +39,6 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
     addSection,
     collapsed,
     data,
-    dayPrice,
     details,
     moveSection,
     patchDish,
@@ -54,26 +52,15 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
     savedFlash,
     sectionActions,
     sectionSuggestions,
-    setDayPrice,
     toggleCollapsed,
     toggleSectionActions,
   } = useFonderoMenuDraftController(initialData, source);
 
-  // La explicación del modelo de precio se muestra UNA vez (onboarding suave);
-  // después el campo habla solo.
-  const [showPriceHint, setShowPriceHint] = useState(false);
   // Revelación progresiva: las sugerencias de sección son secundarias una vez
   // que ya hay secciones armadas — no compiten por espacio con el contenido
   // (Apple HIG: "essential info gets sufficient space, don't crowd it").
   const [showSectionSuggestions, setShowSectionSuggestions] = useState(false);
-  useEffect(() => {
-    shouldShowHint('fondero_precio').then((show) => {
-      if (show) {
-        setShowPriceHint(true);
-        markHintSeen('fondero_precio').catch(() => {});
-      }
-    });
-  }, []);
+  const [priceEditing, setPriceEditing] = useState<Record<string, boolean>>({});
 
   // Cadena de foco: "siguiente" recorre platillo → descripción → siguiente
   // platillo. El precio se toca aparte (cambia de vez en cuando, no es parte
@@ -96,7 +83,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
   const submitDishName = (dish: Platillo) => {
     // Siempre pasa a la descripción del mismo platillo; si aún no existe el
     // campo, se revela y el foco cae ahí al montarse.
-    const showDetails = details[dish.id] || !!dish.descripcion || !!dish.precio;
+    const showDetails = details[dish.id] || !!dish.descripcion;
     if (showDetails) {
       focusKey(`d-${dish.id}`);
     } else {
@@ -135,26 +122,6 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
               ? 'Corrige solo lo necesario. Lo demás ya está listo.'
               : 'Escribe lo que vendes hoy. Los precios son opcionales.')}
           </Text>
-
-          {/* Precio del día — compacto, sin gritar. La explicación del modelo
-              (día + a la carta) solo aparece la primera vez. */}
-          <View style={s.dayPrice}>
-            <Text style={s.dayPriceLabel}>Precio del día</Text>
-            <Text style={s.dayPriceCurrency}>$</Text>
-            <TextInput
-              style={s.dayPriceInput}
-              value={dayPrice}
-              onChangeText={setDayPrice}
-              placeholder="—"
-              placeholderTextColor={c.textMute}
-              keyboardType="decimal-pad"
-              maxLength={6}
-              accessibilityLabel="Precio del menú del día"
-            />
-          </View>
-          {showPriceHint && (
-            <Text style={s.dayPriceHint}>{noWidow('Un precio para el menú de hoy. Platillos con precio propio van a la carta.')}</Text>
-          )}
 
           {data.secciones.map((section, sectionIndex) => {
             const isCollapsed = !!collapsed[section.id];
@@ -204,7 +171,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                 {!isCollapsed && (
                   <>
                     {section.platillos.map((dish, dishIndex) => {
-                      const showDetails = details[dish.id] || !!dish.descripcion || !!dish.precio;
+                      const showDetails = details[dish.id] || !!dish.descripcion;
                       return (
                         <View key={dish.id} style={[s.dish, dishIndex > 0 && s.dishDivider]}>
                           {!!dish.revision && (
@@ -225,6 +192,37 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                               blurOnSubmit={false}
                               onSubmitEditing={() => submitDishName(dish)}
                             />
+                            {dish.precio || priceEditing[dish.id] ? (
+                              <View style={s.inlinePrice}>
+                                <Text style={s.currency}>$</Text>
+                                <TextInput
+                                  ref={registerInput(`p-${dish.id}`)}
+                                  style={s.dishPrice}
+                                  value={dish.precio}
+                                  onChangeText={precio => patchDish(section.id, dish.id, { precio: precio.replace(/[^0-9.]/g, '') })}
+                                  placeholder="0"
+                                  placeholderTextColor={c.textMute}
+                                  keyboardType="decimal-pad"
+                                  selectTextOnFocus
+                                  onBlur={() => {
+                                    if (!dish.precio) setPriceEditing((current) => ({ ...current, [dish.id]: false }));
+                                  }}
+                                  accessibilityLabel={`Precio de ${dish.nombre || 'platillo'}`}
+                                />
+                              </View>
+                            ) : (
+                              <TouchableOpacity
+                                style={s.addPrice}
+                                onPress={() => {
+                                  pendingFocus.current = `p-${dish.id}`;
+                                  setPriceEditing((current) => ({ ...current, [dish.id]: true }));
+                                }}
+                                activeOpacity={0.7}
+                                accessibilityLabel={`Agregar precio a ${dish.nombre || 'platillo'}`}>
+                                <Text style={s.addPriceText}>Precio</Text>
+                                <Ionicons name="add" size={13} color={c.textSecondary} />
+                              </TouchableOpacity>
+                            )}
                             <TouchableOpacity
                               style={s.removeDish}
                               onPress={() => removeDish(section.id, dish.id)}
@@ -239,20 +237,11 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                                 style={s.description}
                                 value={dish.descripcion}
                                 onChangeText={descripcion => patchDish(section.id, dish.id, { descripcion })}
-                                placeholder="Detalle opcional"
+                                placeholder="Descripción opcional"
                                 placeholderTextColor={c.textMute}
                                 returnKeyType="next"
                                 blurOnSubmit={false}
                                 onSubmitEditing={() => submitDishDetail(section, dishIndex)}
-                              />
-                              <Text style={s.currency}>$</Text>
-                              <TextInput
-                                style={s.dishPrice}
-                                value={dish.precio}
-                                onChangeText={precio => patchDish(section.id, dish.id, { precio: precio.replace(/[^0-9.]/g, '') })}
-                                placeholder="Precio"
-                                placeholderTextColor={c.textMute}
-                                keyboardType="decimal-pad"
                               />
                             </View>
                           ) : (
@@ -262,7 +251,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                                 pendingFocus.current = `d-${dish.id}`;
                               }}
                               activeOpacity={0.7}>
-                              <Text style={s.addDetail}>+ detalle o precio</Text>
+                              <Text style={s.addDetail}>+ descripción</Text>
                             </TouchableOpacity>
                           )}
                         </View>
@@ -363,18 +352,24 @@ function makeStyles(c: FonderoColors) {
     navTitle: { fontSize: 14, fontWeight: '600', color: c.textSecondary },
     eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.5, color: c.accent, marginBottom: 8 },
     title: { fontSize: 36, lineHeight: 38, fontWeight: '900', letterSpacing: -1.2, color: c.text, fontFamily: Fonts.brand },
-    subtitle: { marginTop: 6, marginBottom: 16, maxWidth: 330, fontSize: 14, lineHeight: 19, fontWeight: '300', color: c.textSecondary },
+    subtitle: { marginTop: 6, marginBottom: 16, maxWidth: 330, fontSize: 14, lineHeight: 19, fontWeight: '400', color: c.textSecondary },
 
-    dayPrice: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 14, minHeight: 48, marginBottom: 12, borderRadius: 14, backgroundColor: c.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: c.border },
-    dayPriceLabel: { flex: 1, fontSize: 14, fontWeight: '600', color: c.text },
-    dayPriceHint: { marginTop: -6, marginBottom: 12, paddingHorizontal: 2, fontSize: 11.5, lineHeight: 15, fontWeight: '300', color: c.textSecondary },
+    menuDetailsGroup: { marginTop: 28 },
+    menuDetailsLabel: { marginBottom: 8, paddingLeft: 2, fontSize: 10.5, lineHeight: 14, fontWeight: '800', letterSpacing: 1.2, color: c.textMute },
+    dayPrice: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 14, minHeight: 58, marginBottom: 12, borderRadius: 14, backgroundColor: c.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: c.border },
+    dayPriceLabel: { fontSize: 14, fontWeight: '600', color: c.text },
+    dayPriceMeta: { marginTop: 2, fontSize: 11, lineHeight: 15, fontWeight: '400', color: c.textMute },
+    dayPriceHint: { marginTop: -6, marginBottom: 12, paddingHorizontal: 2, fontSize: 11.5, lineHeight: 15, fontWeight: '400', color: c.textSecondary },
+    dayPriceField: { minWidth: 78, height: 40, paddingHorizontal: 10, borderRadius: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', backgroundColor: c.iconBg },
     dayPriceCurrency: { fontSize: 15, fontWeight: '700', color: c.textSecondary },
     dayPriceInput: { minWidth: 56, height: 44, paddingVertical: 0, paddingLeft: 2, textAlign: 'right', fontSize: 17, fontWeight: '700', color: c.text },
+    dayPriceAdd: { minHeight: 38, paddingHorizontal: 13, borderRadius: 19, alignItems: 'center', justifyContent: 'center', backgroundColor: c.iconBg },
+    dayPriceAddText: { fontSize: 13, fontWeight: '600', color: c.text },
 
-    section: { borderTopWidth: StyleSheet.hairlineWidth, borderColor: c.border, paddingVertical: 8 },
-    sectionHeader: { minHeight: 38, flexDirection: 'row', alignItems: 'center' },
+    section: { borderTopWidth: StyleSheet.hairlineWidth, borderColor: c.border, paddingVertical: 14 },
+    sectionHeader: { minHeight: 44, flexDirection: 'row', alignItems: 'center' },
     collapseButton: { width: 30, height: 36, alignItems: 'flex-start', justifyContent: 'center' },
-    sectionName: { flex: 1, paddingVertical: 6, fontSize: 13, fontWeight: '800', letterSpacing: 0.8, color: c.text },
+    sectionName: { flex: 1, paddingVertical: 6, fontSize: 18, lineHeight: 22, fontWeight: '800', letterSpacing: 0.5, color: c.text },
     moreButton: { width: 38, height: 38, alignItems: 'flex-end', justifyContent: 'center' },
     sectionActions: { alignSelf: 'flex-end', flexDirection: 'row', gap: 4, padding: 5, borderRadius: 12, backgroundColor: c.iconBg, marginBottom: 8 },
     action: { minHeight: 34, paddingHorizontal: 10, flexDirection: 'row', alignItems: 'center', gap: 5 },
@@ -385,12 +380,15 @@ function makeStyles(c: FonderoColors) {
     reviewNote: { marginBottom: 3, flexDirection: 'row', alignItems: 'center', gap: 5 },
     reviewNoteText: { flex: 1, fontSize: 11, lineHeight: 15, fontWeight: '500', color: c.accent },
     dishMainRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-    dishName: { flex: 1, paddingVertical: 3, fontSize: 17, lineHeight: 22, fontWeight: '600', color: c.text },
+    dishName: { flex: 1, paddingVertical: 3, fontSize: 16, lineHeight: 21, fontWeight: '600', color: c.text },
     removeDish: { width: 30, height: 30, alignItems: 'flex-end', justifyContent: 'center' },
-    addDetail: { paddingTop: 3, fontSize: 12, color: c.textSecondary },
-    detailRow: { marginTop: 2, flexDirection: 'row', alignItems: 'center', gap: 5 },
+    addDetail: { paddingTop: 3, fontSize: 12, fontWeight: '400', color: c.textSecondary },
+    detailRow: { marginTop: 2, flexDirection: 'row', alignItems: 'center' },
     description: { flex: 1, paddingVertical: 3, fontSize: 13, color: c.textSecondary },
-    dishPrice: { width: 58, paddingVertical: 3, textAlign: 'right', fontSize: 13, color: c.text },
+    inlinePrice: { minWidth: 68, height: 36, paddingHorizontal: 8, borderRadius: 11, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', backgroundColor: c.iconBg },
+    dishPrice: { width: 44, paddingVertical: 3, textAlign: 'right', fontSize: 15, fontWeight: '600', color: c.text },
+    addPrice: { minHeight: 34, paddingHorizontal: 8, flexDirection: 'row', alignItems: 'center', gap: 2 },
+    addPriceText: { fontSize: 12, fontWeight: '500', color: c.textSecondary },
     addDish: { minHeight: 40, marginLeft: 30, flexDirection: 'row', alignItems: 'center', gap: 7 },
     addDishText: { fontSize: 13, fontWeight: '600', color: c.accent },
 

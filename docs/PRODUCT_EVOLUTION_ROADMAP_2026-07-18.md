@@ -7,6 +7,86 @@
 > notificaciones y suscripción vive en
 > `docs/NETWORK_COLD_START_AND_MONETIZATION.md` y prevalece en esos temas.
 
+## Búsqueda conversacional situada
+
+Necesidad recurrente:
+
+> “Quiero algo estilo focaccia o club sándwich, rico, no tan caro y cerca del
+> Metro Xola.”
+
+La persona no debe traducir ese deseo a una colección de filtros. Patio incorpora
+un agente de decisión controlado:
+
+```txt
+antojo en lenguaje natural
+→ intención estructurada
+→ ubicación o punto de referencia
+→ recuperación sobre menús reales
+→ filtros determinísticos
+→ ranking explicable
+→ 3–5 recomendaciones sobre el mapa
+```
+
+La intención separa platillos buscados, similares aceptables, cualidades,
+presupuesto, referencia geográfica, radio, horario y restricciones. El modelo
+interpreta lenguaje; Patio calcula ubicación, distancia, horario, precio y
+disponibilidad con datos y código.
+
+La respuesta siempre muestra evidencia:
+
+- platillo que coincidió;
+- precio real o “sin precio publicado”;
+- distancia/tiempo aproximado;
+- abierto/cerrado y vigencia;
+- razón breve de la recomendación;
+- pin en el mapa y acceso al perfil.
+
+Si no hay evidencia suficiente, Patio lo dice y ofrece ampliar el radio o relajar
+una condición. Nunca inventa negocios, platillos, precios ni horarios.
+
+### Conversación controlada
+
+El agente pregunta únicamente cuando cambia el resultado: presupuesto, distancia,
+medio de traslado o “abierto ahora”. Permite refinamientos breves como “más
+barato”, “sin mayonesa” o “que cierre después de las nueve”. Cada turno actualiza
+un estado de intención visible y reversible; no depende de memoria opaca.
+
+La recuperación combina:
+
+1. texto exacto en nombres, descripciones y secciones;
+2. expansión culinaria/sinónimos controlados;
+3. embeddings para similitud;
+4. filtros duros de horario, radio, precio y disponibilidad;
+5. ranking por match, distancia, vigencia, confianza y calidad real.
+
+Los vectores recuperan candidatos; no sustituyen la fuente estructurada.
+
+### Acceso y monetización
+
+La primera consulta natural y sus refinamientos breves permanecen gratis porque
+generan descubrimiento para los Patios.
+
+Patio Pro puede incluir:
+
+- voz;
+- conversación más larga;
+- contexto entre sesiones;
+- preferencias persistentes;
+- restricciones complejas y comparación;
+- alertas “avísame cuando aparezca algo así cerca”;
+- mayor frecuencia de consultas avanzadas.
+
+La voz es otra entrada al mismo contrato: transcribe, muestra lo entendido y
+permite corregir antes de buscar.
+
+Métricas: consulta→perfil, consulta→Cómo llegar, búsquedas sin evidencia,
+refinamientos antes de actuar, tiempo hasta elegir y conversión a Pro atribuible a
+voz/contexto, no a bloquear la primera respuesta útil.
+
+Privacidad: ubicación aproximada por defecto, precisión solo cuando haga falta,
+preferencias editables/eliminables y conversaciones no persistentes sin
+consentimiento.
+
 ## Objetivo
 
 Evolucionar Patio desde el MVP “qué hay hoy” hacia una red local inteligente que

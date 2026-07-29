@@ -4,6 +4,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { Alert } from 'react-native';
 
 import { saveMenuHoy } from '@/lib/db';
+import { announceMenuPublication } from '@/lib/community-notifications';
 import { saveDevPublishedMenu } from '@/lib/demo';
 import { saveLocalMenu } from '@/lib/menu-history';
 import { recordMenuCorrection } from '@/lib/menu-learning';
@@ -212,7 +213,14 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
       await saveLocalMenu(clean);
       if (__DEV__) await saveDevPublishedMenu(clean);
       const fonditaId = getFonditaId();
-      if (fonditaId) await saveMenuHoy(fonditaId, clean);
+      if (fonditaId) {
+        await saveMenuHoy(fonditaId, clean);
+        // Publishing succeeds independently of push delivery. The server
+        // deduplicates corrections to today's menu and records every attempt.
+        announceMenuPublication(fonditaId).catch((error) => {
+          if (__DEV__) console.warn('[push] no se pudo anunciar la publicación', error);
+        });
+      }
       if (source === 'foto') {
         const snapshot = getMenuExtractionSnapshot();
         if (snapshot) {

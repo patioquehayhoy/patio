@@ -32,18 +32,22 @@ export default function BootScreen() {
   useEffect(() => {
     (async () => {
       try {
-        if (__DEV__) {
-          goVia({ pathname: '/entrada' });
-          return;
-        }
         const [{ data }, savedRole, onboardingDone] = await Promise.all([
           supabase.auth.getSession(),
           getUserRole(),
           hasCompletedOnboarding(),
         ]);
         const setup = data.session ? await initializeSignedInUser(data.session) : null;
-        if (savedRole === 'fondero' && data.session) {
+        // Una sesión autenticada de negocio manda sobre el modo de desarrollo y
+        // sobre un rol local viejo. Esto también recupera un magic link que
+        // Supabase alcanzó a verificar aunque iOS reabra la app sin conservar
+        // todos los parámetros del deep link.
+        if (data.session && savedRole !== 'foodie') {
           goVia({ pathname: setup?.needsSetup ? '/patio-smart' : '/menu' });
+          return;
+        }
+        if (__DEV__) {
+          goVia({ pathname: '/entrada' });
           return;
         }
         if (savedRole === 'foodie') {

@@ -1,13 +1,71 @@
 # TASKS — Cola de trabajo para agentes
 
-> Última actualización: 2026-07-25.
+> Última actualización: 2026-07-28.
 > Estado: `[ ]` pendiente | `[x]` hecho | `[~]` en progreso.
 
 > Las entradas Patio Smart v1–v6 registran iteraciones históricas y no son una
 > especificación vigente. El flujo canónico es v7 y vive en
 > `docs/PATIO_SYSTEM_MAP.md`.
 
+## CICLO 2026-07-28 — composición, red y reducción de pasos
+
+- [x] Unificar Guardados y Colecciones en una sola arquitectura.
+- [x] Abrir todos los guardados o una colección directamente sobre el mapa.
+- [x] Mantener filtros rápidos y revelar categorías/listas mediante `Filtrar`.
+- [x] Retirar controles técnicos de visibilidad de la superficie principal.
+- [x] Retirar `Precio único` del editor, perfil público y póster.
+- [x] Reagrupar ubicación, pagos, mapa y Cómo llegar en el perfil público.
+- [x] Mover reputación/reseñas al final del perfil.
+- [x] Reemplazar estadísticas sintéticas por acontecimientos reales.
+- [x] Definir una respuesta oficial por reseña, sin hilos.
+- [x] Simplificar Avisos, Plan y Privacidad.
+- [x] Corregir modo oscuro forzado en Editar mi negocio.
+- [x] TypeScript, ESLint y diff check verdes.
+- [ ] QA humano iPhone del corte completo.
+- [x] Aplicar migración `20260803_create_business_review_replies.sql`.
+
 ## CICLO 2026-07-25 — reestructura panorámica por transcript
+
+### Corte de QA humano y correcciones
+
+- [x] Magic link blindado: si iOS/Expo consume la URL antes del callback, Patio
+  recupera la sesión válida en vez de regresar al inicio. El boot DEV también
+  respeta una sesión Fondero vigente.
+- [x] Localización iOS declarada en español (`es`, `es_MX`). Requiere recompilar
+  el dev client; Metro no puede cambiar strings del controlador nativo de cámara.
+- [x] Lectura de menú desplegada con nombres canónicos, separación
+  nombre/descripción, tiempos de fondita y revisión de precios improbables.
+- [x] Precio general movido después del contenido y reducido visualmente en el
+  póster.
+- [x] Publicación recuperable: “Corregir lo publicado” reemplaza el menú vigente
+  del día.
+- [x] Icono de ubicación migrado a SF Symbol nativo en iOS.
+- [x] Lugares ya no presenta un botón negro redundante para volver al mapa.
+- [x] Soporte guiado implementado con taxonomía y descripción máxima de 300
+  caracteres.
+- [x] Aviso Foodie renombrado como recordatorio local; ya no promete push por
+  Patios seguidos.
+- [x] Sistema completo de templates de autenticación agregado con la P oficial.
+  Pendiente humano: pegarlos en Supabase Dashboard.
+- [x] Arquitecturas documentadas: avisos, confianza/reseñas, finanzas y glosario.
+- [ ] QA iPhone tras recarga: magic link y corrección/publicación del mismo menú.
+- [ ] Nuevo dev build para validar localización española de la cámara nativa.
+- [x] Perfil de lectura corregido de punta a punta: el alta pregunta categoría,
+  persiste `tipo_negocio`, la hidratación lo recupera y visión recibe el valor.
+- [x] Perfiles de lectura separados para fondita, tacos, antojitos, elotes,
+  postres, mariscos, bebidas, restaurante y otro.
+- [x] Ontología general de producto: identidad, variante, proteína, preparación,
+  presentación, ingredientes, acompañamientos, disponibilidad y precio.
+- [x] Cámara Patio propia: visor, guía vertical, flash, Fotos, captura y cierre;
+  sin filtros cosméticos ni recorte cuadrado.
+- [x] Giro visible simplificado a “Fondita”.
+- [x] Secciones reafirmadas en mayúsculas y escala tipográfica revisada.
+- [x] Precio por platillo visible junto al platillo; precio global renombrado
+  “Precio único” y agrupado después del contenido.
+- [x] Asociación espacial de precios y protección contra concatenar variantes.
+- [x] Panel del mapa: gesto interactivo, spring de retorno y slide completo antes
+  de ocultarse.
+- [ ] QA iPhone: confirmar precios por platillo y panel con gesto/botón Ocultar.
 
 - [x] Foodie reorganizado en Buscar/Lugares/Perfil.
 - [x] Fondero reorganizado en Menús/Actividad/Perfil; publicar pasó a ser una
@@ -581,6 +639,14 @@ Implementar mockups pantalla por pantalla. Orden recomendado:
 7. [ ] `app/cuenta.tsx` / `app/perfil.tsx` — settings con personalidad y baja fricción.
 
 ## FEATURES FUTURAS
+
+- [ ] **Búsqueda conversacional situada:** escribir un antojo completo con
+  cercanía, precio, horario y referencias como Metro Xola; devolver lugares y
+  platillos reales sobre el mapa.
+- [ ] **Agente controlado:** intención estructurada + búsqueda híbrida
+  texto/vectores + filtros determinísticos + ranking explicable.
+- [ ] **Patio Pro:** voz, contexto persistente, preferencias, alertas semánticas
+  y consultas avanzadas. Mantener gratuita la primera respuesta útil.
 
 - [ ] Reseñas del propio Patio para el Fondero — hoy solo Foodie puede reseñar
   (`app/resena/[id].tsx`); no existe lectura de esas reseñas del lado Fondero.

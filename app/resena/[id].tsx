@@ -11,18 +11,19 @@ import { publicPrice } from '@/lib/prices';
 import { getPatioRating, savePatioRating } from '@/lib/ratings';
 import { REVIEW_TAGS as TAGS } from '@/lib/review-tags';
 import { Fonts, Radius, useTheme, type Theme } from '@/lib/theme';
+import { supabase } from '@/lib/supabase';
 
 function makeStyles(t: Theme) {
   return StyleSheet.create({
     root: { flex: 1, backgroundColor: t.bg },
     nav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingRight: 20, height: 44 },
     navBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: t.isDark ? 'rgba(255,255,255,0.08)' : 'rgba(17,18,20,0.05)', alignItems: 'center', justifyContent: 'center' },
-    navHint: { fontSize: 14, fontWeight: '300', color: t.textSecondary },
+    navHint: { fontSize: 14, fontWeight: '400', color: t.textSecondary },
 
     content: { paddingHorizontal: 22, paddingTop: 8, paddingBottom: 140 },
     eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', color: t.accent, marginBottom: 6 },
     title: { fontSize: 30, fontWeight: '900', letterSpacing: -1, lineHeight: 32, color: t.text, marginBottom: 4, fontFamily: Fonts.brand },
-    subtitle: { fontSize: 13, fontWeight: '300', color: t.textSecondary, marginBottom: 22 },
+    subtitle: { fontSize: 13, fontWeight: '400', color: t.textSecondary, marginBottom: 22 },
 
     starsRow: { flexDirection: 'row', gap: 8, marginBottom: 24 },
     star: { width: 48, height: 48, borderRadius: 14, alignItems: 'center', justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth },
@@ -118,6 +119,11 @@ export default function ResenaScreen() {
 
   const submit = async () => {
     if (!cleanId || stars === 0 || saving) return;
+    const { data } = await supabase.auth.getSession();
+    if (!data.session?.user.user_metadata?.profile_complete) {
+      router.push({ pathname: '/comunidad-acceso', params: { returnTo: `/resena/${cleanId}` } });
+      return;
+    }
     setSaving(true);
     await savePatioRating(cleanId, { stars, reasons: selected, note, photoUri });
     setSaving(false);

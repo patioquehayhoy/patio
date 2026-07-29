@@ -438,3 +438,14 @@ producen una relación o una decisión útil.
 - [Google Business Profile](https://business.google.com/es/business-profile/).
 - [GloriaFood — precios](https://www.gloriafood.com/pricing).
 - [Stripe México — tarifas](https://stripe.com/mx/pricing).
+# Motor de distribución
+
+La frase operativa de Patio es: **Ven por la herramienta, quédate por la red.**
+
+La herramienta resuelve algo aun sin comunidad: mapa, búsqueda, guardados y
+colecciones compartibles. La red aparece cuando una colección pública trae a una
+audiencia existente. El creador obtiene una forma más útil de publicar su
+criterio; el seguidor obtiene un mapa accionable; el negocio recibe descubrimiento.
+
+Este patrón se tratará como adquisición por distribución del artefacto, no como
+una campaña separada ni como una segunda red atómica.

@@ -40,6 +40,10 @@ const SECCION_DEFAULTS: Record<string, string[]> = {
   taqueria:   ['TACOS', 'COMPLEMENTOS', 'BEBIDAS'],
   reposteria: ['PASTELES', 'PIEZAS', 'BEBIDAS'],
   mariscos:   ['ENTRADAS', 'CALDOS', 'PLATOS FUERTES', 'BEBIDAS'],
+  antojitos:  ['ANTOJITOS', 'EXTRAS', 'BEBIDAS'],
+  elotes:     ['ELOTES Y ESQUITES', 'BOTANAS', 'EXTRAS', 'BEBIDAS'],
+  bebidas:    ['BEBIDAS', 'TAMAÑOS', 'EXTRAS'],
+  restaurante:['ENTRADAS', 'PLATOS FUERTES', 'POSTRES', 'BEBIDAS'],
   otro:       ['SECCIÓN 1'],
 };
 

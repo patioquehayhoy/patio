@@ -39,15 +39,15 @@ function makeStyles(t: Theme) {
     backButton: { width: 40, height: 40, borderRadius: 20, marginLeft: -8, marginBottom: 8, alignItems: 'center', justifyContent: 'center' },
     eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', color: t.accent, marginBottom: 6 },
     title: { fontSize: 36, fontWeight: '900', letterSpacing: -1.2, lineHeight: 36, color: t.text, marginBottom: 4, fontFamily: Fonts.brand },
-    subtitle: { fontSize: 13, fontWeight: '300', color: t.textSecondary },
+    subtitle: { fontSize: 13, fontWeight: '400', color: t.textSecondary },
 
     // Filtros
     filters: { paddingHorizontal: 18, paddingBottom: 14, gap: 8, flexDirection: 'row' },
     filterChip: { paddingHorizontal: 14, minHeight: 34, borderRadius: 100, alignItems: 'center', justifyContent: 'center', backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
-    filterChipActive: { backgroundColor: t.text, borderColor: t.text },
-    filterChipText: { fontSize: 13, fontWeight: '300', color: t.text },
+    filterChipActive: { backgroundColor: t.accent, borderColor: t.accent },
+    filterChipText: { fontSize: 13, fontWeight: '400', color: t.text },
     filterChipTextActive: { color: t.surface, fontWeight: '700' },
-    filterEmpty: { paddingHorizontal: 10, paddingVertical: 24, fontSize: 14, lineHeight: 20, fontWeight: '300', color: t.textSecondary, textAlign: 'center' },
+    filterEmpty: { paddingHorizontal: 10, paddingVertical: 24, fontSize: 14, lineHeight: 20, fontWeight: '400', color: t.textSecondary, textAlign: 'center' },
 
     // Lista
     list: { paddingHorizontal: 18, gap: 10 },
@@ -59,17 +59,17 @@ function makeStyles(t: Theme) {
     dot: { width: 6, height: 6, borderRadius: 3 },
     statusText: { fontSize: 10.5, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase' },
     name: { fontSize: 18, fontWeight: '900', letterSpacing: -0.3, color: t.text, lineHeight: 21, marginBottom: 4 },
-    today: { fontSize: 13, fontWeight: '300', color: t.text, marginBottom: 6 },
+    today: { fontSize: 13, fontWeight: '400', color: t.text, marginBottom: 6 },
     metaRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
     metaArea: { flexDirection: 'row', alignItems: 'center', gap: 5, flex: 1, minWidth: 0 },
-    metaAreaText: { fontSize: 12, fontWeight: '300', color: t.textSecondary, flexShrink: 1 },
+    metaAreaText: { fontSize: 12, fontWeight: '400', color: t.textSecondary, flexShrink: 1 },
     price: { fontSize: 16, fontWeight: '900', letterSpacing: -0.3, color: t.accent },
 
     // Empty
     empty: { minHeight: 520, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 28 },
     emptyIcon: { width: 68, height: 68, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, backgroundColor: t.surface, alignItems: 'center', justifyContent: 'center', marginBottom: 18 },
     emptyTitle: { fontSize: 22, fontWeight: '900', letterSpacing: -0.5, color: t.text, textAlign: 'center', fontFamily: Fonts.brand },
-    emptyText: { marginTop: 10, fontSize: 15, lineHeight: 21, fontWeight: '300', color: t.textSecondary, textAlign: 'center' },
+    emptyText: { marginTop: 10, fontSize: 15, lineHeight: 21, fontWeight: '400', color: t.textSecondary, textAlign: 'center' },
     cta: { marginTop: 26, height: 54, paddingHorizontal: 24, borderRadius: Radius.card, backgroundColor: t.text, alignItems: 'center', justifyContent: 'center' },
     ctaText: { fontSize: 16, fontWeight: '700', color: t.surface },
   });
@@ -141,10 +141,10 @@ export default function FavoritosScreen() {
         {patios.length === 0 ? (
           <View style={s.empty}>
             <View style={s.emptyIcon}>
-              <Ionicons name="heart-outline" size={32} color={theme.textSecondary} />
+              <Ionicons name="bookmark-outline" size={32} color={theme.textSecondary} />
             </View>
             <Text style={s.emptyTitle} allowFontScaling={true}>Guarda tus lugares de confianza</Text>
-            <Text style={s.emptyText} allowFontScaling={true}>Cuando encuentres una cocina que te late, guárdala con ♥ para volver rápido.</Text>
+            <Text style={s.emptyText} allowFontScaling={true}>Cuando encuentres un lugar que te late, usa el marcador para volver rápido.</Text>
             <TouchableOpacity style={s.cta} onPress={() => router.replace('/explorar')} activeOpacity={0.82}>
               <Text style={s.ctaText} allowFontScaling={true}>Buscar algo rico</Text>
             </TouchableOpacity>

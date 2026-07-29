@@ -16,12 +16,23 @@ export type SmartSetupResult = {
   direccion: string;
   latitude?: number | null;
   longitude?: number | null;
-  tipo: 'fondita' | 'taqueria' | 'reposteria' | 'mariscos' | 'otro';
+  tipo: BusinessType;
   especialidades: string[];
   pagos: { efectivo: boolean; transferencia: boolean; tarjeta: boolean };
   horario: (HorarioSemanal[number] & { confirmado: boolean })[];
   faltantes: string[];
 };
+
+export type BusinessType =
+  | 'fondita'
+  | 'taqueria'
+  | 'reposteria'
+  | 'mariscos'
+  | 'antojitos'
+  | 'elotes'
+  | 'bebidas'
+  | 'restaurante'
+  | 'otro';
 
 export async function prepareSmartSetup(relato: string): Promise<SmartSetupResult> {
   const { data, error } = await supabase.functions.invoke('smart-setup', {
@@ -48,6 +59,7 @@ export async function saveSmartSetup(result: SmartSetupResult): Promise<void> {
   const schedule = confirmedSchedule(result);
   const payload: Record<string, unknown> = {
     nombre: result.nombre.trim(),
+    tipo_negocio: result.tipo,
   };
   if (result.direccion.trim()) payload.direccion = result.direccion.trim();
   if (Number.isFinite(result.latitude) && Number.isFinite(result.longitude)) {

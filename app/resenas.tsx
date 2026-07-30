@@ -8,6 +8,7 @@ import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { fonderoPalette } from '@/lib/fondero-palette';
 import { getFonditaId } from '@/lib/menu-store';
 import { getPublicPatioReviews, replyToReview, type PublicPatioReview } from '@/lib/ratings';
+import { getDemoPatioStats, type PatioStatsSnapshot } from '@/lib/patio-stats';
 import { useTabBarScroll } from '@/lib/tab-bar-visibility';
 import { Fonts, useTheme } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
@@ -20,9 +21,11 @@ export default function ResenasScreen() {
   const [reviews, setReviews] = useState<PublicPatioReview[]>([]);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [reply, setReply] = useState('');
+  const [demo, setDemo] = useState<PatioStatsSnapshot | null>(null);
   const load = useCallback(() => {
     const fonditaId = getFonditaId();
     if (!fonditaId) return;
+    setDemo(getDemoPatioStats(fonditaId));
     getPublicPatioReviews(fonditaId).then(setReviews).catch(() => setReviews([]));
   }, []);
   useFocusEffect(load);
@@ -46,6 +49,26 @@ export default function ResenasScreen() {
         <Text style={[s.eyebrow, { color: c.accent }]}>MI PATIO</Text>
         <Text style={[s.title, { color: c.text }]}>Actividad</Text>
         <Text style={[s.subtitle, { color: c.textSecondary }]}>{noWidow('Cómo responde la gente a lo que publicas.')}</Text>
+
+        {demo && (
+          <>
+            <View style={s.metrics}>
+              <View style={[s.metric, { backgroundColor: c.surface, borderColor: c.border }]}>
+                <Text style={[s.metricValue, { color: c.text }]}>{demo.views}</Text>
+                <Text style={[s.metricLabel, { color: c.textMute }]}>VISTAS</Text>
+              </View>
+              <View style={[s.metric, { backgroundColor: c.surface, borderColor: c.border }]}>
+                <Text style={[s.metricValue, { color: c.text }]}>{demo.ratingAvg}</Text>
+                <Text style={[s.metricLabel, { color: c.textMute }]}>PROMEDIO</Text>
+              </View>
+              <View style={[s.metric, { backgroundColor: c.surface, borderColor: c.border }]}>
+                <Text style={[s.metricValue, { color: c.text }]}>{demo.ratingCount}</Text>
+                <Text style={[s.metricLabel, { color: c.textMute }]}>RESEÑAS</Text>
+              </View>
+            </View>
+            <Text style={[s.demoCaption, { color: c.textMute }]}>DATOS DE DEMOSTRACIÓN · SOLO DEV</Text>
+          </>
+        )}
 
         {reviews.length ? (
           <>
@@ -102,6 +125,26 @@ export default function ResenasScreen() {
               ))}
             </View>
           </>
+        ) : demo ? (
+          <>
+            <Text style={[s.sectionLabel, { color: c.textMute }]}>ACTIVIDAD RECIENTE</Text>
+            <View style={[s.list, { borderColor: c.border }]}>
+              {demo.reviews.map((review, index) => (
+                <View key={`${review.author}-${index}`} style={[s.reviewCard, index > 0 && { borderTopColor: c.border, borderTopWidth: StyleSheet.hairlineWidth }]}>
+                  <View style={s.eventHead}>
+                    <View style={[s.eventIcon, { backgroundColor: c.iconBg }]}><Ionicons name="person-outline" size={15} color={c.accent} /></View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={[s.eventTitle, { color: c.text }]}>{review.author} dejó una reseña</Text>
+                      <Text style={[s.reviewMeta, { color: c.textMute }]}>Hace {review.daysAgo} {review.daysAgo === 1 ? 'día' : 'días'}</Text>
+                    </View>
+                    <Text style={[s.demoStars, { color: c.accent }]}>★ {review.stars}</Text>
+                  </View>
+                  <Text style={[s.reviewNote, { color: c.text }]}>{review.note}</Text>
+                  <View style={s.tagsRow}>{review.tags.map((tag) => <View key={tag} style={[s.tag, { backgroundColor: c.iconBg }]}><Text style={[s.tagText, { color: c.textSecondary }]}>{tag}</Text></View>)}</View>
+                </View>
+              ))}
+            </View>
+          </>
         ) : (
           <View style={[s.empty, { borderColor: c.border }]}>
             <Ionicons name="chatbubble-ellipses-outline" size={28} color={c.textMute} />
@@ -122,6 +165,12 @@ const s = StyleSheet.create({
   eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.5, marginBottom: 8 },
   title: { fontSize: 34, lineHeight: 37, fontWeight: '900', letterSpacing: -1.2, fontFamily: Fonts.brand },
   subtitle: { marginTop: 8, fontSize: 14, lineHeight: 20 },
+  metrics: { marginTop: 24, flexDirection: 'row', gap: 8 },
+  metric: { flex: 1, minHeight: 86, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  metricValue: { fontFamily: Fonts.brand, fontSize: 25, lineHeight: 29, fontWeight: '900' },
+  metricLabel: { marginTop: 4, fontSize: 9.5, fontWeight: '700', letterSpacing: 1 },
+  demoCaption: { marginTop: 8, textAlign: 'right', fontSize: 9, fontWeight: '700', letterSpacing: 0.8 },
+  demoStars: { fontSize: 13, fontWeight: '700' },
 
   sectionLabel: { marginTop: 28, marginBottom: 8, fontSize: 11, fontWeight: '700', letterSpacing: 1.6, textTransform: 'uppercase' },
   list: { borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },

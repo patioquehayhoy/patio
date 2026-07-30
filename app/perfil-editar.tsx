@@ -24,20 +24,6 @@ import { BusinessScheduleEditor } from '@/components/business-schedule-editor';
 import { SettingsGroup, SettingsRow, type SettingsColors } from '@/components/settings-list';
 import { supabase } from '@/lib/supabase';
 
-// Paleta oscura fija estilo Figma FonderoFonda (flujo Fondero siempre oscuro).
-const DARK = {
-  bg: '#111214',
-  surface: 'rgba(255,255,255,0.04)',
-  surface2: 'rgba(255,255,255,0.08)',
-  text: '#F8F8F5',
-  textSecondary: 'rgba(248,248,245,0.55)',
-  textMute: 'rgba(248,248,245,0.4)',
-  border: 'rgba(255,255,255,0.10)',
-  sep: 'rgba(255,255,255,0.06)',
-  accent: '#FF6A3D',
-  accentLight: 'rgba(255,106,61,0.15)',
-};
-
 const MAX_DESCRIPCION = 80;
 const MAX_UBICACION   = 80;
 const BUSINESS_TYPES = [
@@ -146,21 +132,24 @@ function makeStyles(theme: Theme) {
   });
 }
 
-const SETTINGS_COLORS: SettingsColors = {
-  surface: DARK.surface,
-  border: DARK.border,
-  text: DARK.text,
-  textSecondary: DARK.textSecondary,
-  textMute: DARK.textMute,
-  accent: DARK.accent,
-  iconBg: 'rgba(255,255,255,0.06)',
-  accentBg: DARK.accentLight,
-};
+function settingsColors(theme: Theme): SettingsColors {
+  return {
+    surface: theme.surface,
+    border: theme.border,
+    text: theme.text,
+    textSecondary: theme.textSecondary,
+    textMute: theme.textMute,
+    accent: theme.accent,
+    iconBg: theme.isDark ? 'rgba(255,255,255,0.06)' : 'rgba(17,18,20,0.04)',
+    accentBg: theme.accentSoft,
+  };
+}
 
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 export default function PerfilScreen() {
   const { theme } = useTheme();
   const s = makeStyles(theme);
+  const sc = settingsColors(theme);
   const insets = useSafeAreaInsets();
   const nombreInputRef     = useRef<TextInput>(null);
   const [logoUri, setLogoUri] = useState<string | null>(null);
@@ -229,7 +218,7 @@ export default function PerfilScreen() {
               setLogoUri(url);
             }
           }}>
-            <View style={s.logo}>{logoUri ? <Image source={{ uri: logoUri }} style={s.logoImage} /> : <Ionicons name="camera-outline" size={22} color={DARK.textSecondary} />}</View>
+            <View style={s.logo}>{logoUri ? <Image source={{ uri: logoUri }} style={s.logoImage} /> : <Ionicons name="camera-outline" size={22} color={theme.textSecondary} />}</View>
             <Text style={s.logoText}>{logoUri ? 'Cambiar imagen del negocio' : 'Añadir imagen del negocio'}</Text>
           </TouchableOpacity>
           <View style={s.fieldCard}>
@@ -240,8 +229,8 @@ export default function PerfilScreen() {
               value={nombre}
               onChangeText={(v) => setNombre(sanitizeNombreInput(v))}
               placeholder="Nombre de tu negocio"
-              placeholderTextColor={DARK.textSecondary}
-              selectionColor={DARK.accent}
+              placeholderTextColor={theme.textSecondary}
+              selectionColor={theme.accent}
               autoCapitalize="words"
               editable={ready}
               returnKeyType="next"
@@ -270,8 +259,8 @@ export default function PerfilScreen() {
               value={descripcion}
               onChangeText={(v) => setDescripcion(v.slice(0, MAX_DESCRIPCION))}
               placeholder="Comida corrida, antojitos…"
-              placeholderTextColor={DARK.textSecondary}
-              selectionColor={DARK.accent}
+              placeholderTextColor={theme.textSecondary}
+              selectionColor={theme.accent}
               autoCapitalize="sentences"
               editable={ready}
               returnKeyType="next"
@@ -283,8 +272,8 @@ export default function PerfilScreen() {
               value={ubicacion}
               onChangeText={(v) => setUbicacion(v.slice(0, MAX_UBICACION))}
               placeholder="Calle y colonia"
-              placeholderTextColor={DARK.textSecondary}
-              selectionColor={DARK.accent}
+              placeholderTextColor={theme.textSecondary}
+              selectionColor={theme.accent}
               autoCapitalize="sentences"
               editable={ready}
               returnKeyType="done"
@@ -297,9 +286,9 @@ export default function PerfilScreen() {
               <Ionicons
                 name={locationSaved ? 'checkmark-circle' : 'location-outline'}
                 size={14}
-                color={locationSaved ? DARK.accent : DARK.textSecondary}
+                color={locationSaved ? theme.accent : theme.textSecondary}
               />
-              <Text style={[s.locationBtnText, locationSaved && { color: DARK.accent }]}>
+              <Text style={[s.locationBtnText, locationSaved && { color: theme.accent }]}>
                 {isSavingLocation ? 'Ubicando…' : locationSaved ? 'En el mapa' : 'Marcar en el mapa'}
               </Text>
             </TouchableOpacity>
@@ -310,7 +299,7 @@ export default function PerfilScreen() {
         <View style={s.block}>
           <Text style={s.blockLabel} allowFontScaling={true}>HORARIO</Text>
           <Text style={s.blockHelp} allowFontScaling={true}>Toca los días que abres y ajusta cada hora.</Text>
-          <BusinessScheduleEditor colors={DARK} value={semanal} onChange={setSemanal} isDark />
+          <BusinessScheduleEditor colors={theme} value={semanal} onChange={setSemanal} isDark={theme.isDark} />
         </View>
 
         {/* ── PAGOS ── */}
@@ -318,7 +307,7 @@ export default function PerfilScreen() {
           <Text style={s.blockLabel} allowFontScaling={true}>CÓMO COBRAS</Text>
           <Text style={s.blockHelp} allowFontScaling={true}>Marca todas las formas que aceptas.</Text>
           <BusinessPaymentSelector
-            colors={DARK}
+            colors={theme}
             value={{ efectivo: pagosEfectivo, transferencia: pagosTrans, tarjeta: pagosTarjeta }}
             onChange={(pagos) => {
               setPagosEfectivoState(pagos.efectivo);
@@ -331,9 +320,9 @@ export default function PerfilScreen() {
         {/* ── CUENTA: correo + cerrar sesión ── */}
         <View style={s.block}>
           <Text style={s.blockLabel} allowFontScaling={true}>CUENTA</Text>
-          <SettingsGroup c={SETTINGS_COLORS}>
-            <SettingsRow c={SETTINGS_COLORS} icon="mail-outline" title={email || 'Sin correo'} />
-            <SettingsRow c={SETTINGS_COLORS} icon="log-out-outline" title="Cerrar sesión" divider onPress={handleSignOut} />
+          <SettingsGroup c={sc}>
+            <SettingsRow c={sc} icon="mail-outline" title={email || 'Sin correo'} />
+            <SettingsRow c={sc} icon="log-out-outline" title="Cerrar sesión" divider onPress={handleSignOut} />
           </SettingsGroup>
         </View>
 

@@ -10,7 +10,6 @@ import { ToggleSwitch } from '@/components/toggle-switch';
 import { useFoodieAccountController } from '@/lib/controllers/useFoodieAccountController';
 import { useTabBarScroll } from '@/lib/tab-bar-visibility';
 import { Fonts, useTheme, type Theme } from '@/lib/theme';
-import { noWidow } from '@/lib/typography';
 import { supabase } from '@/lib/supabase';
 
 function makeStyles(t: Theme) {
@@ -19,12 +18,19 @@ function makeStyles(t: Theme) {
     content: { paddingBottom: 120 },
 
     // Header editorial
-    header: { paddingHorizontal: 22, paddingTop: 8, paddingBottom: 12 },
+    header: { paddingHorizontal: 22, paddingTop: 12, paddingBottom: 18 },
     closeBtn: { width: 40, height: 40, borderRadius: 20, marginLeft: -8, marginBottom: 6, alignItems: 'center', justifyContent: 'center' },
     eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', color: t.accent, marginBottom: 6 },
     title: { fontSize: 36, fontWeight: '900', letterSpacing: -1.2, lineHeight: 36, color: t.text, fontFamily: Fonts.brand },
 
-    body: { paddingHorizontal: 18, paddingTop: 12 },
+    body: { paddingHorizontal: 18 },
+    identityCard: { minHeight: 138, borderRadius: 28, borderWidth: StyleSheet.hairlineWidth, borderColor: t.isDark ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.76)', overflow: 'hidden', padding: 18, flexDirection: 'row', alignItems: 'center', gap: 15, shadowColor: '#000', shadowOffset: { width: 0, height: 12 }, shadowOpacity: t.isDark ? 0.22 : 0.07, shadowRadius: 30 },
+    avatar: { width: 64, height: 64, borderRadius: 32, backgroundColor: t.accentSoft, alignItems: 'center', justifyContent: 'center' },
+    identityCopy: { flex: 1, minWidth: 0 },
+    identityEyebrow: { fontSize: 10.5, fontWeight: '700', letterSpacing: 1.2, color: t.accent, marginBottom: 5 },
+    identityTitle: { fontSize: 20, lineHeight: 24, fontWeight: '900', fontFamily: Fonts.brand, color: t.text },
+    identitySub: { marginTop: 4, fontSize: 13, lineHeight: 18, color: t.textSecondary },
+    identityAction: { width: 38, height: 38, borderRadius: 19, backgroundColor: t.surface, alignItems: 'center', justifyContent: 'center' },
 
     // Footer marca
     footer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 20 },
@@ -62,15 +68,22 @@ export default function CuentaScreen() {
         {/* Pestaña raíz: sin flecha 'atrás' — se navega con la tab bar (modelo
             Instagram). El back solo existe en pantallas hijas. */}
         <View style={s.header}>
-          <Text style={s.title} allowFontScaling={true}>{noWidow('Tu cuenta')}</Text>
+          <Text style={s.title} allowFontScaling={true}>Perfil</Text>
         </View>
 
         <View style={s.body}>
-          {/* El historial de uso vive en Actividad; Perfil conserva solamente
-              preferencias, ayuda y cuenta. */}
-          <SettingsGroup c={sc} label="Cuenta">
-            <SettingsRow c={sc} icon="person-circle-outline" title={hasSession ? 'Perfil' : 'Verificar cuenta'} onPress={() => router.push(hasSession ? '/perfil-comunidad' : '/comunidad-acceso')} />
-            {userId && <SettingsRow c={sc} icon="at-outline" title="Ver perfil público" onPress={() => router.push({ pathname: '/foodie/[id]', params: { id: userId } })} />}
+          <SettingsGroup c={sc} label="Perfil">
+            <SettingsRow
+              c={sc}
+              icon="person-outline"
+              title={hasSession ? 'Editar perfil' : 'Iniciar sesión'}
+              sub={hasSession ? 'Nombre, foto y descripción' : 'Sincroniza listas y reseñas'}
+              onPress={() => router.push(hasSession ? '/perfil-comunidad' : '/comunidad-acceso')}
+            />
+            {userId && <SettingsRow c={sc} icon="at-outline" title="Ver perfil público" divider onPress={() => router.push({ pathname: '/foodie/[id]', params: { id: userId } })} />}
+          </SettingsGroup>
+
+          <SettingsGroup c={sc} label="Preferencias">
             <SettingsRow
               c={sc}
               icon="notifications-outline"
@@ -78,9 +91,9 @@ export default function CuentaScreen() {
               sub="Menús nuevos"
               onPress={() => router.push({ pathname: '/avisos', params: { role: 'foodie' } })}
             />
-            <SettingsRow c={sc} icon="lock-closed-outline" title="Privacidad" onPress={() => router.push('/privacidad')} />
-            <SettingsRow c={sc} icon="card-outline" title="Plan" sub="Gratis" onPress={() => router.push('/plan')} />
-            <SettingsRow c={sc} icon="moon-outline" title="Modo oscuro" divider trailing={<ToggleSwitch value={theme.isDark} onValueChange={toggleTheme} />} />
+            <SettingsRow c={sc} icon="lock-closed-outline" title="Privacidad" divider onPress={() => router.push('/privacidad')} />
+            <SettingsRow c={sc} icon="diamond-outline" title="Plan" sub="Patio Gratis" divider onPress={() => router.push({ pathname: '/plan', params: { role: 'foodie' } })} />
+            <SettingsRow c={sc} icon={theme.isDark ? 'moon' : 'sunny-outline'} title="Apariencia" sub={theme.isDark ? 'Oscura' : 'Clara'} divider trailing={<ToggleSwitch value={theme.isDark} onValueChange={toggleTheme} />} />
           </SettingsGroup>
 
           <SettingsGroup c={sc} label="Ayuda">

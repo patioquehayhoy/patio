@@ -85,8 +85,6 @@ function makeStyles(t: Theme) {
     groupItemDescription: { marginTop: 2, fontSize: 12.5, lineHeight: 17, fontWeight: '400', color: t.textSecondary },
     groupItemPrice: { fontSize: 15, fontWeight: '700', color: t.accent },
     groupDashed: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.border, marginTop: 12 },
-    organizeButton: { alignSelf: 'flex-start', minHeight: 38, marginTop: 12, paddingHorizontal: 14, borderRadius: 19, flexDirection: 'row', alignItems: 'center', gap: 7, backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
-    organizeButtonText: { color: t.text, fontSize: 13, fontWeight: '600' },
     reviewSection: { paddingTop: 28, marginBottom: 22 },
     reviewsSummary: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
     reviewsTitle: { fontSize: 22, lineHeight: 27, fontWeight: '900', fontFamily: Fonts.brand, color: t.text },
@@ -150,7 +148,6 @@ export default function PatioDetailScreen() {
     handleComoLlegar,
     handleShare,
     handleStarPress,
-    handleToggleSaved,
     hoy,
     isSaved,
     loading,
@@ -229,7 +226,12 @@ export default function PatioDetailScreen() {
             <GlassIcon name="chevron-back" size={20} onPress={handleBack} />
             <View style={{ flexDirection: 'row', gap: 8 }}>
               <GlassIcon name="share-outline" size={17} onPress={handleShare} />
-              <GlassIcon name={isSaved ? 'bookmark' : 'bookmark-outline'} size={17} onPress={handleToggleSaved} color={isSaved ? theme.accent : theme.text} />
+              <GlassIcon
+                name={isSaved ? 'bookmark' : 'bookmark-outline'}
+                size={17}
+                onPress={() => router.push({ pathname: '/guardar/[id]', params: { id: patio.id } })}
+                color={isSaved ? theme.accent : theme.text}
+              />
             </View>
           </View>
         </View>
@@ -246,16 +248,6 @@ export default function PatioDetailScreen() {
           )}
           <Text style={s.title} allowFontScaling={true}>{patio.name}</Text>
           <Text style={s.subtitle} allowFontScaling={true}>{patio.category} · {patio.area}</Text>
-          {isSaved && (
-            <TouchableOpacity
-              onPress={() => router.push({ pathname: '/guardar/[id]', params: { id: patio.id } })}
-              activeOpacity={0.72}
-              style={s.organizeButton}>
-              <Ionicons name="folder-outline" size={15} color={theme.accent} />
-              <Text style={s.organizeButtonText}>Organizar guardado</Text>
-            </TouchableOpacity>
-          )}
-
           {/* Solo señales reales: calificación propia y horario configurado. */}
           <View style={s.metaRow}>
             <TouchableOpacity style={s.metaItem} onPress={() => handleStarPress(userRating ?? 0)} activeOpacity={0.7}>

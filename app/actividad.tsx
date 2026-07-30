@@ -1,9 +1,10 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import { router, Stack } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { Alert, Share, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, ScrollView, Share, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BottomTabBar } from '@/components/bottom-tab-bar';
@@ -47,13 +48,17 @@ export default function CollectionsScreen() {
   return (
     <View style={[s.root, { backgroundColor: theme.bg, paddingTop: insets.top }]}>
       <Stack.Screen options={{ headerShown: false }} />
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: insets.bottom + 120 }}>
       <View style={s.header}>
         <View>
-          <Text style={[s.title, { color: theme.text }]}>Colecciones</Text>
+          <Text style={[s.title, { color: theme.text }]}>Guardados</Text>
           <Text style={[s.meta, { color: theme.textSecondary }]}>{savedCount} {savedCount === 1 ? 'lugar guardado' : 'lugares guardados'}</Text>
         </View>
-        <TouchableOpacity accessibilityLabel="Nueva colección" style={[s.add, { backgroundColor: theme.text }]} onPress={() => setCreating(true)}>
-          <Ionicons name="add" size={24} color={theme.bg} />
+        <TouchableOpacity accessibilityLabel="Nueva lista" style={[s.add, { backgroundColor: theme.glass, borderColor: theme.border }]} onPress={() => setCreating(true)}>
+          <BlurView intensity={theme.isDark ? 30 : 42} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+          <Ionicons name="add" size={22} color={theme.text} />
         </TouchableOpacity>
       </View>
 
@@ -73,17 +78,8 @@ export default function CollectionsScreen() {
         </View>
       )}
 
-      <TouchableOpacity style={[s.savedHero, { backgroundColor: theme.text }]} onPress={() => router.replace({ pathname: '/explorar', params: { saved: '1' } })}>
-        <View style={{ flex: 1 }}>
-          <Text style={[s.heroEyebrow, { color: theme.bg }]}>TODOS TUS GUARDADOS</Text>
-          <Text style={[s.heroCount, { color: theme.bg }]}>{savedCount}</Text>
-          <Text style={[s.heroMeta, { color: theme.bg }]}>{savedCount === 1 ? 'lugar en tu mapa' : 'lugares en tu mapa'}</Text>
-        </View>
-        <View style={[s.heroIcon, { backgroundColor: theme.bg }]}><Ionicons name="map-outline" size={22} color={theme.text} /></View>
-      </TouchableOpacity>
-
-      {!!collections.length && <Text style={[s.sectionLabel, { color: theme.textSecondary }]}>TUS COLECCIONES</Text>}
-      <View style={s.collectionGrid}>{collections.map((collection) => (
+      {!!collections.length && <Text style={[s.sectionLabel, { color: theme.textSecondary }]}>TUS LISTAS</Text>}
+      <View style={[s.collectionList, { backgroundColor: theme.surface, borderColor: theme.border }]}>{collections.map((collection, index) => (
         <TouchableOpacity key={collection.id} style={[s.collectionCard, { borderColor: theme.border, backgroundColor: theme.surface }]} onPress={() => router.push({ pathname: '/coleccion/[id]', params: { id: collection.id } })} onLongPress={() => shareCollection(collection)}>
           <View style={[s.icon, { backgroundColor: theme.accentSoft }]}><Ionicons name="layers-outline" size={20} color={theme.accent} /></View>
           <View style={s.copy}>
@@ -92,23 +88,26 @@ export default function CollectionsScreen() {
           </View>
           <TouchableOpacity
             accessibilityLabel={`Ver ${collection.title} en el mapa`}
-            style={[s.mapButton, { backgroundColor: theme.text }]}
+            style={s.mapButton}
             onPress={(event) => {
               event.stopPropagation();
               router.replace({ pathname: '/explorar', params: { collection: collection.id } });
             }}>
-            <Ionicons name="map-outline" size={16} color={theme.bg} />
+            <Ionicons name="map-outline" size={18} color={theme.textSecondary} />
           </TouchableOpacity>
+          <Ionicons name="chevron-forward" size={15} color={theme.textMute} />
+          {index < collections.length - 1 && <View style={[s.rowDivider, { backgroundColor: theme.border }]} />}
         </TouchableOpacity>
       ))}</View>
 
       {!collections.length && !creating && (
         <View style={s.empty}>
           <Ionicons name="layers-outline" size={30} color={theme.textMute} />
-          <Text style={[s.emptyTitle, { color: theme.text }]}>Haz tu primer mapa</Text>
-          <Text style={[s.emptyText, { color: theme.textSecondary }]}>Cafés para trabajar, tacos favoritos o el plan del sábado. Tú le pones nombre.</Text>
+          <Text style={[s.emptyTitle, { color: theme.text }]}>Crea tu primera lista</Text>
+          <Text style={[s.emptyText, { color: theme.textSecondary }]}>Agrupa tus lugares por plan, antojo o barrio.</Text>
         </View>
       )}
+      </ScrollView>
       <BottomTabBar variant="foodie" />
     </View>
   );
@@ -119,22 +118,17 @@ const s = StyleSheet.create({
   header: { paddingTop: 18, paddingBottom: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   title: { fontFamily: Fonts.brand, fontSize: 36, lineHeight: 40, fontWeight: '900', letterSpacing: -1.2 },
   meta: { marginTop: 3, fontSize: 13 },
-  add: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
+  add: { width: 44, height: 44, borderRadius: 22, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
   composer: { height: 58, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 16, marginBottom: 10, flexDirection: 'row', alignItems: 'center' },
   input: { flex: 1, fontSize: 16 },
   done: { fontSize: 15, fontWeight: '700' },
-  row: { minHeight: 72, flexDirection: 'row', alignItems: 'center', gap: 12, borderBottomWidth: StyleSheet.hairlineWidth },
-  savedHero: { minHeight: 150, padding: 20, borderRadius: 26, flexDirection: 'row', alignItems: 'center' },
-  heroEyebrow: { fontSize: 10.5, fontWeight: '800', letterSpacing: 1.2, opacity: 0.62 },
-  heroCount: { marginTop: 8, fontSize: 42, lineHeight: 44, fontWeight: '900' },
-  heroMeta: { marginTop: 2, fontSize: 13, opacity: 0.62 },
-  heroIcon: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
-  sectionLabel: { marginTop: 26, marginBottom: 10, fontSize: 11, fontWeight: '700', letterSpacing: 1.2 },
-  collectionGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  collectionCard: { width: '48%', minHeight: 154, padding: 14, borderRadius: 20, justifyContent: 'space-between', borderWidth: StyleSheet.hairlineWidth },
-  mapButton: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
-  icon: { width: 42, height: 42, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
-  copy: { flex: 1 },
+  sectionLabel: { marginTop: 14, marginBottom: 10, paddingHorizontal: 6, fontSize: 11, fontWeight: '700', letterSpacing: 1.2 },
+  collectionList: { borderRadius: 22, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
+  collectionCard: { minHeight: 72, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 12, position: 'relative' },
+  rowDivider: { position: 'absolute', left: 68, right: 0, bottom: 0, height: StyleSheet.hairlineWidth },
+  mapButton: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center' },
+  icon: { width: 42, height: 42, borderRadius: 13, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  copy: { flex: 1, minWidth: 0 },
   rowTitle: { fontSize: 16, fontWeight: '700' },
   rowMeta: { marginTop: 3, fontSize: 12.5 },
   count: { fontSize: 14, fontWeight: '600' },

@@ -12,7 +12,12 @@ type MenuRequest = {
 type UnknownRecord = Record<string, unknown>;
 
 function text(value: unknown): string {
-  return typeof value === 'string' ? value : '';
+  return typeof value === 'string'
+    ? value
+        .replace(/\*{1,3}/g, '')
+        .replace(/\s+/g, ' ')
+        .trim()
+    : '';
 }
 
 function normalizeResult(value: unknown) {
@@ -56,6 +61,8 @@ REGLA FLEXIBILIDAD: Un negocio puede vender un único especial ese día. En ese 
 REGLA SECCIONES: Respeta primero los encabezados visibles. Solo si faltan o son ambiguos, usa la arquitectura del perfil enviada abajo.
 Devuelve todos los nombres de sección en MAYÚSCULAS, con acentos correctos.
 
+REGLA PIZARRA: En pizarras manuscritas, la cercanía vertical y las flechas indican pertenencia. Un encabezado subrayado seguido de un precio (por ejemplo "CARTA $110") significa precio común de esa sección. El texto que aparece antes del encabezado no pertenece a esa sección. Conserva todos los renglones legibles anteriores como menú del día, agrupándolos por su relación visual; no los descartes porque carezcan de encabezado.
+
 REGLA ENTIDAD: Un platillo es algo que una persona puede pedir. Un ingrediente, acompañamiento, tamaño, opción o nota nunca es un platillo independiente, salvo que la imagen lo venda por separado.
 
 REGLA AGRUPACIÓN: Ingredientes, acompañamientos, opciones y variantes pertenecen a la descripción del platillo. No repitas el mismo platillo. Si una variante tiene precio propio, conserva ese precio en la descripción del platillo padre.
@@ -77,7 +84,7 @@ REGLA PRECIO: Si todo el menú tiene un precio único, ponlo en "precio". Si una
 
 REGLA ASOCIACIÓN ESPACIAL DE PRECIO: Lee la posición, no solo el texto. Un precio en el mismo renglón, columna derecha o inmediatamente debajo de un platillo pertenece a ese platillo. Una secuencia de productos con una secuencia de precios debe conservar cada pareja. No promociones un precio individual a "precio" general salvo que la imagen diga explícitamente menú, paquete, precio único, incluye o equivalente.
 
-REGLA VARIANTES CON VARIOS PRECIOS: Si un producto tiene varios tamaños o variantes con precios distintos, deja "platillo.precio" vacío y conserva las parejas en la descripción de forma legible (por ejemplo "Chico $35 · Grande $50"). Nunca concatenes dos cifras como si fueran una.
+REGLA VARIANTES CON VARIOS PRECIOS: Si un producto tiene varios tamaños o variantes con precios distintos, deja "platillo.precio" vacío y conserva las parejas en la descripción de forma legible (por ejemplo "Chico $35 · Grande $50"). Escribe texto plano: nunca uses Markdown, asteriscos ni símbolos de énfasis. Nunca concatenes dos cifras como si fueran una.
 
 REGLA PRECIO IMPROBABLE: Transcribe el número visible, pero aplica contexto mexicano. Para una fondita, una sopa, bebida o tiempo individual por encima de $500 MXN, o un menú del día por encima de $800 MXN, es probablemente una lectura errónea (por ejemplo 1020 en vez de 120). No inventes la corrección: conserva el valor, marca "requiereRevision" y explica "Precio inusual; confirma la foto". Agrega también una advertencia general.
 

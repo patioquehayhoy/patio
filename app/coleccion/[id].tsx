@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
 import { router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Share, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -38,9 +39,16 @@ export default function CollectionDetail() {
       <TextInput value={item.title} onChangeText={(title) => patch({ title })} style={[s.title, { color: theme.text }]} />
       <TextInput value={item.description} onChangeText={(description) => patch({ description })} placeholder="Añade una nota opcional" placeholderTextColor={theme.textMute} style={[s.description, { color: theme.textSecondary }]} />
       {!!patios.length && (
-        <TouchableOpacity style={[s.mapCta, { backgroundColor: theme.text }]} onPress={() => router.replace({ pathname: '/explorar', params: { collection: item.id } })}>
-          <Ionicons name="map-outline" size={18} color={theme.bg} />
-          <Text style={[s.mapCtaText, { color: theme.bg }]}>Ver esta colección en el mapa</Text>
+        <TouchableOpacity style={[s.mapCta, { borderColor: theme.border }]} onPress={() => router.replace({ pathname: '/explorar', params: { collection: item.id } })}>
+          <BlurView intensity={theme.isDark ? 30 : 46} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+          <View style={[s.mapGlyph, { backgroundColor: theme.accentSoft }]}>
+            <Ionicons name="location-outline" size={17} color={theme.accent} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={[s.mapCtaText, { color: theme.text }]}>Verlos juntos</Text>
+            <Text style={[s.mapCtaSub, { color: theme.textSecondary }]}>Abre esta lista como filtro</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={15} color={theme.textMute} />
         </TouchableOpacity>
       )}
       <Text style={[s.section, { color: theme.textSecondary }]}>{patios.length} LUGARES</Text>
@@ -49,4 +57,4 @@ export default function CollectionDetail() {
     </View>
   );
 }
-const s = StyleSheet.create({ root:{flex:1,paddingHorizontal:20},nav:{height:56,flexDirection:'row',alignItems:'center',justifyContent:'space-between'},title:{fontFamily:Fonts.brand,fontSize:34,fontWeight:'900',letterSpacing:-1,padding:0},description:{fontSize:14,marginTop:8,padding:0},mapCta:{alignSelf:'flex-start',height:44,marginTop:18,paddingHorizontal:17,borderRadius:22,flexDirection:'row',alignItems:'center',gap:8},mapCtaText:{fontSize:14,fontWeight:'700'},section:{fontSize:11,fontWeight:'700',letterSpacing:1.2,marginTop:30,marginBottom:6},row:{minHeight:66,borderBottomWidth:StyleSheet.hairlineWidth,flexDirection:'row',alignItems:'center'},name:{fontSize:16,fontWeight:'700'},meta:{fontSize:12,marginTop:3},empty:{marginTop:36,textAlign:'center',fontSize:14}});
+const s = StyleSheet.create({ root:{flex:1,paddingHorizontal:20},nav:{height:56,flexDirection:'row',alignItems:'center',justifyContent:'space-between'},title:{fontFamily:Fonts.brand,fontSize:34,fontWeight:'900',letterSpacing:-1,padding:0},description:{fontSize:14,marginTop:8,padding:0},mapCta:{minHeight:68,marginTop:20,paddingHorizontal:14,borderRadius:22,borderWidth:StyleSheet.hairlineWidth,overflow:'hidden',flexDirection:'row',alignItems:'center',gap:12},mapGlyph:{width:38,height:38,borderRadius:12,alignItems:'center',justifyContent:'center'},mapCtaText:{fontSize:15,fontWeight:'700'},mapCtaSub:{marginTop:2,fontSize:12.5},section:{fontSize:11,fontWeight:'700',letterSpacing:1.2,marginTop:30,marginBottom:6},row:{minHeight:66,borderBottomWidth:StyleSheet.hairlineWidth,flexDirection:'row',alignItems:'center'},name:{fontSize:16,fontWeight:'700'},meta:{fontSize:12,marginTop:3},empty:{marginTop:36,textAlign:'center',fontSize:14}});

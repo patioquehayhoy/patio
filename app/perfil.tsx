@@ -99,6 +99,14 @@ export default function PerfilScreen() {
           />
           <SettingsRow
             c={sc}
+            icon="diamond-outline"
+            title="Plan"
+            sub="Patio Gratis para negocios"
+            divider
+            onPress={() => router.push({ pathname: '/plan', params: { role: 'fondero' } })}
+          />
+          <SettingsRow
+            c={sc}
             icon="moon-outline"
             title="Modo oscuro"
             divider
@@ -112,7 +120,7 @@ export default function PerfilScreen() {
         </SettingsGroup>
 
         <SettingsGroup c={sc} label="Cuenta">
-          <SettingsRow c={sc} icon="map-outline" title="Explorar como cliente" onPress={exploreAsClient} />
+          <SettingsRow c={sc} icon="repeat-outline" title="Cambiar a modo Foodie" onPress={exploreAsClient} />
           <SettingsRow c={sc} icon="log-out-outline" title="Cerrar sesión" divider onPress={signOut} />
         </SettingsGroup>
       </ScrollView>

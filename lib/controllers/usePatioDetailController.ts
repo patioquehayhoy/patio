@@ -88,10 +88,11 @@ export function usePatioDetailController(id: PatioParam) {
     useCallback(() => {
       if (!patioId) return undefined;
       let active = true;
-      Promise.all([getPatioRating(patioId), getPublicPatioReviews(patioId)]).then(([rating, publicReviews]) => {
+      Promise.all([getPatioRating(patioId), getPublicPatioReviews(patioId), getFavoritePatioIds()]).then(([rating, publicReviews, favoriteIds]) => {
         if (active) {
           setUserReview(rating);
           setReviews(publicReviews);
+          setIsSaved(favoriteIds.includes(patioId));
         }
       });
       return () => {

@@ -84,10 +84,16 @@ function makeStyles(t: Theme) {
     pillsRow: { position: 'absolute', left: 0, right: 0, flexDirection: 'row', justifyContent: 'center', gap: 10 },
     pill: { overflow: 'hidden', borderRadius: 100, borderWidth: StyleSheet.hairlineWidth, borderColor: t.isDark ? 'rgba(255,255,255,0.14)' : 'rgba(0,0,0,0.08)' },
     pillText: { paddingHorizontal: 14, paddingVertical: 7, fontSize: 13, fontWeight: '400', color: t.text },
-    mapFilters: { position: 'absolute', left: 0, right: 0 },
+    mapFilters: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
     mapFiltersContent: { paddingHorizontal: 14, gap: 7 },
     mapFilter: { height: 34, paddingHorizontal: 13, borderRadius: 17, justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
     mapFilterText: { fontSize: 12.5, fontWeight: '600' },
+    filterMenu: { marginTop: 8, width: 250, maxHeight: 300, borderRadius: 22, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: t.isDark ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.72)', shadowColor: '#000', shadowOffset: { width: 0, height: 12 }, shadowOpacity: t.isDark ? 0.26 : 0.10, shadowRadius: 28, elevation: 10 },
+    filterMenuHeader: { paddingHorizontal: 16, paddingTop: 14, paddingBottom: 8, fontSize: 10.5, fontWeight: '700', letterSpacing: 1.2, color: t.textMute },
+    filterOption: { minHeight: 48, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 11 },
+    filterOptionDivider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border },
+    filterOptionText: { flex: 1, fontSize: 15, fontWeight: '500', color: t.text },
+    filterEmptyText: { paddingHorizontal: 16, paddingBottom: 16, fontSize: 13, lineHeight: 18, color: t.textSecondary },
   });
 }
 
@@ -149,7 +155,6 @@ export default function ExplorarScreen() {
     if (params.collection) setMapFilter(`collection:${params.collection}`);
     else if (params.saved === '1') setMapFilter('saved');
   }, [params.collection, params.saved]);
-  const categoryFilters = useMemo(() => [...new Set(allPatios.map((p) => p.category).filter(Boolean))].sort(), [allPatios]);
   const filteredPins = useMemo(() => visiblePatios.filter((patio) => {
     if (mapFilter === 'all') return true;
     if (mapFilter === 'saved') return savedIds.includes(patio.id);
@@ -276,7 +281,7 @@ export default function ExplorarScreen() {
       {!searchActive && !showSheet && (
         <View style={[s.mapFilters, { top: insets.top + 10 }]}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.mapFiltersContent}>
-            {[{ key: 'all', label: 'Todos' }, { key: 'saved', label: 'Guardados' }, { key: 'today', label: 'Menú hoy' }, { key: 'open', label: 'Abiertos' }].map((filter) => {
+            {[{ key: 'all', label: 'Todos' }, { key: 'today', label: 'Menú hoy' }, { key: 'open', label: 'Abiertos' }].map((filter) => {
               const active = mapFilter === filter.key;
               return (
                 <TouchableOpacity key={filter.key} onPress={() => setMapFilter(filter.key)} style={[s.mapFilter, { backgroundColor: active ? theme.text : theme.glass, borderColor: active ? theme.text : theme.border }]}>
@@ -288,21 +293,37 @@ export default function ExplorarScreen() {
             <TouchableOpacity
               onPress={() => setShowPlaceFilters((value) => !value)}
               style={[s.mapFilter, { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: showPlaceFilters ? theme.text : theme.glass, borderColor: showPlaceFilters ? theme.text : theme.border }]}>
-              <Ionicons name="options-outline" size={14} color={showPlaceFilters ? theme.bg : theme.text} />
-              <Text style={[s.mapFilterText, { color: showPlaceFilters ? theme.bg : theme.text }]}>Filtrar</Text>
+              <Ionicons name="list-outline" size={14} color={showPlaceFilters ? theme.bg : theme.text} />
+              <Text style={[s.mapFilterText, { color: showPlaceFilters ? theme.bg : theme.text }]}>
+                {mapFilter.startsWith('collection:')
+                  ? collections.find((item) => `collection:${item.id}` === mapFilter)?.title ?? 'Listas'
+                  : 'Listas'}
+              </Text>
+              <Ionicons name={showPlaceFilters ? 'chevron-up' : 'chevron-down'} size={12} color={showPlaceFilters ? theme.bg : theme.textSecondary} />
             </TouchableOpacity>
           </ScrollView>
           {showPlaceFilters && (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[s.mapFiltersContent, { paddingTop: 8 }]}>
-              {[...collections.map((item) => ({ key: `collection:${item.id}`, label: item.title })), ...categoryFilters.map((key) => ({ key, label: key }))].map((filter) => {
-                const active = mapFilter === filter.key;
+            <View style={s.filterMenu}>
+              <BlurView intensity={theme.isDark ? 54 : 72} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
+              <Text style={s.filterMenuHeader}>LISTAS GUARDADAS</Text>
+              {!collections.length ? (
+                <Text style={s.filterEmptyText}>Crea una colección en Guardados para verla aquí.</Text>
+              ) : (
+                collections.map((filter, index) => {
+                const key = `collection:${filter.id}`;
+                const active = mapFilter === key;
                 return (
-                  <TouchableOpacity key={filter.key} onPress={() => { setMapFilter(filter.key); setShowPlaceFilters(false); }} style={[s.mapFilter, { backgroundColor: active ? theme.text : theme.surface, borderColor: active ? theme.text : theme.border }]}>
-                    <Text style={[s.mapFilterText, { color: active ? theme.bg : theme.text }]}>{filter.label}</Text>
+                  <TouchableOpacity
+                    key={filter.id}
+                    onPress={() => { setMapFilter(active ? 'all' : key); setShowPlaceFilters(false); }}
+                    style={[s.filterOption, index > 0 && s.filterOptionDivider]}>
+                    <Ionicons name={active ? 'checkmark-circle' : 'ellipse-outline'} size={19} color={active ? theme.accent : theme.textMute} />
+                    <Text style={s.filterOptionText} numberOfLines={1}>{filter.title}</Text>
+                    <Text style={{ fontSize: 12, color: theme.textSecondary }}>{filter.patioIds.length}</Text>
                   </TouchableOpacity>
                 );
-              })}
-            </ScrollView>
+              }))}
+            </View>
           )}
         </View>
       )}

@@ -155,6 +155,7 @@ export const DEMO_PATIOS: Patio[] = [
     payments: ['Efectivo', 'Tarjeta', 'Transferencia'],
     patioJoinedAt: '2024-03-15',
     businessOpenedAt: '2016-08-20',
+    isNeighborhoodFavorite: true,
     weeklyHours: [
       { dia: 0, cerrado: false, abre: '09:00', cierra: '17:00' },
       { dia: 1, cerrado: false, abre: '08:00', cierra: '20:00' },
@@ -192,6 +193,7 @@ export const DEMO_PATIOS: Patio[] = [
     payments: ['Efectivo', 'Tarjeta', 'Transferencia'],
     patioJoinedAt: '2025-02-12',
     businessOpenedAt: '1998-09-18',
+    isNeighborhoodFavorite: true,
     weeklyHours: [
       { dia: 0, cerrado: false, abre: '09:00', cierra: '17:00' },
       { dia: 1, cerrado: false, abre: '08:00', cierra: '19:00' },
@@ -271,6 +273,7 @@ export const DEMO_PATIOS: Patio[] = [
     ],
     payments: ['Efectivo'],
     businessOpenedAt: '2004-02-14',
+    isNeighborhoodFavorite: true,
     weeklyHours: null,
   },
   {

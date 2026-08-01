@@ -43,6 +43,14 @@ function heroPhotoFor(id: string) {
   return HERO_PHOTOS[h % HERO_PHOTOS.length];
 }
 
+function discoveryIsNew(value?: string): boolean {
+  if (!value) return false;
+  const openedAt = new Date(value).getTime();
+  if (Number.isNaN(openedAt)) return false;
+  const ageInDays = Math.floor((Date.now() - openedAt) / 86400000);
+  return ageInDays >= 0 && ageInDays <= 120;
+}
+
 function makeStyles(t: Theme) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: t.bg },
@@ -126,10 +134,12 @@ function makeStyles(t: Theme) {
 
     // ── Detalles + mapa ──
     section: { paddingTop: 6 },
-    aboutSection: { marginTop: 8, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border },
-    aboutButton: { minHeight: 52, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-    aboutTitle: { fontSize: 14, fontWeight: '700', color: t.text },
-    aboutBody: { paddingBottom: 18, fontSize: 13.5, lineHeight: 20, color: t.textSecondary },
+    placeDescription: { maxWidth: 340, marginTop: -7, marginBottom: 18, fontSize: 14, lineHeight: 20, color: t.textSecondary },
+    distinctions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: -6, marginBottom: 18 },
+    distinction: { minHeight: 30, paddingHorizontal: 11, borderRadius: 15, flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: t.accentSoft },
+    distinctionText: { fontSize: 11.5, fontWeight: '700', color: t.accent },
+    historyMeta: { minHeight: 44, marginTop: 8, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border, flexDirection: 'row', alignItems: 'center', gap: 9 },
+    historyMetaText: { fontSize: 12.5, color: t.textMute },
     mapPanel: { height: 92, borderRadius: 18, backgroundColor: t.isDark ? '#191A1B' : '#D8D6D0', overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
     mapView: { ...StyleSheet.absoluteFillObject },
     mapMarker: { width: 26, height: 26, borderRadius: 13, backgroundColor: '#111214', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.82)', alignItems: 'center', justifyContent: 'center', shadowColor: '#A8E7FF', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.58, shadowRadius: 8, elevation: 6 },
@@ -159,7 +169,6 @@ export default function PatioDetailScreen() {
   const s = makeStyles(theme);
   const insets = useSafeAreaInsets();
   const [showSchedule, setShowSchedule] = useState(false);
-  const [showAbout, setShowAbout] = useState(false);
   const [ratingFilter, setRatingFilter] = useState<number | null>(null);
   const pulse = useRef(new Animated.Value(1)).current;
   const {
@@ -198,7 +207,7 @@ export default function PatioDetailScreen() {
     if (!patio?.businessOpenedAt) return null;
     const openedAt = new Date(patio.businessOpenedAt);
     if (Number.isNaN(openedAt.getTime())) return null;
-    return `Abrió sus puertas en ${openedAt.getFullYear()}`;
+    return `Abrió en ${openedAt.getFullYear()}`;
   }, [patio?.businessOpenedAt]);
 
   useEffect(() => {
@@ -343,6 +352,24 @@ export default function PatioDetailScreen() {
           )}
           <Text style={s.title} allowFontScaling={true}>{patio.name}</Text>
           <Text style={s.subtitle} allowFontScaling={true}>{patio.category} · {patio.area}</Text>
+          {!!patio.reason && <Text style={s.placeDescription} allowFontScaling={true}>{patio.reason}</Text>}
+          {(patio.isNeighborhoodFavorite || discoveryIsNew(patio.businessOpenedAt)) && (
+            <View style={s.distinctions}>
+              {!!patio.isNeighborhoodFavorite && (
+                <View style={s.distinction} accessible accessibilityLabel="Favorito del barrio">
+                  <Ionicons name="leaf-outline" size={12} color={theme.accent} />
+                  <Text style={s.distinctionText}>Favorito del barrio</Text>
+                  <Ionicons name="leaf-outline" size={12} color={theme.accent} style={{ transform: [{ scaleX: -1 }] }} />
+                </View>
+              )}
+              {discoveryIsNew(patio.businessOpenedAt) && (
+                <View style={s.distinction} accessible accessibilityLabel="Nuevo por aquí">
+                  <Ionicons name="sparkles-outline" size={12} color={theme.accent} />
+                  <Text style={s.distinctionText}>Nuevo por aquí</Text>
+                </View>
+              )}
+            </View>
+          )}
           {/* Menú del día — agrupado por sección (atenuado si ya se acabó) */}
           <View style={soldOut && s.menuSoldWrap}>
             <View style={soldOut ? { opacity: 0.42 } : undefined}>
@@ -503,17 +530,9 @@ export default function PatioDetailScreen() {
           </View>
 
           {businessOpeningLabel && (
-            <View style={s.aboutSection}>
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessibilityLabel="Acerca de este negocio"
-                accessibilityState={{ expanded: showAbout }}
-                style={s.aboutButton}
-                onPress={() => setShowAbout((value) => !value)}>
-                <Text style={s.aboutTitle}>Acerca de</Text>
-                <Ionicons name={showAbout ? 'chevron-up' : 'chevron-down'} size={15} color={theme.textMute} />
-              </TouchableOpacity>
-              {showAbout && <Text style={s.aboutBody}>{businessOpeningLabel}</Text>}
+            <View style={s.historyMeta} accessible accessibilityLabel={businessOpeningLabel}>
+              <Ionicons name="calendar-outline" size={14} color={theme.textMute} />
+              <Text style={s.historyMetaText}>{businessOpeningLabel}</Text>
             </View>
           )}
         </View>

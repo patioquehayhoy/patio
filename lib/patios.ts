@@ -40,6 +40,8 @@ export type Patio = {
   patioJoinedAt?: string;
   // Fecha real de apertura del negocio. Nunca sustituir con la fecha de alta en Patio.
   businessOpenedAt?: string;
+  // Distinción propia de Patio. En producción debe venir de señales verificables.
+  isNeighborhoodFavorite?: boolean;
   // Agotado es disponibilidad de inventario, no estado de horario.
   soldOut?: boolean;
 };
@@ -102,6 +104,7 @@ export const MOCK_PATIOS: Patio[] = [
     ],
     payments: ['Efectivo', 'Transferencia'],
     businessOpenedAt: '2018-08-11',
+    isNeighborhoodFavorite: true,
     weeklyHours: null,
   },
   {
@@ -159,6 +162,7 @@ export const MOCK_PATIOS: Patio[] = [
     ],
     payments: ['Efectivo', 'Tarjeta'],
     businessOpenedAt: '2009-10-03',
+    isNeighborhoodFavorite: true,
     weeklyHours: null,
   },
   {

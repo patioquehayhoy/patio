@@ -73,6 +73,34 @@ Un menú publicado debe poder consumirse de tres maneras sin volver a capturarlo
 2. como póster canónico compartible mediante enlace;
 3. como datos estructurados para búsqueda, medición y recomendaciones futuras.
 
+### Vigencia: carta habitual y lo de hoy
+
+No todos los negocios cambian su menú diariamente. El sistema distingue dos
+objetos y evita pedir una confirmación repetitiva sin valor:
+
+- **Carta habitual:** permanece visible y buscable hasta que el negocio la edita,
+  pausa o reemplaza. Es el default para lugares con oferta estable.
+- **Lo de hoy:** publicación fechada para especiales, comida corrida, productos
+  variables o disponibilidad limitada. Tiene prioridad sobre la carta habitual.
+
+Un futuro control `Activar hoy` solo corresponde a un menú variable reutilizado;
+no debe aparecer en negocios cuya carta habitual ya está vigente. La
+programación automática puede formar parte de Patio Pro si aporta horarios,
+excepciones, confirmación y pausa; nunca debe publicarse silenciosamente cuando
+el negocio marcó agotado, cerró o cambió su operación.
+
+Estados necesarios para automatización futura:
+
+```txt
+carta habitual: activa | pausada
+menú variable: borrador | programado | activo hoy | agotado | vencido
+automatización: apagada | programada | omitida por excepción | publicada
+```
+
+El producto gratuito conserva activación manual y carta habitual permanente. No
+se simula una suscripción ni se cobra hasta que exista StoreKit y una
+automatización confiable.
+
 ## 2. Auditoría del producto actual
 
 ### Lo que ya sirve

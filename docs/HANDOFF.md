@@ -1,5 +1,27 @@
 # HANDOFF
 
+## Corte 2026-08-01 · copy de antojo, distinciones y vigencia de menú
+
+- El claim oficial permanece `¿Qué hay hoy? Saaaaaaabes.`; no se reemplazó de
+  manera global. La superficie de búsqueda usa `¿Qué se te antoja?` y el campo
+  enfocado `Platillo o lugar`, separando marca de instrucción contextual.
+- La descripción real del negocio subió debajo de nombre, tipo y zona. La ficha
+  dejó de usar un bloque genérico `Acerca de`; la apertura queda como metadato
+  discreto al final (`Abrió en {año}`).
+- Se introdujeron solo dos distinciones: `Favorito del barrio`, con hojas propias
+  de Patio, y `Nuevo por aquí`, derivada exclusivamente de una apertura real en
+  los últimos 120 días. No se añadieron estrellas ni equivalentes de Michelin.
+- `Favorito del barrio` es un booleano explícito en los datos demo. En producción
+  no debe inferirse hasta definir un umbral verificable de reseñas, guardados y
+  confiabilidad.
+- Se documentó la vigencia correcta: carta habitual permanente y menú variable
+  de hoy. Un lugar con carta estable no debe pulsar `Activar` diariamente; la
+  activación manual aplica al menú variable y la programación automática queda
+  como capacidad futura de Patio Pro, con pausa y excepciones.
+
+Fuente de arquitectura: `docs/MENU_INTELLIGENCE_AND_POSTER.md`. Fuente verbal:
+`docs/design/foundations/IDENTITY_VERBAL.md`.
+
 ## Corte 2026-08-01 · antigüedad real y jerarquía de la ficha
 
 Se corrigió en toda la experiencia pública la forma de comunicar la antigüedad

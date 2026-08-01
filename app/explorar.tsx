@@ -81,7 +81,7 @@ function makeStyles(t: Theme) {
     patioInfo: { flex: 1, minWidth: 0, paddingRight: 8 },
     patioName: { fontSize: 15, lineHeight: 19, fontWeight: '900', fontFamily: Fonts.brand, color: t.text },
     patioMeta: { marginTop: 4, fontSize: 12, lineHeight: 16, fontWeight: '400', color: t.textSecondary },
-    patioContext: { marginTop: 3, flexDirection: 'row', alignItems: 'center', gap: 4 },
+    patioContext: { marginTop: 3, flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 4 },
     patioContextText: { fontSize: 10.5, fontWeight: '600', color: t.textSecondary },
     patioRight: { width: 82, flexShrink: 0, alignItems: 'flex-end', gap: 5 },
     patioPrice: { fontSize: 14, fontWeight: '400', color: t.textSecondary, letterSpacing: -0.1 },
@@ -360,11 +360,11 @@ export default function ExplorarScreen() {
             { opacity: idleLayerOpacity },
           ]}>
           <View style={s.bottomControls}>
-            <TouchableOpacity accessibilityLabel="Buscar comida" activeOpacity={0.82} onPress={openSearch} style={[s.searchPill, { flex: 1 }]}>
+            <TouchableOpacity accessibilityLabel="Buscar un platillo o lugar" activeOpacity={0.82} onPress={openSearch} style={[s.searchPill, { flex: 1 }]}>
               <BlurView intensity={theme.isDark ? 28 : 36} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
               <Ionicons name="search-outline" size={18} color={theme.textSecondary} />
               <Text style={{ fontSize: 16, fontWeight: '400', color: theme.textSecondary }}>
-                ¿Qué hay hoy?
+                ¿Qué se te antoja?
               </Text>
             </TouchableOpacity>
           </View>
@@ -384,12 +384,12 @@ export default function ExplorarScreen() {
                 <Ionicons name="chevron-back" size={20} color={theme.text} />
               </TouchableOpacity>
               <TextInput
-                accessibilityLabel="Buscar comida"
+                accessibilityLabel="Buscar un platillo o lugar"
                 ref={searchInputRef}
                 style={s.searchInput}
                 value={query}
                 onChangeText={handleQueryChange}
-                placeholder="¿Qué hay hoy?"
+                placeholder="Platillo o lugar"
                 placeholderTextColor={theme.textSecondary}
                 autoCorrect={false}
                 autoCapitalize="none"
@@ -494,10 +494,11 @@ export default function ExplorarScreen() {
                             distanceLabelForPatio(match.patio),
                           ].filter(Boolean).join(' · ')}
                         </Text>
-                        {(signal || match.patio.rating) && (
+                        {(signal || match.patio.rating || match.patio.isNeighborhoodFavorite) && (
                           <View style={s.patioContext}>
                             {!!match.patio.rating && match.patio.rating !== 'Nuevo' && <Text style={s.patioContextText}>★ {match.patio.rating}</Text>}
                             {!!signal && <Text style={[s.patioContextText, { color: theme.accent }]}>{match.patio.rating && match.patio.rating !== 'Nuevo' ? `· ${signal}` : signal}</Text>}
+                            {!!match.patio.isNeighborhoodFavorite && <Text style={[s.patioContextText, { color: theme.accent }]}>· Favorito del barrio</Text>}
                           </View>
                         )}
                       </View>
@@ -539,10 +540,11 @@ export default function ExplorarScreen() {
                     <View style={s.patioInfo}>
                       <Text style={s.patioName} numberOfLines={2} allowFontScaling={true}>{patio.name}</Text>
                       <Text style={s.patioMeta} numberOfLines={1} allowFontScaling={true}>{patio.category} · {patio.area} · {distanceLabelForPatio(patio)}</Text>
-                      {(signal || patio.rating) && (
+                      {(signal || patio.rating || patio.isNeighborhoodFavorite) && (
                         <View style={s.patioContext}>
                           {!!patio.rating && patio.rating !== 'Nuevo' && <Text style={s.patioContextText}>★ {patio.rating}</Text>}
                           {!!signal && <Text style={[s.patioContextText, { color: theme.accent }]}>{patio.rating && patio.rating !== 'Nuevo' ? `· ${signal}` : signal}</Text>}
+                          {!!patio.isNeighborhoodFavorite && <Text style={[s.patioContextText, { color: theme.accent }]}>· Favorito del barrio</Text>}
                         </View>
                       )}
                     </View>

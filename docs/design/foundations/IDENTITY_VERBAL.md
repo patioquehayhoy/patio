@@ -44,6 +44,12 @@ Reglas: no se modifican, no se parafrasean, no se "mejoran". `Saaaaaaabes.` se
 escribe siempre con sus 7 letras "a" y punto final. Cuando van juntos, el orden
 es siempre pregunta → firma: **¿Qué hay hoy? Saaaaaaabes.**
 
+**Copy contextual de búsqueda:** el claim no funciona como placeholder. En el
+mapa, la invitación es **`¿Qué se te antoja?`** y, una vez enfocado el campo, el
+placeholder operativo es **`Platillo o lugar`**. Apple separa la promesa de marca
+de la instrucción inmediata: el control dice qué puede hacer la persona en ese
+momento; no repite el eslogan.
+
 ---
 
 ## 2) El modelo de nombres — estilo Uber / Rappi

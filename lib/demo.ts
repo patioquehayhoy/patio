@@ -12,6 +12,8 @@ import { publicCurrency } from './prices';
 
 export const DEV_MY_PATIO_ID = 'demo-mi-patio';
 const DEV_PUBLISHED_MENU_KEY = '@patio_demo_published_menu';
+const DEV_PUBLISHED_MENU_VERSION_KEY = '@patio_demo_published_menu_version';
+const DEV_PUBLISHED_MENU_VERSION = '2-long-profile';
 
 function menuToSections(data: MenuData): PatioMenuSection[] {
   return data.secciones
@@ -46,13 +48,29 @@ function makeDemoMenu(): MenuData {
   return {
     secciones: [
       section('MENÚ DEL DÍA', [
-        ['Mole rojo con pollo', 'Con arroz rojo, frijoles y tortillas', '95'],
-        ['Enchiladas verdes', 'Pollo, crema, queso y cebolla', '90'],
-        ['Caldo tlalpeño', 'Con garbanzo, pollo y chipotle', '85'],
+        ['Sopa de tortilla', 'Aguacate, queso fresco y un toque de chile pasilla', '45'],
+        ['Arroz rojo de la casa', 'Preparado cada mañana con verduras', '35'],
+      ]),
+      section('GUISADOS · ELIGE UNO', [
+        ['Mole rojo con pollo', 'Con arroz rojo, frijoles y tortillas recién hechas', '110'],
+        ['Enchiladas verdes', 'Rellenas de pollo, con crema, queso y cebolla', '105'],
+        ['Chile relleno de queso', 'Capeado, en caldillo de jitomate y acompañado de arroz', '115'],
+        ['Albóndigas en chipotle', 'Carne de res, arroz blanco y frijoles de la olla', '110'],
+        ['Tinga de pollo', 'Con tostadas, crema, queso y salsa de la casa', '100'],
+      ]),
+      section('A LA CARTA', [
+        ['Milanesa de pollo', 'Con ensalada, papas y tortillas', '125'],
+        ['Enfrijoladas', 'Rellenas de queso, con crema y cebolla morada', '95'],
+        ['Tostadas de pata', 'Orden de tres con lechuga, crema y queso', '90'],
       ]),
       section('BEBIDAS', [
-        ['Agua de jamaica', '', '25'],
-        ['Agua de horchata', '', '25'],
+        ['Agua de jamaica', 'Vaso grande', '25'],
+        ['Agua de horchata', 'Vaso grande', '25'],
+        ['Refresco', '355 ml', '30'],
+      ]),
+      section('POSTRES', [
+        ['Flan napolitano', 'Hecho en casa', '40'],
+        ['Arroz con leche', 'Con canela', '35'],
       ]),
     ],
   };
@@ -79,7 +97,7 @@ export function makeDevPublishedPatio(data: MenuData): Patio {
     name: 'Mi Patio Demo',
     category: 'Fondita',
     area: 'Irrigación',
-    price: '$',
+    price: '$90–$125',
     address: 'Presa Salinillas 24',
     open: '8am-5pm',
     rating: 'Nuevo',
@@ -89,8 +107,18 @@ export function makeDevPublishedPatio(data: MenuData): Patio {
     x: 52,
     y: 45,
     menu: menuToSections(data),
-    payments: ['Efectivo', 'Transferencia'],
-    weeklyHours: null,
+    payments: ['Efectivo', 'Transferencia', 'Tarjeta'],
+    patioJoinedAt: '2026-07-25',
+    businessOpenedAt: '2012-04-01',
+    weeklyHours: [
+      { dia: 0, cerrado: true, abre: null, cierra: null },
+      { dia: 1, cerrado: false, abre: '08:00', cierra: '17:00' },
+      { dia: 2, cerrado: false, abre: '08:00', cierra: '17:00' },
+      { dia: 3, cerrado: false, abre: '08:00', cierra: '17:00' },
+      { dia: 4, cerrado: false, abre: '08:00', cierra: '17:00' },
+      { dia: 5, cerrado: false, abre: '08:00', cierra: '18:00' },
+      { dia: 6, cerrado: false, abre: '09:00', cierra: '15:00' },
+    ],
   };
 }
 
@@ -100,6 +128,123 @@ export async function getDevPublishedPatio(): Promise<Patio | null> {
 }
 
 export const DEMO_PATIOS: Patio[] = [
+  {
+    id: 'demo-patio-4',
+    name: 'Café Patio de Siempre',
+    category: 'Café y desayunos',
+    area: 'Irrigación',
+    price: '$75–$165',
+    address: 'Presa Las Pilas 18',
+    open: '8am-8pm',
+    rating: '4.5',
+    reason: 'Café de barrio para desayunar con calma',
+    latitude: 19.4446,
+    longitude: -99.2068,
+    x: 46,
+    y: 37,
+    menu: [
+      {
+        section: 'DESAYUNOS',
+        items: [
+          { name: 'Huevos de la casa', description: 'Con frijoles, salsa tatemada y pan', price: '$145', tags: ['huevos', 'desayuno'] },
+          { name: 'Molletes con pico de gallo', description: 'Pan artesanal y queso gratinado', price: '$115', tags: ['molletes', 'desayuno'] },
+          { name: 'Café y pan del día', price: '$75', tags: ['café', 'pan'] },
+        ],
+      },
+    ],
+    payments: ['Efectivo', 'Tarjeta', 'Transferencia'],
+    patioJoinedAt: '2024-03-15',
+    businessOpenedAt: '2016-08-20',
+    weeklyHours: [
+      { dia: 0, cerrado: false, abre: '09:00', cierra: '17:00' },
+      { dia: 1, cerrado: false, abre: '08:00', cierra: '20:00' },
+      { dia: 2, cerrado: false, abre: '08:00', cierra: '20:00' },
+      { dia: 3, cerrado: false, abre: '08:00', cierra: '20:00' },
+      { dia: 4, cerrado: false, abre: '08:00', cierra: '20:00' },
+      { dia: 5, cerrado: false, abre: '08:00', cierra: '20:00' },
+      { dia: 6, cerrado: false, abre: '09:00', cierra: '18:00' },
+    ],
+  },
+  {
+    id: 'demo-patio-3',
+    name: 'La Cocina de la Abuela, el Comal y los Sabores de San Rafael',
+    category: 'Cocina mexicana',
+    area: 'San Rafael',
+    price: '$165–$230',
+    address: 'Francisco Pimentel 74',
+    open: '8am-7pm',
+    rating: '4.7',
+    reason: 'Restaurante de barrio abierto desde 1998',
+    latitude: 19.4388,
+    longitude: -99.2027,
+    x: 58,
+    y: 64,
+    menu: [
+      {
+        section: 'ESPECIALIDADES',
+        items: [
+          { name: 'Chamorro en adobo', description: 'Con arroz, frijoles y tortillas', price: '$230', tags: ['chamorro', 'adobo'] },
+          { name: 'Chile relleno de picadillo', description: 'Capeado y servido en caldillo', price: '$175', tags: ['chile relleno', 'picadillo'] },
+          { name: 'Enmoladas de pollo', description: 'Mole de la casa, crema y queso', price: '$165', tags: ['mole', 'pollo'] },
+        ],
+      },
+    ],
+    payments: ['Efectivo', 'Tarjeta', 'Transferencia'],
+    patioJoinedAt: '2025-02-12',
+    businessOpenedAt: '1998-09-18',
+    weeklyHours: [
+      { dia: 0, cerrado: false, abre: '09:00', cierra: '17:00' },
+      { dia: 1, cerrado: false, abre: '08:00', cierra: '19:00' },
+      { dia: 2, cerrado: false, abre: '08:00', cierra: '19:00' },
+      { dia: 3, cerrado: false, abre: '08:00', cierra: '19:00' },
+      { dia: 4, cerrado: false, abre: '08:00', cierra: '19:00' },
+      { dia: 5, cerrado: false, abre: '08:00', cierra: '19:00' },
+      { dia: 6, cerrado: false, abre: '09:00', cierra: '18:00' },
+    ],
+  },
+  {
+    id: 'demo-patio-2',
+    name: 'Patio Demo 2',
+    category: 'Restaurante',
+    area: 'Anzures',
+    price: '$145–$185',
+    address: 'Calle Darwin 18',
+    open: '12pm-6pm · lun-vie',
+    rating: '2.0',
+    reason: 'Demo de un lugar recién abierto con oportunidades de mejora',
+    latitude: 19.4409,
+    longitude: -99.2091,
+    x: 36,
+    y: 48,
+    menu: [
+      {
+        section: 'COCINA',
+        items: [
+          { name: 'Pollo rostizado', description: 'Con papas y ensalada', price: '$185', tags: ['pollo', 'rostizado'] },
+          { name: 'Sándwich de portobello', description: 'Pan de masa madre y hojas verdes', price: '$145', tags: ['vegetariano', 'sandwich'] },
+        ],
+      },
+      {
+        section: 'BEBIDAS',
+        items: [
+          { name: 'Agua mineral', price: '$45', tags: ['agua', 'bebida'] },
+          { name: 'Café frío', price: '$70', tags: ['cafe', 'bebida'] },
+        ],
+      },
+    ],
+    payments: ['Efectivo', 'Tarjeta', 'Transferencia'],
+    patioJoinedAt: '2026-07-28',
+    businessOpenedAt: '2026-07-10',
+    weeklyHours: [
+      { dia: 0, cerrado: true, abre: null, cierra: null },
+      { dia: 1, cerrado: false, abre: '12:00', cierra: '18:00' },
+      { dia: 2, cerrado: false, abre: '12:00', cierra: '18:00' },
+      { dia: 3, cerrado: false, abre: '12:00', cierra: '18:00' },
+      { dia: 4, cerrado: false, abre: '12:00', cierra: '18:00' },
+      { dia: 5, cerrado: false, abre: '12:00', cierra: '18:00' },
+      { dia: 6, cerrado: true, abre: null, cierra: null },
+    ],
+  },
   {
     id: 'demo-elotes-lupita',
     name: 'Elotes Doña Lupita',
@@ -125,6 +270,7 @@ export const DEMO_PATIOS: Patio[] = [
       },
     ],
     payments: ['Efectivo'],
+    businessOpenedAt: '2004-02-14',
     weeklyHours: null,
   },
   {
@@ -153,6 +299,7 @@ export const DEMO_PATIOS: Patio[] = [
       { section: 'BEBIDAS', items: [{ name: 'Refresco', tags: ['bebida'] }, { name: 'Malteada de fresa', price: '$60', tags: ['malteada', 'bebida'] }] },
     ],
     payments: ['Efectivo', 'Transferencia'],
+    businessOpenedAt: '2019-06-08',
     weeklyHours: null,
   },
   {
@@ -186,6 +333,7 @@ export const DEMO_PATIOS: Patio[] = [
       },
     ],
     payments: ['Efectivo', 'Tarjeta'],
+    businessOpenedAt: '2008-03-22',
     weeklyHours: null,
     soldOut: true,
   },
@@ -215,6 +363,7 @@ export const DEMO_PATIOS: Patio[] = [
       },
     ],
     payments: ['Efectivo', 'Transferencia'],
+    businessOpenedAt: '2014-09-05',
     weeklyHours: null,
   },
   {
@@ -242,6 +391,7 @@ export const DEMO_PATIOS: Patio[] = [
       },
     ],
     payments: ['Efectivo'],
+    businessOpenedAt: '2001-11-17',
     weeklyHours: null,
   },
   {
@@ -269,6 +419,7 @@ export const DEMO_PATIOS: Patio[] = [
       },
     ],
     payments: ['Efectivo', 'Tarjeta', 'Transferencia'],
+    businessOpenedAt: '2017-05-12',
     weeklyHours: null,
   },
   {
@@ -302,6 +453,7 @@ export const DEMO_PATIOS: Patio[] = [
       },
     ],
     payments: ['Efectivo'],
+    businessOpenedAt: '2021-01-09',
     weeklyHours: null,
   },
 ];
@@ -313,8 +465,16 @@ const DEMO_VIEWED = ['demo-jugos-sol', 'demo-burgers-charly', 'demo-mariscos-gü
 
 export async function seedDemoFoodie(): Promise<void> {
   if (!__DEV__) return;
-  const [saved, viewed, published] = await Promise.all([getFavoritePatioIds(), getViewedPatioIds(), getDevPublishedMenu()]);
-  if (!published) await saveDevPublishedMenu(makeDemoMenu());
+  const [saved, viewed, published, menuVersion] = await Promise.all([
+    getFavoritePatioIds(),
+    getViewedPatioIds(),
+    getDevPublishedMenu(),
+    AsyncStorage.getItem(DEV_PUBLISHED_MENU_VERSION_KEY),
+  ]);
+  if (!published || menuVersion !== DEV_PUBLISHED_MENU_VERSION) {
+    await saveDevPublishedMenu(makeDemoMenu());
+    await AsyncStorage.setItem(DEV_PUBLISHED_MENU_VERSION_KEY, DEV_PUBLISHED_MENU_VERSION);
+  }
   if (saved.length === 0) await setFavoritePatioIds(DEMO_SAVED);
   if (viewed.length <= 5) {
     // Registrar en orden inverso deja el primero de la lista como el más reciente.

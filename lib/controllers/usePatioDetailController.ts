@@ -13,13 +13,71 @@ import {
   proximaApertura,
   resumenHorario,
 } from '@/lib/horario';
-import { fetchMenuForFondita } from '@/lib/menu';
+import { cleanMenuDescription, cleanMenuText, fetchMenuForFondita } from '@/lib/menu';
 import { fetchFonditaById, getPatioById, type Patio, type PatioMenuSection } from '@/lib/patios';
 import { publicCurrency, publicPrice } from '@/lib/prices';
 import { getPatioRating, getPublicPatioReviews, type PatioRating, type PublicPatioReview } from '@/lib/ratings';
 import { registerPatioView } from '@/lib/stats';
 
 type PatioParam = string | string[] | undefined;
+
+const DEMO_PROFILE_REVIEWS: PublicPatioReview[] = [
+  {
+    userId: 'demo-review-sofia',
+    author: 'Sofía R.',
+    stars: 5,
+    reasons: ['Sabor casero', 'Buena porción'],
+    note: 'El mole está muy bien servido y las tortillas llegan calientes. Regresaría por las enchiladas.',
+    timestamp: Date.now() - 1000 * 60 * 60 * 26,
+    businessReply: 'Gracias, Sofía. El mole lo preparamos desde temprano; aquí te esperamos.',
+    isMine: false,
+  },
+  {
+    userId: 'demo-review-diego',
+    author: 'Diego M.',
+    stars: 4,
+    reasons: ['Precio justo', 'Servicio amable'],
+    note: 'Comida sencilla y rica. Al mediodía se llena, pero avanzan rápido.',
+    timestamp: Date.now() - 1000 * 60 * 60 * 52,
+    isMine: false,
+  },
+  {
+    userId: 'demo-review-mariana',
+    author: 'Mariana L.',
+    stars: 5,
+    reasons: ['Menú variado'],
+    note: 'Probé el chile relleno y el agua de horchata. Todo se sintió fresco.',
+    timestamp: Date.now() - 1000 * 60 * 60 * 80,
+    isMine: false,
+  },
+];
+
+const DEMO_CRITICAL_REVIEWS: PublicPatioReview[] = [
+  { userId: 'demo-critical-1', author: 'Ana P.', stars: 2, reasons: ['Servicio lento'], note: 'La idea es buena, pero esperamos demasiado y varios platos llegaron fríos.', timestamp: Date.now() - 1000 * 60 * 60 * 20, isMine: false },
+  { userId: 'demo-critical-2', author: 'Luis G.', stars: 1, reasons: ['No coincidió'], note: 'El menú publicado no coincidía con lo que tenían disponible al llegar.', timestamp: Date.now() - 1000 * 60 * 60 * 46, isMine: false },
+  { userId: 'demo-critical-3', author: 'Majo C.', stars: 2, reasons: ['Porción pequeña'], note: 'El lugar se ve bien, aunque la porción fue menor de lo esperado por el precio.', timestamp: Date.now() - 1000 * 60 * 60 * 73, businessReply: 'Gracias por decirnos. Estamos ajustando porciones y tiempos durante estas primeras semanas.', isMine: false },
+  { userId: 'demo-critical-4', author: 'Raúl V.', stars: 3, reasons: ['Buen ambiente'], note: 'Buen ambiente y café, todavía tienen que mejorar la coordinación del servicio.', timestamp: Date.now() - 1000 * 60 * 60 * 96, isMine: false },
+];
+
+const DEMO_ESTABLISHED_REVIEWS: PublicPatioReview[] = [
+  { userId: 'demo-established-1', author: 'Fernanda T.', stars: 5, reasons: ['Sabor casero'], note: 'Venimos desde hace años. El chamorro sigue siendo el plato que siempre pedimos.', timestamp: Date.now() - 1000 * 60 * 60 * 30, isMine: false },
+  { userId: 'demo-established-2', author: 'Jorge A.', stars: 4, reasons: ['Servicio amable'], note: 'Porciones generosas y servicio atento. Los domingos suele llenarse.', timestamp: Date.now() - 1000 * 60 * 60 * 70, isMine: false },
+  { userId: 'demo-established-3', author: 'Pilar N.', stars: 5, reasons: ['Buena porción', 'Sabor casero'], note: 'Las enmoladas y el chile relleno valen mucho la visita.', timestamp: Date.now() - 1000 * 60 * 60 * 118, isMine: false },
+];
+
+const DEMO_LONGTIME_PATIO_REVIEWS: PublicPatioReview[] = [
+  { userId: 'demo-longtime-1', author: 'Elena C.', stars: 5, reasons: ['Buen café', 'Servicio amable'], note: 'Es de esos lugares confiables a los que siempre se puede volver.', timestamp: Date.now() - 1000 * 60 * 60 * 40, isMine: false },
+  { userId: 'demo-longtime-2', author: 'Marco V.', stars: 4, reasons: ['Ambiente tranquilo'], note: 'Buen desayuno y atención constante desde hace tiempo.', timestamp: Date.now() - 1000 * 60 * 60 * 92, isMine: false },
+];
+
+function withDemoProfileReviews(patioId: string, reviews: PublicPatioReview[]) {
+  if (!__DEV__) return reviews;
+  if (patioId === 'demo-mi-patio') return [...reviews, ...DEMO_PROFILE_REVIEWS];
+  if (patioId === 'demo-patio-2') return [...reviews, ...DEMO_CRITICAL_REVIEWS];
+  if (patioId === 'demo-patio-3') return [...reviews, ...DEMO_ESTABLISHED_REVIEWS];
+  if (patioId === 'demo-patio-4') return [...reviews, ...DEMO_LONGTIME_PATIO_REVIEWS];
+  return reviews;
+}
 
 function cleanParam(id: PatioParam): string | undefined {
   return Array.isArray(id) ? id[0] : id;
@@ -91,7 +149,7 @@ export function usePatioDetailController(id: PatioParam) {
       Promise.all([getPatioRating(patioId), getPublicPatioReviews(patioId), getFavoritePatioIds()]).then(([rating, publicReviews, favoriteIds]) => {
         if (active) {
           setUserReview(rating);
-          setReviews(publicReviews);
+          setReviews(withDemoProfileReviews(patioId, publicReviews));
           setIsSaved(favoriteIds.includes(patioId));
         }
       });
@@ -104,7 +162,25 @@ export function usePatioDetailController(id: PatioParam) {
   const status = useMemo(() => (patio ? patioStatus(patio) : null), [patio]);
   const isClosed = status === false;
   const soldOut = patio?.soldOut === true;
-  const sections = useMemo(() => liveMenu ?? patio?.menu ?? [], [liveMenu, patio]);
+  const sections = useMemo(
+    () => (liveMenu ?? patio?.menu ?? []).map((section) => ({
+      ...section,
+      section: cleanMenuText(section.section) || section.section,
+      items: section.items.map((item) => ({
+        ...item,
+        name: cleanMenuText(item.name) || item.name,
+        ...(() => {
+          const description = cleanMenuDescription(item.description);
+          const inferredPrice = !item.price && description?.match(/^\(\s*(\$\s*[\d,.]+)\s*\)$/)?.[1];
+          return {
+            description: inferredPrice ? undefined : description,
+            price: item.price || inferredPrice,
+          };
+        })(),
+      })),
+    })),
+    [liveMenu, patio],
+  );
   const hoy = useMemo(() => (patio ? horarioDeHoy(patio.weeklyHours) : null), [patio]);
   const rangoHoy = useMemo(() => {
     if (!patio) return '';

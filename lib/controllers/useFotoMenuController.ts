@@ -61,6 +61,18 @@ function visionToMenu(sections: MenuSeccion[], menuPrice: string): MenuData {
     .replace(/\b(?:men[uú]|menu)\b/gi, '')
     .replace(/\s{2,}/g, ' ')
     .trim();
+  const cleanDescription = (value: string) => clean(value)
+    .replace(/^opciones(?:\s+de\s+(?:preparaci[oó]n|relleno))?\s*:\s*/i, '')
+    .replace(/^opciones\s*:\s*/i, '')
+    .trim();
+  const descriptionPrice = (value: string) => {
+    const matches = [...value.matchAll(/\$\s*(\d+(?:[.,]\d{1,2})?)/g)];
+    return matches.length === 1 ? matches[0][1].replace(',', '.') : '';
+  };
+  const withoutSinglePrice = (value: string) => {
+    if (!descriptionPrice(value)) return value;
+    return value.replace(/(?:\s*[·•-]?\s*)?\$\s*\d+(?:[.,]\d{1,2})?\s*[.]?/g, '').trim();
+  };
 
   return {
     secciones: sections.map((section, index) => ({
@@ -72,16 +84,20 @@ function visionToMenu(sections: MenuSeccion[], menuPrice: string): MenuData {
       precio: index === 0
         ? price(menuPrice || section.precioSeccion)
         : price(section.precioSeccion),
-      platillos: section.platillos.map((dish) => ({
+      platillos: section.platillos.map((dish) => {
+        const description = cleanDescription(dish.descripcion ?? '');
+        const extractedPrice = price(dish.precio) || descriptionPrice(description);
+        return {
         id: makePlatilloId(),
         nombre: clean(dish.nombre),
-        descripcion: clean(dish.descripcion ?? ''),
-        precio: price(dish.precio),
+        descripcion: cleanDescription(withoutSinglePrice(description)),
+        precio: extractedPrice,
         confianza: dish.confianza,
-        revision: dish.requiereRevision
-          ? (dish.motivoRevision?.trim() || 'Confirma que este texto sea un platillo.')
+        revision: dish.requiereRevision && !/precio|\$|importe/i.test(dish.motivoRevision ?? '')
+          ? (dish.motivoRevision?.trim() || 'Revisa este platillo.')
           : undefined,
-      })),
+        };
+      }),
     })),
   };
 }

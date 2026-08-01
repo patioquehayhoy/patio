@@ -3,6 +3,21 @@ import type { Patio, PatioMenuSection, PatioDishMatch } from './patios';
 import type { MenuData } from './menu-store';
 import { publicCurrency } from './prices';
 
+export function cleanMenuText(value?: string): string | undefined {
+  if (!value) return undefined;
+  const cleaned = value
+    .replace(/^\s*opciones(?:\s+de\s+(?:preparaci[oó]n|relleno))?\s*:\s*/i, '')
+    .replace(/\(\s*precio\s+no\s+(?:disponible|visible)\s*\)/gi, '')
+    .replace(/\bprecio\s+no\s+(?:disponible|visible)\b/gi, '')
+    .replace(/\s+([,.;:])/g, '$1')
+    .replace(/^[\s,.;:·-]+|[\s,;:·-]+$/g, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+  return cleaned || undefined;
+}
+
+export const cleanMenuDescription = cleanMenuText;
+
 function hoy(): string {
   return new Date().toISOString().split('T')[0];
 }
@@ -11,13 +26,13 @@ function menuDataToSections(data: MenuData): PatioMenuSection[] {
   return data.secciones
     .filter((sec) => sec.platillos.some((p) => p.nombre))
     .map((sec) => ({
-      section: sec.nombre,
+      section: cleanMenuText(sec.nombre) || sec.nombre,
       price: publicCurrency(sec.precio) || undefined,
       items: sec.platillos
         .filter((p) => p.nombre)
         .map((p) => ({
-          name: p.nombre,
-          description: p.descripcion || undefined,
+          name: cleanMenuText(p.nombre) || p.nombre,
+          description: cleanMenuDescription(p.descripcion),
           price: publicCurrency(p.precio) || undefined,
         })),
     }));

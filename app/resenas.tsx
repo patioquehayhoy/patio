@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { fonderoPalette } from '@/lib/fondero-palette';
-import { getFonditaId } from '@/lib/menu-store';
+import { getFonditaId, getFonditaName } from '@/lib/menu-store';
 import { getPublicPatioReviews, replyToReview, type PublicPatioReview } from '@/lib/ratings';
 import { getDemoPatioStats, type PatioStatsSnapshot } from '@/lib/patio-stats';
 import { useTabBarScroll } from '@/lib/tab-bar-visibility';
@@ -24,8 +24,12 @@ export default function ResenasScreen() {
   const [demo, setDemo] = useState<PatioStatsSnapshot | null>(null);
   const load = useCallback(() => {
     const fonditaId = getFonditaId();
-    if (!fonditaId) return;
-    setDemo(getDemoPatioStats(fonditaId));
+    const demoSeed = fonditaId || getFonditaName() || 'patio-demo';
+    setDemo(getDemoPatioStats(demoSeed));
+    if (!fonditaId) {
+      setReviews([]);
+      return;
+    }
     getPublicPatioReviews(fonditaId).then(setReviews).catch(() => setReviews([]));
   }, []);
   useFocusEffect(load);
@@ -48,40 +52,38 @@ export default function ResenasScreen() {
       <ScrollView onScroll={onScroll} scrollEventThrottle={16} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 24, paddingBottom: insets.bottom + 130 }} showsVerticalScrollIndicator={false}>
         <Text style={[s.eyebrow, { color: c.accent }]}>MI PATIO</Text>
         <Text style={[s.title, { color: c.text }]}>Actividad</Text>
-        <Text style={[s.subtitle, { color: c.textSecondary }]}>{noWidow('Cómo responde la gente a lo que publicas.')}</Text>
 
         {demo && (
           <>
-            <View style={s.metrics}>
-              <View style={[s.metric, { backgroundColor: c.surface, borderColor: c.border }]}>
-                <Text style={[s.metricValue, { color: c.text }]}>{demo.views}</Text>
-                <Text style={[s.metricLabel, { color: c.textMute }]}>VISTAS</Text>
+            <View style={[s.summary, { backgroundColor: c.surface, borderColor: c.border }]}>
+              <View style={s.primaryMetric}>
+                <Text style={[s.primaryValue, { color: c.text }]}>{demo.views}</Text>
+                <Text style={[s.primaryLabel, { color: c.textSecondary }]}>Vistas</Text>
               </View>
-              <View style={[s.metric, { backgroundColor: c.surface, borderColor: c.border }]}>
-                <Text style={[s.metricValue, { color: c.text }]}>{demo.ratingAvg}</Text>
-                <Text style={[s.metricLabel, { color: c.textMute }]}>PROMEDIO</Text>
-              </View>
-              <View style={[s.metric, { backgroundColor: c.surface, borderColor: c.border }]}>
-                <Text style={[s.metricValue, { color: c.text }]}>{demo.ratingCount}</Text>
-                <Text style={[s.metricLabel, { color: c.textMute }]}>RESEÑAS</Text>
+              <View style={[s.summaryDetails, { borderLeftColor: c.border }]}>
+                <View style={s.summaryRow}>
+                  <Text style={[s.summaryLabel, { color: c.textSecondary }]}>Calificación</Text>
+                  <Text style={[s.summaryValue, { color: c.text }]}>{demo.ratingAvg} <Text style={{ color: c.accent }}>★</Text></Text>
+                </View>
+                <View style={[s.summaryRow, s.summaryRowLast, { borderTopColor: c.border }]}>
+                  <Text style={[s.summaryLabel, { color: c.textSecondary }]}>Reseñas</Text>
+                  <Text style={[s.summaryValue, { color: c.text }]}>{demo.ratingCount}</Text>
+                </View>
               </View>
             </View>
-            <Text style={[s.demoCaption, { color: c.textMute }]}>DATOS DE DEMOSTRACIÓN · SOLO DEV</Text>
           </>
         )}
 
         {reviews.length ? (
           <>
-            <Text style={[s.sectionLabel, { color: c.textMute }]}>ACONTECIMIENTOS RECIENTES</Text>
             <View style={[s.list, { borderColor: c.border }]}>
               {reviews.map((review, index) => (
                 <View
                   key={`${review.author}-${index}`}
                   style={[s.reviewCard, index > 0 && { borderTopColor: c.border, borderTopWidth: StyleSheet.hairlineWidth }]}>
                   <View style={s.eventHead}>
-                    <View style={[s.eventIcon, { backgroundColor: c.iconBg }]}><Ionicons name="chatbubble-outline" size={15} color={c.accent} /></View>
                     <View style={{ flex: 1 }}>
-                      <Text style={[s.eventTitle, { color: c.text }]}>{review.author} dejó una reseña</Text>
+                      <Text style={[s.eventTitle, { color: c.text }]}>{review.author}</Text>
                       <Text style={[s.reviewMeta, { color: c.textMute }]}>{new Date(review.timestamp).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })}</Text>
                     </View>
                   </View>
@@ -127,14 +129,12 @@ export default function ResenasScreen() {
           </>
         ) : demo ? (
           <>
-            <Text style={[s.sectionLabel, { color: c.textMute }]}>ACTIVIDAD RECIENTE</Text>
             <View style={[s.list, { borderColor: c.border }]}>
               {demo.reviews.map((review, index) => (
                 <View key={`${review.author}-${index}`} style={[s.reviewCard, index > 0 && { borderTopColor: c.border, borderTopWidth: StyleSheet.hairlineWidth }]}>
                   <View style={s.eventHead}>
-                    <View style={[s.eventIcon, { backgroundColor: c.iconBg }]}><Ionicons name="person-outline" size={15} color={c.accent} /></View>
                     <View style={{ flex: 1 }}>
-                      <Text style={[s.eventTitle, { color: c.text }]}>{review.author} dejó una reseña</Text>
+                      <Text style={[s.eventTitle, { color: c.text }]}>{review.author}</Text>
                       <Text style={[s.reviewMeta, { color: c.textMute }]}>Hace {review.daysAgo} {review.daysAgo === 1 ? 'día' : 'días'}</Text>
                     </View>
                     <Text style={[s.demoStars, { color: c.accent }]}>★ {review.stars}</Text>
@@ -163,21 +163,23 @@ export default function ResenasScreen() {
 const s = StyleSheet.create({
   root: { flex: 1 },
   eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.5, marginBottom: 8 },
-  title: { fontSize: 34, lineHeight: 37, fontWeight: '900', letterSpacing: -1.2, fontFamily: Fonts.brand },
+  title: { fontSize: 36, lineHeight: 40, fontWeight: '900', letterSpacing: -1.2, fontFamily: Fonts.brand },
   subtitle: { marginTop: 8, fontSize: 14, lineHeight: 20 },
-  metrics: { marginTop: 24, flexDirection: 'row', gap: 8 },
-  metric: { flex: 1, minHeight: 86, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
-  metricValue: { fontFamily: Fonts.brand, fontSize: 25, lineHeight: 29, fontWeight: '900' },
-  metricLabel: { marginTop: 4, fontSize: 9.5, fontWeight: '700', letterSpacing: 1 },
-  demoCaption: { marginTop: 8, textAlign: 'right', fontSize: 9, fontWeight: '700', letterSpacing: 0.8 },
+  summary: { marginTop: 20, marginBottom: 24, minHeight: 126, borderRadius: 22, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', overflow: 'hidden' },
+  primaryMetric: { flex: 1.05, paddingHorizontal: 20, justifyContent: 'center' },
+  primaryValue: { fontFamily: Fonts.brand, fontSize: 38, lineHeight: 42, fontWeight: '900', letterSpacing: -1 },
+  primaryLabel: { marginTop: 2, fontSize: 13, fontWeight: '500' },
+  summaryDetails: { flex: 1, marginVertical: 18, borderLeftWidth: StyleSheet.hairlineWidth, paddingLeft: 18, paddingRight: 18 },
+  summaryRow: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
+  summaryRowLast: { borderTopWidth: StyleSheet.hairlineWidth },
+  summaryLabel: { fontSize: 12, fontWeight: '500' },
+  summaryValue: { fontFamily: Fonts.brand, fontSize: 17, fontWeight: '800' },
   demoStars: { fontSize: 13, fontWeight: '700' },
 
-  sectionLabel: { marginTop: 28, marginBottom: 8, fontSize: 11, fontWeight: '700', letterSpacing: 1.6, textTransform: 'uppercase' },
   list: { borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
   reviewCard: { paddingHorizontal: 16, paddingVertical: 14 },
   reviewHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   eventHead: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 },
-  eventIcon: { width: 34, height: 34, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
   eventTitle: { fontSize: 14, fontWeight: '700' },
   starsRow: { flexDirection: 'row', gap: 2 },
   reviewMeta: { fontSize: 11.5, fontWeight: '400' },

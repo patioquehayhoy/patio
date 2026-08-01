@@ -1,10 +1,13 @@
 import { router, usePathname } from 'expo-router';
 import { BlurView } from 'expo-blur';
-import { Keyboard, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Animated, Keyboard, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useEffect } from 'react';
 
 import { useTheme } from '@/lib/theme';
+import { useTabBarTranslate } from '@/lib/tab-bar-visibility';
 
 // Destinos raíz por tarea. Crear un menú es una acción dentro de Menús,
 // no una sección que compita permanentemente con el resto de la app.
@@ -48,6 +51,10 @@ export function BottomTabBar({ variant = 'fondero' }: { variant?: 'foodie' | 'fo
   const pathname = usePathname();
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
+  const { translateY, reveal } = useTabBarTranslate();
+  useEffect(() => {
+    reveal();
+  }, [pathname, reveal]);
   // El COLOR de la barra sigue el tema real de la app (claro/oscuro), no el rol.
   // Antes usaba `variant === 'fondero'` → en modo oscuro + pantalla Foodie la barra
   // salía blanca. `variant` ahora SOLO decide qué tabs se muestran.
@@ -55,7 +62,15 @@ export function BottomTabBar({ variant = 'fondero' }: { variant?: 'foodie' | 'fo
   const c = isDark ? DARK : LIGHT;
   const tabs = variant === 'foodie' ? FOODIE_TABS : FONDERO_TABS;
   return (
-    <View style={[styles.wrap, { bottom: (insets.bottom || 10) + 4 }]}>
+    <Animated.View style={[styles.wrap, { bottom: (insets.bottom || 10) + 4 }, translateY ? { transform: [{ translateY }] } : null]}>
+      <LinearGradient
+        colors={isDark
+          ? ['rgba(17,18,20,0)', 'rgba(17,18,20,0.58)']
+          : ['rgba(248,248,245,0)', 'rgba(248,248,245,0.78)']}
+        locations={[0, 1]}
+        pointerEvents="none"
+        style={[styles.readabilityGradient, { bottom: -(insets.bottom + 14) }]}
+      />
       {__DEV__ && <Text style={[styles.version, { color: c.mute }]}>DEV</Text>}
       <View style={[styles.pill, { backgroundColor: c.pill, borderColor: c.border }]}>
         <BlurView
@@ -68,6 +83,7 @@ export function BottomTabBar({ variant = 'fondero' }: { variant?: 'foodie' | 'fo
           const active = pathname === path;
           const onTabPress = () => {
             Keyboard.dismiss();
+            reveal();
             // Navegamos SIEMPRE, sin guard. Antes el `if (!active)` dependía de
             // usePathname (que puede ir un frame atrasado) y "a veces no navegaba".
             // router.replace a la ruta actual es no-op visual en expo-router, así que
@@ -82,24 +98,25 @@ export function BottomTabBar({ variant = 'fondero' }: { variant?: 'foodie' | 'fo
               activeOpacity={0.7}
               hitSlop={{ top: 10, bottom: 10, left: 6, right: 6 }}
               onPress={onTabPress}>
-              <Ionicons name={icon} size={25} color={active ? c.accent : c.mute} />
+              <Ionicons name={icon} size={22} color={active ? c.accent : c.mute} />
             </TouchableOpacity>
           );
         })}
       </View>
-    </View>
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
   wrap: { position: 'absolute', left: 0, right: 0, alignItems: 'center', zIndex: 100, elevation: 100 },
+  readabilityGradient: { position: 'absolute', left: 0, right: 0, height: 112 },
   version: { marginBottom: 5, textAlign: 'center', fontSize: 9, fontWeight: '700', letterSpacing: 0.6 },
   pill: {
     flexDirection: 'row',
-    gap: 5,
-    paddingVertical: 7,
-    paddingHorizontal: 8,
-    borderRadius: 30,
+    gap: 2,
+    paddingVertical: 4.5,
+    paddingHorizontal: 6,
+    borderRadius: 25,
     borderWidth: StyleSheet.hairlineWidth,
     overflow: 'hidden',
     shadowColor: '#000',
@@ -108,5 +125,5 @@ const styles = StyleSheet.create({
     shadowRadius: 30,
     elevation: 8,
   },
-  tab: { width: 54, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center' },
+  tab: { width: 49, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
 });

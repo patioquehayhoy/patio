@@ -4,6 +4,7 @@ import { Animated, Dimensions, Modal, StyleSheet, Text, TouchableOpacity, Toucha
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Fonts, useTheme, type Theme } from '@/lib/theme';
+import { noWidow } from '@/lib/typography';
 
 const SCREEN_HEIGHT = Dimensions.get('screen').height;
 
@@ -59,8 +60,8 @@ export function HintSheet({ visible, icon, title, body, primaryLabel, onPrimary,
           <View style={s.iconBadge}>
             <Ionicons name={icon} size={28} color={theme.accent} />
           </View>
-          <Text style={s.title} allowFontScaling={true}>{title}</Text>
-          <Text style={s.body} allowFontScaling={true}>{body}</Text>
+          <Text style={s.title} allowFontScaling={true}>{noWidow(title)}</Text>
+          <Text style={s.body} allowFontScaling={true}>{noWidow(body)}</Text>
           <TouchableOpacity style={s.primaryBtn} onPress={handlePrimary} activeOpacity={0.86}>
             <Text style={s.primaryText} allowFontScaling={true}>{primaryLabel}</Text>
           </TouchableOpacity>

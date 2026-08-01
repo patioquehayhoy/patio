@@ -80,22 +80,22 @@ export default function CollectionsScreen() {
 
       {!!collections.length && <Text style={[s.sectionLabel, { color: theme.textSecondary }]}>TUS LISTAS</Text>}
       <View style={[s.collectionList, { backgroundColor: theme.surface, borderColor: theme.border }]}>{collections.map((collection, index) => (
-        <TouchableOpacity key={collection.id} style={[s.collectionCard, { borderColor: theme.border, backgroundColor: theme.surface }]} onPress={() => router.push({ pathname: '/coleccion/[id]', params: { id: collection.id } })} onLongPress={() => shareCollection(collection)}>
-          <View style={[s.icon, { backgroundColor: theme.accentSoft }]}><Ionicons name="layers-outline" size={20} color={theme.accent} /></View>
+        <TouchableOpacity key={collection.id} style={[s.collectionCard, { borderColor: theme.border, backgroundColor: theme.surface }]} onPress={() => router.replace({ pathname: '/explorar', params: { collection: collection.id } })} onLongPress={() => shareCollection(collection)}>
+          <View style={[s.icon, { backgroundColor: theme.isDark ? 'rgba(255,255,255,0.06)' : 'rgba(17,18,20,0.04)' }]}><Ionicons name="folder-outline" size={20} color={theme.textSecondary} /></View>
           <View style={s.copy}>
             <Text style={[s.rowTitle, { color: theme.text }]}>{collection.title}</Text>
             <Text style={[s.rowMeta, { color: theme.textSecondary }]}>{collection.patioIds.length} {collection.patioIds.length === 1 ? 'lugar' : 'lugares'}</Text>
           </View>
           <TouchableOpacity
-            accessibilityLabel={`Ver ${collection.title} en el mapa`}
+            accessibilityLabel={`Editar ${collection.title}`}
             style={s.mapButton}
             onPress={(event) => {
               event.stopPropagation();
-              router.replace({ pathname: '/explorar', params: { collection: collection.id } });
+              router.push({ pathname: '/coleccion/[id]', params: { id: collection.id } });
             }}>
-            <Ionicons name="map-outline" size={18} color={theme.textSecondary} />
+            <Ionicons name="ellipsis-horizontal" size={18} color={theme.textSecondary} />
           </TouchableOpacity>
-          <Ionicons name="chevron-forward" size={15} color={theme.textMute} />
+          <Ionicons name="map-outline" size={17} color={theme.textMute} />
           {index < collections.length - 1 && <View style={[s.rowDivider, { backgroundColor: theme.border }]} />}
         </TouchableOpacity>
       ))}</View>

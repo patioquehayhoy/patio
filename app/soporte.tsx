@@ -5,6 +5,7 @@ import { Linking, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, Vie
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Fonts, Radius, useTheme } from '@/lib/theme';
+import { noWidow } from '@/lib/typography';
 
 const SUPPORT_EMAIL = 'quehayhoy.patio@gmail.com';
 const TOPICS = [
@@ -42,17 +43,17 @@ export default function SoporteScreen() {
       {!topic ? (
         <ScrollView contentContainerStyle={[s.content, { paddingBottom: insets.bottom + 32 }]}>
           <Text style={[s.eyebrow, { color: theme.accent }]}>SOPORTE GUIADO</Text>
-          <Text style={[s.title, { color: theme.text }]}>¿Con qué te ayudamos?</Text>
-          <Text style={[s.subtitle, { color: theme.textSecondary }]}>Elige el tema para llevar tu mensaje al lugar correcto.</Text>
+          <Text style={[s.title, { color: theme.text }]}>{noWidow('¿Con qué te ayudamos?')}</Text>
+          <Text style={[s.subtitle, { color: theme.textSecondary }]}>{noWidow('Elige el tema para llevar tu mensaje al lugar correcto.')}</Text>
           <View style={[s.list, { backgroundColor: theme.surface, borderColor: theme.border }]}>
             {TOPICS.map((item, index) => (
               <TouchableOpacity key={item.id} style={[s.row, index > 0 && { borderTopColor: theme.border, borderTopWidth: StyleSheet.hairlineWidth }]} onPress={() => setTopic(item)}>
-                <View style={[s.icon, { backgroundColor: theme.accentSoft }]}>
-                  <Ionicons name={item.icon} size={18} color={theme.accent} />
+                <View style={[s.icon, { backgroundColor: theme.isDark ? 'rgba(255,255,255,0.06)' : 'rgba(17,18,20,0.04)' }]}>
+                  <Ionicons name={item.icon} size={18} color={theme.textSecondary} />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={[s.rowTitle, { color: theme.text }]}>{item.title}</Text>
-                  <Text style={[s.rowHint, { color: theme.textSecondary }]}>{item.hint}</Text>
+                  <Text style={[s.rowTitle, { color: theme.text }]}>{noWidow(item.title)}</Text>
+                  <Text style={[s.rowHint, { color: theme.textSecondary }]}>{noWidow(item.hint)}</Text>
                 </View>
                 <Ionicons name="chevron-forward" size={17} color={theme.textMute} />
               </TouchableOpacity>
@@ -62,8 +63,8 @@ export default function SoporteScreen() {
       ) : (
         <View style={[s.content, { flex: 1, paddingBottom: insets.bottom + 24 }]}>
           <Text style={[s.eyebrow, { color: theme.accent }]}>{topic.title.toUpperCase()}</Text>
-          <Text style={[s.title, { color: theme.text }]}>Cuéntanos qué pasó</Text>
-          <Text style={[s.subtitle, { color: theme.textSecondary }]}>Incluye lo necesario para reproducirlo. No escribas contraseñas ni códigos.</Text>
+          <Text style={[s.title, { color: theme.text }]}>{noWidow('Cuéntanos qué pasó')}</Text>
+          <Text style={[s.subtitle, { color: theme.textSecondary }]}>{noWidow('Incluye lo necesario para reproducirlo. No escribas contraseñas ni códigos.')}</Text>
           <View style={[s.field, { backgroundColor: theme.surface, borderColor: theme.border }]}>
             <TextInput
               value={detail}

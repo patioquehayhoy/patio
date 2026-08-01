@@ -1,5 +1,27 @@
 # HANDOFF
 
+## Corte 2026-08-01 · antigüedad real y jerarquía de la ficha
+
+Se corrigió en toda la experiencia pública la forma de comunicar la antigüedad
+de un negocio. `patioJoinedAt` sigue siendo un dato interno posible, pero dejó de
+renderizarse en Explorar y en la ficha: la fecha de alta en la plataforma no se
+presenta como historia del establecimiento.
+
+- Explorar conserva únicamente `Abrió hace poco` cuando existe una
+  `businessOpenedAt` real dentro de los últimos 120 días; nunca muestra
+  `En Patio desde…`.
+- La ficha retiró la señal de antigüedad del encabezado. Si existe una fecha real
+  de apertura, aparece al final en `Acerca de`, colapsada por defecto, como
+  `Abrió sus puertas en {año}`.
+- La sección no existe cuando falta la fecha o el valor no es válido.
+- Todos los Patios locales y sintéticos usados en desarrollo incluyen ahora
+  `businessOpenedAt`; se eliminó del copy sintético la frase administrativa
+  `Parte de Patio desde…`.
+- La decisión y la auditoría transversal de controles quedaron registradas en
+  `docs/INTERACTION_CONTROLS_AUDIT_2026-08-01.md`.
+
+Verificación: TypeScript, ESLint y `git diff --check` verdes.
+
 ## Corte 2026-07-28 · composición Apple, red y cierre de pasos duplicados
 
 Se recompusieron como sistemas completos el perfil público, Guardados,

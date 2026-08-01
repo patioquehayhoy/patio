@@ -43,6 +43,22 @@ export function emptyMenu(): MenuData {
   return { secciones: [blankSection('')] };
 }
 
+function normalizeDraftPresentation(data: MenuData): MenuData {
+  return {
+    secciones: data.secciones.map((section) => ({
+      ...section,
+      platillos: section.platillos.map((dish) => ({
+        ...dish,
+        descripcion: dish.descripcion
+          .replace(/^opciones(?:\s+de\s+(?:preparaci[oó]n|relleno))?\s*:\s*/i, '')
+          .replace(/^opciones\s*:\s*/i, '')
+          .trim(),
+        revision: /precio|\$|importe/i.test(dish.revision ?? '') ? undefined : dish.revision,
+      })),
+    })),
+  };
+}
+
 function cleanMenu(data: MenuData): MenuData {
   return {
     secciones: data.secciones
@@ -65,7 +81,7 @@ function cleanMenu(data: MenuData): MenuData {
 
 export function useFonderoMenuDraftController(initialData: MenuData, source: 'foto' | 'manual' = 'manual') {
   const [data, setData] = useState<MenuData>(() =>
-    initialData.secciones.length ? initialData : emptyMenu()
+    normalizeDraftPresentation(initialData.secciones.length ? initialData : emptyMenu())
   );
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const [details, setDetails] = useState<Record<string, boolean>>({});

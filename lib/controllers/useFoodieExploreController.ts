@@ -32,8 +32,8 @@ function distanceKm(a: { latitude: number; longitude: number }, b: { latitude: n
 
 function formatDistance(km: number) {
   if (!Number.isFinite(km)) return null;
-  if (km < 1) return `${Math.max(50, Math.round((km * 1000) / 50) * 50)} m aprox.`;
-  return `${km.toFixed(km < 10 ? 1 : 0)} km aprox.`;
+  if (km < 1) return `${Math.max(50, Math.round((km * 1000) / 50) * 50)}\u00A0m aprox.`;
+  return `${km.toFixed(km < 10 ? 1 : 0)}\u00A0km aprox.`;
 }
 
 export function useFoodieExploreController() {

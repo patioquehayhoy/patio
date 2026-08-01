@@ -1,8 +1,7 @@
 import { BlurView } from 'expo-blur';
 
 import { HintSheet } from '@/components/hint-sheet';
-import { useRef, useState } from 'react';
-import * as ImagePicker from 'expo-image-picker';
+import { useRef } from 'react';
 import {
   ScrollView,
   StyleSheet,
@@ -10,19 +9,18 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useFonderoProfileController } from '@/lib/controllers/useFonderoProfileController';
 import { sanitizeNombreInput } from '@/lib/fondita-name';
+import { noWidow } from '@/lib/typography';
 import { Fonts, useTheme, type Theme } from '@/lib/theme';
 import { GlassIconButton } from '@/components/glass-button';
 import { BusinessPaymentSelector } from '@/components/business-payment-selector';
 import { BusinessScheduleEditor } from '@/components/business-schedule-editor';
 import { SettingsGroup, SettingsRow, type SettingsColors } from '@/components/settings-list';
-import { supabase } from '@/lib/supabase';
 
 const MAX_DESCRIPCION = 80;
 const MAX_UBICACION   = 80;
@@ -60,10 +58,6 @@ function makeStyles(theme: Theme) {
     fieldLabel:         { fontSize: 11, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', color: t.textMute, marginBottom: 4 },
     fieldValue:         { fontSize: 16, fontWeight: '400', color: t.text, paddingVertical: 0, paddingHorizontal: 0, backgroundColor: 'transparent' },
     fieldDivider:       { height: StyleSheet.hairlineWidth, backgroundColor: t.border, marginVertical: 12 },
-    logoRow:            { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 16 },
-    logo:               { width: 58, height: 58, borderRadius: 16, backgroundColor: t.surface2, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
-    logoImage:          { width: 58, height: 58 },
-    logoText:           { fontSize: 13, fontWeight: '600', color: t.textSecondary },
     typeRow:            { gap: 7, paddingTop: 8, paddingBottom: 2 },
     typeChip:           { minHeight: 34, paddingHorizontal: 12, borderRadius: 17, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, alignItems: 'center', justifyContent: 'center' },
     typeChipSelected:   { backgroundColor: t.accent, borderColor: t.accent },
@@ -152,7 +146,6 @@ export default function PerfilScreen() {
   const sc = settingsColors(theme);
   const insets = useSafeAreaInsets();
   const nombreInputRef     = useRef<TextInput>(null);
-  const [logoUri, setLogoUri] = useState<string | null>(null);
   const {
     descripcion,
     email,
@@ -195,32 +188,13 @@ export default function PerfilScreen() {
         {/* ── HEADER ── */}
         <View style={s.heroBlock}>
           <Text style={s.eyebrowOrange} allowFontScaling={true}>Mi Patio</Text>
-          <Text style={s.screenTitle} allowFontScaling={true}>Editar mi lugar</Text>
-          <Text style={s.screenSub} allowFontScaling={true}>Así te encuentran quienes andan cerca.</Text>
+          <Text style={s.screenTitle} allowFontScaling={true}>{noWidow('Editar mi lugar')}</Text>
+          <Text style={s.screenSub} allowFontScaling={true}>{noWidow('Así te encuentran quienes andan cerca.')}</Text>
         </View>
 
         {/* ── IDENTIDAD ── */}
         <View style={s.block}>
           <Text style={s.blockLabel} allowFontScaling={true}>IDENTIDAD</Text>
-          <TouchableOpacity style={s.logoRow} onPress={async () => {
-            const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], allowsEditing: true, aspect: [1, 1], quality: 0.75 });
-            if (result.canceled || !email) return;
-            const uri = result.assets[0].uri;
-            setLogoUri(uri);
-            const { data: user } = await supabase.auth.getUser();
-            if (!user.user) return;
-            const bytes = await (await fetch(uri)).arrayBuffer();
-            const path = `${user.user.id}/logo.jpg`;
-            const uploaded = await supabase.storage.from('business-logos').upload(path, bytes, { contentType: 'image/jpeg', upsert: true });
-            if (!uploaded.error) {
-              const url = supabase.storage.from('business-logos').getPublicUrl(path).data.publicUrl;
-              await supabase.from('fonditas').update({ logo_url: url }).eq('telefono', email);
-              setLogoUri(url);
-            }
-          }}>
-            <View style={s.logo}>{logoUri ? <Image source={{ uri: logoUri }} style={s.logoImage} /> : <Ionicons name="camera-outline" size={22} color={theme.textSecondary} />}</View>
-            <Text style={s.logoText}>{logoUri ? 'Cambiar imagen del negocio' : 'Añadir imagen del negocio'}</Text>
-          </TouchableOpacity>
           <View style={s.fieldCard}>
             <Text style={s.fieldLabel} allowFontScaling={true}>Nombre</Text>
             <TextInput
@@ -298,14 +272,14 @@ export default function PerfilScreen() {
         {/* ── HORARIO ── */}
         <View style={s.block}>
           <Text style={s.blockLabel} allowFontScaling={true}>HORARIO</Text>
-          <Text style={s.blockHelp} allowFontScaling={true}>Toca los días que abres y ajusta cada hora.</Text>
+          <Text style={s.blockHelp} allowFontScaling={true}>{noWidow('Toca los días que abres y ajusta cada hora.')}</Text>
           <BusinessScheduleEditor colors={theme} value={semanal} onChange={setSemanal} isDark={theme.isDark} />
         </View>
 
         {/* ── PAGOS ── */}
         <View style={s.block}>
           <Text style={s.blockLabel} allowFontScaling={true}>CÓMO COBRAS</Text>
-          <Text style={s.blockHelp} allowFontScaling={true}>Marca todas las formas que aceptas.</Text>
+          <Text style={s.blockHelp} allowFontScaling={true}>{noWidow('Marca todas las formas que aceptas.')}</Text>
           <BusinessPaymentSelector
             colors={theme}
             value={{ efectivo: pagosEfectivo, transferencia: pagosTrans, tarjeta: pagosTarjeta }}

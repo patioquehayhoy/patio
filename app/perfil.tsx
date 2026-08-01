@@ -99,7 +99,7 @@ export default function PerfilScreen() {
           />
           <SettingsRow
             c={sc}
-            icon="diamond-outline"
+            icon="rocket-outline"
             title="Plan"
             sub="Patio Gratis para negocios"
             divider
@@ -132,7 +132,7 @@ export default function PerfilScreen() {
 const s = StyleSheet.create({
   root: { flex: 1 },
   eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.5, marginBottom: 8 },
-  title: { fontSize: 38, lineHeight: 41, fontWeight: '900', letterSpacing: -1.3, fontFamily: Fonts.brand },
+  title: { fontSize: 36, lineHeight: 40, fontWeight: '900', letterSpacing: -1.2, fontFamily: Fonts.brand },
   statusRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 10 },
   statusDot: { width: 7, height: 7, borderRadius: 4 },
   statusText: { fontSize: 13, fontWeight: '600' },

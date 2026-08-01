@@ -174,7 +174,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                       const showDetails = details[dish.id] || !!dish.descripcion;
                       return (
                         <View key={dish.id} style={[s.dish, dishIndex > 0 && s.dishDivider]}>
-                          {!!dish.revision && (
+                          {!!dish.revision && !/precio|\$|importe/i.test(dish.revision) && (
                             <View style={s.reviewNote}>
                               <Ionicons name="alert-circle-outline" size={13} color={c.accent} />
                               <Text style={s.reviewNoteText}>{dish.revision}</Text>
@@ -219,8 +219,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                                 }}
                                 activeOpacity={0.7}
                                 accessibilityLabel={`Agregar precio a ${dish.nombre || 'platillo'}`}>
-                                <Text style={s.addPriceText}>Precio</Text>
-                                <Ionicons name="add" size={13} color={c.textSecondary} />
+                                <Text style={s.addPriceText}>+$</Text>
                               </TouchableOpacity>
                             )}
                             <TouchableOpacity

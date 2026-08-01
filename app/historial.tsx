@@ -30,7 +30,7 @@ export default function HistorialScreen() {
 
         <TouchableOpacity
           accessibilityLabel="Crear un menú nuevo"
-          style={[s.newButton, { backgroundColor: c.iconBg }]}
+          style={[s.newButton, { borderColor: c.textMute }]}
           onPress={() => router.push('/menu')}
           activeOpacity={0.72}>
           <Ionicons name="add" size={17} color={c.text} />
@@ -126,9 +126,9 @@ export default function HistorialScreen() {
 const s = StyleSheet.create({
   root: { flex: 1 },
   eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.5, marginBottom: 8 },
-  title: { fontSize: 38, lineHeight: 41, fontWeight: '900', letterSpacing: -1.3, fontFamily: Fonts.brand },
+  title: { fontSize: 36, lineHeight: 40, fontWeight: '900', letterSpacing: -1.2, fontFamily: Fonts.brand },
   subtitle: { marginTop: 8, fontSize: 14, lineHeight: 20 },
-  newButton: { alignSelf: 'flex-start', marginTop: 18, minHeight: 42, paddingHorizontal: 16, borderRadius: 14, flexDirection: 'row', alignItems: 'center', gap: 6 },
+  newButton: { alignSelf: 'flex-start', marginTop: 16, minHeight: 40, paddingHorizontal: 13, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, borderStyle: 'dashed', flexDirection: 'row', alignItems: 'center', gap: 6 },
   newButtonText: { fontSize: 14, fontWeight: '700' },
   empty: { marginTop: 34, padding: 24, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center' },
   emptyTitle: { marginTop: 14, fontSize: 20, fontWeight: '800' },

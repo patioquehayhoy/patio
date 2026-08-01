@@ -37,6 +37,9 @@ export type Patio = {
   menu: PatioMenuSection[];
   payments: string[];
   weeklyHours: HorarioSemanal | null;
+  patioJoinedAt?: string;
+  // Fecha real de apertura del negocio. Nunca sustituir con la fecha de alta en Patio.
+  businessOpenedAt?: string;
   // Agotado es disponibilidad de inventario, no estado de horario.
   soldOut?: boolean;
 };
@@ -98,6 +101,7 @@ export const MOCK_PATIOS: Patio[] = [
       { section: 'BEBIDAS', items: [{ name: 'Agua fresca', tags: ['bebida', 'agua'] }, { name: 'Refresco', tags: ['bebida'] }] },
     ],
     payments: ['Efectivo', 'Transferencia'],
+    businessOpenedAt: '2018-08-11',
     weeklyHours: null,
   },
   {
@@ -126,6 +130,7 @@ export const MOCK_PATIOS: Patio[] = [
       { section: 'BEBIDAS', items: [{ name: 'Agua', tags: ['bebida'] }, { name: 'Refresco', tags: ['bebida'] }] },
     ],
     payments: ['Efectivo'],
+    businessOpenedAt: '2015-04-18',
     weeklyHours: null,
   },
   {
@@ -153,6 +158,7 @@ export const MOCK_PATIOS: Patio[] = [
       },
     ],
     payments: ['Efectivo', 'Tarjeta'],
+    businessOpenedAt: '2009-10-03',
     weeklyHours: null,
   },
   {
@@ -181,6 +187,7 @@ export const MOCK_PATIOS: Patio[] = [
       { section: 'EXTRAS', items: [{ name: 'Arroz rojo', tags: ['arroz'] }, { name: 'Agua del día', tags: ['agua', 'bebida'] }] },
     ],
     payments: ['Efectivo', 'Transferencia'],
+    businessOpenedAt: '2020-02-21',
     weeklyHours: null,
   },
   {
@@ -215,6 +222,7 @@ export const MOCK_PATIOS: Patio[] = [
       },
     ],
     payments: ['Efectivo', 'Tarjeta'],
+    businessOpenedAt: '2011-07-16',
     weeklyHours: null,
   },
 ];

@@ -1,5 +1,11 @@
 # Auditoría de interacción y controles — Patio
 
+> Actualización del mismo día: la ficha ya no usa píldoras de distinción ni copy
+> contextual sintético. Los reconocimientos son medallas tocables derivadas de
+> señales y su explicación reutiliza una pleca de altura estable. Las reseñas demo
+> incorporan una barra social por iconos y conversación en hilo. Ver
+> `docs/HANDOFF.md` y `docs/REVIEWS_AND_TRUST.md` para la decisión vigente.
+
 > Corte estático del código vigente: 2026-08-01.
 > Alcance: rutas de `app/` y componentes interactivos compartidos de `components/`.
 > Marco: `ESSENTIAL_DESIGN_PRINCIPLES.md`, Apple HIG aplicada al proyecto y

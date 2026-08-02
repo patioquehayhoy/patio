@@ -19,13 +19,8 @@ import { estaAbiertoAhora } from '@/lib/horario';
 import type { Patio } from '@/lib/patios';
 
 const OPEN_GREEN = '#1F9D55';
-
-function discoverySignal(patio: Patio): string | null {
-  const ageInDays = (value?: string) => value ? Math.floor((Date.now() - new Date(value).getTime()) / 86400000) : null;
-  const openedDays = ageInDays(patio.businessOpenedAt);
-  if (openedDays !== null && openedDays >= 0 && openedDays <= 120) return 'Abrió hace poco';
-  return null;
-}
+const DEMO_LAPIS = '#26619C';
+const FEATURED_DEMO_IDS = new Set(['demo-patio-4', 'demo-patio-2', 'demo-patio-3']);
 
 function openState(patio: Patio): boolean | null {
   return patio.weeklyHours ? estaAbiertoAhora(patio.weeklyHours) : null;
@@ -46,6 +41,7 @@ function makeStyles(t: Theme) {
     pinCoreSelected: { width: 12, height: 12, borderRadius: 6, backgroundColor: t.text, alignItems: 'center', justifyContent: 'center' },
     pinDot: { width: 3, height: 3, borderRadius: 2, backgroundColor: t.surface },
     pinSmallDot: { width: 14, height: 14, borderRadius: 7, backgroundColor: t.accent, borderWidth: 2.5, borderColor: t.isDark ? 'rgba(25,26,27,0.70)' : 'rgba(255,255,255,0.85)', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.22, shadowRadius: 3, elevation: 2 },
+    pinDemo: { width: 22, height: 22, borderRadius: 11, backgroundColor: DEMO_LAPIS, borderWidth: 3, borderColor: '#FFFFFF', shadowColor: DEMO_LAPIS, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.75, shadowRadius: 9, elevation: 8 },
     pinMatch: { width: 22, height: 22, borderRadius: 11, backgroundColor: t.accent, borderWidth: 4, borderColor: t.isDark ? 'rgba(255,255,255,0.92)' : '#FFFFFF', shadowColor: t.accent, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.72, shadowRadius: 10, elevation: 8 },
     searchPill: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingVertical: 15, borderRadius: 18, overflow: 'hidden', backgroundColor: t.isDark ? 'rgba(20,21,24,0.55)' : 'rgba(255,255,255,0.78)', borderWidth: StyleSheet.hairlineWidth, borderColor: btnBorder, shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: btnShadowOpacity + 0.04, shadowRadius: 22, elevation: 4 },
     bottomControls: { flexDirection: 'row', alignItems: 'stretch', gap: 8 },
@@ -262,6 +258,7 @@ export default function ExplorarScreen() {
           onRegionChangeComplete={setVisibleRegion}>
           {filteredPins.map((patio, idx) => {
             const isMuted = isFiltering && !matchingPatioIds.has(patio.id);
+            const isFeaturedDemo = FEATURED_DEMO_IDS.has(patio.id);
             return (
               <Marker
                 key={patio.id}
@@ -272,7 +269,7 @@ export default function ExplorarScreen() {
                 }}
                 tracksViewChanges={false}>
                 <View style={[s.pinHitArea, isMuted && s.pinMuted]}>
-                  <PulsingDot style={isFiltering && !isMuted ? s.pinMatch : s.pinSmallDot} delay={(idx % 6) * 280} />
+                  <PulsingDot style={isFeaturedDemo ? s.pinDemo : isFiltering && !isMuted ? s.pinMatch : s.pinSmallDot} delay={(idx % 6) * 280} />
                 </View>
               </Marker>
             );
@@ -471,7 +468,6 @@ export default function ExplorarScreen() {
               ) : (
                 topMatchPerPatio.map((match) => {
                   const state = openState(match.patio);
-                  const signal = discoverySignal(match.patio);
                   return (
                     <TouchableOpacity
                       accessibilityLabel={`Abrir resultado ${match.item.name} en ${match.patio.name}`}
@@ -494,11 +490,9 @@ export default function ExplorarScreen() {
                             distanceLabelForPatio(match.patio),
                           ].filter(Boolean).join(' · ')}
                         </Text>
-                        {(signal || match.patio.rating || match.patio.isNeighborhoodFavorite) && (
+                        {!!match.patio.rating && match.patio.rating !== 'Nuevo' && (
                           <View style={s.patioContext}>
-                            {!!match.patio.rating && match.patio.rating !== 'Nuevo' && <Text style={s.patioContextText}>★ {match.patio.rating}</Text>}
-                            {!!signal && <Text style={[s.patioContextText, { color: theme.accent }]}>{match.patio.rating && match.patio.rating !== 'Nuevo' ? `· ${signal}` : signal}</Text>}
-                            {!!match.patio.isNeighborhoodFavorite && <Text style={[s.patioContextText, { color: theme.accent }]}>· Favorito del barrio</Text>}
+                            <Text style={s.patioContextText}>★ {match.patio.rating}</Text>
                           </View>
                         )}
                       </View>
@@ -526,7 +520,6 @@ export default function ExplorarScreen() {
             ) : (
               listPatios.map((patio) => {
                 const state = openState(patio);
-                const signal = discoverySignal(patio);
                 return (
                   <TouchableOpacity
                     accessibilityLabel={`Abrir ${patio.name}`}
@@ -540,11 +533,9 @@ export default function ExplorarScreen() {
                     <View style={s.patioInfo}>
                       <Text style={s.patioName} numberOfLines={2} allowFontScaling={true}>{patio.name}</Text>
                       <Text style={s.patioMeta} numberOfLines={1} allowFontScaling={true}>{patio.category} · {patio.area} · {distanceLabelForPatio(patio)}</Text>
-                      {(signal || patio.rating || patio.isNeighborhoodFavorite) && (
+                      {!!patio.rating && patio.rating !== 'Nuevo' && (
                         <View style={s.patioContext}>
-                          {!!patio.rating && patio.rating !== 'Nuevo' && <Text style={s.patioContextText}>★ {patio.rating}</Text>}
-                          {!!signal && <Text style={[s.patioContextText, { color: theme.accent }]}>{patio.rating && patio.rating !== 'Nuevo' ? `· ${signal}` : signal}</Text>}
-                          {!!patio.isNeighborhoodFavorite && <Text style={[s.patioContextText, { color: theme.accent }]}>· Favorito del barrio</Text>}
+                          <Text style={s.patioContextText}>★ {patio.rating}</Text>
                         </View>
                       )}
                     </View>

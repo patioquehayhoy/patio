@@ -246,6 +246,21 @@ real sobre la UI vigente; la rama anterior conserva Patio Vivo recuperable.
 3. Corregir únicamente hallazgos reproducibles del barrido.
 4. Preparar build de distribución solo con autorización de Alejandro.
 
+## Corte activo — 2026-08-01
+
+- La ficha pública es factual: fuera `reason` editorial y fuera píldoras de
+  distinción. Las medallas se derivan de menú completo, comunidad y trayectoria.
+- Tocar una medalla reutiliza la pleca práctica sin mover el layout. La pleca
+  normal alinea horario, pagos y apertura en tres columnas antes del mapa.
+- Las reseñas demo ejercitan comentario, republicación, like, vistas y compartir,
+  además de hilos con varias respuestas. Persistencia multiusuario y verificación
+  servidor siguen pendientes; los contadores actuales son datos de desarrollo.
+- Se conservan todos los Patios sintéticos. Tres escenarios principales de QA se
+  distinguen en el mapa con pin lapislázuli: menú extenso, apertura reciente con
+  reseñas críticas y nombre largo con buena reputación.
+- Metro LAN fue probado en iPhone 15 Pro físico.
+- TypeScript, ESLint, Expo Doctor (18/18) y `git diff --check` pasan.
+
 ## Estado ejecutivo
 
 Patio ya tiene un MVP funcional de dos lados:

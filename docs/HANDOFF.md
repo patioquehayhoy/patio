@@ -1,5 +1,37 @@
 # HANDOFF
 
+## Corte 2026-08-01 · ficha factual, reconocimientos y reseñas sociales
+
+Este corte sustituye las decisiones anteriores sobre píldoras de distinción,
+ubicación de la fecha de apertura y reseñas sin conversación.
+
+- La ficha pública no renderiza `reason` ni copy editorial inventado. Nombre,
+  categoría, zona, menú, reputación y datos operativos deben provenir de datos.
+- Las distinciones dejaron de ser píldoras con textos como `Nuevo por aquí` o
+  `Favorito del barrio`. Ahora son medallas circulares, discretas y acumulables.
+- Las medallas actuales se derivan de señales: menú completo, reconocimiento de
+  comunidad y diez años de trayectoria. Al tocar una, su explicación sustituye
+  temporalmente —sin cambiar la altura— la pleca de información práctica.
+- La pleca anterior al mapa tiene tres columnas estables: horario a la izquierda,
+  métodos de pago centrados y año de apertura a la derecha. El horario conserva
+  divulgación del calendario semanal.
+- Las reseñas adoptan una barra social reconocible: comentario, republicación,
+  like, visualizaciones y compartir. No se añaden verbos explicativos persistentes
+  junto a los iconos; la semántica completa vive en accesibilidad.
+- `Guardar reseña` no se incorpora por ahora: Patio ya guarda el lugar o lo
+  organiza en una colección. Compartir una reseña sí tiene un caso de distribución.
+- Republicaciones, likes y comentarios no prueban por sí solos que una afirmación
+  sea cierta. Son señales de distribución y coincidencia; la verificación futura
+  requiere identidad, unicidad por cuenta, visita/señal temporal y moderación.
+- Los tres perfiles de QA principales son: negocio abierto con menú extenso,
+  negocio reciente con reseñas críticas y negocio de nombre largo con reputación.
+  Los demás datos sintéticos continúan disponibles.
+- En el mapa estos tres perfiles usan azul lapislázuli `#26619C`, borde blanco y
+  mayor tamaño para identificarlos durante QA. Es una marca exclusiva de desarrollo.
+
+Validación: `npx tsc --noEmit`, ESLint y `git diff --check` en verde. El flujo se
+recargó en el iPhone físico mediante Metro LAN.
+
 ## Corte 2026-08-01 · copy de antojo, distinciones y vigencia de menú
 
 - El claim oficial permanece `¿Qué hay hoy? Saaaaaaabes.`; no se reemplazó de

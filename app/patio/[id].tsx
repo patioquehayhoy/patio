@@ -4,7 +4,7 @@ import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, Easing, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Animated, Easing, Image, ScrollView, Share, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -13,6 +13,7 @@ import { usePatioDetailController } from '@/lib/controllers/usePatioDetailContro
 import { formatHHMM12 } from '@/lib/horario';
 import { MAP_STYLE_DARK, MAP_STYLE_LIGHT } from '@/lib/map-style';
 import { Fonts, Radius, Spacing, useTheme, type Theme } from '@/lib/theme';
+import { noWidow } from '@/lib/typography';
 
 const HERO_HEIGHT = 300;
 const OPEN_GREEN = '#1F9D55';
@@ -43,14 +44,6 @@ function heroPhotoFor(id: string) {
   return HERO_PHOTOS[h % HERO_PHOTOS.length];
 }
 
-function discoveryIsNew(value?: string): boolean {
-  if (!value) return false;
-  const openedAt = new Date(value).getTime();
-  if (Number.isNaN(openedAt)) return false;
-  const ageInDays = Math.floor((Date.now() - openedAt) / 86400000);
-  return ageInDays >= 0 && ageInDays <= 120;
-}
-
 function makeStyles(t: Theme) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: t.bg },
@@ -68,12 +61,10 @@ function makeStyles(t: Theme) {
 
     // ── Card traslapada ──
     card: { marginTop: -28, backgroundColor: t.bg, borderTopLeftRadius: Radius.sheet, borderTopRightRadius: Radius.sheet, paddingHorizontal: 20, paddingTop: 22 },
-    statusRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 12 },
+    statusRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
     statusLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
     statusDot: { width: 7, height: 7, borderRadius: 3.5 },
     statusText: { fontSize: 12, fontWeight: '600', letterSpacing: 0.5, textTransform: 'uppercase' },
-    hoursButton: { minHeight: 32, paddingHorizontal: 10, borderRadius: 16, flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: t.surface },
-    hoursButtonText: { fontSize: 11.5, fontWeight: '700', color: t.textSecondary },
     schedule: { marginBottom: 16, borderRadius: 16, overflow: 'hidden', backgroundColor: t.surface },
     scheduleRow: { minHeight: 38, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
     scheduleDivider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border },
@@ -81,7 +72,7 @@ function makeStyles(t: Theme) {
     scheduleHours: { fontSize: 12.5, color: t.textSecondary },
     title: { fontSize: 36, lineHeight: 38, fontWeight: '900', letterSpacing: -1, fontFamily: Fonts.brand, color: t.text, marginBottom: 6 },
     subtitle: { fontSize: 14, color: t.textSecondary, marginBottom: 16 },
-    payments: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
+    payments: { flexDirection: 'row', alignItems: 'center', gap: 10 },
     paymentIconBox: { width: 20, height: 20, alignItems: 'center', justifyContent: 'center' },
 
     // ── Menú agrupado ──
@@ -129,17 +120,31 @@ function makeStyles(t: Theme) {
     businessReply: { marginTop: 14, paddingTop: 12, paddingLeft: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border, borderLeftWidth: 2, borderLeftColor: t.accent },
     businessReplyLabel: { fontSize: 10.5, fontWeight: '800', letterSpacing: 0.8, textTransform: 'uppercase', color: t.accent, marginBottom: 5 },
     businessReplyText: { fontSize: 13.5, lineHeight: 19, color: t.textSecondary },
+    reviewActions: { marginTop: 12, paddingTop: 10, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+    reviewAction: { minHeight: 36, flexDirection: 'row', alignItems: 'center', gap: 6 },
+    reviewActionText: { fontSize: 12.5, fontWeight: '700', color: t.textSecondary },
+    reviewThread: { marginTop: 7, gap: 6 },
+    reviewThreadText: { fontSize: 12.5, lineHeight: 17, color: t.textSecondary },
+    reviewReplyRow: { marginTop: 8, flexDirection: 'row', alignItems: 'center', gap: 8 },
+    reviewReplyInput: { flex: 1, minHeight: 40, borderRadius: 12, paddingHorizontal: 12, color: t.text, backgroundColor: t.bg },
+    reviewReplySend: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: t.text },
     reviewPrompt: { minHeight: 38, borderRadius: 19, paddingHorizontal: 13, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: t.surface },
     reviewPromptText: { fontSize: 13, fontWeight: '700', color: t.text },
 
     // ── Detalles + mapa ──
     section: { paddingTop: 6 },
-    placeDescription: { maxWidth: 340, marginTop: -7, marginBottom: 18, fontSize: 14, lineHeight: 20, color: t.textSecondary },
-    distinctions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: -6, marginBottom: 18 },
-    distinction: { minHeight: 30, paddingHorizontal: 11, borderRadius: 15, flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: t.accentSoft },
-    distinctionText: { fontSize: 11.5, fontWeight: '700', color: t.accent },
-    historyMeta: { minHeight: 44, marginTop: 8, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border, flexDirection: 'row', alignItems: 'center', gap: 9 },
-    historyMetaText: { fontSize: 12.5, color: t.textMute },
+    earnedBadges: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8 },
+    earnedBadge: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
+    earnedBadgeActive: { backgroundColor: t.accentSoft, borderColor: t.accent },
+    facts: { minHeight: 48, marginTop: 4, marginBottom: 14, paddingTop: 8, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border, justifyContent: 'center' },
+    factsLine: { minHeight: 38, flexDirection: 'row', alignItems: 'center' },
+    factColumn: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: 4 },
+    factColumnCenter: { justifyContent: 'center' },
+    factColumnRight: { justifyContent: 'flex-end' },
+    historyMetaText: { fontSize: 11.5, color: t.textMute, flexShrink: 1 },
+    badgeInline: { minHeight: 38, justifyContent: 'center', paddingRight: 8 },
+    badgeInlineTitle: { fontSize: 12.5, fontWeight: '800', color: t.text },
+    badgeInlineText: { marginTop: 1, fontSize: 11.5, lineHeight: 15, color: t.textSecondary },
     mapPanel: { height: 92, borderRadius: 18, backgroundColor: t.isDark ? '#191A1B' : '#D8D6D0', overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
     mapView: { ...StyleSheet.absoluteFillObject },
     mapMarker: { width: 26, height: 26, borderRadius: 13, backgroundColor: '#111214', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.82)', alignItems: 'center', justifyContent: 'center', shadowColor: '#A8E7FF', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.58, shadowRadius: 8, elevation: 6 },
@@ -170,6 +175,12 @@ export default function PatioDetailScreen() {
   const insets = useSafeAreaInsets();
   const [showSchedule, setShowSchedule] = useState(false);
   const [ratingFilter, setRatingFilter] = useState<number | null>(null);
+  const [activeBadgeId, setActiveBadgeId] = useState<string | null>(null);
+  const [reviewConfirmations, setReviewConfirmations] = useState<Record<string, { count: number; mine: boolean }>>({});
+  const [reviewLikes, setReviewLikes] = useState<Record<string, { count: number; mine: boolean }>>({});
+  const [reviewReplies, setReviewReplies] = useState<Record<string, string[]>>({});
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [replyDraft, setReplyDraft] = useState('');
   const pulse = useRef(new Animated.Value(1)).current;
   const {
     cleanId,
@@ -209,6 +220,40 @@ export default function PatioDetailScreen() {
     if (Number.isNaN(openedAt.getTime())) return null;
     return `Abrió en ${openedAt.getFullYear()}`;
   }, [patio?.businessOpenedAt]);
+  const earnedBadges = useMemo(() => {
+    if (!patio) return [];
+    const itemCount = patio.menu.reduce((total, section) => total + section.items.length, 0);
+    const openedYear = patio.businessOpenedAt ? new Date(patio.businessOpenedAt).getFullYear() : null;
+    return [
+      ...(itemCount >= 8 ? [{ id: 'menu', icon: 'checkmark-circle' as const, title: 'Menú completo', detail: 'Publica información suficiente para decidir antes de llegar.' }] : []),
+      ...(patio.isNeighborhoodFavorite ? [{ id: 'community', icon: 'heart' as const, title: 'Reconocido por su comunidad', detail: 'Mantiene una reputación positiva entre quienes lo visitan.' }] : []),
+      ...(openedYear && new Date().getFullYear() - openedYear >= 10 ? [{ id: 'history', icon: 'ribbon' as const, title: 'Trayectoria', detail: 'El negocio lleva al menos diez años abierto.' }] : []),
+    ];
+  }, [patio]);
+  const activeBadge = earnedBadges.find((badge) => badge.id === activeBadgeId) ?? null;
+
+  useEffect(() => {
+    const confirmations: Record<string, { count: number; mine: boolean }> = {};
+    const likes: Record<string, { count: number; mine: boolean }> = {};
+    const replies: Record<string, string[]> = {};
+    reviews.forEach((review) => {
+      const key = `${review.userId}-${review.timestamp}`;
+      confirmations[key] = { count: review.userId === 'demo-critical-1' ? 8 : review.userId === 'demo-critical-2' ? 3 : 0, mine: false };
+      likes[key] = { count: review.userId === 'demo-critical-1' ? 14 : review.userId === 'demo-critical-2' ? 6 : Math.max(1, review.stars * 2), mine: false };
+      if (review.userId === 'demo-critical-1') replies[key] = [
+        'El domingo el caldo también llegó tibio.',
+        'La carne estaba más dura que otras veces.',
+        'Fuimos el martes y ya estaba caliente otra vez.',
+      ];
+      if (review.userId === 'demo-critical-2') replies[key] = [
+        'Nos ofrecieron dos platos distintos a los publicados.',
+        'Por la tarde actualizaron el menú.',
+      ];
+    });
+    setReviewConfirmations(confirmations);
+    setReviewLikes(likes);
+    setReviewReplies(replies);
+  }, [reviews]);
 
   useEffect(() => {
     if (!status) {
@@ -309,67 +354,10 @@ export default function PatioDetailScreen() {
                   {status ? 'Abierto' : 'Cerrado'}
                 </Text>
               </View>
-              {!!patio.payments.length && (
-                <View style={s.payments} accessible accessibilityLabel={`Acepta ${patio.payments.join(', ')}`}>
-                  {PAYMENT_ORDER.filter((payment) => patio.payments.includes(payment)).map((payment) => {
-                    const icon = PAYMENT_SYMBOLS[payment];
-                    return (
-                      <View key={payment} style={s.paymentIconBox}>
-                        <SymbolView
-                          name={icon.symbol}
-                          size={icon.size}
-                          weight="regular"
-                          tintColor={theme.textSecondary}
-                          fallback={<Ionicons name={icon.fallback} size={icon.size} color={theme.textSecondary} />}
-                        />
-                      </View>
-                    );
-                  })}
-                </View>
-              )}
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessibilityLabel="Ver horario semanal"
-                accessibilityState={{ expanded: showSchedule }}
-                style={s.hoursButton}
-                onPress={() => setShowSchedule((value) => !value)}>
-                <Text style={s.hoursButtonText}>{status ? rangoHoy : 'Horarios'}</Text>
-                <Ionicons name={showSchedule ? 'chevron-up' : 'chevron-down'} size={13} color={theme.textMute} />
-              </TouchableOpacity>
             </View>
           )}
-          {showSchedule && !!patio.weeklyHours?.length && (
-            <View style={s.schedule}>
-              {patio.weeklyHours.map((day, index) => (
-                <View key={day.dia} style={[s.scheduleRow, index > 0 && s.scheduleDivider]}>
-                  <Text style={s.scheduleDay}>{DAYS[day.dia]}</Text>
-                  <Text style={s.scheduleHours}>
-                    {day.cerrado || !day.abre || !day.cierra ? 'Cerrado' : `${formatHHMM12(day.abre)}–${formatHHMM12(day.cierra)}`}
-                  </Text>
-                </View>
-              ))}
-            </View>
-          )}
-          <Text style={s.title} allowFontScaling={true}>{patio.name}</Text>
+          <Text style={s.title} allowFontScaling={true}>{noWidow(patio.name)}</Text>
           <Text style={s.subtitle} allowFontScaling={true}>{patio.category} · {patio.area}</Text>
-          {!!patio.reason && <Text style={s.placeDescription} allowFontScaling={true}>{patio.reason}</Text>}
-          {(patio.isNeighborhoodFavorite || discoveryIsNew(patio.businessOpenedAt)) && (
-            <View style={s.distinctions}>
-              {!!patio.isNeighborhoodFavorite && (
-                <View style={s.distinction} accessible accessibilityLabel="Favorito del barrio">
-                  <Ionicons name="leaf-outline" size={12} color={theme.accent} />
-                  <Text style={s.distinctionText}>Favorito del barrio</Text>
-                  <Ionicons name="leaf-outline" size={12} color={theme.accent} style={{ transform: [{ scaleX: -1 }] }} />
-                </View>
-              )}
-              {discoveryIsNew(patio.businessOpenedAt) && (
-                <View style={s.distinction} accessible accessibilityLabel="Nuevo por aquí">
-                  <Ionicons name="sparkles-outline" size={12} color={theme.accent} />
-                  <Text style={s.distinctionText}>Nuevo por aquí</Text>
-                </View>
-              )}
-            </View>
-          )}
           {/* Menú del día — agrupado por sección (atenuado si ya se acabó) */}
           <View style={soldOut && s.menuSoldWrap}>
             <View style={soldOut ? { opacity: 0.42 } : undefined}>
@@ -416,6 +404,65 @@ export default function PatioDetailScreen() {
 
           {/* Detalles + mapa */}
           <View style={s.section}>
+            {!!earnedBadges.length && (
+              <View style={s.earnedBadges} accessibilityRole="toolbar" accessibilityLabel="Reconocimientos del Patio">
+                {earnedBadges.map((badge) => (
+                  <TouchableOpacity
+                    key={badge.id}
+                    style={[s.earnedBadge, activeBadgeId === badge.id && s.earnedBadgeActive]}
+                    onPress={() => setActiveBadgeId((current) => current === badge.id ? null : badge.id)}
+                    accessibilityRole="button"
+                    accessibilityLabel={badge.title}
+                    accessibilityState={{ expanded: activeBadgeId === badge.id }}>
+                    <Ionicons name={badge.icon} size={19} color={activeBadgeId === badge.id ? theme.accent : theme.textSecondary} />
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+            <View style={s.facts}>
+              {activeBadge ? (
+                <TouchableOpacity style={s.badgeInline} onPress={() => setActiveBadgeId(null)} accessible accessibilityLabel={`${activeBadge.title}. ${activeBadge.detail}. Toca para cerrar`}>
+                  <Text style={s.badgeInlineTitle}>{activeBadge.title}</Text>
+                  <Text style={s.badgeInlineText} numberOfLines={2}>{activeBadge.detail}</Text>
+                </TouchableOpacity>
+              ) : <View style={s.factsLine}>
+                <TouchableOpacity accessibilityRole="button" accessibilityLabel="Ver horario semanal" accessibilityState={{ expanded: showSchedule }} style={s.factColumn} onPress={() => setShowSchedule((value) => !value)}>
+                  <Ionicons name="time-outline" size={14} color={theme.textMute} />
+                  <Text style={s.historyMetaText} numberOfLines={1}>{status ? rangoHoy : 'Horarios'}</Text>
+                  <Ionicons name={showSchedule ? 'chevron-up' : 'chevron-down'} size={11} color={theme.textMute} />
+                </TouchableOpacity>
+                {!!patio.payments.length && (
+                  <View style={[s.factColumn, s.factColumnCenter]} accessible accessibilityLabel={`Acepta ${patio.payments.join(', ')}`}>
+                  <View style={s.payments}>
+                    {PAYMENT_ORDER.filter((payment) => patio.payments.includes(payment)).map((payment) => {
+                      const icon = PAYMENT_SYMBOLS[payment];
+                      return (
+                        <View key={payment} style={s.paymentIconBox}>
+                          <SymbolView name={icon.symbol} size={icon.size} weight="regular" tintColor={theme.textMute} fallback={<Ionicons name={icon.fallback} size={icon.size} color={theme.textMute} />} />
+                        </View>
+                      );
+                    })}
+                  </View>
+                  </View>
+                )}
+                {businessOpeningLabel && (
+                  <View style={[s.factColumn, s.factColumnRight]} accessible accessibilityLabel={businessOpeningLabel}>
+                    <Ionicons name="calendar-outline" size={13} color={theme.textMute} />
+                    <Text style={s.historyMetaText} numberOfLines={1}>{businessOpeningLabel}</Text>
+                  </View>
+                )}
+              </View>}
+              {showSchedule && !!patio.weeklyHours?.length && (
+                <View style={s.schedule}>
+                  {patio.weeklyHours.map((day, index) => (
+                    <View key={day.dia} style={[s.scheduleRow, index > 0 && s.scheduleDivider]}>
+                      <Text style={s.scheduleDay}>{DAYS[day.dia]}</Text>
+                      <Text style={s.scheduleHours}>{day.cerrado || !day.abre || !day.cierra ? 'Cerrado' : `${formatHHMM12(day.abre)}–${formatHHMM12(day.cierra)}`}</Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+            </View>
             {patio.latitude > 0 && (
               <TouchableOpacity
                 accessibilityLabel={`Abrir indicaciones para ${patio.name}`}
@@ -522,6 +569,79 @@ export default function PatioDetailScreen() {
                     <Text style={s.businessReplyText}>{review.businessReply}</Text>
                   </View>
                 )}
+                {!review.isMine && (() => {
+                  const reviewKey = `${review.userId}-${review.timestamp}`;
+                  const confirmation = reviewConfirmations[reviewKey] ?? { count: 0, mine: false };
+                  const like = reviewLikes[reviewKey] ?? { count: 0, mine: false };
+                  const replyCount = reviewReplies[reviewKey]?.length ?? 0;
+                  const views = 120 + Math.abs(review.userId.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0) % 880);
+                  return (
+                    <>
+                      <View style={s.reviewActions}>
+                        <TouchableOpacity style={s.reviewAction} onPress={() => setReplyingTo((current) => current === reviewKey ? null : reviewKey)} accessibilityRole="button" accessibilityLabel="Responder">
+                          <Ionicons name="chatbubble-outline" size={16} color={theme.textSecondary} />
+                          {!!replyCount && <Text style={s.reviewActionText}>{replyCount}</Text>}
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={s.reviewAction}
+                          onPress={() => setReviewConfirmations((current) => ({ ...current, [reviewKey]: { mine: !confirmation.mine, count: Math.max(0, confirmation.count + (confirmation.mine ? -1 : 1)) } }))}
+                          accessibilityRole="button"
+                          accessibilityLabel="Republicar"
+                          accessibilityState={{ selected: confirmation.mine }}>
+                          <Ionicons name="repeat" size={17} color={confirmation.mine ? theme.accent : theme.textSecondary} />
+                          {!!confirmation.count && <Text style={[s.reviewActionText, confirmation.mine && { color: theme.accent }]}>{confirmation.count}</Text>}
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={s.reviewAction}
+                          onPress={() => setReviewLikes((current) => ({ ...current, [reviewKey]: { mine: !like.mine, count: Math.max(0, like.count + (like.mine ? -1 : 1)) } }))}
+                          accessibilityRole="button"
+                          accessibilityLabel="Me gusta"
+                          accessibilityState={{ selected: like.mine }}>
+                          <Ionicons name={like.mine ? 'heart' : 'heart-outline'} size={17} color={like.mine ? theme.accent : theme.textSecondary} />
+                          {!!like.count && <Text style={[s.reviewActionText, like.mine && { color: theme.accent }]}>{like.count}</Text>}
+                        </TouchableOpacity>
+                        <View style={s.reviewAction} accessible accessibilityLabel={`${views} visualizaciones`}>
+                          <Ionicons name="stats-chart-outline" size={16} color={theme.textSecondary} />
+                          <Text style={s.reviewActionText}>{views}</Text>
+                        </View>
+                        <TouchableOpacity
+                          style={s.reviewAction}
+                          onPress={() => Share.share({ message: `${review.author}: ${review.note ?? ''}` })}
+                          accessibilityRole="button"
+                          accessibilityLabel="Compartir reseña">
+                          <Ionicons name="share-outline" size={17} color={theme.textSecondary} />
+                        </TouchableOpacity>
+                      </View>
+                      {!!reviewReplies[reviewKey]?.length && (
+                        <View style={s.reviewThread}>
+                          {reviewReplies[reviewKey].map((reply, replyIndex) => (
+                            <Text key={`${reviewKey}-${replyIndex}`} style={s.reviewThreadText}>
+                              <Text style={{ fontWeight: '800', color: theme.text }}>Foodie de Patio: </Text>{reply}
+                            </Text>
+                          ))}
+                        </View>
+                      )}
+                      {replyingTo === reviewKey && (
+                        <View style={s.reviewReplyRow}>
+                          <TextInput value={replyDraft} onChangeText={setReplyDraft} placeholder="Responder" placeholderTextColor={theme.textMute} style={s.reviewReplyInput} maxLength={280} />
+                          <TouchableOpacity
+                            style={[s.reviewReplySend, !replyDraft.trim() && { opacity: 0.35 }]}
+                            disabled={!replyDraft.trim()}
+                            onPress={() => {
+                              const next = replyDraft.trim();
+                              setReviewReplies((current) => ({ ...current, [reviewKey]: [...(current[reviewKey] ?? []), next] }));
+                              setReplyDraft('');
+                              setReplyingTo(null);
+                            }}
+                            accessibilityRole="button"
+                            accessibilityLabel="Publicar respuesta">
+                            <Ionicons name="arrow-up" size={17} color={theme.surface} />
+                          </TouchableOpacity>
+                        </View>
+                      )}
+                    </>
+                  );
+                })()}
               </TouchableOpacity>
             ))}
             {!reviews.length && userReview && (
@@ -529,12 +649,6 @@ export default function PatioDetailScreen() {
             )}
           </View>
 
-          {businessOpeningLabel && (
-            <View style={s.historyMeta} accessible accessibilityLabel={businessOpeningLabel}>
-              <Ionicons name="calendar-outline" size={14} color={theme.textMute} />
-              <Text style={s.historyMetaText}>{businessOpeningLabel}</Text>
-            </View>
-          )}
         </View>
       </ScrollView>
 

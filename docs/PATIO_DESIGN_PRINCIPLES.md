@@ -53,6 +53,22 @@ Use this file as the shared product and UI reference for Patio. Prefer these rul
 - Prefer generic verbs when the action applies to multiple content types.
 - Avoid over-explaining in persistent UI.
 - Put explanatory detail in sheets, helper text, or follow-up surfaces instead of the main layout.
+- Prefer already learned icon grammars for dense social action bars. Keep visible
+  labels out when icons and counters are conventional, but always provide complete
+  accessibility labels.
+- Synthetic product data may exercise edge cases; synthetic editorial commentary
+  must not appear as if it were a fact about a real business.
+
+## Recognition and trust surfaces
+
+- Recognition is represented by compact icon medals, never promotional pills.
+- A medal must be derived from a named, measurable signal; it is not decoration.
+- Multiple medals may coexist without competing with the menu or primary action.
+- Explanations reuse a stable information surface instead of expanding the layout.
+- Operational facts immediately above the map use three aligned columns: schedule,
+  accepted payments, and real opening year.
+- Popularity, republication, corroboration and verification are different concepts;
+  never collapse them into one score.
 
 ## Current UI Decisions (cambiables)
 

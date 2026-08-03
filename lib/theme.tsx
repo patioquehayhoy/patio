@@ -88,6 +88,17 @@ export const Spacing = {
   hero: 56, // hero
 } as const;
 
+// Espaciado semántico: evita elegir números distintos para la misma función.
+export const Layout = {
+  screen: 20,
+  editorial: 22,
+  modal: 24,
+  card: 16,
+  compact: 12,
+  touchTarget: 44,
+  row: 56,
+} as const;
+
 // Motion — spring iOS, sin distracciones
 export const Motion = {
   sheetSpring:  { stiffness: 380, damping: 32 },

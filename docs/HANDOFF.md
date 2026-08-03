@@ -1,5 +1,131 @@
 # HANDOFF
 
+## 2026-08-02 — Auditoría transversal de padding y blancos táctiles
+
+Se auditó `app/` y `components/` y se fijó el contrato semántico en
+`docs/SPACING_AND_TOUCH_AUDIT_2026-08-02.md`. Los controles frecuentes de
+navegación y acciones principales usan 44 pt; chips secundarios conservan
+densidad cuando cuentan con separación suficiente. La ficha de Patio mantiene
+alturas estables en medallas y una pleca social compacta.
+
+## Ajuste 2026-08-02 · reseña cerrada por defecto
+
+- La ficha renderiza sólo la reseña raíz. Ninguna respuesta —incluida la oficial
+  del negocio— aparece hasta tocar `Ver N comentarios`.
+- Al expandir se prueban burbujas de Foodies, respuesta oficial, respuesta entre
+  personas, likes, preguntas, acuerdos, desacuerdos e hilos de 2–5 entradas.
+- Todos los autores `demo-*` de los tres perfiles lapislázuli reciben conversación
+  sintética determinista: variedad entre casos, estabilidad entre renders.
+
+## Ajuste 2026-08-02 · conversación reconocible
+
+- Las respuestas adoptan composición familiar de Facebook adaptada a Patio:
+  burbuja, autor, hora, `Me gusta`, `Responder`, sangría y `Ver N respuestas`.
+- Se eliminó `En respuesta a…`; `parent_reply_id` sigue siendo dato interno para
+  notificación/moderación, no copy visible.
+- El negocio usa nombre truncado a una línea + `checkmark.seal.fill`; desaparece
+  la etiqueta textual `PATIO`, que se desplazaba con nombres largos.
+
+## Corte 2026-08-02 · ficha Apple, tres demos e hilos
+
+- Los tres demos lapislázuli están verificados: `demo-patio-2` concentra el caso
+  negativo, `demo-patio-4` es positivo y recién abierto, `demo-patio-3` prueba
+  nombre largo y conversación de alta participación.
+- Verificación se movió a la derecha de la línea abierto/cerrado y usa
+  `checkmark.seal.fill`; no compite con el título.
+- Reseña raíz lleva estrellas y representa visita. Respuesta no lleva estrellas.
+  Se puede responder a otra respuesta mediante referencia, pero el hilo se
+  renderiza plano: una respuesta inicial y expansión voluntaria.
+- Barra social reagrupada por proximidad y blancos táctiles de 44 pt. Hero,
+  medallas, Reseñar y datos prácticos también se corrigieron a 44 pt.
+- Buscar deja visible la mitad superior del mapa; tap o drag ejecutan cierre
+  completo de teclado, consulta y resultados.
+- Arquitectura de conversación, antispam y moderación actualizada en
+  `docs/REVIEWS_AND_TRUST.md`. Auditoría completa:
+  `docs/PATIO_DETAIL_APPLE_AUDIT_2026-08-02.md`.
+
+## Corte 2026-08-02 · prueba IA, verificación y reseñas depuradas
+
+- En DEV, el botón `IA` del buscador activa una prueba funcional: interpreta
+  lenguaje natural, expande familias culinarias, recupera menús relacionados y
+  puede exigir `abierto ahora`. No narra `Entendí…` ni expone el procesamiento.
+- En producción el mismo acceso continúa llevando a Patio Pro hasta conectar
+  entitlement, Edge Function/modelo y consumo medible; no se presenta la prueba
+  local como IA de producción.
+- La barra superior de Buscar conserva posición, alto y radio entre reposo y
+  edición; sólo cambia contenido/material glass para evitar el salto visual.
+- Reseñas retiró republicar y compartir. Conserva responder, like y —sólo para
+  demo— visualizaciones. Respuestas y respuesta oficial también reciben like.
+- `isVerifiedBusiness` separa demos verificados y no verificados; la marca confirma
+  identidad/control. Plan Gratis para negocio muestra `Negocio sin verificar` y
+  Pro ofrece revisión, no una compra automática de reputación.
+- La verificación usa `checkmark.seal.fill` nativo como sello fijo en superíndice
+  derecho; no flota al final de nombres largos.
+- Los hilos muestran una sola respuesta y revelan el resto al tocarlos.
+- Pantalla Plan aplica `noWidow`, elimina el azul ajeno a Patio y vende sólo el
+  delta de Pro. Se conservan dos niveles hasta que exista un tercer escalón de
+  valor/capacidad medible.
+
+## Referencia 2026-08-02 · Airbnb y estado de Metro
+
+- Se tomó como referencia oficial Airbnb Summer Release 2026: resúmenes de
+  reseñas con IA, comparación de guardados y asistencia con tarjetas accionables.
+  Patio conserva mapa/ficha/listas como estructura; la IA vive dentro de ellas.
+- Traducción documentada en `docs/DISCOVERY_SEARCH_ARCHITECTURE.md`.
+- Metro reiniciado limpio en LAN y verificado en
+  `http://192.168.100.141:8081` (`packager-status:running`). Dev-client:
+  `exp+lafondita://expo-development-client/?url=http%3A%2F%2F192.168.100.141%3A8081`.
+- El iPhone 15 Pro `Parco` fue detectado por CoreDevice como `unavailable`; debe
+  desbloquearse y compartir la Wi-Fi de la Mac o conectarse por cable antes de
+  que la Mac pueda lanzar `com.parcomx.patio` remotamente.
+
+## Corte 2026-08-02 · auditoría sintética y venta de Patio Pro
+
+- Datos reales dejaron de recibir likes o visualizaciones calculados desde IDs.
+  Esas cifras sobreviven únicamente en autores `demo-*`; producción las oculta
+  hasta tener tablas y agregación reales.
+- `Abiertos` ya no incluye negocios sin horario. Una ficha sin horario semanal
+  muestra `Sin horario` y no interpreta el campo legacy como disponibilidad.
+- El buscador muestra una entrada compacta `IA` que lleva a Patio Pro. No simula
+  todavía una respuesta inteligente.
+- La oferta Pro adopta la estructura útil observada en X: beneficios primero,
+  mensual/anual seleccionables, ahorro anual calculable, CTA único y renovación
+  explícita. No se inventó un descuento temporal.
+- Foodie Pro nombra la capacidad concreta `Búsqueda con IA en lenguaje natural`;
+  Fondero Pro conserva `Cuenta de negocio verificada` bajo revisión real.
+- Arquitectura completa y reglas de fuentes:
+  `docs/DISCOVERY_SEARCH_ARCHITECTURE.md`.
+
+## Corte 2026-08-02 · cierre del buscador, hilos compactos y Pro verificable
+
+- Tocar el mapa durante una búsqueda cierra buscador, teclado, consulta y panel
+  de resultados; el mapa vuelve a su estado normal.
+- El campo activo dejó de decir `Platillo o lugar`; usa `¿Qué se te antoja?` y
+  los resultados se presentan como mejores coincidencias.
+- Toda reseña y toda respuesta sintética tienen autor. Las respuestas del negocio
+  llevan la identidad del Patio; respuestas y reseñas admiten like.
+- Los hilos muestran una respuesta inicialmente y revelan el resto bajo demanda,
+  evitando que una conversación larga expanda toda la ficha.
+- Patio Pro distingue dos productos: búsqueda conversacional para Foodies y
+  cuenta de negocio verificada para Fonderos. Pagar permite iniciar el proceso;
+  la marca sólo se entrega después de comprobar identidad/control del negocio y
+  nunca certifica sabor, calidad ni reputación.
+
+## Decisión 2026-08-02 · identidad técnica antes del lanzamiento
+
+- La infraestructura actual usa identidades mezcladas y no debe llegar así al
+  lanzamiento público. `quehayhoy.patio` queda como concepto/caso de uso, no
+  como identidad propietaria definitiva del producto.
+- Se deja como **P0 pre-lanzamiento** centralizar correo, Supabase, GitHub,
+  Expo/EAS y Apple bajo una identidad neutral de Patio, con dos administradores,
+  recuperación y 2FA documentados.
+- Producto autoriza considerar un Supabase nuevo y retirar el actual. Eso no
+  equivale a borrarlo ahora: antes hay que inventariar y migrar esquema, datos,
+  Auth, Storage, Functions, secretos, redirects y templates; probar paridad y
+  conservar respaldo/rollback.
+- No borrar cuentas, proyectos, usuarios ni credenciales hasta completar el
+  checklist P0 de `docs/TASKS.md`.
+
 ## Corte 2026-08-01 · ficha factual, reconocimientos y reseñas sociales
 
 Este corte sustituye las decisiones anteriores sobre píldoras de distinción,
@@ -31,6 +157,28 @@ ubicación de la fecha de apertura y reseñas sin conversación.
 
 Validación: `npx tsc --noEmit`, ESLint y `git diff --check` en verde. El flujo se
 recargó en el iPhone físico mediante Metro LAN.
+
+## Corte 2026-08-02 · búsqueda mixta, horario honesto y reseñas inmutables
+
+- La búsqueda resuelve nombres de lugar y platillos en el mismo campo. Nombre
+  exacto, prefijo y coincidencia parcial del establecimiento tienen prioridad
+  suficiente para no quedar enterrados bajo coincidencias de menú.
+- Las tarjetas retiraron el giro de la superficie principal. Zona queda como
+  contexto mínimo; reputación y distancia comparten la línea inferior.
+- La pleca práctica usa apertura a la izquierda, pagos al centro y horario a la
+  derecha.
+- Horario distingue `Sin horario`, `Sin horario hoy`, `Cerrado hoy` y un rango
+  válido. Nunca deriva horas ficticias de un valor parcial o inválido.
+- Se retiró el icono informativo junto a Reseñas y el autor genérico visible
+  `Foodie de Patio` en los hilos sintéticos.
+- Una reseña publicada ya no se abre como editor. Otra visita crea una reseña
+  nueva e inmutable; el MVP admite una por cuenta, Patio y día. Supabase usa
+  `insert` en lugar de `upsert` y la
+  migración `20260804_make_reviews_immutable.sql` elimina permisos cliente de
+  actualización y eliminación, agrega `visit_date` e identifica cada reseña por ID.
+
+Validación local: TypeScript, ESLint y `git diff --check` en verde. La migración
+está creada en el repo, todavía requiere aplicarse al proyecto remoto.
 
 ## Corte 2026-08-01 · copy de antojo, distinciones y vigencia de menú
 

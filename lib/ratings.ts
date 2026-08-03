@@ -12,6 +12,7 @@ export type PatioRating = {
 };
 
 export type PublicPatioReview = PatioRating & {
+  reviewId?: string;
   userId: string;
   author: string;
   avatarUrl?: string;
@@ -20,28 +21,52 @@ export type PublicPatioReview = PatioRating & {
   isMine: boolean;
 };
 
-type RatingsMap = Record<string, PatioRating>;
+type RatingsMap = Record<string, PatioRating[]>;
 
 async function getMap(): Promise<RatingsMap> {
   const raw = await AsyncStorage.getItem(KEY);
-  return raw ? (JSON.parse(raw) as RatingsMap) : {};
+  if (!raw) return {};
+  const parsed = JSON.parse(raw) as Record<string, PatioRating | PatioRating[]>;
+  return Object.fromEntries(
+    Object.entries(parsed).map(([patioId, value]) => [patioId, Array.isArray(value) ? value : [value]]),
+  );
 }
 
 export async function getPatioRating(patioId: string): Promise<PatioRating | null> {
   const map = await getMap();
-  return map[patioId] ?? null;
+  const local = map[patioId]?.at(-1);
+  if (local || !/^[0-9a-f-]{36}$/i.test(patioId)) return local ?? null;
+  const { data: user } = await supabase.auth.getUser();
+  if (!user.user) return null;
+  const { data } = await supabase
+    .from('reviews')
+    .select('stars,reasons,note,created_at')
+    .eq('fondita_id', patioId)
+    .eq('user_id', user.user.id)
+    .eq('status', 'published')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  return data ? {
+    stars: data.stars,
+    reasons: data.reasons ?? [],
+    note: data.note || undefined,
+    timestamp: new Date(data.created_at).getTime(),
+  } : null;
 }
 
 export async function getPublicPatioReviews(patioId: string): Promise<PublicPatioReview[]> {
   if (!/^[0-9a-f-]{36}$/i.test(patioId)) {
-    const mine = await getPatioRating(patioId);
-    return mine ? [{ ...mine, userId: 'local', author: 'Tú', isMine: true }] : [];
+    const map = await getMap();
+    return (map[patioId] ?? [])
+      .map((review) => ({ ...review, userId: `local-${review.timestamp}`, author: 'Tú', isMine: true }))
+      .sort((a, b) => b.timestamp - a.timestamp);
   }
   const [{ data: session }, { data, error }] = await Promise.all([
     supabase.auth.getSession(),
     supabase
       .from('reviews')
-      .select('user_id,stars,reasons,note,created_at,updated_at,business_reply,business_replied_at')
+      .select('id,user_id,stars,reasons,note,created_at,updated_at,business_reply,business_replied_at')
       .eq('fondita_id', patioId)
       .eq('status', 'published')
       .order('created_at', { ascending: false }),
@@ -53,11 +78,15 @@ export async function getPublicPatioReviews(patioId: string): Promise<PublicPati
     : { data: [] };
   const profilesById = new Map((profiles ?? []).map((profile: any) => [profile.user_id, profile]));
   const currentUserId = session.session?.user.id;
-  return (data ?? []).map((row: any) => {
+  return (data ?? []).flatMap((row: any) => {
     const profile: any = profilesById.get(row.user_id);
-    return {
+    const isMine = row.user_id === currentUserId;
+    const publicName = isMine ? 'Tú' : profile?.display_name?.trim();
+    if (!publicName) return [];
+    return [{
+      reviewId: row.id,
       userId: row.user_id,
-      author: row.user_id === currentUserId ? 'Tú' : (profile?.display_name || 'Foodie de Patio'),
+      author: publicName,
       avatarUrl: profile?.avatar_url || undefined,
       stars: row.stars,
       reasons: row.reasons ?? [],
@@ -65,15 +94,14 @@ export async function getPublicPatioReviews(patioId: string): Promise<PublicPati
       timestamp: new Date(row.created_at || row.updated_at).getTime(),
       businessReply: row.business_reply || undefined,
       businessRepliedAt: row.business_replied_at || undefined,
-      isMine: row.user_id === currentUserId,
-    };
+      isMine,
+    }];
   });
 }
 
-export async function replyToReview(fonditaId: string, userId: string, reply: string): Promise<void> {
+export async function replyToReview(reviewId: string, reply: string): Promise<void> {
   const { error } = await supabase.rpc('reply_to_review', {
-    target_fondita_id: fonditaId,
-    target_user_id: userId,
+    target_review_id: reviewId,
     reply_text: reply.trim(),
   });
   if (error) throw error;
@@ -93,29 +121,36 @@ export async function savePatioRating(
   reasons?: string[],
 ): Promise<void> {
   const map = await getMap();
+  const today = new Date().toDateString();
+  if ((map[patioId] ?? []).some((review) => new Date(review.timestamp).toDateString() === today)) {
+    throw new Error('REVIEW_ALREADY_PUBLISHED_TODAY');
+  }
   const data: SaveRatingInput =
     typeof starsOrInput === 'number'
       ? { stars: starsOrInput, reasons }
       : starsOrInput;
-  map[patioId] = {
+  const rating: PatioRating = {
     stars: data.stars,
     reasons: data.reasons,
     note: data.note?.trim() || undefined,
     photoUri: data.photoUri || undefined,
     timestamp: Date.now(),
   };
-  await AsyncStorage.setItem(KEY, JSON.stringify(map));
   if (/^[0-9a-f-]{36}$/i.test(patioId)) {
     const { data: user } = await supabase.auth.getUser();
     if (user.user) {
-      await supabase.from('reviews').upsert({
+      const { error } = await supabase.from('reviews').insert({
         user_id: user.user.id,
         fondita_id: patioId,
         stars: data.stars,
         reasons: data.reasons ?? [],
         note: data.note?.trim() || null,
+        visit_date: new Date().toISOString().slice(0, 10),
         updated_at: new Date().toISOString(),
       });
+      if (error) throw error;
     }
   }
+  map[patioId] = [...(map[patioId] ?? []), rating];
+  await AsyncStorage.setItem(KEY, JSON.stringify(map));
 }

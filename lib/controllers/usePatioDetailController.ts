@@ -83,25 +83,9 @@ function cleanParam(id: PatioParam): string | undefined {
   return Array.isArray(id) ? id[0] : id;
 }
 
-function isPatioOpenLegacy(open: string): boolean | null {
-  const match = open.match(/(\d+)(am|pm)?[-–](\d+)(am|pm)/i);
-  if (!match) return null;
-  const toHour = (hour: string, period: string) => {
-    let parsed = parseInt(hour, 10);
-    if (period?.toLowerCase() === 'pm' && parsed !== 12) parsed += 12;
-    if (period?.toLowerCase() === 'am' && parsed === 12) parsed = 0;
-    return parsed;
-  };
-  const now = new Date();
-  const cdmx = now.getUTCHours() - 6 + now.getUTCMinutes() / 60;
-  const opens = toHour(match[1], match[2] ?? match[4]);
-  const closes = toHour(match[3], match[4]);
-  return cdmx >= opens && cdmx < closes;
-}
-
 function patioStatus(patio: Patio): boolean | null {
   if (patio.weeklyHours) return estaAbiertoAhora(patio.weeklyHours);
-  return isPatioOpenLegacy(patio.open);
+  return null;
 }
 
 export function usePatioDetailController(id: PatioParam) {
@@ -184,9 +168,11 @@ export function usePatioDetailController(id: PatioParam) {
   const hoy = useMemo(() => (patio ? horarioDeHoy(patio.weeklyHours) : null), [patio]);
   const rangoHoy = useMemo(() => {
     if (!patio) return '';
-    return hoy && !hoy.cerrado && hoy.abre && hoy.cierra
-      ? `${formatHHMM12(hoy.abre)}–${formatHHMM12(hoy.cierra)}`
-      : patio.open;
+    if (!patio.weeklyHours?.length) return 'Sin horario';
+    if (!hoy) return 'Sin horario hoy';
+    if (hoy.cerrado) return 'Cerrado hoy';
+    if (hoy.abre && hoy.cierra) return `${formatHHMM12(hoy.abre)}–${formatHHMM12(hoy.cierra)}`;
+    return 'Sin horario hoy';
   }, [hoy, patio]);
   const proxTexto = useMemo(() => {
     const prox = patio ? proximaApertura(patio.weeklyHours) : null;

@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
   sideLeft: { minWidth: 60, alignItems: 'flex-start', justifyContent: 'center' },
   sideRight: { minWidth: 60, flexDirection: 'row', gap: 8, alignItems: 'center', justifyContent: 'flex-end' },
   compactTitle: { flex: 1, textAlign: 'center', fontSize: 16, fontWeight: '700', letterSpacing: -0.2 },
-  circleBtn: { width: 40, height: 40, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  circleBtn: { width: 44, height: 44, borderRadius: 22, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
 
   bigWrap: { paddingHorizontal: 22 },
   eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.6, textTransform: 'uppercase', marginBottom: 8 },

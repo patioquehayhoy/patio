@@ -46,8 +46,10 @@ function makeStyles(t: Theme) {
     searchPill: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingVertical: 15, borderRadius: 18, overflow: 'hidden', backgroundColor: t.isDark ? 'rgba(20,21,24,0.55)' : 'rgba(255,255,255,0.78)', borderWidth: StyleSheet.hairlineWidth, borderColor: btnBorder, shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: btnShadowOpacity + 0.04, shadowRadius: 22, elevation: 4 },
     bottomControls: { flexDirection: 'row', alignItems: 'stretch', gap: 8 },
     nearbyButton: { width: 50, borderRadius: 18, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', backgroundColor: t.isDark ? 'rgba(20,21,24,0.55)' : 'rgba(255,255,255,0.78)', borderWidth: StyleSheet.hairlineWidth, borderColor: btnBorder, shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: btnShadowOpacity + 0.04, shadowRadius: 22, elevation: 4 },
-    searchRow: { flex: 1, height: 44, borderRadius: 16, overflow: 'hidden', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, gap: 8, borderWidth: StyleSheet.hairlineWidth, borderColor: btnBorder, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: btnShadowOpacity, shadowRadius: 16, elevation: 2 },
-    searchInput: { flex: 1, fontSize: 15, fontWeight: '400', color: t.text, height: 44, paddingVertical: 0 },
+    searchRow: { flex: 1, height: 50, borderRadius: 18, overflow: 'hidden', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, gap: 8, borderWidth: StyleSheet.hairlineWidth, borderColor: btnBorder, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: btnShadowOpacity, shadowRadius: 16, elevation: 2 },
+    searchInput: { flex: 1, fontSize: 15, fontWeight: '400', color: t.text, height: 50, paddingVertical: 0 },
+    aiProButton: { minHeight: 30, paddingHorizontal: 8, borderRadius: 15, flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: t.accentSoft },
+    aiProText: { fontSize: 10.5, fontWeight: '800', color: t.accent, letterSpacing: 0.3 },
     sheet: { position: 'absolute', left: 14, right: 14, bottom: 14, maxHeight: '48%', borderRadius: Radius.sheet, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: t.isDark ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.18)', shadowColor: '#000', shadowOffset: { width: 0, height: 12 }, shadowOpacity: t.isDark ? 0.20 : 0.08, shadowRadius: 32, elevation: 8 },
     grabber: { alignSelf: 'center', width: 36, height: 4, borderRadius: 2, backgroundColor: t.isDark ? 'rgba(255,255,255,0.16)' : 'rgba(0,0,0,0.10)', marginTop: 10, marginBottom: 8 },
     selectedPanel: { paddingHorizontal: 18, paddingBottom: 14 },
@@ -137,6 +139,7 @@ export default function ExplorarScreen() {
   const sheetTranslateY = useRef(new Animated.Value(0)).current;
   const {
     activeSavedCategories,
+    aiMode,
     allPatios,
     clearSavedMapFilter,
     closeSheet,
@@ -153,6 +156,7 @@ export default function ExplorarScreen() {
     searchActive,
     searchInputRef,
     searchPending,
+    setAiMode,
     savedIds,
     setVisibleRegion,
     sheetMode,
@@ -171,7 +175,7 @@ export default function ExplorarScreen() {
     if (mapFilter === 'all') return true;
     if (mapFilter === 'saved') return savedIds.includes(patio.id);
     if (mapFilter === 'today') return patio.menu.some((section) => section.items.length > 0);
-    if (mapFilter === 'open') return patio.weeklyHours ? estaAbiertoAhora(patio.weeklyHours) : true;
+    if (mapFilter === 'open') return patio.weeklyHours ? estaAbiertoAhora(patio.weeklyHours) : false;
     if (mapFilter.startsWith('collection:')) {
       const collection = collections.find((item) => item.id === mapFilter.slice('collection:'.length));
       return !!collection?.patioIds.includes(patio.id);
@@ -254,7 +258,14 @@ export default function ExplorarScreen() {
           style={s.mapView}
           toolbarEnabled={false}
           userInterfaceStyle={theme.isDark ? 'dark' : 'light'}
-          onPress={() => (searchActive ? closeSearch() : closeSheet())}
+          onPress={() => {
+            Keyboard.dismiss();
+            if (searchActive || isFiltering) closeSearch();
+            else closeSheet();
+          }}
+          onPanDrag={() => {
+            if (searchActive || isFiltering) closeSearch();
+          }}
           onRegionChangeComplete={setVisibleRegion}>
           {filteredPins.map((patio, idx) => {
             const isMuted = isFiltering && !matchingPatioIds.has(patio.id);
@@ -357,7 +368,7 @@ export default function ExplorarScreen() {
             { opacity: idleLayerOpacity },
           ]}>
           <View style={s.bottomControls}>
-            <TouchableOpacity accessibilityLabel="Buscar un platillo o lugar" activeOpacity={0.82} onPress={openSearch} style={[s.searchPill, { flex: 1 }]}>
+            <TouchableOpacity accessibilityLabel="Buscar comida o un lugar" activeOpacity={0.82} onPress={openSearch} style={[s.searchPill, { flex: 1 }]}>
               <BlurView intensity={theme.isDark ? 28 : 36} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
               <Ionicons name="search-outline" size={18} color={theme.textSecondary} />
               <Text style={{ fontSize: 16, fontWeight: '400', color: theme.textSecondary }}>
@@ -372,21 +383,21 @@ export default function ExplorarScreen() {
           debajo, como en las superficies de mapa nativas. */}
       {searchActive && (
         <View
-          style={{ position: 'absolute', left: 0, right: 0, top: insets.top + 2 }}
+          style={{ position: 'absolute', left: 0, right: 0, top: insets.top + 10 }}
           pointerEvents="box-none">
-          <View style={{ paddingHorizontal: 16, paddingBottom: 12, paddingTop: 8 }}>
+          <View style={{ paddingHorizontal: 16, paddingBottom: 12 }}>
             <View style={s.searchRow}>
               <BlurView intensity={theme.isDark ? 30 : 36} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
               <TouchableOpacity onPress={closeSearch} activeOpacity={0.76} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
                 <Ionicons name="chevron-back" size={20} color={theme.text} />
               </TouchableOpacity>
               <TextInput
-                accessibilityLabel="Buscar un platillo o lugar"
+                accessibilityLabel="Buscar comida o un lugar"
                 ref={searchInputRef}
                 style={s.searchInput}
                 value={query}
                 onChangeText={handleQueryChange}
-                placeholder="Platillo o lugar"
+                placeholder="¿Qué se te antoja?"
                 placeholderTextColor={theme.textSecondary}
                 autoCorrect={false}
                 autoCapitalize="none"
@@ -401,6 +412,22 @@ export default function ExplorarScreen() {
                   <Ionicons name="close-circle" size={18} color={theme.textSecondary} />
                 </TouchableOpacity>
               )}
+              <TouchableOpacity
+                style={[s.aiProButton, aiMode && { backgroundColor: theme.accent }]}
+                onPress={() => {
+                  if (__DEV__) {
+                    setAiMode((active) => !active);
+                    requestAnimationFrame(() => searchInputRef.current?.focus());
+                  } else {
+                    Keyboard.dismiss();
+                    router.push({ pathname: '/plan', params: { role: 'foodie' } });
+                  }
+                }}
+                accessibilityRole="button"
+                accessibilityLabel="Conocer búsqueda con inteligencia artificial de Patio Pro">
+                <Ionicons name="sparkles" size={13} color={aiMode ? theme.bg : theme.accent} />
+                <Text style={[s.aiProText, aiMode && { color: theme.bg }]}>IA</Text>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -410,9 +437,8 @@ export default function ExplorarScreen() {
         <Animated.View
           {...sheetPanResponder.panHandlers}
           style={[s.sheet, isFiltering ? {
-            top: insets.top + 62,
             bottom: keyboardHeight > 0 ? keyboardHeight + 10 : insets.bottom + 78,
-            maxHeight: undefined,
+            maxHeight: '48%',
             paddingBottom: 4,
             transform: [{ translateY: sheetTranslateY }],
           } : {
@@ -432,7 +458,7 @@ export default function ExplorarScreen() {
                     ? `${topMatchPerPatio.length} RESULTADO${topMatchPerPatio.length !== 1 ? 'S' : ''}`
                     : 'SIN RESULTADOS'}
                 </Text>
-                <Text style={s.listMeta} allowFontScaling={true}>MENÚ DE HOY</Text>
+                <Text style={s.listMeta} allowFontScaling={true}>MEJORES COINCIDENCIAS</Text>
               </>
             ) : (
               <Text style={s.listTitle} allowFontScaling={true}>{sheetMode === 'saved' ? 'GUARDADOS' : 'CERCA DE TI'}</Text>
@@ -453,9 +479,9 @@ export default function ExplorarScreen() {
                     <Ionicons name="search" size={32} color={theme.accent} />
                   </View>
                   <Text style={s.emptyEyebrow} allowFontScaling={true}>Sin resultados</Text>
-                  <Text style={s.emptyTitle} allowFontScaling={true}>{noWidow('No encontramos eso cerca.')}</Text>
-                  <Text style={s.emptySub} allowFontScaling={true}>{noWidow('Prueba con otro platillo, bebida o tipo de lugar.')}</Text>
-                  <Text style={s.emptyPruebaLabel} allowFontScaling={true}>Prueba con</Text>
+                  <Text style={s.emptyTitle} allowFontScaling={true}>{noWidow('No hay coincidencias cerca')}</Text>
+                  <Text style={s.emptySub} allowFontScaling={true}>{noWidow('Mueve el mapa o cambia tu búsqueda.')}</Text>
+                  <Text style={s.emptyPruebaLabel} allowFontScaling={true}>OTRAS BÚSQUEDAS</Text>
                   <View style={s.emptyPills}>
                     {['caldo', 'tinga', 'mole', 'pozole', 'veggie'].map((q) => (
                       <TouchableOpacity key={q} onPress={() => handleQueryChange(q)} activeOpacity={0.8} style={s.emptyPill}>
@@ -484,24 +510,21 @@ export default function ExplorarScreen() {
                       <View style={s.patioInfo}>
                         <Text style={s.patioName} numberOfLines={2} allowFontScaling={true}>{match.item.name}</Text>
                         <Text style={s.patioMeta} numberOfLines={1} allowFontScaling={true}>
-                          {[
-                            match.section === 'LUGAR' ? match.patio.category : match.patio.name,
-                            match.section === 'LUGAR' ? match.patio.area : match.patio.category,
-                            distanceLabelForPatio(match.patio),
-                          ].filter(Boolean).join(' · ')}
+                          {match.section === 'LUGAR' ? match.patio.area : match.patio.name}
                         </Text>
-                        {!!match.patio.rating && match.patio.rating !== 'Nuevo' && (
+                        {(match.patio.rating && match.patio.rating !== 'Nuevo' || distanceLabelForPatio(match.patio)) && (
                           <View style={s.patioContext}>
-                            <Text style={s.patioContextText}>★ {match.patio.rating}</Text>
+                            {!!match.patio.rating && match.patio.rating !== 'Nuevo' && <Text style={s.patioContextText}>★ {match.patio.rating}{match.patio.ratingCount != null ? ` (${match.patio.ratingCount})` : ''}</Text>}
+                            {!!distanceLabelForPatio(match.patio) && <Text style={s.patioContextText}>{match.patio.rating && match.patio.rating !== 'Nuevo' ? '· ' : ''}{distanceLabelForPatio(match.patio)}</Text>}
                           </View>
                         )}
                       </View>
                       <View style={s.patioRight}>
-                        {!!publicPrice(match.item.price ?? match.patio.price) && (
+                        {match.section !== 'LUGAR' && !!publicPrice(match.item.price ?? match.patio.price) && (
                           <Text style={s.patioPrice} numberOfLines={1} allowFontScaling={true}>{publicPrice(match.item.price ?? match.patio.price)}</Text>
                         )}
                         <Text style={[s.patioOpen, state === true && { color: OPEN_GREEN }]} numberOfLines={1} allowFontScaling={true}>
-                          {state === false ? 'Cerrado' : state === true ? 'Abierto' : match.patio.open.split('·')[0].trim()}
+                          {state === false ? 'Cerrado' : state === true ? 'Abierto' : 'Sin horario'}
                         </Text>
                       </View>
                     </TouchableOpacity>
@@ -532,10 +555,11 @@ export default function ExplorarScreen() {
                     </View>
                     <View style={s.patioInfo}>
                       <Text style={s.patioName} numberOfLines={2} allowFontScaling={true}>{patio.name}</Text>
-                      <Text style={s.patioMeta} numberOfLines={1} allowFontScaling={true}>{patio.category} · {patio.area} · {distanceLabelForPatio(patio)}</Text>
-                      {!!patio.rating && patio.rating !== 'Nuevo' && (
+                      <Text style={s.patioMeta} numberOfLines={1} allowFontScaling={true}>{patio.area}</Text>
+                      {(patio.rating && patio.rating !== 'Nuevo' || distanceLabelForPatio(patio)) && (
                         <View style={s.patioContext}>
-                          <Text style={s.patioContextText}>★ {patio.rating}</Text>
+                          {!!patio.rating && patio.rating !== 'Nuevo' && <Text style={s.patioContextText}>★ {patio.rating}{patio.ratingCount != null ? ` (${patio.ratingCount})` : ''}</Text>}
+                          {!!distanceLabelForPatio(patio) && <Text style={s.patioContextText}>{patio.rating && patio.rating !== 'Nuevo' ? '· ' : ''}{distanceLabelForPatio(patio)}</Text>}
                         </View>
                       )}
                     </View>
@@ -544,7 +568,7 @@ export default function ExplorarScreen() {
                         <Text style={s.patioPrice} numberOfLines={1} allowFontScaling={true}>{publicPrice(patio.price)}</Text>
                       )}
                       <Text style={[s.patioOpen, state === true && { color: OPEN_GREEN }]} numberOfLines={1} allowFontScaling={true}>
-                        {state === false ? 'Cerrado' : state === true ? 'Abierto' : patio.open.split('·')[0].trim()}
+                        {state === false ? 'Cerrado' : state === true ? 'Abierto' : 'Sin horario'}
                       </Text>
                     </View>
                   </TouchableOpacity>

@@ -497,7 +497,7 @@ export default function PatioSmartScreen() {
 const s = StyleSheet.create({
   root: { flex: 1 },
   nav: { minHeight: 58, paddingHorizontal: 16, paddingBottom: 10, flexDirection: 'row', alignItems: 'center' },
-  close: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+  close: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
   progress: { position: 'absolute', left: 0, right: 0, bottom: 26, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
   progressDot: { width: 6, height: 6, borderRadius: 3 },
   progressDotCurrent: { width: 18 },

@@ -8,7 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { fetchFonditaById, getPatioById, type Patio } from '@/lib/patios';
 import { publicPrice } from '@/lib/prices';
-import { getPatioRating, savePatioRating } from '@/lib/ratings';
+import { savePatioRating } from '@/lib/ratings';
 import { REVIEW_TAGS as TAGS } from '@/lib/review-tags';
 import { Fonts, Radius, useTheme, type Theme } from '@/lib/theme';
 import { supabase } from '@/lib/supabase';
@@ -17,7 +17,7 @@ function makeStyles(t: Theme) {
   return StyleSheet.create({
     root: { flex: 1, backgroundColor: t.bg },
     nav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingRight: 20, height: 44 },
-    navBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: t.isDark ? 'rgba(255,255,255,0.08)' : 'rgba(17,18,20,0.05)', alignItems: 'center', justifyContent: 'center' },
+    navBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: t.isDark ? 'rgba(255,255,255,0.08)' : 'rgba(17,18,20,0.05)', alignItems: 'center', justifyContent: 'center' },
     navHint: { fontSize: 14, fontWeight: '400', color: t.textSecondary },
 
     content: { paddingHorizontal: 22, paddingTop: 8, paddingBottom: 140 },
@@ -77,18 +77,6 @@ export default function ResenaScreen() {
     fetchFonditaById(cleanId).then((found) => { if (found) setPatio(found); });
   }, [cleanId]);
 
-  // Precargar reseña previa si existe.
-  useEffect(() => {
-    if (!cleanId) return;
-    getPatioRating(cleanId).then((prev) => {
-      if (!prev) return;
-      setStars(prev.stars);
-      setSelected(prev.reasons ?? []);
-      setNote(prev.note ?? '');
-      setPhotoUri(prev.photoUri);
-    });
-  }, [cleanId]);
-
   const pressStar = (n: number) => {
     setStars(n);
     // Pulso de las estrellas activas, escalonado (como Figma).
@@ -138,7 +126,7 @@ export default function ResenaScreen() {
           <TouchableOpacity style={s.navBtn} onPress={() => router.back()} activeOpacity={0.7}>
             <Ionicons name="chevron-back" size={20} color={theme.text} />
           </TouchableOpacity>
-          <Text style={s.navHint} allowFontScaling={true}>{stars > 0 ? 'Borrador guardado' : ''}</Text>
+          <Text style={s.navHint} />
         </View>
       </View>
 

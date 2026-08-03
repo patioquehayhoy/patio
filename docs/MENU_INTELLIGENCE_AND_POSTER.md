@@ -50,6 +50,20 @@ para distinguir cómo se pide. La descripción contiene el resto sin repetir el
 nombre. Esta regla aplica a cualquier producto; los ejemplos del prompt son
 pruebas, no casos programados.
 
+### Regla editorial de platillo
+
+- **Nombre:** identidad canónica del platillo y solo los modificadores necesarios
+  para distinguirlo al pedirlo.
+- **Descripción:** ingredientes principales, preparación, relleno, salsa,
+  presentación o acompañamientos; nunca vuelve a decir el nombre.
+- Evitar elogios no verificables (`delicioso`, `el mejor`, `imperdible`) y frases
+  administrativas o generadas por Patio.
+- Preferir un fragmento breve, concreto y escaneable; si el contenido requiere
+  más detalle, conservarlo estructurado y revelarlo progresivamente.
+- Las vistas públicas y el póster aplican `noWidow` al render para evitar que la
+  última palabra quede aislada. El dato almacenado permanece limpio, sin espacios
+  no separables introducidos en la base.
+
 ## 1. El núcleo
 
 Patio se construye alrededor de un solo objeto de producto:

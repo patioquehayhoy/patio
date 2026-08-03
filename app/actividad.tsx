@@ -126,7 +126,7 @@ const s = StyleSheet.create({
   collectionList: { borderRadius: 22, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
   collectionCard: { minHeight: 72, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 12, position: 'relative' },
   rowDivider: { position: 'absolute', left: 68, right: 0, bottom: 0, height: StyleSheet.hairlineWidth },
-  mapButton: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center' },
+  mapButton: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
   icon: { width: 42, height: 42, borderRadius: 13, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   copy: { flex: 1, minWidth: 0 },
   rowTitle: { fontSize: 16, fontWeight: '700' },

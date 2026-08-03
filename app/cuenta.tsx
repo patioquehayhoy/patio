@@ -19,7 +19,7 @@ function makeStyles(t: Theme) {
 
     // Header editorial
     header: { paddingHorizontal: 22, paddingTop: 12, paddingBottom: 18 },
-    closeBtn: { width: 40, height: 40, borderRadius: 20, marginLeft: -8, marginBottom: 6, alignItems: 'center', justifyContent: 'center' },
+    closeBtn: { width: 44, height: 44, borderRadius: 22, marginLeft: -10, marginBottom: 4, alignItems: 'center', justifyContent: 'center' },
     eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', color: t.accent, marginBottom: 6 },
     title: { fontSize: 36, fontWeight: '900', letterSpacing: -1.2, lineHeight: 40, color: t.text, fontFamily: Fonts.brand },
 

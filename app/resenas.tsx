@@ -34,10 +34,9 @@ export default function ResenasScreen() {
   }, []);
   useFocusEffect(load);
   const sendReply = async (review: PublicPatioReview) => {
-    const fonditaId = getFonditaId();
-    if (!fonditaId || !reply.trim()) return;
+    if (!review.reviewId || !reply.trim()) return;
     try {
-      await replyToReview(fonditaId, review.userId, reply);
+      await replyToReview(review.reviewId, reply);
       setReply('');
       setReplyingTo(null);
       load();
@@ -187,7 +186,7 @@ const s = StyleSheet.create({
   tag: { paddingHorizontal: 9, paddingVertical: 4, borderRadius: 100 },
   tagText: { fontSize: 11, fontWeight: '500' },
   reviewNote: { marginTop: 8, fontSize: 13.5, lineHeight: 19, fontWeight: '400' },
-  replyButton: { minHeight: 40, marginTop: 9, flexDirection: 'row', alignItems: 'center', gap: 6 },
+  replyButton: { minHeight: 44, marginTop: 7, flexDirection: 'row', alignItems: 'center', gap: 6 },
   replyAction: { fontSize: 13, fontWeight: '700' },
   replyBox: { marginTop: 12, paddingLeft: 12, borderLeftWidth: 2 },
   replyLabel: { fontSize: 10, fontWeight: '800', letterSpacing: 0.8 },

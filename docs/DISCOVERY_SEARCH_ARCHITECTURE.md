@@ -93,3 +93,78 @@ En Guardados sí tienen sentido orden y filtros de colección:
 
 Cada nuevo caso se traduce en intención, restricciones, ranking y explicación;
 no en una pantalla especial independiente.
+
+## Patio Pro — búsqueda acompañada por IA
+
+La búsqueda gratuita sigue siendo directa: nombre, platillo, descripción y
+categoría. Pro acepta lenguaje natural y voz, por ejemplo:
+
+> Hoy se me antoja algo caldoso, con buen sazón mexicano y que esté abierto.
+
+La IA no responde con una lista inventada. Produce una intención estructurada:
+
+```txt
+textura = caldoso
+cocina = mexicana
+tiempo = hoy / abierto ahora
+preferencia = reputación de sabor
+ubicación = mapa o posición consentida
+```
+
+Después expande vocabulario culinario (`pozole`, `birria`, `consomé`, `caldo
+tlalpeño`), recupera candidatos y aplica restricciones reales. Cada resultado
+debe explicar su encaje con evidencia breve: `Pozole publicado hoy`, `4.7 (52)`
+y `Abierto hasta las 17:00`.
+
+### Fuentes y límites
+
+Orden de autoridad:
+
+1. Menú y horario publicados en Patio: disponibilidad operativa.
+2. Perfil, carta y datos estructurados del negocio.
+3. Reseñas de Patio: reputación y lenguaje comunitario, con volumen visible.
+4. Fuentes externas permitidas: enriquecimiento culinario y contexto, nunca para
+   afirmar que hoy existe un platillo que el negocio no publicó.
+
+No conviene buscar toda internet en vivo para cada consulta: añade latencia,
+costo, duplicados, datos viejos y problemas de atribución. Patio debe mantener
+un índice enriquecido y usar consulta externa únicamente cuando falte contexto,
+mostrando fuente y fecha. Internet amplía significado; Patio confirma existencia.
+
+### Acompañamiento, no chat infinito
+
+- Si hay resultados claros: mostrar tres opciones explicadas sobre el mapa.
+- Si falta una restricción decisiva: hacer una sola pregunta, por ejemplo
+  `¿Hasta cuánto quieres gastar?`.
+- Si no hay coincidencia exacta: explicar qué condición se relajó.
+- Conservar la consulta como contexto durante la sesión, no abrir una conversación
+  separada de la experiencia de mapa.
+- Aprender de aperturas, guardados, rutas y visitas confirmadas; no interpretar
+  una impresión o un scroll como gusto definitivo.
+
+### Separación comercial
+
+- Foodie Pro: lenguaje natural, voz, preferencias persistentes, explicaciones y
+  alertas por intención.
+- Fondero Pro: verificación del negocio, analítica y automatización.
+- Un Fondero no compra posición orgánica. Pro y verificación no alteran por sí
+  mismos relevancia, calificación ni reputación.
+
+## Referencia Airbnb Summer Release 2026
+
+Airbnb integra IA dentro de objetos conocidos en vez de convertir la aplicación
+completa en chat. Patio adopta el mismo principio en cuatro superficies:
+
+1. **Buscar:** la frase natural produce resultados reales como tarjetas sobre el
+   mapa, con acciones directas para abrir, guardar o llegar.
+2. **Reseñas:** un resumen agrupa señales repetidas (`sazón`, `porción`, `tiempo
+   de espera`) y siempre conserva conteos y acceso a las reseñas originales.
+3. **Comparar guardados:** una vista contrasta 2–4 Patios con menú de hoy,
+   distancia, horario, precio observado y reputación; la IA explica diferencias,
+   no elige silenciosamente por la persona.
+4. **Acompañamiento contextual:** las preguntas y acciones aparecen dentro de
+   Buscar, Guardados o la ficha. No existe una pestaña de chatbot aislada.
+
+Regla trasladada de Airbnb: la IA sintetiza y ayuda a actuar sobre el inventario
+del producto. En Patio, mapa, menús, perfiles y reseñas siguen siendo la fuente y
+la interfaz principal.

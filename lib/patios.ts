@@ -29,6 +29,7 @@ export type Patio = {
   address: string;
   open: string;
   rating: string;
+  ratingCount?: number;
   reason: string;
   latitude: number;
   longitude: number;
@@ -42,6 +43,8 @@ export type Patio = {
   businessOpenedAt?: string;
   // Distinción propia de Patio. En producción debe venir de señales verificables.
   isNeighborhoodFavorite?: boolean;
+  // Confirma identidad/control del negocio; no certifica calidad ni reputación.
+  isVerifiedBusiness?: boolean;
   // Agotado es disponibilidad de inventario, no estado de horario.
   soldOut?: boolean;
 };

@@ -93,7 +93,7 @@ export default function SoporteScreen() {
 const s = StyleSheet.create({
   root: { flex: 1 },
   nav: { height: 52, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  back: { width: 42, height: 42, alignItems: 'center', justifyContent: 'center' },
+  back: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   navTitle: { fontSize: 15, fontWeight: '600' },
   content: { paddingHorizontal: 22, paddingTop: 22 },
   eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.4, marginBottom: 7 },

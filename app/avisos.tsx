@@ -145,7 +145,7 @@ export default function AvisosScreen() {
 const s = StyleSheet.create({
   root: { flex: 1 },
   header: { paddingHorizontal: 22, paddingTop: 4 },
-  back: { width: 42, height: 42, marginLeft: -10, marginBottom: 10, alignItems: 'center', justifyContent: 'center' },
+  back: { width: 44, height: 44, marginLeft: -11, marginBottom: 8, alignItems: 'center', justifyContent: 'center' },
   title: { fontSize: 38, lineHeight: 40, letterSpacing: -1.3, fontWeight: '900', fontFamily: Fonts.brand },
   content: { paddingHorizontal: 18, paddingTop: 18 },
 });

@@ -89,7 +89,7 @@ export default function NuevoMenuScreen() {
 function makeStyles(c: FonderoColors) {
   return StyleSheet.create({
     root: { flex: 1, backgroundColor: c.bg, paddingHorizontal: 20 },
-    close: { width: 42, height: 42, marginLeft: -8, borderRadius: 21, alignItems: 'center', justifyContent: 'center' },
+    close: { width: 44, height: 44, marginLeft: -9, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
     header: { marginTop: 24 },
     eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.5, color: c.accent, marginBottom: 8 },
     title: { maxWidth: 330, fontSize: 36, lineHeight: 39, fontWeight: '900', letterSpacing: -1.2, color: c.text, fontFamily: Fonts.brand },

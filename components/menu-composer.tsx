@@ -131,6 +131,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                 <View style={s.sectionHeader}>
                   <TouchableOpacity
                     style={s.collapseButton}
+                    hitSlop={4}
                     onPress={() => toggleCollapsed(section.id)}
                     activeOpacity={0.7}>
                     <Ionicons name={isCollapsed ? 'chevron-forward' : 'chevron-down'} size={17} color={c.textSecondary} />
@@ -145,6 +146,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                   />
                   <TouchableOpacity
                     style={s.moreButton}
+                    hitSlop={3}
                     onPress={() => toggleSectionActions(section.id)}
                     activeOpacity={0.7}>
                     <Ionicons name="ellipsis-horizontal" size={19} color={c.textSecondary} />
@@ -347,7 +349,7 @@ function makeStyles(c: FonderoColors) {
   return StyleSheet.create({
     root: { flex: 1, backgroundColor: c.bg },
     nav: { minHeight: 54, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-    navButton: { width: 42, height: 42, alignItems: 'center', justifyContent: 'center' },
+    navButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
     navTitle: { fontSize: 14, fontWeight: '600', color: c.textSecondary },
     eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.5, color: c.accent, marginBottom: 8 },
     title: { fontSize: 36, lineHeight: 38, fontWeight: '900', letterSpacing: -1.2, color: c.text, fontFamily: Fonts.brand },

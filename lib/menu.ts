@@ -124,11 +124,25 @@ function extractPatioIdentityMatch(patio: Patio, query: string): PatioDishMatch 
   const stem = q.replace(/(?:es|s)$/u, '');
   const identity = normalize([patio.name, patio.category, patio.reason, patio.area].join(' '));
   if (!identity.includes(q) && (stem.length < 3 || !identity.includes(stem))) return null;
+  const name = normalize(patio.name);
+  const category = normalize(patio.category);
+  const area = normalize(patio.area);
+  const score = name === q
+    ? 150
+    : name.startsWith(q)
+      ? 125
+      : name.includes(q)
+        ? 105
+        : category.includes(stem || q)
+          ? 52
+          : area.includes(stem || q)
+            ? 38
+            : 28;
   return {
     patio,
     section: 'LUGAR',
     item: { name: patio.name, description: patio.category, price: patio.price },
-    score: normalize(patio.name).includes(q) ? 65 : normalize(patio.category).includes(stem || q) ? 48 : 28,
+    score,
   };
 }
 

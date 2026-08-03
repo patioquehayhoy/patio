@@ -1,11 +1,33 @@
 # TASKS — Cola de trabajo para agentes
 
-> Última actualización: 2026-07-28.
+> Última actualización: 2026-08-02.
 > Estado: `[ ]` pendiente | `[x]` hecho | `[~]` en progreso.
 
 > Las entradas Patio Smart v1–v6 registran iteraciones históricas y no son una
 > especificación vigente. El flujo canónico es v7 y vive en
 > `docs/PATIO_SYSTEM_MAP.md`.
+
+## P0 PRELANZAMIENTO — propiedad de cuentas e infraestructura
+
+- [ ] **Resolver antes de lanzar:** sustituir la identidad técnica enfocada en
+  `quehayhoy.patio` y las cuentas personales por una identidad neutral y
+  duradera de Patio para Supabase, GitHub, Expo/EAS y Apple.
+- [ ] Elegir explícitamente la estrategia de Supabase: **transferir el proyecto
+  actual** o **crear uno nuevo y migrar** esquema, datos, Auth, Storage, Edge
+  Functions, secretos, redirects y plantillas. Crear uno nuevo está autorizado,
+  pero no se ejecutará ni se borrará el actual sin inventario, respaldo, ensayo
+  y validación completa.
+- [ ] Inventariar propietarios, administradores, correos de recuperación, 2FA,
+  tokens, facturación y dependencias de `quehayhoy.patio@gmail.com`,
+  `contacto.parco@gmail.com`, cuentas personales y namespaces actuales.
+- [ ] Cambiar el correo público de soporte y las plantillas Auth únicamente
+  cuando se defina la identidad/dominio final; separar correo público de la
+  cuenta administradora de infraestructura.
+- [ ] Probar en un entorno no productivo: alta y acceso por magic link, perfiles,
+  menús, búsqueda, reseñas, Storage, Functions, deep links, builds y push.
+- [ ] Ejecutar el corte con plan de reversión. **Borrar proyecto, organización,
+  usuarios, correos o credenciales anteriores solo después de verificar paridad,
+  respaldos restaurables y acceso con dos administradores.**
 
 ## CICLO 2026-07-28 — composición, red y reducción de pasos
 

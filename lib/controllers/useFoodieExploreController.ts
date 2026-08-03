@@ -4,11 +4,37 @@ import { Keyboard, Share, type TextInput } from 'react-native';
 import type { Region } from 'react-native-maps';
 
 import { getFavoritePatioIds, toggleFavoritePatio } from '@/lib/favorites';
+import { estaAbiertoAhora } from '@/lib/horario';
 import { searchLiveMenus } from '@/lib/menu';
 import { fetchPublicFonditas, type Patio, type PatioDishMatch } from '@/lib/patios';
 import { getSavedMapCategories, setSavedMapCategories } from '@/lib/saved-map-filters';
 
 type FoodieSheetMode = 'nearby' | 'saved' | null;
+
+function normalizeIntent(text: string) {
+  return text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+}
+
+function interpretAiQuery(text: string) {
+  const value = normalizeIntent(text);
+  const terms = new Set<string>();
+  const signals: string[] = [];
+  if (/cald|sopa|consome|liquid|calient/.test(value)) {
+    ['caldo', 'pozole', 'consomé', 'birria', 'pancita', 'sopa'].forEach((term) => terms.add(term));
+    signals.push('algo caldoso');
+  }
+  if (/mexican|sazon|caser|tradicional/.test(value)) {
+    ['mole', 'pozole', 'birria', 'enchiladas', 'chile relleno'].forEach((term) => terms.add(term));
+    signals.push('sazón mexicano');
+  }
+  if (/barat|econom|menos de/.test(value)) signals.push('precio accesible');
+  const openNow = /abiert|ahora/.test(value);
+  if (openNow) signals.push('abierto ahora');
+  if (!terms.size) {
+    value.split(/\s+/).filter((word) => word.length > 3 && !['quiero', 'tengo', 'antoja', 'algo', 'comer', 'busco', 'cerca', 'donde'].includes(word)).forEach((word) => terms.add(word));
+  }
+  return { terms: [...terms].slice(0, 8), signals, openNow };
+}
 
 export const FOODIE_INITIAL_REGION: Region = {
   latitude: 19.4429,
@@ -32,8 +58,8 @@ function distanceKm(a: { latitude: number; longitude: number }, b: { latitude: n
 
 function formatDistance(km: number) {
   if (!Number.isFinite(km)) return null;
-  if (km < 1) return `${Math.max(50, Math.round((km * 1000) / 50) * 50)}\u00A0m aprox.`;
-  return `${km.toFixed(km < 10 ? 1 : 0)}\u00A0km aprox.`;
+  if (km < 1) return `${Math.max(50, Math.round((km * 1000) / 50) * 50)}\u00A0m`;
+  return `${km.toFixed(km < 10 ? 1 : 0)}\u00A0km`;
 }
 
 export function useFoodieExploreController() {
@@ -47,6 +73,7 @@ export function useFoodieExploreController() {
   const [activeSavedCategories, setActiveSavedCategories] = useState<string[]>([]);
   const [sheetMode, setSheetMode] = useState<FoodieSheetMode>(null);
   const [searchActive, setSearchActive] = useState(false);
+  const [aiMode, setAiMode] = useState(false);
   const [query, setQuery] = useState('');
   const [visibleRegion, setVisibleRegion] = useState<Region>(FOODIE_INITIAL_REGION);
   const [liveResults, setLiveResults] = useState<PatioDishMatch[]>([]);
@@ -63,9 +90,18 @@ export function useFoodieExploreController() {
     let cancelled = false;
     setSearchPending(true);
     const timer = setTimeout(() => {
-      searchLiveMenus(query, allPatios).then((results) => {
+      const intent = interpretAiQuery(query);
+      const searches = aiMode && intent.terms.length ? intent.terms : [query];
+      Promise.all(searches.map((term) => searchLiveMenus(term, allPatios))).then((groups) => {
         if (!cancelled) {
-          setLiveResults(results);
+          const merged = new Map<string, PatioDishMatch>();
+          groups.flat().forEach((result) => {
+            if (aiMode && intent.openNow && (!result.patio.weeklyHours || !estaAbiertoAhora(result.patio.weeklyHours))) return;
+            const key = `${result.patio.id}-${result.section}-${result.item.name}`;
+            const previous = merged.get(key);
+            if (!previous || result.score > previous.score) merged.set(key, result);
+          });
+          setLiveResults([...merged.values()]);
           setSearchPending(false);
         }
       });
@@ -75,7 +111,7 @@ export function useFoodieExploreController() {
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [query, allPatios]);
+  }, [query, allPatios, aiMode]);
 
   useEffect(() => {
     let cancelled = false;
@@ -163,9 +199,11 @@ export function useFoodieExploreController() {
       if (relevanceTierA !== relevanceTierB) return relevanceTierB - relevanceTierA;
       const distanceA = distanceKm(visibleRegion, a.patio);
       const distanceB = distanceKm(visibleRegion, b.patio);
-      return distanceA - distanceB || b.score - a.score;
+      const ratingA = Number.parseFloat(a.patio.rating ?? '') || 0;
+      const ratingB = Number.parseFloat(b.patio.rating ?? '') || 0;
+      return (aiMode ? ratingB - ratingA : 0) || distanceA - distanceB || b.score - a.score;
     });
-  }, [liveResults, query, visibleRegion]);
+  }, [aiMode, liveResults, query, visibleRegion]);
 
   const matchingPatioIds = useMemo(() => new Set(searchResults.map((result) => result.patio.id)), [searchResults]);
   const isFiltering = query.trim().length > 0;
@@ -212,6 +250,7 @@ export function useFoodieExploreController() {
     Keyboard.dismiss();
     setSheetMode(null);
     setSearchActive(false);
+    setAiMode(false);
     setQuery('');
     deselect();
   }, [deselect]);
@@ -219,6 +258,7 @@ export function useFoodieExploreController() {
   const openNearby = useCallback(() => {
     Keyboard.dismiss();
     setSearchActive(false);
+    setAiMode(false);
     setQuery('');
     setSheetMode('nearby');
     deselect();
@@ -227,6 +267,7 @@ export function useFoodieExploreController() {
   const openSaved = useCallback(() => {
     Keyboard.dismiss();
     setSearchActive(false);
+    setAiMode(false);
     setQuery('');
     setSheetMode('saved');
     deselect();
@@ -257,6 +298,7 @@ export function useFoodieExploreController() {
   const closeSearch = useCallback(() => {
     Keyboard.dismiss();
     setSearchActive(false);
+    setAiMode(false);
     setQuery('');
     setSheetMode(null);
     deselect();
@@ -269,6 +311,7 @@ export function useFoodieExploreController() {
 
   return {
     activeSavedCategories,
+    aiMode,
     allPatios,
     clearSavedMapFilter,
     closeSheet,
@@ -292,6 +335,7 @@ export function useFoodieExploreController() {
     searchActive,
     searchInputRef,
     searchPending,
+    setAiMode,
     selectPatio,
     selectedId,
     selectedDistanceLabel,

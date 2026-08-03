@@ -211,7 +211,7 @@ const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#0B0B0C' },
   bg: { ...StyleSheet.absoluteFillObject, width: '100%', height: '100%' },
 
-  backBtn: { position: 'absolute', left: 16, zIndex: 20, width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.08)', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.10)', alignItems: 'center', justifyContent: 'center' },
+  backBtn: { position: 'absolute', left: 16, zIndex: 20, width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.08)', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.10)', alignItems: 'center', justifyContent: 'center' },
 
   content: { flex: 1, paddingHorizontal: 28 },
 

@@ -10,6 +10,7 @@ import { useMenuPreviewController } from '@/lib/controllers/useMenuPreviewContro
 import { Fonts, useTheme } from '@/lib/theme';
 import { fonderoPalette, type FonderoColors } from '@/lib/fondero-palette';
 import { GlassIconButton } from '@/components/glass-button';
+import { noWidow } from '@/lib/typography';
 
 // Vista canónica del menú publicado. Vive dentro de Patio y siempre conserva la
 // misma identidad; compartir distribuye un enlace a esta publicación.
@@ -91,7 +92,7 @@ export default function PreviewScreen() {
                   <View key={dish.id} style={s.menuRow}>
                     <View style={{ flex: 1 }}>
                       <Text style={s.menuRowName} allowFontScaling={true}>{dish.nombre}</Text>
-                      {dish.descripcion ? <Text style={s.menuRowDescription}>{dish.descripcion}</Text> : null}
+                      {dish.descripcion ? <Text style={s.menuRowDescription}>{noWidow(dish.descripcion)}</Text> : null}
                     </View>
                     {dish.precio ? <Text style={s.menuRowPrice} allowFontScaling={true}>${dish.precio}</Text> : null}
                   </View>
@@ -135,7 +136,7 @@ function makeStyles(c: FonderoColors) {
   top: { position: 'absolute', left: 16, right: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', zIndex: 20 },
   // Espaciador de la top bar: mismo ancho que el botón de volver, SIN fondo —
   // solo existe para centrar el título.
-  navBtn: { width: 40, height: 40 },
+  navBtn: { width: 44, height: 44 },
   topTitle: { fontSize: 14, fontWeight: '600', color: c.text },
 
   posterWrap: { alignItems: 'center', paddingHorizontal: 22 },

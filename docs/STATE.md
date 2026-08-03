@@ -1,6 +1,19 @@
 # STATE
 
-> Fuente de verdad operativa. Última actualización: 2026-07-28.
+> Fuente de verdad operativa. Última actualización: 2026-08-02.
+
+## Bloqueo de lanzamiento — identidad e infraestructura
+
+Antes de producción pública debe centralizarse la propiedad de Supabase,
+GitHub, Expo/EAS, Apple y los correos bajo una identidad neutral de Patio. El
+correo `quehayhoy.patio@gmail.com` describe un caso de uso, no todo el producto,
+y no debe quedar como dependencia estructural.
+
+Está permitido crear un proyecto Supabase nuevo, migrar y retirar el actual,
+pero no se ha autorizado ejecutar el borrado ahora. Primero se requiere
+inventario, respaldo, migración ensayada, QA integral, dos administradores y plan
+de reversión. Este trabajo es **P0 inmediato antes de lanzar**; el checklist
+canónico vive en `docs/TASKS.md`.
 
 ## Corte de producto — 2026-07-28
 
@@ -260,6 +273,15 @@ real sobre la UI vigente; la rama anterior conserva Patio Vivo recuperable.
   reseñas críticas y nombre largo con buena reputación.
 - Metro LAN fue probado en iPhone 15 Pro físico.
 - TypeScript, ESLint, Expo Doctor (18/18) y `git diff --check` pasan.
+
+## Ajuste activo — 2026-08-02
+
+- Búsqueda única para nombre de lugar y platillo, con ranking explícito de nombre.
+- Tarjetas de búsqueda compactas: sin giro persistente; distancia junto a rating.
+- Pleca de ficha: apertura izquierda, pagos centro, horario derecha.
+- Horario ausente o parcial nunca se rellena con datos inventados.
+- Reseñas append-only por visita: una por cuenta/Patio/día, sin edición; nueva
+  política SQL pendiente de aplicar en Supabase remoto.
 
 ## Estado ejecutivo
 

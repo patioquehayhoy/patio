@@ -1,5 +1,7 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
+import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -14,13 +16,20 @@ import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { FOODIE_INITIAL_REGION, useFoodieExploreController } from '@/lib/controllers/useFoodieExploreController';
 import { noWidow } from '@/lib/typography';
 import { Fonts, Radius, useTheme, type Theme } from '@/lib/theme';
-import { getCollections, type PatioCollection } from '@/lib/collections';
+import { createCollection, getCollections, type PatioCollection } from '@/lib/collections';
 import { estaAbiertoAhora } from '@/lib/horario';
 import type { Patio } from '@/lib/patios';
 
 const OPEN_GREEN = '#1F9D55';
 const DEMO_LAPIS = '#26619C';
 const FEATURED_DEMO_IDS = new Set(['demo-patio-4', 'demo-patio-2', 'demo-patio-3']);
+const WHEEL_ROW_HEIGHT = 40;
+const WHEEL_VISIBLE_ROWS = 1;
+const WHEEL_HEIGHT = WHEEL_ROW_HEIGHT * WHEEL_VISIBLE_ROWS;
+const WHEEL_PADDING = WHEEL_ROW_HEIGHT * Math.floor(WHEEL_VISIBLE_ROWS / 2);
+const WHEEL_SENSITIVITY = 2;
+const PILL_GAP = 7;
+const PILL_SLOTS_KEY = 'patio:map-filter-order-v1';
 
 function openState(patio: Patio): boolean | null {
   return patio.weeklyHours ? estaAbiertoAhora(patio.weeklyHours) : null;
@@ -99,16 +108,19 @@ function makeStyles(t: Theme) {
     pillsRow: { position: 'absolute', left: 0, right: 0, flexDirection: 'row', justifyContent: 'center', gap: 10 },
     pill: { overflow: 'hidden', borderRadius: 100, borderWidth: StyleSheet.hairlineWidth, borderColor: t.isDark ? 'rgba(255,255,255,0.14)' : 'rgba(0,0,0,0.08)' },
     pillText: { paddingHorizontal: 14, paddingVertical: 7, fontSize: 13, fontWeight: '400', color: t.text },
-    mapFilters: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
-    mapFiltersContent: { paddingHorizontal: 14, gap: 7 },
+    mapFilters: { position: 'absolute', left: 0, right: 0 },
+    mapFiltersRow: { flexDirection: 'row', alignItems: 'center', gap: 7, paddingHorizontal: 16 },
+    mapFiltersContent: { gap: 7 },
     mapFilter: { height: 34, paddingHorizontal: 13, borderRadius: 17, justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
     mapFilterText: { fontSize: 12.5, fontWeight: '600' },
-    filterMenu: { marginTop: 8, width: 250, maxHeight: 300, borderRadius: 22, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: t.isDark ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.72)', shadowColor: '#000', shadowOffset: { width: 0, height: 12 }, shadowOpacity: t.isDark ? 0.26 : 0.10, shadowRadius: 28, elevation: 10 },
-    filterMenuHeader: { paddingHorizontal: 16, paddingTop: 14, paddingBottom: 8, fontSize: 10.5, fontWeight: '700', letterSpacing: 1.2, color: t.textMute },
-    filterOption: { minHeight: 48, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 11 },
-    filterOptionDivider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border },
-    filterOptionText: { flex: 1, fontSize: 15, fontWeight: '500', color: t.text },
-    filterEmptyText: { paddingHorizontal: 16, paddingBottom: 16, fontSize: 13, lineHeight: 18, color: t.textSecondary },
+    listasTrigger: { width: 34, paddingHorizontal: 0, alignItems: 'center', flexShrink: 0 },
+    listasBar: { position: 'absolute', left: 16, right: 16, top: 0, height: WHEEL_HEIGHT, borderRadius: 18, overflow: 'hidden', backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: btnBorder, shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: btnShadowOpacity + 0.04, shadowRadius: 22, elevation: 4 },
+    wheelRow: { height: WHEEL_ROW_HEIGHT, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingHorizontal: 16 },
+    wheelText: { fontSize: 15, fontWeight: '600', color: t.text },
+    editPillPanel: { position: 'absolute', left: 16, right: 16, top: 0, borderRadius: 18, overflow: 'hidden', backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: btnBorder, shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: btnShadowOpacity + 0.04, shadowRadius: 22, elevation: 4 },
+    editPillOption: { minHeight: 44, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 10 },
+    editPillOptionDivider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border },
+    editPillOptionText: { flex: 1, fontSize: 14.5, fontWeight: '500', color: t.text },
   });
 }
 
@@ -126,6 +138,123 @@ function PulsingDot({ style, delay = 0 }: { style: object; delay?: number }) {
     return () => clearTimeout(t);
   }, [scale, delay]);
   return <Animated.View style={[style, { transform: [{ scale }] }]} />;
+}
+
+type WheelItem = { key: string; label: string };
+
+type PillSlot = { key: string; label: string };
+const BUILTIN_PILL_OPTIONS: PillSlot[] = [{ key: 'today', label: 'Menú hoy' }, { key: 'open', label: 'Abiertos' }];
+
+function EditablePill({
+  slot, index, active, editing, order, widths, s, theme, onPress, onLongPress, onTapEdit, onReorder,
+}: {
+  slot: PillSlot;
+  index: number;
+  active: boolean;
+  editing: boolean;
+  order: string[];
+  widths: { current: Record<string, number> };
+  s: ReturnType<typeof makeStyles>;
+  theme: Theme;
+  onPress: () => void;
+  onLongPress: () => void;
+  onTapEdit: (index: number) => void;
+  onReorder: (nextOrder: string[]) => void;
+}) {
+  const translateX = useRef(new Animated.Value(0)).current;
+  const jiggle = useRef(new Animated.Value(0)).current;
+  const startXRef = useRef(0);
+  const orderRef = useRef(order);
+  orderRef.current = order;
+
+  useEffect(() => {
+    if (!editing) {
+      jiggle.setValue(0);
+      return;
+    }
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(jiggle, { toValue: 1, duration: 110, useNativeDriver: true }),
+        Animated.timing(jiggle, { toValue: -1, duration: 220, useNativeDriver: true }),
+        Animated.timing(jiggle, { toValue: 0, duration: 110, useNativeDriver: true }),
+      ])
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [editing, jiggle]);
+
+  const xFor = (ord: string[], key: string) => {
+    let x = 0;
+    for (const k of ord) {
+      if (k === key) return x;
+      x += (widths.current[k] ?? 60) + PILL_GAP;
+    }
+    return x;
+  };
+
+  const pan = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => false,
+      onMoveShouldSetPanResponder: (_event, gesture) => editing && (Math.abs(gesture.dx) > 4 || Math.abs(gesture.dy) > 4),
+      onPanResponderGrant: () => {
+        startXRef.current = xFor(orderRef.current, slot.key);
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      },
+      onPanResponderMove: (_event, gesture) => {
+        const liveX = startXRef.current + gesture.dx;
+        const myWidth = widths.current[slot.key] ?? 60;
+        const liveCenter = liveX + myWidth / 2;
+        const ord = orderRef.current;
+        const idx = ord.indexOf(slot.key);
+        if (idx > 0) {
+          const leftKey = ord[idx - 1];
+          const leftX = xFor(ord, leftKey);
+          const leftCenter = leftX + (widths.current[leftKey] ?? 60) / 2;
+          if (liveCenter < leftCenter) {
+            const next = [...ord];
+            [next[idx - 1], next[idx]] = [next[idx], next[idx - 1]];
+            Haptics.selectionAsync();
+            onReorder(next);
+          }
+        } else if (idx < ord.length - 1) {
+          const rightKey = ord[idx + 1];
+          const rightX = xFor(ord, rightKey);
+          const rightCenter = rightX + (widths.current[rightKey] ?? 60) / 2;
+          if (liveCenter > rightCenter) {
+            const next = [...ord];
+            [next[idx + 1], next[idx]] = [next[idx], next[idx + 1]];
+            Haptics.selectionAsync();
+            onReorder(next);
+          }
+        }
+        translateX.setValue(liveX - xFor(orderRef.current, slot.key));
+      },
+      onPanResponderRelease: () => {
+        Animated.spring(translateX, { toValue: 0, useNativeDriver: true, stiffness: 320, damping: 26 }).start();
+      },
+      onPanResponderTerminate: () => {
+        Animated.spring(translateX, { toValue: 0, useNativeDriver: true }).start();
+      },
+    })
+  ).current;
+
+  const rotate = jiggle.interpolate({ inputRange: [-1, 1], outputRange: ['-1.2deg', '1.2deg'] });
+
+  return (
+    <Animated.View
+      {...pan.panHandlers}
+      onLayout={(event) => { widths.current[slot.key] = event.nativeEvent.layout.width; }}
+      style={{ transform: [{ translateX }, { rotate: editing ? rotate : '0deg' }], zIndex: editing ? 2 : 0 }}>
+      <TouchableOpacity
+        onPress={() => { if (editing) onTapEdit(index); else onPress(); }}
+        onLongPress={onLongPress}
+        delayLongPress={420}
+        style={[s.mapFilter, { backgroundColor: active ? theme.text : theme.glass, borderColor: active ? theme.text : theme.border }]}>
+        {!active && <BlurView intensity={30} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />}
+        <Text style={[s.mapFilterText, { color: active ? theme.bg : theme.text }]}>{slot.label}</Text>
+      </TouchableOpacity>
+    </Animated.View>
+  );
 }
 
 export default function ExplorarScreen() {
@@ -164,9 +293,131 @@ export default function ExplorarScreen() {
     visiblePatios,
   } = useFoodieExploreController();
   const [mapFilter, setMapFilter] = useState('all');
-  const [showPlaceFilters, setShowPlaceFilters] = useState(false);
   const [collections, setCollections] = useState<PatioCollection[]>([]);
-  useEffect(() => { getCollections().then(setCollections).catch(() => {}); }, []);
+  const [pillSlots, setPillSlots] = useState<PillSlot[]>(BUILTIN_PILL_OPTIONS);
+  const [editingPills, setEditingPills] = useState(false);
+  const [editingSlotIndex, setEditingSlotIndex] = useState<number | null>(null);
+  const pillWidths = useRef<Record<string, number>>({});
+  const pillSlotsLoaded = useRef(false);
+  useEffect(() => {
+    getCollections().then(async (items) => {
+      if (__DEV__ && items.length === 0) {
+        const seedNames = ['Antojos', 'Postres', 'Fin de semana', 'Cerca del trabajo', 'Para llevar', 'Comida corrida', 'Con la familia', 'Vegetarianos', 'Desayunos', 'Para cuando llueve', 'Rápido y rico', 'Picositos', 'Con terraza', 'Baratos', 'Clásicos de la colonia'];
+        for (const name of seedNames) await createCollection(name);
+        items = await getCollections();
+      }
+      setCollections(items);
+    }).catch(() => {});
+  }, []);
+  useEffect(() => {
+    AsyncStorage.getItem(PILL_SLOTS_KEY).then((raw) => {
+      pillSlotsLoaded.current = true;
+      if (!raw) return;
+      try {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length === 2 && parsed.every((item) => item && typeof item.key === 'string' && typeof item.label === 'string')) {
+          setPillSlots(parsed);
+        }
+      } catch {}
+    }).catch(() => { pillSlotsLoaded.current = true; });
+  }, []);
+  useEffect(() => {
+    if (!pillSlotsLoaded.current) return;
+    AsyncStorage.setItem(PILL_SLOTS_KEY, JSON.stringify(pillSlots)).catch(() => {});
+  }, [pillSlots]);
+  const pillOptionsFor = (slotIndex: number): PillSlot[] => {
+    const otherKey = pillSlots[slotIndex === 0 ? 1 : 0]?.key;
+    return [...BUILTIN_PILL_OPTIONS, ...collections.map((collection) => ({ key: `collection:${collection.id}`, label: collection.title }))]
+      .filter((option) => option.key !== otherKey);
+  };
+  const listasItems: WheelItem[] = useMemo(() => [
+    { key: 'all', label: 'Todos' },
+    ...collections.map((collection) => ({ key: `collection:${collection.id}`, label: collection.title })),
+  ], [collections]);
+  const listasItemsRef = useRef(listasItems);
+  listasItemsRef.current = listasItems;
+  const mapFilterRef = useRef(mapFilter);
+  mapFilterRef.current = mapFilter;
+  const [wheelOpen, setWheelOpen] = useState(false);
+  const wheelOpenAnim = useRef(new Animated.Value(0)).current;
+  const wheelOffset = useRef(new Animated.Value(0)).current;
+  const wheelOpenedRef = useRef(false);
+  const wheelOpenTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const wheelOriginIndex = useRef(0);
+  const wheelLastIndex = useRef(0);
+  useEffect(() => {
+    Animated.timing(wheelOpenAnim, { toValue: wheelOpen ? 1 : 0, duration: 180, useNativeDriver: true }).start();
+  }, [wheelOpen, wheelOpenAnim]);
+  const clearWheelTimer = () => {
+    if (wheelOpenTimer.current) { clearTimeout(wheelOpenTimer.current); wheelOpenTimer.current = null; }
+  };
+  const beginWheelOpen = () => {
+    const items = listasItemsRef.current;
+    if (!items.length) return;
+    const currentKey = mapFilterRef.current.startsWith('collection:') ? mapFilterRef.current : 'all';
+    const idx = Math.max(0, items.findIndex((item) => item.key === currentKey));
+    wheelOriginIndex.current = idx;
+    wheelLastIndex.current = idx;
+    wheelOffset.setValue(idx * WHEEL_ROW_HEIGHT);
+    wheelOpenedRef.current = true;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setWheelOpen(true);
+  };
+  const applyWheelIndex = (index: number) => {
+    const count = listasItemsRef.current.length;
+    if (!count) return;
+    // Rueda circular: nunca hay tope, dar la vuelta permite alcanzar
+    // cualquier lista sin agotar el recorrido físico del dedo en pantalla.
+    const wrapped = ((index % count) + count) % count;
+    if (wrapped === wheelLastIndex.current) return;
+    wheelLastIndex.current = wrapped;
+    Haptics.selectionAsync();
+    // No se aplica el filtro en cada tick: re-renderiza el mapa completo y
+    // trababa la app al deslizar rápido por muchas listas. Se aplica una
+    // sola vez al soltar (ver onPanResponderRelease/Terminate).
+  };
+  const commitWheelSelection = () => {
+    const item = listasItemsRef.current[wheelLastIndex.current];
+    if (item) setMapFilter(item.key);
+  };
+  const listasPan = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderGrant: () => {
+        wheelOpenedRef.current = false;
+        clearWheelTimer();
+        wheelOpenTimer.current = setTimeout(beginWheelOpen, 320);
+      },
+      onPanResponderMove: (_event, gesture) => {
+        if (!wheelOpenedRef.current) {
+          if (Math.abs(gesture.dy) > 8 || Math.abs(gesture.dx) > 8) clearWheelTimer();
+          return;
+        }
+        // + (no -): el botón vive pegado arriba de la pantalla, así que hay
+        // mucho más recorrido de dedo hacia abajo que hacia arriba.
+        const y = wheelOriginIndex.current * WHEEL_ROW_HEIGHT + gesture.dy * WHEEL_SENSITIVITY;
+        wheelOffset.setValue(y);
+        applyWheelIndex(Math.round(y / WHEEL_ROW_HEIGHT));
+      },
+      onPanResponderRelease: () => {
+        clearWheelTimer();
+        if (wheelOpenedRef.current) {
+          wheelOpenedRef.current = false;
+          commitWheelSelection();
+          setWheelOpen(false);
+        }
+      },
+      onPanResponderTerminate: () => {
+        clearWheelTimer();
+        if (wheelOpenedRef.current) {
+          wheelOpenedRef.current = false;
+          commitWheelSelection();
+          setWheelOpen(false);
+        }
+      },
+    })
+  ).current;
   useEffect(() => {
     if (params.collection) setMapFilter(`collection:${params.collection}`);
     else if (params.saved === '1') setMapFilter('saved');
@@ -260,6 +511,8 @@ export default function ExplorarScreen() {
           userInterfaceStyle={theme.isDark ? 'dark' : 'light'}
           onPress={() => {
             Keyboard.dismiss();
+            setEditingPills(false);
+            setEditingSlotIndex(null);
             if (searchActive || isFiltering) closeSearch();
             else closeSheet();
           }}
@@ -296,49 +549,81 @@ export default function ExplorarScreen() {
 
       {!searchActive && !showSheet && (
         <View style={[s.mapFilters, { top: insets.top + 72 }]}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.mapFiltersContent}>
-            {[{ key: 'all', label: 'Todos' }, { key: 'today', label: 'Menú hoy' }, { key: 'open', label: 'Abiertos' }].map((filter) => {
-              const active = mapFilter === filter.key;
-              return (
-                <TouchableOpacity key={filter.key} onPress={() => setMapFilter(filter.key)} style={[s.mapFilter, { backgroundColor: active ? theme.text : theme.glass, borderColor: active ? theme.text : theme.border }]}>
-                  {!active && <BlurView intensity={30} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />}
-                  <Text style={[s.mapFilterText, { color: active ? theme.bg : theme.text }]}>{filter.label}</Text>
-                </TouchableOpacity>
-              );
-            })}
-            <TouchableOpacity
-              onPress={() => setShowPlaceFilters((value) => !value)}
-              style={[s.mapFilter, { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: showPlaceFilters ? theme.text : theme.glass, borderColor: showPlaceFilters ? theme.text : theme.border }]}>
-              <Ionicons name="list-outline" size={14} color={showPlaceFilters ? theme.bg : theme.text} />
-              <Text style={[s.mapFilterText, { color: showPlaceFilters ? theme.bg : theme.text }]}>
-                {mapFilter.startsWith('collection:')
-                  ? collections.find((item) => `collection:${item.id}` === mapFilter)?.title ?? 'Listas'
-                  : 'Listas'}
-              </Text>
-              <Ionicons name={showPlaceFilters ? 'chevron-up' : 'chevron-down'} size={12} color={showPlaceFilters ? theme.bg : theme.textSecondary} />
-            </TouchableOpacity>
-          </ScrollView>
-          {showPlaceFilters && (
-            <View style={s.filterMenu}>
-              <BlurView intensity={theme.isDark ? 54 : 72} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
-              <Text style={s.filterMenuHeader}>LISTAS GUARDADAS</Text>
-              {!collections.length ? (
-                <Text style={s.filterEmptyText}>Crea una colección en Guardados para verla aquí.</Text>
-              ) : (
-                collections.map((filter, index) => {
-                const key = `collection:${filter.id}`;
-                const active = mapFilter === key;
+          <View style={s.mapFiltersRow}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.mapFiltersContent} scrollEnabled={!editingPills} style={{ flex: 1 }}>
+              <TouchableOpacity onPress={() => setMapFilter('all')} style={[s.mapFilter, { backgroundColor: mapFilter === 'all' ? theme.text : theme.glass, borderColor: mapFilter === 'all' ? theme.text : theme.border }]}>
+                {mapFilter !== 'all' && <BlurView intensity={30} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />}
+                <Text style={[s.mapFilterText, { color: mapFilter === 'all' ? theme.bg : theme.text }]}>Todos</Text>
+              </TouchableOpacity>
+              {pillSlots.map((slot, index) => (
+                <EditablePill
+                  key={slot.key}
+                  slot={slot}
+                  index={index}
+                  active={mapFilter === slot.key}
+                  editing={editingPills}
+                  order={pillSlots.map((item) => item.key)}
+                  widths={pillWidths}
+                  s={s}
+                  theme={theme}
+                  onPress={() => setMapFilter(slot.key)}
+                  onLongPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); setEditingPills(true); }}
+                  onTapEdit={setEditingSlotIndex}
+                  onReorder={(nextKeys) => setPillSlots((prev) => nextKeys.map((key) => prev.find((item) => item.key === key)!))}
+                />
+              ))}
+            </ScrollView>
+            <View
+              {...listasPan.panHandlers}
+              accessibilityLabel="Listas guardadas"
+              style={[s.mapFilter, s.listasTrigger, { backgroundColor: wheelOpen || mapFilter.startsWith('collection:') ? theme.text : theme.glass, borderColor: wheelOpen || mapFilter.startsWith('collection:') ? theme.text : theme.border }]}>
+              {!wheelOpen && !mapFilter.startsWith('collection:') && <BlurView intensity={30} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />}
+              <Ionicons name="list-outline" size={16} color={wheelOpen || mapFilter.startsWith('collection:') ? theme.bg : theme.text} />
+            </View>
+          </View>
+          {wheelOpen && (
+            <Animated.View
+              pointerEvents="none"
+              style={[
+                s.listasBar,
+                {
+                  opacity: wheelOpenAnim,
+                  transform: [{ translateY: wheelOpenAnim.interpolate({ inputRange: [0, 1], outputRange: [-10, 0] }) }],
+                },
+              ]}>
+              {/* Rueda circular: cada ítem se dibuja en 3 copias (ciclo anterior,
+                  actual, siguiente) para que al dar la vuelta el reemplazo se
+                  vea continuo — nunca hay un tope donde el dedo se quede sin
+                  pantalla para alcanzar el resto de las listas. */}
+              {listasItems.flatMap((item, index) => [-1, 0, 1].map((cycle) => {
+                const virtualIndex = index + cycle * listasItems.length;
+                const inputRange = [(virtualIndex - 2) * WHEEL_ROW_HEIGHT, (virtualIndex - 1) * WHEEL_ROW_HEIGHT, virtualIndex * WHEEL_ROW_HEIGHT, (virtualIndex + 1) * WHEEL_ROW_HEIGHT, (virtualIndex + 2) * WHEEL_ROW_HEIGHT];
+                const opacity = wheelOffset.interpolate({ inputRange, outputRange: [0.25, 0.55, 1, 0.55, 0.25], extrapolate: 'clamp' });
+                const scale = wheelOffset.interpolate({ inputRange, outputRange: [0.84, 0.92, 1, 0.92, 0.84], extrapolate: 'clamp' });
+                const translateY = Animated.subtract(virtualIndex * WHEEL_ROW_HEIGHT + WHEEL_PADDING, wheelOffset);
                 return (
-                  <TouchableOpacity
-                    key={filter.id}
-                    onPress={() => { setMapFilter(active ? 'all' : key); setShowPlaceFilters(false); }}
-                    style={[s.filterOption, index > 0 && s.filterOptionDivider]}>
-                    <Ionicons name={active ? 'checkmark-circle' : 'ellipse-outline'} size={19} color={active ? theme.accent : theme.textMute} />
-                    <Text style={s.filterOptionText} numberOfLines={1}>{filter.title}</Text>
-                    <Text style={{ fontSize: 12, color: theme.textSecondary }}>{filter.patioIds.length}</Text>
-                  </TouchableOpacity>
+                  <Animated.View key={`${item.key}-${cycle}`} style={[s.wheelRow, { position: 'absolute', left: 0, right: 0, transform: [{ translateY }] }]}>
+                    <Animated.Text numberOfLines={1} style={[s.wheelText, { opacity, transform: [{ scale }] }]}>{item.label}</Animated.Text>
+                  </Animated.View>
                 );
               }))}
+            </Animated.View>
+          )}
+          {editingSlotIndex !== null && (
+            <View style={s.editPillPanel}>
+              {pillOptionsFor(editingSlotIndex).map((option, index) => (
+                <TouchableOpacity
+                  key={option.key}
+                  onPress={() => {
+                    Haptics.selectionAsync();
+                    setPillSlots((prev) => prev.map((slot, i) => (i === editingSlotIndex ? option : slot)));
+                    setEditingSlotIndex(null);
+                  }}
+                  style={[s.editPillOption, index > 0 && s.editPillOptionDivider]}>
+                  <Ionicons name={option.key.startsWith('collection:') ? 'bookmark' : 'pricetag-outline'} size={16} color={theme.textSecondary} />
+                  <Text style={s.editPillOptionText} numberOfLines={1}>{option.label}</Text>
+                </TouchableOpacity>
+              ))}
             </View>
           )}
         </View>

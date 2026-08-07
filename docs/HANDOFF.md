@@ -1,5 +1,37 @@
 # HANDOFF
 
+## 2026-08-06 — Ficha con cierre por jalón y rueda circular de Listas
+
+- La ficha de Patio (`app/patio/[id].tsx`) se cierra jalando hacia abajo
+  estando arriba del todo (rebote del `ScrollView` sobre `PULL_TO_DISMISS_THRESHOLD`),
+  regresando al mapa con la transición fade existente. No requirió cambiar a
+  presentación modal: el fade ya configurado en el Stack hace que se sienta
+  como revelar el mapa detrás.
+- El filtro "Listas" del mapa (`app/explorar.tsx`) dejó de ser un dropdown con
+  checkmarks: ahora es un botón de solo ícono, fijo al borde derecho de la
+  fila de filtros. Mantenerlo presionado (sin soltar el dedo) revela una
+  rueda de una sola línea — como el selector de velocidad 2x de Instagram o
+  el diacrítico del teclado de iOS — que se recorre deslizando arriba/abajo
+  sin levantar el dedo, con háptico por cada tick. Es circular (da la vuelta
+  al llegar al final) porque el botón vive pegado arriba de la pantalla y no
+  hay recorrido físico de dedo suficiente para listas largas sin loop.
+- El filtro solo se aplica al mapa **al soltar el dedo**, no en cada tick del
+  arrastre: aplicarlo continuamente re-renderizaba el mapa completo en cada
+  cambio de índice y trababa/cerraba la app al deslizar rápido por muchas
+  listas.
+- Las pills "Menú hoy" / "Abiertos" (no "Todos", que queda fijo) se pueden
+  reordenar manteniéndolas presionadas (modo jiggle, como iconos de iPhone) o
+  reasignar tocándolas en ese mismo modo — el picker de reasignación ofrece
+  los dos filtros base más cualquier colección guardada, así una lista
+  guardada puede fijarse como acceso directo en la barra. Persiste en
+  `AsyncStorage`.
+- Los paneles flotantes de este flujo (rueda de Listas, picker de reasignar
+  pill) usan fondo sólido (`t.surface`), no `BlurView`: el blur producía
+  artefactos visuales (puntos negros) sobre el mapa en dispositivo real.
+- En `__DEV__`, si no hay colecciones guardadas se siembran ~15 listas
+  sintéticas automáticamente al abrir el mapa, para que la rueda tenga con
+  qué probarse en cualquier dispositivo sin pasos manuales.
+
 ## 2026-08-02 — Auditoría transversal de padding y blancos táctiles
 
 Se auditó `app/` y `components/` y se fijó el contrato semántico en
@@ -7,6 +39,17 @@ Se auditó `app/` y `components/` y se fijó el contrato semántico en
 navegación y acciones principales usan 44 pt; chips secundarios conservan
 densidad cuando cuentan con separación suficiente. La ficha de Patio mantiene
 alturas estables en medallas y una pleca social compacta.
+
+## 2026-08-02 — Distribución de reseñas sin repost artificial
+
+La reseña raíz deja visibles comentar, Me gusta y compartir. Compartir abre
+directamente la hoja nativa, sin alerta ni selector intermedio, siguiendo el
+patrón de Activity View de Apple.
+Se retiraron el guardado individual y las visualizaciones públicas sintéticas:
+guardar el Patio/colección expresa mejor intención, y alcance sólo se mostrará
+cuando exista instrumentación real. Los comentarios mantienen una reacción
+simple. Se excluye repost hasta que exista un feed real con seguidores. La
+frontera Gratis/Pro y el ciclo de red quedaron en `docs/REVIEWS_AND_TRUST.md`.
 
 ## Ajuste 2026-08-02 · reseña cerrada por defecto
 
@@ -23,6 +66,9 @@ alturas estables en medallas y una pleca social compacta.
   burbuja, autor, hora, `Me gusta`, `Responder`, sangría y `Ver N respuestas`.
 - Se eliminó `En respuesta a…`; `parent_reply_id` sigue siendo dato interno para
   notificación/moderación, no copy visible.
+- El modelo visual ya usa un solo nivel real: comentario raíz y respuestas
+  sangradas. `Responder` abre el compositor justo debajo de la conversación;
+  una respuesta a otra respuesta permanece en el mismo grupo.
 - El negocio usa nombre truncado a una línea + `checkmark.seal.fill`; desaparece
   la etiqueta textual `PATIO`, que se desplazaba con nombres largos.
 
@@ -33,9 +79,9 @@ alturas estables en medallas y una pleca social compacta.
   nombre largo y conversación de alta participación.
 - Verificación se movió a la derecha de la línea abierto/cerrado y usa
   `checkmark.seal.fill`; no compite con el título.
-- Reseña raíz lleva estrellas y representa visita. Respuesta no lleva estrellas.
-  Se puede responder a otra respuesta mediante referencia, pero el hilo se
-  renderiza plano: una respuesta inicial y expansión voluntaria.
+- Reseña raíz lleva estrellas y representa visita. Comentarios y respuestas no
+  llevan estrellas. El hilo admite comentario raíz + un nivel de respuestas,
+  con expansión voluntaria y sin cadenas de profundidad ilimitada.
 - Barra social reagrupada por proximidad y blancos táctiles de 44 pt. Hero,
   medallas, Reseñar y datos prácticos también se corrigieron a 44 pt.
 - Buscar deja visible la mitad superior del mapa; tap o drag ejecutan cierre

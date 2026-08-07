@@ -47,8 +47,8 @@ thread_subscriptions(review_id, user_id, muted_at?)
 - reportar, bloquear y silenciar hilo disponibles desde menú contextual;
 - contenido reportado puede ocultarse preventivamente según severidad;
 - negocio puede responder y reportar, nunca borrar críticas;
-- el hilo de una reseña es cronológico y plano: cualquier cuenta habilitada puede comentar o contestar una pregunta; la intervención del negocio se distingue con su insignia, pero no es la única respuesta permitida;
-- el compositor pertenece a la reseña completa, no a comentarios individuales; el MVP evita subhilos y sangrías anidadas;
+- el hilo admite un único nivel de conversación: comentario raíz y respuestas directas; cualquier cuenta habilitada puede contestar una pregunta y la intervención del negocio se distingue con su insignia, pero no es la única respuesta permitida;
+- `Escribe un comentario` publica en la reseña; `Responder` abre el compositor debajo del comentario elegido; responder una respuesta vuelve al mismo grupo y nunca crea un tercer nivel;
 - bitácora de moderación, apelación y reincidencia;
 - paginación por cursor: nunca cargar un hilo completo de forma automática.
 
@@ -72,6 +72,56 @@ trazabilidad sin convertir el alta Foodie en un proceso bancario.
 4. Confirmación de visita/señal contextual cuando exista.
 5. Publicación con nombre público y fecha.
 6. Reportar, bloquear y apelar disponibles.
+
+## Acciones y distribución
+
+- reseña raíz: comentar, Me gusta y compartir visibles; compartir abre
+  directamente la hoja del sistema, sin alerta ni selector intermedio;
+- comentario: Me gusta; reportar vive como acción contextual cuando el backend
+  de moderación esté conectado;
+- no se guarda una reseña individual: guardar el Patio o añadirlo a una
+  colección representa mejor la intención de volver;
+- compartir usa la hoja del sistema y conserva autoría, calificación y enlace;
+- visualizaciones de reseñas no se muestran públicamente: sólo podrán existir
+  como telemetría real, con definición explícita, nunca como cifra sintética;
+- no existe repost interno mientras Patio no tenga un feed de Foodies y
+  seguidores: un ícono sin destino de distribución sería una función falsa;
+- si más adelante existe repost, debe acreditar al autor, depender del original,
+  permitir deshacer y desaparecer si el contenido fuente se elimina.
+
+## Señales de conversión
+
+La red pública no debe confundir popularidad con intención. Para el Fondero,
+Patio puede medir de forma agregada el recorrido que comienza en una reseña o
+menú y termina en una acción útil:
+
+```text
+impresión → ficha abierta → menú consultado → Patio guardado
+          → indicaciones → llamada/mensaje → visita confirmada
+```
+
+- Gratis: estado del perfil, reseñas recibidas, comentarios y respuesta oficial.
+- Pro: tendencias por periodo, consultas del menú, guardados del Patio,
+  indicaciones, compartidos y temas repetidos en conversaciones.
+- Pro no promete ventas ni revela identidades individuales; presenta señales
+  agregadas, definiciones claras y comparaciones contra el propio historial.
+- Una vista repetida no equivale a una persona ni a una visita. Las métricas se
+  nombran según el evento real y no se sustituyen con estimaciones silenciosas.
+
+## Efecto de red atómica
+
+```text
+Foodie publica experiencia
+  → otros Foodies validan, preguntan o corrigen
+  → el Patio confirma información operativa
+  → mejora el dato vivo del lugar
+  → aumenta la confianza para decidir
+  → nuevas visitas producen experiencias nuevas
+```
+
+El perfil Foodie acumula criterio y contribuciones útiles; el perfil Fondero
+acumula información vigente, capacidad de respuesta y aprendizaje operativo.
+Ninguna parte necesita convertirse en un feed genérico para producir valor.
 
 ## Límites de abuso
 

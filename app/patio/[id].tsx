@@ -4,7 +4,7 @@ import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, Easing, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Animated, Easing, Image, ScrollView, Share, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -22,6 +22,7 @@ type ReviewThreadReply = {
   likes: number;
   mine?: boolean;
   patio?: boolean;
+  parentId?: string;
   timeLabel?: string;
 };
 
@@ -64,6 +65,7 @@ function syntheticThreadFor(userId: string, patioName: string, stars: number): R
 
 const HERO_HEIGHT = 300;
 const OPEN_GREEN = '#1F9D55';
+const PULL_TO_DISMISS_THRESHOLD = 70;
 const DAYS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 const PAYMENT_ORDER = ['Efectivo', 'Tarjeta', 'Transferencia'];
 const PAYMENT_SYMBOLS: Record<string, { symbol: SFSymbol; fallback: keyof typeof Ionicons.glyphMap; size: number }> = {
@@ -169,11 +171,12 @@ function makeStyles(t: Theme) {
     businessReplyHead: { flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 5 },
     businessReplyLabel: { flexShrink: 1, fontSize: 12, fontWeight: '800', color: t.text },
     businessReplyText: { fontSize: 13.5, lineHeight: 19, color: t.textSecondary },
-    reviewActions: { height: 36, marginTop: 9, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border, flexDirection: 'row', alignItems: 'center', gap: 18 },
-    reviewAction: { minWidth: 40, height: 36, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5 },
+    reviewActions: { height: 36, marginTop: 9, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+    reviewAction: { minWidth: 44, height: 36, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5 },
     reviewActionText: { fontSize: 12.5, fontWeight: '700', color: t.textSecondary },
     reviewThread: { marginTop: 6, gap: 5, paddingLeft: 10, borderLeftWidth: StyleSheet.hairlineWidth, borderLeftColor: t.border },
     reviewThreadItem: { alignItems: 'flex-start' },
+    reviewThreadChildren: { marginLeft: 18, paddingLeft: 9, borderLeftWidth: StyleSheet.hairlineWidth, borderLeftColor: t.border, gap: 3 },
     reviewThreadBubble: { maxWidth: '94%', paddingHorizontal: 11, paddingVertical: 8, borderRadius: 15, backgroundColor: t.bg },
     reviewThreadHead: { width: '100%', flexDirection: 'row', alignItems: 'center', gap: 5 },
     reviewThreadAuthor: { flex: 1, minWidth: 0, fontSize: 12, lineHeight: 16, fontWeight: '800', color: t.text },
@@ -185,6 +188,7 @@ function makeStyles(t: Theme) {
     reviewThreadTextActionLabel: { fontSize: 11, fontWeight: '700', color: t.textSecondary },
     reviewThreadLike: { minWidth: 44, minHeight: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5 },
     reviewReplyRow: { marginTop: 8, paddingTop: 9, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border, flexDirection: 'row', alignItems: 'center', gap: 7 },
+    reviewInlineReplyRow: { marginLeft: 18, marginTop: 3, paddingTop: 7 },
     reviewReplyInput: { flex: 1, minHeight: 38, borderRadius: 12, paddingHorizontal: 11, color: t.text, backgroundColor: t.bg },
     reviewReplySend: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center', backgroundColor: t.accent },
     reviewPrompt: { minHeight: 44, borderRadius: 22, paddingHorizontal: 13, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: t.surface },
@@ -241,8 +245,10 @@ export default function PatioDetailScreen() {
   const [replyLikes, setReplyLikes] = useState<Record<string, { count: number; mine: boolean }>>({});
   const [expandedThreads, setExpandedThreads] = useState<Record<string, boolean>>({});
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [replyingToComment, setReplyingToComment] = useState<{ reviewKey: string; parentId: string; author: string } | null>(null);
   const [replyDraft, setReplyDraft] = useState('');
   const pulse = useRef(new Animated.Value(1)).current;
+
   const {
     cleanId,
     handleBack,
@@ -321,8 +327,8 @@ export default function PatioDetailScreen() {
       if (review.userId === 'demo-established-1') replies[key] = [
         { id: `${key}-1`, author: 'Jorge A.', body: 'El chamorro también es lo que más pedimos.', likes: 12 },
         { id: `${key}-2`, author: 'Pilar N.', body: '¿Lo sirven todos los días o sólo el fin de semana?', likes: 6 },
-        { id: `${key}-3`, author: 'Fernanda T.', body: 'Yo lo he visto de jueves a domingo; el domingo todavía alcanzamos a las tres.', likes: 9 },
-        { id: `${key}-4`, author: patio?.name ?? 'El Patio', body: 'Confirmamos: está en la carta de jueves a domingo, sujeto a disponibilidad.', likes: 18, patio: true },
+        { id: `${key}-3`, author: 'Fernanda T.', body: 'Yo lo he visto de jueves a domingo; el domingo todavía alcanzamos a las tres.', likes: 9, parentId: `${key}-2` },
+        { id: `${key}-4`, author: patio?.name ?? 'El Patio', body: 'Confirmamos: está en la carta de jueves a domingo, sujeto a disponibilidad.', likes: 18, patio: true, parentId: `${key}-2` },
         { id: `${key}-5`, author: 'Mariana L.', body: 'Las enmoladas también valen mucho la pena.', likes: 7 },
       ];
       if (synthetic && !replies[key]) {
@@ -401,7 +407,13 @@ export default function PatioDetailScreen() {
   return (
     <View style={s.container}>
       <Stack.Screen options={{ headerShown: false }} />
-      <ScrollView contentContainerStyle={s.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={s.scrollContent}
+        showsVerticalScrollIndicator={false}
+        scrollEventThrottle={16}
+        onScrollEndDrag={(event) => {
+          if (event.nativeEvent.contentOffset.y < -PULL_TO_DISMISS_THRESHOLD) handleBack();
+        }}>
 
         {/* Hero con foto botánica real + degradado que la funde con la card */}
         <View style={s.hero}>
@@ -666,9 +678,9 @@ export default function PatioDetailScreen() {
                   const reviewKey = `${review.userId}-${review.timestamp}`;
                   const like = reviewLikes[reviewKey] ?? { count: 0, mine: false };
                   const replyCount = reviewReplies[reviewKey]?.length ?? 0;
-                  const views = review.userId.startsWith('demo-')
-                    ? 120 + Math.abs(review.userId.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0) % 880)
-                    : null;
+                  const shareReview = () => Share.share({
+                    message: `${review.author} calificó con ${review.stars} de 5 a ${patio?.name ?? 'este Patio'}${review.note ? `\n\n“${review.note}”` : ''}\n\npatio://patio/${patioId}`,
+                  });
                   return (
                     <>
                       <View style={s.reviewActions}>
@@ -679,6 +691,7 @@ export default function PatioDetailScreen() {
                             if (replyCount > 0) {
                               setExpandedThreads((current) => ({ ...current, [reviewKey]: !(current[reviewKey] ?? false) }));
                               setReplyingTo(null);
+                              setReplyingToComment(null);
                             } else {
                               setReplyingTo((current) => current === reviewKey ? null : reviewKey);
                             }
@@ -699,59 +712,108 @@ export default function PatioDetailScreen() {
                           <Ionicons name={like.mine ? 'heart' : 'heart-outline'} size={17} color={like.mine ? theme.accent : theme.textSecondary} />
                           {!!like.count && <Text style={[s.reviewActionText, like.mine && { color: theme.accent }]}>{like.count}</Text>}
                         </TouchableOpacity>
-                        {views != null && (
-                          <View style={s.reviewAction} accessible accessibilityLabel={`${views} visualizaciones`}>
-                            <Ionicons name="stats-chart-outline" size={16} color={theme.textSecondary} />
-                            <Text style={s.reviewActionText}>{views}</Text>
-                          </View>
-                        )}
+                        <TouchableOpacity
+                          style={s.reviewAction}
+                          hitSlop={4}
+                          onPress={shareReview}
+                          accessibilityRole="button"
+                          accessibilityLabel="Compartir reseña">
+                          <Ionicons name="share-outline" size={17} color={theme.textSecondary} />
+                        </TouchableOpacity>
                       </View>
                       {!!reviewReplies[reviewKey]?.length && (() => {
                         const thread = reviewReplies[reviewKey];
                         const expanded = expandedThreads[reviewKey] ?? false;
                         const shownReplies = expanded ? thread : [];
+                        const rootReplies = shownReplies.filter((reply) => !reply.parentId);
+                        const renderComment = (reply: ReviewThreadReply, replyIndex: number, parentId: string) => {
+                          const reaction = replyLikes[reply.id] ?? { count: reply.likes, mine: false };
+                          return (
+                            <View key={reply.id} style={s.reviewThreadItem}>
+                              <View style={s.reviewThreadBubble}>
+                                <View style={s.reviewThreadHead}>
+                                  <Text style={s.reviewThreadAuthor} numberOfLines={1}>{reply.mine ? 'Tú' : reply.author}</Text>
+                                  {reply.patio && (
+                                    <View style={s.reviewThreadSeal}>
+                                      <SymbolView name="checkmark.seal.fill" size={13} weight="medium" tintColor={theme.accent} fallback={<Ionicons name="checkmark-circle" size={13} color={theme.accent} />} />
+                                    </View>
+                                  )}
+                                </View>
+                                <Text style={s.reviewThreadText}>{reply.body}</Text>
+                              </View>
+                              <View style={s.reviewThreadActions}>
+                                <Text style={s.reviewThreadTime}>{reply.timeLabel ?? `${replyIndex + 1} h`}</Text>
+                                <TouchableOpacity
+                                  style={s.reviewThreadTextAction}
+                                  hitSlop={{ top: 5, bottom: 5, left: 3, right: 3 }}
+                                  onPress={() => setReplyLikes((current) => ({
+                                    ...current,
+                                    [reply.id]: {
+                                      mine: !reaction.mine,
+                                      count: Math.max(0, reaction.count + (reaction.mine ? -1 : 1)),
+                                    },
+                                  }))}
+                                  accessibilityRole="button"
+                                  accessibilityLabel={`Me gusta el comentario de ${reply.mine ? 'ti' : reply.author}`}
+                                  accessibilityState={{ selected: reaction.mine }}>
+                                  <Text style={[s.reviewThreadTextActionLabel, reaction.mine && { color: theme.accent }]}>Me gusta{reaction.count ? ` · ${reaction.count}` : ''}</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                  style={s.reviewThreadTextAction}
+                                  hitSlop={{ top: 5, bottom: 5, left: 3, right: 3 }}
+                                  onPress={() => {
+                                    setReplyingToComment({ reviewKey, parentId, author: reply.mine ? 'Tú' : reply.author });
+                                    setReplyingTo(null);
+                                    setReplyDraft('');
+                                  }}
+                                  accessibilityRole="button"
+                                  accessibilityLabel={`Responder a ${reply.mine ? 'tu comentario' : reply.author}`}>
+                                  <Text style={s.reviewThreadTextActionLabel}>Responder</Text>
+                                </TouchableOpacity>
+                              </View>
+                            </View>
+                          );
+                        };
                         return (
                           <View style={[s.reviewThread, !expanded && { borderLeftWidth: 0, paddingLeft: 0 }]}>
-                            {shownReplies.map((reply, replyIndex) => {
-                              const reaction = replyLikes[reply.id] ?? { count: reply.likes, mine: false };
+                            {rootReplies.map((reply, rootIndex) => {
+                              const children = shownReplies.filter((candidate) => candidate.parentId === reply.id);
+                              const inlineReplying = replyingToComment?.reviewKey === reviewKey && replyingToComment.parentId === reply.id;
                               return (
-                                <View key={reply.id} style={s.reviewThreadItem}>
-                                  <View style={s.reviewThreadBubble}>
-                                    <View style={s.reviewThreadHead}>
-                                      <Text style={s.reviewThreadAuthor} numberOfLines={1}>{reply.mine ? 'Tú' : reply.author}</Text>
-                                      {reply.patio && (
-                                        <View style={s.reviewThreadSeal}>
-                                          <SymbolView name="checkmark.seal.fill" size={13} weight="medium" tintColor={theme.accent} fallback={<Ionicons name="checkmark-circle" size={13} color={theme.accent} />} />
-                                        </View>
-                                      )}
+                                <View key={reply.id}>
+                                  {renderComment(reply, rootIndex, reply.id)}
+                                  {!!children.length && (
+                                    <View style={s.reviewThreadChildren}>
+                                      {children.map((child, childIndex) => renderComment(child, childIndex, reply.id))}
                                     </View>
-                                    <Text style={s.reviewThreadText}>{reply.body}</Text>
-                                  </View>
-                                  <View style={s.reviewThreadActions}>
-                                    <Text style={s.reviewThreadTime}>{reply.timeLabel ?? `${replyIndex + 1} h`}</Text>
-                                    <TouchableOpacity
-                                      style={s.reviewThreadTextAction}
-                                      hitSlop={{ top: 5, bottom: 5, left: 3, right: 3 }}
-                                      onPress={() => setReplyLikes((current) => ({
-                                        ...current,
-                                        [reply.id]: {
-                                          mine: !reaction.mine,
-                                          count: Math.max(0, reaction.count + (reaction.mine ? -1 : 1)),
-                                        },
-                                      }))}
-                                      accessibilityRole="button"
-                                      accessibilityLabel={`Me gusta la respuesta de ${reply.mine ? 'ti' : reply.author}`}
-                                      accessibilityState={{ selected: reaction.mine }}>
-                                      <Text style={[s.reviewThreadTextActionLabel, reaction.mine && { color: theme.accent }]}>Me gusta{reaction.count ? ` · ${reaction.count}` : ''}</Text>
-                                    </TouchableOpacity>
-                                  </View>
+                                  )}
+                                  {inlineReplying && (
+                                    <View style={[s.reviewReplyRow, s.reviewInlineReplyRow]}>
+                                      <TextInput value={replyDraft} onChangeText={setReplyDraft} placeholder={`Responder a ${replyingToComment.author}`} placeholderTextColor={theme.textMute} style={s.reviewReplyInput} maxLength={280} autoFocus />
+                                      <TouchableOpacity
+                                        style={[s.reviewReplySend, !replyDraft.trim() && { opacity: 0.35 }]}
+                                        hitSlop={3}
+                                        disabled={!replyDraft.trim()}
+                                        onPress={() => {
+                                          const next = replyDraft.trim();
+                                          const child: ReviewThreadReply = { id: `${reviewKey}-mine-${Date.now()}`, author: 'Tú', body: next, likes: 0, mine: true, parentId: reply.id };
+                                          setReviewReplies((current) => ({ ...current, [reviewKey]: [...(current[reviewKey] ?? []), child] }));
+                                          setReplyDraft('');
+                                          setReplyingToComment(null);
+                                        }}
+                                        accessibilityRole="button"
+                                        accessibilityLabel="Publicar respuesta">
+                                        <SymbolView name="paperplane.fill" size={15} weight="semibold" tintColor="#FFFFFF" fallback={<Ionicons name="send" size={15} color="#FFFFFF" />} />
+                                      </TouchableOpacity>
+                                    </View>
+                                  )}
                                 </View>
                               );
                             })}
                           </View>
                         );
                       })()}
-                      {((expandedThreads[reviewKey] ?? false) || replyingTo === reviewKey) && (
+                      {((expandedThreads[reviewKey] ?? false) || replyingTo === reviewKey) && replyingToComment?.reviewKey !== reviewKey && (
                         <View style={s.reviewReplyRow}>
                           <TextInput value={replyDraft} onChangeText={setReplyDraft} placeholder="Escribe un comentario" placeholderTextColor={theme.textMute} style={s.reviewReplyInput} maxLength={280} />
                           <TouchableOpacity

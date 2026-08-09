@@ -1,14 +1,16 @@
 import { Ionicons } from '@expo/vector-icons';
 import { SymbolView, type SFSymbol } from 'expo-symbols';
 import { BlurView } from 'expo-blur';
+import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
-import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, Easing, Image, ScrollView, Share, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Animated, Easing, Share, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AgentSpinner } from '@/components/agent-spinner';
+import { SaveToListSheet } from '@/components/save-to-list-sheet';
 import { usePatioDetailController } from '@/lib/controllers/usePatioDetailController';
 import { formatHHMM12 } from '@/lib/horario';
 import { MAP_STYLE_DARK, MAP_STYLE_LIGHT } from '@/lib/map-style';
@@ -65,7 +67,7 @@ function syntheticThreadFor(userId: string, patioName: string, stars: number): R
 
 const HERO_HEIGHT = 300;
 const OPEN_GREEN = '#1F9D55';
-const PULL_TO_DISMISS_THRESHOLD = 70;
+const PULL_TO_DISMISS_THRESHOLD = 93;
 const DAYS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 const PAYMENT_ORDER = ['Efectivo', 'Tarjeta', 'Transferencia'];
 const PAYMENT_SYMBOLS: Record<string, { symbol: SFSymbol; fallback: keyof typeof Ionicons.glyphMap; size: number }> = {
@@ -95,11 +97,12 @@ function heroPhotoFor(id: string) {
 
 function makeStyles(t: Theme) {
   return StyleSheet.create({
-    container: { flex: 1, backgroundColor: t.bg },
+    container: { flex: 1, backgroundColor: t.bg, borderTopLeftRadius: 30, borderTopRightRadius: 30, overflow: 'hidden' },
+    heroBackdrop: { position: 'absolute', left: 0, right: 0, top: 0, height: HERO_HEIGHT + 120, width: '100%' },
     scrollContent: { paddingBottom: 120 },
 
     // ── Hero ──
-    hero: { height: HERO_HEIGHT, backgroundColor: t.isDark ? '#1a0a05' : '#241008', overflow: 'hidden' },
+    hero: { height: HERO_HEIGHT, backgroundColor: 'transparent', overflow: 'hidden' },
     heroImg: { ...StyleSheet.absoluteFillObject, width: '100%', height: '100%' },
     heroImgMuted: { opacity: 0.55 },
     soldBanner: { position: 'absolute', alignSelf: 'center', top: HERO_HEIGHT * 0.5, flexDirection: 'row', alignItems: 'center', gap: 7, paddingHorizontal: 16, paddingVertical: 9, borderRadius: 100, backgroundColor: t.accent, shadowColor: t.accent, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 16, elevation: 6, zIndex: 15 },
@@ -211,7 +214,7 @@ function makeStyles(t: Theme) {
     badgeInlineText: { marginTop: 1, fontSize: 11.5, lineHeight: 15, color: t.textSecondary, textAlign: 'left' },
     mapPanel: { height: 92, borderRadius: 18, backgroundColor: t.isDark ? '#191A1B' : '#D8D6D0', overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
     mapView: { ...StyleSheet.absoluteFillObject },
-    mapMarker: { width: 26, height: 26, borderRadius: 13, backgroundColor: '#111214', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.82)', alignItems: 'center', justifyContent: 'center', shadowColor: '#A8E7FF', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.58, shadowRadius: 8, elevation: 6 },
+    mapMarker: { width: 26, height: 26, borderRadius: 13, backgroundColor: '#111214', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.82)', alignItems: 'center', justifyContent: 'center', shadowColor: '#FFFFFF', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.24, shadowRadius: 6, elevation: 4 },
 
     // ── Rating (estrellas en card) ──
     starsRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 10 },
@@ -247,6 +250,9 @@ export default function PatioDetailScreen() {
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyingToComment, setReplyingToComment] = useState<{ reviewKey: string; parentId: string; author: string } | null>(null);
   const [replyDraft, setReplyDraft] = useState('');
+  const [saveSheetVisible, setSaveSheetVisible] = useState(false);
+  const pullDismissed = useRef(false);
+  const heroPullY = useRef(new Animated.Value(0)).current;
   const pulse = useRef(new Animated.Value(1)).current;
 
   const {
@@ -255,6 +261,7 @@ export default function PatioDetailScreen() {
     handleComoLlegar,
     handleShare,
     handleStarPress,
+    handleToggleSaved,
     isSaved,
     loading,
     patio,
@@ -298,6 +305,11 @@ export default function PatioDetailScreen() {
   }, [patio]);
   const activeBadge = earnedBadges.find((badge) => badge.id === activeBadgeId) ?? null;
   const reviewedToday = !!userReview && new Date(userReview.timestamp).toDateString() === new Date().toDateString();
+
+  const handleSavePress = async () => {
+    if (!isSaved) await handleToggleSaved();
+    setSaveSheetVisible(true);
+  };
 
   useEffect(() => {
     const likes: Record<string, { count: number; mine: boolean }> = {};
@@ -407,17 +419,38 @@ export default function PatioDetailScreen() {
   return (
     <View style={s.container}>
       <Stack.Screen options={{ headerShown: false }} />
-      <ScrollView
+      <Animated.Image
+        source={heroPhoto}
+        style={[
+          s.heroBackdrop,
+          soldOut && s.heroImgMuted,
+          { transform: [{ scale: heroPullY.interpolate({ inputRange: [-120, 0], outputRange: [1.045, 1], extrapolate: 'clamp' }) }] },
+        ]}
+        resizeMode="cover"
+      />
+      <Animated.ScrollView
+        contentInsetAdjustmentBehavior="never"
         contentContainerStyle={s.scrollContent}
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={16}
-        onScrollEndDrag={(event) => {
-          if (event.nativeEvent.contentOffset.y < -PULL_TO_DISMISS_THRESHOLD) handleBack();
-        }}>
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: heroPullY } } }],
+          {
+            useNativeDriver: true,
+            listener: (event: any) => {
+              const y = event.nativeEvent.contentOffset.y;
+              if (y >= 0) pullDismissed.current = false;
+              if (y < -PULL_TO_DISMISS_THRESHOLD && !pullDismissed.current) {
+                pullDismissed.current = true;
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+                handleBack();
+              }
+            },
+          }
+        )}>
 
         {/* Hero con foto botánica real + degradado que la funde con la card */}
         <View style={s.hero}>
-          <Image source={heroPhoto} style={[s.heroImg, soldOut && s.heroImgMuted]} resizeMode="cover" />
           <LinearGradient
             colors={['rgba(0,0,0,0.02)', 'rgba(0,0,0,0.08)', 'rgba(0,0,0,0.48)']}
             locations={[0, 0.62, 1]}
@@ -436,7 +469,7 @@ export default function PatioDetailScreen() {
               <GlassIcon
                 name={isSaved ? 'bookmark' : 'bookmark-outline'}
                 size={17}
-                onPress={() => router.push({ pathname: '/guardar/[id]', params: { id: patio.id } })}
+                onPress={handleSavePress}
                 color={isSaved ? theme.accent : theme.text}
               />
             </View>
@@ -851,7 +884,13 @@ export default function PatioDetailScreen() {
           </View>
 
         </View>
-      </ScrollView>
+      </Animated.ScrollView>
+      <SaveToListSheet
+        visible={saveSheetVisible}
+        patioId={patio.id}
+        patioName={patio.name}
+        onDismiss={() => setSaveSheetVisible(false)}
+      />
 
     </View>
   );

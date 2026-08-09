@@ -91,7 +91,7 @@ function RootStack() {
         <Stack.Screen name="perfil-editar" options={{ headerShown: false }} />
         <Stack.Screen name="resenas" options={{ headerShown: false }} />
         <Stack.Screen name="patio-smart" options={{ headerShown: false }} />
-        <Stack.Screen name="patio/[id]" options={{ headerShown: false }} />
+        <Stack.Screen name="patio/[id]" options={{ headerShown: false, presentation: 'transparentModal', animation: 'slide_from_bottom', animationDuration: 220, contentStyle: { backgroundColor: 'transparent' } }} />
         <Stack.Screen name="resena/[id]" options={{ headerShown: false }} />
       </Stack>
       <StatusBar style={theme.isDark ? 'light' : 'dark'} />

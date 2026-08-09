@@ -1,5 +1,124 @@
 # HANDOFF
 
+## 2026-08-09 — Lenguaje contextual de pins y cierre directo de ficha
+
+- El mapa dejó de usar puntos naranjas pulsantes, halos y marcas lapislázuli de
+  QA. En `Todos`, cada Patio usa un marcador neutro de 26 pt con icono mínimo de
+  categoría; bajo cualquier filtro/lista usa un punto uniforme de 10 pt; durante
+  búsqueda, los matches usan un anillo naranja de 20 pt con núcleo de 6 pt.
+- Ningún marcador tiene loop de animación. La jerarquía ahora depende del
+  contexto de decisión, no de decoración o datos demo.
+- El cierre por jalón de la ficha usa un umbral deliberado de 93 pt y se dispara al cruzar el
+  umbral durante el gesto, sin esperar `onScrollEndDrag`. Da un háptico ligero y
+  la ruta `patio/[id]` usa `slide_from_bottom` para que abrir/cerrar conserve la
+  misma dirección espacial, en lugar del fade retardado.
+- La ficha ahora se presenta como `transparentModal` con esquinas superiores de
+  30 pt; el mapa permanece bajo ella y la silueta de tarjeta se conserva durante
+  toda la transición vertical.
+- El laboratorio `__DEV__` define 400 Patios para evaluar densidad y estabilidad;
+  mientras se estabiliza AIRMap sólo 40 entran al mapa cotidiano. Están separados de los
+  demos editoriales y todos usan categorías ordinarias: no
+  simulan reparto ni tianguis y nunca forman parte de una carga de producción.
+  Sus coordenadas se dispersan de forma pseudoaleatoria determinista alrededor
+  de Polanco, evitando tanto la cuadrícula artificial como saltos entre recargas.
+  Para no repetir el cierre nativo de AIRMap, no se montan 400 vistas. A distancia,
+  cada celda muestra categoría dominante y conteo como superíndice Medium, secundario,
+  sin medallón ni tracking. Al tocarla, el mapa encuadra las coordenadas reales
+  de sus integrantes; el cúmulo se descompone progresivamente al cambiar de zoom.
+  Tras contrastarlo con el patrón real de Airbnb, el conteo se retiró: la densidad
+  se comunica por revelado progresivo, no por badges numéricos. También se retiró
+  por completo el spinner de actualización del mapa: sugería lentitud sin aportar
+  una acción ni representar necesariamente una espera real.
+- Tocar un marcador ahora produce selección observable antes de navegar: háptico
+  medio, inversión sólida a negro y apertura 145 ms después. El feedback
+  mantiene idéntica la geometría del marcador —sin escala ni cambio de tamaño—
+  para evitar el snapshot fantasma que podía aparecer en el borde izquierdo.
+- Los marcadores de categoría incorporan una cola triangular mínima que ancla el
+  símbolo a su coordenada. La prueba de 56 confirmó que los iconos no sustituyen
+  clustering: a alta densidad debe agregarse por zoom y revelar categorías al
+  acercarse.
+- Se retiró la transformación del hero que abría una junta inferior al jalar.
+  Una única foto estática vive detrás del `ScrollView` y se prolonga sólo para
+  cubrir el overscroll; no existe una segunda imagen que pueda duplicarse. El
+  contenido conserva su geometría normal, el inset automático sigue desactivado
+  y el ancla requiere 93 pt reales.
+- Delivery sin local y tianguis quedaron definidos en
+  `docs/DISCOVERY_SEARCH_ARCHITECTURE.md`: zona de servicio sin domicilio
+  privado para el primero; entidad contenedora + puestos hijos para el segundo.
+- Las pruebas visuales de tianguis y zona de entrega fueron retiradas. Esos tipos
+  se mantienen como arquitectura futura, pero el mapa actual conserva únicamente
+  iconos de lugar hasta resolver jerarquía, zoom y operación a gran escala.
+- Diagnóstico de estabilidad confirmado con crash log real del iPhone
+  (`Patio-2026-08-09-141858.ips`): excepción `NSInvalidArgumentException` en
+  `-[AIRMap insertReactSubview:atIndex:]` durante una transacción Fabric. No fue
+  OOM ni backend. Se retiraron densidad/clusters experimentales y el árbol de
+  `Marker` ahora permanece estable: filtros/viewport cambian `opacity` y
+  `tappable`, no insertan o eliminan subviews nativas de AIRMap.
+
+## 2026-08-09 — Guardar en listas sin salir de la ficha
+
+- El bookmark de `app/patio/[id].tsx` ya no navega a `/guardar/[id]`. Al tocarlo,
+  el Patio se guarda inmediatamente y aparece una hoja contextual desde abajo.
+- La hoja confirma `Guardado`, permite añadir o retirar el Patio de varias listas
+  y crear una nueva. Cerrarla, tocar el fondo o jalarla hacia abajo conserva el
+  guardado general aunque no se elija ninguna lista.
+- La interacción vive en `components/save-to-list-sheet.tsx`: filas y acciones
+  conservan blancos táctiles de al menos 44 pt, selección con check + háptico,
+  altura limitada y scroll interno. La ruta completa anterior se conserva por
+  ahora para notas, estado personal y calificación, pero ya no es el destino del
+  botón principal de la ficha.
+- Refinamiento visual Tahoe/HIG: la hoja usa material translúcido y borde
+  hairline; la lista permanece sobre superficie sólida. Nombre y conteo forman
+  una sola unidad vertical estable dentro de filas de 60 pt. Se retiró el CTA
+  negro inferior redundante: la selección persiste inmediatamente y `Listo`
+  queda como acción compacta superior, además del gesto y toque exterior.
+
+## 2026-08-09 — Diez accesos directos desplazables en el mapa
+
+- La fila de filtros del mapa admite hasta diez accesos configurables y se
+  desplaza horizontalmente con comportamiento nativo. En desarrollo se completa
+  automáticamente con `Menú hoy`, `Abiertos` y ocho listas guardadas para poder
+  evaluar la densidad real.
+- `Todos` permanece como estado base al inicio. `Listas` queda anclado al borde
+  derecho, fuera del scroll, con un velo de continuidad; conserva íntegra la
+  rueda circular por presión y arrastre.
+- `Todos` comparte ahora ese gesto circular: mantenerlo presionado y arrastrar
+  recorre las categorías reales del inventario; un toque breve vuelve a `Todos`.
+  La rueda derecha continúa reservada exclusivamente para listas personales.
+- Ambas ruedas recuperan la física original de Listas: abren en 320 ms, animan
+  en 180 ms y usan sensibilidad `2`. La pleca visual mide 34 pt y se centra en
+  el blanco táctil de 44 pt. Al
+  abrirse desde categorías, Listas desaparece y el panel ocupa el espacio entre
+  Todos y el borde derecho. Al abrirse desde Listas ocurre lo inverso: desaparece
+  toda la fila de accesos, la pleca ocupa `left: 16 / right: 84` y sólo queda el
+  botón Listas a la derecha. El dock permanece montado hasta recibir el final del
+  gesto, evitando que la pleca quede abierta. La rueda de
+  Listas contiene sólo colecciones personales —`Todos` pertenece exclusivamente
+  a la rueda de categorías—. La capa de marcadores está memoizada: abrir o
+  recorrer la rueda no reconcilia otra vez las vistas AIRMap. Sólo 40 de los 400
+  registros de estrés entran al mapa diario; el conjunto completo queda como
+  laboratorio aislado. Los
+  iconos del mapa quedaron homologados con `BUSINESS_TYPES` de `patio-smart`:
+  flama/tacos, fast-food/antojitos, hoja/elotes, café/repostería, pescado/mariscos,
+  vino/bebidas, libro/restaurante y cubiertos/fondita.
+- Las cápsulas visuales miden 34 pt de alto, pero viven dentro de blancos táctiles
+  efectivos de 44 pt. Se redujo ligeramente el padding horizontal para mejorar
+  proporción sin sacrificar accesibilidad.
+- Mantener presionada una cápsula entra a edición directa tipo Home Screen: cada
+  acceso muestra `−` para desfijarlo sin borrar su lista, `+ Añadir` fija una
+  opción disponible, se conserva el arrastre para reordenar y el dock derecho
+  cambia temporalmente a `Listo`. El selector nunca ofrece accesos ya ocupados.
+- El reordenamiento consulta el estado vivo de edición —no el valor inicial
+  capturado por el gesto—. Cruzar el centro de la pill vecina la intercambia con
+  feedback háptico. No se añade asa: el movimiento basta para comunicarlo. Por
+  la izquierda el scroll ocupa el ancho completo y las pills salen por el borde
+  físico; los 16 pt son inset inicial, no límite de recorte. `Listas` flota sobre
+  el scroll en vez de reservar una franja: por la derecha cada pill pasa detrás
+  e interpola su propia opacidad. No existe velo ni degradado sobre el mapa.
+- El arrastre de reordenamiento usa sensibilidad `0.62`: requiere más recorrido
+  del dedo que el desplazamiento visual de la pill para evitar saltar varias
+  posiciones accidentalmente. El scroll normal fuera del arrastre no cambia.
+
 ## 2026-08-06 — Ficha con cierre por jalón y rueda circular de Listas
 
 - La ficha de Patio (`app/patio/[id].tsx`) se cierra jalando hacia abajo

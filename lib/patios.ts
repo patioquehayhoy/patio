@@ -253,10 +253,10 @@ function tipoLabel(tipo: string | null): string {
 // de los reales, para poder recorrer la app completa. En producción solo Supabase.
 async function withDevPatios(reales: Patio[]): Promise<Patio[]> {
   if (!__DEV__) return reales;
-  const { DEMO_PATIOS, getDevPublishedPatio } = require('./demo') as typeof import('./demo');
+  const { DEMO_PATIOS, DENSITY_DEMO_PATIOS, getDevPublishedPatio } = require('./demo') as typeof import('./demo');
   const published = await getDevPublishedPatio();
   const vistos = new Set(reales.map((p) => p.id));
-  const extra = [...(published ? [published] : []), ...MOCK_PATIOS, ...DEMO_PATIOS].filter((p) => !vistos.has(p.id));
+  const extra = [...(published ? [published] : []), ...MOCK_PATIOS, ...DEMO_PATIOS, ...DENSITY_DEMO_PATIOS.slice(0, 40)].filter((p) => !vistos.has(p.id));
   return [...reales, ...extra];
 }
 
@@ -350,8 +350,8 @@ export function searchPatiosByDish(query: string): PatioDishMatch[] {
   const matches: PatioDishMatch[] = [];
   const patios = __DEV__
     ? (() => {
-        const { DEMO_PATIOS } = require('./demo') as typeof import('./demo');
-        return [...MOCK_PATIOS, ...DEMO_PATIOS];
+        const { DEMO_PATIOS, DENSITY_DEMO_PATIOS } = require('./demo') as typeof import('./demo');
+        return [...MOCK_PATIOS, ...DEMO_PATIOS, ...DENSITY_DEMO_PATIOS.slice(0, 40)];
       })()
     : MOCK_PATIOS;
 

@@ -458,6 +458,34 @@ export const DEMO_PATIOS: Patio[] = [
   },
 ];
 
+// Laboratorio local de densidad. Usa únicamente la gramática normal de lugares:
+// sirve para estresar el mapa sin introducir todavía reparto, zonas o tianguis.
+const DENSITY_CATEGORIES = [
+  'Cocina mexicana', 'Café y desayunos', 'Taquería', 'Mariscos',
+  'Antojitos', 'Postres', 'Hamburguesas', 'Elotes y botanas',
+];
+
+function seededUnit(seed: number): number {
+  const value = Math.sin(seed * 12.9898 + 78.233) * 43758.5453;
+  return value - Math.floor(value);
+}
+
+export const DENSITY_DEMO_PATIOS: Patio[] = Array.from({ length: 400 }, (_, index) => {
+  const source = DEMO_PATIOS[index % DEMO_PATIOS.length];
+  const radius = Math.sqrt(seededUnit(index + 1));
+  const angle = seededUnit(index + 401) * Math.PI * 2;
+  return {
+    ...source,
+    id: `density-lab-${index + 1}`,
+    name: `Lugar laboratorio ${index + 1}`,
+    category: DENSITY_CATEGORIES[index % DENSITY_CATEGORIES.length],
+    area: 'Polanco · laboratorio DEV',
+    latitude: 19.4429 + Math.sin(angle) * radius * 0.012,
+    longitude: -99.2044 + Math.cos(angle) * radius * 0.015,
+    ratingCount: (index * 7) % 93,
+  };
+});
+
 // Guardados y vistos de ejemplo: mezcla de mocks reales y demo para que
 // Guardados/Vistos tengan volumen y variedad de categorías.
 const DEMO_SAVED = ['demo-cocina-carmelita', 'demo-pozoleria-jalisco', 'demo-elotes-lupita', 'cochitacos', 'don-bonachon', 'demo-pasteles-nube'];

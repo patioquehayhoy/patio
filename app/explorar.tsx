@@ -1,4 +1,3 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
@@ -13,6 +12,7 @@ import { MAP_STYLE_DARK, MAP_STYLE_LIGHT } from '@/lib/map-style';
 import { publicPrice } from '@/lib/prices';
 import { FoodieLoading } from '@/components/foodie-loading';
 import { BottomTabBar } from '@/components/bottom-tab-bar';
+import { FoodieFilterBar } from '@/components/foodie-filter-bar';
 import { FOODIE_INITIAL_REGION, useFoodieExploreController } from '@/lib/controllers/useFoodieExploreController';
 import { noWidow } from '@/lib/typography';
 import { Fonts, Radius, useTheme, type Theme } from '@/lib/theme';
@@ -24,12 +24,7 @@ const OPEN_GREEN = '#1F9D55';
 const WHEEL_ROW_HEIGHT = 34;
 const WHEEL_VISIBLE_ROWS = 1;
 const WHEEL_HEIGHT = WHEEL_ROW_HEIGHT * WHEEL_VISIBLE_ROWS;
-const WHEEL_PADDING = WHEEL_ROW_HEIGHT * Math.floor(WHEEL_VISIBLE_ROWS / 2);
-const WHEEL_SENSITIVITY = 2;
 const PILL_GAP = 7;
-const PILL_DRAG_SENSITIVITY = 0.62;
-const PILL_SLOTS_KEY = 'patio:map-filter-order-v2';
-const MAX_PILL_SLOTS = 10;
 
 function openState(patio: Patio): boolean | null {
   return patio.weeklyHours ? estaAbiertoAhora(patio.weeklyHours) : null;
@@ -70,6 +65,7 @@ function makeStyles(t: Theme) {
     aiProText: { fontSize: 10.5, fontWeight: '800', color: t.accent, letterSpacing: 0.3 },
     sheet: { position: 'absolute', left: 14, right: 14, bottom: 14, maxHeight: '48%', borderRadius: Radius.sheet, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: t.isDark ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.18)', shadowColor: '#000', shadowOffset: { width: 0, height: 12 }, shadowOpacity: t.isDark ? 0.20 : 0.08, shadowRadius: 32, elevation: 8 },
     grabber: { alignSelf: 'center', width: 36, height: 4, borderRadius: 2, backgroundColor: t.isDark ? 'rgba(255,255,255,0.16)' : 'rgba(0,0,0,0.10)', marginTop: 10, marginBottom: 8 },
+    grabberTouch: { height: 28, alignItems: 'center', justifyContent: 'flex-start' },
     selectedPanel: { paddingHorizontal: 18, paddingBottom: 14 },
     selectedHeader: { flexDirection: 'row', alignItems: 'center', gap: 9, marginBottom: 8 },
     selectedTitle: { flex: 1, fontSize: 22, lineHeight: 26, fontWeight: '900', fontFamily: Fonts.brand, color: t.text },
@@ -84,8 +80,8 @@ function makeStyles(t: Theme) {
     cta: { minHeight: 44, paddingHorizontal: 18, borderRadius: 22, backgroundColor: t.text, flexDirection: 'row', alignItems: 'center', gap: 6 },
     ctaText: { fontSize: 13, fontWeight: '900', color: t.surface },
     divider: { height: StyleSheet.hairlineWidth, backgroundColor: t.border },
-    listHeader: { paddingHorizontal: 18, paddingTop: 14, paddingBottom: 9, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-    listTitle: { fontSize: 12, fontWeight: '900', color: t.text },
+    listHeader: { paddingHorizontal: 20, paddingTop: 10, paddingBottom: 8, flexDirection: 'row', alignItems: 'center' },
+    listTitle: { fontSize: 12.5, fontWeight: '600', color: t.textSecondary },
     listMeta: { fontSize: 12, fontWeight: '400', color: t.textSecondary },
     listFilter: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, minHeight: 30, borderRadius: 15, backgroundColor: t.accentLight },
     listFilterText: { fontSize: 12, fontWeight: '900', color: t.accent },
@@ -98,7 +94,7 @@ function makeStyles(t: Theme) {
     patioName: { fontSize: 15, lineHeight: 19, fontWeight: '900', fontFamily: Fonts.brand, color: t.text },
     patioMeta: { marginTop: 4, fontSize: 12, lineHeight: 16, fontWeight: '400', color: t.textSecondary },
     patioContext: { marginTop: 3, flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 4 },
-    patioContextText: { fontSize: 10.5, fontWeight: '600', color: t.textSecondary },
+    patioContextText: { fontSize: 11.5, fontWeight: '500', color: t.textSecondary },
     patioRight: { width: 82, flexShrink: 0, alignItems: 'flex-end', gap: 5 },
     patioPrice: { fontSize: 14, fontWeight: '400', color: t.textSecondary, letterSpacing: -0.1 },
     patioOpen: { fontSize: 11.5, fontWeight: '700', color: t.textSecondary },
@@ -161,162 +157,6 @@ function categoryIcon(category: string): keyof typeof Ionicons.glyphMap {
   return 'restaurant-outline';
 }
 
-type WheelItem = { key: string; label: string };
-
-type PillSlot = { key: string; label: string };
-const BUILTIN_PILL_OPTIONS: PillSlot[] = [{ key: 'today', label: 'Menú hoy' }, { key: 'open', label: 'Abiertos' }];
-
-function defaultPillSlots(collections: PatioCollection[]): PillSlot[] {
-  return [
-    ...BUILTIN_PILL_OPTIONS,
-    ...collections.map((collection) => ({ key: `collection:${collection.id}`, label: collection.title })),
-  ].slice(0, MAX_PILL_SLOTS);
-}
-
-function EditablePill({
-  slot, active, editing, order, widths, scrollX, scrollViewportWidth, s, theme, onPress, onLongPress, onRemove, onReorder,
-}: {
-  slot: PillSlot;
-  active: boolean;
-  editing: boolean;
-  order: string[];
-  widths: { current: Record<string, number> };
-  scrollX: Animated.Value;
-  scrollViewportWidth: number;
-  s: ReturnType<typeof makeStyles>;
-  theme: Theme;
-  onPress: () => void;
-  onLongPress: () => void;
-  onRemove: () => void;
-  onReorder: (nextOrder: string[]) => void;
-}) {
-  const translateX = useRef(new Animated.Value(0)).current;
-  const jiggle = useRef(new Animated.Value(0)).current;
-  const [layout, setLayout] = useState({ x: 0, width: 0 });
-  const editingRef = useRef(editing);
-  const onReorderRef = useRef(onReorder);
-  const startXRef = useRef(0);
-  const orderRef = useRef(order);
-  editingRef.current = editing;
-  onReorderRef.current = onReorder;
-  orderRef.current = order;
-
-  useEffect(() => {
-    if (!editing) {
-      jiggle.setValue(0);
-      return;
-    }
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(jiggle, { toValue: 1, duration: 110, useNativeDriver: true }),
-        Animated.timing(jiggle, { toValue: -1, duration: 220, useNativeDriver: true }),
-        Animated.timing(jiggle, { toValue: 0, duration: 110, useNativeDriver: true }),
-      ])
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [editing, jiggle]);
-
-  const xFor = (ord: string[], key: string) => {
-    let x = 0;
-    for (const k of ord) {
-      if (k === key) return x;
-      x += (widths.current[k] ?? 60) + PILL_GAP;
-    }
-    return x;
-  };
-
-  const pan = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => false,
-      onMoveShouldSetPanResponder: (_event, gesture) => editingRef.current && Math.abs(gesture.dx) > 4 && Math.abs(gesture.dx) > Math.abs(gesture.dy),
-      onPanResponderTerminationRequest: () => !editingRef.current,
-      onPanResponderGrant: () => {
-        startXRef.current = xFor(orderRef.current, slot.key);
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      },
-      onPanResponderMove: (_event, gesture) => {
-        // En edición prima el control fino: el dedo recorre más distancia que
-        // la pill para evitar atravesar varias posiciones con un gesto corto.
-        const liveX = startXRef.current + gesture.dx * PILL_DRAG_SENSITIVITY;
-        const myWidth = widths.current[slot.key] ?? 60;
-        const liveCenter = liveX + myWidth / 2;
-        const ord = orderRef.current;
-        const idx = ord.indexOf(slot.key);
-        if (idx > 0) {
-          const leftKey = ord[idx - 1];
-          const leftX = xFor(ord, leftKey);
-          const leftCenter = leftX + (widths.current[leftKey] ?? 60) / 2;
-          if (liveCenter < leftCenter) {
-            const next = [...ord];
-            [next[idx - 1], next[idx]] = [next[idx], next[idx - 1]];
-            Haptics.selectionAsync();
-            onReorderRef.current(next);
-          }
-        } else if (idx < ord.length - 1) {
-          const rightKey = ord[idx + 1];
-          const rightX = xFor(ord, rightKey);
-          const rightCenter = rightX + (widths.current[rightKey] ?? 60) / 2;
-          if (liveCenter > rightCenter) {
-            const next = [...ord];
-            [next[idx + 1], next[idx]] = [next[idx], next[idx + 1]];
-            Haptics.selectionAsync();
-            onReorderRef.current(next);
-          }
-        }
-        translateX.setValue(liveX - xFor(orderRef.current, slot.key));
-      },
-      onPanResponderRelease: () => {
-        Animated.spring(translateX, { toValue: 0, useNativeDriver: true, stiffness: 320, damping: 26 }).start();
-      },
-      onPanResponderTerminate: () => {
-        Animated.spring(translateX, { toValue: 0, useNativeDriver: true }).start();
-      },
-    })
-  ).current;
-
-  const rotate = jiggle.interpolate({ inputRange: [-1, 1], outputRange: ['-1.2deg', '1.2deg'] });
-  const centerX = layout.x + layout.width / 2;
-  const rightEdgeOpacity = scrollViewportWidth > 0 && layout.width > 0
-    ? scrollX.interpolate({
-        inputRange: [centerX - scrollViewportWidth - 4, centerX - scrollViewportWidth + 30],
-        outputRange: [0, 1],
-        extrapolate: 'clamp',
-      })
-    : 1;
-
-  return (
-    <Animated.View
-      {...pan.panHandlers}
-      onLayout={(event) => {
-        const { x, width } = event.nativeEvent.layout;
-        widths.current[slot.key] = width;
-        setLayout((current) => current.x === x && current.width === width ? current : { x, width });
-      }}
-      style={[s.mapFilterHitArea, s.editablePillWrap, { opacity: rightEdgeOpacity, transform: [{ translateX }, { rotate: editing ? rotate : '0deg' }], zIndex: editing ? 2 : 0 }]}>
-      <TouchableOpacity
-        onPress={() => { if (!editing) onPress(); }}
-        onLongPress={onLongPress}
-        delayLongPress={420}
-        hitSlop={{ top: 5, bottom: 5 }}
-        style={[s.mapFilter, { backgroundColor: active ? theme.text : theme.glass, borderColor: active ? theme.text : theme.border }]}>
-        {!active && <BlurView intensity={30} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />}
-        <Text style={[s.mapFilterText, { color: active ? theme.bg : theme.text }]}>{slot.label}</Text>
-      </TouchableOpacity>
-      {editing && (
-        <TouchableOpacity
-          accessibilityLabel={`Quitar ${slot.label} de accesos directos`}
-          accessibilityRole="button"
-          hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
-          onPress={onRemove}
-          style={s.removePillButton}>
-          <Ionicons name="remove-circle" size={20} color={theme.text} />
-        </TouchableOpacity>
-      )}
-    </Animated.View>
-  );
-}
-
 export default function ExplorarScreen() {
   const params = useLocalSearchParams<{ collection?: string; saved?: string }>();
   const { theme } = useTheme();
@@ -373,197 +213,16 @@ export default function ExplorarScreen() {
   }, []);
   const [mapFilter, setMapFilter] = useState('all');
   const [collections, setCollections] = useState<PatioCollection[]>([]);
-  const [collectionsLoaded, setCollectionsLoaded] = useState(false);
-  const [pillSlots, setPillSlots] = useState<PillSlot[]>([]);
-  const [editingPills, setEditingPills] = useState(false);
-  const [showAddPillPanel, setShowAddPillPanel] = useState(false);
-  const pillWidths = useRef<Record<string, number>>({});
-  const pillScrollX = useRef(new Animated.Value(0)).current;
-  const [pillScrollViewportWidth, setPillScrollViewportWidth] = useState(0);
-  const pillSlotsLoaded = useRef(false);
   useEffect(() => {
     getCollections().then(async (items) => {
       if (__DEV__ && items.length === 0) {
-        const seedNames = ['Antojos', 'Postres', 'Fin de semana', 'Cerca del trabajo', 'Para llevar', 'Comida corrida', 'Con la familia', 'Vegetarianos', 'Desayunos', 'Para cuando llueve', 'Rápido y rico', 'Picositos', 'Con terraza', 'Baratos', 'Clásicos de la colonia'];
+        const seedNames = ['Antojos', 'Postres', 'Fin de semana', 'Cerca del trabajo', 'Para llevar', 'Comida corrida', 'Con la familia', 'Vegetarianos'];
         for (const name of seedNames) await createCollection(name);
         items = await getCollections();
       }
       setCollections(items);
-      setCollectionsLoaded(true);
-    }).catch(() => { setCollectionsLoaded(true); });
+    }).catch(() => {});
   }, []);
-  useEffect(() => {
-    if (!collectionsLoaded) return;
-    AsyncStorage.getItem(PILL_SLOTS_KEY).then((raw) => {
-      pillSlotsLoaded.current = true;
-      if (!raw) {
-        setPillSlots(defaultPillSlots(collections));
-        return;
-      }
-      try {
-        const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed) && parsed.length > 0 && parsed.length <= MAX_PILL_SLOTS && parsed.every((item) => item && typeof item.key === 'string' && typeof item.label === 'string')) {
-          const available = new Map(defaultPillSlots(collections).map((item) => [item.key, item]));
-          const restored = parsed.filter((item) => item.key === 'today' || item.key === 'open' || collections.some((collection) => `collection:${collection.id}` === item.key));
-          const used = new Set(restored.map((item) => item.key));
-          const expanded = [...restored, ...Array.from(available.values()).filter((item) => !used.has(item.key))].slice(0, MAX_PILL_SLOTS);
-          setPillSlots(expanded);
-        } else {
-          setPillSlots(defaultPillSlots(collections));
-        }
-      } catch { setPillSlots(defaultPillSlots(collections)); }
-    }).catch(() => { pillSlotsLoaded.current = true; });
-  }, [collections, collectionsLoaded]);
-  useEffect(() => {
-    if (!pillSlotsLoaded.current) return;
-    AsyncStorage.setItem(PILL_SLOTS_KEY, JSON.stringify(pillSlots)).catch(() => {});
-  }, [pillSlots]);
-  const availablePillOptions = (): PillSlot[] => {
-    const usedKeys = new Set(pillSlots.map((slot) => slot.key));
-    return [...BUILTIN_PILL_OPTIONS, ...collections.map((collection) => ({ key: `collection:${collection.id}`, label: collection.title }))]
-      .filter((option) => !usedKeys.has(option.key));
-  };
-  const listasItems: WheelItem[] = useMemo(() =>
-    collections.map((collection) => ({ key: `collection:${collection.id}`, label: collection.title })),
-  [collections]);
-  const categoryItems: WheelItem[] = useMemo(() => [
-    { key: 'all', label: 'Todos' },
-    ...[...new Set(allPatios.map((patio) => patio.category))]
-      .sort((a, b) => a.localeCompare(b, 'es'))
-      .map((category) => ({ key: category, label: category })),
-  ], [allPatios]);
-  const listasItemsRef = useRef(listasItems);
-  const categoryItemsRef = useRef(categoryItems);
-  listasItemsRef.current = listasItems;
-  categoryItemsRef.current = categoryItems;
-  const [wheelMode, setWheelMode] = useState<'lists' | 'categories'>('lists');
-  const activeWheelItems = wheelMode === 'categories' ? categoryItems : listasItems;
-  const wheelItemsRef = useRef(activeWheelItems);
-  wheelItemsRef.current = activeWheelItems;
-  const mapFilterRef = useRef(mapFilter);
-  mapFilterRef.current = mapFilter;
-  const [wheelOpen, setWheelOpen] = useState(false);
-  const wheelOpenAnim = useRef(new Animated.Value(0)).current;
-  const wheelOffset = useRef(new Animated.Value(0)).current;
-  const wheelOpenedRef = useRef(false);
-  const wheelOpenTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const wheelOriginIndex = useRef(0);
-  const wheelLastIndex = useRef(0);
-  useEffect(() => {
-    Animated.timing(wheelOpenAnim, { toValue: wheelOpen ? 1 : 0, duration: 180, useNativeDriver: true }).start();
-  }, [wheelOpen, wheelOpenAnim]);
-  const clearWheelTimer = () => {
-    if (wheelOpenTimer.current) { clearTimeout(wheelOpenTimer.current); wheelOpenTimer.current = null; }
-  };
-  const beginWheelOpen = (mode: 'lists' | 'categories') => {
-    const items = mode === 'categories' ? categoryItemsRef.current : listasItemsRef.current;
-    if (!items.length) return;
-    setWheelMode(mode);
-    wheelItemsRef.current = items;
-    const currentKey = mode === 'lists'
-      ? (mapFilterRef.current.startsWith('collection:') ? mapFilterRef.current : 'all')
-      : (items.some((item) => item.key === mapFilterRef.current) ? mapFilterRef.current : 'all');
-    const idx = Math.max(0, items.findIndex((item) => item.key === currentKey));
-    wheelOriginIndex.current = idx;
-    wheelLastIndex.current = idx;
-    wheelOffset.setValue(idx * WHEEL_ROW_HEIGHT);
-    wheelOpenedRef.current = true;
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    setWheelOpen(true);
-  };
-  const applyWheelIndex = (index: number) => {
-    const count = wheelItemsRef.current.length;
-    if (!count) return;
-    // Rueda circular: nunca hay tope, dar la vuelta permite alcanzar
-    // cualquier lista sin agotar el recorrido físico del dedo en pantalla.
-    const wrapped = ((index % count) + count) % count;
-    if (wrapped === wheelLastIndex.current) return;
-    wheelLastIndex.current = wrapped;
-    Haptics.selectionAsync();
-    // No se aplica el filtro en cada tick: re-renderiza el mapa completo y
-    // trababa la app al deslizar rápido por muchas listas. Se aplica una
-    // sola vez al soltar (ver onPanResponderRelease/Terminate).
-  };
-  const commitWheelSelection = () => {
-    const item = wheelItemsRef.current[wheelLastIndex.current];
-    if (item) setMapFilter(item.key);
-  };
-  const listasPan = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: () => true,
-      onPanResponderGrant: () => {
-        wheelOpenedRef.current = false;
-        clearWheelTimer();
-        wheelOpenTimer.current = setTimeout(() => beginWheelOpen('lists'), 320);
-      },
-      onPanResponderMove: (_event, gesture) => {
-        if (!wheelOpenedRef.current) {
-          if (Math.abs(gesture.dy) > 8 || Math.abs(gesture.dx) > 8) clearWheelTimer();
-          return;
-        }
-        // + (no -): el botón vive pegado arriba de la pantalla, así que hay
-        // mucho más recorrido de dedo hacia abajo que hacia arriba.
-        const y = wheelOriginIndex.current * WHEEL_ROW_HEIGHT + gesture.dy * WHEEL_SENSITIVITY;
-        wheelOffset.setValue(y);
-        applyWheelIndex(Math.round(y / WHEEL_ROW_HEIGHT));
-      },
-      onPanResponderRelease: () => {
-        clearWheelTimer();
-        if (wheelOpenedRef.current) {
-          wheelOpenedRef.current = false;
-          commitWheelSelection();
-          setWheelOpen(false);
-        }
-      },
-      onPanResponderTerminate: () => {
-        clearWheelTimer();
-        if (wheelOpenedRef.current) {
-          wheelOpenedRef.current = false;
-          commitWheelSelection();
-          setWheelOpen(false);
-        }
-      },
-    })
-  ).current;
-  const categoriesPan = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: () => true,
-      onPanResponderGrant: () => {
-        wheelOpenedRef.current = false;
-        clearWheelTimer();
-        wheelOpenTimer.current = setTimeout(() => beginWheelOpen('categories'), 320);
-      },
-      onPanResponderMove: (_event, gesture) => {
-        if (!wheelOpenedRef.current) {
-          if (Math.abs(gesture.dy) > 8 || Math.abs(gesture.dx) > 8) clearWheelTimer();
-          return;
-        }
-        const y = wheelOriginIndex.current * WHEEL_ROW_HEIGHT + gesture.dy * WHEEL_SENSITIVITY;
-        wheelOffset.setValue(y);
-        applyWheelIndex(Math.round(y / WHEEL_ROW_HEIGHT));
-      },
-      onPanResponderRelease: () => {
-        clearWheelTimer();
-        if (wheelOpenedRef.current) {
-          wheelOpenedRef.current = false;
-          commitWheelSelection();
-          setWheelOpen(false);
-        } else {
-          setMapFilter('all');
-        }
-      },
-      onPanResponderTerminate: () => {
-        clearWheelTimer();
-        if (wheelOpenedRef.current) {
-          wheelOpenedRef.current = false;
-          commitWheelSelection();
-          setWheelOpen(false);
-        }
-      },
-    })
-  ).current;
   useEffect(() => {
     if (params.collection) setMapFilter(`collection:${params.collection}`);
     else if (params.saved === '1') setMapFilter('saved');
@@ -617,6 +276,7 @@ export default function ExplorarScreen() {
     });
   }, [filteredPins, mapRegion, shouldCluster]);
   const dismissSheet = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     Animated.timing(sheetTranslateY, {
       toValue: 420,
       duration: 190,
@@ -758,8 +418,6 @@ export default function ExplorarScreen() {
           userInterfaceStyle={theme.isDark ? 'dark' : 'light'}
           onPress={() => {
             Keyboard.dismiss();
-            setEditingPills(false);
-            setShowAddPillPanel(false);
             if (searchActive || isFiltering) closeSearch();
             else closeSheet();
           }}
@@ -844,143 +502,12 @@ export default function ExplorarScreen() {
 
       {!searchActive && !showSheet && (
         <View style={[s.mapFilters, { top: insets.top + 72 }]}>
-          <View style={s.mapFiltersRow}>
-            <Animated.ScrollView
-              horizontal
-              bounces
-              pointerEvents={wheelOpen && wheelMode === 'lists' ? 'none' : 'auto'}
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={s.mapFiltersContent}
-              onLayout={(event) => setPillScrollViewportWidth(event.nativeEvent.layout.width)}
-              onScroll={Animated.event([{ nativeEvent: { contentOffset: { x: pillScrollX } } }], { useNativeDriver: true })}
-              scrollEventThrottle={16}
-              style={[s.mapFiltersScroll, wheelOpen && wheelMode === 'lists' && { opacity: 0 }]}>
-              <View
-                {...categoriesPan.panHandlers}
-                accessibilityLabel="Categorías de lugares"
-                accessibilityRole="button"
-                accessibilityHint="Toca para ver todos; mantén presionado y desliza para elegir una categoría"
-                style={s.mapFilterHitArea}>
-                <View style={[s.mapFilter, { backgroundColor: (wheelOpen && wheelMode === 'categories') || mapFilter === 'all' ? theme.text : theme.glass, borderColor: (wheelOpen && wheelMode === 'categories') || mapFilter === 'all' ? theme.text : theme.border }]}>
-                  {mapFilter !== 'all' && !(wheelOpen && wheelMode === 'categories') && <BlurView intensity={30} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />}
-                  <Text style={[s.mapFilterText, { color: (wheelOpen && wheelMode === 'categories') || mapFilter === 'all' ? theme.bg : theme.text }]}>Todos</Text>
-                </View>
-              </View>
-              {pillSlots.map((slot) => (
-                <EditablePill
-                  key={slot.key}
-                  slot={slot}
-                  active={mapFilter === slot.key}
-                  editing={editingPills}
-                  order={pillSlots.map((item) => item.key)}
-                  widths={pillWidths}
-                  scrollX={pillScrollX}
-                  scrollViewportWidth={Math.max(0, pillScrollViewportWidth - 60)}
-                  s={s}
-                  theme={theme}
-                  onPress={() => setMapFilter(slot.key)}
-                  onLongPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); setEditingPills(true); setShowAddPillPanel(false); }}
-                  onRemove={() => {
-                    Haptics.selectionAsync();
-                    setPillSlots((prev) => prev.filter((item) => item.key !== slot.key));
-                    if (mapFilter === slot.key) setMapFilter('all');
-                  }}
-                  onReorder={(nextKeys) => setPillSlots((prev) => nextKeys.map((key) => prev.find((item) => item.key === key)!))}
-                />
-              ))}
-              {editingPills && pillSlots.length < MAX_PILL_SLOTS && (
-                <View style={s.mapFilterHitArea}>
-                  <TouchableOpacity
-                    accessibilityLabel="Añadir acceso directo"
-                    accessibilityRole="button"
-                    onPress={() => { Haptics.selectionAsync(); setShowAddPillPanel(true); }}
-                    style={[s.mapFilter, s.addPill, { backgroundColor: theme.glass, borderColor: theme.border }]}>
-                    <BlurView intensity={30} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
-                    <Ionicons name="add" size={15} color={theme.text} />
-                    <Text style={[s.mapFilterText, { color: theme.text }]}>Añadir</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
-            </Animated.ScrollView>
-            {editingPills ? (
-              <TouchableOpacity
-                accessibilityLabel="Terminar de editar accesos directos"
-                accessibilityRole="button"
-                onPress={() => { Haptics.selectionAsync(); setEditingPills(false); setShowAddPillPanel(false); }}
-                style={[s.listasDock, s.doneDock]}>
-                <View style={[s.mapFilter, s.doneTrigger, { backgroundColor: theme.text, borderColor: theme.text }]}>
-                  <Text style={[s.doneText, { color: theme.bg }]}>Listo</Text>
-                </View>
-              </TouchableOpacity>
-            ) : (
-              <View
-                {...listasPan.panHandlers}
-                accessibilityLabel="Listas guardadas"
-                accessibilityRole="button"
-                accessibilityHint="Mantén presionado y desliza para elegir una lista"
-                style={[s.listasDock, wheelOpen && wheelMode === 'categories' && { opacity: 0 }]}>
-                <View style={[s.mapFilter, s.listasTrigger, { backgroundColor: (wheelOpen && wheelMode === 'lists') || mapFilter.startsWith('collection:') ? theme.text : theme.glass, borderColor: (wheelOpen && wheelMode === 'lists') || mapFilter.startsWith('collection:') ? theme.text : theme.border }]}>
-                  {!(wheelOpen && wheelMode === 'lists') && !mapFilter.startsWith('collection:') && <BlurView intensity={30} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />}
-                  <Ionicons name="list-outline" size={16} color={(wheelOpen && wheelMode === 'lists') || mapFilter.startsWith('collection:') ? theme.bg : theme.text} />
-                </View>
-              </View>
-            )}
-          </View>
-          {wheelOpen && (
-            <Animated.View
-              pointerEvents="none"
-              style={[
-                s.listasBar,
-                wheelMode === 'lists' ? s.listasBarFromLists : s.listasBarFromCategories,
-                {
-                  opacity: wheelOpenAnim,
-                  transform: [{ translateY: wheelOpenAnim.interpolate({ inputRange: [0, 1], outputRange: [-10, 0] }) }],
-                },
-              ]}>
-              {/* Rueda circular: cada ítem se dibuja en 3 copias (ciclo anterior,
-                  actual, siguiente) para que al dar la vuelta el reemplazo se
-                  vea continuo — nunca hay un tope donde el dedo se quede sin
-                  pantalla para alcanzar el resto de las listas. */}
-              {activeWheelItems.flatMap((item, index) => [-1, 0, 1].map((cycle) => {
-                const virtualIndex = index + cycle * activeWheelItems.length;
-                const inputRange = [(virtualIndex - 2) * WHEEL_ROW_HEIGHT, (virtualIndex - 1) * WHEEL_ROW_HEIGHT, virtualIndex * WHEEL_ROW_HEIGHT, (virtualIndex + 1) * WHEEL_ROW_HEIGHT, (virtualIndex + 2) * WHEEL_ROW_HEIGHT];
-                const opacity = wheelOffset.interpolate({ inputRange, outputRange: [0.25, 0.55, 1, 0.55, 0.25], extrapolate: 'clamp' });
-                const scale = wheelOffset.interpolate({ inputRange, outputRange: [0.84, 0.92, 1, 0.92, 0.84], extrapolate: 'clamp' });
-                const translateY = Animated.subtract(virtualIndex * WHEEL_ROW_HEIGHT + WHEEL_PADDING, wheelOffset);
-                return (
-                  <Animated.View key={`${item.key}-${cycle}`} style={[s.wheelRow, { position: 'absolute', left: 0, right: 0, transform: [{ translateY }] }]}>
-                    <Animated.Text numberOfLines={1} style={[s.wheelText, { opacity, transform: [{ scale }] }]}>{item.label}</Animated.Text>
-                  </Animated.View>
-                );
-              }))}
-            </Animated.View>
-          )}
-          {showAddPillPanel && (
-            <View style={s.editPillPanel}>
-              <View style={s.editPillHeader}>
-                <Text style={s.editPillHeaderText}>Añadir acceso</Text>
-                <TouchableOpacity accessibilityLabel="Cerrar" hitSlop={8} onPress={() => setShowAddPillPanel(false)}>
-                  <Ionicons name="close" size={20} color={theme.textSecondary} />
-                </TouchableOpacity>
-              </View>
-              <ScrollView showsVerticalScrollIndicator={false}>
-                {availablePillOptions().map((option, index) => (
-                  <TouchableOpacity
-                    key={option.key}
-                    onPress={() => {
-                      Haptics.selectionAsync();
-                      setPillSlots((prev) => [...prev, option].slice(0, MAX_PILL_SLOTS));
-                      setShowAddPillPanel(false);
-                    }}
-                    style={[s.editPillOption, index > 0 && s.editPillOptionDivider]}>
-                    <Ionicons name={option.key.startsWith('collection:') ? 'bookmark' : 'pricetag-outline'} size={16} color={theme.textSecondary} />
-                    <Text style={s.editPillOptionText} numberOfLines={1}>{option.label}</Text>
-                    <Ionicons name="add-circle-outline" size={19} color={theme.text} />
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
-          )}
+          <FoodieFilterBar
+            value={mapFilter}
+            onChange={setMapFilter}
+            collections={collections}
+            categories={[...new Set(allPatios.map((patio) => patio.category))].sort((a, b) => a.localeCompare(b, 'es'))}
+          />
         </View>
       )}
 
@@ -1028,7 +555,7 @@ export default function ExplorarScreen() {
           <View style={{ paddingHorizontal: 16, paddingBottom: 12 }}>
             <View style={s.searchRow}>
               <BlurView intensity={theme.isDark ? 30 : 36} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
-              <TouchableOpacity onPress={closeSearch} activeOpacity={0.76} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+              <TouchableOpacity onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); closeSearch(); }} activeOpacity={0.76} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
                 <Ionicons name="chevron-back" size={20} color={theme.text} />
               </TouchableOpacity>
               <TextInput
@@ -1048,7 +575,7 @@ export default function ExplorarScreen() {
                 selectionColor={theme.accent}
               />
               {query.length > 0 && (
-                <TouchableOpacity onPress={() => handleQueryChange('')} activeOpacity={0.76} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                <TouchableOpacity onPress={() => { Haptics.selectionAsync(); handleQueryChange(''); }} activeOpacity={0.76} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
                   <Ionicons name="close-circle" size={18} color={theme.textSecondary} />
                 </TouchableOpacity>
               )}
@@ -1075,11 +602,13 @@ export default function ExplorarScreen() {
 
       {showSheet && (
         <Animated.View
-          {...sheetPanResponder.panHandlers}
           style={[s.sheet, isFiltering ? {
-            bottom: keyboardHeight > 0 ? keyboardHeight + 10 : insets.bottom + 78,
-            maxHeight: '48%',
+            top: insets.top + 80,
+            bottom: keyboardHeight > 0 ? keyboardHeight : insets.bottom + 14,
+            maxHeight: undefined,
             paddingBottom: 4,
+            borderBottomLeftRadius: keyboardHeight > 0 ? 0 : Radius.sheet,
+            borderBottomRightRadius: keyboardHeight > 0 ? 0 : Radius.sheet,
             transform: [{ translateY: sheetTranslateY }],
           } : {
             bottom: keyboardHeight > 0 ? keyboardHeight + 70 : insets.bottom + 82,
@@ -1087,19 +616,18 @@ export default function ExplorarScreen() {
             transform: [{ translateY: sheetTranslateY }],
           }]}>
           <BlurView intensity={theme.isDark ? 16 : 22} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
-          <View style={s.grabber} />
+          <View {...sheetPanResponder.panHandlers} style={s.grabberTouch}>
+            <View style={s.grabber} />
+          </View>
 
           {/* List */}
           <View style={s.listHeader}>
             {isFiltering ? (
-              <>
-                <Text style={s.listTitle} allowFontScaling={true}>
-                  {topMatchPerPatio.length > 0
-                    ? `${topMatchPerPatio.length} RESULTADO${topMatchPerPatio.length !== 1 ? 'S' : ''}`
-                    : 'SIN RESULTADOS'}
-                </Text>
-                <Text style={s.listMeta} allowFontScaling={true}>MEJORES COINCIDENCIAS</Text>
-              </>
+              <Text style={s.listTitle} allowFontScaling={true}>
+                {topMatchPerPatio.length > 0
+                  ? `${topMatchPerPatio.length} resultado${topMatchPerPatio.length !== 1 ? 's' : ''}`
+                  : 'Sin resultados'}
+              </Text>
             ) : (
               <Text style={s.listTitle} allowFontScaling={true}>{sheetMode === 'saved' ? 'GUARDADOS' : 'CERCA DE TI'}</Text>
             )}
@@ -1154,7 +682,7 @@ export default function ExplorarScreen() {
                         </Text>
                         {(match.patio.rating && match.patio.rating !== 'Nuevo' || distanceLabelForPatio(match.patio)) && (
                           <View style={s.patioContext}>
-                            {!!match.patio.rating && match.patio.rating !== 'Nuevo' && <Text style={s.patioContextText}>★ {match.patio.rating}{match.patio.ratingCount != null ? ` (${match.patio.ratingCount})` : ''}</Text>}
+                            {!!match.patio.rating && match.patio.rating !== 'Nuevo' && <><Ionicons name="star" size={11} color={theme.textSecondary} /><Text style={s.patioContextText}>{match.patio.rating}{match.patio.ratingCount != null ? ` (${match.patio.ratingCount})` : ''}</Text></>}
                             {!!distanceLabelForPatio(match.patio) && <Text style={s.patioContextText}>{match.patio.rating && match.patio.rating !== 'Nuevo' ? '· ' : ''}{distanceLabelForPatio(match.patio)}</Text>}
                           </View>
                         )}
@@ -1198,7 +726,7 @@ export default function ExplorarScreen() {
                       <Text style={s.patioMeta} numberOfLines={1} allowFontScaling={true}>{patio.area}</Text>
                       {(patio.rating && patio.rating !== 'Nuevo' || distanceLabelForPatio(patio)) && (
                         <View style={s.patioContext}>
-                          {!!patio.rating && patio.rating !== 'Nuevo' && <Text style={s.patioContextText}>★ {patio.rating}{patio.ratingCount != null ? ` (${patio.ratingCount})` : ''}</Text>}
+                          {!!patio.rating && patio.rating !== 'Nuevo' && <><Ionicons name="star" size={11} color={theme.textSecondary} /><Text style={s.patioContextText}>{patio.rating}{patio.ratingCount != null ? ` (${patio.ratingCount})` : ''}</Text></>}
                           {!!distanceLabelForPatio(patio) && <Text style={s.patioContextText}>{patio.rating && patio.rating !== 'Nuevo' ? '· ' : ''}{distanceLabelForPatio(patio)}</Text>}
                         </View>
                       )}
@@ -1223,7 +751,7 @@ export default function ExplorarScreen() {
           <FoodieLoading />
         </View>
       )}
-      <BottomTabBar variant="foodie" />
+      {!searchActive && <BottomTabBar variant="foodie" />}
     </View>
   );
 }

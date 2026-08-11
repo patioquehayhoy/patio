@@ -1,33 +1,17 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, Stack } from 'expo-router';
-import { useMemo, useState } from 'react';
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { GlassIconButton } from '@/components/glass-button';
+import { BottomTabBar } from '@/components/bottom-tab-bar';
+import { FoodieFilterBar } from '@/components/foodie-filter-bar';
 import { todayDish, useFavoritePatiosController } from '@/lib/controllers/useFavoritePatiosController';
-import { publicPrice } from '@/lib/prices';
 import { Fonts, Radius, useTheme, type Theme } from '@/lib/theme';
+import { estaAbiertoAhora } from '@/lib/horario';
+import { getCollections, type PatioCollection } from '@/lib/collections';
 
 const OPEN_GREEN = '#1F9D55';
-
-// Fotos botánicas, elegidas de forma determinística por id (igual que la ficha).
-const HERO_PHOTOS = [
-  require('../assets/hero/botanica-1.jpg'),
-  require('../assets/hero/botanica-2.jpg'),
-  require('../assets/hero/botanica-3.jpg'),
-  require('../assets/hero/botanica-4.jpg'),
-  require('../assets/hero/botanica-5.jpg'),
-  require('../assets/hero/botanica-6.jpg'),
-  require('../assets/hero/botanica-7.jpg'),
-  require('../assets/hero/botanica-8.jpg'),
-];
-
-function photoFor(id: string) {
-  let h = 0;
-  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
-  return HERO_PHOTOS[h % HERO_PHOTOS.length];
-}
 
 function makeStyles(t: Theme) {
   return StyleSheet.create({
@@ -35,35 +19,28 @@ function makeStyles(t: Theme) {
     content: { paddingBottom: 120 },
 
     // Header editorial
-    header: { paddingHorizontal: 22, paddingTop: 8, paddingBottom: 16 },
-    backButton: { width: 44, height: 44, borderRadius: 22, marginLeft: -10, marginBottom: 6, alignItems: 'center', justifyContent: 'center' },
+    header: { paddingHorizontal: 22, paddingTop: 22, paddingBottom: 20 },
     eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', color: t.accent, marginBottom: 6 },
     title: { fontSize: 36, fontWeight: '900', letterSpacing: -1.2, lineHeight: 36, color: t.text, marginBottom: 4, fontFamily: Fonts.brand },
     subtitle: { fontSize: 13, fontWeight: '400', color: t.textSecondary },
 
-    // Filtros
-    filters: { paddingHorizontal: 18, paddingBottom: 14, gap: 8, flexDirection: 'row' },
-    filterChip: { paddingHorizontal: 14, minHeight: 34, borderRadius: 100, alignItems: 'center', justifyContent: 'center', backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
-    filterChipActive: { backgroundColor: t.accent, borderColor: t.accent },
-    filterChipText: { fontSize: 13, fontWeight: '400', color: t.text },
-    filterChipTextActive: { color: t.surface, fontWeight: '700' },
+    filterWrap: { marginBottom: 12 },
     filterEmpty: { paddingHorizontal: 10, paddingVertical: 24, fontSize: 14, lineHeight: 20, fontWeight: '400', color: t.textSecondary, textAlign: 'center' },
 
     // Lista
-    list: { paddingHorizontal: 18, gap: 10 },
-    card: { flexDirection: 'row', gap: 12, backgroundColor: t.surface, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, padding: 12 },
-    thumb: { width: 78, height: 78, borderRadius: 12, overflow: 'hidden', backgroundColor: '#111214' },
-    thumbImg: { width: '100%', height: '100%' },
+    list: { paddingHorizontal: 20, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border },
+    card: { minHeight: 88, flexDirection: 'row', alignItems: 'center', gap: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.border },
+    thumb: { width: 38, height: 38, borderRadius: 11, alignItems: 'center', justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, position: 'relative' },
+    menuDot: { position: 'absolute', right: -2, top: -2, width: 9, height: 9, borderRadius: 5, borderWidth: 2, borderColor: t.bg, backgroundColor: OPEN_GREEN },
     body: { flex: 1, minWidth: 0, justifyContent: 'center' },
-    statusRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 3 },
-    dot: { width: 6, height: 6, borderRadius: 3 },
-    statusText: { fontSize: 10.5, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase' },
-    name: { fontSize: 18, fontWeight: '900', letterSpacing: -0.3, color: t.text, lineHeight: 21, marginBottom: 4 },
-    today: { fontSize: 13, fontWeight: '400', color: t.text, marginBottom: 6 },
-    metaRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-    metaArea: { flexDirection: 'row', alignItems: 'center', gap: 5, flex: 1, minWidth: 0 },
+    nameRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 3 },
+    name: { flexShrink: 1, fontSize: 17, fontWeight: '800', letterSpacing: -0.2, color: t.text, lineHeight: 21 },
+    today: { fontSize: 13, fontWeight: '400', color: t.text, marginBottom: 5 },
+    metaRow: { flexDirection: 'row', alignItems: 'center' },
+    metaArea: { flexDirection: 'row', alignItems: 'center', gap: 4, flex: 1, minWidth: 0 },
     metaAreaText: { fontSize: 12, fontWeight: '400', color: t.textSecondary, flexShrink: 1 },
-    price: { fontSize: 16, fontWeight: '900', letterSpacing: -0.3, color: t.accent },
+    separator: { fontSize: 11.5, color: t.textMute },
+    contextText: { fontSize: 11.5, fontWeight: '500', color: t.textSecondary },
 
     // Empty
     empty: { minHeight: 520, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 28 },
@@ -79,63 +56,45 @@ export default function FavoritosScreen() {
   const { theme } = useTheme();
   const s = makeStyles(theme);
   const insets = useSafeAreaInsets();
-  const { patios, withMenu } = useFavoritePatiosController();
+  const { patios } = useFavoritePatiosController();
 
   // Filtros: pensados para cuando los guardados crecen (~70 items). 'hoy'
   // filtra por menú publicado; el resto son las categorías reales de lo
   // guardado — se construyen solas, sin taxonomía inventada.
-  const [filter, setFilter] = useState<'all' | 'hoy' | string>('all');
+  const [filter, setFilter] = useState('all');
+  const [collections, setCollections] = useState<PatioCollection[]>([]);
+  useEffect(() => {
+    getCollections().then(setCollections).catch(() => {});
+  }, []);
   const categories = useMemo(
     () => [...new Set(patios.map((patio) => patio.category).filter(Boolean))].sort(),
     [patios]
   );
   const filtered = useMemo(() => {
     if (filter === 'all') return patios;
-    if (filter === 'hoy') return patios.filter((patio) => todayDish(patio) !== null);
+    if (filter === 'today') return patios.filter((patio) => todayDish(patio) !== null);
+    if (filter === 'open') return patios.filter((patio) => patio.weeklyHours ? estaAbiertoAhora(patio.weeklyHours) : false);
+    if (filter.startsWith('collection:')) {
+      const collection = collections.find((item) => `collection:${item.id}` === filter);
+      return collection ? patios.filter((patio) => collection.patioIds.includes(patio.id)) : patios;
+    }
     return patios.filter((patio) => patio.category === filter);
-  }, [patios, filter]);
+  }, [collections, patios, filter]);
 
   return (
     <View style={[s.container, { paddingTop: insets.top }]}>
       <Stack.Screen options={{ headerShown: false }} />
       <ScrollView contentContainerStyle={[s.content, { paddingBottom: insets.bottom + 40 }]} showsVerticalScrollIndicator={false}>
         <View style={s.header}>
-          <View style={s.backButton}>
-            <GlassIconButton icon="chevron-back" accessibilityLabel="Volver a Actividad" onPress={() => router.replace('/actividad')} size={38} iconSize={19} />
-          </View>
           <Text style={s.eyebrow} allowFontScaling={true}>
             {patios.length} {patios.length === 1 ? 'guardado' : 'guardados'}
           </Text>
           <Text style={s.title} allowFontScaling={true}>Tus guardados</Text>
-          <Text style={s.subtitle} allowFontScaling={true}>
-            {patios.length === 0
-              ? 'Tus lugares de confianza, a un toque'
-              : `${withMenu} con menú hoy`}
-          </Text>
+          <Text style={s.subtitle} allowFontScaling={true}>Tus lugares de confianza, a un toque</Text>
         </View>
 
         {patios.length > 0 && (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={s.filters}>
-            {[
-              { key: 'all', label: 'Todos' },
-              { key: 'hoy', label: 'Con menú hoy' },
-              ...categories.map((cat) => ({ key: cat, label: cat })),
-            ].map(({ key, label }) => {
-              const active = filter === key;
-              return (
-                <TouchableOpacity
-                  key={key}
-                  onPress={() => setFilter(active ? 'all' : key)}
-                  activeOpacity={0.78}
-                  style={[s.filterChip, active && s.filterChipActive]}>
-                  <Text style={[s.filterChipText, active && s.filterChipTextActive]} allowFontScaling={true}>{label}</Text>
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
+          <View style={s.filterWrap}><FoodieFilterBar value={filter} onChange={setFilter} collections={collections} categories={categories} /></View>
         )}
 
         {patios.length === 0 ? (
@@ -160,20 +119,18 @@ export default function FavoritosScreen() {
               return (
                 <TouchableOpacity
                   key={patio.id}
-                  style={[s.card, !hasMenu && { opacity: 0.62 }]}
+                  style={s.card}
                   onPress={() => router.push(`/patio/${patio.id}`)}
                   activeOpacity={0.82}>
                   <View style={s.thumb}>
-                    <Image source={photoFor(patio.id)} style={s.thumbImg} resizeMode="cover" />
+                    <Ionicons name="restaurant-outline" size={16} color={theme.textSecondary} />
+                    {hasMenu && <View style={s.menuDot} />}
                   </View>
                   <View style={s.body}>
-                    <View style={s.statusRow}>
-                      <View style={[s.dot, { backgroundColor: hasMenu ? OPEN_GREEN : theme.textMute }]} />
-                      <Text style={[s.statusText, { color: hasMenu ? OPEN_GREEN : theme.textMute }]} allowFontScaling={true}>
-                        {hasMenu ? 'Hoy hay menú' : 'Sin menú hoy'}
-                      </Text>
+                    <View style={s.nameRow}>
+                      <Text style={s.name} numberOfLines={1} allowFontScaling={true}>{patio.name}</Text>
+                      {patio.isVerifiedBusiness && <Ionicons name="checkmark-circle" size={14} color={theme.accent} />}
                     </View>
-                    <Text style={s.name} numberOfLines={1} allowFontScaling={true}>{patio.name}</Text>
                     {today ? (
                       <Text style={s.today} numberOfLines={1} allowFontScaling={true}>{today}</Text>
                     ) : null}
@@ -181,18 +138,22 @@ export default function FavoritosScreen() {
                       <View style={s.metaArea}>
                         <Ionicons name="location-outline" size={11} color={theme.textSecondary} />
                         <Text style={s.metaAreaText} numberOfLines={1} allowFontScaling={true}>{patio.area}</Text>
+                        {!!patio.rating && patio.rating !== 'Nuevo' && <>
+                          <Text style={s.separator}>·</Text>
+                          <Ionicons name="star" size={10} color={theme.textSecondary} />
+                          <Text style={s.contextText}>{patio.rating}{patio.ratingCount != null ? ` (${patio.ratingCount})` : ''}</Text>
+                        </>}
                       </View>
-                      {hasMenu && publicPrice(patio.price) ? (
-                        <Text style={s.price} allowFontScaling={true}>{publicPrice(patio.price)}</Text>
-                      ) : null}
                     </View>
                   </View>
+                  <Ionicons name="chevron-forward" size={16} color={theme.textMute} />
                 </TouchableOpacity>
               );
             })}
           </View>
         )}
       </ScrollView>
+      <BottomTabBar variant="foodie" />
     </View>
   );
 }

@@ -1,5 +1,33 @@
 # HANDOFF
 
+## 2026-08-10 — Guardados directo y filtros Foodie canónicos
+
+- Foodie usa una sola barra canónica de filtros en Mapa y Guardados:
+  `components/foodie-filter-bar.tsx`. Ambas superficies comparten exactamente
+  accesos persistidos, edición, alta/retiro, reordenamiento, rueda circular de
+  categorías, rueda circular de listas, tiempos, sensibilidad y hápticos. La
+  única diferencia entre pantallas es su posición vertical y la proyección del
+  filtro sobre el conjunto correspondiente.
+- Se eliminó temporalmente la biblioteca intermedia de colecciones. El tab
+  Foodie abre `/favoritos` directamente; `/actividad` redirige por compatibilidad.
+  `Todos`, `Menú hoy`, `Abiertos` y las listas personales se comportan igual en
+  Mapa y Guardados porque ya no existen dos implementaciones.
+- Guardados dejó de depender de fotos de stock y de letras sustitutas. Cada fila
+  agrupa nombre + sello de identidad, platillo disponible y una línea compacta
+  `ubicación · estrella rating`. Un punto verde sobre el icono comunica menú
+  disponible; no se reutiliza como verificación. El precio global se retiró de
+  la fila: Patio mantiene precio por platillo como fuente canónica.
+- El panel de resultados de búsqueda ya no captura el gesto vertical desde toda
+  su superficie. Sólo el grabber puede cerrarlo; el `ScrollView` conserva el
+  desplazamiento. Con teclado abierto se une al borde superior del teclado y
+  pierde radios inferiores; sin teclado aprovecha el espacio inferior y la tab
+  bar se oculta mientras la búsqueda está activa. El conteo de resultados quedó
+  como feedback secundario y se retiró `MEJORES COINCIDENCIAS`.
+- QA del corte: `npm run typecheck`, ESLint de archivos tocados y
+  `git diff --check` verdes. Metro recompiló y recargó el dev client físico sin
+  error de runtime. La instalación limpia del simulador quedó detenida en su
+  splash/onboarding, por lo que no se registra una captura visual falsa como QA.
+
 ## 2026-08-09 — Lenguaje contextual de pins y cierre directo de ficha
 
 - El mapa dejó de usar puntos naranjas pulsantes, halos y marcas lapislázuli de

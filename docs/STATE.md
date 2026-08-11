@@ -1,6 +1,18 @@
 # STATE
 
-> Fuente de verdad operativa. Última actualización: 2026-08-02.
+> Fuente de verdad operativa. Última actualización: 2026-08-10.
+
+## Corte Foodie — 2026-08-10
+
+- Guardados es el destino directo del tab Foodie; la biblioteca intermedia queda
+  fuera del flujo mientras se valida la organización básica.
+- Mapa y Guardados montan `FoodieFilterBar` como única fuente de verdad para
+  accesos, edición, persistencia y ruedas de categorías/listas.
+- Las filas de Guardados priorizan identidad, platillo y confianza: nombre,
+  verificación, menú disponible, ubicación y rating. Precio global y distancia
+  quedan fuera de esta superficie.
+- La búsqueda reserva el gesto de cierre al grabber y deja el scroll de
+  resultados libre; su panel se adapta al teclado sin hueco o borde inferior.
 
 ## Bloqueo de lanzamiento — identidad e infraestructura
 

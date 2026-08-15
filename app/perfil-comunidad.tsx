@@ -45,50 +45,54 @@ export default function CommunityProfileScreen() {
       return;
     }
     setBusy(true);
-    const { data: auth } = await supabase.auth.getUser();
-    if (!auth.user) { setBusy(false); router.replace('/comunidad-acceso'); return; }
-    let avatarUrl = avatarUri;
-    if (avatarUri?.startsWith('file:')) {
-      const response = await fetch(avatarUri);
-      const bytes = await response.arrayBuffer();
-      const path = `${auth.user.id}/avatar.jpg`;
-      const upload = await supabase.storage.from('avatars').upload(path, bytes, { contentType: 'image/jpeg', upsert: true });
-      if (!upload.error) avatarUrl = supabase.storage.from('avatars').getPublicUrl(path).data.publicUrl;
-    }
-    const lastChanged = auth.user.user_metadata?.name_changed_at;
-    const changedRecently = lastChanged && Date.now() - new Date(lastChanged).getTime() < 30 * 24 * 60 * 60 * 1000;
-    const changingExisting = auth.user.user_metadata?.first_name && (
-      auth.user.user_metadata.first_name !== firstName.trim() || auth.user.user_metadata.last_name !== lastName.trim()
-    );
-    if (changingExisting && changedRecently) {
-      setBusy(false);
-      Alert.alert('Tu nombre se cambió recientemente', 'Podrás volver a cambiarlo 30 días después del último ajuste.');
-      return;
-    }
-    const profile = {
-      user_id: auth.user.id,
-      first_name: firstName.trim(),
-      last_name: lastName.trim(),
-      display_name: `${firstName.trim()} ${lastName.trim().charAt(0)}.`,
-      setup_completed: true,
-      avatar_url: avatarUrl,
-      visibility,
-      handle: handle.trim().toLowerCase() || null,
-      bio: bio.trim() || null,
-    };
-    const { error } = await supabase.from('user_profiles').upsert(profile);
-    if (!error && changingExisting) {
-      await supabase.from('profile_name_history').insert({
+    try {
+      const { data: auth } = await supabase.auth.getUser();
+      if (!auth.user) { router.replace('/comunidad-acceso'); return; }
+      let avatarUrl = avatarUri;
+      if (avatarUri?.startsWith('file:')) {
+        const response = await fetch(avatarUri);
+        const bytes = await response.arrayBuffer();
+        const path = `${auth.user.id}/avatar.jpg`;
+        const upload = await supabase.storage.from('avatars').upload(path, bytes, { contentType: 'image/jpeg', upsert: true });
+        if (!upload.error) avatarUrl = supabase.storage.from('avatars').getPublicUrl(path).data.publicUrl;
+      }
+      const lastChanged = auth.user.user_metadata?.name_changed_at;
+      const changedRecently = lastChanged && Date.now() - new Date(lastChanged).getTime() < 30 * 24 * 60 * 60 * 1000;
+      const changingExisting = auth.user.user_metadata?.first_name && (
+        auth.user.user_metadata.first_name !== firstName.trim() || auth.user.user_metadata.last_name !== lastName.trim()
+      );
+      if (changingExisting && changedRecently) {
+        Alert.alert('Tu nombre se cambió recientemente', 'Podrás volver a cambiarlo 30 días después del último ajuste.');
+        return;
+      }
+      const profile = {
         user_id: auth.user.id,
-        first_name: profile.first_name,
-        last_name: profile.last_name,
-      });
+        first_name: firstName.trim(),
+        last_name: lastName.trim(),
+        display_name: `${firstName.trim()} ${lastName.trim().charAt(0)}.`,
+        setup_completed: true,
+        avatar_url: avatarUrl,
+        visibility,
+        handle: handle.trim().toLowerCase() || null,
+        bio: bio.trim() || null,
+      };
+      const { error } = await supabase.from('user_profiles').upsert(profile);
+      if (!error && changingExisting) {
+        await supabase.from('profile_name_history').insert({
+          user_id: auth.user.id,
+          first_name: profile.first_name,
+          last_name: profile.last_name,
+        });
+      }
+      if (!error) await supabase.auth.updateUser({ data: { first_name: profile.first_name, last_name: profile.last_name, profile_complete: true, avatar_url: avatarUrl, name_changed_at: changingExisting ? new Date().toISOString() : lastChanged } });
+      if (error) { Alert.alert('No pudimos guardar tu perfil', 'Inténtalo otra vez.'); return; }
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      router.replace(returnTo?.startsWith('/') ? returnTo as any : '/explorar');
+    } catch {
+      Alert.alert('No pudimos guardar tu perfil', 'Revisa tu conexión e inténtalo otra vez.');
+    } finally {
+      setBusy(false);
     }
-    if (!error) await supabase.auth.updateUser({ data: { first_name: profile.first_name, last_name: profile.last_name, profile_complete: true, avatar_url: avatarUrl, name_changed_at: changingExisting ? new Date().toISOString() : lastChanged } });
-    setBusy(false);
-    if (error) { Alert.alert('No pudimos guardar tu perfil', 'Inténtalo otra vez.'); return; }
-    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    router.replace(returnTo?.startsWith('/') ? returnTo as any : '/explorar');
   };
 
   return (

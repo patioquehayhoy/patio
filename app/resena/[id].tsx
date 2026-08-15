@@ -3,7 +3,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { Animated, Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Animated, Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { fetchFonditaById, getPatioById, type Patio } from '@/lib/patios';
@@ -96,7 +96,7 @@ export default function ResenaScreen() {
   };
 
   const pickPhoto = async () => {
-    const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, quality: 0.7 });
+    const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.7 });
     if (!res.canceled && res.assets[0]) setPhotoUri(res.assets[0].uri);
   };
 
@@ -113,9 +113,14 @@ export default function ResenaScreen() {
       return;
     }
     setSaving(true);
-    await savePatioRating(cleanId, { stars, reasons: selected, note, photoUri });
-    setSaving(false);
-    router.back();
+    try {
+      await savePatioRating(cleanId, { stars, reasons: selected, note, photoUri });
+      router.back();
+    } catch {
+      Alert.alert('No pudimos publicar tu reseña', 'Revisa tu conexión e inténtalo otra vez.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (

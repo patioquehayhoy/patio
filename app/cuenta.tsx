@@ -9,7 +9,7 @@ import { SettingsGroup, SettingsRow, type SettingsColors } from '@/components/se
 import { ToggleSwitch } from '@/components/toggle-switch';
 import { useFoodieAccountController } from '@/lib/controllers/useFoodieAccountController';
 import { useTabBarScroll } from '@/lib/tab-bar-visibility';
-import { Fonts, useTheme, type Theme } from '@/lib/theme';
+import { useTheme, type Theme } from '@/lib/theme';
 import { supabase } from '@/lib/supabase';
 
 function makeStyles(t: Theme) {
@@ -17,13 +17,7 @@ function makeStyles(t: Theme) {
     root: { flex: 1, backgroundColor: t.bg },
     content: { paddingBottom: 120 },
 
-    // Header editorial
-    header: { paddingHorizontal: 22, paddingTop: 12, paddingBottom: 18 },
-    closeBtn: { width: 44, height: 44, borderRadius: 22, marginLeft: -10, marginBottom: 4, alignItems: 'center', justifyContent: 'center' },
-    eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', color: t.accent, marginBottom: 6 },
-    title: { fontSize: 36, fontWeight: '900', letterSpacing: -1.2, lineHeight: 40, color: t.text, fontFamily: Fonts.brand },
-
-    body: { paddingHorizontal: 18 },
+    body: { paddingHorizontal: 18, paddingTop: 20 },
 
     // Footer marca
     footer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 20 },
@@ -59,11 +53,8 @@ export default function CuentaScreen() {
       <Stack.Screen options={{ headerShown: false, presentation: 'card' }} />
       <ScrollView contentContainerStyle={[s.content, { paddingBottom: insets.bottom + 130 }]} showsVerticalScrollIndicator={false} onScroll={onScroll} scrollEventThrottle={16}>
         {/* Pestaña raíz: sin flecha 'atrás' — se navega con la tab bar (modelo
-            Instagram). El back solo existe en pantallas hijas. */}
-        <View style={s.header}>
-          <Text style={s.title} allowFontScaling={true}>Perfil</Text>
-        </View>
-
+            Instagram). El back solo existe en pantallas hijas. La identidad
+            de la pestaña ya la da la tab bar; no se repite aquí arriba. */}
         <View style={s.body}>
           <SettingsGroup c={sc} label="Perfil">
             <SettingsRow c={sc} icon="person-outline" title={hasSession ? 'Editar perfil' : 'Iniciar sesión'} sub={hasSession ? 'Nombre, foto y descripción' : 'Sincroniza listas y reseñas'} onPress={() => router.push(hasSession ? '/perfil-comunidad' : '/comunidad-acceso')} />

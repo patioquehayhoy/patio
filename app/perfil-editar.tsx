@@ -42,12 +42,6 @@ function makeStyles(theme: Theme) {
     container:          { flex: 1, backgroundColor: t.bg },
     scroll:             { flex: 1 },
     scrollContent:      { paddingHorizontal: 20, paddingBottom: 120 },
-    // Hero
-    heroBlock:          { paddingTop: 8, paddingBottom: 6 },
-    titleRow:           { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-    eyebrowOrange:      { fontSize: 11, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', color: t.accent, marginBottom: 6 },
-    screenTitle:        { fontSize: 34, fontWeight: '900', letterSpacing: -1.2, lineHeight: 36, color: t.text, marginBottom: 6, fontFamily: Fonts.brand },
-    screenSub:          { fontSize: 14, fontWeight: '400', lineHeight: 19, color: t.textSecondary, marginBottom: 4 },
     // Barra Guardar fija abajo (glass)
     saveBar:            { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 20, paddingTop: 12, overflow: 'hidden' },
     saveBarBorder:      { position: 'absolute', top: 0, left: 0, right: 0, height: StyleSheet.hairlineWidth, backgroundColor: t.border },
@@ -184,13 +178,6 @@ export default function PerfilScreen() {
         <GlassIconButton icon="chevron-back" accessibilityLabel="Volver" onPress={handleBack} size={38} iconSize={19} />
       </View>
       <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-
-        {/* ── HEADER ── */}
-        <View style={s.heroBlock}>
-          <Text style={s.eyebrowOrange} allowFontScaling={true}>Mi Patio</Text>
-          <Text style={s.screenTitle} allowFontScaling={true}>{noWidow('Editar mi lugar')}</Text>
-          <Text style={s.screenSub} allowFontScaling={true}>{noWidow('Así te encuentran quienes andan cerca.')}</Text>
-        </View>
 
         {/* ── IDENTIDAD ── */}
         <View style={s.block}>

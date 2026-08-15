@@ -7,18 +7,17 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { SettingsGroup, SettingsRow, type SettingsColors } from '@/components/settings-list';
 import { ToggleSwitch } from '@/components/toggle-switch';
+import { USER_ROLE_KEY } from '@/lib/entry-flow';
 import { fonderoPalette, type FonderoColors } from '@/lib/fondero-palette';
 import {
   getFonditaDireccion,
-  getFonditaName,
   getMenuData,
 } from '@/lib/menu-store';
 import { supabase } from '@/lib/supabase';
-import { Fonts, useTheme } from '@/lib/theme';
+import { useTheme } from '@/lib/theme';
 import { useTabBarScroll } from '@/lib/tab-bar-visibility';
 import { noWidow } from '@/lib/typography';
 
-const ROLE_KEY = '@patio_user_role';
 function settingsColorsFrom(c: FonderoColors, accentBg: string): SettingsColors {
   return {
     surface: c.surface,
@@ -37,24 +36,22 @@ export default function PerfilScreen() {
   const { theme, toggleTheme } = useTheme();
   const c = fonderoPalette(theme.isDark);
   const { onScroll } = useTabBarScroll();
-  const [name, setName] = useState('');
   const [address, setAddress] = useState('');
   const [hasMenu, setHasMenu] = useState(false);
 
   useFocusEffect(useCallback(() => {
-    setName(getFonditaName());
     setAddress(getFonditaDireccion());
     setHasMenu(!!getMenuData()?.secciones.some(section => section.platillos.some(dish => dish.nombre.trim())));
   }, []));
 
   const signOut = async () => {
     await supabase.auth.signOut().catch(() => {});
-    await AsyncStorage.removeItem(ROLE_KEY).catch(() => {});
+    await AsyncStorage.removeItem(USER_ROLE_KEY).catch(() => {});
     router.replace('/');
   };
 
   const exploreAsClient = async () => {
-    await AsyncStorage.setItem(ROLE_KEY, 'foodie').catch(() => {});
+    await AsyncStorage.setItem(USER_ROLE_KEY, 'foodie').catch(() => {});
     router.replace('/explorar');
   };
 
@@ -64,9 +61,6 @@ export default function PerfilScreen() {
     <View style={[s.root, { backgroundColor: c.bg, paddingTop: insets.top }]}>
       <Stack.Screen options={{ headerShown: false }} />
       <ScrollView onScroll={onScroll} scrollEventThrottle={16} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 24, paddingBottom: insets.bottom + 110 }} showsVerticalScrollIndicator={false}>
-        <Text style={[s.eyebrow, { color: c.accent }]}>MI PATIO</Text>
-        <Text style={[s.title, { color: c.text }]} numberOfLines={2}>{name || 'Tu negocio'}</Text>
-
         {/* Estado en vivo (¿publiqué hoy o no?), separado de la dirección: son
             dos tipos de información distintos y no deben vivir en una sola
             línea. El punto de color es el indicador de estado; la dirección
@@ -131,9 +125,7 @@ export default function PerfilScreen() {
 
 const s = StyleSheet.create({
   root: { flex: 1 },
-  eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.5, marginBottom: 8 },
-  title: { fontSize: 36, lineHeight: 40, fontWeight: '900', letterSpacing: -1.2, fontFamily: Fonts.brand },
-  statusRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 10 },
+  statusRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 },
   statusDot: { width: 7, height: 7, borderRadius: 4 },
   statusText: { fontSize: 13, fontWeight: '600' },
 });

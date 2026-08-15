@@ -9,6 +9,7 @@ import { dateLabel, defaultHistoryTitle, useMenuHistoryController } from '@/lib/
 import { fonderoPalette } from '@/lib/fondero-palette';
 import { useTabBarScroll } from '@/lib/tab-bar-visibility';
 import { Fonts, useTheme } from '@/lib/theme';
+import { noWidow } from '@/lib/typography';
 
 export default function HistorialScreen() {
   const insets = useSafeAreaInsets();
@@ -20,14 +21,71 @@ export default function HistorialScreen() {
   // del composer: un solo gesto para descubrir acciones en toda la app.
   const [actionsFor, setActionsFor] = useState<string | null>(null);
 
+  // Agrupado por periodo cuando hay suficiente historial para que ayude a
+  // ubicarse — con poco historial (todo cae en un solo periodo) se queda
+  // como una sola tarjeta plana, sin etiquetas de sección sin propósito.
+  const groups = (() => {
+    if (menus.length === 0) return [];
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const buckets = [
+      { key: 'week', label: 'Esta semana', menus: [] as typeof menus },
+      { key: 'month', label: 'Este mes', menus: [] as typeof menus },
+      { key: 'older', label: 'Anteriores', menus: [] as typeof menus },
+    ];
+    for (const menu of menus) {
+      const days = Math.floor((startOfToday.getTime() - new Date(`${menu.fecha}T12:00:00`).getTime()) / 86400000);
+      const bucket = days < 7 ? buckets[0] : days < 31 ? buckets[1] : buckets[2];
+      bucket.menus.push(menu);
+    }
+    return buckets.filter((bucket) => bucket.menus.length > 0);
+  })();
+  const showGroupLabels = groups.length > 1;
+
+  const renderMenuRow = (menu: (typeof menus)[number], showTopBorder: boolean) => {
+    const key = menu.fecha;
+    const actionsOpen = actionsFor === key;
+    return (
+      <View key={key} style={showTopBorder && { borderTopColor: c.border, borderTopWidth: StyleSheet.hairlineWidth }}>
+        <View style={s.row}>
+          <TouchableOpacity style={{ flex: 1 }} onPress={() => reuse(menu.secciones)} activeOpacity={0.74}>
+            <Text style={[s.date, { color: c.accent }]}>
+              {dateLabel(menu.fecha)}
+            </Text>
+            <Text style={[s.summary, { color: c.text }]} numberOfLines={2}>{menu.nombre || defaultHistoryTitle(menu)}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            accessibilityLabel="Acciones del menú"
+            style={[s.iconBtn, { backgroundColor: c.iconBg }]}
+            onPress={() => setActionsFor(actionsOpen ? null : key)}
+            activeOpacity={0.72}>
+            <Ionicons name="ellipsis-horizontal" size={17} color={c.textSecondary} />
+          </TouchableOpacity>
+        </View>
+        {actionsOpen && (
+          <View style={[s.actionsRow, { backgroundColor: c.iconBg }]}>
+            <TouchableOpacity onPress={() => { setActionsFor(null); reuse(menu.secciones); }} style={s.action}>
+              <Ionicons name="create-outline" size={15} color={c.text} />
+              <Text style={[s.actionText, { color: c.text }]}>Editar y usar</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => { setActionsFor(null); openRename(menu); }} style={s.action}>
+              <Ionicons name="text-outline" size={15} color={c.text} />
+              <Text style={[s.actionText, { color: c.text }]}>Renombrar</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => { setActionsFor(null); deleteMenu(menu); }} style={s.action}>
+              <Ionicons name="trash-outline" size={15} color={c.danger} />
+              <Text style={[s.actionText, { color: c.danger }]}>Eliminar</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
+    );
+  };
+
   return (
     <View style={[s.root, { backgroundColor: c.bg, paddingTop: insets.top }]}>
       <Stack.Screen options={{ headerShown: false }} />
       <ScrollView onScroll={onScroll} scrollEventThrottle={16} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 24, paddingBottom: insets.bottom + 120 }} showsVerticalScrollIndicator={false}>
-        <Text style={[s.eyebrow, { color: c.accent }]}>TUS MENÚS</Text>
-        <Text style={[s.title, { color: c.text }]}>Menús</Text>
-        <Text style={[s.subtitle, { color: c.textSecondary }]}>Publicados y guardados, listos para volver a usar.</Text>
-
         <TouchableOpacity
           accessibilityLabel="Crear un menú nuevo"
           style={[s.newButton, { borderColor: c.textMute }]}
@@ -46,49 +104,18 @@ export default function HistorialScreen() {
               <Text style={s.emptyButtonText}>Crear menú</Text>
             </TouchableOpacity>
           </View>
+        ) : showGroupLabels ? (
+          groups.map((group, groupIndex) => (
+            <View key={group.key}>
+              <Text style={[s.groupLabel, { color: c.textSecondary, marginTop: groupIndex === 0 ? 28 : 24 }]}>{noWidow(group.label)}</Text>
+              <View style={[s.list, { borderColor: c.border, marginTop: 8 }]}>
+                {group.menus.map((menu, index) => renderMenuRow(menu, index > 0))}
+              </View>
+            </View>
+          ))
         ) : (
           <View style={[s.list, { borderColor: c.border }]}>
-            {menus.map((menu, index) => {
-              const key = `${menu.fecha}-${index}`;
-              const actionsOpen = actionsFor === key;
-              return (
-                <View
-                  key={key}
-                  style={index > 0 && { borderTopColor: c.border, borderTopWidth: StyleSheet.hairlineWidth }}>
-                  <View style={s.row}>
-                    <TouchableOpacity style={{ flex: 1 }} onPress={() => reuse(menu.secciones)} activeOpacity={0.74}>
-                      <Text style={[s.date, { color: c.accent }]}>
-                        {dateLabel(menu.fecha)}
-                      </Text>
-                      <Text style={[s.summary, { color: c.text }]} numberOfLines={2}>{menu.nombre || defaultHistoryTitle(menu)}</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      accessibilityLabel="Acciones del menú"
-                      style={[s.iconBtn, { backgroundColor: c.iconBg }]}
-                      onPress={() => setActionsFor(actionsOpen ? null : key)}
-                      activeOpacity={0.72}>
-                      <Ionicons name="ellipsis-horizontal" size={17} color={c.textSecondary} />
-                    </TouchableOpacity>
-                  </View>
-                  {actionsOpen && (
-                    <View style={[s.actionsRow, { backgroundColor: c.iconBg }]}>
-                      <TouchableOpacity onPress={() => { setActionsFor(null); reuse(menu.secciones); }} style={s.action}>
-                        <Ionicons name="create-outline" size={15} color={c.text} />
-                        <Text style={[s.actionText, { color: c.text }]}>Editar y usar</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity onPress={() => { setActionsFor(null); openRename(menu); }} style={s.action}>
-                        <Ionicons name="text-outline" size={15} color={c.text} />
-                        <Text style={[s.actionText, { color: c.text }]}>Renombrar</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity onPress={() => { setActionsFor(null); deleteMenu(menu); }} style={s.action}>
-                        <Ionicons name="trash-outline" size={15} color={c.danger} />
-                        <Text style={[s.actionText, { color: c.danger }]}>Eliminar</Text>
-                      </TouchableOpacity>
-                    </View>
-                  )}
-                </View>
-              );
-            })}
+            {menus.map((menu, index) => renderMenuRow(menu, index > 0))}
           </View>
         )}
       </ScrollView>
@@ -126,8 +153,6 @@ export default function HistorialScreen() {
 const s = StyleSheet.create({
   root: { flex: 1 },
   eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.5, marginBottom: 8 },
-  title: { fontSize: 36, lineHeight: 40, fontWeight: '900', letterSpacing: -1.2, fontFamily: Fonts.brand },
-  subtitle: { marginTop: 8, fontSize: 14, lineHeight: 20 },
   newButton: { alignSelf: 'flex-start', marginTop: 16, minHeight: 44, paddingHorizontal: 14, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, borderStyle: 'dashed', flexDirection: 'row', alignItems: 'center', gap: 6 },
   newButtonText: { fontSize: 14, fontWeight: '700' },
   empty: { marginTop: 34, padding: 24, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center' },
@@ -136,6 +161,7 @@ const s = StyleSheet.create({
   emptyButton: { minHeight: 48, marginTop: 20, paddingHorizontal: 22, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
   emptyButtonText: { color: '#fff', fontSize: 15, fontWeight: '700' },
   list: { marginTop: 28, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
+  groupLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1.4, textTransform: 'uppercase' },
   row: { minHeight: 84, paddingHorizontal: 17, paddingVertical: 15, flexDirection: 'row', alignItems: 'center', gap: 14 },
   date: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.8 },
   summary: { marginTop: 5, fontSize: 15, lineHeight: 20, fontWeight: '500' },

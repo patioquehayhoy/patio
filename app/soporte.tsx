@@ -42,9 +42,6 @@ export default function SoporteScreen() {
 
       {!topic ? (
         <ScrollView contentContainerStyle={[s.content, { paddingBottom: insets.bottom + 32 }]}>
-          <Text style={[s.eyebrow, { color: theme.accent }]}>SOPORTE GUIADO</Text>
-          <Text style={[s.title, { color: theme.text }]}>{noWidow('¿Con qué te ayudamos?')}</Text>
-          <Text style={[s.subtitle, { color: theme.textSecondary }]}>{noWidow('Elige el tema para llevar tu mensaje al lugar correcto.')}</Text>
           <View style={[s.list, { backgroundColor: theme.surface, borderColor: theme.border }]}>
             {TOPICS.map((item, index) => (
               <TouchableOpacity key={item.id} style={[s.row, index > 0 && { borderTopColor: theme.border, borderTopWidth: StyleSheet.hairlineWidth }]} onPress={() => setTopic(item)}>
@@ -62,8 +59,6 @@ export default function SoporteScreen() {
         </ScrollView>
       ) : (
         <View style={[s.content, { flex: 1, paddingBottom: insets.bottom + 24 }]}>
-          <Text style={[s.eyebrow, { color: theme.accent }]}>{topic.title.toUpperCase()}</Text>
-          <Text style={[s.title, { color: theme.text }]}>{noWidow('Cuéntanos qué pasó')}</Text>
           <Text style={[s.subtitle, { color: theme.textSecondary }]}>{noWidow('Incluye lo necesario para reproducirlo. No escribas contraseñas ni códigos.')}</Text>
           <View style={[s.field, { backgroundColor: theme.surface, borderColor: theme.border }]}>
             <TextInput

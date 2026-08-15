@@ -196,7 +196,7 @@ export function usePatioDetailController(id: PatioParam) {
     });
     if (url) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-      Linking.openURL(url);
+      Linking.openURL(url).catch(() => {});
     }
   }, [patio]);
 
@@ -217,7 +217,7 @@ export function usePatioDetailController(id: PatioParam) {
       title: `${patio.name} en Patio`,
       message: `${patio.name}\n${patio.category} · ${patio.area}\n${horarioTexto}\n\nVer menú en Patio:\n${patioUrl}\n\nCómo llegar:\n${mapsUrl}`,
       url: patioUrl,
-    });
+    }).catch(() => {});
   }, [patio]);
 
   const handleStarPress = useCallback((stars: number) => {

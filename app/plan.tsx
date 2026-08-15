@@ -26,9 +26,7 @@ export default function Plan() {
         <TouchableOpacity style={s.back} onPress={() => router.back()}><Ionicons name="chevron-back" size={22} color={theme.text} /></TouchableOpacity>
       </View>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[s.content, { paddingBottom: insets.bottom + 44 }]}>
-        <Text style={[s.eyebrow, { color: theme.accent }]}>{business ? 'PLAN PARA TU NEGOCIO' : 'TU PLAN'}</Text>
-        <Text style={[s.title, { color: theme.text }]}>{noWidow('Elige tu Patio')}</Text>
-        <Text style={[s.subtitle, { color: theme.textSecondary }]}>
+        <Text style={[s.subtitle, { color: theme.textSecondary, marginTop: 8 }]}>
           {noWidow(business ? 'Publica gratis. Sube a Pro cuando quieras medir y crecer.' : 'Guarda gratis. Sube a Pro para decidir con más contexto.')}
         </Text>
 

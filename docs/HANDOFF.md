@@ -1,5 +1,123 @@
 # HANDOFF
 
+## 2026-08-14 (tarde) — Barra de filtros rediseñada + limpieza panorámica de títulos
+
+- **`components/foodie-filter-bar.tsx` reescrita**, compartida por mapa y
+  Guardados:
+  - La rueda de mantener-presionado-y-arrastrar para categorías se retiró
+    por completo. Las categorías reales del inventario (~8) ahora son chips
+    siempre visibles junto a "Todos", igual que Apple/Google Maps — nunca
+    escondidas detrás de un gesto. La rueda se conservó **solo para
+    Listas**, donde sí es el patrón correcto (nombres que ya conoces).
+  - Fade de las pills contra el dock "Listas": tres intentos hasta dar con
+    la causa real. Los primeros dos (medir cada pill con un
+    `Animated.Value` nuevo por render, y luego un velo estático) fallaban o
+    se sentían mal. La causa raíz encontrada en los logs de Metro: se usaba
+    `Animated.event(..., {useNativeDriver:true})` sobre un `ScrollView`
+    normal en vez de `Animated.ScrollView` — React Native requiere el
+    componente animado para eso; si no, el evento nativo llega crudo como
+    objeto en vez de función y truena en cada frame de scroll
+    (`TypeError: _this.props.onScroll is not a function (it is Object)`,
+    repetido cientos de veces). Un segundo bug encima: el estado "ya medí
+    esta pill" vivía en un `ref`, y mutar un ref no dispara re-render en
+    React, así que algunas pills (ej. "Menú hoy") se quedaban congeladas en
+    opacidad 100% para siempre. Ambos corregidos; el fade ahora es un solo
+    mecanismo estable por pill, sin nodos Animated recreados en cada render.
+  - Nombres de lista largos ya no pueden romper el layout: `numberOfLines`
+    + ancho máximo con elipsis en todas las pills.
+  - **Creación de listas resuelta**: no existía forma de crear una lista
+    desde el mapa o Guardados (solo desde la ficha de un lugar). Un toque
+    corto en "Listas" (antes no hacía nada) abre el panel "Añadir acceso",
+    que ahora incluye "Nueva lista" con el mismo patrón ya usado en
+    `save-to-list-sheet.tsx`.
+  - Decisión de producto explícita: no se adoptó un árbol de carpetas
+    ("como en la compu") — ni Apple Maps ni Google Maps organizan lugares
+    guardados así, porque un lugar suele pertenecer a más de una categoría
+    mental a la vez. El modelo de colecciones planas de `lib/collections.ts`
+    ya es el patrón correcto.
+- **`app/favoritos.tsx`**: nuevo control de "modo de vista" (Por lista /
+  Por categoría) cuando ambos aplican — mismo dato, agrupado distinto,
+  igual que las vistas de Notion o los álbumes/años de Photos. Se recuerda
+  la elección entre sesiones (`AsyncStorage`).
+- **Limpieza panorámica de títulos — sin excepciones**, tras varias rondas
+  de corrección: se quitaron todos los títulos/eyebrows/subtítulos fijos
+  que eran chrome redundante (duplicaban la tab bar o eran texto de
+  "cómo usar esta pantalla"), en `favoritos.tsx` ("Tus guardados"),
+  `historial.tsx` ("Menús"), `perfil.tsx` (nombre del negocio como
+  título), `resenas.tsx` ("Actividad"), `cuenta.tsx` ("Perfil"),
+  `menu.tsx` ("¿Cómo quieres empezar?"), `menu-composer.tsx` ("Arma tu
+  menú"/"¿Así queda?" — ya había nav title chico que basta),
+  `perfil-editar.tsx` ("Mi Patio"/"Editar mi lugar"), `soporte.tsx`,
+  `plan.tsx`, `avisos.tsx`, `privacidad.tsx`. Se descartó la ruta de
+  "cards de onboarding contextuales" (`lib/hints.ts`) por decisión
+  explícita: en normal uso estos textos no vuelven a aparecer nunca: el
+  botón `DEV · Onboarding` en `entrada.tsx` (ya existía) sigue siendo la
+  única forma de repasar la introducción.
+  **No tocado, a propósito** (categoría distinta, no chrome redundante):
+  `entrada.tsx`/`fondero-acceso.tsx`/`onboarding.tsx` (wordmark de marca +
+  tagline, protegido por ley en CLAUDE.md); `comunidad-acceso.tsx` (el
+  texto cambia según si ya se mandó el correo — es feedback de la acción);
+  páginas públicas por link compartido (`coleccion-publica/[id].tsx`,
+  `foodie/[id].tsx`) donde no hay tab bar y el título es la única
+  identificación de qué se está viendo.
+- QA del corte: `npx tsc --noEmit` y `npx expo lint` verdes en cada paso.
+- **Pendiente real, no resuelto en esta sesión:** los ~15 títulos grandes
+  restantes que sí caen en la categoría "identidad real" quedaron sin
+  auditar uno por uno (`coleccion/[id].tsx`, `guardar/[id].tsx`,
+  `perfil-comunidad.tsx`, etc.) — no fueron señalados como problema y se
+  dejaron fuera de esta pasada por tiempo, no por decisión de diseño.
+
+## 2026-08-14 — Auditoría integral + correcciones puntuales
+
+- Dos auditorías completas en paralelo a petición de Alejandro: QA estático
+  (`qa-patio`) y consistencia visual contra `CLAUDE.md` (`design-system`).
+  Ambas cubrieron `app/`, `components/`, `lib/` y `supabase/functions/`
+  completos, no un diff puntual.
+- **Ley huérfana corregida:** la regla "NO TOCAR el bloque de precio en
+  `menu.tsx`" protegía un archivo que ya no contiene ese bloque —
+  `app/menu.tsx` es hoy el selector "¿Cómo quieres empezar?". El precio del
+  día real vive en `components/menu-composer.tsx`
+  (`dayPriceField`/`dayPriceCurrency`/`dayPriceInput`, `fontSize 17/700`, no
+  `22/900` como decía la ley vieja). `CLAUDE.md` actualizado para proteger la
+  ubicación y estructura reales.
+- **Bugs de guardado sin manejo de error corregidos:** `app/perfil-comunidad.tsx`
+  (`save()`) y `app/resena/[id].tsx` (`submit()`) no tenían try/catch — si
+  fallaba Supabase, el botón se quedaba en "Guardando…"/"Publicando…" para
+  siempre sin avisar nada. Ambos ahora muestran alerta y liberan el botón en
+  cualquier escenario de fallo.
+- `usePatioDetailController.ts`: `Linking.openURL` (Cómo llegar) y
+  `Share.share` (compartir ficha) ahora tienen `.catch()` — antes podían
+  generar promesas sin manejar si no había Maps instalado o el share nativo
+  fallaba.
+- `app/resena/[id].tsx`: `pickPhoto` migrado de
+  `ImagePicker.MediaTypeOptions.Images` (deprecado) a `['images']`, igual que
+  ya usaba `perfil-comunidad.tsx` — mismo patrón en los dos únicos lugares que
+  llaman `launchImageLibraryAsync`.
+- Key `'@patio_user_role'` desduplicada: `app/perfil.tsx` y
+  `useFonderoProfileController.ts` tenían el string hardcodeado en vez de
+  importar `USER_ROLE_KEY` de `lib/entry-flow.ts` (que ya era la fuente real
+  usada en `useFoodieAccountController.ts`). Ahora los tres importan la misma
+  constante.
+- **Borrado `lib/notifications.ts`** (130 líneas, cero referencias en el
+  repo) — quedó reemplazado por `lib/community-notifications.ts` sin
+  limpiarse en su momento.
+- QA del corte: `npx tsc --noEmit` y `npx expo lint` verdes.
+- **No tocado, requiere decisión de Alejandro (no son bugs, son deriva
+  sistémica documentada vs. código real):** pesos de `fontWeight` fuera de la
+  tríada 900/700/300 en cientos de sitios (`'400'`, `'600'`, `'800'`, `'500'`
+  son en la práctica el sistema real, no excepciones puntuales); intensidades
+  de `BlurView` sin relación consistente con la tabla de `DESIGN_SYSTEM.md`;
+  paleta hardcodeada a mano en `bottom-tab-bar.tsx`, `preview.tsx`,
+  `entrada.tsx`, `fondero-acceso.tsx`, `onboarding.tsx` en vez de leer
+  `Colors`/`useTheme`; `Radius.card` real (18) vs. documentado (20);
+  `noWidow()` sin aplicar en `privacidad.tsx` completo y algunos labels
+  cortos; `app/soporte.tsx` reimplementa su propia fila en vez de reusar
+  `SettingsRow`/`SettingsGroup`. Ver `docs/TASKS.md` para el detalle
+  archivo:línea de cada uno — quedaron registrados ahí, no se corrigieron en
+  masa porque son cambios visuales de alto volumen que ameritan que Alejandro
+  decida si se actualiza la documentación o el código antes de tocar
+  decenas de archivos.
+
 ## 2026-08-10 — Guardados directo y filtros Foodie canónicos
 
 - Foodie usa una sola barra canónica de filtros en Mapa y Guardados:

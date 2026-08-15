@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert } from 'react-native';
 
 import { FONDITA_ID_KEY } from '@/lib/db';
+import { USER_ROLE_KEY } from '@/lib/entry-flow';
 import { nombreDisponible } from '@/lib/fondita-name';
 import {
   deserialize,
@@ -354,7 +355,7 @@ export function useFonderoProfileController() {
 
   const handleSignOut = useCallback(async () => {
     await supabase.auth.signOut().catch(() => {});
-    await AsyncStorage.removeItem('@patio_user_role').catch(() => {});
+    await AsyncStorage.removeItem(USER_ROLE_KEY).catch(() => {});
     router.replace('/');
   }, []);
 

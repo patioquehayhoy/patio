@@ -1,11 +1,83 @@
 # TASKS — Cola de trabajo para agentes
 
-> Última actualización: 2026-08-02.
+> Última actualización: 2026-08-14 (tarde).
+
+## CICLO 2026-08-14 (tarde) — filtros/listas rediseñados + limpieza de títulos
+
+- [x] Rueda de categorías retirada; chips visibles siempre (Todos + ~8
+  categorías). Rueda conservada solo para Listas.
+- [x] Fade de pills corregido de raíz: `ScrollView` → `Animated.ScrollView`
+  (el bug real, causaba `TypeError onScroll is not a function` en cada
+  scroll) + bug de `ref` que congelaba algunas pills en opacidad 100%.
+- [x] Nombres de lista largos truncados con elipsis, ya no rompen el layout.
+- [x] "Nueva lista" agregada al panel "Añadir acceso" (toque corto en
+  "Listas" lo abre); antes solo se podía crear desde la ficha de un lugar.
+- [x] Modo de vista Por lista / Por categoría en Guardados (Notion/Photos
+  style), persistido.
+- [x] Limpieza panorámica: quitados todos los títulos/eyebrows/subtítulos
+  fijos redundantes en favoritos, historial, perfil, resenas, cuenta,
+  menu, menu-composer, perfil-editar, soporte, plan, avisos, privacidad.
+- [ ] **Pendiente real:** ~15 pantallas más con el mismo patrón de título
+  grande (`Fonts.brand`, fontSize 34-38) sin auditar todavía —
+  `coleccion/[id].tsx`, `coleccion-publica/[id].tsx`, `guardar/[id].tsx`,
+  `foodie/[id].tsx`, `perfil-comunidad.tsx` entre otras. Revisar caso por
+  caso: algunas son contenido dinámico real (nombre de negocio en una
+  ficha pública) y no chrome redundante — no asumir que todas deben
+  quitarse igual que las de este ciclo.
+- [ ] Confirmar en dispositivo real que el fade y las categorías visibles
+  funcionan sin crash — el bug de `ScrollView`/`Animated.ScrollView` se
+  corrigió en código pero no se validó en el iPhone todavía.
+
 > Estado: `[ ]` pendiente | `[x]` hecho | `[~]` en progreso.
 
 > Las entradas Patio Smart v1–v6 registran iteraciones históricas y no son una
 > especificación vigente. El flujo canónico es v7 y vive en
 > `docs/PATIO_SYSTEM_MAP.md`.
+
+## CICLO 2026-08-14 — auditoría integral (QA + consistencia visual)
+
+- [x] Ley huérfana de precio corregida en `CLAUDE.md` — apuntaba a
+  `app/menu.tsx`, que ya no tiene ese bloque; ahora protege
+  `components/menu-composer.tsx` con la estructura real.
+- [x] `app/perfil-comunidad.tsx` y `app/resena/[id].tsx` — guardados
+  envueltos en try/catch; ya no se quedan bloqueados en "Guardando…" si falla
+  Supabase.
+- [x] `usePatioDetailController.ts` — `.catch()` agregado a `Linking.openURL`
+  (Cómo llegar) y `Share.share`.
+- [x] `app/resena/[id].tsx` — `ImagePicker.MediaTypeOptions.Images` (deprecado)
+  migrado a `['images']`.
+- [x] Key `'@patio_user_role'` desduplicada — `app/perfil.tsx` y
+  `useFonderoProfileController.ts` ahora importan `USER_ROLE_KEY` de
+  `lib/entry-flow.ts` en vez de repetir el string.
+- [x] Borrado `lib/notifications.ts` (huérfano, cero referencias).
+- [x] `npx tsc --noEmit` y `npx expo lint` verdes.
+- [ ] **Decisión pendiente de Alejandro — deriva tipográfica sistémica:** los
+  pesos reales en producción no coinciden con la tríada documentada
+  (900/700/300). Conteo real: `'400'` 78×, `'700'` 93×, `'900'` 79×, `'600'`
+  36×, `'800'` 20×, `'500'` 20×. Archivos con mayor concentración:
+  `app/explorar.tsx`, `app/patio/[id].tsx`, `app/perfil-editar.tsx`,
+  `components/menu-composer.tsx`. Decidir: ¿se actualiza la regla a lo real,
+  o se corrige el código a la tríada? No tocar sin decisión — es volumen alto.
+- [ ] **Decisión pendiente — deriva de `BlurView`:** intensidades reales van
+  de 16 a 92 sin relación con la tabla de `DESIGN_SYSTEM.md` (ej.
+  `business-schedule-editor.tsx` usa 92 fijo sin variar por tema;
+  `foodie-filter-bar.tsx` usa 30 fijo). Igual decisión: ¿tabla o código?
+- [ ] **Paleta hardcodeada fuera de los tokens del theme** — corregir cuando
+  se aborde: `components/bottom-tab-bar.tsx` (objeto `DARK`/`LIGHT` propio),
+  `app/preview.tsx` (`const LIGHT` duplicando `Colors`), `app/entrada.tsx`,
+  `app/fondero-acceso.tsx`, `app/onboarding.tsx` (hex fijo pese a tener
+  `useTheme`/`theme` en scope, algunos ya desalineados del token real:
+  `#0B0B0C` vs. `Colors.bgDark #0A0B0D`).
+- [ ] `Radius.card` real en `lib/theme.tsx` es `18`, CLAUDE.md documenta `20`
+  para "cards de contenido" — homologar cuando se toque el tema de radios.
+- [ ] `noWidow()` sin aplicar en `app/privacidad.tsx` (título, fila, nota
+  legal completos) y en labels cortos de botón (`historial.tsx`,
+  `menu-publicado.tsx`, `favoritos.tsx`).
+- [ ] `app/soporte.tsx` reimplementa su propia fila de lista en vez de reusar
+  `SettingsRow`/`SettingsGroup` (`components/settings-list.tsx`) — geometría
+  distinta (minHeight 70 vs 56, icon 38 vs 32, peso `'600'` fuera de tríada).
+- [ ] `gap` fuera de {4,8} en varios archivos (deriva menor y acumulada, no
+  rompe jerarquía — bajo prioridad frente a lo de arriba).
 
 ## P0 PRELANZAMIENTO — propiedad de cuentas e infraestructura
 

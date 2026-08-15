@@ -4,6 +4,88 @@
 
 ---
 
+## Ciclo 7 — 2026-08-14 tarde (feedback en vivo: filtros, listas, títulos)
+
+**Qué hizo:**
+- Sesión larga de iteración en vivo con Alejandro sobre `components/foodie-filter-bar.tsx`
+  y el patrón de títulos fijos en toda la app. Detalle completo en
+  `docs/HANDOFF.md` (entrada "Barra de filtros rediseñada + limpieza
+  panorámica de títulos").
+- Reescribió la barra de filtros: categorías visibles (no más rueda
+  oculta), rueda conservada solo para Listas, "Nueva lista" agregada,
+  modo de vista Por lista/Por categoría en Guardados.
+- Quitó títulos/kickers fijos de 12 pantallas tras varias rondas de
+  corrección directa del usuario — el criterio final fue "sin excepciones"
+  para chrome redundante con la tab bar, no el juicio caso-por-caso que
+  el agente intentó aplicar al inicio.
+
+**Qué encontró:**
+- El crash real del fade NO era por nombres largos ni por crear
+  `Animated.Value` en cada render (ambas fueron correcciones válidas pero
+  no la causa raíz) — era usar `Animated.event(useNativeDriver:true)`
+  sobre un `ScrollView` normal en vez de `Animated.ScrollView`. Solo se
+  encontró leyendo el log real de Metro (`ERROR onScroll is not a
+  function`), no adivinando. Lección para la próxima vez que algo "sigue
+  roto" después de un fix: pedir o revisar el log real antes de la
+  tercera iteración a ciegas.
+- Segundo bug independiente en el mismo componente: gatear un estilo
+  animado detrás de un `ref` mutable no funciona — el ref no dispara
+  re-render, así que el estilo calculado en ese render queda congelado.
+- El agente intentó aplicar juicio de diseño (HIG, "el título es dato no
+  chrome") para conservar selectivamente algunos títulos (nombre de
+  negocio, "Actividad") — el usuario corrigió esto varias veces y pidió
+  remoción total sin excepciones. Quedó como decisión de producto, no
+  como error de ejecución.
+
+**Qué sigue:**
+- QA humano en iPhone del fade + categorías (el fix de código no se probó
+  en dispositivo todavía).
+- ~15 pantallas más con el mismo patrón de título grande sin auditar —
+  ver `docs/TASKS.md`.
+
+**Validación:**
+- `npx tsc --noEmit` — verde ✅. `npx expo lint` — verde ✅, en cada paso
+  de la sesión.
+
+---
+
+## Ciclo 6 — 2026-08-14 (auditoría integral: QA estático + consistencia visual)
+
+**Qué hizo:**
+- Dos agentes en paralelo (`qa-patio`, `design-system`) auditaron el repo
+  completo (`app/`, `components/`, `lib/`, `supabase/functions/`), a petición
+  directa de Alejandro ("audita toda la app").
+- Corrigió lo accionable de bajo riesgo encontrado: ley huérfana de precio en
+  `CLAUDE.md` (ver detalle en `docs/HANDOFF.md` 2026-08-14), dos guardados sin
+  try/catch (`perfil-comunidad.tsx`, `resena/[id].tsx`), dos promesas sin
+  `.catch()` en `usePatioDetailController.ts`, una API deprecada de
+  ImagePicker, una key duplicada a mano (`'@patio_user_role'` → `USER_ROLE_KEY`),
+  y borró `lib/notifications.ts` (huérfano, confirmado cero referencias).
+- `npx tsc --noEmit` y `npx expo lint` verdes tras los cambios.
+
+**Qué encontró:**
+- La auditoría de QA no halló nada crítico más allá de lo corregido: sin
+  botones zombi, sin imports rotos, sin violaciones de marca en copy visible.
+- La auditoría visual encontró **deriva sistémica**, no puntual: los pesos de
+  fuente reales en producción (`'400'`, `'600'`, `'800'`, `'500'`) no
+  coinciden con la tríada documentada (900/700/300); las intensidades de
+  `BlurView` no siguen la tabla de `DESIGN_SYSTEM.md`; hay paleta hardcodeada
+  a mano en 5 archivos de alto tráfico en vez de leer los tokens del theme.
+  Esto no se corrigió en masa — es un cambio de alto volumen (decenas de
+  archivos) que requiere que Alejandro decida primero si el documento se
+  actualiza a lo real o el código se corrige a lo documentado.
+
+**Qué sigue:**
+- Decisión de Alejandro sobre la deriva tipográfica/glass/paleta sistémica
+  (ver `docs/TASKS.md`, sección nueva de esta auditoría, para el detalle
+  archivo:línea completo).
+- El resto del backlog no cambió — ver `docs/TASKS.md` para la cola vigente.
+
+**Validación:**
+- `npx tsc --noEmit` — verde ✅. `npx expo lint` — verde ✅.
+
+---
+
 ## Ciclo 5 — 2026-06-14 (identidad verbal + control de costos + cierre de menú en código)
 
 **Qué hizo:**

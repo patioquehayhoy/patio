@@ -507,6 +507,7 @@ export default function ExplorarScreen() {
             onChange={setMapFilter}
             collections={collections}
             categories={[...new Set(allPatios.map((patio) => patio.category))].sort((a, b) => a.localeCompare(b, 'es'))}
+            onCollectionCreated={(c) => setCollections((prev) => [c, ...prev])}
           />
         </View>
       )}

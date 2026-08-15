@@ -49,9 +49,6 @@ export default function ResenasScreen() {
     <View style={[s.root, { backgroundColor: c.bg, paddingTop: insets.top }]}>
       <Stack.Screen options={{ headerShown: false }} />
       <ScrollView onScroll={onScroll} scrollEventThrottle={16} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 24, paddingBottom: insets.bottom + 130 }} showsVerticalScrollIndicator={false}>
-        <Text style={[s.eyebrow, { color: c.accent }]}>MI PATIO</Text>
-        <Text style={[s.title, { color: c.text }]}>Actividad</Text>
-
         {demo && (
           <>
             <View style={[s.summary, { backgroundColor: c.surface, borderColor: c.border }]}>
@@ -161,9 +158,6 @@ export default function ResenasScreen() {
 
 const s = StyleSheet.create({
   root: { flex: 1 },
-  eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.5, marginBottom: 8 },
-  title: { fontSize: 36, lineHeight: 40, fontWeight: '900', letterSpacing: -1.2, fontFamily: Fonts.brand },
-  subtitle: { marginTop: 8, fontSize: 14, lineHeight: 20 },
   summary: { marginTop: 20, marginBottom: 24, minHeight: 126, borderRadius: 22, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', overflow: 'hidden' },
   primaryMetric: { flex: 1.05, paddingHorizontal: 20, justifyContent: 'center' },
   primaryValue: { fontFamily: Fonts.brand, fontSize: 38, lineHeight: 42, fontWeight: '900', letterSpacing: -1 },

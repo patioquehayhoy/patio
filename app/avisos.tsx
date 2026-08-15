@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { Alert, Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Linking, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { SettingsGroup, SettingsRow, type SettingsColors } from '@/components/settings-list';
@@ -15,7 +15,7 @@ import {
   syncSavedPatioNotificationSubscriptions,
 } from '@/lib/community-notifications';
 import { getFavoritePatioIds } from '@/lib/favorites';
-import { Fonts, useTheme, type Theme } from '@/lib/theme';
+import { useTheme, type Theme } from '@/lib/theme';
 
 function colors(t: Theme): SettingsColors {
   return {
@@ -104,7 +104,6 @@ export default function AvisosScreen() {
         <TouchableOpacity style={s.back} onPress={() => router.back()} accessibilityLabel="Volver">
           <Ionicons name="chevron-back" size={21} color={theme.text} />
         </TouchableOpacity>
-        <Text style={[s.title, { color: theme.text }]}>Avisos</Text>
       </View>
 
       <ScrollView contentContainerStyle={[s.content, { paddingBottom: insets.bottom + 34 }]} showsVerticalScrollIndicator={false}>
@@ -146,6 +145,5 @@ const s = StyleSheet.create({
   root: { flex: 1 },
   header: { paddingHorizontal: 22, paddingTop: 4 },
   back: { width: 44, height: 44, marginLeft: -11, marginBottom: 8, alignItems: 'center', justifyContent: 'center' },
-  title: { fontSize: 38, lineHeight: 40, letterSpacing: -1.3, fontWeight: '900', fontFamily: Fonts.brand },
   content: { paddingHorizontal: 18, paddingTop: 18 },
 });

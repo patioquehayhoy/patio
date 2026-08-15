@@ -16,8 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { emptyMenu, useFonderoMenuDraftController } from '@/lib/controllers/useFonderoMenuDraftController';
 import { fonderoPalette, type FonderoColors } from '@/lib/fondero-palette';
 import type { MenuData, Platillo, Seccion } from '@/lib/menu-store';
-import { Fonts, useTheme } from '@/lib/theme';
-import { noWidow } from '@/lib/typography';
+import { useTheme } from '@/lib/theme';
 import { GlassIconButton } from '@/components/glass-button';
 
 export { emptyMenu };
@@ -115,14 +114,6 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
           keyboardDismissMode="interactive"
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}>
-          <Text style={s.eyebrow}>{source === 'foto' ? 'PATIO LEYÓ LA FOTO' : 'LO DE HOY'}</Text>
-          <Text style={s.title}>{source === 'foto' ? '¿Así queda?' : 'Arma tu menú'}</Text>
-          <Text style={s.subtitle}>
-            {noWidow(source === 'foto'
-              ? 'Corrige solo lo necesario. Lo demás ya está listo.'
-              : 'Escribe lo que vendes hoy. Los precios son opcionales.')}
-          </Text>
-
           {data.secciones.map((section, sectionIndex) => {
             const isCollapsed = !!collapsed[section.id];
             const actionsOpen = sectionActions === section.id;
@@ -351,9 +342,6 @@ function makeStyles(c: FonderoColors) {
     nav: { minHeight: 54, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
     navButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
     navTitle: { fontSize: 14, fontWeight: '600', color: c.textSecondary },
-    eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.5, color: c.accent, marginBottom: 8 },
-    title: { fontSize: 36, lineHeight: 38, fontWeight: '900', letterSpacing: -1.2, color: c.text, fontFamily: Fonts.brand },
-    subtitle: { marginTop: 6, marginBottom: 16, maxWidth: 330, fontSize: 14, lineHeight: 19, fontWeight: '400', color: c.textSecondary },
 
     menuDetailsGroup: { marginTop: 28 },
     menuDetailsLabel: { marginBottom: 8, paddingLeft: 2, fontSize: 10.5, lineHeight: 14, fontWeight: '800', letterSpacing: 1.2, color: c.textMute },

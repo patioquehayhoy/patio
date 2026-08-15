@@ -24,12 +24,27 @@ export type SavedPatioMeta = {
 const KEY = 'patio:collections:v1';
 const META_KEY = 'patio:saved-meta:v1';
 
+// Una palabra, sin espacios — así la pill de la barra de filtros nunca se
+// desborda. Aplica tanto a listas nuevas como a la normalización de las
+// que ya existían con nombres largos (ver getCollections).
+export function normalizeCollectionTitle(title: string) {
+  return title.replace(/\s+/g, '').slice(0, 18);
+}
+
 export async function getCollections(): Promise<PatioCollection[]> {
   const raw = await AsyncStorage.getItem(KEY);
   if (!raw) return [];
   try {
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
+    if (!Array.isArray(parsed)) return [];
+    let changed = false;
+    const fixed: PatioCollection[] = parsed.map((item: PatioCollection) => {
+      const clean = normalizeCollectionTitle(item.title ?? '');
+      if (clean !== item.title) { changed = true; return { ...item, title: clean }; }
+      return item;
+    });
+    if (changed) AsyncStorage.setItem(KEY, JSON.stringify(fixed)).catch(() => {});
+    return fixed;
   } catch {
     return [];
   }
@@ -39,7 +54,7 @@ export async function createCollection(title: string, visibility: CollectionVisi
   const current = await getCollections();
   const collection: PatioCollection = {
     id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-    title: title.trim(),
+    title: normalizeCollectionTitle(title),
     description: '',
     visibility,
     patioIds: [],
@@ -52,6 +67,14 @@ export async function createCollection(title: string, visibility: CollectionVisi
 export async function updateCollection(next: PatioCollection) {
   const current = await getCollections();
   await AsyncStorage.setItem(KEY, JSON.stringify(current.map((item) => item.id === next.id ? next : item)));
+}
+
+export async function renameCollection(id: string, title: string) {
+  const collection = await getCollection(id);
+  if (!collection) return null;
+  const next = { ...collection, title: normalizeCollectionTitle(title) };
+  await updateCollection(next);
+  return next;
 }
 
 export async function getCollection(id: string) {

@@ -1,6 +1,12 @@
 # TASKS — Cola de trabajo para agentes
 
-> Última actualización: 2026-08-14 (tarde).
+> Última actualización: 2026-08-15.
+
+## CICLO 2026-08-15 — nombres de lista a una palabra + renombrar
+
+- [x] Nombres de lista forzados a una palabra (sin espacios, máx. 18
+  caracteres) en creación, con autocorrección de listas viejas al leerlas.
+- [x] Renombrar lista: mantener presionada la fila en la hoja "Guardado".
 
 ## CICLO 2026-08-14 (tarde) — filtros/listas rediseñados + limpieza de títulos
 

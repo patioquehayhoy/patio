@@ -4,6 +4,28 @@
 
 ---
 
+## Ciclo 8 — 2026-08-15 (nombres de lista a una palabra + renombrar)
+
+**Qué hizo:**
+- `lib/collections.ts`: `normalizeCollectionTitle()` (una palabra, máx. 18
+  caracteres), aplicada en `createCollection` y como autocorrección al
+  leer en `getCollections()` (listas viejas con nombre largo se arreglan
+  solas, sin migración manual). Nueva `renameCollection(id, title)`.
+- Renombrar lista: mantener presionada la fila en `save-to-list-sheet.tsx`
+  la convierte en campo de texto editable con el mismo límite.
+- Ambos campos de creación de lista (barra de filtros + hoja de guardado)
+  comparten ahora la misma función de normalización en vivo.
+
+**Qué sigue:**
+- Ver `docs/TASKS.md` para la cola vigente — sigue pendiente el barrido
+  de ~15 pantallas con título grande sin auditar (categoría distinta,
+  contenido dinámico real en varias de ellas).
+
+**Validación:**
+- `npx tsc --noEmit` — verde ✅. `npx expo lint` — verde ✅.
+
+---
+
 ## Ciclo 7 — 2026-08-14 tarde (feedback en vivo: filtros, listas, títulos)
 
 **Qué hizo:**

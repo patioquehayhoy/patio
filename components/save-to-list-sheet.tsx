@@ -19,7 +19,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { createCollection, getCollections, togglePatioInCollection, type PatioCollection } from '@/lib/collections';
+import { createCollection, getCollections, normalizeCollectionTitle, renameCollection, togglePatioInCollection, type PatioCollection } from '@/lib/collections';
 import { Fonts, useTheme, type Theme } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
 
@@ -40,6 +40,8 @@ export function SaveToListSheet({ visible, patioId, patioName, onDismiss }: Save
   const [collections, setCollections] = useState<PatioCollection[]>([]);
   const [newTitle, setNewTitle] = useState('');
   const [creating, setCreating] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState('');
 
   const load = useCallback(() => {
     getCollections().then(setCollections).catch(() => {});
@@ -93,6 +95,22 @@ export function SaveToListSheet({ visible, patioId, patioName, onDismiss }: Save
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
   };
 
+  const startRename = (collection: PatioCollection) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+    setEditingId(collection.id);
+    setEditTitle(collection.title);
+  };
+
+  const saveRename = async () => {
+    if (!editingId) return;
+    const title = editTitle.trim();
+    if (title) {
+      const renamed = await renameCollection(editingId, title);
+      if (renamed) setCollections((current) => current.map((item) => item.id === renamed.id ? renamed : item));
+    }
+    setEditingId(null);
+  };
+
   return (
     <Modal visible={visible} transparent animationType="none" statusBarTranslucent onRequestClose={dismiss}>
       <KeyboardAvoidingView style={s.overlay} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
@@ -123,12 +141,35 @@ export function SaveToListSheet({ visible, patioId, patioName, onDismiss }: Save
           <ScrollView style={s.list} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
             {collections.map((collection, index) => {
               const selected = collection.patioIds.includes(patioId);
+              if (editingId === collection.id) {
+                return (
+                  <View key={collection.id} style={[s.row, index > 0 && s.divider]}>
+                    <View style={s.listIcon}><Ionicons name="pencil" size={16} color={theme.textSecondary} /></View>
+                    <TextInput
+                      autoFocus
+                      value={editTitle}
+                      onChangeText={(value) => setEditTitle(normalizeCollectionTitle(value))}
+                      onSubmitEditing={saveRename}
+                      onBlur={saveRename}
+                      placeholder="Una palabra, ej. Tacos"
+                      placeholderTextColor={theme.textMute}
+                      returnKeyType="done"
+                      autoCapitalize="words"
+                      style={s.input}
+                    />
+                    <TouchableOpacity onPress={saveRename} style={s.createButton}>
+                      <Text style={s.createText}>Listo</Text>
+                    </TouchableOpacity>
+                  </View>
+                );
+              }
               return (
                 <TouchableOpacity
                   key={collection.id}
                   accessibilityRole="checkbox"
                   accessibilityState={{ checked: selected }}
                   onPress={() => toggleCollection(collection)}
+                  onLongPress={() => startRename(collection)}
                   style={[s.row, index > 0 && s.divider]}>
                   <View style={[s.listIcon, selected && s.listIconSelected]}>
                     <Ionicons name="bookmark-outline" size={17} color={selected ? theme.accent : theme.textSecondary} />
@@ -148,11 +189,12 @@ export function SaveToListSheet({ visible, patioId, patioName, onDismiss }: Save
                 <TextInput
                   autoFocus
                   value={newTitle}
-                  onChangeText={setNewTitle}
+                  onChangeText={(value) => setNewTitle(normalizeCollectionTitle(value))}
                   onSubmitEditing={handleCreate}
-                  placeholder="Nombre de la lista"
+                  placeholder="Una palabra, ej. Tacos"
                   placeholderTextColor={theme.textMute}
                   returnKeyType="done"
+                  autoCapitalize="words"
                   style={s.input}
                 />
                 <TouchableOpacity disabled={!newTitle.trim()} onPress={handleCreate} style={s.createButton}>

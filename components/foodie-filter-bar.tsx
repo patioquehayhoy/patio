@@ -5,7 +5,7 @@ import * as Haptics from 'expo-haptics';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, PanResponder, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
-import { createCollection, type PatioCollection } from '@/lib/collections';
+import { createCollection, normalizeCollectionTitle, type PatioCollection } from '@/lib/collections';
 import { useTheme, type Theme } from '@/lib/theme';
 
 const ROW = 34;
@@ -261,11 +261,12 @@ export function FoodieFilterBar({ value, onChange, collections, categories, onCo
             <TextInput
               autoFocus
               value={newListTitle}
-              onChangeText={setNewListTitle}
+              onChangeText={(value) => setNewListTitle(normalizeCollectionTitle(value))}
               onSubmitEditing={handleCreateList}
-              placeholder="Nombre de la lista"
+              placeholder="Una palabra, ej. Tacos"
               placeholderTextColor={theme.textMute}
               returnKeyType="done"
+              autoCapitalize="words"
               style={s.createInput}
             />
             <TouchableOpacity disabled={!newListTitle.trim()} onPress={handleCreateList} style={[s.createBtn, !newListTitle.trim() && s.createBtnDisabled]}>

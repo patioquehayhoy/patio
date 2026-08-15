@@ -1,5 +1,27 @@
 # HANDOFF
 
+## 2026-08-15 — Nombres de lista a una palabra + renombrar
+
+- `lib/collections.ts`: nueva `normalizeCollectionTitle()` (sin espacios,
+  máx. 18 caracteres) — una lista es una palabra, punto, para que la pill
+  nunca pueda desbordar el layout sin importar dónde se haya creado.
+  `getCollections()` ahora normaliza y persiste automáticamente cualquier
+  lista vieja que ya tuviera un nombre largo/con espacios — se autocorrige
+  sola la próxima vez que se lee, sin migración manual.
+  `createCollection()` aplica la misma normalización al guardar.
+- Nueva `renameCollection(id, title)`. Se puede renombrar una lista
+  manteniendo presionada su fila en `components/save-to-list-sheet.tsx`
+  (la hoja "Guardado" que aparece al marcar un lugar) — se convierte en un
+  campo de texto con el mismo límite de una palabra; Enter o "Listo"
+  guarda. No se agregó una segunda entrada de renombrado en la barra de
+  filtros (`foodie-filter-bar.tsx`) para no duplicar la superficie de
+  gestión — esa hoja ya es el lugar canónico para administrar listas.
+- Los campos de creación de lista en `foodie-filter-bar.tsx` y
+  `save-to-list-sheet.tsx` ahora comparten la misma función de
+  normalización en vivo mientras se escribe (antes cada uno tenía su
+  propio regex inline).
+- QA: `npx tsc --noEmit` y `npx expo lint` verdes.
+
 ## 2026-08-14 (tarde) — Barra de filtros rediseñada + limpieza panorámica de títulos
 
 - **`components/foodie-filter-bar.tsx` reescrita**, compartida por mapa y

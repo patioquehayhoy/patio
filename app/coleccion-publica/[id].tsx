@@ -17,7 +17,7 @@ export default function PublicCollection() {
   useEffect(() => {
     Promise.all([
       supabase.from('collections').select('id,title,description,owner_id').eq('id', String(id)).maybeSingle(),
-      supabase.from('collection_places').select('fondita_id,sort_order,fonditas(id,nombre,categoria)').eq('collection_id', String(id)).order('sort_order'),
+      supabase.from('collection_places').select('fondita_id,sort_order,fonditas(id,nombre,categorias)').eq('collection_id', String(id)).order('sort_order'),
     ]).then(([collection, rows]) => {
       setItem(collection.data);
       setPlaces(rows.data ?? []);
@@ -53,7 +53,7 @@ export default function PublicCollection() {
       {item?.owner_id && <TouchableOpacity style={[s.row, { borderColor: theme.border }]} onPress={() => router.push({ pathname: '/foodie/[id]', params: { id: item.owner_id } })}><Text style={{ color: theme.textSecondary }}>Ver perfil del curador</Text><Ionicons name="chevron-forward" size={16} color={theme.textMute} /></TouchableOpacity>}
       {places.map((row) => {
         const place = Array.isArray(row.fonditas) ? row.fonditas[0] : row.fonditas;
-        return place ? <TouchableOpacity key={row.fondita_id} style={[s.row, { borderColor: theme.border }]} onPress={() => router.push(`/patio/${place.id}`)}><View><Text style={{ color: theme.text, fontWeight: '700' }}>{place.nombre}</Text><Text style={{ color: theme.textSecondary, fontSize: 12, marginTop: 3 }}>{place.categoria}</Text></View><Ionicons name="chevron-forward" size={16} color={theme.textMute} /></TouchableOpacity> : null;
+        return place ? <TouchableOpacity key={row.fondita_id} style={[s.row, { borderColor: theme.border }]} onPress={() => router.push(`/patio/${place.id}`)}><View><Text style={{ color: theme.text, fontWeight: '700' }}>{place.nombre}</Text><Text style={{ color: theme.textSecondary, fontSize: 12, marginTop: 3 }}>{place.categorias?.[0] ?? ''}</Text></View><Ionicons name="chevron-forward" size={16} color={theme.textMute} /></TouchableOpacity> : null;
       })}
     </ScrollView>
   </View>;

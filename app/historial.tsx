@@ -197,7 +197,7 @@ const s = StyleSheet.create({
   modalTitle: { fontSize: 22, fontWeight: '900', fontFamily: Fonts.brand },
   nameInput: { marginTop: 16, minHeight: 48, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 14, fontSize: 16, fontWeight: '500' },
   modalActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 10, marginTop: 16 },
-  modalBtn: { minHeight: 44, minWidth: 104, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 14 },
+  modalBtn: { minHeight: 44, minWidth: 104, borderRadius: 14, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 14 },
   modalPrimary: { borderWidth: 0 },
   modalBtnText: { fontSize: 15, fontWeight: '700' },
   modalPrimaryText: { color: '#fff', fontSize: 15, fontWeight: '700' },

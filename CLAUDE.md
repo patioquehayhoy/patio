@@ -191,7 +191,7 @@ Usar `LinearGradient` de `expo-linear-gradient` para:
 - Sheets y panels grandes: `borderRadius 28-32` (solo esquinas superiores cuando están pegados al borde)
 - Botones de acción flotantes (cuadrados): `borderRadius 16`
 - Pills y cápsulas de estado: `borderRadius 100`
-- Cards de contenido: `borderRadius 20`
+- Cards de contenido: `borderRadius 18` (corregido 2026-08-17: `Radius.card` real en `lib/theme.tsx` es 18, la documentación decía 20 por error)
 
 ## Convenciones de código
 

@@ -18,6 +18,7 @@ import { fonderoPalette, type FonderoColors } from '@/lib/fondero-palette';
 import type { MenuData, Platillo, Seccion } from '@/lib/menu-store';
 import { useTheme } from '@/lib/theme';
 import { GlassIconButton } from '@/components/glass-button';
+import { noWidow } from '@/lib/typography';
 
 export { emptyMenu };
 
@@ -290,7 +291,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                       accessibilityRole="button"
                       accessibilityLabel="Agregar platillo">
                       <Ionicons name="add" size={16} color={c.accent} />
-                      <Text style={s.addDishText}>Agregar platillo</Text>
+                      <Text style={s.addDishText}>{noWidow('Agregar platillo')}</Text>
                     </TouchableOpacity>
                   </>
                 )}
@@ -313,7 +314,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                 accessibilityRole="button"
                 accessibilityLabel="Agregar sección">
                 <Ionicons name="add-circle" size={20} color={c.accent} />
-                <Text style={s.addSectionToggleText}>Agregar sección</Text>
+                <Text style={s.addSectionToggleText}>{noWidow('Agregar sección')}</Text>
               </TouchableOpacity>
             ) : (
               <>
@@ -326,7 +327,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                   accessibilityRole="button"
                   accessibilityLabel="Cerrar sugerencias de sección"
                   accessibilityState={{ disabled: data.secciones.length === 0 }}>
-                  <Text style={s.addSectionLabel}>AGREGAR SECCIÓN</Text>
+                  <Text style={s.addSectionLabel}>{noWidow('AGREGAR SECCIÓN')}</Text>
                   {data.secciones.length > 0 && (
                     <Ionicons name="chevron-up" size={14} color={c.textMute} />
                   )}
@@ -359,7 +360,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                     accessibilityRole="button"
                     accessibilityLabel="Agregar sección nueva">
                     <Ionicons name="add" size={13} color={c.textSecondary} />
-                    <Text style={[s.chipText, { color: c.textSecondary }]}>SECCIÓN NUEVA</Text>
+                    <Text style={[s.chipText, { color: c.textSecondary }]}>{noWidow('SECCIÓN NUEVA')}</Text>
                   </TouchableOpacity>
                 </View>
               </>

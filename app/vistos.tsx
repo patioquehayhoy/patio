@@ -9,6 +9,7 @@ import { todayDish } from '@/lib/controllers/patioListHelpers';
 import { useViewedPatiosController } from '@/lib/controllers/useViewedPatiosController';
 import { publicPrice } from '@/lib/prices';
 import { Fonts, Radius, useTheme, type Theme } from '@/lib/theme';
+import { noWidow } from '@/lib/typography';
 
 const OPEN_GREEN = '#1F9D55';
 
@@ -97,7 +98,7 @@ export default function VistosScreen() {
           c={theme}
           eyebrow={`${patios.length} ${patios.length === 1 ? 'lugar' : 'lugares'}`}
           title="Lo que viste"
-          subtitle="Las cocinas que abriste, lo más reciente primero"
+          subtitle={noWidow('Las cocinas que abriste, lo más reciente primero')}
         />
 
         {patios.length === 0 ? (
@@ -105,10 +106,10 @@ export default function VistosScreen() {
             <View style={s.emptyIcon}>
               <Ionicons name="eye-outline" size={32} color={theme.textSecondary} />
             </View>
-            <Text style={s.emptyTitle} allowFontScaling={true}>Aún no has visto nada</Text>
-            <Text style={s.emptyText} allowFontScaling={true}>Cuando abras una cocina en el mapa, aparece aquí para volver rápido.</Text>
+            <Text style={s.emptyTitle} allowFontScaling={true}>{noWidow('Aún no has visto nada')}</Text>
+            <Text style={s.emptyText} allowFontScaling={true}>{noWidow('Cuando abras una cocina en el mapa, aparece aquí para volver rápido.')}</Text>
             <TouchableOpacity style={s.cta} onPress={() => router.replace('/explorar')} activeOpacity={0.82} accessibilityRole="button" accessibilityLabel="Ver qué hay hoy">
-              <Text style={s.ctaText} allowFontScaling={true}>Ver qué hay hoy</Text>
+              <Text style={s.ctaText} allowFontScaling={true}>{noWidow('Ver qué hay hoy')}</Text>
             </TouchableOpacity>
           </View>
         ) : (

@@ -51,10 +51,10 @@ export default function PreviewScreen() {
         <View style={s.emptyIcon}>
           <Ionicons name="receipt-outline" size={28} color={c.accent} />
         </View>
-        <Text style={s.emptyTitle}>Primero publica lo de hoy</Text>
-        <Text style={s.emptyBody}>Cuando tu menú esté listo, aquí aparecerá publicado.</Text>
+        <Text style={s.emptyTitle}>{noWidow('Primero publica lo de hoy')}</Text>
+        <Text style={s.emptyBody}>{noWidow('Cuando tu menú esté listo, aquí aparecerá publicado.')}</Text>
         <TouchableOpacity accessibilityRole="button" accessibilityLabel="Crear menú" style={s.emptyButton} onPress={() => router.replace('/menu')} activeOpacity={0.84}>
-          <Text style={s.emptyButtonText}>Crear menú</Text>
+          <Text style={s.emptyButtonText}>{noWidow('Crear menú')}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -104,7 +104,7 @@ export default function PreviewScreen() {
           {/* Firma de marca: minimalista — una línea sutil en light, nada más. */}
           <View style={s.posterFoot}>
             <View style={s.footRule} />
-            <Text style={s.posterSign} allowFontScaling={true}>¿Qué hay hoy? Saaaaaaabes.</Text>
+            <Text style={s.posterSign} allowFontScaling={true}>{noWidow('¿Qué hay hoy? Saaaaaaabes.')}</Text>
           </View>
         </View>
       </ScrollView>
@@ -131,7 +131,7 @@ export default function PreviewScreen() {
           accessibilityRole="button"
           accessibilityLabel="Ver en mi perfil"
           accessibilityState={{ disabled: !patioId }}>
-          <Text style={[s.shareLinkText, { color: c.textSecondary }]} allowFontScaling={true}>Ver en mi perfil</Text>
+          <Text style={[s.shareLinkText, { color: c.textSecondary }]} allowFontScaling={true}>{noWidow('Ver en mi perfil')}</Text>
         </TouchableOpacity>
       </View>
     </View>

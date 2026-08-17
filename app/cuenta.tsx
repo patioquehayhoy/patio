@@ -11,6 +11,7 @@ import { useFoodieAccountController } from '@/lib/controllers/useFoodieAccountCo
 import { useTabBarScroll } from '@/lib/tab-bar-visibility';
 import { useTheme, type Theme } from '@/lib/theme';
 import { supabase } from '@/lib/supabase';
+import { noWidow } from '@/lib/typography';
 
 function makeStyles(t: Theme) {
   return StyleSheet.create({
@@ -102,7 +103,7 @@ export default function CuentaScreen() {
 
           <View style={s.footer}>
             <Ionicons name="ellipse" size={6} color={theme.textMute} />
-            <Text style={s.footerText} allowFontScaling={true}>Patio · v0.1 · CDMX</Text>
+            <Text style={s.footerText} allowFontScaling={true}>{noWidow('Patio · v0.1 · CDMX')}</Text>
           </View>
         </View>
       </ScrollView>

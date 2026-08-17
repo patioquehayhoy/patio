@@ -33,7 +33,7 @@ export default function Plan() {
         <View style={[s.freeCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <View style={s.planHead}>
             <View>
-              <Text style={[s.planName, { color: theme.text }]}>Patio Gratis</Text>
+              <Text style={[s.planName, { color: theme.text }]}>{noWidow('Patio Gratis')}</Text>
               <Text style={[s.planPrice, { color: theme.textSecondary }]}>$0</Text>
             </View>
             <View style={[s.currentPill, { backgroundColor: theme.accentSoft }]}><Text style={[s.currentText, { color: theme.accent }]}>GRATIS</Text></View>
@@ -41,14 +41,14 @@ export default function Plan() {
           {business && (
             <View style={s.verificationStatus}>
               <Ionicons name="ellipse-outline" size={16} color={theme.textSecondary} />
-              <Text style={[s.verificationStatusText, { color: theme.textSecondary }]}>Negocio sin verificar</Text>
+              <Text style={[s.verificationStatusText, { color: theme.textSecondary }]}>{noWidow('Negocio sin verificar')}</Text>
             </View>
           )}
         </View>
 
         <View style={s.proCard}>
           <BlurView intensity={theme.isDark ? 28 : 18} tint="dark" style={StyleSheet.absoluteFill} />
-          <Text style={s.proEyebrow}>PATIO PRO · PRÓXIMAMENTE</Text>
+          <Text style={s.proEyebrow}>{noWidow('PATIO PRO · PRÓXIMAMENTE')}</Text>
           <Text style={s.proLead}>{noWidow(business ? 'Entiende qué hace volver a tu clientela.' : 'Convierte una idea en un lugar concreto para comer.')}</Text>
           <View style={s.proBenefits}>
             {pro.map((benefit) => <Benefit key={benefit} label={benefit} color="#F8F8F5" mute="rgba(248,248,245,0.68)" />)}
@@ -57,21 +57,21 @@ export default function Plan() {
             <TouchableOpacity onPress={() => setBilling('monthly')} style={[s.billingOption, billing === 'monthly' && s.billingOptionActive]} accessibilityRole="button" accessibilityState={{ selected: billing === 'monthly' }} accessibilityLabel="Plan mensual, $99 MXN al mes">
               <Text style={s.billingOptionLabel}>Mensual</Text>
               <Text style={s.billingOptionPrice}>$99</Text>
-              <Text style={s.billingOptionMeta}>MXN al mes</Text>
+              <Text style={s.billingOptionMeta}>{noWidow('MXN al mes')}</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setBilling('annual')} style={[s.billingOption, billing === 'annual' && s.billingOptionActive]} accessibilityRole="button" accessibilityState={{ selected: billing === 'annual' }} accessibilityLabel="Plan anual, $990 MXN al año, ahorra dos meses">
-              <Text style={s.billingSaving}>AHORRA 2 MESES</Text>
+              <Text style={s.billingSaving}>{noWidow('AHORRA 2 MESES')}</Text>
               <Text style={s.billingOptionLabel}>Anual</Text>
               <Text style={s.billingOptionPrice}>$990</Text>
-              <Text style={s.billingOptionMeta}>MXN al año</Text>
+              <Text style={s.billingOptionMeta}>{noWidow('MXN al año')}</Text>
             </TouchableOpacity>
           </View>
           <TouchableOpacity
             style={s.proButton}
             accessibilityRole="button"
             accessibilityLabel="Continuar con Pro"
-            onPress={() => Alert.alert('Patio Pro', 'La activación se completará mediante la compra segura de Apple cuando conectemos StoreKit. No se realizó ningún cobro.')}>
-            <Text style={s.proButtonText}>Continuar con Pro</Text>
+            onPress={() => Alert.alert('Patio Pro', noWidow('La activación se completará mediante la compra segura de Apple cuando conectemos StoreKit. No se realizó ningún cobro.'))}>
+            <Text style={s.proButtonText}>{noWidow('Continuar con Pro')}</Text>
           </TouchableOpacity>
           <Text style={s.billingNote}>{noWidow(`${billing === 'annual' ? 'Se renueva por $990 MXN al año' : 'Se renueva por $99 MXN al mes'} · Cancela cuando quieras`)}</Text>
         </View>

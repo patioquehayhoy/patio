@@ -137,7 +137,7 @@ export function SaveToListSheet({ visible, patioId, patioName, onDismiss }: Save
             </TouchableOpacity>
           </View>
 
-          <Text style={s.sectionLabel}>TUS LISTAS</Text>
+          <Text style={s.sectionLabel}>{noWidow('TUS LISTAS')}</Text>
           <ScrollView style={s.list} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
             {collections.map((collection, index) => {
               const selected = collection.patioIds.includes(patioId);
@@ -204,7 +204,7 @@ export function SaveToListSheet({ visible, patioId, patioName, onDismiss }: Save
             ) : (
               <TouchableOpacity onPress={() => setCreating(true)} style={[s.row, collections.length > 0 && s.divider]} accessibilityRole="button" accessibilityLabel="Nueva lista">
                 <View style={s.listIcon}><Ionicons name="add" size={19} color={theme.textSecondary} /></View>
-                <View style={s.rowCopy}><Text style={s.rowTitle}>Nueva lista</Text></View>
+                <View style={s.rowCopy}><Text style={s.rowTitle}>{noWidow('Nueva lista')}</Text></View>
               </TouchableOpacity>
             )}
           </ScrollView>

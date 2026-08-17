@@ -565,7 +565,7 @@ export default function ExplorarScreen() {
               <BlurView intensity={theme.isDark ? 28 : 36} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
               <Ionicons name="search-outline" size={18} color={theme.textSecondary} />
               <Text style={{ fontSize: 16, fontWeight: '400', color: theme.textSecondary }}>
-                ¿Qué se te antoja?
+                {noWidow('¿Qué se te antoja?')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -684,10 +684,10 @@ export default function ExplorarScreen() {
                   <View style={s.emptyIconCircle}>
                     <Ionicons name="search" size={32} color={theme.accent} />
                   </View>
-                  <Text style={s.emptyEyebrow} allowFontScaling={true}>Sin resultados</Text>
+                  <Text style={s.emptyEyebrow} allowFontScaling={true}>{noWidow('Sin resultados')}</Text>
                   <Text style={s.emptyTitle} allowFontScaling={true}>{noWidow('No hay coincidencias cerca')}</Text>
                   <Text style={s.emptySub} allowFontScaling={true}>{noWidow('Mueve el mapa o cambia tu búsqueda.')}</Text>
-                  <Text style={s.emptyPruebaLabel} allowFontScaling={true}>OTRAS BÚSQUEDAS</Text>
+                  <Text style={s.emptyPruebaLabel} allowFontScaling={true}>{noWidow('OTRAS BÚSQUEDAS')}</Text>
                   <View style={s.emptyPills}>
                     {['caldo', 'tinga', 'mole', 'pozole', 'veggie'].map((q) => (
                       <TouchableOpacity key={q} onPress={() => handleQueryChange(q)} activeOpacity={0.8} style={s.emptyPill} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }} accessibilityRole="button" accessibilityLabel={`Buscar ${q}`}>

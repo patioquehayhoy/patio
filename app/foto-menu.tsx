@@ -10,6 +10,7 @@ import { MenuComposer } from '@/components/menu-composer';
 import { useFotoMenuController } from '@/lib/controllers/useFotoMenuController';
 import { fonderoPalette } from '@/lib/fondero-palette';
 import { useTheme, type Theme } from '@/lib/theme';
+import { noWidow } from '@/lib/typography';
 
 // Cámara mínima de Patio: conserva captura nativa mediante expo-camera, pero
 // Patio controla jerarquía, encuadre y acciones. No agrega filtros ni edición
@@ -72,8 +73,8 @@ export default function FotoMenuScreen() {
       <SafeAreaView style={[s.root, s.center]}>
         <Stack.Screen options={{ headerShown: false }} />
         <AgentSpinner variant="dots" size={34} color={c.accent} />
-        <Text style={s.processingTitle}>Leyendo tu menú…</Text>
-        <Text style={s.processingBody}>Detectando cada platillo.</Text>
+        <Text style={s.processingTitle}>{noWidow('Leyendo tu menú…')}</Text>
+        <Text style={s.processingBody}>{noWidow('Detectando cada platillo.')}</Text>
         <TouchableOpacity style={s.cancelBtn} onPress={cancelRead} accessibilityRole="button" accessibilityLabel="Cancelar lectura" activeOpacity={0.7}>
           <Text style={s.cancelText}>Cancelar</Text>
         </TouchableOpacity>
@@ -109,8 +110,8 @@ export default function FotoMenuScreen() {
             <Ionicons name="close" size={23} color="#fff" />
           </TouchableOpacity>
           <View style={s.cameraCopy}>
-            <Text style={s.cameraTitle}>Fotografía el menú</Text>
-            <Text style={s.cameraHint}>Completo, de frente y con buena luz</Text>
+            <Text style={s.cameraTitle}>{noWidow('Fotografía el menú')}</Text>
+            <Text style={s.cameraHint}>{noWidow('Completo, de frente y con buena luz')}</Text>
           </View>
           <TouchableOpacity
             accessibilityRole="button"

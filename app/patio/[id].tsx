@@ -461,7 +461,7 @@ export default function PatioDetailScreen() {
           {soldOut && (
             <View style={s.soldBanner}>
               <Ionicons name="time-outline" size={13} color="#fff" />
-              <Text style={s.soldBannerText} allowFontScaling={true}>Se acabó por hoy</Text>
+              <Text style={s.soldBannerText} allowFontScaling={true}>{noWidow('Se acabó por hoy')}</Text>
             </View>
           )}
           <View style={[s.heroNav, { top: insets.top + 8 }]}>
@@ -547,7 +547,7 @@ export default function PatioDetailScreen() {
                 <Ionicons name="time-outline" size={12} color={theme.accent} />
                 <Text style={s.mananaEyebrow} allowFontScaling={true}>{proxTexto ? `${proxTexto}` : `Mañana abre a las ${patio.open.split(/[-–]/)[0]}`}</Text>
               </View>
-              <Text style={s.mananaBody} allowFontScaling={true}>Vuelve mañana por el menú del día. Guárdalo y te avisamos cuando publiquen.</Text>
+              <Text style={s.mananaBody} allowFontScaling={true}>{noWidow('Vuelve mañana por el menú del día. Guárdalo y te avisamos cuando publiquen.')}</Text>
             </View>
           )}
 
@@ -884,7 +884,7 @@ export default function PatioDetailScreen() {
               </View>
             ))}
             {!reviews.length && userReview && (
-              <Text style={s.reviewNote}>Tu reseña será la primera experiencia compartida sobre este Patio.</Text>
+              <Text style={s.reviewNote}>{noWidow('Tu reseña será la primera experiencia compartida sobre este Patio.')}</Text>
             )}
           </View>
 

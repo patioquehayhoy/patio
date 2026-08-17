@@ -43,7 +43,7 @@ export default function ComunidadAccesoScreen() {
   const send = async () => {
     const value = email.trim().toLowerCase();
     if (!value || !value.includes('@')) {
-      Alert.alert('Revisa tu correo', 'Escribe un correo válido.');
+      Alert.alert(noWidow('Revisa tu correo'), noWidow('Escribe un correo válido.'));
       return;
     }
     setBusy(true);
@@ -53,7 +53,7 @@ export default function ComunidadAccesoScreen() {
     });
     setBusy(false);
     if (error) {
-      Alert.alert('No pudimos enviar el enlace', 'Revisa tu conexión e inténtalo de nuevo.');
+      Alert.alert(noWidow('No pudimos enviar el enlace'), noWidow('Revisa tu conexión e inténtalo de nuevo.'));
       return;
     }
     setSent(true);
@@ -96,12 +96,12 @@ export default function ComunidadAccesoScreen() {
               <TouchableOpacity style={s.button} onPress={send} disabled={busy} accessibilityRole="button" accessibilityLabel={busy ? 'Enviando enlace' : 'Enviar enlace'}>
                 {busy
                   ? <AgentSpinner variant="dots" size={18} color="#FFFFFF" />
-                  : <Text style={s.buttonText}>Enviar enlace</Text>}
+                  : <Text style={s.buttonText}>{noWidow('Enviar enlace')}</Text>}
               </TouchableOpacity>
             </>
           ) : (
             <TouchableOpacity style={s.change} onPress={() => setSent(false)} accessibilityRole="button" accessibilityLabel="Usar otro correo">
-              <Text style={s.changeText}>Usar otro correo</Text>
+              <Text style={s.changeText}>{noWidow('Usar otro correo')}</Text>
             </TouchableOpacity>
           )}
         </View>

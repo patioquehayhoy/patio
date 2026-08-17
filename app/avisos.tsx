@@ -16,6 +16,7 @@ import {
 } from '@/lib/community-notifications';
 import { getFavoritePatioIds } from '@/lib/favorites';
 import { useTheme, type Theme } from '@/lib/theme';
+import { noWidow } from '@/lib/typography';
 
 function colors(t: Theme): SettingsColors {
   return {
@@ -82,7 +83,7 @@ export default function AvisosScreen() {
       if (error instanceof CommunitySignInRequiredError) {
         router.push({ pathname: '/comunidad-acceso', params: { returnTo: '/avisos' } });
       } else {
-        Alert.alert('No pudimos guardar el cambio', 'Revisa tu conexión e inténtalo otra vez.');
+        Alert.alert(noWidow('No pudimos guardar el cambio'), noWidow('Revisa tu conexión e inténtalo otra vez.'));
       }
     } finally {
       setUpdating(null);

@@ -9,6 +9,7 @@ import { todayDish } from '@/lib/controllers/useFavoritePatiosController';
 import { fetchPublicFonditas, type Patio } from '@/lib/patios';
 import { publicPrice } from '@/lib/prices';
 import { Fonts, useTheme } from '@/lib/theme';
+import { noWidow } from '@/lib/typography';
 
 const GREEN = '#1F9D55';
 
@@ -61,7 +62,7 @@ export default function CollectionDetail() {
           <View style={s.actions}>
             <TouchableOpacity accessibilityRole="button" accessibilityLabel="Ver esta lista en el mapa" style={[s.primaryAction, { backgroundColor: theme.accent }]} onPress={() => router.replace({ pathname: '/explorar', params: { collection: item.id } })}>
               <Ionicons name="map-outline" size={18} color="#FFFFFF" />
-              <Text style={[s.primaryText, { color: '#FFFFFF' }]}>Ver en el mapa</Text>
+              <Text style={[s.primaryText, { color: '#FFFFFF' }]}>{noWidow('Ver en el mapa')}</Text>
             </TouchableOpacity>
             <TouchableOpacity accessibilityRole="button" accessibilityLabel="Compartir" style={[s.shareButton, { borderColor: theme.border }]} onPress={share}>
               <Ionicons name="share-outline" size={19} color={theme.text} />
@@ -69,7 +70,7 @@ export default function CollectionDetail() {
           </View>
         )}
 
-        {!!patios.length && <Text style={[s.section, { color: theme.textSecondary }]}>EN ESTA LISTA</Text>}
+        {!!patios.length && <Text style={[s.section, { color: theme.textSecondary }]}>{noWidow('EN ESTA LISTA')}</Text>}
         <View style={[s.list, patios.length > 0 && { borderTopColor: theme.border, borderTopWidth: StyleSheet.hairlineWidth }]}>
           {patios.map((patio) => {
             const today = todayDish(patio);
@@ -97,9 +98,9 @@ export default function CollectionDetail() {
         {!patios.length && (
           <View style={s.empty}>
             <View style={[s.emptyIcon, { backgroundColor: theme.surface }]}><Ionicons name="bookmark-outline" size={27} color={theme.textSecondary} /></View>
-            <Text style={[s.emptyTitle, { color: theme.text }]}>Esta lista está esperando</Text>
-            <Text style={[s.emptyText, { color: theme.textSecondary }]}>Cuando guardes un lugar, podrás añadirlo aquí.</Text>
-            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Explorar lugares" style={[s.explore, { borderColor: theme.border }]} onPress={() => router.replace('/explorar')}><Text style={[s.exploreText, { color: theme.text }]}>Explorar lugares</Text></TouchableOpacity>
+            <Text style={[s.emptyTitle, { color: theme.text }]}>{noWidow('Esta lista está esperando')}</Text>
+            <Text style={[s.emptyText, { color: theme.textSecondary }]}>{noWidow('Cuando guardes un lugar, podrás añadirlo aquí.')}</Text>
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Explorar lugares" style={[s.explore, { borderColor: theme.border }]} onPress={() => router.replace('/explorar')}><Text style={[s.exploreText, { color: theme.text }]}>{noWidow('Explorar lugares')}</Text></TouchableOpacity>
           </View>
         )}
       </ScrollView>

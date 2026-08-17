@@ -5,6 +5,7 @@ import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { noWidow } from '@/lib/typography';
 
 import {
   createCollection,
@@ -62,15 +63,15 @@ export default function SavePlaceScreen() {
         <TouchableOpacity style={s.navButton} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Cerrar">
           <Ionicons name="close" size={21} color={theme.text} />
         </TouchableOpacity>
-        <Text style={[s.navTitle, { color: theme.text }]}>Guardar en</Text>
+        <Text style={[s.navTitle, { color: theme.text }]}>{noWidow('Guardar en')}</Text>
         <TouchableOpacity style={s.navButton} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Listo">
           <Text style={[s.done, { color: theme.accent }]}>Listo</Text>
         </TouchableOpacity>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: insets.bottom + 36 }}>
-        <Text style={[s.heroTitle, { color: theme.text }]}>Tus listas</Text>
-        <Text style={[s.heroBody, { color: theme.textSecondary }]}>Elige una o varias. El lugar queda guardado aunque no elijas ninguna.</Text>
+        <Text style={[s.heroTitle, { color: theme.text }]}>{noWidow('Tus listas')}</Text>
+        <Text style={[s.heroBody, { color: theme.textSecondary }]}>{noWidow('Elige una o varias. El lugar queda guardado aunque no elijas ninguna.')}</Text>
 
         <View style={[s.listCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           {collections.map((collection, index) => {
@@ -115,7 +116,7 @@ export default function SavePlaceScreen() {
           </View>
         </View>
 
-        <Text style={[s.sectionLabel, { color: theme.textMute }]}>SOLO PARA TI</Text>
+        <Text style={[s.sectionLabel, { color: theme.textMute }]}>{noWidow('SOLO PARA TI')}</Text>
         <View style={[s.privateCard, { borderColor: theme.border }]}>
           <BlurView intensity={theme.isDark ? 26 : 44} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
           <View style={s.statusRow}>
@@ -148,7 +149,7 @@ export default function SavePlaceScreen() {
             style={[s.note, { color: theme.text, borderColor: theme.border }]}
           />
           <View style={s.ratingRow}>
-            <Text style={[s.ratingLabel, { color: theme.textSecondary }]}>Tu calificación</Text>
+            <Text style={[s.ratingLabel, { color: theme.textSecondary }]}>{noWidow('Tu calificación')}</Text>
             <View style={{ flexDirection: 'row', gap: 7 }}>
               {[1, 2, 3, 4, 5].map((value) => (
                 <TouchableOpacity
@@ -175,8 +176,8 @@ export default function SavePlaceScreen() {
             <Ionicons name="chatbubble-outline" size={17} color={theme.accent} />
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={[s.listTitle, { color: theme.text }]}>Escribir una reseña</Text>
-            <Text style={[s.listMeta, { color: theme.textSecondary }]}>Se publicará con tu perfil.</Text>
+            <Text style={[s.listTitle, { color: theme.text }]}>{noWidow('Escribir una reseña')}</Text>
+            <Text style={[s.listMeta, { color: theme.textSecondary }]}>{noWidow('Se publicará con tu perfil.')}</Text>
           </View>
           <Ionicons name="chevron-forward" size={16} color={theme.textMute} />
         </TouchableOpacity>

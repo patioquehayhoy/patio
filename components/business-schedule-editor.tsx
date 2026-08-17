@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Easing, Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import type { HorarioSemanal } from '@/lib/horario';
+import { noWidow } from '@/lib/typography';
 
 export type ScheduleEditorColors = {
   accent: string;
@@ -170,7 +171,7 @@ export function BusinessScheduleEditor({ colors, value, onChange, isDark = false
 
       <View style={s.sectionHeading}>
         <Text style={[s.sectionLabel, { color: colors.textMute }]} maxFontSizeMultiplier={1.3}>
-          DÍAS QUE ABRES
+          {noWidow('DÍAS QUE ABRES')}
         </Text>
         <Text style={[s.selectionStatus, { color: colors.textSecondary }]} maxFontSizeMultiplier={1.3}>
           {selectedDays.length === 1 ? '1 abierto' : `${selectedDays.length} abiertos`}

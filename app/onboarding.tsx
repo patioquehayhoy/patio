@@ -179,7 +179,7 @@ export default function OnboardingScreen() {
                   <View style={s.roleIcon}><Ionicons name="map-outline" size={19} color="#FF6A3D" /></View>
                   <View style={s.roleCopy}>
                     <Text style={s.roleTitle} numberOfLines={1} maxFontSizeMultiplier={1.3}>{noWidow('Ver qué hay hoy')}</Text>
-                    <Text style={s.roleHint} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.4}>Explorar lugares cerca de ti</Text>
+                    <Text style={s.roleHint} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.4}>{noWidow('Explorar lugares cerca de ti')}</Text>
                   </View>
                   <Ionicons name="chevron-forward" size={16} color="rgba(255,255,255,0.46)" />
                 </BlurView>
@@ -189,7 +189,7 @@ export default function OnboardingScreen() {
                   <View style={s.roleIcon}><Ionicons name="storefront-outline" size={19} color="#FF6A3D" /></View>
                   <View style={s.roleCopy}>
                     <Text style={s.roleTitle} numberOfLines={1} maxFontSizeMultiplier={1.3}>{noWidow('Publicar lo que preparo')}</Text>
-                    <Text style={s.roleHint} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.4}>Crear el perfil de tu negocio</Text>
+                    <Text style={s.roleHint} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.4}>{noWidow('Crear el perfil de tu negocio')}</Text>
                   </View>
                   <Ionicons name="chevron-forward" size={16} color="rgba(255,255,255,0.46)" />
                 </BlurView>

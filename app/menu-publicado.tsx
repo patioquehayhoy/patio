@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { fonderoPalette, type FonderoColors } from '@/lib/fondero-palette';
 import { Fonts, useTheme } from '@/lib/theme';
+import { noWidow } from '@/lib/typography';
 
 export default function MenuPublicadoScreen() {
   const insets = useSafeAreaInsets();
@@ -40,7 +41,7 @@ export default function MenuPublicadoScreen() {
           <Ionicons name="checkmark" size={23} color="#FFFFFF" />
         </Animated.View>
         <Text style={s.eyebrow}>PUBLICADO</Text>
-        <Text style={s.title}>Menú de hoy</Text>
+        <Text style={s.title}>{noWidow('Menú de hoy')}</Text>
       </Animated.View>
 
       <View style={s.actions}>
@@ -51,7 +52,7 @@ export default function MenuPublicadoScreen() {
           onPress={() => router.replace('/preview')}
           activeOpacity={0.84}>
           <Ionicons name="eye-outline" size={17} color="#FFFFFF" />
-          <Text style={s.primaryText}>Ver menú publicado</Text>
+          <Text style={s.primaryText}>{noWidow('Ver menú publicado')}</Text>
         </TouchableOpacity>
         <TouchableOpacity accessibilityRole="button" accessibilityLabel="Listo" style={s.secondary} onPress={() => router.replace('/perfil')} activeOpacity={0.72}>
           <Text style={s.secondaryText}>Listo</Text>

@@ -41,7 +41,7 @@ export default function ResenasScreen() {
       setReplyingTo(null);
       load();
     } catch {
-      Alert.alert('No se pudo responder', 'Intenta nuevamente cuando tengas conexión.');
+      Alert.alert(noWidow('No se pudo responder'), noWidow('Intenta nuevamente cuando tengas conexión.'));
     }
   };
 
@@ -111,7 +111,7 @@ export default function ResenasScreen() {
                   ) : replyingTo === review.userId ? (
                     <View style={[s.replyComposer, { borderColor: c.border }]}>
                       <TextInput autoFocus multiline maxLength={600} value={reply} onChangeText={setReply} placeholder="Responde con claridad y respeto…" placeholderTextColor={c.textMute} style={[s.replyInput, { color: c.text }]} />
-                      <TouchableOpacity onPress={() => sendReply(review)} disabled={!reply.trim()}><Text style={[s.replyAction, { color: reply.trim() ? c.accent : c.textMute }]}>Publicar respuesta</Text></TouchableOpacity>
+                      <TouchableOpacity onPress={() => sendReply(review)} disabled={!reply.trim()}><Text style={[s.replyAction, { color: reply.trim() ? c.accent : c.textMute }]}>{noWidow('Publicar respuesta')}</Text></TouchableOpacity>
                     </View>
                   ) : (
                     <TouchableOpacity style={s.replyButton} onPress={() => { setReplyingTo(review.userId); setReply(''); }}>
@@ -144,7 +144,7 @@ export default function ResenasScreen() {
         ) : (
           <View style={[s.empty, { borderColor: c.border }]}>
             <Ionicons name="chatbubble-ellipses-outline" size={28} color={c.textMute} />
-            <Text style={[s.emptyTitle, { color: c.text }]}>Aún no hay nada que mostrar</Text>
+            <Text style={[s.emptyTitle, { color: c.text }]}>{noWidow('Aún no hay nada que mostrar')}</Text>
             <Text style={[s.emptyBody, { color: c.textSecondary }]}>
               {noWidow('Cuando alguien deje una reseña en tu perfil, aparecerá aquí.')}
             </Text>

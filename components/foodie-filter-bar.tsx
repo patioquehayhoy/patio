@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { createCollection, normalizeCollectionTitle, type PatioCollection } from '@/lib/collections';
 import { useTheme, type Theme } from '@/lib/theme';
+import { noWidow } from '@/lib/typography';
 
 // "Filtros" combina ATRIBUTOS del lugar (categoría, pagos) — se suman entre
 // sí, como Google Maps. "Listas" cambia a qué colecciones te asomas — varias
@@ -277,7 +278,7 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
           <Text style={s.sectionLabel}>Guardados</Text>
           <View style={s.chipsWrap}>
             <TouchableOpacity onPress={() => { Haptics.selectionAsync(); onChange({ ...filters, saved: !filters.saved }); }} style={[s.chip, filters.saved && s.chipActive]} accessibilityRole="button" accessibilityState={{ selected: filters.saved }}>
-              <Text style={[s.chipText, filters.saved && s.chipTextActive]}>Solo guardados</Text>
+              <Text style={[s.chipText, filters.saved && s.chipTextActive]}>{noWidow('Solo guardados')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -341,7 +342,7 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
       ) : (
         <TouchableOpacity onPress={() => setCreatingList(true)} style={s.option}>
           <Ionicons name="add" size={16} color={theme.textSecondary} />
-          <Text style={s.optionText}>Nueva lista</Text>
+          <Text style={s.optionText}>{noWidow('Nueva lista')}</Text>
         </TouchableOpacity>
       )}
       {collections.map((collection) => {

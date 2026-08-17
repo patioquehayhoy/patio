@@ -79,7 +79,7 @@ export default function SoporteScreen() {
             accessibilityRole="button"
             accessibilityLabel="Continuar en Mail"
             onPress={() => Linking.openURL(encodedMail)}>
-            <Text style={[s.sendText, { color: '#FFFFFF' }]}>Continuar en Mail</Text>
+            <Text style={[s.sendText, { color: '#FFFFFF' }]}>{noWidow('Continuar en Mail')}</Text>
           </TouchableOpacity>
         </View>
       )}

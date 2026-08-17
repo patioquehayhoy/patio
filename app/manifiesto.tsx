@@ -4,6 +4,7 @@ import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'rea
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Fonts, useTheme, type Theme } from '@/lib/theme';
+import { noWidow } from '@/lib/typography';
 
 function makeStyles(t: Theme) {
   return StyleSheet.create({
@@ -117,30 +118,30 @@ export default function ManifiestoScreen() {
             style={s.logo}
             resizeMode="contain"
           />
-          <Text style={s.intro} allowFontScaling={true}>¿Qué hay hoy?</Text>
+          <Text style={s.intro} allowFontScaling={true}>{noWidow('¿Qué hay hoy?')}</Text>
           <Text style={s.introSub} allowFontScaling={true}>Saaaaaaabes.</Text>
         </View>
 
         <View style={s.block}>
-          <Text style={s.blockLabel} allowFontScaling={true}>Qué es Patio</Text>
+          <Text style={s.blockLabel} allowFontScaling={true}>{noWidow('Qué es Patio')}</Text>
           <Text style={s.body} allowFontScaling={true}>
-            La fonda, la taquería, el puestecito de elotes, la hamburguesa de la esquina: todos publican lo de hoy. Tú buscas por platillo, ves qué hay cerca y decides si vale la caminata.
+            {noWidow('La fonda, la taquería, el puestecito de elotes, la hamburguesa de la esquina: todos publican lo de hoy. Tú buscas por platillo, ves qué hay cerca y decides si vale la caminata.')}
           </Text>
           <View style={s.divider} />
         </View>
 
         <View style={s.block}>
-          <Text style={s.blockLabel} allowFontScaling={true}>Si tú eres quien cocina</Text>
+          <Text style={s.blockLabel} allowFontScaling={true}>{noWidow('Si tú eres quien cocina')}</Text>
           <Text style={s.body} allowFontScaling={true}>
-            Tomas foto de tu menú y Patio lo lee por ti. Lo de hoy aparece en el mapa para quien anda cerca y se oculta solo cuando cierras.
+            {noWidow('Tomas foto de tu menú y Patio lo lee por ti. Lo de hoy aparece en el mapa para quien anda cerca y se oculta solo cuando cierras.')}
           </Text>
           <View style={s.divider} />
         </View>
 
         <View style={s.block}>
-          <Text style={s.blockLabel} allowFontScaling={true}>Gracias por llegar temprano</Text>
+          <Text style={s.blockLabel} allowFontScaling={true}>{noWidow('Gracias por llegar temprano')}</Text>
           <Text style={s.body} allowFontScaling={true}>
-            Estás en las primeras versiones de Patio. Lo que uses y lo que nos digas le da forma a lo que sigue.
+            {noWidow('Estás en las primeras versiones de Patio. Lo que uses y lo que nos digas le da forma a lo que sigue.')}
           </Text>
           <Text style={s.closing} allowFontScaling={true}>Saaaaaaabes.</Text>
         </View>

@@ -12,6 +12,7 @@ import { savePatioRating } from '@/lib/ratings';
 import { REVIEW_TAGS as TAGS } from '@/lib/review-tags';
 import { Fonts, Radius, useTheme, type Theme } from '@/lib/theme';
 import { supabase } from '@/lib/supabase';
+import { noWidow } from '@/lib/typography';
 
 function makeStyles(t: Theme) {
   return StyleSheet.create({
@@ -117,7 +118,7 @@ export default function ResenaScreen() {
       await savePatioRating(cleanId, { stars, reasons: selected, note, photoUri });
       router.back();
     } catch {
-      Alert.alert('No pudimos publicar tu reseña', 'Revisa tu conexión e inténtalo otra vez.');
+      Alert.alert(noWidow('No pudimos publicar tu reseña'), noWidow('Revisa tu conexión e inténtalo otra vez.'));
     } finally {
       setSaving(false);
     }
@@ -136,8 +137,8 @@ export default function ResenaScreen() {
       </View>
 
       <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-        <Text style={s.eyebrow} allowFontScaling={true}>Tu visita · hoy</Text>
-        <Text style={s.title} allowFontScaling={true}>¿Cómo estuvo {patio?.name ?? 'tu visita'}?</Text>
+        <Text style={s.eyebrow} allowFontScaling={true}>{noWidow('Tu visita · hoy')}</Text>
+        <Text style={s.title} allowFontScaling={true}>{noWidow(`¿Cómo estuvo ${patio?.name ?? 'tu visita'}?`)}</Text>
         {!!subtitle && <Text style={s.subtitle} allowFontScaling={true}>{subtitle}</Text>}
 
         <View style={s.starsRow}>
@@ -153,7 +154,7 @@ export default function ResenaScreen() {
           })}
         </View>
 
-        <Text style={s.sectionLabel} allowFontScaling={true}>¿Qué destacó?</Text>
+        <Text style={s.sectionLabel} allowFontScaling={true}>{noWidow('¿Qué destacó?')}</Text>
         <View style={s.tagsWrap}>
           {TAGS.map((t) => {
             const on = selected.includes(t);

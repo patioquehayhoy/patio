@@ -78,7 +78,7 @@ export default function HistorialScreen() {
               accessibilityRole="button"
               accessibilityLabel="Editar y usar este menú">
               <Ionicons name="create-outline" size={15} color={c.text} />
-              <Text style={[s.actionText, { color: c.text }]}>Editar y usar</Text>
+              <Text style={[s.actionText, { color: c.text }]}>{noWidow('Editar y usar')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => { setActionsFor(null); openRename(menu); }}
@@ -115,16 +115,16 @@ export default function HistorialScreen() {
           onPress={() => router.push('/menu')}
           activeOpacity={0.72}>
           <Ionicons name="add" size={17} color={c.text} />
-          <Text style={[s.newButtonText, { color: c.text }]}>Menú nuevo</Text>
+          <Text style={[s.newButtonText, { color: c.text }]}>{noWidow('Menú nuevo')}</Text>
         </TouchableOpacity>
 
         {!loading && menus.length === 0 ? (
           <View style={[s.empty, { borderColor: c.border }]}>
             <Ionicons name="receipt-outline" size={28} color={c.textMute} />
-            <Text style={[s.emptyTitle, { color: c.text }]}>Todavía no hay menús</Text>
-            <Text style={[s.emptyBody, { color: c.textSecondary }]}>Cuando publiques uno aparecerá aquí para volver a usarlo.</Text>
+            <Text style={[s.emptyTitle, { color: c.text }]}>{noWidow('Todavía no hay menús')}</Text>
+            <Text style={[s.emptyBody, { color: c.textSecondary }]}>{noWidow('Cuando publiques uno aparecerá aquí para volver a usarlo.')}</Text>
             <TouchableOpacity accessibilityRole="button" accessibilityLabel="Crear menú" style={[s.emptyButton, { backgroundColor: c.accent }]} onPress={() => router.replace('/menu')} activeOpacity={0.84}>
-              <Text style={s.emptyButtonText}>Crear menú</Text>
+              <Text style={s.emptyButtonText}>{noWidow('Crear menú')}</Text>
             </TouchableOpacity>
           </View>
         ) : showGroupLabels ? (
@@ -145,7 +145,7 @@ export default function HistorialScreen() {
       <Modal visible={!!editing} transparent animationType="fade" onRequestClose={closeRename}>
         <View style={s.modalBackdrop}>
           <View style={[s.modalCard, { backgroundColor: c.surface, borderColor: c.border }]}>
-            <Text style={[s.modalTitle, { color: c.text }]}>Renombrar menú</Text>
+            <Text style={[s.modalTitle, { color: c.text }]}>{noWidow('Renombrar menú')}</Text>
             <TextInput
               value={draftName}
               onChangeText={(value) => setDraftName(value.slice(0, 48))}

@@ -5,6 +5,7 @@ import { ScrollView, Share, StyleSheet, Text, TouchableOpacity, View } from 'rea
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '@/lib/supabase';
 import { Fonts, useTheme } from '@/lib/theme';
+import { noWidow } from '@/lib/typography';
 
 export default function PublicCollection() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -48,9 +49,9 @@ export default function PublicCollection() {
       {!!item?.description && <Text style={[s.desc, { color: theme.textSecondary }]}>{item.description}</Text>}
       <TouchableOpacity style={[s.button, { backgroundColor: theme.accent }]} onPress={save}>
         <Ionicons name={saved ? 'bookmark' : 'bookmark-outline'} size={17} color="#FFFFFF" />
-        <Text style={{ color: '#FFFFFF', fontWeight: '700' }}>{saved ? 'Lista guardada' : 'Guardar lista'}</Text>
+        <Text style={{ color: '#FFFFFF', fontWeight: '700' }}>{noWidow(saved ? 'Lista guardada' : 'Guardar lista')}</Text>
       </TouchableOpacity>
-      {item?.owner_id && <TouchableOpacity style={[s.row, { borderColor: theme.border }]} onPress={() => router.push({ pathname: '/foodie/[id]', params: { id: item.owner_id } })}><Text style={{ color: theme.textSecondary }}>Ver perfil del curador</Text><Ionicons name="chevron-forward" size={16} color={theme.textMute} /></TouchableOpacity>}
+      {item?.owner_id && <TouchableOpacity style={[s.row, { borderColor: theme.border }]} onPress={() => router.push({ pathname: '/foodie/[id]', params: { id: item.owner_id } })}><Text style={{ color: theme.textSecondary }}>{noWidow('Ver perfil del curador')}</Text><Ionicons name="chevron-forward" size={16} color={theme.textMute} /></TouchableOpacity>}
       {places.map((row) => {
         const place = Array.isArray(row.fonditas) ? row.fonditas[0] : row.fonditas;
         return place ? <TouchableOpacity key={row.fondita_id} style={[s.row, { borderColor: theme.border }]} onPress={() => router.push(`/patio/${place.id}`)}><View><Text style={{ color: theme.text, fontWeight: '700' }}>{place.nombre}</Text><Text style={{ color: theme.textSecondary, fontSize: 12, marginTop: 3 }}>{place.categorias?.[0] ?? ''}</Text></View><Ionicons name="chevron-forward" size={16} color={theme.textMute} /></TouchableOpacity> : null;

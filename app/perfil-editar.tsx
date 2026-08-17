@@ -197,7 +197,7 @@ export default function PerfilScreen() {
               returnKeyType="next"
             />
             <View style={s.fieldDivider} />
-            <Text style={s.fieldLabel} allowFontScaling={true}>Tipo de lugar</Text>
+            <Text style={s.fieldLabel} allowFontScaling={true}>{noWidow('Tipo de lugar')}</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.typeRow}>
               {BUSINESS_TYPES.map(([id, label]) => {
                 const selected = tipoNegocio === id;
@@ -271,7 +271,7 @@ export default function PerfilScreen() {
 
         {/* ── PAGOS ── */}
         <View style={s.block}>
-          <Text style={s.blockLabel} allowFontScaling={true}>CÓMO COBRAS</Text>
+          <Text style={s.blockLabel} allowFontScaling={true}>{noWidow('CÓMO COBRAS')}</Text>
           <Text style={s.blockHelp} allowFontScaling={true}>{noWidow('Marca todas las formas que aceptas.')}</Text>
           <BusinessPaymentSelector
             colors={theme}

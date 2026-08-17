@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { supabase } from '@/lib/supabase';
 import { Fonts, useTheme } from '@/lib/theme';
+import { noWidow } from '@/lib/typography';
 
 export default function CommunityProfileScreen() {
   const { theme } = useTheme();
@@ -37,11 +38,11 @@ export default function CommunityProfileScreen() {
   const save = async () => {
     const validName = (value: string) => /^[\p{L}][\p{L}\p{M}' -]{1,39}$/u.test(value.trim());
     if (!validName(firstName) || !validName(lastName)) {
-      Alert.alert('Revisa tu nombre', 'Usa entre 2 y 40 letras. Se permiten espacios, apóstrofe y guion.');
+      Alert.alert(noWidow('Revisa tu nombre'), noWidow('Usa entre 2 y 40 letras. Se permiten espacios, apóstrofe y guion.'));
       return;
     }
     if (handle && !/^[a-z0-9._]{3,24}$/.test(handle.toLowerCase())) {
-      Alert.alert('Revisa tu usuario', 'Usa de 3 a 24 letras, números, punto o guion bajo.');
+      Alert.alert(noWidow('Revisa tu usuario'), noWidow('Usa de 3 a 24 letras, números, punto o guion bajo.'));
       return;
     }
     setBusy(true);
@@ -62,7 +63,7 @@ export default function CommunityProfileScreen() {
         auth.user.user_metadata.first_name !== firstName.trim() || auth.user.user_metadata.last_name !== lastName.trim()
       );
       if (changingExisting && changedRecently) {
-        Alert.alert('Tu nombre se cambió recientemente', 'Podrás volver a cambiarlo 30 días después del último ajuste.');
+        Alert.alert(noWidow('Tu nombre se cambió recientemente'), noWidow('Podrás volver a cambiarlo 30 días después del último ajuste.'));
         return;
       }
       const profile = {
@@ -85,11 +86,11 @@ export default function CommunityProfileScreen() {
         });
       }
       if (!error) await supabase.auth.updateUser({ data: { first_name: profile.first_name, last_name: profile.last_name, profile_complete: true, avatar_url: avatarUrl, name_changed_at: changingExisting ? new Date().toISOString() : lastChanged } });
-      if (error) { Alert.alert('No pudimos guardar tu perfil', 'Inténtalo otra vez.'); return; }
+      if (error) { Alert.alert(noWidow('No pudimos guardar tu perfil'), noWidow('Inténtalo otra vez.')); return; }
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       router.replace(returnTo?.startsWith('/') ? returnTo as any : '/explorar');
     } catch {
-      Alert.alert('No pudimos guardar tu perfil', 'Revisa tu conexión e inténtalo otra vez.');
+      Alert.alert(noWidow('No pudimos guardar tu perfil'), noWidow('Revisa tu conexión e inténtalo otra vez.'));
     } finally {
       setBusy(false);
     }
@@ -110,8 +111,8 @@ export default function CommunityProfileScreen() {
           }}>
           {avatarUri ? <Image source={{ uri: avatarUri }} style={s.avatarImage} /> : <Ionicons name="camera-outline" size={27} color={theme.textMute} />}
         </TouchableOpacity>
-        <Text style={[s.title, { color: theme.text }]}>Tu nombre, nada más.</Text>
-        <Text style={[s.body, { color: theme.textSecondary }]}>Ayuda a que reseñas y recomendaciones tengan una persona real detrás. Tu correo nunca se muestra.</Text>
+        <Text style={[s.title, { color: theme.text }]}>{noWidow('Tu nombre, nada más.')}</Text>
+        <Text style={[s.body, { color: theme.textSecondary }]}>{noWidow('Ayuda a que reseñas y recomendaciones tengan una persona real detrás. Tu correo nunca se muestra.')}</Text>
         <TextInput value={firstName} onChangeText={setFirstName} autoCapitalize="words" placeholder="Nombre" placeholderTextColor={theme.textMute} style={[s.input, { color: theme.text, backgroundColor: theme.surface, borderColor: theme.border }]} />
         <TextInput value={lastName} onChangeText={setLastName} autoCapitalize="words" placeholder="Primer apellido" placeholderTextColor={theme.textMute} style={[s.input, { color: theme.text, backgroundColor: theme.surface, borderColor: theme.border }]} />
         <TextInput value={handle} onChangeText={setHandle} autoCapitalize="none" placeholder="@usuario opcional" placeholderTextColor={theme.textMute} style={[s.input, { color: theme.text, backgroundColor: theme.surface, borderColor: theme.border }]} />

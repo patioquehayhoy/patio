@@ -1,5 +1,88 @@
 # HANDOFF
 
+## 2026-08-17 — El mapa encuadra los resultados de búsqueda (`app/explorar.tsx`)
+
+Antes, escribir en el buscador (ej. "mole") solo actualizaba la lista del
+sheet — el mapa se quedaba quieto, sin señal visual de dónde caen los
+resultados. Investigado el comportamiento real de Google Maps y Airbnb antes
+de tocar código (mismo rigor que la investigación de Apple Maps de esta
+sesión, ver entrada de abajo), con fuentes reales:
+
+- **Google Maps Platform, "Camera and view" (Maps SDK for iOS)**
+  (developers.google.com/maps/documentation/ios-sdk/views, sección "Set
+  boundaries"): documenta textualmente el caso de uso — "if you want to
+  display all gas stations within five miles of the user's current
+  position, move the camera so they are all visible on the screen" — vía
+  `cameraForBounds:insets:` sobre un `GMSCoordinateBounds`. Es el mismo
+  mecanismo que `fitToCoordinates` de `react-native-maps`, y el mismo que
+  este archivo ya usaba para el tap de un cluster. Es la fuente oficial de
+  Google que confirma que "calcular los límites de los resultados y mover
+  la cámara para que quepan" es la técnica documentada para exactamente el
+  escenario de Patio (buscar algo, ver todos los resultados cercanos a la
+  vez), no una interpretación libre.
+- **Comunidad de soporte de Google Maps** (support.google.com, hilos
+  349598502 y 321038862): reportes reales de usuarios confirman que la app
+  de Maps mueve la cámara en respuesta a una búsqueda como comportamiento
+  esperado, y que el caso en que salta de posición **sin** resultados que
+  mostrar se reporta como defecto molesto, no como diseño — respalda la
+  decisión de no mover el mapa con 0 resultados.
+- **Centro de ayuda de Airbnb** (airbnb.com/help/article/252, "Search for
+  Airbnb home listings"): confirma que mapa y lista conviven, y que el mapa
+  se mueve **para ubicar listados** — "Use the map to find a listing... you
+  can zoom in or move around the map to find additional listings that don't
+  appear at first" — no se fuerza un fit que intente comprimir cientos de
+  resultados en una sola vista. Con pocos resultados (el caso de Patio,
+  decenas de fonditas por zona, no cientos) sí aplica el fit; con **1**
+  resultado no hay límites que calcular entre un solo punto, así que se
+  descartó forzar `fitToCoordinates` ahí — decisión de ingeniería, no de una
+  fuente puntual, para evitar el sobre-acercamiento raro de encuadrar un
+  único pin.
+- **Business Insider, "How to Search Airbnb by Map"** (businessinsider.com):
+  confirma el patrón real de Airbnb — el checkbox "Search as I move the
+  map" indica que ahí es el **mapa** el que dirige la lista tras la carga
+  inicial, no al revés en cada tecla. Confirma la decisión de no re-encuadrar
+  en cada carácter, solo cuando la búsqueda se asienta.
+- **Mapsemble, "Airbnb-Style Card Synchronization"** (mapsemble.com):
+  documenta el patrón de tocar un pin/tarjeta y resaltar/centrar su
+  contraparte, atribuido explícitamente a Airbnb — investigado porque el
+  encargo lo pedía, pero **no implementado** en este cambio: no estaba en el
+  alcance pedido ("Qué construir"), y `explorar.tsx` ya navega directo a la
+  ficha al tocar un resultado (comportamiento distinto, no tocado).
+
+**Implementación (`app/explorar.tsx`, un solo `useEffect` nuevo, nada más
+tocado):**
+- Se dispara cuando `filteredMatches` (ya existente) se asienta —
+  `searchPending` en `false` (viene del debounce de 300ms ya existente en
+  `useFoodieExploreController`, no se agregó un segundo debounce) y
+  `isFiltering` en `true` (hay texto de búsqueda).
+- Una llave derivada (`matchedResultIdsKey`, ids de Patio ordenados y
+  unidos) evita relanzar el fit cuando `filteredMatches` cambia de
+  referencia por razones ajenas a qué lugares aparecen — ej. guardar un
+  favorito a media búsqueda recalcula `savedIds` y por lo tanto el array,
+  pero no cambia el conjunto de resultados.
+- 0 resultados: no se mueve el mapa (ver fuentes arriba).
+- 1 resultado: `animateToRegion` a un acercamiento fijo (`latitudeDelta`/
+  `longitudeDelta` `0.009`) — el mismo piso de zoom que ya usaba este
+  archivo para el tap de un cluster de un solo lugar, reusado en vez de
+  inventar un número nuevo.
+- 2+ resultados: `fitToCoordinates` (mismo mecanismo que el fit de clusters
+  de este archivo). Padding no inventado: `top` usa `insets.top + 132`, el
+  mismo valor exacto que ya usa el estilo `sheet` para su borde superior en
+  modo búsqueda — así el encuadre no mete pines debajo de la barra de
+  búsqueda ni de la de filtros. `right`/`bottom`/`left` (`54`/`150`/`54`)
+  reutilizan el mismo padding que ya usa el fit de clusters de este mismo
+  archivo, para no introducir un segundo esquema de padding en la misma
+  pantalla.
+- Al cerrar la búsqueda (limpiar texto, botón atrás) el mapa se queda donde
+  el fit lo dejó — no se restaura la posición previa a la fuerza. Ninguna de
+  las dos fuentes revisadas (Google, Airbnb) restaura la cámara al cerrar
+  una búsqueda; la persona puede volver a mover el mapa ella misma si
+  quiere.
+
+No se tocó `dismissSheet`, `sheetPanResponder` ni el `useEffect` de
+`sheetView` (arreglados esta madrugada, fuera de alcance de este cambio) ni
+el sistema de filtros/IA. `npx tsc --noEmit` y `npx expo lint` verdes.
+
 ## 2026-08-17 (madrugada) — Barrido de consistencia del sistema de diseño (Tareas 3-7)
 
 Agente `design-system` de la corrida programada 3am (`docs/TASKS.md`). No

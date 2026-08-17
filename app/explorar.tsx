@@ -200,6 +200,72 @@ export default function ExplorarScreen() {
   })), [topMatchPerPatio, filters, savedIds, collections]);
   const matchingPatioIds = useMemo(() => new Set(filteredMatches.map((match) => match.patio.id)), [filteredMatches]);
   const filteredPinIds = useMemo(() => new Set(filteredPins.map((patio) => patio.id)), [filteredPins]);
+  // Igual que Google Maps: al buscar, la cámara se mueve para encuadrar los
+  // resultados — no se queda quieta esperando que el humano la mueva a mano.
+  // Google documenta esta técnica para exactamente este caso ("mostrar todas
+  // las gasolineras a 5 millas, mover la cámara para que quepan todas en
+  // pantalla" — developers.google.com/maps/documentation/ios-sdk/views,
+  // sección "Set boundaries"); `fitToCoordinates` ya vive en este archivo
+  // para el tap de un cluster (más abajo) — se reutiliza el mismo mecanismo
+  // en vez de inventar uno nuevo.
+  //
+  // `filteredMatches` ya trae un solo resultado por Patio (topMatchPerPatio
+  // dedup arriba), así que no hace falta deduplicar de nuevo aquí. La llave
+  // ordenada evita relanzar el fit cuando la lista se recalcula por razones
+  // que no cambian qué lugares aparecen (ej. tocar un corazón mientras se
+  // busca cambia `savedIds` y por lo tanto la referencia de `filteredMatches`,
+  // pero no el conjunto de resultados).
+  const matchedResultIdsKey = useMemo(
+    () => filteredMatches.map((match) => match.patio.id).sort().join('|'),
+    [filteredMatches]
+  );
+  useEffect(() => {
+    // No dispara en cada tecla: `searchPending` viene del debounce de 300ms
+    // ya existente en useFoodieExploreController — solo se lee aquí, no se
+    // agrega un segundo debounce.
+    if (!isFiltering || searchPending) return;
+    const found = filteredMatches
+      .map((match) => match.patio)
+      .filter((patio) => patio.latitude > 0 && patio.longitude !== 0);
+    if (found.length === 0) {
+      // Cero resultados: no mover el mapa. Ni Airbnb reposiciona el mapa sin
+      // listados que ubicar (airbnb.com/help/article/252 — el mapa se mueve
+      // para "encontrar listados", no de forma incondicional en cada
+      // búsqueda), y reportes reales de usuarios en la comunidad de soporte
+      // de Google Maps describen el salto de cámara sin resultados como un
+      // defecto molesto, no como el comportamiento esperado
+      // (support.google.com/maps/thread/349598502,
+      // support.google.com/maps/thread/321038862).
+      return;
+    }
+    if (found.length === 1) {
+      // Un único resultado: no hay límites que calcular entre un solo punto
+      // — forzar un fit ahí sobre-acerca el mapa de forma rara. Se anima a
+      // un acercamiento fijo y predecible, el mismo piso de zoom que ya usa
+      // este archivo al entrar a un cluster de un solo lugar (ver
+      // `animateToRegion` más abajo, delta 0.009), en vez de un número nuevo
+      // sin relación con el resto del archivo.
+      mapRef.current?.animateToRegion({
+        latitude: found[0].latitude,
+        longitude: found[0].longitude,
+        latitudeDelta: 0.009,
+        longitudeDelta: 0.009,
+      }, 420);
+      return;
+    }
+    // Dos o más resultados: encuadrar todos. Padding derivado de la propia
+    // pantalla, no inventado: `top` coincide con el `top` real del sheet de
+    // resultados (insets.top + 132, ver el estilo `sheet` más abajo) para
+    // que el encuadre no esconda pines detrás de la barra de búsqueda ni de
+    // la de filtros; `right`/`bottom`/`left` reutilizan el mismo padding que
+    // ya usa el fit de clusters de este archivo — un segundo esquema de
+    // padding en la misma pantalla sería ruido.
+    mapRef.current?.fitToCoordinates(
+      found.map((patio) => ({ latitude: patio.latitude, longitude: patio.longitude })),
+      { edgePadding: { top: insets.top + 132, right: 54, bottom: 150, left: 54 }, animated: true },
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [matchedResultIdsKey, isFiltering, searchPending]);
   const shouldCluster = !isFiltering && mapRegion.latitudeDelta > 0.018;
   const stableMapPatios = useMemo(() => allPatios.filter((patio) => patio.latitude > 0 && patio.longitude !== 0), [allPatios]);
   const clusters = useMemo(() => {

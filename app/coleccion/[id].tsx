@@ -114,7 +114,7 @@ const s = StyleSheet.create({
   title: { fontFamily: Fonts.brand, fontSize: 36, lineHeight: 40, fontWeight: '900', letterSpacing: -1.1, padding: 0 },
   description: { fontSize: 14.5, lineHeight: 20, marginTop: 8, padding: 0, minHeight: 24 }, count: { fontSize: 12.5, marginTop: 12 },
   actions: { flexDirection: 'row', gap: 10, marginTop: 24 }, primaryAction: { height: 50, flex: 1, borderRadius: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
-  primaryText: { fontSize: 15, fontWeight: '800' }, shareButton: { width: 50, height: 50, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  primaryText: { fontSize: 15, fontWeight: '800' }, shareButton: { width: 50, height: 50, borderRadius: 16, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
   section: { marginTop: 32, marginBottom: 9, fontSize: 10.5, fontWeight: '800', letterSpacing: 1.3 }, list: {},
   row: { minHeight: 94, borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 12 }, monogram: { width: 48, height: 58, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
   monogramText: { fontFamily: Fonts.brand, fontSize: 23, fontWeight: '900' }, rowBody: { flex: 1, minWidth: 0 }, statusRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 3 },
@@ -122,5 +122,5 @@ const s = StyleSheet.create({
   meta: { fontSize: 12.5, marginTop: 3 }, area: { fontSize: 11.5, marginTop: 2 }, price: { fontSize: 14, fontWeight: '800' },
   empty: { alignItems: 'center', paddingTop: 76, paddingHorizontal: 28 }, emptyIcon: { width: 64, height: 64, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
   emptyTitle: { fontFamily: Fonts.brand, marginTop: 18, fontSize: 22, fontWeight: '900' }, emptyText: { marginTop: 8, fontSize: 14, lineHeight: 20, textAlign: 'center' },
-  explore: { height: 48, paddingHorizontal: 20, borderRadius: 15, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center', marginTop: 22 }, exploreText: { fontSize: 15, fontWeight: '700' },
+  explore: { height: 48, paddingHorizontal: 20, borderRadius: 15, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', marginTop: 22 }, exploreText: { fontSize: 15, fontWeight: '700' },
 });

@@ -86,7 +86,7 @@ function makeStyles(t: Theme) {
     body:         { fontSize: 15, fontWeight: '400', fontFamily: Fonts.brand, textAlign: 'center', color: t.textSecondary, lineHeight: 22, marginBottom: 28 },
     primaryBtn:   { minHeight: 56, borderRadius: 16, backgroundColor: t.text, alignItems: 'center', justifyContent: 'center' },
     primaryText:  { fontSize: 16, fontWeight: '900', fontFamily: Fonts.brand, color: t.bg },
-    secondaryBtn: { marginTop: 10, minHeight: 48, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, alignItems: 'center', justifyContent: 'center' },
+    secondaryBtn: { marginTop: 10, minHeight: 48, borderRadius: 16, borderWidth: 1.5, borderColor: t.border, alignItems: 'center', justifyContent: 'center' },
     secondaryText:{ fontSize: 15, fontWeight: '400', fontFamily: Fonts.brand, color: t.text },
   });
 }

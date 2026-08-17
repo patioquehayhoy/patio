@@ -155,7 +155,7 @@ function makeStyles(c: FonderoColors) {
 
   posterWrap: { alignItems: 'center', paddingHorizontal: 22 },
   poster: { width: 330, borderRadius: 26, backgroundColor: LIGHT.bg, overflow: 'hidden', shadowColor: '#000', shadowOffset: { width: 0, height: 24 }, shadowOpacity: 0.24, shadowRadius: 34, elevation: 12 },
-  posterHead: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, paddingHorizontal: 22, paddingTop: 26, paddingBottom: 18 },
+  posterHead: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, paddingHorizontal: 22, paddingTop: 26, paddingBottom: 18 },
   posterHeadLeft: { flex: 1 },
   posterDate: { fontSize: 11, fontWeight: '700', letterSpacing: 1.4, textTransform: 'uppercase', color: LIGHT.accent, marginBottom: 7 },
   posterName: { fontSize: 32, lineHeight: 35, fontWeight: '900', letterSpacing: -1, color: LIGHT.ink, fontFamily: Fonts.brand },
@@ -178,7 +178,7 @@ function makeStyles(c: FonderoColors) {
   ctaWrap: { paddingHorizontal: 22, paddingTop: 12 },
   cta: { height: 54, borderRadius: 27, backgroundColor: c.accent, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   ctaText: { fontSize: 15, fontWeight: '700', letterSpacing: -0.2, color: '#FFFFFF' },
-  shareLink: { minHeight: 44, marginTop: 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7 },
+  shareLink: { minHeight: 44, marginTop: 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   shareLinkText: { fontSize: 13.5, fontWeight: '500' },
   });
 }

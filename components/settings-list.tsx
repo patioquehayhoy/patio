@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
   groupLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1.6, textTransform: 'uppercase', paddingHorizontal: 6, paddingBottom: 8 },
   card: { borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
   // minHeight 56: altura estándar de fila tocable en toda la app.
-  row: { minHeight: 56, flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10, paddingHorizontal: 16 },
+  row: { minHeight: 56, flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 10, paddingHorizontal: 16 },
   iconBox: { width: 32, height: 32, borderRadius: 10, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   body: { flex: 1, minWidth: 0 },
   title: { fontSize: 14.5, fontWeight: '500', letterSpacing: -0.1, lineHeight: 18 },

@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
   version: { marginBottom: 5, textAlign: 'center', fontSize: 9, fontWeight: '700', letterSpacing: 0.6 },
   pill: {
     flexDirection: 'row',
-    gap: 2,
+    gap: 4,
     paddingVertical: 4.5,
     paddingHorizontal: 6,
     borderRadius: 25,

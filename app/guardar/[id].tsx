@@ -150,7 +150,7 @@ export default function SavePlaceScreen() {
           />
           <View style={s.ratingRow}>
             <Text style={[s.ratingLabel, { color: theme.textSecondary }]}>{noWidow('Tu calificación')}</Text>
-            <View style={{ flexDirection: 'row', gap: 7 }}>
+            <View style={{ flexDirection: 'row', gap: 8 }}>
               {[1, 2, 3, 4, 5].map((value) => (
                 <TouchableOpacity
                   key={value}
@@ -195,20 +195,20 @@ const s = StyleSheet.create({
   heroTitle: { marginTop: 14, fontFamily: Fonts.brand, fontSize: 34, lineHeight: 38, fontWeight: '900', letterSpacing: -1 },
   heroBody: { marginTop: 7, maxWidth: 340, fontSize: 14, lineHeight: 20 },
   listCard: { marginTop: 22, borderRadius: 22, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
-  listRow: { minHeight: 64, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  listRow: { minHeight: 64, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 8 },
   listGlyph: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   listTitle: { fontSize: 15, lineHeight: 19, fontWeight: '700' },
   listMeta: { marginTop: 2, fontSize: 12.5, lineHeight: 16 },
-  newRow: { minHeight: 60, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  newRow: { minHeight: 60, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 8 },
   newInput: { flex: 1, height: 52, fontSize: 15 },
   create: { fontSize: 14, fontWeight: '700' },
   sectionLabel: { marginTop: 28, marginBottom: 9, paddingHorizontal: 5, fontSize: 10.5, fontWeight: '700', letterSpacing: 1.4 },
   privateCard: { borderRadius: 24, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden', padding: 15 },
   statusRow: { flexDirection: 'row', gap: 8 },
-  statusChip: { minHeight: 38, paddingHorizontal: 13, borderRadius: 19, flexDirection: 'row', alignItems: 'center', gap: 6 },
+  statusChip: { minHeight: 38, paddingHorizontal: 13, borderRadius: 19, flexDirection: 'row', alignItems: 'center', gap: 4 },
   statusText: { fontSize: 13, fontWeight: '600' },
   note: { minHeight: 88, marginTop: 13, padding: 13, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, fontSize: 14, lineHeight: 20, textAlignVertical: 'top' },
   ratingRow: { minHeight: 48, marginTop: 6, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   ratingLabel: { fontSize: 13.5 },
-  publicRow: { minHeight: 68, paddingHorizontal: 14, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  publicRow: { minHeight: 68, paddingHorizontal: 14, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 8 },
 });

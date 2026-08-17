@@ -163,7 +163,7 @@ function makeStyles(theme: Theme) {
     cameraRoot: { flex: 1, backgroundColor: '#000' },
     cameraLoading: { alignItems: 'center', justifyContent: 'center', backgroundColor: '#090909' },
     cameraOverlay: { flex: 1, justifyContent: 'space-between', paddingHorizontal: 18, backgroundColor: 'rgba(0,0,0,0.08)' },
-    cameraTop: { minHeight: 76, flexDirection: 'row', alignItems: 'center', gap: 12 },
+    cameraTop: { minHeight: 76, flexDirection: 'row', alignItems: 'center', gap: 8 },
     cameraControl: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(0,0,0,0.42)', alignItems: 'center', justifyContent: 'center' },
     cameraCopy: { flex: 1, alignItems: 'center' },
     cameraTitle: { color: '#fff', fontSize: 16, fontWeight: '700', textShadowColor: 'rgba(0,0,0,0.45)', textShadowRadius: 8 },

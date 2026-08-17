@@ -81,8 +81,8 @@ function makeStyles(c: FonderoColors) {
   return StyleSheet.create({
     root: { flex: 1, backgroundColor: c.bg, paddingHorizontal: 20 },
     close: { width: 44, height: 44, marginLeft: -9, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
-    options: { marginTop: 28, gap: 10 },
-    option: { minHeight: 92, padding: 16, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, borderColor: c.border, backgroundColor: c.surface, flexDirection: 'row', alignItems: 'center', gap: 14 },
+    options: { marginTop: 28, gap: 8 },
+    option: { minHeight: 92, padding: 16, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, borderColor: c.border, backgroundColor: c.surface, flexDirection: 'row', alignItems: 'center', gap: 8 },
     featured: { borderColor: c.accent, backgroundColor: c.surface },
     optionIcon: { width: 48, height: 48, borderRadius: 16, backgroundColor: c.iconBg, alignItems: 'center', justifyContent: 'center' },
     featuredIcon: { backgroundColor: c.accent },

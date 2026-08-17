@@ -248,7 +248,7 @@ const s = StyleSheet.create({
   sentHint: { marginTop: 8, maxWidth: 320, fontSize: 14, fontWeight: '400', lineHeight: 20, color: 'rgba(248,248,245,0.7)', textAlign: 'center' },
 
   field: { alignSelf: 'stretch', borderRadius: 14, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.18)' },
-  fieldInner: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingLeft: 18, paddingRight: 5, paddingVertical: 5 },
+  fieldInner: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingLeft: 18, paddingRight: 5, paddingVertical: 5 },
   input: { flex: 1, minHeight: 46, fontSize: 16, fontWeight: '400', color: '#F8F8F5', paddingVertical: 0 },
   // Única acción prominente de esta pantalla (regla homologada 2026-08-16
   // en CLAUDE.md) — mismo tratamiento que su gemela Foodie en comunidad-acceso.tsx.

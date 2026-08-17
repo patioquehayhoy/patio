@@ -80,11 +80,11 @@ type OpenPanel = 'filters' | 'lists' | null;
 function styles(t: Theme) {
   const border = t.isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.06)';
   return StyleSheet.create({
-    root: { height: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, paddingHorizontal: 16 },
+    root: { height: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingHorizontal: 16 },
     pill: { height: 34, paddingHorizontal: 12, borderRadius: 17, justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
     iconPill: { width: 34, paddingHorizontal: 0, alignItems: 'center' },
     pillText: { fontSize: 12.5, fontWeight: '600' },
-    pillWithIcon: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+    pillWithIcon: { flexDirection: 'row', alignItems: 'center', gap: 4 },
     // El badge (el número) es la ÚNICA señal de "hay filtros activos" — el
     // botón que abre el sheet se queda siempre en tono neutro. Llenarlo de
     // color se leía como "este botón está prendido", cuando en realidad es
@@ -108,7 +108,7 @@ function styles(t: Theme) {
     chipActive: { backgroundColor: t.text, borderColor: t.text },
     chipText: { fontSize: 13.5, fontWeight: '600', color: t.text },
     chipTextActive: { color: t.bg },
-    option: { minHeight: 48, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 10, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border },
+    option: { minHeight: 48, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 8, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border },
     optionText: { flex: 1, fontSize: 15, fontWeight: '500', color: t.text },
     createInput: { flex: 1, fontSize: 15, fontWeight: '500', color: t.text, padding: 0 },
     createBtn: { minHeight: 34, paddingHorizontal: 14, borderRadius: 100, alignItems: 'center', justifyContent: 'center', backgroundColor: t.text },
@@ -188,7 +188,7 @@ function FilterSheet({ visible, onClose, title, onClear, children, s, theme }: {
         </View>
         <View style={s.panelHeader}>
           <Text style={s.panelTitle}>{title}</Text>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 18 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             {!!onClear && <TouchableOpacity hitSlop={HIT_SLOP} onPress={onClear}><Text style={s.panelClear}>Limpiar</Text></TouchableOpacity>}
             <TouchableOpacity hitSlop={HIT_SLOP} onPress={onClose} accessibilityLabel="Cerrar"><Ionicons name="close" size={20} color={theme.textSecondary} /></TouchableOpacity>
           </View>

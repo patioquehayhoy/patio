@@ -44,18 +44,18 @@ function makeStyles(t: Theme) {
     subtitle: { fontSize: 13, fontWeight: '400', color: t.textSecondary },
 
     // Lista
-    list: { paddingHorizontal: 18, gap: 10, marginTop: 16 },
-    card: { flexDirection: 'row', gap: 12, backgroundColor: t.surface, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, padding: 12 },
+    list: { paddingHorizontal: 18, gap: 8, marginTop: 16 },
+    card: { flexDirection: 'row', gap: 8, backgroundColor: t.surface, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, padding: 12 },
     thumb: { width: 78, height: 78, borderRadius: 12, overflow: 'hidden', backgroundColor: '#111214' },
     thumbImg: { width: '100%', height: '100%' },
     body: { flex: 1, minWidth: 0, justifyContent: 'center' },
-    statusRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 3 },
+    statusRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 3 },
     dot: { width: 6, height: 6, borderRadius: 3 },
     statusText: { fontSize: 10.5, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase' },
     name: { fontSize: 18, fontWeight: '900', letterSpacing: -0.3, color: t.text, lineHeight: 21, marginBottom: 4 },
     today: { fontSize: 13, fontWeight: '400', color: t.text, marginBottom: 6 },
     metaRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-    metaArea: { flexDirection: 'row', alignItems: 'center', gap: 5, flex: 1, minWidth: 0 },
+    metaArea: { flexDirection: 'row', alignItems: 'center', gap: 4, flex: 1, minWidth: 0 },
     metaAreaText: { fontSize: 12, fontWeight: '400', color: t.textSecondary, flexShrink: 1 },
     price: { fontSize: 16, fontWeight: '900', letterSpacing: -0.3, color: t.accent },
 

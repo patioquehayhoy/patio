@@ -65,6 +65,6 @@ const s = StyleSheet.create({
   nav: { height: 56, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   title: { fontFamily: Fonts.brand, fontSize: 38, fontWeight: '900', letterSpacing: -1.2, marginTop: 24 },
   desc: { fontSize: 15, lineHeight: 22, marginTop: 10 },
-  button: { height: 48, borderRadius: 24, alignSelf: 'flex-start', paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center', gap: 7, marginTop: 26 },
+  button: { height: 48, borderRadius: 24, alignSelf: 'flex-start', paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 26 },
   row: { minHeight: 60, borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
 });

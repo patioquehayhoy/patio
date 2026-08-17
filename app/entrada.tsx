@@ -114,7 +114,7 @@ const s = StyleSheet.create({
   claim: { fontSize: 15, fontWeight: '900', fontFamily: Fonts.brand, textAlign: 'center', color: '#F8F8F5' },
   tagline: { fontSize: 15, fontWeight: '400', fontFamily: Fonts.brand, textAlign: 'center', color: 'rgba(248,248,245,0.7)' },
 
-  actions: { alignItems: 'center', gap: 2 },
+  actions: { alignItems: 'center', gap: 4 },
   ctaGlass: { alignSelf: 'stretch', borderRadius: 14, overflow: 'hidden' },
   ctaGlassInner: { height: 52, alignItems: 'center', justifyContent: 'center' },
   ctaGlassText: { fontSize: 16, fontWeight: '900', color: '#FFFFFF', letterSpacing: -0.2 },

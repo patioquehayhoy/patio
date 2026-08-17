@@ -97,7 +97,7 @@ const s = StyleSheet.create({
   title: { fontSize: 34, lineHeight: 37, fontWeight: '900', letterSpacing: -1, fontFamily: Fonts.brand },
   subtitle: { marginTop: 8, fontSize: 14, lineHeight: 20, fontWeight: '400', maxWidth: 330 },
   list: { marginTop: 26, borderRadius: Radius.card, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
-  row: { minHeight: 70, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  row: { minHeight: 70, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 8 },
   icon: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   rowTitle: { fontSize: 15, fontWeight: '600' },
   rowHint: { marginTop: 3, fontSize: 12, fontWeight: '400' },

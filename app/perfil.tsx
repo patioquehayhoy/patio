@@ -125,7 +125,7 @@ export default function PerfilScreen() {
 
 const s = StyleSheet.create({
   root: { flex: 1 },
-  statusRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 },
+  statusRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 },
   statusDot: { width: 7, height: 7, borderRadius: 4 },
   statusText: { fontSize: 13, fontWeight: '600' },
 });

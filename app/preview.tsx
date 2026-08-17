@@ -53,7 +53,7 @@ export default function PreviewScreen() {
         </View>
         <Text style={s.emptyTitle}>Primero publica lo de hoy</Text>
         <Text style={s.emptyBody}>Cuando tu menú esté listo, aquí aparecerá publicado.</Text>
-        <TouchableOpacity style={s.emptyButton} onPress={() => router.replace('/menu')} activeOpacity={0.84}>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Crear menú" style={s.emptyButton} onPress={() => router.replace('/menu')} activeOpacity={0.84}>
           <Text style={s.emptyButtonText}>Crear menú</Text>
         </TouchableOpacity>
       </View>
@@ -112,11 +112,25 @@ export default function PreviewScreen() {
       {/* El póster es un objeto compartible real: la acción principal genera
           un JPG y abre la hoja nativa de iOS. */}
       <View style={[s.ctaWrap, { paddingBottom: (insets.bottom || 10) + 24 }]}>
-        <TouchableOpacity style={s.cta} onPress={sharePoster} disabled={sharing} activeOpacity={0.86}>
+        <TouchableOpacity
+          style={s.cta}
+          onPress={sharePoster}
+          disabled={sharing}
+          activeOpacity={0.86}
+          accessibilityRole="button"
+          accessibilityLabel={sharing ? 'Preparando imagen' : 'Compartir como imagen'}
+          accessibilityState={{ disabled: sharing, busy: sharing }}>
           <Ionicons name="share-outline" size={18} color="#FFFFFF" />
           <Text style={s.ctaText} allowFontScaling={true}>{sharing ? 'Preparando…' : 'Compartir como imagen'}</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={s.shareLink} onPress={handleOpenProfile} disabled={!patioId} activeOpacity={0.72}>
+        <TouchableOpacity
+          style={s.shareLink}
+          onPress={handleOpenProfile}
+          disabled={!patioId}
+          activeOpacity={0.72}
+          accessibilityRole="button"
+          accessibilityLabel="Ver en mi perfil"
+          accessibilityState={{ disabled: !patioId }}>
           <Text style={[s.shareLinkText, { color: c.textSecondary }]} allowFontScaling={true}>Ver en mi perfil</Text>
         </TouchableOpacity>
       </View>

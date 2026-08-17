@@ -119,9 +119,14 @@ PERFIL ANTOJITOS:
 - Secciones posibles: QUESADILLAS, GORDITAS, TLACOYOS, PAMBAZOS, EXTRAS, BEBIDAS.
 - Antojito + relleno principal suele formar el nombre; salsa, crema, queso y guarnición suelen describir.`,
   elotes: `
-PERFIL ELOTES Y BOTANAS:
-- Secciones posibles: ELOTES, ESQUITES, DORILOCOS/BOTANAS, TAMAÑOS, EXTRAS, BEBIDAS.
+PERFIL ELOTES Y ESQUITES:
+- Secciones posibles: ELOTES, ESQUITES, TAMAÑOS, EXTRAS, BEBIDAS.
 - Producto + tamaño/presentación distingue; toppings y nivel de chile describen o son extras.`,
+  botanas: `
+PERFIL BOTANAS:
+- Puesto de botanas tipo doriloco/tostiloco: base (Doritos, Takis, papas, Cheetos, tostitos) + preparación con producto empacado, mariscos, verduras y salsas.
+- Secciones posibles: DORILOCOS/BOTANAS, TOSTILOCOS, TAMAÑOS, EXTRAS, BEBIDAS.
+- Producto base + tamaño/presentación distingue; chamoy, salsa, limón, chicharrón y nivel de chile suelen ser descripción o extras.`,
   bebidas: `
 PERFIL BEBIDAS:
 - Secciones posibles: AGUAS, JUGOS, CAFÉ, TÉS, FRÍAS, CALIENTES, TAMAÑOS, EXTRAS.

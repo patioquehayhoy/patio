@@ -215,7 +215,7 @@ export function usePatioDetailController(id: PatioParam) {
     const horarioTexto = resumenHorario(patio.weeklyHours) || patio.open;
     Share.share({
       title: `${patio.name} en Patio`,
-      message: `${patio.name}\n${patio.category} · ${patio.area}\n${horarioTexto}\n\nVer menú en Patio:\n${patioUrl}\n\nCómo llegar:\n${mapsUrl}`,
+      message: `${patio.name}\n${patio.categories[0] ?? 'Fondita'} · ${patio.area}\n${horarioTexto}\n\nVer menú en Patio:\n${patioUrl}\n\nCómo llegar:\n${mapsUrl}`,
       url: patioUrl,
     }).catch(() => {});
   }, [patio]);

@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Location from 'expo-location';
 import { router, Stack } from 'expo-router';
@@ -31,11 +32,13 @@ import {
   setPagosTrans,
   setTipoNegocio,
 } from '@/lib/menu-store';
-import { confirmedSchedule, NombreDuplicadoError, saveSmartSetup, type BusinessType, type SmartSetupResult } from '@/lib/smart-setup';
+import { BUSINESS_TYPE_LABELS, confirmedSchedule, NombreDuplicadoError, saveSmartSetup, type BusinessType, type SmartSetupResult } from '@/lib/smart-setup';
 import { Fonts, useTheme } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
 
 type Stage = 'name' | 'category' | 'location' | 'schedule' | 'payments' | 'finish';
+
+const MAX_CATEGORIES = 3;
 
 const INITIAL_RESULT: SmartSetupResult = {
   nombre: '',
@@ -44,6 +47,7 @@ const INITIAL_RESULT: SmartSetupResult = {
   latitude: null,
   longitude: null,
   tipo: 'otro',
+  tipos: [],
   especialidades: [],
   pagos: { efectivo: false, transferencia: false, tarjeta: false },
   horario: Array.from({ length: 7 }, (_, dia) => ({
@@ -64,15 +68,19 @@ const STEP_BY_STAGE: Record<Exclude<Stage, 'finish'>, number> = {
   payments: 4,
 };
 
+// Multi-tag: hasta 3 (ver MAX_CATEGORIES). 'Elotes' y 'Botanas' viven
+// separados — antes eran una sola etiqueta compuesta "Elotes y botanas".
+// Iconos únicos dentro de este arreglo, sin repetir entre entradas.
 const BUSINESS_TYPES: { id: BusinessType; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
-  { id: 'fondita', label: 'Fondita', icon: 'restaurant-outline' },
+  { id: 'fondita', label: BUSINESS_TYPE_LABELS.fondita, icon: 'restaurant-outline' },
   { id: 'taqueria', label: 'Tacos', icon: 'flame-outline' },
-  { id: 'antojitos', label: 'Antojitos', icon: 'fast-food-outline' },
-  { id: 'elotes', label: 'Elotes y botanas', icon: 'leaf-outline' },
+  { id: 'antojitos', label: BUSINESS_TYPE_LABELS.antojitos, icon: 'fast-food-outline' },
+  { id: 'elotes', label: BUSINESS_TYPE_LABELS.elotes, icon: 'nutrition-outline' },
+  { id: 'botanas', label: BUSINESS_TYPE_LABELS.botanas, icon: 'basket-outline' },
   { id: 'reposteria', label: 'Postres y pan', icon: 'cafe-outline' },
-  { id: 'mariscos', label: 'Mariscos', icon: 'fish-outline' },
-  { id: 'bebidas', label: 'Bebidas', icon: 'wine-outline' },
-  { id: 'restaurante', label: 'Restaurante', icon: 'book-outline' },
+  { id: 'mariscos', label: BUSINESS_TYPE_LABELS.mariscos, icon: 'fish-outline' },
+  { id: 'bebidas', label: BUSINESS_TYPE_LABELS.bebidas, icon: 'wine-outline' },
+  { id: 'restaurante', label: BUSINESS_TYPE_LABELS.restaurante, icon: 'book-outline' },
   { id: 'otro', label: 'Otro', icon: 'ellipsis-horizontal' },
 ];
 
@@ -110,13 +118,15 @@ function ContinueButton({ colors, disabled, loading, onPress }: {
   return (
     <TouchableOpacity
       accessibilityRole="button"
+      accessibilityLabel="Continuar"
+      accessibilityState={{ disabled: disabled || loading, busy: loading }}
       disabled={disabled || loading}
       onPress={onPress}
       activeOpacity={0.78}
-      style={[s.continueButton, { backgroundColor: colors.text }, (disabled || loading) && s.disabled]}>
+      style={[s.continueButton, { backgroundColor: colors.accent }, (disabled || loading) && s.disabled]}>
       {loading
-        ? <ActivityIndicator size="small" color={colors.bg} />
-        : <Text style={[s.continueText, { color: colors.bg }]} numberOfLines={1} maxFontSizeMultiplier={1.3}>Continuar</Text>}
+        ? <ActivityIndicator size="small" color="#FFFFFF" />
+        : <Text style={[s.continueText, { color: '#FFFFFF' }]} numberOfLines={1} maxFontSizeMultiplier={1.3}>Continuar</Text>}
     </TouchableOpacity>
   );
 }
@@ -199,7 +209,9 @@ export default function PatioSmartScreen() {
     await saveSmartSetup(result);
     setFonditaName(result.nombre);
     setFonditaDireccion(result.direccion);
-    setTipoNegocio(result.tipo);
+    // Tag primario (el primero elegido) decide secciones sugeridas y perfil
+    // de lectura de menú por visión — el resto vive en `categorias`.
+    setTipoNegocio(result.tipos[0] ?? result.tipo);
     const schedule = confirmedSchedule(result);
     if (schedule) setFonditaHorarioSemanal(schedule);
     setPagosEfectivo(result.pagos.efectivo);
@@ -260,7 +272,9 @@ export default function PatioSmartScreen() {
         />
 
         <TouchableOpacity
+          accessibilityRole="button"
           accessibilityLabel="Volver"
+          hitSlop={{ top: 2, bottom: 2, left: 2, right: 2 }}
           onPress={() => setStage('payments')}
           activeOpacity={0.72}
           style={[s.finishBack, { top: insets.top + 8 }]}>
@@ -283,12 +297,22 @@ export default function PatioSmartScreen() {
           <Text style={s.finishBody} lineBreakStrategyIOS="push-out" maxFontSizeMultiplier={1.6}>
             {noWidow('Toma una foto del menú o agrégalo en unos cuantos pasos.')}
           </Text>
-          <TouchableOpacity onPress={() => router.replace('/menu')} activeOpacity={0.82} style={s.finishButton}>
+          <TouchableOpacity
+            onPress={() => router.replace('/menu')}
+            activeOpacity={0.82}
+            style={s.finishButton}
+            accessibilityRole="button"
+            accessibilityLabel="Crear mi primer menú">
             <Text style={s.finishButtonText} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.3}>
               {noWidow('Crear mi primer menú')}
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => setStage('name')} activeOpacity={0.68} style={s.finishEdit}>
+          <TouchableOpacity
+            onPress={() => setStage('name')}
+            activeOpacity={0.68}
+            style={s.finishEdit}
+            accessibilityRole="button"
+            accessibilityLabel="Editar datos">
             <Text style={s.finishEditText} numberOfLines={1} maxFontSizeMultiplier={1.3}>{noWidow('Editar datos')}</Text>
           </TouchableOpacity>
         </View>
@@ -303,6 +327,7 @@ export default function PatioSmartScreen() {
       <Stack.Screen options={{ headerShown: false }} />
       <View style={[s.nav, { paddingTop: insets.top + 8 }]}>
         <TouchableOpacity
+          accessibilityRole="button"
           accessibilityLabel="Volver"
           onPress={goBack}
           activeOpacity={0.7}
@@ -372,16 +397,32 @@ export default function PatioSmartScreen() {
             />
             <View style={s.typeGrid}>
               {BUSINESS_TYPES.map((item) => {
-                const selected = result.tipo === item.id;
+                const selected = result.tipos.includes(item.id);
+                const atMax = result.tipos.length >= MAX_CATEGORIES;
+                const locked = atMax && !selected;
                 return (
                   <TouchableOpacity
                     key={item.id}
-                    accessibilityRole="radio"
-                    accessibilityState={{ selected }}
-                    onPress={() => update({ tipo: item.id })}
+                    accessibilityRole="checkbox"
+                    accessibilityState={{ selected, disabled: locked }}
+                    disabled={locked}
+                    onPress={() => {
+                      if (selected) {
+                        const next = result.tipos.filter((id) => id !== item.id);
+                        update({ tipos: next, tipo: next[0] ?? 'otro' });
+                        Haptics.selectionAsync();
+                      } else if (!atMax) {
+                        const next = [...result.tipos, item.id];
+                        update({ tipos: next, tipo: next[0] });
+                        Haptics.selectionAsync();
+                      } else {
+                        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+                      }
+                    }}
                     style={[
                       s.typeOption,
                       { backgroundColor: colors.surface, borderColor: selected ? colors.accent : colors.border },
+                      locked && s.typeOptionLocked,
                     ]}>
                     <Ionicons name={item.icon} size={19} color={selected ? colors.accent : colors.textSecondary} />
                     <Text style={[s.typeLabel, { color: colors.text }]}>{item.label}</Text>
@@ -517,6 +558,7 @@ const s = StyleSheet.create({
   locationCopy: { flex: 1, minWidth: 0 },
   typeGrid: { marginTop: 26, gap: 8 },
   typeOption: { minHeight: 52, borderRadius: 15, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 11 },
+  typeOptionLocked: { opacity: 0.35 },
   typeLabel: { flex: 1, fontSize: 14, fontWeight: '600' },
   locationTitle: { fontSize: 15, lineHeight: 19, fontWeight: '600' },
   locationHint: { marginTop: 3, fontSize: 12, lineHeight: 16, fontWeight: '400' },

@@ -380,12 +380,14 @@ export default function PatioDetailScreen() {
     return () => animation.stop();
   }, [pulse, status]);
 
-  const GlassIcon = ({ name, size = 17, onPress, color }: { name: keyof typeof Ionicons.glyphMap; size?: number; onPress: () => void; color?: string }) => (
+  const GlassIcon = ({ name, size = 17, onPress, color, label, selected }: { name: keyof typeof Ionicons.glyphMap; size?: number; onPress: () => void; color?: string; label: string; selected?: boolean }) => (
     <TouchableOpacity
       style={s.glassIcon}
       onPress={onPress}
       activeOpacity={0.76}
-      accessibilityRole="button">
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={selected !== undefined ? { selected } : undefined}>
       <BlurView intensity={theme.isDark ? 24 : 40} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
       <View style={[StyleSheet.absoluteFillObject, { backgroundColor: theme.glass }]} />
       <Ionicons name={name} size={size} color={color ?? theme.text} />
@@ -397,7 +399,7 @@ export default function PatioDetailScreen() {
       <View style={[s.container, { paddingTop: insets.top + 8 }]}>
         <Stack.Screen options={{ headerShown: false }} />
         <View style={{ paddingHorizontal: 20 }}>
-          <GlassIcon name="chevron-back" size={22} onPress={handleBack} />
+          <GlassIcon name="chevron-back" size={22} onPress={handleBack} label="Regresar" />
         </View>
         <AgentSpinner color={theme.text} size={22} style={{ alignSelf: 'center', marginTop: 80 }} />
       </View>
@@ -409,7 +411,7 @@ export default function PatioDetailScreen() {
       <View style={[s.container, { paddingTop: insets.top + 8 }]}>
         <Stack.Screen options={{ headerShown: false }} />
         <View style={{ paddingHorizontal: 20 }}>
-          <GlassIcon name="chevron-back" size={22} onPress={handleBack} />
+          <GlassIcon name="chevron-back" size={22} onPress={handleBack} label="Regresar" />
           <Text style={[s.title, { marginTop: 24 }]}>No encontrado</Text>
         </View>
       </View>
@@ -463,14 +465,16 @@ export default function PatioDetailScreen() {
             </View>
           )}
           <View style={[s.heroNav, { top: insets.top + 8 }]}>
-            <GlassIcon name="chevron-back" size={20} onPress={handleBack} />
+            <GlassIcon name="chevron-back" size={20} onPress={handleBack} label="Regresar" />
             <View style={{ flexDirection: 'row', gap: 8 }}>
-              <GlassIcon name="share-outline" size={17} onPress={handleShare} />
+              <GlassIcon name="share-outline" size={17} onPress={handleShare} label="Compartir" />
               <GlassIcon
                 name={isSaved ? 'bookmark' : 'bookmark-outline'}
                 size={17}
                 onPress={handleSavePress}
                 color={isSaved ? theme.accent : theme.text}
+                label={isSaved ? 'Guardado' : 'Guardar'}
+                selected={isSaved}
               />
             </View>
           </View>
@@ -502,7 +506,7 @@ export default function PatioDetailScreen() {
           <View style={s.titleRow}>
             <Text style={s.title} allowFontScaling={true}>{noWidow(patio.name)}</Text>
           </View>
-          <Text style={s.subtitle} allowFontScaling={true}>{patio.category} · {patio.area}</Text>
+          <Text style={s.subtitle} allowFontScaling={true}>{patio.categories.join(' · ')} · {patio.area}</Text>
           {/* Menú del día — agrupado por sección (atenuado si ya se acabó) */}
           <View style={soldOut && s.menuSoldWrap}>
             <View style={soldOut ? { opacity: 0.42 } : undefined}>
@@ -567,7 +571,7 @@ export default function PatioDetailScreen() {
             <View style={s.facts}>
               <View style={s.factsStage}>
                 {activeBadge ? (
-                  <TouchableOpacity style={s.badgeInline} onPress={() => setActiveBadgeId(null)} accessible accessibilityLabel={`${activeBadge.title}. ${activeBadge.detail}. Toca para cerrar`}>
+                  <TouchableOpacity style={s.badgeInline} onPress={() => setActiveBadgeId(null)} accessibilityRole="button" accessible accessibilityLabel={`${activeBadge.title}. ${activeBadge.detail}. Toca para cerrar`}>
                     <Text style={s.badgeInlineTitle}>{activeBadge.title}</Text>
                     <Text style={s.badgeInlineText} numberOfLines={2}>{activeBadge.detail}</Text>
                   </TouchableOpacity>
@@ -649,7 +653,7 @@ export default function PatioDetailScreen() {
               <View>
                 <Text style={s.reviewsTitle}>Reseñas</Text>
               </View>
-              <TouchableOpacity style={[s.reviewPrompt, reviewedToday && { opacity: 0.55 }]} onPress={reviewedToday ? undefined : () => handleStarPress(0)} disabled={reviewedToday} activeOpacity={0.8}>
+              <TouchableOpacity style={[s.reviewPrompt, reviewedToday && { opacity: 0.55 }]} onPress={reviewedToday ? undefined : () => handleStarPress(0)} disabled={reviewedToday} activeOpacity={0.8} accessibilityRole="button" accessibilityLabel={reviewedToday ? 'Ya reseñaste hoy' : userReview ? 'Registrar otra visita' : 'Reseñar este Patio'}>
                 <Ionicons name={reviewedToday ? 'checkmark-circle-outline' : userReview ? 'add-circle-outline' : 'star-outline'} size={16} color={theme.accent} />
                 <Text style={s.reviewPromptText}>{reviewedToday ? 'Reseña de hoy' : userReview ? 'Otra visita' : 'Reseñar'}</Text>
               </TouchableOpacity>
@@ -674,6 +678,7 @@ export default function PatioDetailScreen() {
                       style={[s.ratingBarRow, (ratingFilter === null || ratingFilter === stars) && s.ratingBarRowActive]}
                       onPress={() => setRatingFilter((current) => current === stars ? null : stars)}
                       disabled={!count}
+                      hitSlop={{ top: 3, bottom: 3, left: 0, right: 0 }}
                       accessibilityRole="button"
                       accessibilityLabel={`${stars} estrellas, ${count} reseñas`}>
                       <Text style={s.ratingBarLabel}>{stars}</Text>
@@ -778,7 +783,7 @@ export default function PatioDetailScreen() {
                                 <Text style={s.reviewThreadTime}>{reply.timeLabel ?? `${replyIndex + 1} h`}</Text>
                                 <TouchableOpacity
                                   style={s.reviewThreadTextAction}
-                                  hitSlop={{ top: 5, bottom: 5, left: 3, right: 3 }}
+                                  hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
                                   onPress={() => setReplyLikes((current) => ({
                                     ...current,
                                     [reply.id]: {
@@ -793,7 +798,7 @@ export default function PatioDetailScreen() {
                                 </TouchableOpacity>
                                 <TouchableOpacity
                                   style={s.reviewThreadTextAction}
-                                  hitSlop={{ top: 5, bottom: 5, left: 3, right: 3 }}
+                                  hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
                                   onPress={() => {
                                     setReplyingToComment({ reviewKey, parentId, author: reply.mine ? 'Tú' : reply.author });
                                     setReplyingTo(null);

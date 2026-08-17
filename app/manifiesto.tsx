@@ -107,7 +107,7 @@ export default function ManifiestoScreen() {
         contentContainerStyle={s.content}
         showsVerticalScrollIndicator={false}>
         <View style={s.top}>
-          <TouchableOpacity style={s.backBtn} onPress={handleBack} activeOpacity={0.76}>
+          <TouchableOpacity style={s.backBtn} onPress={handleBack} activeOpacity={0.76} accessibilityRole="button" accessibilityLabel="Regresar">
             <Ionicons name="chevron-back" size={22} color={theme.text} />
           </TouchableOpacity>
         </View>

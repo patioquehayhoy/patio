@@ -74,7 +74,7 @@ export default function FotoMenuScreen() {
         <AgentSpinner variant="dots" size={34} color={c.accent} />
         <Text style={s.processingTitle}>Leyendo tu menú…</Text>
         <Text style={s.processingBody}>Detectando cada platillo.</Text>
-        <TouchableOpacity style={s.cancelBtn} onPress={cancelRead} accessibilityLabel="Cancelar lectura" activeOpacity={0.7}>
+        <TouchableOpacity style={s.cancelBtn} onPress={cancelRead} accessibilityRole="button" accessibilityLabel="Cancelar lectura" activeOpacity={0.7}>
           <Text style={s.cancelText}>Cancelar</Text>
         </TouchableOpacity>
       </SafeAreaView>
@@ -105,14 +105,19 @@ export default function FotoMenuScreen() {
 
       <SafeAreaView style={s.cameraOverlay} pointerEvents="box-none">
         <View style={s.cameraTop}>
-          <TouchableOpacity accessibilityLabel="Cerrar cámara" style={s.cameraControl} onPress={() => router.replace('/menu')}>
+          <TouchableOpacity accessibilityRole="button" accessibilityLabel="Cerrar cámara" style={s.cameraControl} onPress={() => router.replace('/menu')}>
             <Ionicons name="close" size={23} color="#fff" />
           </TouchableOpacity>
           <View style={s.cameraCopy}>
             <Text style={s.cameraTitle}>Fotografía el menú</Text>
             <Text style={s.cameraHint}>Completo, de frente y con buena luz</Text>
           </View>
-          <TouchableOpacity accessibilityLabel={flashOn ? 'Apagar flash' : 'Encender flash'} style={s.cameraControl} onPress={() => setFlashOn((value) => !value)}>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel={flashOn ? 'Apagar flash' : 'Encender flash'}
+            accessibilityState={{ selected: flashOn }}
+            style={s.cameraControl}
+            onPress={() => setFlashOn((value) => !value)}>
             <Ionicons name={flashOn ? 'flash' : 'flash-off-outline'} size={20} color="#fff" />
           </TouchableOpacity>
         </View>
@@ -125,11 +130,17 @@ export default function FotoMenuScreen() {
         </View>
 
         <View style={s.cameraBottom}>
-          <TouchableOpacity accessibilityLabel="Elegir de Fotos" style={s.libraryButton} onPress={choosePhoto}>
+          <TouchableOpacity accessibilityRole="button" accessibilityLabel="Elegir de Fotos" style={s.libraryButton} onPress={choosePhoto}>
             <Ionicons name="images-outline" size={22} color="#fff" />
             <Text style={s.libraryText}>Fotos</Text>
           </TouchableOpacity>
-          <TouchableOpacity accessibilityLabel="Tomar foto" style={[s.shutterOuter, (!cameraReady || capturing) && s.shutterOff]} onPress={capture} disabled={!cameraReady || capturing}>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel="Tomar foto"
+            accessibilityState={{ disabled: !cameraReady || capturing }}
+            style={[s.shutterOuter, (!cameraReady || capturing) && s.shutterOff]}
+            onPress={capture}
+            disabled={!cameraReady || capturing}>
             <View style={s.shutterInner} />
           </TouchableOpacity>
           <View style={s.libraryButton} />

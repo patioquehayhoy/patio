@@ -45,6 +45,7 @@ export default function NuevoMenuScreen() {
       <Stack.Screen options={{ headerShown: false }} />
 
       <TouchableOpacity
+        accessibilityRole="button"
         accessibilityLabel="Cerrar nuevo menú"
         style={s.close}
         onPress={() => (router.canGoBack() ? router.back() : router.replace('/historial'))}
@@ -56,6 +57,7 @@ export default function NuevoMenuScreen() {
         {options.map((option, index) => (
           <TouchableOpacity
             key={option.title}
+            accessibilityRole="button"
             accessibilityLabel={option.title}
             style={[s.option, index === 0 && s.featured]}
             onPress={option.onPress}

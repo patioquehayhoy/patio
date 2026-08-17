@@ -10,9 +10,10 @@ type Props = {
   /** Color del track encendido. Default: accent del tema. */
   activeColor?: string;
   disabled?: boolean;
+  accessibilityLabel?: string;
 };
 
-export function ToggleSwitch({ value, onValueChange, activeColor, disabled = false }: Props) {
+export function ToggleSwitch({ value, onValueChange, activeColor, disabled = false, accessibilityLabel }: Props) {
   const { theme } = useTheme();
   const anim = useRef(new Animated.Value(value ? 1 : 0)).current;
   useEffect(() => {
@@ -26,8 +27,10 @@ export function ToggleSwitch({ value, onValueChange, activeColor, disabled = fal
   return (
     <TouchableOpacity
       accessibilityRole="switch"
+      accessibilityLabel={accessibilityLabel}
       accessibilityState={{ checked: value, disabled }}
       disabled={disabled}
+      hitSlop={{ top: 9, bottom: 9, left: 4, right: 4 }}
       onPress={() => {
         void Haptics.selectionAsync();
         onValueChange(!value);

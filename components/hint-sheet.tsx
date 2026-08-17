@@ -54,7 +54,7 @@ export function HintSheet({ visible, icon, title, body, primaryLabel, onPrimary,
           <View style={StyleSheet.absoluteFillObject} />
         </TouchableWithoutFeedback>
         <Animated.View style={[s.sheet, { paddingBottom: insets.bottom + 32, transform: [{ translateY: slideY }] }]}>
-          <TouchableOpacity style={s.closeBtn} onPress={dismiss} activeOpacity={0.76} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+          <TouchableOpacity style={s.closeBtn} onPress={dismiss} activeOpacity={0.76} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} accessibilityRole="button" accessibilityLabel="Cerrar">
             <Ionicons name="close" size={20} color={theme.text} />
           </TouchableOpacity>
           <View style={s.iconBadge}>
@@ -62,11 +62,11 @@ export function HintSheet({ visible, icon, title, body, primaryLabel, onPrimary,
           </View>
           <Text style={s.title} allowFontScaling={true}>{noWidow(title)}</Text>
           <Text style={s.body} allowFontScaling={true}>{noWidow(body)}</Text>
-          <TouchableOpacity style={s.primaryBtn} onPress={handlePrimary} activeOpacity={0.86}>
+          <TouchableOpacity style={s.primaryBtn} onPress={handlePrimary} activeOpacity={0.86} accessibilityRole="button" accessibilityLabel={primaryLabel}>
             <Text style={s.primaryText} allowFontScaling={true}>{primaryLabel}</Text>
           </TouchableOpacity>
           {!!secondaryLabel && (
-            <TouchableOpacity style={s.secondaryBtn} onPress={handleSecondary} activeOpacity={0.76}>
+            <TouchableOpacity style={s.secondaryBtn} onPress={handleSecondary} activeOpacity={0.76} accessibilityRole="button" accessibilityLabel={secondaryLabel}>
               <Text style={s.secondaryText} allowFontScaling={true}>{secondaryLabel}</Text>
             </TouchableOpacity>
           )}

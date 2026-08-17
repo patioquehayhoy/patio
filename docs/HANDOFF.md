@@ -1,5 +1,85 @@
 # HANDOFF
 
+## 2026-08-16/17 — Sistema de filtros de Foodie reconstruido, categorías multi-tag, IA de búsqueda real, auditoría de botones en toda la app
+
+Sesión larga, varios ciclos de iteración con feedback en vivo. Resumen de lo
+que quedó, no de cada vuelta intermedia:
+
+**Sistema de filtros (`components/foodie-filter-bar.tsx`, usado en
+`explorar.tsx` y `favoritos.tsx`)** — reconstruido desde cero dos veces esta
+sesión. Versión final: dos conceptos separados, cada uno en su botón.
+`Filtros` (ícono solo + badge) combina atributos por intersección (AND):
+categoría, pagos, guardados — como Google Maps. `Listas` (ícono + nombre)
+combina colecciones por unión (OR): elegir dos listas muestra los lugares de
+cualquiera de las dos, para comparar cuál queda más cerca entre ambas.
+`Menú hoy`/`Abiertos` quedan como accesos fijos siempre visibles (los dos
+filtros de mayor frecuencia). Se investigó la HIG real de Apple (no de
+memoria, con fuentes) y se corrigió el patrón de presentación: en iPhone
+Apple usa **sheets, no popovers** — los paneles de Filtros/Listas pasaron de
+cajita flotante anclada al botón a `Modal` con sheet real (grabber,
+arrastre para cerrar, spring, fondo oscurecido), mismo lenguaje de
+animación que ya tenía el sheet de resultados de búsqueda. Se eliminó el
+sistema viejo de pills reordenables con persistencia en AsyncStorage y la
+ruleta tipo TradingView — decisión explícita: menos piezas custom, más
+nativo. Los filtros ahora también aplican y se muestran mientras se busca
+por texto (antes desaparecían y dejaban de filtrar en cuanto escribías —
+hueco real encontrado comparando contra capturas de Apple Maps). Lógica de
+match unificada en `matchesFoodieFilters()`, un solo origen de verdad
+reusado por mapa, resultados de búsqueda y Guardados (antes vivía
+duplicada). Corregidos en el camino: badge de Filtros contaba mal (se
+prendía al tocar Menú hoy/Abiertos sin relación), tap targets bajo 44pt
+(hitSlop), brinco de posición de la barra entre estar dentro/fuera del
+buscador (8px de diferencia real entre dos `top` distintos, unificados).
+
+**Categorías multi-tag** — Patio pasó de una categoría por lugar a varias
+(modelo Google Places/Yelp, investigado y confirmado con fuentes: un lugar
+real trae varios tags atómicos, no uno compuesto). "Elotes y botanas" se
+partió en "Elotes"/"Botanas" atómicas. `Patio.category: string` →
+`Patio.categories: string[]` en todo el repo. Alta del Fondero
+(`patio-smart.tsx`) ahora es selección múltiple (máx. 3, con
+`accessibilityRole="checkbox"` real). Migración nueva
+`supabase/migrations/20260816_add_categorias_multitag.sql` — **pendiente
+de aplicar por Alejandro**, no se pudo verificar conectividad a Supabase
+desde este entorno durante la sesión. Riesgo señalado: si `tipo_negocio`
+tiene un `CHECK` de valores permitidos, `'botanas'` lo violaría — revisar
+antes de aplicar.
+
+**Búsqueda con IA real** — el botón "IA" del buscador ya existía pero solo
+usaba 3 reglas fijas por regex. Ahora llama a una función nueva de Supabase
+(`supabase/functions/search-intent/`, mismo patrón que `read-menu`: Claude
+con salida estructurada) que expande vocabulario culinario real y detecta
+"abierto ahora"/"menú de hoy" desde una frase en lenguaje natural. Cae de
+vuelta a las reglas locales si la función falla o tarda. **Pendiente:
+desplegar la función** (`supabase functions deploy search-intent`) desde
+una red que si alcance el proyecto.
+
+**Auditoría de botones en toda la app** — dos pasadas completas en paralelo
+(agentes `foodie-ops` y `fondero-ops`), ~46 archivos entre ambos lados.
+Corregido: objetivos táctiles bajo 44pt (hitSlop, sin cambiar tamaño
+visual), feedback de selección no expuesto a VoiceOver, `accessibilityRole`/
+`Label` faltantes en decenas de botones. Regla de color de botones en
+`CLAUDE.md` homologada para quitar ambigüedad: cualquier acción prominente
+única de una pantalla lleva acento naranja sin importar el verbo
+("Guardar"/"Continuar"/"Enviar" cuentan igual) — aplicado en
+`plan.tsx`, `comunidad-acceso.tsx`, `fondero-acceso.tsx`, `patio-smart.tsx`,
+`soporte.tsx`. Excepción explícita y acotada: `entrada.tsx`/`onboarding.tsx`
+(intro de marca) se quedan en vidrio, no naranja — decisión de identidad,
+no vale como precedente para otras pantallas.
+
+**Hallazgo suelto, sin resolver:** el bloque de estilos del precio del día
+en `menu-composer.tsx` (protegido por ley en `CLAUDE.md`, "NO TOCAR")
+parece ser código muerto — no se renderiza en ningún JSX actual del
+archivo. La ley protege una estructura que ya no está en pantalla.
+
+**Pendiente de Alejandro antes de dar por cerrado esto:**
+1. Correr la migración `20260816_add_categorias_multitag.sql` (revisar el
+   `CHECK` de `tipo_negocio` primero).
+2. Desplegar `search-intent`.
+3. Probar en dispositivo real: el sistema de filtros completo (mapa +
+   Guardados + búsqueda con IA por voz/texto), y confirmar si el botón
+   "Continuar" naranja en cada paso del alta del Fondero (antes negro) se
+   siente bien o es demasiado naranja repetido en un flujo de 6 pasos.
+
 ## 2026-08-15 — Nombres de lista a una palabra + renombrar
 
 - `lib/collections.ts`: nueva `normalizeCollectionTitle()` (sin espacios,

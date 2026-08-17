@@ -23,7 +23,7 @@ export default function Plan() {
     <View style={[s.root, { backgroundColor: theme.bg, paddingTop: insets.top }]}>
       <Stack.Screen options={{ headerShown: false }} />
       <View style={s.nav}>
-        <TouchableOpacity style={s.back} onPress={() => router.back()}><Ionicons name="chevron-back" size={22} color={theme.text} /></TouchableOpacity>
+        <TouchableOpacity style={s.back} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Regresar"><Ionicons name="chevron-back" size={22} color={theme.text} /></TouchableOpacity>
       </View>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[s.content, { paddingBottom: insets.bottom + 44 }]}>
         <Text style={[s.subtitle, { color: theme.textSecondary, marginTop: 8 }]}>
@@ -54,12 +54,12 @@ export default function Plan() {
             {pro.map((benefit) => <Benefit key={benefit} label={benefit} color="#F8F8F5" mute="rgba(248,248,245,0.68)" />)}
           </View>
           <View style={s.billingOptions}>
-            <TouchableOpacity onPress={() => setBilling('monthly')} style={[s.billingOption, billing === 'monthly' && s.billingOptionActive]}>
+            <TouchableOpacity onPress={() => setBilling('monthly')} style={[s.billingOption, billing === 'monthly' && s.billingOptionActive]} accessibilityRole="button" accessibilityState={{ selected: billing === 'monthly' }} accessibilityLabel="Plan mensual, $99 MXN al mes">
               <Text style={s.billingOptionLabel}>Mensual</Text>
               <Text style={s.billingOptionPrice}>$99</Text>
               <Text style={s.billingOptionMeta}>MXN al mes</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => setBilling('annual')} style={[s.billingOption, billing === 'annual' && s.billingOptionActive]}>
+            <TouchableOpacity onPress={() => setBilling('annual')} style={[s.billingOption, billing === 'annual' && s.billingOptionActive]} accessibilityRole="button" accessibilityState={{ selected: billing === 'annual' }} accessibilityLabel="Plan anual, $990 MXN al año, ahorra dos meses">
               <Text style={s.billingSaving}>AHORRA 2 MESES</Text>
               <Text style={s.billingOptionLabel}>Anual</Text>
               <Text style={s.billingOptionPrice}>$990</Text>
@@ -68,6 +68,8 @@ export default function Plan() {
           </View>
           <TouchableOpacity
             style={s.proButton}
+            accessibilityRole="button"
+            accessibilityLabel="Continuar con Pro"
             onPress={() => Alert.alert('Patio Pro', 'La activación se completará mediante la compra segura de Apple cuando conectemos StoreKit. No se realizó ningún cobro.')}>
             <Text style={s.proButtonText}>Continuar con Pro</Text>
           </TouchableOpacity>
@@ -116,7 +118,9 @@ const s = StyleSheet.create({
   billingOptionLabel: { fontSize: 13, fontWeight: '700', color: 'rgba(248,248,245,0.70)' },
   billingOptionPrice: { marginTop: 5, fontFamily: Fonts.brand, fontSize: 25, lineHeight: 29, fontWeight: '900', color: '#F8F8F5' },
   billingOptionMeta: { marginTop: 2, fontSize: 11, color: 'rgba(248,248,245,0.52)' },
-  proButton: { height: 52, marginTop: 24, borderRadius: 26, backgroundColor: '#F8F8F5', alignItems: 'center', justifyContent: 'center' },
-  proButtonText: { fontSize: 16, fontWeight: '700', color: '#111214' },
+  // Única acción prominente de esta pantalla (regla homologada 2026-08-16
+  // en CLAUDE.md: cualquier verbo cuenta si es la única acción destacada).
+  proButton: { height: 52, marginTop: 24, borderRadius: 26, backgroundColor: '#F2612F', alignItems: 'center', justifyContent: 'center' },
+  proButtonText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
   billingNote: { marginTop: 11, textAlign: 'center', fontSize: 11.5, color: 'rgba(248,248,245,0.48)' },
 });

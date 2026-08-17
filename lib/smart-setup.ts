@@ -16,7 +16,14 @@ export type SmartSetupResult = {
   direccion: string;
   latitude?: number | null;
   longitude?: number | null;
+  // `tipo` es el tag PRIMARIO (el primero elegido) — se conserva por
+  // compatibilidad: sigue siendo lo que persiste en `tipo_negocio` y lo que
+  // decide el perfil de lectura de menú (visión) y las secciones sugeridas.
   tipo: BusinessType;
+  // Multi-tag real: hasta 3 etiquetas elegidas en el alta (modelo Google
+  // Places/Yelp). `tipo` siempre es `tipos[0]`. Vacío hasta que la persona
+  // elige al menos una.
+  tipos: BusinessType[];
   especialidades: string[];
   pagos: { efectivo: boolean; transferencia: boolean; tarjeta: boolean };
   horario: (HorarioSemanal[number] & { confirmado: boolean })[];
@@ -30,9 +37,25 @@ export type BusinessType =
   | 'mariscos'
   | 'antojitos'
   | 'elotes'
+  | 'botanas'
   | 'bebidas'
   | 'restaurante'
   | 'otro';
+
+// Etiqueta atómica pública por tag (columna `categorias`, chips de filtro).
+// 'elotes' aquí es SOLO "Elotes" (ya no compuesto) — Botanas es su propio tag.
+export const BUSINESS_TYPE_LABELS: Record<BusinessType, string> = {
+  fondita: 'Fondita',
+  taqueria: 'Taquería',
+  reposteria: 'Repostería',
+  mariscos: 'Mariscos',
+  antojitos: 'Antojitos',
+  elotes: 'Elotes',
+  botanas: 'Botanas',
+  bebidas: 'Bebidas',
+  restaurante: 'Restaurante',
+  otro: 'Fondita',
+};
 
 export async function prepareSmartSetup(relato: string): Promise<SmartSetupResult> {
   const { data, error } = await supabase.functions.invoke('smart-setup', {
@@ -42,7 +65,14 @@ export async function prepareSmartSetup(relato: string): Promise<SmartSetupResul
   if (!data || typeof data !== 'object' || !Array.isArray(data.horario)) {
     throw new Error('Patio recibió una respuesta incompleta');
   }
-  return data as SmartSetupResult;
+  const result = data as SmartSetupResult;
+  // La función smart-setup (alta conversacional) todavía solo extrae un tipo
+  // primario; lo tratamos como el primer tag hasta que ese backend también
+  // hable multi-tag.
+  if (!Array.isArray(result.tipos) || result.tipos.length === 0) {
+    result.tipos = result.tipo ? [result.tipo] : [];
+  }
+  return result;
 }
 
 export function confirmedSchedule(result: SmartSetupResult): HorarioSemanal | null {
@@ -57,9 +87,15 @@ export async function saveSmartSetup(result: SmartSetupResult): Promise<void> {
   if (!id) return;
   if (!(await nombreDisponible(result.nombre, id))) throw new NombreDuplicadoError();
   const schedule = confirmedSchedule(result);
+  const tipos = result.tipos.length ? result.tipos : [result.tipo];
   const payload: Record<string, unknown> = {
     nombre: result.nombre.trim(),
-    tipo_negocio: result.tipo,
+    // Tag primario, por compatibilidad (perfil de visión, secciones sugeridas).
+    tipo_negocio: tipos[0],
+    // Multi-tag real (migración 20260816). Si el proyecto de Supabase todavía
+    // no tiene la columna, Postgres rechaza el update completo por esa clave
+    // desconocida — por eso se intenta aparte y se degrada sin bloquear el alta.
+    categorias: tipos.map((id) => BUSINESS_TYPE_LABELS[id]),
   };
   if (result.direccion.trim()) payload.direccion = result.direccion.trim();
   if (Number.isFinite(result.latitude) && Number.isFinite(result.longitude)) {
@@ -71,5 +107,16 @@ export async function saveSmartSetup(result: SmartSetupResult): Promise<void> {
   payload.pagos_transferencia = result.pagos.transferencia;
   payload.pagos_tarjeta = result.pagos.tarjeta;
   const { error } = await supabase.from('fonditas').update(payload).eq('id', id);
-  if (error) throw error;
+  if (error) {
+    // Si el proyecto de Supabase todavía no tiene la columna `categorias`
+    // (migración 20260816 sin aplicar), reintenta sin ella para no bloquear
+    // el alta completa por un solo campo nuevo.
+    if (/categorias/i.test(error.message ?? '')) {
+      const { categorias: _categorias, ...fallbackPayload } = payload;
+      const retry = await supabase.from('fonditas').update(fallbackPayload).eq('id', id);
+      if (retry.error) throw retry.error;
+      return;
+    }
+    throw error;
+  }
 }

@@ -93,7 +93,9 @@ export function BottomTabBar({ variant = 'fondero' }: { variant?: 'foodie' | 'fo
           return (
             <TouchableOpacity
               key={path}
+              accessibilityRole="button"
               accessibilityLabel={label}
+              accessibilityState={{ selected: active }}
               style={[styles.tab, active && { backgroundColor: c.accentBg }]}
               activeOpacity={0.7}
               hitSlop={{ top: 10, bottom: 10, left: 6, right: 6 }}

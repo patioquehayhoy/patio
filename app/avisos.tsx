@@ -101,7 +101,7 @@ export default function AvisosScreen() {
     <View style={[s.root, { backgroundColor: theme.bg, paddingTop: insets.top }]}>
       <Stack.Screen options={{ headerShown: false }} />
       <View style={s.header}>
-        <TouchableOpacity style={s.back} onPress={() => router.back()} accessibilityLabel="Volver">
+        <TouchableOpacity style={s.back} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Volver">
           <Ionicons name="chevron-back" size={21} color={theme.text} />
         </TouchableOpacity>
       </View>
@@ -114,7 +114,7 @@ export default function AvisosScreen() {
               icon="chatbubble-ellipses-outline"
               title="Actividad importante"
               sub="Reseñas y actividad de tu Patio"
-              trailing={<ToggleSwitch value={signedIn && remote.businessActivity} disabled={updating === 'businessActivity'} onValueChange={(value) => signedIn ? updateRemote({ businessActivity: value }) : router.push('/fondero-acceso')} />}
+              trailing={<ToggleSwitch value={signedIn && remote.businessActivity} disabled={updating === 'businessActivity'} accessibilityLabel="Actividad importante" onValueChange={(value) => signedIn ? updateRemote({ businessActivity: value }) : router.push('/fondero-acceso')} />}
             />
           ) : (
             <SettingsRow
@@ -122,7 +122,7 @@ export default function AvisosScreen() {
               icon="restaurant-outline"
               title="Menús nuevos"
               sub="Cuando un lugar que guardaste publica"
-              trailing={<ToggleSwitch value={signedIn && remote.patioPublications} disabled={updating === 'patioPublications'} onValueChange={(value) => signedIn ? updateRemote({ patioPublications: value }) : router.push({ pathname: '/comunidad-acceso', params: { returnTo: '/avisos' } })} />}
+              trailing={<ToggleSwitch value={signedIn && remote.patioPublications} disabled={updating === 'patioPublications'} accessibilityLabel="Menús nuevos" onValueChange={(value) => signedIn ? updateRemote({ patioPublications: value }) : router.push({ pathname: '/comunidad-acceso', params: { returnTo: '/avisos' } })} />}
             />
           )}
         </SettingsGroup>

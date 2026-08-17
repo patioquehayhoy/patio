@@ -54,7 +54,11 @@ export function SettingsRow({ c, icon, title, sub, accent, divider, onPress, tra
   );
   if (!onPress) return content;
   return (
-    <TouchableOpacity activeOpacity={0.7} onPress={onPress}>
+    <TouchableOpacity
+      activeOpacity={0.7}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={sub ? `${title}, ${sub}` : title}>
       {content}
     </TouchableOpacity>
   );

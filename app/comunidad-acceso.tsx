@@ -63,7 +63,7 @@ export default function ComunidadAccesoScreen() {
     <ImageBackground source={HERO} style={s.root} resizeMode="cover">
       <Stack.Screen options={{ headerShown: false }} />
       <LinearGradient colors={['rgba(0,0,0,0.18)', 'rgba(0,0,0,0.30)', 'rgba(0,0,0,0.82)']} locations={[0, 0.46, 1]} style={StyleSheet.absoluteFillObject} />
-      <TouchableOpacity style={[s.back, { top: insets.top + 8 }]} onPress={() => router.canGoBack() ? router.back() : router.replace('/cuenta')} accessibilityLabel="Volver">
+      <TouchableOpacity style={[s.back, { top: insets.top + 8 }]} onPress={() => router.canGoBack() ? router.back() : router.replace('/cuenta')} accessibilityRole="button" accessibilityLabel="Volver">
         <Ionicons name="chevron-back" size={21} color="#fff" />
       </TouchableOpacity>
       <KeyboardAvoidingView style={s.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
@@ -93,14 +93,14 @@ export default function ComunidadAccesoScreen() {
                 returnKeyType="go"
                 onSubmitEditing={send}
               />
-              <TouchableOpacity style={s.button} onPress={send} disabled={busy}>
+              <TouchableOpacity style={s.button} onPress={send} disabled={busy} accessibilityRole="button" accessibilityLabel={busy ? 'Enviando enlace' : 'Enviar enlace'}>
                 {busy
-                  ? <AgentSpinner variant="dots" size={18} color="#111214" />
+                  ? <AgentSpinner variant="dots" size={18} color="#FFFFFF" />
                   : <Text style={s.buttonText}>Enviar enlace</Text>}
               </TouchableOpacity>
             </>
           ) : (
-            <TouchableOpacity style={s.change} onPress={() => setSent(false)}>
+            <TouchableOpacity style={s.change} onPress={() => setSent(false)} accessibilityRole="button" accessibilityLabel="Usar otro correo">
               <Text style={s.changeText}>Usar otro correo</Text>
             </TouchableOpacity>
           )}
@@ -120,8 +120,10 @@ const s = StyleSheet.create({
   title: { maxWidth: 350, fontSize: 38, lineHeight: 42, letterSpacing: -1.3, fontWeight: '900', fontFamily: Fonts.brand, color: '#fff' },
   body: { maxWidth: 350, marginTop: 12, fontSize: 15, lineHeight: 22, fontWeight: '400', color: 'rgba(255,255,255,0.76)' },
   input: { height: 54, marginTop: 26, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.30)', backgroundColor: 'rgba(0,0,0,0.28)', borderRadius: 16, paddingHorizontal: 17, fontSize: 16, color: '#fff' },
-  button: { height: 54, marginTop: 10, borderRadius: 27, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' },
-  buttonText: { fontSize: 15, fontWeight: '700', color: '#111214' },
+  // Única acción prominente de esta pantalla (regla homologada 2026-08-16
+  // en CLAUDE.md: cualquier verbo cuenta si es la única acción destacada).
+  button: { height: 54, marginTop: 10, borderRadius: 27, backgroundColor: '#F2612F', alignItems: 'center', justifyContent: 'center' },
+  buttonText: { fontSize: 15, fontWeight: '700', color: '#FFFFFF' },
   change: { minHeight: 50, marginTop: 16, justifyContent: 'center', alignItems: 'center' },
   changeText: { fontSize: 14, textDecorationLine: 'underline', color: 'rgba(255,255,255,0.76)' },
 });

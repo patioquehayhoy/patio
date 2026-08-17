@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Keyboard, Share, type TextInput } from 'react-native';
 import type { Region } from 'react-native-maps';
 
+import { fetchAiSearchIntent } from '@/lib/aiSearch';
 import { getFavoritePatioIds, toggleFavoritePatio } from '@/lib/favorites';
 import { estaAbiertoAhora } from '@/lib/horario';
 import { searchLiveMenus } from '@/lib/menu';
@@ -78,33 +79,52 @@ export function useFoodieExploreController() {
   const [visibleRegion, setVisibleRegion] = useState<Region>(FOODIE_INITIAL_REGION);
   const [liveResults, setLiveResults] = useState<PatioDishMatch[]>([]);
   const [searchPending, setSearchPending] = useState(false);
+  const [aiNote, setAiNote] = useState('');
   const searchInputRef = useRef<TextInput>(null);
 
   useEffect(() => {
     if (!query.trim()) {
       setLiveResults([]);
       setSearchPending(false);
+      setAiNote('');
       return;
     }
 
     let cancelled = false;
     setSearchPending(true);
-    const timer = setTimeout(() => {
-      const intent = interpretAiQuery(query);
-      const searches = aiMode && intent.terms.length ? intent.terms : [query];
-      Promise.all(searches.map((term) => searchLiveMenus(term, allPatios))).then((groups) => {
-        if (!cancelled) {
-          const merged = new Map<string, PatioDishMatch>();
-          groups.flat().forEach((result) => {
-            if (aiMode && intent.openNow && (!result.patio.weeklyHours || !estaAbiertoAhora(result.patio.weeklyHours))) return;
-            const key = `${result.patio.id}-${result.section}-${result.item.name}`;
-            const previous = merged.get(key);
-            if (!previous || result.score > previous.score) merged.set(key, result);
-          });
-          setLiveResults([...merged.values()]);
-          setSearchPending(false);
+    const timer = setTimeout(async () => {
+      // Primero la heurística local (instantánea, siempre disponible). En
+      // modo IA se intenta reemplazarla con la interpretación real de Claude
+      // (supabase/functions/search-intent) — expande vocabulario culinario de
+      // verdad en vez de las 3 reglas fijas de abajo. Si la llamada falla o
+      // tarda (sin red, función caída), la búsqueda sigue con la heurística
+      // local en vez de quedarse sin resultados.
+      const localIntent = interpretAiQuery(query);
+      let terms = localIntent.terms.length ? localIntent.terms : [query];
+      let openNow = localIntent.openNow;
+      let note = '';
+      if (aiMode) {
+        const aiIntent = await fetchAiSearchIntent(query);
+        if (cancelled) return;
+        if (aiIntent && aiIntent.terminos.length) {
+          terms = aiIntent.terminos;
+          openNow = aiIntent.abiertoAhora;
+          note = aiIntent.nota;
         }
-      });
+      }
+      const groups = await Promise.all(terms.map((term) => searchLiveMenus(term, allPatios)));
+      if (!cancelled) {
+        const merged = new Map<string, PatioDishMatch>();
+        groups.flat().forEach((result) => {
+          if (aiMode && openNow && (!result.patio.weeklyHours || !estaAbiertoAhora(result.patio.weeklyHours))) return;
+          const key = `${result.patio.id}-${result.section}-${result.item.name}`;
+          const previous = merged.get(key);
+          if (!previous || result.score > previous.score) merged.set(key, result);
+        });
+        setLiveResults([...merged.values()]);
+        setAiNote(note);
+        setSearchPending(false);
+      }
     }, 300);
 
     return () => {
@@ -167,7 +187,7 @@ export function useFoodieExploreController() {
     return allPatios.filter(
       (patio) =>
         (activeSavedCategories.length === 0 ||
-          (savedIds.includes(patio.id) && activeSavedCategories.includes(patio.category))) &&
+          (savedIds.includes(patio.id) && patio.categories.some((c) => activeSavedCategories.includes(c)))) &&
         patio.latitude > 0 &&
         patio.latitude >= minLat &&
         patio.latitude <= maxLat &&
@@ -179,7 +199,7 @@ export function useFoodieExploreController() {
   const mapFilteredPatios = useMemo(
     () => activeSavedCategories.length === 0
       ? allPatios
-      : allPatios.filter((patio) => savedIds.includes(patio.id) && activeSavedCategories.includes(patio.category)),
+      : allPatios.filter((patio) => savedIds.includes(patio.id) && patio.categories.some((c) => activeSavedCategories.includes(c))),
     [activeSavedCategories, allPatios, savedIds],
   );
 
@@ -283,7 +303,7 @@ export function useFoodieExploreController() {
     if (!selectedPatio) return;
     const mapsUrl = `https://maps.apple.com/?q=${selectedPatio.latitude},${selectedPatio.longitude}`;
     Share.share({
-      message: `${selectedPatio.name}\n${selectedPatio.category} · ${selectedPatio.area}\n${selectedPatio.open}\n\n${selectedPatio.address}\n${mapsUrl}`,
+      message: `${selectedPatio.name}\n${selectedPatio.categories[0] ?? 'Fondita'} · ${selectedPatio.area}\n${selectedPatio.open}\n\n${selectedPatio.address}\n${mapsUrl}`,
     });
   }, [selectedPatio]);
 
@@ -312,6 +332,7 @@ export function useFoodieExploreController() {
   return {
     activeSavedCategories,
     aiMode,
+    aiNote,
     allPatios,
     clearSavedMapFilter,
     closeSheet,

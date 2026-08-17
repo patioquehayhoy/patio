@@ -30,7 +30,7 @@ export default function MenuPublicadoScreen() {
 
       <View style={s.top}>
         <View style={s.topSpacer} />
-        <TouchableOpacity style={s.editButton} onPress={editMenu} activeOpacity={0.7}>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Editar menú" style={s.editButton} onPress={editMenu} activeOpacity={0.7}>
           <Text style={s.editText}>Editar</Text>
         </TouchableOpacity>
       </View>
@@ -45,6 +45,7 @@ export default function MenuPublicadoScreen() {
 
       <View style={s.actions}>
         <TouchableOpacity
+          accessibilityRole="button"
           accessibilityLabel="Ver el menú publicado"
           style={s.primary}
           onPress={() => router.replace('/preview')}
@@ -52,7 +53,7 @@ export default function MenuPublicadoScreen() {
           <Ionicons name="eye-outline" size={17} color="#FFFFFF" />
           <Text style={s.primaryText}>Ver menú publicado</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={s.secondary} onPress={() => router.replace('/perfil')} activeOpacity={0.72}>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Listo" style={s.secondary} onPress={() => router.replace('/perfil')} activeOpacity={0.72}>
           <Text style={s.secondaryText}>Listo</Text>
         </TouchableOpacity>
       </View>

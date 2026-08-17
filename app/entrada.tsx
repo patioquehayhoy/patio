@@ -8,7 +8,14 @@ import { saveUserRole } from '@/lib/entry-flow';
 import { Fonts } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
 
-const DEV_VERSION = 'HOY · 2026.07.18';
+// Se calcula al cargar el módulo (cada cierre/apertura de la app vuelve a
+// ejecutar este archivo desde cero) — así siempre muestra cuándo se cargó
+// este build, sin mantener una fecha a mano que se queda vieja.
+function formatDevBuildStamp(date: Date) {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${pad(date.getDate())}/${pad(date.getMonth() + 1)} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+const DEV_VERSION = formatDevBuildStamp(new Date());
 
 // Entrada rediseñada 2026-07-18: mismo idioma que onboarding/acceso —
 // botánica full-bleed, logo + par de marca al centro, acciones abajo en glass.
@@ -67,7 +74,7 @@ export default function EntradaScreen() {
       <View style={[s.content, { paddingBottom: insets.bottom + 18 }]}>
         {/* Acciones abajo */}
         <View style={s.actions}>
-          <TouchableOpacity style={s.ctaGlass} onPress={handleStart} activeOpacity={0.86}>
+          <TouchableOpacity style={s.ctaGlass} onPress={handleStart} activeOpacity={0.86} accessibilityRole="button" accessibilityLabel="Entrar a Patio">
             <BlurView intensity={16} tint="dark" style={s.ctaGlassInner}>
               <Text style={s.ctaGlassText} allowFontScaling={true}>{noWidow('Entrar a Patio')}</Text>
             </BlurView>

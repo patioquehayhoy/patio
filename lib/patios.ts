@@ -23,7 +23,11 @@ export type PatioMenuSection = {
 export type Patio = {
   id: string;
   name: string;
-  category: string;
+  // Multi-tag: un lugar puede traer varias etiquetas atómicas a la vez
+  // (ej. ['Elotes', 'Botanas']), igual que Google Places/Yelp. Nunca vacío
+  // en la práctica — usa ['Fondita'] como fallback cuando no hay dato.
+  // Para UI de una sola línea (pin, subtítulo compacto) usa categories[0].
+  categories: string[];
   area: string;
   price: string;
   address: string;
@@ -83,7 +87,7 @@ export const MOCK_PATIOS: Patio[] = [
   {
     id: 'cochitacos',
     name: 'Cochitacos',
-    category: 'Taquería',
+    categories: ['Taquería'],
     area: 'Irrigación',
     price: '$100-120',
     address: 'Presa Las Vírgenes 101',
@@ -113,7 +117,7 @@ export const MOCK_PATIOS: Patio[] = [
   {
     id: 'cintora-taqueria',
     name: 'Cíntora Taquería',
-    category: 'Taquería',
+    categories: ['Taquería'],
     area: 'Irrigación',
     price: '$',
     address: 'Calz. Legaria 800A',
@@ -142,7 +146,7 @@ export const MOCK_PATIOS: Patio[] = [
   {
     id: 'don-bonachon',
     name: 'Don Bonachón',
-    category: 'Restaurante',
+    categories: ['Restaurante'],
     area: 'Irrigación',
     price: '$',
     address: 'Presa Endo 17A',
@@ -171,7 +175,7 @@ export const MOCK_PATIOS: Patio[] = [
   {
     id: 'aaattaco',
     name: 'AAATTACO',
-    category: 'Tacos de guisado',
+    categories: ['Taquería'],
     area: 'Irrigación',
     price: '$',
     address: 'Av. Irrigación 126',
@@ -200,7 +204,7 @@ export const MOCK_PATIOS: Patio[] = [
   {
     id: 'vianca',
     name: 'Restaurante Vianca',
-    category: 'Restaurante',
+    categories: ['Restaurante'],
     area: 'Irrigación',
     price: '$',
     address: 'Presa Angostura 167 A',
@@ -234,19 +238,40 @@ export const MOCK_PATIOS: Patio[] = [
   },
 ];
 
-function tipoLabel(tipo: string | null): string {
-  const map: Record<string, string> = {
-    fondita: 'Fondita',
-    taqueria: 'Taquería',
-    reposteria: 'Repostería',
-    mariscos: 'Mariscos',
-    antojitos: 'Antojitos',
-    elotes: 'Elotes y botanas',
-    bebidas: 'Bebidas',
-    restaurante: 'Restaurante',
-    otro: 'Fondita',
+// Taxonomía real: las mismas 9 etiquetas atómicas que un Fondero puede elegir
+// al darse de alta (ver BUSINESS_TYPES en app/patio-smart.tsx), modelo
+// multi-tag estilo Google Places/Yelp — un lugar puede traer varias a la vez.
+// Único origen de verdad — los datos demo/densidad (lib/demo.ts) deben usar
+// exactamente estas etiquetas, nunca inventar otras, o los chips de categoría
+// del mapa se contaminan.
+export const PATIO_CATEGORIES = ['Fondita', 'Taquería', 'Antojitos', 'Elotes', 'Botanas', 'Repostería', 'Mariscos', 'Bebidas', 'Restaurante'];
+
+// Fallback para filas de Supabase que todavía no tienen `categorias` (text[])
+// poblado: deriva etiquetas atómicas desde el `tipo_negocio` legacy (single
+// value). El caso 'elotes' es especial — antes de este cambio esa era la
+// ÚNICA etiqueta compuesta "Elotes y botanas"; se expande a las dos atómicas
+// para no perder significado en datos viejos sin migrar fila por fila.
+function tipoLabels(tipo: string | null): string[] {
+  const map: Record<string, string[]> = {
+    fondita: ['Fondita'],
+    taqueria: ['Taquería'],
+    reposteria: ['Repostería'],
+    mariscos: ['Mariscos'],
+    antojitos: ['Antojitos'],
+    elotes: ['Elotes', 'Botanas'],
+    botanas: ['Botanas'],
+    bebidas: ['Bebidas'],
+    restaurante: ['Restaurante'],
+    otro: ['Fondita'],
   };
-  return (tipo && map[tipo]) || 'Fondita';
+  return (tipo && map[tipo]) || ['Fondita'];
+}
+
+// Combina la columna nueva `categorias` (si ya trae datos) con el fallback
+// derivado de `tipo_negocio`, para no romper filas que aún no se migraron.
+function categoriasFromRow(categorias: unknown, tipoNegocio: string | null): string[] {
+  const fromColumn = Array.isArray(categorias) ? categorias.filter((c): c is string => typeof c === 'string' && c.length > 0) : [];
+  return fromColumn.length ? fromColumn : tipoLabels(tipoNegocio);
 }
 
 // En desarrollo, el mapa se llena con lugares sintéticos (lib/demo.ts) además
@@ -260,21 +285,37 @@ async function withDevPatios(reales: Patio[]): Promise<Patio[]> {
   return [...reales, ...extra];
 }
 
+const FONDITAS_BASE_COLUMNS = 'id, nombre, descripcion, direccion, horario, horario_semanal, tipo_negocio, pagos_efectivo, pagos_transferencia, pagos_tarjeta, latitude, longitude';
+
 export async function fetchPublicFonditas(): Promise<Patio[]> {
-  const { data, error } = await supabase
+  // `categorias` es una columna nueva (migración 20260816). Si todavía no se
+  // aplicó en el proyecto de Supabase, el select con ella falla; reintenta
+  // sin la columna para no tumbar el mapa de Foodie mientras se aplica.
+  let data: Record<string, unknown>[] | null = null;
+  const withCategorias = await supabase
     .from('fonditas')
-    .select('id, nombre, descripcion, direccion, horario, horario_semanal, tipo_negocio, pagos_efectivo, pagos_transferencia, pagos_tarjeta, latitude, longitude')
+    .select(`${FONDITAS_BASE_COLUMNS}, categorias`)
     .not('nombre', 'is', null)
     .neq('nombre', 'Mi Fondita');
+  if (!withCategorias.error && withCategorias.data) {
+    data = withCategorias.data as Record<string, unknown>[];
+  } else {
+    const withoutCategorias = await supabase
+      .from('fonditas')
+      .select(FONDITAS_BASE_COLUMNS)
+      .not('nombre', 'is', null)
+      .neq('nombre', 'Mi Fondita');
+    if (!withoutCategorias.error && withoutCategorias.data) data = withoutCategorias.data as Record<string, unknown>[];
+  }
 
-  if (error || !data) return withDevPatios([]);
+  if (!data) return withDevPatios([]);
 
-  return withDevPatios(data.map((row): Patio => {
-    const weekly = weeklyFromRow((row as any).horario_semanal, row.horario);
+  return withDevPatios(data.map((row: any): Patio => {
+    const weekly = weeklyFromRow(row.horario_semanal, row.horario);
     return {
       id: row.id,
       name: row.nombre ?? 'Sin nombre',
-      category: tipoLabel(row.tipo_negocio),
+      categories: categoriasFromRow(row.categorias, row.tipo_negocio),
       area: 'CDMX',
       price: '$',
       address: row.direccion ?? '',
@@ -304,20 +345,28 @@ export async function fetchFonditaById(id: string): Promise<Patio | null> {
   const base = 'id, nombre, descripcion, direccion, horario, horario_semanal, tipo_negocio, pagos_efectivo, pagos_transferencia, pagos_tarjeta';
   let row: Record<string, unknown> | null = null;
 
-  const withLoc = await supabase.from('fonditas').select(`${base}, latitude, longitude`).eq('id', id).maybeSingle();
-  if (!withLoc.error && withLoc.data) {
-    row = withLoc.data as Record<string, unknown>;
+  // Intenta con `categorias` (migración 20260816) + ubicación; va degradando
+  // el select si alguna columna todavía no existe en el proyecto, para no
+  // romper la ficha del negocio mientras se aplica la migración.
+  const withLocAndCategorias = await supabase.from('fonditas').select(`${base}, categorias, latitude, longitude`).eq('id', id).maybeSingle();
+  if (!withLocAndCategorias.error && withLocAndCategorias.data) {
+    row = withLocAndCategorias.data as Record<string, unknown>;
   } else {
-    const noLoc = await supabase.from('fonditas').select(base).eq('id', id).maybeSingle();
-    if (noLoc.error || !noLoc.data) return null;
-    row = noLoc.data as Record<string, unknown>;
+    const withLoc = await supabase.from('fonditas').select(`${base}, latitude, longitude`).eq('id', id).maybeSingle();
+    if (!withLoc.error && withLoc.data) {
+      row = withLoc.data as Record<string, unknown>;
+    } else {
+      const noLoc = await supabase.from('fonditas').select(base).eq('id', id).maybeSingle();
+      if (noLoc.error || !noLoc.data) return null;
+      row = noLoc.data as Record<string, unknown>;
+    }
   }
 
   const weekly = weeklyFromRow(row.horario_semanal, (row.horario as string | null) ?? null);
   return {
     id: row.id as string,
     name: (row.nombre as string | null) ?? 'Sin nombre',
-    category: tipoLabel(row.tipo_negocio as string | null),
+    categories: categoriasFromRow(row.categorias, row.tipo_negocio as string | null),
     area: 'CDMX',
     price: '$',
     address: (row.direccion as string | null) ?? '',
@@ -361,7 +410,7 @@ export function searchPatiosByDish(query: string): PatioDishMatch[] {
         const itemName = normalizeSearch(item.name);
         const sectionName = normalizeSearch(section.section);
         const tags = (item.tags ?? []).map(normalizeSearch);
-        const haystack = [itemName, sectionName, patio.category, patio.reason, ...tags].map(normalizeSearch);
+        const haystack = [itemName, sectionName, ...patio.categories, patio.reason, ...tags].map(normalizeSearch);
         const haystackText = haystack.join(' ');
 
         let score = 0;

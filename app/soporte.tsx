@@ -33,7 +33,7 @@ export default function SoporteScreen() {
     <View style={[s.root, { backgroundColor: theme.bg, paddingTop: insets.top }]}>
       <Stack.Screen options={{ headerShown: false }} />
       <View style={s.nav}>
-        <TouchableOpacity style={s.back} onPress={() => topic ? setTopic(null) : router.back()}>
+        <TouchableOpacity style={s.back} onPress={() => topic ? setTopic(null) : router.back()} accessibilityRole="button" accessibilityLabel={topic ? 'Volver a temas' : 'Regresar'}>
           <Ionicons name="chevron-back" size={21} color={theme.text} />
         </TouchableOpacity>
         <Text style={[s.navTitle, { color: theme.text }]}>Ayuda</Text>
@@ -44,7 +44,7 @@ export default function SoporteScreen() {
         <ScrollView contentContainerStyle={[s.content, { paddingBottom: insets.bottom + 32 }]}>
           <View style={[s.list, { backgroundColor: theme.surface, borderColor: theme.border }]}>
             {TOPICS.map((item, index) => (
-              <TouchableOpacity key={item.id} style={[s.row, index > 0 && { borderTopColor: theme.border, borderTopWidth: StyleSheet.hairlineWidth }]} onPress={() => setTopic(item)}>
+              <TouchableOpacity key={item.id} style={[s.row, index > 0 && { borderTopColor: theme.border, borderTopWidth: StyleSheet.hairlineWidth }]} onPress={() => setTopic(item)} accessibilityRole="button" accessibilityLabel={`${item.title}, ${item.hint}`}>
                 <View style={[s.icon, { backgroundColor: theme.isDark ? 'rgba(255,255,255,0.06)' : 'rgba(17,18,20,0.04)' }]}>
                   <Ionicons name={item.icon} size={18} color={theme.textSecondary} />
                 </View>
@@ -74,10 +74,12 @@ export default function SoporteScreen() {
           </View>
           <View style={{ flex: 1 }} />
           <TouchableOpacity
-            style={[s.send, { backgroundColor: theme.text }, !canSend && { opacity: 0.35 }]}
+            style={[s.send, { backgroundColor: theme.accent }, !canSend && { opacity: 0.35 }]}
             disabled={!canSend}
+            accessibilityRole="button"
+            accessibilityLabel="Continuar en Mail"
             onPress={() => Linking.openURL(encodedMail)}>
-            <Text style={[s.sendText, { color: theme.bg }]}>Continuar en Mail</Text>
+            <Text style={[s.sendText, { color: '#FFFFFF' }]}>Continuar en Mail</Text>
           </TouchableOpacity>
         </View>
       )}

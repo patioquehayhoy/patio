@@ -122,8 +122,10 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                 <View style={s.sectionHeader}>
                   <TouchableOpacity
                     style={s.collapseButton}
-                    hitSlop={4}
+                    hitSlop={{ top: 4, bottom: 4, left: 7, right: 7 }}
                     onPress={() => toggleCollapsed(section.id)}
+                    accessibilityRole="button"
+                    accessibilityLabel={isCollapsed ? 'Mostrar sección' : 'Ocultar sección'}
                     activeOpacity={0.7}>
                     <Ionicons name={isCollapsed ? 'chevron-forward' : 'chevron-down'} size={17} color={c.textSecondary} />
                   </TouchableOpacity>
@@ -139,6 +141,9 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                     style={s.moreButton}
                     hitSlop={3}
                     onPress={() => toggleSectionActions(section.id)}
+                    accessibilityRole="button"
+                    accessibilityLabel="Más acciones de la sección"
+                    accessibilityState={{ expanded: actionsOpen }}
                     activeOpacity={0.7}>
                     <Ionicons name="ellipsis-horizontal" size={19} color={c.textSecondary} />
                   </TouchableOpacity>
@@ -146,15 +151,34 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
 
                 {actionsOpen && (
                   <View style={s.sectionActions}>
-                    <TouchableOpacity disabled={sectionIndex === 0} onPress={() => moveSection(section.id, -1)} style={s.action}>
+                    <TouchableOpacity
+                      disabled={sectionIndex === 0}
+                      onPress={() => moveSection(section.id, -1)}
+                      style={s.action}
+                      hitSlop={{ top: 5, bottom: 5, left: 2, right: 2 }}
+                      accessibilityRole="button"
+                      accessibilityLabel="Subir sección"
+                      accessibilityState={{ disabled: sectionIndex === 0 }}>
                       <Ionicons name="arrow-up" size={15} color={sectionIndex === 0 ? c.textMute : c.text} />
                       <Text style={[s.actionText, sectionIndex === 0 && { color: c.textMute }]}>Subir</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity disabled={sectionIndex === data.secciones.length - 1} onPress={() => moveSection(section.id, 1)} style={s.action}>
+                    <TouchableOpacity
+                      disabled={sectionIndex === data.secciones.length - 1}
+                      onPress={() => moveSection(section.id, 1)}
+                      style={s.action}
+                      hitSlop={{ top: 5, bottom: 5, left: 2, right: 2 }}
+                      accessibilityRole="button"
+                      accessibilityLabel="Bajar sección"
+                      accessibilityState={{ disabled: sectionIndex === data.secciones.length - 1 }}>
                       <Ionicons name="arrow-down" size={15} color={sectionIndex === data.secciones.length - 1 ? c.textMute : c.text} />
                       <Text style={[s.actionText, sectionIndex === data.secciones.length - 1 && { color: c.textMute }]}>Bajar</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={() => removeSection(section.id)} style={s.action}>
+                    <TouchableOpacity
+                      onPress={() => removeSection(section.id)}
+                      style={s.action}
+                      hitSlop={{ top: 5, bottom: 5, left: 2, right: 2 }}
+                      accessibilityRole="button"
+                      accessibilityLabel="Eliminar sección">
                       <Ionicons name="trash-outline" size={15} color="#D94841" />
                       <Text style={[s.actionText, { color: '#D94841' }]}>Eliminar</Text>
                     </TouchableOpacity>
@@ -206,19 +230,24 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                             ) : (
                               <TouchableOpacity
                                 style={s.addPrice}
+                                hitSlop={{ top: 5, bottom: 5, left: 4, right: 4 }}
                                 onPress={() => {
                                   pendingFocus.current = `p-${dish.id}`;
                                   setPriceEditing((current) => ({ ...current, [dish.id]: true }));
                                 }}
                                 activeOpacity={0.7}
+                                accessibilityRole="button"
                                 accessibilityLabel={`Agregar precio a ${dish.nombre || 'platillo'}`}>
                                 <Text style={s.addPriceText}>+$</Text>
                               </TouchableOpacity>
                             )}
                             <TouchableOpacity
                               style={s.removeDish}
+                              hitSlop={{ top: 7, bottom: 7, left: 7, right: 7 }}
                               onPress={() => removeDish(section.id, dish.id)}
-                              activeOpacity={0.7}>
+                              activeOpacity={0.7}
+                              accessibilityRole="button"
+                              accessibilityLabel={`Eliminar ${dish.nombre || 'platillo'}`}>
                               <Ionicons name="close" size={15} color={c.textMute} />
                             </TouchableOpacity>
                           </View>
@@ -238,11 +267,14 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                             </View>
                           ) : (
                             <TouchableOpacity
+                              hitSlop={{ top: 6, bottom: 6, left: 4, right: 4 }}
                               onPress={() => {
                                 revealDetails(dish.id);
                                 pendingFocus.current = `d-${dish.id}`;
                               }}
-                              activeOpacity={0.7}>
+                              activeOpacity={0.7}
+                              accessibilityRole="button"
+                              accessibilityLabel="Agregar descripción">
                               <Text style={s.addDetail}>+ descripción</Text>
                             </TouchableOpacity>
                           )}
@@ -252,8 +284,11 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
 
                     <TouchableOpacity
                       style={s.addDish}
+                      hitSlop={{ top: 2, bottom: 2 }}
                       onPress={() => addDishFocused(section)}
-                      activeOpacity={0.7}>
+                      activeOpacity={0.7}
+                      accessibilityRole="button"
+                      accessibilityLabel="Agregar platillo">
                       <Ionicons name="add" size={16} color={c.accent} />
                       <Text style={s.addDishText}>Agregar platillo</Text>
                     </TouchableOpacity>
@@ -272,8 +307,11 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
             {data.secciones.length > 0 && !showSectionSuggestions ? (
               <TouchableOpacity
                 style={s.addSectionToggle}
+                hitSlop={{ top: 2, bottom: 2 }}
                 onPress={() => setShowSectionSuggestions(true)}
-                activeOpacity={0.7}>
+                activeOpacity={0.7}
+                accessibilityRole="button"
+                accessibilityLabel="Agregar sección">
                 <Ionicons name="add-circle" size={20} color={c.accent} />
                 <Text style={s.addSectionToggleText}>Agregar sección</Text>
               </TouchableOpacity>
@@ -281,9 +319,13 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
               <>
                 <TouchableOpacity
                   style={s.addSectionHeader}
+                  hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
                   activeOpacity={data.secciones.length > 0 ? 0.7 : 1}
                   disabled={data.secciones.length === 0}
-                  onPress={() => setShowSectionSuggestions(false)}>
+                  onPress={() => setShowSectionSuggestions(false)}
+                  accessibilityRole="button"
+                  accessibilityLabel="Cerrar sugerencias de sección"
+                  accessibilityState={{ disabled: data.secciones.length === 0 }}>
                   <Text style={s.addSectionLabel}>AGREGAR SECCIÓN</Text>
                   {data.secciones.length > 0 && (
                     <Ionicons name="chevron-up" size={14} color={c.textMute} />
@@ -294,22 +336,28 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                     <TouchableOpacity
                       key={nombre}
                       style={s.chip}
+                      hitSlop={{ top: 4, bottom: 4 }}
                       onPress={() => {
                         addSection(nombre);
                         setShowSectionSuggestions(false);
                       }}
-                      activeOpacity={0.7}>
+                      activeOpacity={0.7}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Agregar sección ${nombre}`}>
                       <Ionicons name="add" size={13} color={c.accent} />
                       <Text style={s.chipText}>{nombre}</Text>
                     </TouchableOpacity>
                   ))}
                   <TouchableOpacity
                     style={s.chip}
+                    hitSlop={{ top: 4, bottom: 4 }}
                     onPress={() => {
                       addSection();
                       setShowSectionSuggestions(false);
                     }}
-                    activeOpacity={0.7}>
+                    activeOpacity={0.7}
+                    accessibilityRole="button"
+                    accessibilityLabel="Agregar sección nueva">
                     <Ionicons name="add" size={13} color={c.textSecondary} />
                     <Text style={[s.chipText, { color: c.textSecondary }]}>SECCIÓN NUEVA</Text>
                   </TouchableOpacity>
@@ -322,11 +370,23 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
               el secundario abraza su texto (tintado, sin borde), el primario
               lleva el peso. Nada ocupa todo el ancho. */}
           <View style={s.actionsBlock}>
-            <TouchableOpacity style={s.saveButton} onPress={saveDraft} activeOpacity={0.8}>
+            <TouchableOpacity
+              style={s.saveButton}
+              onPress={saveDraft}
+              activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel={savedFlash ? 'Guardado' : 'Guardar borrador'}>
               <Ionicons name={savedFlash ? 'checkmark' : 'bookmark-outline'} size={15} color={c.text} />
               <Text style={s.saveText}>{savedFlash ? 'Guardado' : 'Guardar'}</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={s.publishButton} onPress={publish} disabled={publishing} activeOpacity={0.86}>
+            <TouchableOpacity
+              style={s.publishButton}
+              onPress={publish}
+              disabled={publishing}
+              activeOpacity={0.86}
+              accessibilityRole="button"
+              accessibilityLabel={publishing ? 'Publicando menú' : 'Publicar menú'}
+              accessibilityState={{ disabled: publishing, busy: publishing }}>
               <Text style={s.publishText}>{publishing ? 'Publicando…' : 'Publicar menú'}</Text>
             </TouchableOpacity>
           </View>

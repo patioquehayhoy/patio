@@ -157,7 +157,7 @@ export function SaveToListSheet({ visible, patioId, patioName, onDismiss }: Save
                       autoCapitalize="words"
                       style={s.input}
                     />
-                    <TouchableOpacity onPress={saveRename} style={s.createButton}>
+                    <TouchableOpacity onPress={saveRename} style={s.createButton} accessibilityRole="button" accessibilityLabel="Guardar nombre de la lista">
                       <Text style={s.createText}>Listo</Text>
                     </TouchableOpacity>
                   </View>
@@ -197,12 +197,12 @@ export function SaveToListSheet({ visible, patioId, patioName, onDismiss }: Save
                   autoCapitalize="words"
                   style={s.input}
                 />
-                <TouchableOpacity disabled={!newTitle.trim()} onPress={handleCreate} style={s.createButton}>
+                <TouchableOpacity disabled={!newTitle.trim()} onPress={handleCreate} style={s.createButton} accessibilityRole="button" accessibilityLabel="Crear lista">
                   <Text style={[s.createText, !newTitle.trim() && s.createTextDisabled]}>Crear</Text>
                 </TouchableOpacity>
               </View>
             ) : (
-              <TouchableOpacity onPress={() => setCreating(true)} style={[s.row, collections.length > 0 && s.divider]}>
+              <TouchableOpacity onPress={() => setCreating(true)} style={[s.row, collections.length > 0 && s.divider]} accessibilityRole="button" accessibilityLabel="Nueva lista">
                 <View style={s.listIcon}><Ionicons name="add" size={19} color={theme.textSecondary} /></View>
                 <View style={s.rowCopy}><Text style={s.rowTitle}>Nueva lista</Text></View>
               </TouchableOpacity>

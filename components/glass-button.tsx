@@ -4,6 +4,14 @@ import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
 import { useTheme } from '@/lib/theme';
 
+// Objetivo táctil ≥44×44pt (Apple HIG) sin agrandar el círculo visual: el
+// hitSlop crece hacia afuera lo que falte según `size` para completar los
+// 44pt, en vez de inflar el glass en sí.
+function hitSlopFor(size: number) {
+  const extra = Math.max(0, Math.ceil((44 - size) / 2));
+  return { top: extra, bottom: extra, left: extra, right: extra };
+}
+
 export function GlassIconButton({
   icon,
   onPress,
@@ -20,8 +28,10 @@ export function GlassIconButton({
   const { theme } = useTheme();
   return (
     <TouchableOpacity
+      accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
       onPress={onPress}
+      hitSlop={hitSlopFor(size)}
       activeOpacity={0.72}
       style={{ width: size, height: size, borderRadius: size / 2, overflow: 'hidden' }}>
       <BlurView

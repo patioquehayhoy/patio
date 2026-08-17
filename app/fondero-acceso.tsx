@@ -124,7 +124,9 @@ export default function FonderoAccesoScreen() {
       <TouchableOpacity
         style={[s.backBtn, { top: insets.top + 10 }]}
         onPress={handleBack}
-        activeOpacity={0.7}>
+        activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityLabel="Volver">
         <Ionicons name="chevron-back" size={20} color={DARK.text} />
       </TouchableOpacity>
 
@@ -173,11 +175,13 @@ export default function FonderoAccesoScreen() {
                     style={[s.sendBtn, loading && s.sendBtnOff]}
                     onPress={handleSend}
                     disabled={loading}
+                    accessibilityRole="button"
                     accessibilityLabel="Enviar enlace"
+                    accessibilityState={{ disabled: loading, busy: loading }}
                     activeOpacity={0.86}>
                     {loading
-                      ? <AgentSpinner variant="dots" size={18} color="#0B0B0C" />
-                      : <Ionicons name="arrow-forward" size={18} color="#0B0B0C" />}
+                      ? <AgentSpinner variant="dots" size={18} color="#FFFFFF" />
+                      : <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />}
                   </TouchableOpacity>
                 </BlurView>
               </View>
@@ -189,14 +193,26 @@ export default function FonderoAccesoScreen() {
               <Text style={[s.sub, s.sentLead]} allowFontScaling={true} lineBreakStrategyIOS="push-out" maxFontSizeMultiplier={1.7}>{noWidow('Te mandamos un enlace a')}</Text>
               <Text style={s.emailHi} allowFontScaling={true} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.4}>{email}</Text>
               <Text style={s.sentHint} allowFontScaling={true} lineBreakStrategyIOS="push-out" maxFontSizeMultiplier={1.7}>{noWidow('El enlace dura 15 minutos. Revisa spam si no aparece.')}</Text>
-              <TouchableOpacity style={s.changeLink} onPress={() => setSent(false)} activeOpacity={0.7}>
+              <TouchableOpacity
+                style={s.changeLink}
+                onPress={() => setSent(false)}
+                activeOpacity={0.7}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                accessibilityRole="button"
+                accessibilityLabel="Cambiar correo">
                 <Text style={s.changeText} allowFontScaling={true} numberOfLines={1} maxFontSizeMultiplier={1.3}>{noWidow('Cambiar correo')}</Text>
               </TouchableOpacity>
             </View>
           )}
 
           {/* Pie: lado Foodie */}
-          <TouchableOpacity style={s.footer} onPress={exploreInstead} activeOpacity={0.7}>
+          <TouchableOpacity
+            style={s.footer}
+            onPress={exploreInstead}
+            activeOpacity={0.7}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            accessibilityRole="button"
+            accessibilityLabel="Ver lo de hoy, explorar sin publicar">
             <Text style={s.footerText} allowFontScaling={true} lineBreakStrategyIOS="push-out" maxFontSizeMultiplier={1.5}>
               {noWidow('¿Solo buscas algo rico?')} <Text style={s.footerAccent}>{noWidow('Ver lo de hoy →')}</Text>
             </Text>
@@ -234,7 +250,9 @@ const s = StyleSheet.create({
   field: { alignSelf: 'stretch', borderRadius: 14, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.18)' },
   fieldInner: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingLeft: 18, paddingRight: 5, paddingVertical: 5 },
   input: { flex: 1, minHeight: 46, fontSize: 16, fontWeight: '400', color: '#F8F8F5', paddingVertical: 0 },
-  sendBtn: { width: 44, height: 44, borderRadius: 12, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' },
+  // Única acción prominente de esta pantalla (regla homologada 2026-08-16
+  // en CLAUDE.md) — mismo tratamiento que su gemela Foodie en comunidad-acceso.tsx.
+  sendBtn: { width: 44, height: 44, borderRadius: 12, backgroundColor: '#F2612F', alignItems: 'center', justifyContent: 'center' },
   sendBtnOff: { opacity: 0.5 },
   errorText: { marginTop: 10, fontSize: 13, fontWeight: '400', color: '#FF8A8E', textAlign: 'center' },
 

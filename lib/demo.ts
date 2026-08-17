@@ -95,7 +95,7 @@ export function makeDevPublishedPatio(data: MenuData): Patio {
   return {
     id: DEV_MY_PATIO_ID,
     name: 'Mi Patio Demo',
-    category: 'Fondita',
+    categories: ['Fondita'],
     area: 'Irrigación',
     price: '$90–$125',
     address: 'Presa Salinillas 24',
@@ -131,7 +131,7 @@ export const DEMO_PATIOS: Patio[] = [
   {
     id: 'demo-patio-4',
     name: 'Café Patio de Siempre',
-    category: 'Café y desayunos',
+    categories: ['Bebidas'],
     area: 'Irrigación',
     price: '$75–$165',
     address: 'Presa Las Pilas 18',
@@ -162,7 +162,7 @@ export const DEMO_PATIOS: Patio[] = [
   {
     id: 'demo-patio-3',
     name: 'Chochilocos de Neza Iztapalapa y Antojitos de la Güera',
-    category: 'Cocina mexicana',
+    categories: ['Fondita'],
     area: 'San Rafael',
     price: '$165–$230',
     address: 'Francisco Pimentel 74',
@@ -202,7 +202,7 @@ export const DEMO_PATIOS: Patio[] = [
   {
     id: 'demo-patio-2',
     name: 'Cocina Lupita',
-    category: 'Restaurante',
+    categories: ['Restaurante'],
     area: 'Anzures',
     price: '$145–$185',
     address: 'Calle Darwin 18',
@@ -247,7 +247,7 @@ export const DEMO_PATIOS: Patio[] = [
   {
     id: 'demo-elotes-lupita',
     name: 'Elotes Doña Lupita',
-    category: 'Antojitos',
+    categories: ['Antojitos'],
     area: 'Irrigación',
     price: '$',
     address: 'Presa Falcón esq. Presa Salinillas',
@@ -276,7 +276,7 @@ export const DEMO_PATIOS: Patio[] = [
   {
     id: 'demo-burgers-charly',
     name: 'Burgers Charly',
-    category: 'Hamburguesas',
+    categories: ['Restaurante'],
     area: 'Legaria',
     price: '$$',
     address: 'Calz. Legaria 620',
@@ -305,7 +305,7 @@ export const DEMO_PATIOS: Patio[] = [
   {
     id: 'demo-mariscos-güero',
     name: 'Mariscos El Güero',
-    category: 'Mariscos',
+    categories: ['Mariscos'],
     area: 'Irrigación',
     price: '$$',
     address: 'Presa Don Martín 205',
@@ -340,7 +340,7 @@ export const DEMO_PATIOS: Patio[] = [
   {
     id: 'demo-cocina-carmelita',
     name: 'Cocina Carmelita',
-    category: 'Comida corrida',
+    categories: ['Fondita'],
     area: 'Irrigación',
     price: '$',
     address: 'Presa Angostura 33',
@@ -369,7 +369,7 @@ export const DEMO_PATIOS: Patio[] = [
   {
     id: 'demo-pozoleria-jalisco',
     name: 'Pozolería Jalisco',
-    category: 'Pozolería',
+    categories: ['Restaurante'],
     area: 'Legaria',
     price: '$$',
     address: 'Lago Como 12',
@@ -397,7 +397,7 @@ export const DEMO_PATIOS: Patio[] = [
   {
     id: 'demo-pasteles-nube',
     name: 'Pastelería La Nube',
-    category: 'Repostería',
+    categories: ['Repostería'],
     area: 'Irrigación',
     price: '$$',
     address: 'Presa Madín 48-B',
@@ -425,7 +425,7 @@ export const DEMO_PATIOS: Patio[] = [
   {
     id: 'demo-jugos-sol',
     name: 'Jugos El Sol',
-    category: 'Jugos y licuados',
+    categories: ['Bebidas'],
     area: 'Legaria',
     price: '$',
     address: 'Calz. Legaria 455, local 2',
@@ -460,9 +460,11 @@ export const DEMO_PATIOS: Patio[] = [
 
 // Laboratorio local de densidad. Usa únicamente la gramática normal de lugares:
 // sirve para estresar el mapa sin introducir todavía reparto, zonas o tianguis.
+// Mismas 9 categorías atómicas reales que PATIO_CATEGORIES en lib/patios.ts —
+// nunca inventar otras aquí, o los chips de categoría del mapa se contaminan.
 const DENSITY_CATEGORIES = [
-  'Cocina mexicana', 'Café y desayunos', 'Taquería', 'Mariscos',
-  'Antojitos', 'Postres', 'Hamburguesas', 'Elotes y botanas',
+  'Fondita', 'Taquería', 'Antojitos', 'Elotes', 'Botanas',
+  'Repostería', 'Mariscos', 'Bebidas', 'Restaurante',
 ];
 
 function seededUnit(seed: number): number {
@@ -474,11 +476,16 @@ export const DENSITY_DEMO_PATIOS: Patio[] = Array.from({ length: 400 }, (_, inde
   const source = DEMO_PATIOS[index % DEMO_PATIOS.length];
   const radius = Math.sqrt(seededUnit(index + 1));
   const angle = seededUnit(index + 401) * Math.PI * 2;
+  // Da variedad real de prueba al filtro multi-tag: uno de cada tres lugares
+  // sintéticos trae dos etiquetas en vez de una sola.
+  const primary = DENSITY_CATEGORIES[index % DENSITY_CATEGORIES.length];
+  const secondary = DENSITY_CATEGORIES[(index + 4) % DENSITY_CATEGORIES.length];
+  const categories = index % 3 === 0 && secondary !== primary ? [primary, secondary] : [primary];
   return {
     ...source,
     id: `density-lab-${index + 1}`,
     name: `Lugar laboratorio ${index + 1}`,
-    category: DENSITY_CATEGORIES[index % DENSITY_CATEGORIES.length],
+    categories,
     area: 'Polanco · laboratorio DEV',
     latitude: 19.4429 + Math.sin(angle) * radius * 0.012,
     longitude: -99.2044 + Math.cos(angle) * radius * 0.015,

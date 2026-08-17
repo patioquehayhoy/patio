@@ -151,7 +151,9 @@ export default function OnboardingScreen() {
       <TouchableOpacity
         style={[s.closeBtn, { top: insets.top + 8 }]}
         onPress={() => goTo(SLIDES.length - 1)}
+        accessibilityRole="button"
         accessibilityLabel="Saltar introducción"
+        hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
         disabled={isLast}
         activeOpacity={0.7}>
         {!isLast && (
@@ -172,7 +174,7 @@ export default function OnboardingScreen() {
         <View style={s.ctaCol}>
           {isLast ? (
             <>
-              <TouchableOpacity accessibilityLabel="Ver qué hay hoy" disabled={routing} style={s.roleButton} onPress={() => chooseRole('foodie')} activeOpacity={0.84}>
+              <TouchableOpacity accessibilityRole="button" accessibilityLabel="Ver qué hay hoy" accessibilityState={{ disabled: routing }} disabled={routing} style={s.roleButton} onPress={() => chooseRole('foodie')} activeOpacity={0.84}>
                 <BlurView intensity={24} tint="dark" style={s.roleButtonInner}>
                   <View style={s.roleIcon}><Ionicons name="map-outline" size={19} color="#FF6A3D" /></View>
                   <View style={s.roleCopy}>
@@ -182,7 +184,7 @@ export default function OnboardingScreen() {
                   <Ionicons name="chevron-forward" size={16} color="rgba(255,255,255,0.46)" />
                 </BlurView>
               </TouchableOpacity>
-              <TouchableOpacity accessibilityLabel="Publicar lo que preparo" disabled={routing} style={s.roleButton} onPress={() => chooseRole('fondero')} activeOpacity={0.84}>
+              <TouchableOpacity accessibilityRole="button" accessibilityLabel="Publicar lo que preparo" accessibilityState={{ disabled: routing }} disabled={routing} style={s.roleButton} onPress={() => chooseRole('fondero')} activeOpacity={0.84}>
                 <BlurView intensity={24} tint="dark" style={s.roleButtonInner}>
                   <View style={s.roleIcon}><Ionicons name="storefront-outline" size={19} color="#FF6A3D" /></View>
                   <View style={s.roleCopy}>
@@ -194,7 +196,7 @@ export default function OnboardingScreen() {
               </TouchableOpacity>
             </>
           ) : (
-            <TouchableOpacity style={s.ctaGlass} onPress={() => goTo(index + 1)} activeOpacity={0.86}>
+            <TouchableOpacity style={s.ctaGlass} onPress={() => goTo(index + 1)} activeOpacity={0.86} hitSlop={{ top: 5, bottom: 5, left: 5, right: 5 }} accessibilityRole="button" accessibilityLabel="Continuar">
               <BlurView intensity={16} tint="dark" style={s.ctaGlassInner}>
                 <Text style={s.ctaGlassText} allowFontScaling={true} numberOfLines={1} maxFontSizeMultiplier={1.3}>Continuar</Text>
               </BlurView>

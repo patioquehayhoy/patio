@@ -205,7 +205,9 @@ export default function PerfilScreen() {
                   <TouchableOpacity
                     key={id}
                     accessibilityRole="radio"
+                    accessibilityLabel={label}
                     accessibilityState={{ selected }}
+                    hitSlop={{ top: 5, bottom: 5, left: 3, right: 3 }}
                     onPress={() => setTipoNegocioState(id)}
                     style={[s.typeChip, selected && s.typeChipSelected]}>
                     <Text style={[s.typeChipText, selected && s.typeChipTextSelected]}>{label}</Text>
@@ -241,9 +243,13 @@ export default function PerfilScreen() {
             />
             <TouchableOpacity
               style={s.locationBtn}
+              hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
               onPress={handleMarkLocation}
               disabled={isSavingLocation}
-              activeOpacity={0.7}>
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel={locationSaved ? 'En el mapa' : 'Marcar en el mapa'}
+              accessibilityState={{ disabled: isSavingLocation, busy: isSavingLocation }}>
               <Ionicons
                 name={locationSaved ? 'checkmark-circle' : 'location-outline'}
                 size={14}
@@ -299,7 +305,10 @@ export default function PerfilScreen() {
             style={[s.saveBtn, isSaving && { opacity: 0.6 }]}
             onPress={handleSaveAll}
             disabled={isSaving || savedFlash}
-            activeOpacity={0.85}>
+            activeOpacity={0.85}
+            accessibilityRole="button"
+            accessibilityLabel={isSaving ? 'Guardando cambios' : savedFlash ? 'Guardado' : 'Guardar cambios'}
+            accessibilityState={{ disabled: isSaving || savedFlash, busy: isSaving }}>
             {savedFlash && <Ionicons name="checkmark" size={16} color="#fff" style={{ marginRight: 6 }} />}
             <Text style={s.saveBtnText} allowFontScaling={true}>
               {isSaving ? 'Guardando…' : savedFlash ? 'Guardado' : 'Guardar cambios'}

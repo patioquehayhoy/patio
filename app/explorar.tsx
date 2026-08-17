@@ -12,7 +12,7 @@ import { MAP_STYLE_DARK, MAP_STYLE_LIGHT } from '@/lib/map-style';
 import { publicPrice } from '@/lib/prices';
 import { FoodieLoading } from '@/components/foodie-loading';
 import { BottomTabBar } from '@/components/bottom-tab-bar';
-import { FoodieFilterBar } from '@/components/foodie-filter-bar';
+import { EMPTY_FOODIE_FILTERS, FoodieFilterBar, matchesFoodieFilters, type FoodieFilters } from '@/components/foodie-filter-bar';
 import { FOODIE_INITIAL_REGION, useFoodieExploreController } from '@/lib/controllers/useFoodieExploreController';
 import { noWidow } from '@/lib/typography';
 import { Fonts, Radius, useTheme, type Theme } from '@/lib/theme';
@@ -21,10 +21,6 @@ import { estaAbiertoAhora } from '@/lib/horario';
 import type { Patio } from '@/lib/patios';
 
 const OPEN_GREEN = '#1F9D55';
-const WHEEL_ROW_HEIGHT = 34;
-const WHEEL_VISIBLE_ROWS = 1;
-const WHEEL_HEIGHT = WHEEL_ROW_HEIGHT * WHEEL_VISIBLE_ROWS;
-const PILL_GAP = 7;
 
 function openState(patio: Patio): boolean | null {
   return patio.weeklyHours ? estaAbiertoAhora(patio.weeklyHours) : null;
@@ -64,8 +60,8 @@ function makeStyles(t: Theme) {
     aiProButton: { minHeight: 30, paddingHorizontal: 8, borderRadius: 15, flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: t.accentSoft },
     aiProText: { fontSize: 10.5, fontWeight: '800', color: t.accent, letterSpacing: 0.3 },
     sheet: { position: 'absolute', left: 14, right: 14, bottom: 14, maxHeight: '48%', borderRadius: Radius.sheet, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: t.isDark ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.18)', shadowColor: '#000', shadowOffset: { width: 0, height: 12 }, shadowOpacity: t.isDark ? 0.20 : 0.08, shadowRadius: 32, elevation: 8 },
-    grabber: { alignSelf: 'center', width: 36, height: 4, borderRadius: 2, backgroundColor: t.isDark ? 'rgba(255,255,255,0.16)' : 'rgba(0,0,0,0.10)', marginTop: 10, marginBottom: 8 },
-    grabberTouch: { height: 28, alignItems: 'center', justifyContent: 'flex-start' },
+    grabber: { alignSelf: 'center', width: 36, height: 4, borderRadius: 2, backgroundColor: t.isDark ? 'rgba(255,255,255,0.16)' : 'rgba(0,0,0,0.10)', marginTop: 7 },
+    grabberTouch: { height: 20, alignItems: 'center', justifyContent: 'flex-start' },
     selectedPanel: { paddingHorizontal: 18, paddingBottom: 14 },
     selectedHeader: { flexDirection: 'row', alignItems: 'center', gap: 9, marginBottom: 8 },
     selectedTitle: { flex: 1, fontSize: 22, lineHeight: 26, fontWeight: '900', fontFamily: Fonts.brand, color: t.text },
@@ -80,8 +76,10 @@ function makeStyles(t: Theme) {
     cta: { minHeight: 44, paddingHorizontal: 18, borderRadius: 22, backgroundColor: t.text, flexDirection: 'row', alignItems: 'center', gap: 6 },
     ctaText: { fontSize: 13, fontWeight: '900', color: t.surface },
     divider: { height: StyleSheet.hairlineWidth, backgroundColor: t.border },
-    listHeader: { paddingHorizontal: 20, paddingTop: 10, paddingBottom: 8, flexDirection: 'row', alignItems: 'center' },
+    listHeader: { paddingHorizontal: 20, paddingTop: 4, paddingBottom: 6, flexDirection: 'row', alignItems: 'center' },
     listTitle: { fontSize: 12.5, fontWeight: '600', color: t.textSecondary },
+    aiNoteRow: { paddingHorizontal: 20, paddingBottom: 8, flexDirection: 'row', alignItems: 'center', gap: 5 },
+    aiNoteText: { fontSize: 12.5, fontWeight: '300', color: t.textSecondary, flexShrink: 1 },
     listMeta: { fontSize: 12, fontWeight: '400', color: t.textSecondary },
     listFilter: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, minHeight: 30, borderRadius: 15, backgroundColor: t.accentLight },
     listFilterText: { fontSize: 12, fontWeight: '900', color: t.accent },
@@ -114,31 +112,6 @@ function makeStyles(t: Theme) {
     pill: { overflow: 'hidden', borderRadius: 100, borderWidth: StyleSheet.hairlineWidth, borderColor: t.isDark ? 'rgba(255,255,255,0.14)' : 'rgba(0,0,0,0.08)' },
     pillText: { paddingHorizontal: 14, paddingVertical: 7, fontSize: 13, fontWeight: '400', color: t.text },
     mapFilters: { position: 'absolute', left: 0, right: 0 },
-    mapFiltersRow: { height: 44, justifyContent: 'center' },
-    mapFiltersScroll: { flex: 1 },
-    mapFiltersContent: { gap: PILL_GAP, paddingLeft: 16, paddingRight: 84 },
-    mapFilterHitArea: { minHeight: 44, justifyContent: 'center' },
-    editablePillWrap: { position: 'relative' },
-    mapFilter: { height: 34, paddingHorizontal: 12, borderRadius: 17, justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
-    mapFilterText: { fontSize: 12.5, fontWeight: '600' },
-    removePillButton: { position: 'absolute', right: -7, top: -4, width: 24, height: 24, zIndex: 4, alignItems: 'center', justifyContent: 'center' },
-    addPill: { flexDirection: 'row', alignItems: 'center', gap: 5, borderStyle: 'dashed' },
-    listasDock: { position: 'absolute', right: 0, top: 0, zIndex: 5, width: 60, height: 44, paddingRight: 16, alignItems: 'flex-end', justifyContent: 'center', backgroundColor: 'transparent' },
-    doneDock: { width: 74 },
-    listasTrigger: { width: 34, paddingHorizontal: 0, alignItems: 'center' },
-    doneTrigger: { minWidth: 58, paddingHorizontal: 12, alignItems: 'center' },
-    doneText: { fontSize: 12.5, fontWeight: '700' },
-    listasBar: { position: 'absolute', top: 5, height: WHEEL_HEIGHT, borderRadius: 17, overflow: 'hidden', backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: btnBorder, shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: btnShadowOpacity + 0.04, shadowRadius: 22, elevation: 4 },
-    listasBarFromLists: { left: 16, right: 84 },
-    listasBarFromCategories: { left: 96, right: 16 },
-    wheelRow: { height: WHEEL_ROW_HEIGHT, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingHorizontal: 16 },
-    wheelText: { fontSize: 15, fontWeight: '600', color: t.text },
-    editPillPanel: { position: 'absolute', left: 16, right: 16, top: 48, maxHeight: 320, borderRadius: 18, overflow: 'hidden', backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: btnBorder, shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: btnShadowOpacity + 0.04, shadowRadius: 22, elevation: 4 },
-    editPillHeader: { minHeight: 44, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.border },
-    editPillHeaderText: { fontSize: 14, fontWeight: '700', color: t.text },
-    editPillOption: { minHeight: 44, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 10 },
-    editPillOptionDivider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border },
-    editPillOptionText: { flex: 1, fontSize: 14.5, fontWeight: '500', color: t.text },
   });
 }
 
@@ -174,6 +147,7 @@ export default function ExplorarScreen() {
   const {
     activeSavedCategories,
     aiMode,
+    aiNote,
     allPatios,
     clearSavedMapFilter,
     closeSheet,
@@ -183,7 +157,6 @@ export default function ExplorarScreen() {
     idleMode,
     initialLoading,
     isFiltering,
-    matchingPatioIds,
     openSearch,
     query,
     mapFilteredPatios,
@@ -211,7 +184,7 @@ export default function ExplorarScreen() {
       }, 360));
     }, 145));
   }, []);
-  const [mapFilter, setMapFilter] = useState('all');
+  const [filters, setFilters] = useState<FoodieFilters>(EMPTY_FOODIE_FILTERS);
   const [collections, setCollections] = useState<PatioCollection[]>([]);
   useEffect(() => {
     getCollections().then(async (items) => {
@@ -224,20 +197,37 @@ export default function ExplorarScreen() {
     }).catch(() => {});
   }, []);
   useEffect(() => {
-    if (params.collection) setMapFilter(`collection:${params.collection}`);
-    else if (params.saved === '1') setMapFilter('saved');
+    if (params.collection) setFilters((f) => ({ ...f, collectionIds: [params.collection as string] }));
+    else if (params.saved === '1') setFilters((f) => ({ ...f, saved: true }));
   }, [params.collection, params.saved]);
-  const filteredPins = useMemo(() => visiblePatios.filter((patio) => {
-    if (mapFilter === 'all') return true;
-    if (mapFilter === 'saved') return savedIds.includes(patio.id);
-    if (mapFilter === 'today') return patio.menu.some((section) => section.items.length > 0);
-    if (mapFilter === 'open') return patio.weeklyHours ? estaAbiertoAhora(patio.weeklyHours) : false;
-    if (mapFilter.startsWith('collection:')) {
-      const collection = collections.find((item) => item.id === mapFilter.slice('collection:'.length));
-      return !!collection?.patioIds.includes(patio.id);
-    }
-    return patio.category === mapFilter;
-  }), [collections, mapFilter, savedIds, visiblePatios]);
+  // Los atributos (categoría, pagos, horario) se combinan por intersección
+  // (AND) — como Google Maps. Las listas se combinan por unión (OR): elegir
+  // dos listas muestra los lugares de cualquiera de las dos, para comparar
+  // cuál te queda más cerca entre ambas, no para restringir a los que están
+  // en las dos a la vez.
+  const filteredPins = useMemo(() => visiblePatios.filter((patio) => matchesFoodieFilters(filters, {
+    patioId: patio.id,
+    hasTodayMenu: patio.menu.some((section) => section.items.length > 0),
+    isOpenNow: !!(patio.weeklyHours && estaAbiertoAhora(patio.weeklyHours)),
+    isSaved: savedIds.includes(patio.id),
+    categories: patio.categories,
+    payments: patio.payments,
+    collections,
+  })), [collections, filters, savedIds, visiblePatios]);
+  // Los filtros también deben aplicar cuando ya estás buscando una palabra
+  // (no solo en el mapa idle) — así lo hace Apple Maps: los chips de filtro
+  // siguen vivos y afectan los resultados de la búsqueda, no desaparecen en
+  // cuanto escribes.
+  const filteredMatches = useMemo(() => topMatchPerPatio.filter((match) => matchesFoodieFilters(filters, {
+    patioId: match.patio.id,
+    hasTodayMenu: match.patio.menu.some((section) => section.items.length > 0),
+    isOpenNow: !!(match.patio.weeklyHours && estaAbiertoAhora(match.patio.weeklyHours)),
+    isSaved: savedIds.includes(match.patio.id),
+    categories: match.patio.categories,
+    payments: match.patio.payments,
+    collections,
+  })), [topMatchPerPatio, filters, savedIds, collections]);
+  const matchingPatioIds = useMemo(() => new Set(filteredMatches.map((match) => match.patio.id)), [filteredMatches]);
   const filteredPinIds = useMemo(() => new Set(filteredPins.map((patio) => patio.id)), [filteredPins]);
   const shouldCluster = !isFiltering && mapRegion.latitudeDelta > 0.018;
   const stableMapPatios = useMemo(() => allPatios.filter((patio) => patio.latitude > 0 && patio.longitude !== 0), [allPatios]);
@@ -262,8 +252,13 @@ export default function ExplorarScreen() {
     });
 
     return [...cells.entries()].map(([key, cell]) => {
+      // Un cluster solo puede mostrar un ícono — cuenta el tag PRIMARIO de
+      // cada lugar (no todos sus tags) para decidir cuál domina la celda.
       const categoryCounts = new Map<string, number>();
-      cell.patios.forEach((patio) => categoryCounts.set(patio.category, (categoryCounts.get(patio.category) ?? 0) + 1));
+      cell.patios.forEach((patio) => {
+        const primary = patio.categories[0] ?? 'Fondita';
+        categoryCounts.set(primary, (categoryCounts.get(primary) ?? 0) + 1);
+      });
       const category = [...categoryCounts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'Cocina mexicana';
       return {
         key,
@@ -277,14 +272,7 @@ export default function ExplorarScreen() {
   }, [filteredPins, mapRegion, shouldCluster]);
   const dismissSheet = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-    Animated.timing(sheetTranslateY, {
-      toValue: 420,
-      duration: 190,
-      useNativeDriver: true,
-    }).start(({ finished }) => {
-      if (finished) closeSheet();
-      sheetTranslateY.setValue(0);
-    });
+    closeSheet();
   };
   const sheetPanResponder = useRef(
     PanResponder.create({
@@ -310,6 +298,25 @@ export default function ExplorarScreen() {
     })
   ).current;
   const showSheet = isFiltering || sheetMode !== null;
+  // Montaje separado del estado lógico: antes, cualquier cierre que no fuera
+  // arrastrar con el dedo (borrar la búsqueda, tocar la "x", cambiar de tab)
+  // desmontaba el sheet de golpe sin animación — solo el arrastre manual
+  // tenía transición. Ahora TODO cierre anima hacia abajo antes de
+  // desmontar. `filtering` se congela en su último valor mientras se anima
+  // la salida, para que el alto/radio del contenedor no cambien de golpe a
+  // media transición (esa era la fuente del "brinco").
+  const [sheetView, setSheetView] = useState({ mounted: showSheet, filtering: isFiltering });
+  useEffect(() => {
+    if (showSheet) {
+      sheetTranslateY.setValue(0);
+      setSheetView({ mounted: true, filtering: isFiltering });
+    } else if (sheetView.mounted) {
+      Animated.timing(sheetTranslateY, { toValue: 420, duration: 190, useNativeDriver: true }).start(({ finished }) => {
+        if (finished) setSheetView((v) => ({ ...v, mounted: false }));
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showSheet, isFiltering]);
   const listPatios = activeSavedCategories.length ? mapFilteredPatios : allPatios;
   useEffect(() => {
     const show = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow', (e) => setKeyboardHeight(e.endCoordinates.height));
@@ -355,7 +362,7 @@ export default function ExplorarScreen() {
             <View style={[s.pinMatch, selected && s.pinMatchSelected]}><View style={s.pinMatchCore} /></View>
           ) : (
             <View style={[s.pinCategory, selected && s.pinCategorySelected]}>
-              <Ionicons name={categoryIcon(patio.category)} size={13} color={selected ? '#FFFFFF' : theme.text} />
+              <Ionicons name={categoryIcon(patio.categories[0] ?? 'Fondita')} size={13} color={selected ? '#FFFFFF' : theme.text} />
               <View style={[s.pinPointer, { borderTopColor: selected ? '#111214' : theme.isDark ? 'rgba(18,19,22,0.90)' : 'rgba(255,255,255,0.92)' }]} />
             </View>
           )}
@@ -501,12 +508,27 @@ export default function ExplorarScreen() {
       </View>
 
       {!searchActive && !showSheet && (
-        <View style={[s.mapFilters, { top: insets.top + 72 }]}>
+        <View style={[s.mapFilters, { top: insets.top + 80 }]}>
           <FoodieFilterBar
-            value={mapFilter}
-            onChange={setMapFilter}
+            filters={filters}
+            onChange={setFilters}
             collections={collections}
-            categories={[...new Set(allPatios.map((patio) => patio.category))].sort((a, b) => a.localeCompare(b, 'es'))}
+            categories={[...new Set(allPatios.flatMap((patio) => patio.categories))].sort((a, b) => a.localeCompare(b, 'es'))}
+            onCollectionCreated={(c) => setCollections((prev) => [c, ...prev])}
+          />
+        </View>
+      )}
+
+      {/* Igual que Apple Maps: los filtros no desaparecen al buscar — siguen
+          vivos justo debajo del buscador y siguen afectando los resultados
+          (ver matchesFoodieFilters aplicado a filteredMatches abajo). */}
+      {sheetView.mounted && sheetView.filtering && (
+        <View style={[s.mapFilters, { top: insets.top + 80 }]}>
+          <FoodieFilterBar
+            filters={filters}
+            onChange={setFilters}
+            collections={collections}
+            categories={[...new Set(allPatios.flatMap((patio) => patio.categories))].sort((a, b) => a.localeCompare(b, 'es'))}
             onCollectionCreated={(c) => setCollections((prev) => [c, ...prev])}
           />
         </View>
@@ -516,7 +538,10 @@ export default function ExplorarScreen() {
         <TouchableOpacity
           style={[s.listFilter, { position: 'absolute', top: insets.top + 12, alignSelf: 'center' }]}
           onPress={clearSavedMapFilter}
-          activeOpacity={0.78}>
+          activeOpacity={0.78}
+          hitSlop={{ top: 7, bottom: 7, left: 6, right: 6 }}
+          accessibilityRole="button"
+          accessibilityLabel={`Quitar filtro de mapa: ${activeSavedCategories.join(', ')}`}>
           <Ionicons name="map-outline" size={13} color={theme.accent} />
           <Text style={s.listFilterText} numberOfLines={1}>
             {activeSavedCategories.join(' · ')}
@@ -536,7 +561,7 @@ export default function ExplorarScreen() {
             { opacity: idleLayerOpacity },
           ]}>
           <View style={s.bottomControls}>
-            <TouchableOpacity accessibilityLabel="Buscar comida o un lugar" activeOpacity={0.82} onPress={openSearch} style={[s.searchPill, { flex: 1 }]}>
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Buscar comida o un lugar" activeOpacity={0.82} onPress={openSearch} style={[s.searchPill, { flex: 1 }]}>
               <BlurView intensity={theme.isDark ? 28 : 36} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
               <Ionicons name="search-outline" size={18} color={theme.textSecondary} />
               <Text style={{ fontSize: 16, fontWeight: '400', color: theme.textSecondary }}>
@@ -556,7 +581,7 @@ export default function ExplorarScreen() {
           <View style={{ paddingHorizontal: 16, paddingBottom: 12 }}>
             <View style={s.searchRow}>
               <BlurView intensity={theme.isDark ? 30 : 36} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
-              <TouchableOpacity onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); closeSearch(); }} activeOpacity={0.76} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+              <TouchableOpacity onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); closeSearch(); }} activeOpacity={0.76} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }} accessibilityRole="button" accessibilityLabel="Cerrar búsqueda">
                 <Ionicons name="chevron-back" size={20} color={theme.text} />
               </TouchableOpacity>
               <TextInput
@@ -576,7 +601,7 @@ export default function ExplorarScreen() {
                 selectionColor={theme.accent}
               />
               {query.length > 0 && (
-                <TouchableOpacity onPress={() => { Haptics.selectionAsync(); handleQueryChange(''); }} activeOpacity={0.76} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                <TouchableOpacity onPress={() => { Haptics.selectionAsync(); handleQueryChange(''); }} activeOpacity={0.76} hitSlop={{ top: 13, bottom: 13, left: 13, right: 13 }} accessibilityRole="button" accessibilityLabel="Borrar búsqueda">
                   <Ionicons name="close-circle" size={18} color={theme.textSecondary} />
                 </TouchableOpacity>
               )}
@@ -591,7 +616,9 @@ export default function ExplorarScreen() {
                     router.push({ pathname: '/plan', params: { role: 'foodie' } });
                   }
                 }}
+                hitSlop={{ top: 7, bottom: 7, left: 6, right: 6 }}
                 accessibilityRole="button"
+                accessibilityState={{ selected: aiMode }}
                 accessibilityLabel="Conocer búsqueda con inteligencia artificial de Patio Pro">
                 <Ionicons name="sparkles" size={13} color={aiMode ? theme.bg : theme.accent} />
                 <Text style={[s.aiProText, aiMode && { color: theme.bg }]}>IA</Text>
@@ -601,10 +628,13 @@ export default function ExplorarScreen() {
         </View>
       )}
 
-      {showSheet && (
+      {sheetView.mounted && (
         <Animated.View
-          style={[s.sheet, isFiltering ? {
-            top: insets.top + 80,
+          style={[s.sheet, sheetView.filtering ? {
+            // 80 (borde inferior del buscador) + 44 (barra de filtros) + 8
+            // (aire entre ambos) — antes el sheet empezaba justo donde
+            // ahora vive la barra de filtros y la hubiera tapado.
+            top: insets.top + 132,
             bottom: keyboardHeight > 0 ? keyboardHeight : insets.bottom + 14,
             maxHeight: undefined,
             paddingBottom: 4,
@@ -625,14 +655,21 @@ export default function ExplorarScreen() {
           <View style={s.listHeader}>
             {isFiltering ? (
               <Text style={s.listTitle} allowFontScaling={true}>
-                {topMatchPerPatio.length > 0
-                  ? `${topMatchPerPatio.length} resultado${topMatchPerPatio.length !== 1 ? 's' : ''}`
+                {filteredMatches.length > 0
+                  ? `${filteredMatches.length} resultado${filteredMatches.length !== 1 ? 's' : ''}`
                   : 'Sin resultados'}
               </Text>
             ) : (
               <Text style={s.listTitle} allowFontScaling={true}>{sheetMode === 'saved' ? 'GUARDADOS' : 'CERCA DE TI'}</Text>
             )}
           </View>
+
+          {aiMode && isFiltering && !!aiNote && (
+            <View style={s.aiNoteRow}>
+              <Ionicons name="sparkles" size={12} color={theme.accent} />
+              <Text style={s.aiNoteText} numberOfLines={1} allowFontScaling={true}>{aiNote}</Text>
+            </View>
+          )}
 
           <ScrollView
             style={s.list}
@@ -641,7 +678,7 @@ export default function ExplorarScreen() {
             keyboardDismissMode="on-drag"
             onScrollBeginDrag={Keyboard.dismiss}>
             {isFiltering ? (
-              topMatchPerPatio.length === 0 ? (
+              filteredMatches.length === 0 ? (
                 searchPending ? null : (
                 <View style={s.emptyResults}>
                   <View style={s.emptyIconCircle}>
@@ -653,7 +690,7 @@ export default function ExplorarScreen() {
                   <Text style={s.emptyPruebaLabel} allowFontScaling={true}>OTRAS BÚSQUEDAS</Text>
                   <View style={s.emptyPills}>
                     {['caldo', 'tinga', 'mole', 'pozole', 'veggie'].map((q) => (
-                      <TouchableOpacity key={q} onPress={() => handleQueryChange(q)} activeOpacity={0.8} style={s.emptyPill}>
+                      <TouchableOpacity key={q} onPress={() => handleQueryChange(q)} activeOpacity={0.8} style={s.emptyPill} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }} accessibilityRole="button" accessibilityLabel={`Buscar ${q}`}>
                         <Text style={s.emptyPillText} allowFontScaling={true}>{q}</Text>
                       </TouchableOpacity>
                     ))}
@@ -661,10 +698,11 @@ export default function ExplorarScreen() {
                 </View>
                 )
               ) : (
-                topMatchPerPatio.map((match) => {
+                filteredMatches.map((match) => {
                   const state = openState(match.patio);
                   return (
                     <TouchableOpacity
+                      accessibilityRole="button"
                       accessibilityLabel={`Abrir resultado ${match.item.name} en ${match.patio.name}`}
                       key={`${match.patio.id}-${match.item.name}`}
                       style={s.patioRow}
@@ -714,6 +752,7 @@ export default function ExplorarScreen() {
                 const state = openState(patio);
                 return (
                   <TouchableOpacity
+                    accessibilityRole="button"
                     accessibilityLabel={`Abrir ${patio.name}`}
                     key={patio.id}
                     style={s.patioRow}

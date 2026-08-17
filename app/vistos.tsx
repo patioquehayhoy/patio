@@ -107,7 +107,7 @@ export default function VistosScreen() {
             </View>
             <Text style={s.emptyTitle} allowFontScaling={true}>Aún no has visto nada</Text>
             <Text style={s.emptyText} allowFontScaling={true}>Cuando abras una cocina en el mapa, aparece aquí para volver rápido.</Text>
-            <TouchableOpacity style={s.cta} onPress={() => router.replace('/explorar')} activeOpacity={0.82}>
+            <TouchableOpacity style={s.cta} onPress={() => router.replace('/explorar')} activeOpacity={0.82} accessibilityRole="button" accessibilityLabel="Ver qué hay hoy">
               <Text style={s.ctaText} allowFontScaling={true}>Ver qué hay hoy</Text>
             </TouchableOpacity>
           </View>
@@ -121,7 +121,9 @@ export default function VistosScreen() {
                   key={patio.id}
                   style={[s.card, !hasMenu && { opacity: 0.62 }]}
                   onPress={() => router.push(`/patio/${patio.id}`)}
-                  activeOpacity={0.82}>
+                  activeOpacity={0.82}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Abrir ${patio.name}`}>
                   <View style={s.thumb}>
                     <Image source={photoFor(patio.id)} style={s.thumbImg} resizeMode="cover" />
                   </View>

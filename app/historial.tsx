@@ -48,14 +48,21 @@ export default function HistorialScreen() {
     return (
       <View key={key} style={showTopBorder && { borderTopColor: c.border, borderTopWidth: StyleSheet.hairlineWidth }}>
         <View style={s.row}>
-          <TouchableOpacity style={{ flex: 1 }} onPress={() => reuse(menu.secciones)} activeOpacity={0.74}>
+          <TouchableOpacity
+            style={{ flex: 1 }}
+            onPress={() => reuse(menu.secciones)}
+            activeOpacity={0.74}
+            accessibilityRole="button"
+            accessibilityLabel={`Usar menú de ${dateLabel(menu.fecha)}`}>
             <Text style={[s.date, { color: c.accent }]}>
               {dateLabel(menu.fecha)}
             </Text>
             <Text style={[s.summary, { color: c.text }]} numberOfLines={2}>{menu.nombre || defaultHistoryTitle(menu)}</Text>
           </TouchableOpacity>
           <TouchableOpacity
+            accessibilityRole="button"
             accessibilityLabel="Acciones del menú"
+            accessibilityState={{ expanded: actionsOpen }}
             style={[s.iconBtn, { backgroundColor: c.iconBg }]}
             onPress={() => setActionsFor(actionsOpen ? null : key)}
             activeOpacity={0.72}>
@@ -64,15 +71,30 @@ export default function HistorialScreen() {
         </View>
         {actionsOpen && (
           <View style={[s.actionsRow, { backgroundColor: c.iconBg }]}>
-            <TouchableOpacity onPress={() => { setActionsFor(null); reuse(menu.secciones); }} style={s.action}>
+            <TouchableOpacity
+              onPress={() => { setActionsFor(null); reuse(menu.secciones); }}
+              style={s.action}
+              hitSlop={{ top: 5, bottom: 5, left: 2, right: 2 }}
+              accessibilityRole="button"
+              accessibilityLabel="Editar y usar este menú">
               <Ionicons name="create-outline" size={15} color={c.text} />
               <Text style={[s.actionText, { color: c.text }]}>Editar y usar</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => { setActionsFor(null); openRename(menu); }} style={s.action}>
+            <TouchableOpacity
+              onPress={() => { setActionsFor(null); openRename(menu); }}
+              style={s.action}
+              hitSlop={{ top: 5, bottom: 5, left: 2, right: 2 }}
+              accessibilityRole="button"
+              accessibilityLabel="Renombrar menú">
               <Ionicons name="text-outline" size={15} color={c.text} />
               <Text style={[s.actionText, { color: c.text }]}>Renombrar</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => { setActionsFor(null); deleteMenu(menu); }} style={s.action}>
+            <TouchableOpacity
+              onPress={() => { setActionsFor(null); deleteMenu(menu); }}
+              style={s.action}
+              hitSlop={{ top: 5, bottom: 5, left: 2, right: 2 }}
+              accessibilityRole="button"
+              accessibilityLabel="Eliminar menú">
               <Ionicons name="trash-outline" size={15} color={c.danger} />
               <Text style={[s.actionText, { color: c.danger }]}>Eliminar</Text>
             </TouchableOpacity>
@@ -87,6 +109,7 @@ export default function HistorialScreen() {
       <Stack.Screen options={{ headerShown: false }} />
       <ScrollView onScroll={onScroll} scrollEventThrottle={16} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 24, paddingBottom: insets.bottom + 120 }} showsVerticalScrollIndicator={false}>
         <TouchableOpacity
+          accessibilityRole="button"
           accessibilityLabel="Crear un menú nuevo"
           style={[s.newButton, { borderColor: c.textMute }]}
           onPress={() => router.push('/menu')}
@@ -100,7 +123,7 @@ export default function HistorialScreen() {
             <Ionicons name="receipt-outline" size={28} color={c.textMute} />
             <Text style={[s.emptyTitle, { color: c.text }]}>Todavía no hay menús</Text>
             <Text style={[s.emptyBody, { color: c.textSecondary }]}>Cuando publiques uno aparecerá aquí para volver a usarlo.</Text>
-            <TouchableOpacity style={[s.emptyButton, { backgroundColor: c.accent }]} onPress={() => router.replace('/menu')} activeOpacity={0.84}>
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Crear menú" style={[s.emptyButton, { backgroundColor: c.accent }]} onPress={() => router.replace('/menu')} activeOpacity={0.84}>
               <Text style={s.emptyButtonText}>Crear menú</Text>
             </TouchableOpacity>
           </View>
@@ -135,10 +158,10 @@ export default function HistorialScreen() {
               onSubmitEditing={saveName}
             />
             <View style={s.modalActions}>
-              <TouchableOpacity style={[s.modalBtn, { borderColor: c.border }]} onPress={closeRename} activeOpacity={0.75}>
+              <TouchableOpacity accessibilityRole="button" accessibilityLabel="Cancelar" style={[s.modalBtn, { borderColor: c.border }]} onPress={closeRename} activeOpacity={0.75}>
                 <Text style={[s.modalBtnText, { color: c.textSecondary }]}>Cancelar</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={[s.modalBtn, s.modalPrimary, { backgroundColor: c.accent }]} onPress={saveName} activeOpacity={0.82}>
+              <TouchableOpacity accessibilityRole="button" accessibilityLabel="Guardar nombre" style={[s.modalBtn, s.modalPrimary, { backgroundColor: c.accent }]} onPress={saveName} activeOpacity={0.82}>
                 <Text style={s.modalPrimaryText}>Guardar</Text>
               </TouchableOpacity>
             </View>

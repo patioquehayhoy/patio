@@ -98,12 +98,16 @@ export default function CommunityProfileScreen() {
   return (
     <KeyboardAvoidingView style={[s.root, { backgroundColor: theme.bg, paddingTop: insets.top }]} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <Stack.Screen options={{ headerShown: false }} />
-      <TouchableOpacity style={s.back} onPress={() => router.back()}><Ionicons name="chevron-back" size={21} color={theme.text} /></TouchableOpacity>
+      <TouchableOpacity style={s.back} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Regresar"><Ionicons name="chevron-back" size={21} color={theme.text} /></TouchableOpacity>
       <View style={s.content}>
-        <TouchableOpacity style={[s.avatar, { backgroundColor: theme.surface, borderColor: theme.border }]} onPress={async () => {
-          const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], allowsEditing: true, aspect: [1, 1], quality: 0.75 });
-          if (!result.canceled) setAvatarUri(result.assets[0].uri);
-        }}>
+        <TouchableOpacity
+          style={[s.avatar, { backgroundColor: theme.surface, borderColor: theme.border }]}
+          accessibilityRole="button"
+          accessibilityLabel={avatarUri ? 'Cambiar foto de perfil' : 'Agregar foto de perfil'}
+          onPress={async () => {
+            const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], allowsEditing: true, aspect: [1, 1], quality: 0.75 });
+            if (!result.canceled) setAvatarUri(result.assets[0].uri);
+          }}>
           {avatarUri ? <Image source={{ uri: avatarUri }} style={s.avatarImage} /> : <Ionicons name="camera-outline" size={27} color={theme.textMute} />}
         </TouchableOpacity>
         <Text style={[s.title, { color: theme.text }]}>Tu nombre, nada más.</Text>
@@ -112,8 +116,8 @@ export default function CommunityProfileScreen() {
         <TextInput value={lastName} onChangeText={setLastName} autoCapitalize="words" placeholder="Primer apellido" placeholderTextColor={theme.textMute} style={[s.input, { color: theme.text, backgroundColor: theme.surface, borderColor: theme.border }]} />
         <TextInput value={handle} onChangeText={setHandle} autoCapitalize="none" placeholder="@usuario opcional" placeholderTextColor={theme.textMute} style={[s.input, { color: theme.text, backgroundColor: theme.surface, borderColor: theme.border }]} />
         <TextInput value={bio} onChangeText={setBio} maxLength={160} placeholder="Descripción editorial opcional" placeholderTextColor={theme.textMute} style={[s.input, { color: theme.text, backgroundColor: theme.surface, borderColor: theme.border }]} />
-        <TouchableOpacity style={[s.button, { backgroundColor: theme.text, opacity: busy ? 0.55 : 1 }]} disabled={busy} onPress={save}>
-          <Text style={[s.buttonText, { color: theme.bg }]}>{busy ? 'Guardando…' : 'Continuar'}</Text>
+        <TouchableOpacity style={[s.button, { backgroundColor: theme.accent, opacity: busy ? 0.55 : 1 }]} disabled={busy} onPress={save} accessibilityRole="button" accessibilityLabel={busy ? 'Guardando perfil' : 'Continuar'}>
+          <Text style={[s.buttonText, { color: '#FFFFFF' }]}>{busy ? 'Guardando…' : 'Continuar'}</Text>
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>

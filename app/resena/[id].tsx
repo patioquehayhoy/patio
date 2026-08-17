@@ -128,7 +128,7 @@ export default function ResenaScreen() {
       <Stack.Screen options={{ headerShown: false }} />
       <View style={{ paddingTop: insets.top + 8 }}>
         <View style={s.nav}>
-          <TouchableOpacity style={s.navBtn} onPress={() => router.back()} activeOpacity={0.7}>
+          <TouchableOpacity style={s.navBtn} onPress={() => router.back()} activeOpacity={0.7} accessibilityRole="button" accessibilityLabel="Regresar">
             <Ionicons name="chevron-back" size={20} color={theme.text} />
           </TouchableOpacity>
           <Text style={s.navHint} />
@@ -144,7 +144,7 @@ export default function ResenaScreen() {
           {[1, 2, 3, 4, 5].map((n) => {
             const active = n <= stars;
             return (
-              <TouchableOpacity key={n} activeOpacity={0.8} onPress={() => pressStar(n)}>
+              <TouchableOpacity key={n} activeOpacity={0.8} onPress={() => pressStar(n)} accessibilityRole="button" accessibilityLabel={`${n} ${n === 1 ? 'estrella' : 'estrellas'}`} accessibilityState={{ selected: active }}>
                 <Animated.View style={[s.star, active ? s.starOn : s.starOff, { transform: [{ scale: starAnims[n - 1] }] }]}>
                   <Ionicons name={active ? 'star' : 'star-outline'} size={22} color={active ? theme.accent : (theme.isDark ? 'rgba(255,255,255,0.25)' : 'rgba(17,18,20,0.2)')} />
                 </Animated.View>
@@ -158,7 +158,7 @@ export default function ResenaScreen() {
           {TAGS.map((t) => {
             const on = selected.includes(t);
             return (
-              <TouchableOpacity key={t} activeOpacity={0.8} onPress={() => toggleTag(t)} style={[s.tag, on ? s.tagOn : s.tagOff]}>
+              <TouchableOpacity key={t} activeOpacity={0.8} onPress={() => toggleTag(t)} style={[s.tag, on ? s.tagOn : s.tagOff]} hitSlop={{ top: 6, bottom: 6, left: 4, right: 4 }} accessibilityRole="button" accessibilityState={{ selected: on }}>
                 <Text style={[s.tagText, on && s.tagTextOn]} allowFontScaling={true}>{t}</Text>
               </TouchableOpacity>
             );
@@ -179,7 +179,7 @@ export default function ResenaScreen() {
           />
         </View>
 
-        <TouchableOpacity style={s.photoRow} activeOpacity={0.8} onPress={pickPhoto}>
+        <TouchableOpacity style={s.photoRow} activeOpacity={0.8} onPress={pickPhoto} accessibilityRole="button" accessibilityLabel={photoUri ? 'Cambiar foto de la reseña' : 'Agregar foto opcional a la reseña'}>
           {photoUri
             ? <Image source={{ uri: photoUri }} style={s.photoThumb} />
             : <Ionicons name="camera-outline" size={16} color={theme.accent} />}
@@ -192,7 +192,7 @@ export default function ResenaScreen() {
 
       <View style={[s.ctaWrap, { paddingBottom: insets.bottom + 20 }]}>
         <LinearGradient colors={['rgba(248,248,245,0)', theme.bg]} style={s.ctaFade} pointerEvents="none" />
-        <TouchableOpacity style={[s.cta, stars === 0 && s.ctaDisabled]} onPress={submit} disabled={stars === 0 || saving} activeOpacity={0.86}>
+        <TouchableOpacity style={[s.cta, stars === 0 && s.ctaDisabled]} onPress={submit} disabled={stars === 0 || saving} activeOpacity={0.86} accessibilityRole="button" accessibilityLabel={saving ? 'Publicando reseña' : 'Publicar reseña'}>
           <Text style={s.ctaText} allowFontScaling={true}>{saving ? 'Publicando…' : 'Publicar reseña'}</Text>
         </TouchableOpacity>
       </View>

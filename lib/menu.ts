@@ -100,7 +100,7 @@ function extractPatioMenuMatches(patio: Patio, query: string): PatioDishMatch[] 
         item.price ?? '',
         section.section,
         patio.name,
-        patio.category,
+        ...patio.categories,
         patio.reason,
         ...(item.tags ?? []),
       ].map(normalize).join(' ');
@@ -122,10 +122,10 @@ function extractPatioMenuMatches(patio: Patio, query: string): PatioDishMatch[] 
 function extractPatioIdentityMatch(patio: Patio, query: string): PatioDishMatch | null {
   const q = normalize(query);
   const stem = q.replace(/(?:es|s)$/u, '');
-  const identity = normalize([patio.name, patio.category, patio.reason, patio.area].join(' '));
+  const identity = normalize([patio.name, ...patio.categories, patio.reason, patio.area].join(' '));
   if (!identity.includes(q) && (stem.length < 3 || !identity.includes(stem))) return null;
   const name = normalize(patio.name);
-  const category = normalize(patio.category);
+  const category = normalize(patio.categories.join(' '));
   const area = normalize(patio.area);
   const score = name === q
     ? 150
@@ -141,7 +141,8 @@ function extractPatioIdentityMatch(patio: Patio, query: string): PatioDishMatch 
   return {
     patio,
     section: 'LUGAR',
-    item: { name: patio.name, description: patio.category, price: patio.price },
+    // Fila de una línea: solo el tag primario, no todos los que traiga el lugar.
+    item: { name: patio.name, description: patio.categories[0] ?? 'Fondita', price: patio.price },
     score,
   };
 }

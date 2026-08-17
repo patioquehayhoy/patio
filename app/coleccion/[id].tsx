@@ -42,8 +42,8 @@ export default function CollectionDetail() {
       <Stack.Screen options={{ headerShown: false }} />
       <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: insets.bottom + 42 }}>
         <View style={s.nav}>
-          <TouchableOpacity accessibilityLabel="Volver" style={s.navButton} onPress={() => router.back()}><Ionicons name="chevron-back" size={23} color={theme.text} /></TouchableOpacity>
-          <TouchableOpacity accessibilityLabel="Compartir lista" style={s.navButton} onPress={share}><Ionicons name="share-outline" size={21} color={theme.text} /></TouchableOpacity>
+          <TouchableOpacity accessibilityRole="button" accessibilityLabel="Volver" style={s.navButton} onPress={() => router.back()}><Ionicons name="chevron-back" size={23} color={theme.text} /></TouchableOpacity>
+          <TouchableOpacity accessibilityRole="button" accessibilityLabel="Compartir lista" style={s.navButton} onPress={share}><Ionicons name="share-outline" size={21} color={theme.text} /></TouchableOpacity>
         </View>
 
         <TextInput value={item.title} onChangeText={(title) => patch({ title })} multiline style={[s.title, { color: theme.text }]} />
@@ -59,11 +59,11 @@ export default function CollectionDetail() {
 
         {!!patios.length && (
           <View style={s.actions}>
-            <TouchableOpacity style={[s.primaryAction, { backgroundColor: theme.text }]} onPress={() => router.replace({ pathname: '/explorar', params: { collection: item.id } })}>
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Ver esta lista en el mapa" style={[s.primaryAction, { backgroundColor: theme.text }]} onPress={() => router.replace({ pathname: '/explorar', params: { collection: item.id } })}>
               <Ionicons name="map-outline" size={18} color={theme.bg} />
               <Text style={[s.primaryText, { color: theme.bg }]}>Ver en el mapa</Text>
             </TouchableOpacity>
-            <TouchableOpacity accessibilityLabel="Compartir" style={[s.shareButton, { borderColor: theme.border }]} onPress={share}>
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Compartir" style={[s.shareButton, { borderColor: theme.border }]} onPress={share}>
               <Ionicons name="share-outline" size={19} color={theme.text} />
             </TouchableOpacity>
           </View>
@@ -74,17 +74,17 @@ export default function CollectionDetail() {
           {patios.map((patio) => {
             const today = todayDish(patio);
             return (
-              <TouchableOpacity key={patio.id} style={[s.row, { borderBottomColor: theme.border }]} activeOpacity={0.72} onPress={() => router.push(`/patio/${patio.id}`)}>
+              <TouchableOpacity key={patio.id} accessibilityRole="button" accessibilityLabel={`Abrir ${patio.name}`} style={[s.row, { borderBottomColor: theme.border }]} activeOpacity={0.72} onPress={() => router.push(`/patio/${patio.id}`)}>
                 <View style={[s.monogram, { backgroundColor: theme.isDark ? 'rgba(255,255,255,0.07)' : 'rgba(17,18,20,0.05)' }]}>
                   <Text style={[s.monogramText, { color: theme.text }]}>{patio.name.trim().charAt(0).toUpperCase()}</Text>
                 </View>
                 <View style={s.rowBody}>
                   <View style={s.statusRow}>
                     <View style={[s.dot, { backgroundColor: today ? GREEN : theme.textMute }]} />
-                    <Text style={[s.status, { color: today ? GREEN : theme.textMute }]}>{today ? 'MENÚ HOY' : patio.category.toUpperCase()}</Text>
+                    <Text style={[s.status, { color: today ? GREEN : theme.textMute }]}>{today ? 'MENÚ HOY' : (patio.categories[0] ?? 'Fondita').toUpperCase()}</Text>
                   </View>
                   <Text style={[s.name, { color: theme.text }]} numberOfLines={1}>{patio.name}</Text>
-                  <Text style={[s.meta, { color: theme.textSecondary }]} numberOfLines={1}>{today || `${patio.category} · ${patio.area}`}</Text>
+                  <Text style={[s.meta, { color: theme.textSecondary }]} numberOfLines={1}>{today || `${patio.categories[0] ?? 'Fondita'} · ${patio.area}`}</Text>
                   {today && <Text style={[s.area, { color: theme.textSecondary }]} numberOfLines={1}>{patio.area}</Text>}
                 </View>
                 {!!publicPrice(patio.price) && <Text style={[s.price, { color: theme.accent }]}>{publicPrice(patio.price)}</Text>}
@@ -99,7 +99,7 @@ export default function CollectionDetail() {
             <View style={[s.emptyIcon, { backgroundColor: theme.surface }]}><Ionicons name="bookmark-outline" size={27} color={theme.textSecondary} /></View>
             <Text style={[s.emptyTitle, { color: theme.text }]}>Esta lista está esperando</Text>
             <Text style={[s.emptyText, { color: theme.textSecondary }]}>Cuando guardes un lugar, podrás añadirlo aquí.</Text>
-            <TouchableOpacity style={[s.explore, { borderColor: theme.border }]} onPress={() => router.replace('/explorar')}><Text style={[s.exploreText, { color: theme.text }]}>Explorar lugares</Text></TouchableOpacity>
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Explorar lugares" style={[s.explore, { borderColor: theme.border }]} onPress={() => router.replace('/explorar')}><Text style={[s.exploreText, { color: theme.text }]}>Explorar lugares</Text></TouchableOpacity>
           </View>
         )}
       </ScrollView>

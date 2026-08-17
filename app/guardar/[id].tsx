@@ -59,11 +59,11 @@ export default function SavePlaceScreen() {
     <View style={[s.root, { backgroundColor: theme.bg, paddingTop: insets.top }]}>
       <Stack.Screen options={{ headerShown: false }} />
       <View style={s.nav}>
-        <TouchableOpacity style={s.navButton} onPress={() => router.back()}>
+        <TouchableOpacity style={s.navButton} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Cerrar">
           <Ionicons name="close" size={21} color={theme.text} />
         </TouchableOpacity>
         <Text style={[s.navTitle, { color: theme.text }]}>Guardar en</Text>
-        <TouchableOpacity style={s.navButton} onPress={() => router.back()}>
+        <TouchableOpacity style={s.navButton} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Listo">
           <Text style={[s.done, { color: theme.accent }]}>Listo</Text>
         </TouchableOpacity>
       </View>
@@ -79,6 +79,9 @@ export default function SavePlaceScreen() {
               <TouchableOpacity
                 key={collection.id}
                 style={[s.listRow, index > 0 && { borderTopColor: theme.border, borderTopWidth: StyleSheet.hairlineWidth }]}
+                accessibilityRole="checkbox"
+                accessibilityState={{ checked: selected }}
+                accessibilityLabel={collection.title}
                 onPress={async () => {
                   await togglePatioInCollection(collection.id, patioId);
                   await load();
@@ -108,7 +111,7 @@ export default function SavePlaceScreen() {
               returnKeyType="done"
               onSubmitEditing={create}
             />
-            {!!newTitle.trim() && <TouchableOpacity onPress={create}><Text style={[s.create, { color: theme.accent }]}>Crear</Text></TouchableOpacity>}
+            {!!newTitle.trim() && <TouchableOpacity onPress={create} hitSlop={{ top: 12, bottom: 12, left: 8, right: 8 }} accessibilityRole="button" accessibilityLabel="Crear lista"><Text style={[s.create, { color: theme.accent }]}>Crear</Text></TouchableOpacity>}
           </View>
         </View>
 
@@ -125,7 +128,10 @@ export default function SavePlaceScreen() {
                 <TouchableOpacity
                   key={key}
                   onPress={() => updateMeta({ status: selected ? undefined : key })}
-                  style={[s.statusChip, { backgroundColor: selected ? theme.text : theme.surface }]}>
+                  style={[s.statusChip, { backgroundColor: selected ? theme.text : theme.surface }]}
+                  hitSlop={{ top: 3, bottom: 3, left: 3, right: 3 }}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected }}>
                   <Ionicons name={icon} size={15} color={selected ? theme.bg : theme.textSecondary} />
                   <Text style={[s.statusText, { color: selected ? theme.bg : theme.text }]}>{label}</Text>
                 </TouchableOpacity>
@@ -145,7 +151,13 @@ export default function SavePlaceScreen() {
             <Text style={[s.ratingLabel, { color: theme.textSecondary }]}>Tu calificación</Text>
             <View style={{ flexDirection: 'row', gap: 7 }}>
               {[1, 2, 3, 4, 5].map((value) => (
-                <TouchableOpacity key={value} onPress={() => updateMeta({ rating: meta.rating === value ? undefined : value })}>
+                <TouchableOpacity
+                  key={value}
+                  onPress={() => updateMeta({ rating: meta.rating === value ? undefined : value })}
+                  hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${value} ${value === 1 ? 'estrella' : 'estrellas'}`}
+                  accessibilityState={{ selected: value <= (meta.rating ?? 0) }}>
                   <Ionicons name={value <= (meta.rating ?? 0) ? 'star' : 'star-outline'} size={21} color={value <= (meta.rating ?? 0) ? theme.accent : theme.textMute} />
                 </TouchableOpacity>
               ))}
@@ -156,6 +168,8 @@ export default function SavePlaceScreen() {
         <Text style={[s.sectionLabel, { color: theme.textMute }]}>PÚBLICO</Text>
         <TouchableOpacity
           style={[s.publicRow, { backgroundColor: theme.surface, borderColor: theme.border }]}
+          accessibilityRole="button"
+          accessibilityLabel="Escribir una reseña"
           onPress={() => router.push({ pathname: '/resena/[id]', params: { id: patioId } })}>
           <View style={[s.listGlyph, { backgroundColor: theme.accentSoft }]}>
             <Ionicons name="chatbubble-outline" size={17} color={theme.accent} />

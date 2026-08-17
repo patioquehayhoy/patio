@@ -76,7 +76,7 @@ export function CollapsingHeader({
           {/* Izquierda: back (si hay) */}
           <View style={styles.sideLeft}>
             {onBack ? (
-              <TouchableOpacity onPress={onBack} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} activeOpacity={0.7}>
+              <TouchableOpacity onPress={onBack} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} activeOpacity={0.7} accessibilityRole="button" accessibilityLabel="Regresar">
                 <CircleBtn c={c}>
                   <Ionicons name="chevron-back" size={20} color={c.text} />
                 </CircleBtn>
@@ -98,6 +98,7 @@ export function CollapsingHeader({
               <TouchableOpacity
                 key={i}
                 onPress={a.onPress}
+                accessibilityRole="button"
                 accessibilityLabel={a.accessibilityLabel}
                 hitSlop={{ top: 10, bottom: 10, left: 8, right: 8 }}
                 activeOpacity={0.7}>

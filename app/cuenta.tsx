@@ -71,7 +71,7 @@ export default function CuentaScreen() {
             />
             <SettingsRow c={sc} icon="lock-closed-outline" title="Privacidad" divider onPress={() => router.push('/privacidad')} />
             <SettingsRow c={sc} icon="rocket-outline" title="Plan" sub="Patio Gratis" divider onPress={() => router.push({ pathname: '/plan', params: { role: 'foodie' } })} />
-            <SettingsRow c={sc} icon={theme.isDark ? 'moon' : 'sunny-outline'} title="Apariencia" sub={theme.isDark ? 'Oscura' : 'Clara'} divider trailing={<ToggleSwitch value={theme.isDark} onValueChange={toggleTheme} />} />
+            <SettingsRow c={sc} icon={theme.isDark ? 'moon' : 'sunny-outline'} title="Apariencia" sub={theme.isDark ? 'Oscura' : 'Clara'} divider trailing={<ToggleSwitch value={theme.isDark} onValueChange={toggleTheme} accessibilityLabel="Modo oscuro" />} />
           </SettingsGroup>
 
           <SettingsGroup c={sc} label="Ayuda">

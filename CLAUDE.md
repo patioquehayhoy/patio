@@ -86,12 +86,28 @@ En cualquier lista de contenido (menú, póster, historial, resultados):
 > can be an effective way to reflect your company's identity."* Patio es
 > exactamente ese caso: paleta mono negro/blanco/gris + un acento de marca.
 >
-> Aplicación: **la única acción de confirmación/guardado más prominente de
-> cada pantalla** lleva el acento naranja de fondo. Todo lo demás — botones
+> Aplicación — **homologada 2026-08-16, sin ambigüedad**: si una pantalla
+> tiene UNA acción claramente más importante que las demás (la cosa que se
+> espera que la persona haga ahí), esa lleva el acento naranja de fondo —
+> sin importar el verbo. "Guardar", "Publicar", "Continuar", "Enviar",
+> "Comenzar", "Confirmar" cuentan igual: todos son la acción prominente de
+> su pantalla si son la única con ese peso. No se decide caso por caso según
+> si "suena" a guardar/confirmar — se decide por prominencia visual/jerarquía
+> de la pantalla, punto. Solo se queda en negro cuando genuinamente NO hay
+> una sola acción que destaque sobre las demás (varias acciones con el mismo
+> peso, o la pantalla es puramente de navegación). Todo lo demás — botones
 > secundarios, de contorno, navegación — se queda neutro. Nunca dos botones
 > con fondo de color en la misma pantalla.
+>
+> **Única excepción, acotada y explícita (decisión 2026-08-16):** la
+> secuencia de intro de marca — `entrada.tsx` y `onboarding.tsx` únicamente —
+> usa vidrio (`BlurView`) en su CTA principal ("Entrar a Patio", "Continuar"),
+> no naranja. Son pantallas hermanas de una misma pieza de identidad
+> (botánica full-bleed, logo + par de marca), y cambiar una sin la otra las
+> rompería como pareja. No uses esta excepción como precedente para otras
+> pantallas — es específica a esas dos.
 
-- **Botón de confirmación prominente** (guardar/publicar, uno por pantalla): `borderRadius 14`, fondo `ACCENT` (naranja), texto blanco `fontWeight '700'`. Ver `publishButton` en `menu-composer.tsx` y `saveBtn` en `perfil-editar.tsx`.
+- **Botón de confirmación prominente** (la única acción destacada de la pantalla, sea cual sea su verbo — guardar/publicar/continuar/enviar/comenzar): `borderRadius 14`, fondo `ACCENT` (naranja), texto blanco `fontWeight '700'`. Ver `publishButton` en `menu-composer.tsx`, `saveBtn` en `perfil-editar.tsx`.
 - **Botones primarios compactos genéricos** (cuando no hay una única acción prominente que destacar): `borderRadius 14`, fondo `BLACK (#292929)`, texto blanco `fontWeight '700'`.
 - **Botones de contorno**: `borderWidth 1.5`, `borderColor BLACK`, fondo transparente
 - **Segmented control**: `borderRadius 14`, `borderWidth 1`, `overflow hidden`

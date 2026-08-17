@@ -241,9 +241,18 @@ export default function ExplorarScreen() {
       };
     });
   }, [filteredPins, mapRegion, shouldCluster]);
+  // Antes: soltar el dedo llamaba a closeSheet() y esperaba a que el estado
+  // (showSheet) diera la vuelta por React para que el useEffect de abajo
+  // arrancara la animación de salida. Ese viaje de ida y vuelta por el
+  // render deja la card congelada un instante justo al soltar — se ve como
+  // que se detiene antes de irse. Ahora la animación arranca en el mismo
+  // frame en que sueltas, continuando desde donde iba el dedo; closeSheet()
+  // se llama hasta que la animación ya terminó.
   const dismissSheet = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-    closeSheet();
+    Animated.timing(sheetTranslateY, { toValue: 420, duration: 190, useNativeDriver: true }).start(({ finished }) => {
+      if (finished) closeSheet();
+    });
   };
   const sheetPanResponder = useRef(
     PanResponder.create({

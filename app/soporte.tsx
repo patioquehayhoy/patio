@@ -93,7 +93,6 @@ const s = StyleSheet.create({
   back: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   navTitle: { fontSize: 15, fontWeight: '600' },
   content: { paddingHorizontal: 22, paddingTop: 22 },
-  eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.4, marginBottom: 7 },
   title: { fontSize: 34, lineHeight: 37, fontWeight: '900', letterSpacing: -1, fontFamily: Fonts.brand },
   subtitle: { marginTop: 8, fontSize: 14, lineHeight: 20, fontWeight: '400', maxWidth: 330 },
   list: { marginTop: 26, borderRadius: Radius.card, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },

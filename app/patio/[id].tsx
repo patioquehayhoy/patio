@@ -100,17 +100,14 @@ function makeStyles(t: Theme) {
     container: { flex: 1, backgroundColor: t.bg, borderTopLeftRadius: 30, borderTopRightRadius: 30, overflow: 'hidden' },
     heroBackdrop: { position: 'absolute', left: 0, right: 0, top: 0, height: HERO_HEIGHT + 120, width: '100%' },
     scrollContent: { paddingBottom: 120 },
-
     // ── Hero ──
     hero: { height: HERO_HEIGHT, backgroundColor: 'transparent', overflow: 'hidden' },
-    heroImg: { ...StyleSheet.absoluteFillObject, width: '100%', height: '100%' },
     heroImgMuted: { opacity: 0.55 },
     soldBanner: { position: 'absolute', alignSelf: 'center', top: HERO_HEIGHT * 0.5, flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, paddingVertical: 9, borderRadius: 100, backgroundColor: t.accent, shadowColor: t.accent, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 16, elevation: 6, zIndex: 15 },
     soldBannerText: { fontSize: 12, fontWeight: '900', letterSpacing: 1, textTransform: 'uppercase', color: '#fff' },
     heroGradient: { ...StyleSheet.absoluteFillObject },
     heroNav: { position: 'absolute', left: Spacing.lg, right: Spacing.lg, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', zIndex: 20 },
     glassIcon: { width: 44, height: 44, borderRadius: 22, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth, borderColor: t.isDark ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.85)', shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.2, shadowRadius: 16, elevation: 4 },
-
     // ── Card traslapada ──
     card: { marginTop: -28, backgroundColor: t.bg, borderTopLeftRadius: Radius.sheet, borderTopRightRadius: Radius.sheet, paddingHorizontal: 20, paddingTop: 22 },
     statusRow: { minHeight: 28, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
@@ -128,7 +125,6 @@ function makeStyles(t: Theme) {
     subtitle: { fontSize: 14, color: t.textSecondary, marginBottom: 16 },
     payments: { flexDirection: 'row', alignItems: 'center', gap: 8 },
     paymentIconBox: { width: 20, height: 20, alignItems: 'center', justifyContent: 'center' },
-
     // ── Menú agrupado ──
     menuSoldWrap: { position: 'relative', borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, borderRadius: 18, padding: 16, marginBottom: 16, backgroundColor: t.surface },
     agotadoBadge: { position: 'absolute', right: 14, bottom: 14, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 10, backgroundColor: t.text },
@@ -171,9 +167,6 @@ function makeStyles(t: Theme) {
     reviewReasonText: { fontSize: 11, fontWeight: '600', color: t.textSecondary },
     reviewNote: { fontSize: 14, lineHeight: 20, color: t.text },
     businessReply: { marginTop: 14, paddingTop: 12, paddingLeft: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border, borderLeftWidth: 2, borderLeftColor: t.accent },
-    businessReplyHead: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 5 },
-    businessReplyLabel: { flexShrink: 1, fontSize: 12, fontWeight: '800', color: t.text },
-    businessReplyText: { fontSize: 13.5, lineHeight: 19, color: t.textSecondary },
     reviewActions: { height: 36, marginTop: 9, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
     reviewAction: { minWidth: 44, height: 36, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4 },
     reviewActionText: { fontSize: 12.5, fontWeight: '700', color: t.textSecondary },
@@ -189,14 +182,12 @@ function makeStyles(t: Theme) {
     reviewThreadTime: { paddingHorizontal: 4, fontSize: 10.5, color: t.textMute },
     reviewThreadTextAction: { height: 28, paddingHorizontal: 5, justifyContent: 'center' },
     reviewThreadTextActionLabel: { fontSize: 11, fontWeight: '700', color: t.textSecondary },
-    reviewThreadLike: { minWidth: 44, minHeight: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4 },
     reviewReplyRow: { marginTop: 8, paddingTop: 9, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border, flexDirection: 'row', alignItems: 'center', gap: 8 },
     reviewInlineReplyRow: { marginLeft: 18, marginTop: 3, paddingTop: 7 },
     reviewReplyInput: { flex: 1, minHeight: 38, borderRadius: 12, paddingHorizontal: 11, color: t.text, backgroundColor: t.bg },
     reviewReplySend: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center', backgroundColor: t.accent },
     reviewPrompt: { minHeight: 44, borderRadius: 22, paddingHorizontal: 13, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, backgroundColor: t.surface },
     reviewPromptText: { fontSize: 13, fontWeight: '700', color: t.text },
-
     // ── Detalles + mapa ──
     section: { paddingTop: 6 },
     earnedBadges: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
@@ -215,23 +206,6 @@ function makeStyles(t: Theme) {
     mapPanel: { height: 92, borderRadius: 18, backgroundColor: t.isDark ? '#191A1B' : '#D8D6D0', overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
     mapView: { ...StyleSheet.absoluteFillObject },
     mapMarker: { width: 26, height: 26, borderRadius: 13, backgroundColor: '#111214', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.82)', alignItems: 'center', justifyContent: 'center', shadowColor: '#FFFFFF', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.24, shadowRadius: 6, elevation: 4 },
-
-    // ── Rating (estrellas en card) ──
-    starsRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 10 },
-    ratingDone: { fontSize: 13, fontWeight: '400', color: t.textSecondary, marginLeft: 4 },
-    overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.32)' },
-    ratingSheet: { backgroundColor: t.surface, borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingTop: 12, paddingBottom: 36, paddingHorizontal: 24 },
-    sheetHandle: { alignSelf: 'center', width: 44, height: 4, borderRadius: 2, backgroundColor: t.border, marginBottom: 20 },
-    sheetTitle: { fontSize: 22, fontWeight: '900', fontFamily: Fonts.brand, color: t.text, marginBottom: 4 },
-    sheetSub: { fontSize: 14, fontWeight: '400', color: t.textSecondary, marginBottom: 20 },
-    sheetStars: { flexDirection: 'row', gap: 8, justifyContent: 'center', marginBottom: 24 },
-    reasonsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 28 },
-    reasonPill: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 100, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
-    reasonPillActive: { backgroundColor: t.accentLight, borderColor: t.accent },
-    reasonText: { fontSize: 13, fontWeight: '400', color: t.text },
-    reasonTextActive: { color: t.accent, fontWeight: '900' },
-    submitBtn: { minHeight: 52, borderRadius: 14, backgroundColor: t.text, alignItems: 'center', justifyContent: 'center' },
-    submitText: { fontSize: 16, fontWeight: '900', color: t.surface },
   });
 }
 

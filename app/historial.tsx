@@ -175,7 +175,6 @@ export default function HistorialScreen() {
 
 const s = StyleSheet.create({
   root: { flex: 1 },
-  eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.5, marginBottom: 8 },
   newButton: { alignSelf: 'flex-start', marginTop: 16, minHeight: 44, paddingHorizontal: 14, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, borderStyle: 'dashed', flexDirection: 'row', alignItems: 'center', gap: 4 },
   newButtonText: { fontSize: 14, fontWeight: '700' },
   empty: { marginTop: 34, padding: 24, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center' },

@@ -105,22 +105,16 @@ export default function EntradaScreen() {
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#0B0B0C' },
   bg: { ...StyleSheet.absoluteFillObject, width: '100%', height: '100%' },
-
   content: { flex: 1, paddingHorizontal: 28, justifyContent: 'flex-end' },
-
   brandOverlay: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center' },
   logo: { width: 230, height: 86 },
   pairBelow: { position: 'absolute', top: '100%', left: 0, right: 0, alignItems: 'center', marginTop: 14 },
   claim: { fontSize: 15, fontWeight: '900', fontFamily: Fonts.brand, textAlign: 'center', color: '#F8F8F5' },
   tagline: { fontSize: 15, fontWeight: '400', fontFamily: Fonts.brand, textAlign: 'center', color: 'rgba(248,248,245,0.7)' },
-
   actions: { alignItems: 'center', gap: 4 },
   ctaGlass: { alignSelf: 'stretch', borderRadius: 14, overflow: 'hidden' },
   ctaGlassInner: { height: 52, alignItems: 'center', justifyContent: 'center' },
   ctaGlassText: { fontSize: 16, fontWeight: '900', color: '#FFFFFF', letterSpacing: -0.2 },
-  secondaryBtn: { height: 44, alignItems: 'center', justifyContent: 'center', alignSelf: 'stretch' },
-  secondaryText: { fontSize: 14, fontWeight: '400', color: 'rgba(248,248,245,0.7)' },
-
   devVersion: { marginTop: 6, fontSize: 10, fontWeight: '900', letterSpacing: 0.8, color: 'rgba(248,248,245,0.35)' },
   devBar: { flexDirection: 'row', gap: 8, marginTop: 8 },
   devBtn: { paddingHorizontal: 14, height: 32, borderRadius: 100, backgroundColor: 'rgba(255,255,255,0.10)', alignItems: 'center', justifyContent: 'center' },

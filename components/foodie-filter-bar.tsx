@@ -84,7 +84,6 @@ function styles(t: Theme) {
     pill: { height: 34, paddingHorizontal: 12, borderRadius: 17, justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
     iconPill: { width: 34, paddingHorizontal: 0, alignItems: 'center' },
     pillText: { fontSize: 12.5, fontWeight: '600' },
-    pillWithIcon: { flexDirection: 'row', alignItems: 'center', gap: 4 },
     // El badge (el número) es la ÚNICA señal de "hay filtros activos" — el
     // botón que abre el sheet se queda siempre en tono neutro. Llenarlo de
     // color se leía como "este botón está prendido", cuando en realidad es

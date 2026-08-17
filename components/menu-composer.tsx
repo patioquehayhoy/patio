@@ -403,19 +403,9 @@ function makeStyles(c: FonderoColors) {
     nav: { minHeight: 54, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
     navButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
     navTitle: { fontSize: 14, fontWeight: '600', color: c.textSecondary },
-
-    menuDetailsGroup: { marginTop: 28 },
-    menuDetailsLabel: { marginBottom: 8, paddingLeft: 2, fontSize: 10.5, lineHeight: 14, fontWeight: '800', letterSpacing: 1.2, color: c.textMute },
-    dayPrice: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 14, minHeight: 58, marginBottom: 12, borderRadius: 14, backgroundColor: c.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: c.border },
-    dayPriceLabel: { fontSize: 14, fontWeight: '600', color: c.text },
-    dayPriceMeta: { marginTop: 2, fontSize: 11, lineHeight: 15, fontWeight: '400', color: c.textMute },
-    dayPriceHint: { marginTop: -6, marginBottom: 12, paddingHorizontal: 2, fontSize: 11.5, lineHeight: 15, fontWeight: '400', color: c.textSecondary },
     dayPriceField: { minWidth: 78, height: 40, paddingHorizontal: 10, borderRadius: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', backgroundColor: c.iconBg },
     dayPriceCurrency: { fontSize: 15, fontWeight: '700', color: c.textSecondary },
     dayPriceInput: { minWidth: 56, height: 44, paddingVertical: 0, paddingLeft: 2, textAlign: 'right', fontSize: 17, fontWeight: '700', color: c.text },
-    dayPriceAdd: { minHeight: 38, paddingHorizontal: 13, borderRadius: 19, alignItems: 'center', justifyContent: 'center', backgroundColor: c.iconBg },
-    dayPriceAddText: { fontSize: 13, fontWeight: '600', color: c.text },
-
     section: { borderTopWidth: StyleSheet.hairlineWidth, borderColor: c.border, paddingVertical: 14 },
     sectionHeader: { minHeight: 44, flexDirection: 'row', alignItems: 'center' },
     collapseButton: { width: 30, height: 36, alignItems: 'flex-start', justifyContent: 'center' },
@@ -441,7 +431,6 @@ function makeStyles(c: FonderoColors) {
     addPriceText: { fontSize: 12, fontWeight: '500', color: c.textSecondary },
     addDish: { minHeight: 40, marginLeft: 30, flexDirection: 'row', alignItems: 'center', gap: 8 },
     addDishText: { fontSize: 13, fontWeight: '600', color: c.accent },
-
     addSectionBlock: { borderTopWidth: StyleSheet.hairlineWidth, borderColor: c.border, paddingTop: 14 },
     addSectionToggle: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 40 },
     addSectionToggleText: { fontSize: 14, fontWeight: '600', color: c.accent },
@@ -450,7 +439,6 @@ function makeStyles(c: FonderoColors) {
     chipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
     chip: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingLeft: 10, paddingRight: 14, minHeight: 36, borderRadius: 100, backgroundColor: c.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: c.border },
     chipText: { fontSize: 12, fontWeight: '800', letterSpacing: 0.6, color: c.text },
-
     actionsBlock: { marginTop: 28, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
     saveButton: { height: 50, borderRadius: 25, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: c.iconBg },
     saveText: { fontSize: 15, fontWeight: '600', color: c.text },

@@ -94,8 +94,6 @@ const s = StyleSheet.create({
   nav: { height: 54, paddingHorizontal: 12 },
   back: { width: 44, height: 54, alignItems: 'center', justifyContent: 'center' },
   content: { paddingHorizontal: 20 },
-  eyebrow: { marginTop: 10, fontSize: 11, fontWeight: '700', letterSpacing: 1.5 },
-  title: { marginTop: 8, fontFamily: Fonts.brand, fontSize: 38, lineHeight: 42, fontWeight: '900', letterSpacing: -1.2 },
   subtitle: { marginTop: 8, maxWidth: 350, fontSize: 15, lineHeight: 21 },
   freeCard: { marginTop: 26, padding: 19, borderRadius: 24, borderWidth: StyleSheet.hairlineWidth, gap: 8 },
   planHead: { marginBottom: 5, flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },

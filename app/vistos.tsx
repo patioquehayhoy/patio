@@ -35,13 +35,7 @@ function makeStyles(t: Theme) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: t.bg },
     content: { paddingBottom: 40 },
-
     // Header editorial
-    header: { paddingHorizontal: 22, paddingTop: 8, paddingBottom: 16 },
-    backButton: { width: 44, height: 44, borderRadius: 22, marginLeft: -10, marginBottom: 6, alignItems: 'center', justifyContent: 'center' },
-    eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', color: t.accent, marginBottom: 6 },
-    title: { fontSize: 36, fontWeight: '900', letterSpacing: -1.2, lineHeight: 36, color: t.text, marginBottom: 4, fontFamily: Fonts.brand },
-    subtitle: { fontSize: 13, fontWeight: '400', color: t.textSecondary },
 
     // Lista
     list: { paddingHorizontal: 18, gap: 8, marginTop: 16 },
@@ -58,7 +52,6 @@ function makeStyles(t: Theme) {
     metaArea: { flexDirection: 'row', alignItems: 'center', gap: 4, flex: 1, minWidth: 0 },
     metaAreaText: { fontSize: 12, fontWeight: '400', color: t.textSecondary, flexShrink: 1 },
     price: { fontSize: 16, fontWeight: '900', letterSpacing: -0.3, color: t.accent },
-
     // Empty
     empty: { minHeight: 520, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 28 },
     emptyIcon: { width: 68, height: 68, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, backgroundColor: t.surface, alignItems: 'center', justifyContent: 'center', marginBottom: 18 },

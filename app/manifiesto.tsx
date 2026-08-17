@@ -30,12 +30,6 @@ function makeStyles(t: Theme) {
       marginLeft: -5,
       marginBottom: 18,
     },
-    title: {
-      fontSize: 13,
-      fontWeight: '900',
-      color: t.accent,
-      marginBottom: 6,
-    },
     intro: {
       fontSize: 22,
       fontWeight: '900',

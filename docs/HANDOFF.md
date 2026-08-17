@@ -1,5 +1,84 @@
 # HANDOFF
 
+## 2026-08-17 (madrugada) — Rediseño de Guardados (`app/favoritos.tsx`) sobre fundamentos Apple reales
+
+Tarea 8 de la corrida programada 3am (`docs/TASKS.md`). Investigación antes
+de tocar código, con fuentes reales (no de memoria):
+
+- `developer.apple.com/design/human-interface-guidelines/maps` — descarta a
+  la HIG como fuente para la propia app Maps: esa página documenta MapKit
+  (el mapa embebible para apps de terceros), no la pantalla de "Tus Guías"/
+  lugares guardados de la app Maps del sistema. Anotado para no repetir el
+  intento en el futuro.
+- `developer.apple.com/design/human-interface-guidelines/lists-and-tables`
+  (fuente real usada) — confirma tres decisiones aplicadas: (1) el patrón
+  correcto para una fila que navega es el *disclosure indicator* (chevron),
+  no un *info button* — la fila ya usaba chevron-forward, se conservó tal
+  cual; (2) "choose a row style... a small image in the leading end,
+  followed by a brief explanatory label" — valida mantener ícono/thumb a la
+  izquierda + nombre como patrón de fila; (3) el estilo *grouped* "uses...
+  additional space to separate groups of data" — respalda usar tarjetas con
+  espacio entre sí en vez de una tabla continua sin fondo.
+- `support.apple.com/guide/iphone/organize-places-with-custom-guides-iph0a53d4d7f/ios`
+  y `.../explore-places-with-guides-iph4c213d62d/ios` (fuentes reales,
+  confirmadas con el contenido real del artículo, no solo el título) —
+  confirman que Maps organiza lugares guardados en **Guías** (colecciones
+  con nombre) más una guía fija "Favoritos" que siempre existe. Esto valida
+  el modelo que Patio ya tiene construido (colecciones/"Listas" con unión
+  entre varias) — **no se tocó `components/foodie-filter-bar.tsx` ni
+  `lib/collections.ts`**, la investigación no encontró motivo para cambiar
+  ese sistema, solo para no romperlo.
+- `support.apple.com/guide/iphone/iph8c9c2528b/ios` ("Get information about
+  places in Maps") — confirma que en el place card de Maps la dirección/
+  ubicación es lo primero que se ve y reseñas/rating quedan más abajo
+  (secundario, no lo primero). La fila de Guardados ya seguía esa jerarquía
+  (área antes que rating) — sin cambios ahí, solo confirmación.
+
+**Lo que sí cambió en `app/favoritos.tsx`:**
+- La lista pasó de filas sueltas sobre el fondo de pantalla (con solo un
+  borde superior y separadores entre filas) a una pila de tarjetas propias
+  por lugar — mismo lenguaje que ya usan `app/vistos.tsx` y el sheet de
+  resultados de `app/explorar.tsx` en esta misma app (`t.surface`,
+  `Radius.card` = 18, borde hairline, `gap: 10` entre tarjetas). Se prefirió
+  igualar el patrón ya establecido en las pantallas hermanas de Foodie en
+  vez de introducir un tercer lenguaje de lista (tabla agrupada) que no
+  existe en ningún otro lugar del código — ambos ("tarjeta por fila" y
+  "tabla agrupada con separadores") son estilos válidos de lista según HIG,
+  la decisión fue de consistencia interna, no de una regla que obligara una
+  sobre la otra.
+- Densidad de fila ajustada a la ley de `CLAUDE.md` ("Filas de items:
+  `paddingVertical` 5-7 máximo"): antes la fila usaba `minHeight: 88` sin
+  padding vertical explícito (terminaba rindiendo ~14px arriba/abajo);
+  ahora `paddingVertical: 7` (tope de la ley) — el contenido real son 3
+  líneas (nombre, platillo de hoy, ubicación+rating), así que se tomó el
+  límite superior del rango en vez del genérico 5-6 de una fila de 1-2
+  líneas. Nombre→platillo de hoy se apretó a `marginBottom: 2` (tope de
+  "Campos de texto agrupados" — nombre + descripción son una unidad, misma
+  referencia de densidad de Apple Music que ya cita `CLAUDE.md`).
+- Se corrigió una violación real de la ley de viudas: `favoritos.tsx` no
+  llamaba `noWidow()` en ningún texto estático (`vistos.tsx`, su pantalla
+  hermana, sí lo hacía) — ahora los cuatro textos estáticos (título/texto
+  vacío, CTA, "sin resultados de filtro") pasan por `noWidow()`.
+- El estado de "ningún guardado entra en ese filtro" pasó de texto suelto
+  centrado a la misma tarjeta que una fila normal, para no tener un cuarto
+  tratamiento visual solo para ese caso.
+- `components/foodie-filter-bar.tsx` **no se tocó** — la investigación no
+  encontró ningún hallazgo de Apple Maps/HIG que contradijera cómo ya está
+  construida (sheets reales, Filtros por intersección/Listas por unión), y
+  la instrucción explícita era no tocarla salvo que la investigación lo
+  exigiera.
+
+**Decisión pendiente reportada, no aplicada:** no se encontró ninguna
+fuente real (ni HIG ni support.apple.com) que documente el ícono/color
+exacto de un pin o thumbnail por categoría en una fila de lugar guardado de
+Maps — HIG no publica specs visuales de sus propias apps con ese nivel de
+detalle, y no se pudo confirmar con capturas. Se dejó el ícono genérico
+`restaurant-outline` que ya existía (mismo que usa `explorar.tsx` como
+fallback) en vez de inventar una paleta de íconos por categoría sin fuente.
+
+`npx tsc --noEmit` y `npx expo lint` verdes. Commit por separado de este
+cambio (no mezclado con el resto de la corrida 3am).
+
 ## 2026-08-16/17 — Sistema de filtros de Foodie reconstruido, categorías multi-tag, IA de búsqueda real, auditoría de botones en toda la app
 
 Sesión larga, varios ciclos de iteración con feedback en vivo. Resumen de lo

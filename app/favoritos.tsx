@@ -8,33 +8,52 @@ import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { EMPTY_FOODIE_FILTERS, FoodieFilterBar, matchesFoodieFilters, type FoodieFilters } from '@/components/foodie-filter-bar';
 import { todayDish, useFavoritePatiosController } from '@/lib/controllers/useFavoritePatiosController';
 import { Fonts, Radius, useTheme, type Theme } from '@/lib/theme';
+import { noWidow } from '@/lib/typography';
 import { estaAbiertoAhora } from '@/lib/horario';
 import { getCollections, type PatioCollection } from '@/lib/collections';
 
 const OPEN_GREEN = '#1F9D55';
 
+// Densidad de fila y contenedor calcados de la misma referencia que ya usan
+// vistos.tsx/explorar.tsx (sheet de resultados) en esta app: tarjeta propia
+// por lugar (t.surface, Radius.card, borde hairline, gap 10 entre tarjetas)
+// en vez de una tabla suelta sin fondo — así Guardados no inventa un tercer
+// lenguaje de lista. Es también el estilo "grouped" que Apple documenta para
+// listas de datos (developer.apple.com/design/human-interface-guidelines/
+// lists-and-tables, sección "Style": el estilo agrupado usa espacio y
+// separación adicional para comunicar agrupación). Dentro de cada tarjeta,
+// paddingVertical se queda en 7 (tope de la ley de densidad de CLAUDE.md)
+// porque el contenido real son 3 líneas (nombre, platillo de hoy, ubicación
+// + rating) — más denso que un row de 1-2 líneas no perdería legibilidad.
 function makeStyles(t: Theme) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: t.bg },
     content: { paddingBottom: 120 },
 
     filterWrap: { marginTop: 12, marginBottom: 12 },
-    filterEmpty: { paddingHorizontal: 10, paddingVertical: 24, fontSize: 14, lineHeight: 20, fontWeight: '400', color: t.textSecondary, textAlign: 'center' },
 
-    // Lista
-    list: { paddingHorizontal: 20, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border },
-    card: { minHeight: 88, flexDirection: 'row', alignItems: 'center', gap: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.border },
-    thumb: { width: 38, height: 38, borderRadius: 11, alignItems: 'center', justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, position: 'relative' },
-    menuDot: { position: 'absolute', right: -2, top: -2, width: 9, height: 9, borderRadius: 5, borderWidth: 2, borderColor: t.bg, backgroundColor: OPEN_GREEN },
+    // Lista: pila de tarjetas individuales, no tabla continua.
+    list: { paddingHorizontal: 20, gap: 10 },
+    card: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: t.surface, borderRadius: Radius.card, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, paddingHorizontal: 14, paddingVertical: 7 },
+    thumb: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: t.bg, position: 'relative' },
+    menuDot: { position: 'absolute', right: -2, top: -2, width: 9, height: 9, borderRadius: 5, borderWidth: 2, borderColor: t.surface, backgroundColor: OPEN_GREEN },
     body: { flex: 1, minWidth: 0, justifyContent: 'center' },
-    nameRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 3 },
-    name: { flexShrink: 1, fontSize: 17, fontWeight: '800', letterSpacing: -0.2, color: t.text, lineHeight: 21 },
-    today: { fontSize: 13, fontWeight: '400', color: t.text, marginBottom: 5 },
+    // Nombre + platillo de hoy son una sola unidad óptica (identidad +
+    // "descripción" del lugar, igual que título/artista en Apple Music —
+    // ver CLAUDE.md "Campos de texto agrupados"): 2px máximo entre ellos.
+    nameRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 2 },
+    name: { flexShrink: 1, fontSize: 16, fontWeight: '800', letterSpacing: -0.2, color: t.text, lineHeight: 20 },
+    today: { fontSize: 13, fontWeight: '400', color: t.text, marginBottom: 4 },
     metaRow: { flexDirection: 'row', alignItems: 'center' },
     metaArea: { flexDirection: 'row', alignItems: 'center', gap: 4, flex: 1, minWidth: 0 },
     metaAreaText: { fontSize: 12, fontWeight: '400', color: t.textSecondary, flexShrink: 1 },
     separator: { fontSize: 11.5, color: t.textMute },
     contextText: { fontSize: 11.5, fontWeight: '500', color: t.textSecondary },
+
+    // Sin resultados de filtro: misma tarjeta que una fila, para no
+    // introducir un cuarto tratamiento visual solo para este estado.
+    filterEmptyCard: { alignItems: 'center', paddingVertical: 28, paddingHorizontal: 20, backgroundColor: t.surface, borderRadius: Radius.card, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
+    filterEmptyText: { marginTop: 10, fontSize: 14, lineHeight: 20, fontWeight: '400', color: t.textSecondary, textAlign: 'center' },
 
     // Empty
     empty: { minHeight: 520, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 28 },
@@ -127,16 +146,19 @@ export default function FavoritosScreen() {
             <View style={s.emptyIcon}>
               <Ionicons name="bookmark-outline" size={32} color={theme.textSecondary} />
             </View>
-            <Text style={s.emptyTitle} allowFontScaling={true}>Guarda tus lugares de confianza</Text>
-            <Text style={s.emptyText} allowFontScaling={true}>Cuando encuentres un lugar que te late, usa el marcador para volver rápido.</Text>
+            <Text style={s.emptyTitle} allowFontScaling={true}>{noWidow('Guarda tus lugares de confianza')}</Text>
+            <Text style={s.emptyText} allowFontScaling={true}>{noWidow('Cuando encuentres un lugar que te late, usa el marcador para volver rápido.')}</Text>
             <TouchableOpacity style={s.cta} onPress={() => router.replace('/explorar')} activeOpacity={0.82} accessibilityRole="button" accessibilityLabel="Buscar algo rico">
-              <Text style={s.ctaText} allowFontScaling={true}>Buscar algo rico</Text>
+              <Text style={s.ctaText} allowFontScaling={true}>{noWidow('Buscar algo rico')}</Text>
             </TouchableOpacity>
           </View>
         ) : (
           <View style={s.list}>
             {filtered.length === 0 && (
-              <Text style={s.filterEmpty} allowFontScaling={true}>Ninguno de tus guardados entra en ese filtro hoy.</Text>
+              <View style={s.filterEmptyCard}>
+                <Ionicons name="filter-outline" size={20} color={theme.textSecondary} />
+                <Text style={s.filterEmptyText} allowFontScaling={true}>{noWidow('Ninguno de tus guardados entra en ese filtro hoy.')}</Text>
+              </View>
             )}
             {filtered.map(renderPatio)}
           </View>

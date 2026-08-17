@@ -53,6 +53,20 @@ a Supabase, no intentes validarla contra la base real.
 
 ### Tarea 3 — Ley de viudas (`noWidow()`) sin aplicar
 
+**[x] Hecho 2026-08-17.** `app/privacidad.tsx` confirmado roto (título, fila,
+nota) y corregido. Barrido adicional sobre ~25 archivos más
+(`app/avisos.tsx`, `coleccion/[id].tsx`, `coleccion-publica/[id].tsx`,
+`comunidad-acceso.tsx`, `cuenta.tsx`, `explorar.tsx`, `foto-menu.tsx`,
+`guardar/[id].tsx`, `historial.tsx`, `manifiesto.tsx`, `menu-publicado.tsx`,
+`onboarding.tsx`, `patio/[id].tsx`, `perfil-comunidad.tsx`,
+`perfil-editar.tsx`, `plan.tsx`, `preview.tsx`, `resena/[id].tsx`,
+`resenas.tsx`, `soporte.tsx`, `vistos.tsx`,
+`components/business-schedule-editor.tsx`,
+`components/foodie-filter-bar.tsx`, `components/menu-composer.tsx`,
+`components/save-to-list-sheet.tsx`), incluyendo mensajes nativos de
+`Alert.alert`. `tsc`/`lint` verdes. `app/favoritos.tsx` deliberadamente
+NO tocado (otro agente lo está rediseñando en paralelo). Commit `1b1da72`.
+
 `CLAUDE.md` la marca como ley absoluta: "ningún título, subtítulo, párrafo,
 ayuda, alerta o CTA de varias palabras puede dejar una palabra sola en la
 última línea... Todo copy estático de UI debe pasar por `noWidow()` de
@@ -65,6 +79,18 @@ a contenido dinámico corto (nombres de usuario, precios, fechas) — la ley
 es para copy editorial estático de varias palabras.
 
 ### Tarea 4 — Botones de contorno con borde incorrecto
+
+**[x] Hecho 2026-08-17.** Corregidos `components/hint-sheet.tsx`
+(`secondaryBtn`) y `app/coleccion/[id].tsx` (`shareButton`, `explore`) de
+`StyleSheet.hairlineWidth` a `1.5`. Barrido completo del resto del repo:
+los `borderWidth: hairlineWidth` restantes son inputs, cards, chips/pills
+de selección o botones icono con fondo sólido — no coinciden con el
+patrón "botón de contorno de fondo transparente" de la regla. Un caso
+dudoso sin tocar: `app/historial.tsx` `newButton` ("+ Menú nuevo") usa
+borde punteado (`borderStyle: 'dashed'`) en hairline — es un patrón de
+afordancia "agregar" distinto al botón de contorno clásico, no lo cambié
+por falta de certeza; ver DECISIONES PENDIENTES. `tsc`/`lint` verdes.
+Commit `a1b11e1`.
 
 `CLAUDE.md` sección "Componentes": "Botones de contorno: `borderWidth 1.5`,
 `borderColor BLACK`, fondo transparente". Ya se corrigió un caso esta noche
@@ -117,7 +143,7 @@ violaciones claras. Si encuentras algo que "se ve raro" pero no puedes
 señalar qué regla específica de `CLAUDE.md` viola, no lo toques — anótalo
 como decisión pendiente con la pantalla y el porqué te generó duda.
 
-### Tarea 8 — Rediseñar Guardados (`app/favoritos.tsx`) 100% a fundamentos Apple
+### Tarea 8 — [x] Rediseñar Guardados (`app/favoritos.tsx`) 100% a fundamentos Apple
 
 **Investiga primero, con fuentes reales (WebSearch), antes de tocar
 código** — no lo inventes ni lo hagas de memoria. Esta pantalla es

@@ -59,9 +59,9 @@ export default function CollectionDetail() {
 
         {!!patios.length && (
           <View style={s.actions}>
-            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Ver esta lista en el mapa" style={[s.primaryAction, { backgroundColor: theme.text }]} onPress={() => router.replace({ pathname: '/explorar', params: { collection: item.id } })}>
-              <Ionicons name="map-outline" size={18} color={theme.bg} />
-              <Text style={[s.primaryText, { color: theme.bg }]}>Ver en el mapa</Text>
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Ver esta lista en el mapa" style={[s.primaryAction, { backgroundColor: theme.accent }]} onPress={() => router.replace({ pathname: '/explorar', params: { collection: item.id } })}>
+              <Ionicons name="map-outline" size={18} color="#FFFFFF" />
+              <Text style={[s.primaryText, { color: '#FFFFFF' }]}>Ver en el mapa</Text>
             </TouchableOpacity>
             <TouchableOpacity accessibilityRole="button" accessibilityLabel="Compartir" style={[s.shareButton, { borderColor: theme.border }]} onPress={share}>
               <Ionicons name="share-outline" size={19} color={theme.text} />

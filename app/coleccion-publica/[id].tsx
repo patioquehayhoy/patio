@@ -46,9 +46,9 @@ export default function PublicCollection() {
     <ScrollView showsVerticalScrollIndicator={false}>
       <Text style={[s.title, { color: theme.text }]}>{item?.title ?? 'Colección'}</Text>
       {!!item?.description && <Text style={[s.desc, { color: theme.textSecondary }]}>{item.description}</Text>}
-      <TouchableOpacity style={[s.button, { backgroundColor: theme.text }]} onPress={save}>
-        <Ionicons name={saved ? 'bookmark' : 'bookmark-outline'} size={17} color={theme.bg} />
-        <Text style={{ color: theme.bg, fontWeight: '700' }}>{saved ? 'Lista guardada' : 'Guardar lista'}</Text>
+      <TouchableOpacity style={[s.button, { backgroundColor: theme.accent }]} onPress={save}>
+        <Ionicons name={saved ? 'bookmark' : 'bookmark-outline'} size={17} color="#FFFFFF" />
+        <Text style={{ color: '#FFFFFF', fontWeight: '700' }}>{saved ? 'Lista guardada' : 'Guardar lista'}</Text>
       </TouchableOpacity>
       {item?.owner_id && <TouchableOpacity style={[s.row, { borderColor: theme.border }]} onPress={() => router.push({ pathname: '/foodie/[id]', params: { id: item.owner_id } })}><Text style={{ color: theme.textSecondary }}>Ver perfil del curador</Text><Ionicons name="chevron-forward" size={16} color={theme.textMute} /></TouchableOpacity>}
       {places.map((row) => {

@@ -1,6 +1,34 @@
 # TASKS — Cola de trabajo para agentes
 
-> Última actualización: 2026-08-15.
+> Última actualización: 2026-08-17.
+
+## CICLO 2026-08-16/17 — filtros Foodie reconstruidos, categorías multi-tag, IA de búsqueda, auditoría de botones
+
+Resumen completo en `docs/HANDOFF.md`. Pendientes reales, en orden:
+
+- [ ] **Aplicar migración** `supabase/migrations/20260816_add_categorias_multitag.sql`
+  — revisar primero si `tipo_negocio` tiene un `CHECK` de valores permitidos
+  en el dashboard de Supabase (no está trackeado en ningún migration file
+  del repo); `'botanas'` lo violaría si existe.
+- [ ] **Desplegar** `supabase functions deploy search-intent` — no se pudo
+  hacer desde este entorno (sin conectividad al proyecto).
+- [ ] **Probar en dispositivo real** el sistema completo de filtros (mapa +
+  Guardados) y la búsqueda con IA (texto y dictado por voz nativo del
+  teclado).
+- [ ] **Decisión de Alejandro:** el botón "Continuar" del alta del Fondero
+  (`patio-smart.tsx`) pasó de negro a naranja en los 6 pasos del wizard —
+  confirmar si se siente bien o es demasiado naranja repetido.
+- [ ] **Decisión de Alejandro:** el bloque de estilos del precio del día en
+  `components/menu-composer.tsx` (protegido por ley en `CLAUDE.md`) es
+  código muerto — no se renderiza en ningún JSX actual. Decidir si se borra
+  la ley (ya no aplica a nada visible) o se re-engancha el bloque al UI.
+- [ ] **Corregido en la madrugada, verificar en dispositivo:** bug real en
+  `app/coleccion-publica/[id].tsx` — pedía una columna `categoria`
+  (singular) inexistente, las colecciones públicas compartidas nunca
+  cargaban su lista de lugares. Ya corregido a `categorias`, sin probar en
+  vivo todavía.
+- [ ] Push pendiente — 15 commits locales en `rebuild/patio-final` sin
+  subir (remoto pide credencial interactiva no disponible en este entorno).
 
 ## CICLO 2026-08-15 — nombres de lista a una palabra + renombrar
 

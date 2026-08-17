@@ -1,5 +1,63 @@
 # HANDOFF
 
+## 2026-08-17 (madrugada) — Barrido de consistencia del sistema de diseño (Tareas 3-7)
+
+Agente `design-system` de la corrida programada 3am (`docs/TASKS.md`). No
+tocó `app/favoritos.tsx` (Tarea 8, otro agente en paralelo — confirmado ya
+commiteado como `4c82f95` antes de terminar esta sesión). Cinco commits,
+uno por tarea, `tsc`/`lint` verdes después de cada uno.
+
+**Tarea 3 — Ley de viudas (`noWidow()`).** `app/privacidad.tsx` confirmado
+roto (título, fila, nota) y corregido. Barrido completo de `app/**/*.tsx`
+y `components/**/*.tsx` buscando texto estático de UI (títulos, subtítulos,
+ayuda, CTA, y también mensajes nativos de `Alert.alert`) sin `noWidow()`:
+~25 archivos más corregidos, incluyendo un párrafo completo en
+`app/manifiesto.tsx` que nunca había pasado por la función. Commit
+`1b1da72`.
+
+**Tarea 4 — Botones de contorno con borde incorrecto.** `components/
+hint-sheet.tsx` (`secondaryBtn`) y `app/coleccion/[id].tsx` (`shareButton`,
+`explore`) usaban `StyleSheet.hairlineWidth` en vez de `1.5`. Revisado el
+resto del repo: los demás casos de borde fino restantes son inputs, cards,
+chips/pills de selección o iconos con fondo sólido — fuera del alcance de
+la regla (que aplica solo a botones de fondo transparente). Commit
+`a1b11e1`.
+
+**Tarea 5 — `gap` fuera de `{4, 8}`.** 97 usos homologados en 26 archivos:
+valores ≤6.5 → `4` (compacto), >6.5 → `8` (normal), verificando en cada
+caso que la categoría visual (badge/meta con icono vs. fila de botones)
+respaldara la elección antes de aplicar en bloque. Commit `2eac16e`.
+
+**Tarea 6 — Estilos huérfanos.** Escribí un parser de brace-matching sobre
+cada `StyleSheet.create` para detectar claves sin ningún `.clave` en el
+resto del archivo. Confirmados y borrados `submitBtn`/`submitText`
+(`app/patio/[id].tsx`) y `cta`/`ctaText` (`app/explorar.tsx`). Barrido
+amplio: 146 líneas de estilos muertos borradas en 11 archivos — el
+hallazgo mayor fue `app/perfil-editar.tsx`, que conservaba ~49 estilos
+completos de un editor de horario/pagos inline ya migrado a
+`BusinessScheduleEditor`/`BusinessPaymentSelector` compartidos. El bloque
+protegido de `components/menu-composer.tsx`
+(`dayPriceField`/`dayPriceCurrency`/`dayPriceInput`, ley explícita de
+`CLAUDE.md`) se confirmó como sigue muerto y NO se tocó. Commit `1e33ebd`.
+
+**Tarea 7 — Consistencia general.** `Radius` (chip/card/sheet/phone) y
+separadores (`StyleSheet.hairlineWidth` en vez de `height: 1`) ya cumplían
+en todo el repo, sin violaciones nuevas y aisladas que corregir. La deriva
+sistémica ya conocida (pesos tipográficos fuera de 900/700/300,
+intensidades de `BlurView` fuera de 20/16, paleta hardcodeada en un puñado
+de pantallas de intro) se dejó intacta a propósito — es decisión de diseño
+real, no aplicación mecánica de una regla ya escrita, y ya estaba
+documentada como pendiente desde el ciclo 2026-08-14.
+
+Cuatro decisiones nuevas anotadas en `docs/TASKS.md` → "DECISIONES
+PENDIENTES": el `gap: 1` de `ratingStars` en `app/patio/[id].tsx` (fila de
+estrellas demasiado apretada para homologar con confianza), el botón
+punteado "+ Menú nuevo" de `app/historial.tsx` (borde de contorno con
+`borderStyle: 'dashed'`, patrón distinto al botón de contorno clásico), la
+reconfirmación de que el bloque de precio del día en `menu-composer.tsx`
+sigue muerto, y un nuevo dato para la deriva de `BlurView` ya documentada
+(`save-to-list-sheet.tsx` en 34/54 en vez de 16/20).
+
 ## 2026-08-17 (madrugada) — Rediseño de Guardados (`app/favoritos.tsx`) sobre fundamentos Apple reales
 
 Tarea 8 de la corrida programada 3am (`docs/TASKS.md`). Investigación antes

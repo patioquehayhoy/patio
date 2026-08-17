@@ -105,6 +105,16 @@ botones de contorno de fondo transparente/sólido.
 
 ### Tarea 5 — `gap` fuera de `{4, 8}`
 
+**[x] Hecho 2026-08-17.** 97 usos homologados en 26 archivos (`app/**`,
+`components/**`, excluyendo `app/favoritos.tsx`). Regla aplicada: valores
+≤6.5 → `4` (compacto), valores >6.5 → `8` (normal), revisando caso por
+caso que la categoría (badge/meta con icono vs. fila de botones/opciones)
+respaldara la elección antes de aplicar en bloque. `tsc`/`lint` verdes.
+Commit `2eac16e`. Un caso sin tocar por baja confianza — ver DECISIONES
+PENDIENTES: `ratingStars` en `app/patio/[id].tsx` (`gap: 1`, fila de 5
+estrellas extremadamente apretada; redondear a 4 cuadruplicaría la
+separación visual real).
+
 Regla de `CLAUDE.md`: "`gap` entre elementos: `4` (compacto) o `8`
 (normal)". Busca usos de `gap:` en estilos (`StyleSheet.create`) con
 valores distintos de 4 u 8 (ej. 5, 6, 7, 9, 10, 12 usados como gap entre
@@ -115,6 +125,21 @@ si genuinamente no puedes decidir con confianza, anótalo en vez de
 adivinar.
 
 ### Tarea 6 — Estilos huérfanos / código muerto restante
+
+**[x] Hecho 2026-08-17.** `submitBtn`/`submitText` (`app/patio/[id].tsx`) y
+`cta`/`ctaText` (`app/explorar.tsx`) confirmados huérfanos y borrados.
+Barrido automatizado (parser de brace-matching sobre cada
+`StyleSheet.create`, comparando cada clave contra `.clave` en el resto
+del archivo) sobre todo `app/**` y `components/**` excepto
+`app/favoritos.tsx`: 146 líneas de estilos muertos eliminadas en 11
+archivos. El hallazgo mayor: `app/perfil-editar.tsx` conservaba ~49
+estilos completos de un editor de horario/pagos inline que ya migró a
+`BusinessScheduleEditor`/`BusinessPaymentSelector` compartidos — muertos
+desde ese refactor. El bloque protegido de
+`components/menu-composer.tsx` (`dayPriceField`/`dayPriceCurrency`/
+`dayPriceInput`) se confirmó como sigue muerto y NO se tocó (ley
+explícita de `CLAUDE.md`) — ver DECISIONES PENDIENTES. `tsc`/`lint`
+verdes en cada iteración. Commit `1e33ebd`.
 
 Ya se encontraron y dejaron sin tocar (fuera de alcance de auditorías
 anteriores) tres bloques de estilos que no se referencian en ningún JSX:
@@ -129,6 +154,22 @@ en ningún lado del mismo archivo, y bórralos — excepto el bloque protegido
 de arriba.
 
 ### Tarea 7 — Auditoría de consistencia de diseño en toda la app
+
+**[x] Hecho 2026-08-17 (alcance acotado).** Verificado en este barrido:
+`Radius.chip/card/sheet/phone` (14/18/28/44 en `lib/theme.tsx`) sin
+outliers nuevos — los `borderRadius: 30` de `app/patio/[id].tsx` y
+`components/save-to-list-sheet.tsx` caen dentro del rango documentado
+28-32 para sheets, no son violación. Separadores: cero usos de
+`height: 1` o `border(Top|Bottom)Width: 1` fuera de
+`StyleSheet.hairlineWidth` en toda la app — regla ya se cumplía. No
+encontré violaciones NUEVAS y aisladas de paleta/tipografía/glass fuera
+de lo que ya documentaba `CLAUDE.md`/este archivo como deriva sistémica
+pendiente de decisión de Alejandro (pesos tipográficos 400/600/800/500
+fuera de la tríada, intensidades de `BlurView` de 16 a 92, paleta
+hardcodeada en `bottom-tab-bar.tsx`/`preview.tsx`/`entrada.tsx`/
+`fondero-acceso.tsx`/`onboarding.tsx`) — deliberadamente NO tocado por
+ser decisión de diseño real, no aplicación mecánica de una regla ya
+escrita; sigue abierto más abajo en este archivo. `tsc`/`lint` verdes.
 
 Más allá de las reglas mecánicas de las tareas 3-5: revisa paleta (todo
 color debe salir de los tokens de `Theme`/`Colors`, nunca hex suelto fuera
@@ -172,6 +213,36 @@ commit y en la entrada de `docs/HANDOFF.md` de qué patrón de Apple copiaste
 para cada decisión, con las fuentes.
 
 ### DECISIONES PENDIENTES (llenar aquí conforme se encuentren, no antes)
+
+- [ ] **`ratingStars` en `app/patio/[id].tsx` — `gap: 1` sin homologar.**
+  Fila de 5 estrellas extremadamente apretada (prácticamente tocándose).
+  La auditoría de `gap` (Tarea 5) homologó todo lo demás a `{4, 8}`, pero
+  redondear este caso a `4` cuadruplicaría la separación real entre
+  estrellas y cambiaría notablemente el look de esa fila específica — no
+  lo hice por baja confianza. Decidir si se deja como excepción
+  documentada o se homologa a `4` de todas formas.
+- [ ] **`newButton` en `app/historial.tsx` ("+ Menú nuevo") — borde
+  punteado en `StyleSheet.hairlineWidth`.** Es un botón de contorno real
+  (fondo transparente + borde), pero usa `borderStyle: 'dashed'` como
+  afordancia de "agregar" — distinto al patrón clásico de botón de
+  contorno que exige `borderWidth 1.5`. No lo cambié por no tener certeza
+  de si la ley aplica igual a bordes punteados. Decidir si se sube a 1.5
+  también o se documenta como excepción del patrón "agregar punteado".
+- [ ] **`components/menu-composer.tsx` — bloque de precio del día
+  confirmado muerto de nuevo.** `dayPriceField`/`dayPriceCurrency`/
+  `dayPriceInput` (protegidos por ley en `CLAUDE.md`) siguen sin
+  renderizarse en ningún JSX — mismo hallazgo que el ciclo anterior
+  (2026-08-16/17, ver más abajo). Sigue pendiente decidir si se borra la
+  ley (ya no protege nada visible) o se re-engancha el bloque al UI.
+- [ ] **Deriva tipográfica y de `BlurView` — reconfirmada, no tocada.**
+  Durante esta auditoría (barrido de `noWidow`/gap/orphans) se tocaron
+  decenas de archivos, pero deliberadamente NO se homologaron pesos
+  tipográficos fuera de 900/700/300 ni intensidades de `BlurView` fuera
+  de 20/16 — son decisiones de diseño reales ya documentadas como
+  pendientes en el ciclo 2026-08-14 (ver esa sección más abajo), no
+  aplicación mecánica de una regla escrita. Ejemplo nuevo notado de paso:
+  `components/save-to-list-sheet.tsx:121` usa `BlurView` intensity 34
+  oscuro / 54 claro (tabla documenta 16/20).
 
 ## CICLO 2026-08-16/17 — filtros Foodie reconstruidos, categorías multi-tag, IA de búsqueda, auditoría de botones
 

@@ -76,14 +76,35 @@ export function useFoodieExploreController() {
   const [searchActive, setSearchActive] = useState(false);
   const [aiMode, setAiMode] = useState(false);
   const [query, setQuery] = useState('');
+  // `query` es lo que se ve en el campo de texto, vivo con cada tecla.
+  // `submittedQuery` es lo que de verdad dispara resultados, mapa y sheet —
+  // solo cambia al presionar el botón de buscar del teclado (o el X, para
+  // limpiar). Apple Maps y Google Maps separan igual "escribir" de
+  // "buscar": mientras escribes solo hay sugerencias vivas (o, como aquí,
+  // nada todavía) — el mapa no se mueve, no aparecen pines ni card hasta
+  // que se confirma la búsqueda. Antes ambos eran el mismo estado y cada
+  // tecla ya movía el mapa y mostraba resultados.
+  const [submittedQuery, setSubmittedQuery] = useState('');
   const [visibleRegion, setVisibleRegion] = useState<Region>(FOODIE_INITIAL_REGION);
+  // El orden de la lista se calcula UNA VEZ por búsqueda, con el centro del
+  // mapa que había al confirmar — no con el centro en vivo. Antes ordenaba
+  // por `visibleRegion` directo: al tocar un resultado, la cámara se movía
+  // para encuadrarlo, eso cambiaba `visibleRegion`, y la lista se
+  // reacomodaba sola bajo el dedo (el resultado que acabas de tocar podía
+  // saltar de posición). Ni Apple ni Google reordenan la lista mientras la
+  // exploras — solo al buscar de nuevo.
+  const sortAnchorRegion = useRef<Region>(FOODIE_INITIAL_REGION);
+  useEffect(() => {
+    if (submittedQuery.trim()) sortAnchorRegion.current = visibleRegion;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [submittedQuery]);
   const [liveResults, setLiveResults] = useState<PatioDishMatch[]>([]);
   const [searchPending, setSearchPending] = useState(false);
   const [aiNote, setAiNote] = useState('');
   const searchInputRef = useRef<TextInput>(null);
 
   useEffect(() => {
-    if (!query.trim()) {
+    if (!submittedQuery.trim()) {
       setLiveResults([]);
       setSearchPending(false);
       setAiNote('');
@@ -92,19 +113,22 @@ export function useFoodieExploreController() {
 
     let cancelled = false;
     setSearchPending(true);
-    const timer = setTimeout(async () => {
+    // Ya no hace falta un debounce de 300ms — antes existía para no
+    // recalcular en cada tecla; ahora esto solo corre una vez, al
+    // confirmar la búsqueda.
+    (async () => {
       // Primero la heurística local (instantánea, siempre disponible). En
       // modo IA se intenta reemplazarla con la interpretación real de Claude
       // (supabase/functions/search-intent) — expande vocabulario culinario de
       // verdad en vez de las 3 reglas fijas de abajo. Si la llamada falla o
       // tarda (sin red, función caída), la búsqueda sigue con la heurística
       // local en vez de quedarse sin resultados.
-      const localIntent = interpretAiQuery(query);
-      let terms = localIntent.terms.length ? localIntent.terms : [query];
+      const localIntent = interpretAiQuery(submittedQuery);
+      let terms = localIntent.terms.length ? localIntent.terms : [submittedQuery];
       let openNow = localIntent.openNow;
       let note = '';
       if (aiMode) {
-        const aiIntent = await fetchAiSearchIntent(query);
+        const aiIntent = await fetchAiSearchIntent(submittedQuery);
         if (cancelled) return;
         if (aiIntent && aiIntent.terminos.length) {
           terms = aiIntent.terminos;
@@ -125,13 +149,12 @@ export function useFoodieExploreController() {
         setAiNote(note);
         setSearchPending(false);
       }
-    }, 300);
+    })();
 
     return () => {
       cancelled = true;
-      clearTimeout(timer);
     };
-  }, [query, allPatios, aiMode]);
+  }, [submittedQuery, allPatios, aiMode]);
 
   useEffect(() => {
     let cancelled = false;
@@ -209,24 +232,26 @@ export function useFoodieExploreController() {
   }, []);
 
   const searchResults = useMemo(() => {
-    if (!query.trim()) return [];
+    if (!submittedQuery.trim()) return [];
+    const anchor = sortAnchorRegion.current;
     return [...liveResults].sort((a, b) => {
-      // Relevance decides the tier; distance from the current map center
-      // orders equivalent matches. This prevents a nearby weak tag from
+      // Relevance decides the tier; distance from the map center AT SEARCH
+      // TIME orders equivalent matches (not the live center — ver
+      // `sortAnchorRegion`). This prevents a nearby weak tag from
       // outranking an exact dish while keeping useful results walkable.
       const relevanceTierA = Math.floor(a.score / 20);
       const relevanceTierB = Math.floor(b.score / 20);
       if (relevanceTierA !== relevanceTierB) return relevanceTierB - relevanceTierA;
-      const distanceA = distanceKm(visibleRegion, a.patio);
-      const distanceB = distanceKm(visibleRegion, b.patio);
+      const distanceA = distanceKm(anchor, a.patio);
+      const distanceB = distanceKm(anchor, b.patio);
       const ratingA = Number.parseFloat(a.patio.rating ?? '') || 0;
       const ratingB = Number.parseFloat(b.patio.rating ?? '') || 0;
       return (aiMode ? ratingB - ratingA : 0) || distanceA - distanceB || b.score - a.score;
     });
-  }, [aiMode, liveResults, query, visibleRegion]);
+  }, [aiMode, liveResults, submittedQuery]);
 
   const matchingPatioIds = useMemo(() => new Set(searchResults.map((result) => result.patio.id)), [searchResults]);
-  const isFiltering = query.trim().length > 0;
+  const isFiltering = submittedQuery.trim().length > 0;
   const idleMode = !searchActive && !showHeader && !isFiltering;
 
   const topMatchPerPatio = useMemo(() => {
@@ -272,6 +297,7 @@ export function useFoodieExploreController() {
     setSearchActive(false);
     setAiMode(false);
     setQuery('');
+    setSubmittedQuery('');
     deselect();
   }, [deselect]);
 
@@ -280,6 +306,7 @@ export function useFoodieExploreController() {
     setSearchActive(false);
     setAiMode(false);
     setQuery('');
+    setSubmittedQuery('');
     setSheetMode('nearby');
     deselect();
   }, [deselect]);
@@ -289,6 +316,7 @@ export function useFoodieExploreController() {
     setSearchActive(false);
     setAiMode(false);
     setQuery('');
+    setSubmittedQuery('');
     setSheetMode('saved');
     deselect();
   }, [deselect]);
@@ -308,8 +336,10 @@ export function useFoodieExploreController() {
   }, [selectedPatio]);
 
   const openSearch = useCallback(() => {
-    // Focus is not a query. Keep the map quiet until the person types; then
-    // results appear continuously and are ranked around the map center.
+    // Focus is not a query. Keep the map quiet until la persona confirma la
+    // búsqueda (ver `handleSubmitSearch`) — igual que Apple Maps y Google
+    // Maps, que no mueven el mapa ni comprometen resultados solo por
+    // escribir.
     setSheetMode(null);
     setSearchActive(true);
     setTimeout(() => searchInputRef.current?.focus(), 80);
@@ -320,14 +350,37 @@ export function useFoodieExploreController() {
     setSearchActive(false);
     setAiMode(false);
     setQuery('');
+    setSubmittedQuery('');
     setSheetMode(null);
     deselect();
   }, [deselect]);
 
   const handleQueryChange = useCallback((text: string) => {
     setQuery(text);
-    if (!text.trim()) deselect();
+    if (!text.trim()) {
+      // Borrar el texto sí limpia de inmediato — no hay ambigüedad en
+      // mostrar nada cuando el campo está vacío, a diferencia de escribir
+      // texto nuevo sin confirmar, que debe dejar los resultados anteriores
+      // en paz hasta que se confirme o se borre.
+      setSubmittedQuery('');
+      deselect();
+    }
   }, [deselect]);
+
+  const handleSubmitSearch = useCallback(() => {
+    Keyboard.dismiss();
+    setSubmittedQuery(query);
+  }, [query]);
+
+  // Para las pills de sugerencia rápida ("mole", "pozole"…): tocar una debe
+  // buscar de inmediato, como si se hubiera escrito y confirmado en un solo
+  // gesto — no basta con `handleQueryChange` porque ya no dispara la
+  // búsqueda por sí sola (ver `submittedQuery` arriba).
+  const searchFor = useCallback((text: string) => {
+    Keyboard.dismiss();
+    setQuery(text);
+    setSubmittedQuery(text);
+  }, []);
 
   return {
     activeSavedCategories,
@@ -341,6 +394,8 @@ export function useFoodieExploreController() {
     distanceLabelForPatio,
     featuredMatch,
     handleQueryChange,
+    handleSubmitSearch,
+    searchFor,
     handleShareSelected,
     idleMode,
     initialLoading,

@@ -1,5 +1,128 @@
 # HANDOFF
 
+## 2026-08-17 (noche) — Rediseño completo del sheet de resultados de búsqueda, con investigación real Apple/Google (`app/explorar.tsx`, `lib/controllers/useFoodieExploreController.ts`)
+
+Sesión larga de iteración en vivo con Alejandro probando en su iPhone, varias
+rondas de feedback con capturas reales. Resumen de lo que quedó, no de cada
+vuelta intermedia — el detalle de la investigación con fuentes está en los
+comentarios del propio código.
+
+**Sheet con detents reales (Apple HIG "Sheets"), no un solo tamaño fijo.**
+Antes el sheet de resultados ocupaba casi toda la pantalla al buscar. Ahora
+tiene dos detents — medio y grande — igual que documenta Apple (`large`/
+`medium`, arrastrable, grabber que también se puede tocar para ciclar entre
+los dos). El tamaño del detent medio pasó por tres iteraciones: mitad del
+marco grande (50%), luego 38% fijo, y terminó siendo **por contenido**: que
+quepan exactamente `SHEET_MEDIUM_ROWS` (3) filas de resultado completas —
+un número que se explica solo con lo que muestra, no una fracción de
+pantalla arbitraria. Referencia real: HIG "Sheets" (`developer.apple.com/
+design/human-interface-guidelines/sheets`, API JSON oficial) — "medium is
+about half of the fully expanded height", "people can also tap [the
+grabber] to cycle through the detents".
+
+**Bug real de arquitectura Animated, ya corregido: no mezclar `transform`
+(driver nativo) con `top`/`bottom` (sin driver nativo) en la misma
+`Animated.View`.** Causaba el error "Style property 'top' is not supported
+by native animated module" y sacaba a Alejandro de la app al mover el mapa.
+Solución: dos capas anidadas — la externa solo anima `transform`
+(entrada/salida/arrastre), la interna solo anima `top`/`bottom` (tamaño del
+detent, ancla real al teclado).
+
+**Bug real de carrera de tiempos, ya corregido: el sheet se quedaba
+"ocupando toda la pantalla" para siempre.** `handleSubmitSearch` llama
+`Keyboard.dismiss()` en el mismo gesto que confirma la búsqueda, pero el
+teclado tarda ~250ms en cerrar de verdad. Si la animación de entrada del
+sheet corría antes de que `keyboardHeight` se actualizara a 0, el tamaño
+"medio" quedaba calculado con el marco chico (con teclado) y nunca se volvía
+a corregir — la entrada solo se anima UNA vez por búsqueda. Corregido con un
+efecto adicional que re-sincroniza el alto real cada vez que el espacio
+disponible cambia, mientras el sheet esté en reposo (no en medio de un
+arrastre).
+
+**Crash real de zoom/pan, ya corregido: mismo patrón que ya había tumbado
+esta app una vez (`NSInvalidArgumentException` en
+`-[AIRMap insertReactSubview:atIndex:]`, documentado en la entrada del
+2026-08-09).** La corrección de ese entonces solo cubrió los pines
+individuales (opacidad, nunca mount/unmount). Los **clusters** seguían
+recalculando su rejilla en cada `onRegionChangeComplete`, montando y
+desmontando `Marker` nativos en cada tick de zoom/pan. Ahora usan una
+rejilla fija de 30 celdas (6×5, mismo límite de siempre) siempre montadas —
+solo cambian opacidad/posición/contenido, nunca se insertan ni eliminan.
+
+**Búsqueda "commit-on-submit", no en vivo por cada tecla — investigado
+contra Apple Maps y Google Places Autocomplete.** Antes cada tecla ya movía
+el mapa y comprometía resultados (con debounce de 300ms). Ambas plataformas
+separan escribir de buscar: mientras tecleas no hay compromiso visual hasta
+presionar el botón de buscar del teclado. Nuevo estado `submittedQuery` en
+el controller, separado de `query` (lo que se ve en el campo); `isFiltering`
+y el efecto que llama `searchLiveMenus` ahora dependen de `submittedQuery`,
+no de `query`. Las pills de sugerencia rápida ("mole", "pozole"…) usan una
+función nueva `searchFor()` que fija ambos a la vez (antes dependían de que
+cada tecla disparara la búsqueda, ya no). Efecto colateral bueno: el
+debounce de 300ms ya no hace falta (la búsqueda corre una vez, al
+confirmar), y el teclado normalmente ya está cerrado cuando el sheet calcula
+su tamaño, lo cual además ayudó al bug de la carrera de tiempos de arriba.
+
+**Deslizar la card hacia abajo ya NO borra la búsqueda.** Antes
+`dismissSheet()` llamaba siempre a `closeSheet()` del controller, que limpia
+`submittedQuery` — cada reposicionamiento en el mapa obligaba a re-buscar.
+Ahora, en modo búsqueda, arrastrar hacia abajo solo oculta la card
+localmente (`sheetHiddenByDrag`, estado de `explorar.tsx`) — el mapa, los
+pines resaltados y el término siguen vivos. Volver a tocar el campo de
+búsqueda (`onFocus`) trae la card de regreso sin re-buscar.
+
+**Bug real de reordenamiento de lista, ya corregido: la lista se reacomodaba
+sola bajo el dedo.** El orden de `searchResults` se calculaba con
+`visibleRegion` en vivo — al presionar una fila (ver siguiente punto), el
+mapa se recentraba, eso cambiaba `visibleRegion`, y la lista se reordenaba
+por distancia al nuevo centro mientras el dedo seguía sobre la fila. Ni
+Apple ni Google reordenan la lista mientras la exploras. Nuevo
+`sortAnchorRegion` (ref) en el controller: se congela con el centro del
+mapa que había **al confirmar la búsqueda**, no se actualiza más hasta la
+siguiente búsqueda. La distancia mostrada por fila sí sigue viva (correcto
+que cambie); solo el orden se congeló.
+
+**Feedback al presionar (no soltar) una fila de resultado — Airbnb: tocar
+una tarjeta resalta y centra su pin sin abrir la ficha.** Reusa el mismo
+mecanismo que ya existía para resaltar un pin al tocarlo en el mapa
+(`pressedPinId`/`pinCategorySelected`), disparado ahora también desde
+`onPressIn` de cada fila de la lista — sin inventar un segundo lenguaje
+visual. Soltar en el mismo lugar sigue navegando a la ficha (mismo tap,
+misma fila).
+
+**Marcadores de búsqueda unificados a un solo lenguaje de pin.** Antes un
+resultado de búsqueda cambiaba de forma (globo con ícono → punto relleno de
+acento, percibido como "rojo"). Confirmado con `MKMarkerAnnotationView` que
+el pin nativo de Apple es un globo con glyph, nunca un punto sin ícono —
+ahora los matches usan el mismo globo+ícono que cualquier pin, con borde de
+acento para distinguirlos.
+
+**Bug de geometría, ya corregido: la barra de filtros "Menú hoy/Abiertos"
+seguía sin sentirse pegada al buscador tras dos intentos.** Resultó ser un
+error real: el buscador **inactivo** (pill "¿Qué se te antoja?") y el
+**activo** (con flecha atrás + IA, ya escribiendo) tienen alturas reales
+distintas — el activo tiene 12pt extra de padding inferior que el inactivo
+no tiene. Se usaba el mismo número (`FILTER_BAR_TOP_OFFSET`) para ambos,
+dejando 12pt de aire de sobra en el estado inactivo. Ahora cada estado tiene
+su propio offset real (`IDLE_FILTER_BAR_TOP_OFFSET = 60`,
+`FILTER_BAR_TOP_OFFSET = 72`).
+
+**Card ahora llega hasta el margen inferior real** (se quitaron 14pt de aire
+extra que quedaban antes del inset de seguridad) — radio inferior
+redondeado retirado en consecuencia (una esquina redondeada flotando sin
+margen debajo se ve como error, no como diseño).
+
+**Badge de depuración solo `__DEV__`:** fecha/hora en la esquina superior
+derecha del mapa, se recalcula cada vez que Metro recarga el archivo (Fast
+Refresh) — para confirmar en dispositivo si ya se tiene la versión más
+reciente sin adivinar. Nunca sale en producción/TestFlight.
+
+`npx tsc --noEmit` y `npx expo lint` verdes después de cada cambio. QA fue
+enteramente en vivo por Alejandro en su iPhone con capturas reales — varias
+rondas encontraron bugs de geometría/arquitectura reales que solo aparecían
+en dispositivo (la carrera de tiempos del teclado, el crash de clustering,
+las dos alturas de buscador), no en revisión de código.
+
 ## 2026-08-17 — El mapa encuadra los resultados de búsqueda (`app/explorar.tsx`)
 
 Antes, escribir en el buscador (ej. "mole") solo actualizaba la lista del

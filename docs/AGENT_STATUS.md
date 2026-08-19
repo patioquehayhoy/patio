@@ -4,6 +4,55 @@
 
 ---
 
+## Ciclo 9 — 2026-08-18 (pin del mapa rediseñado + fixes de búsqueda sin resultados)
+
+**Qué hizo:**
+- Sesión larga de iteración en vivo con Alejandro probando en su iPhone,
+  con varias rondas de mockups en Artifact (comparación visual antes de
+  tocar código). Detalle completo en `docs/HANDOFF.md`, entrada
+  2026-08-18.
+- `app/explorar.tsx`: pin de patio individual rediseñado a gota invertida
+  como una sola pieza (técnica del pin de Google Maps), con contorno de
+  selección pegado + degradado vertical de acento + pop de escala, timing
+  asimétrico validado contra HIG Motion/`UIButton.highlighted`. Mismo
+  tratamiento para el borde de match de búsqueda. Cluster ahora círculo
+  completo (deliberadamente distinto a la gota).
+- Sheet de "sin resultados" ya no se corta contra el borde; sugerencias de
+  búsqueda salen de categorías reales cercanas en vez de una lista fija.
+- Commit `6705c49` en `rebuild/patio-final`. `git push` intentado, falla
+  con 403 (permiso denegado a T1Alejandro) — mismo bloqueo ya documentado,
+  Alejandro debe subirlo él.
+
+**Qué encontró:**
+- Tres bugs reales de `tracksViewChanges` en `react-native-maps`: snapshot
+  final perdido al terminar la animación de selección, snapshot viejo
+  nunca invalidado al cambiar match/oculto durante la búsqueda, y estado
+  de selección que no se resetea al agrupar en cluster. Los tres
+  corregidos — detalle en HANDOFF.md.
+- Bug de color: el literal `'transparent'` es `rgba(0,0,0,0)`, no "este
+  color con alpha 0" — interpolar hacia él ensucia el degradado con
+  tonos grises/negruzcos. Corregido calculando el rgba real del acento.
+- Se evaluó y llegó a compilar en device una versión con
+  `@react-native-masked-view/masked-view` (dependencia nativa nueva); se
+  revirtió a una técnica con capas de `expo-linear-gradient` (ya
+  instalado) que logra el mismo resultado sin dependencia nueva ni build.
+- Reincidencia de la regla "no probar en simulador/device por iniciativa
+  propia" (ver memoria `feedback_no_self_testing`) — se corrigió en el
+  momento, reforzada en memoria para que no se repita.
+
+**Qué sigue:**
+- QA de Alejandro en su iPhone de todo lo de esta sesión (ya fue
+  probando en vivo cada iteración, pero vale confirmar el estado final
+  completo de un tirón).
+- `git push` pendiente de que Alejandro lo suba desde una cuenta con
+  permiso de escritura.
+- El resto del backlog no cambió — ver `docs/TASKS.md`.
+
+**Validación:**
+- `npx tsc --noEmit` — verde ✅. `npx expo lint` — verde ✅, en cada paso.
+
+---
+
 ## Ciclo 8 — 2026-08-15 (nombres de lista a una palabra + renombrar)
 
 **Qué hizo:**

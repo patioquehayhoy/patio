@@ -1,5 +1,90 @@
 # HANDOFF
 
+## 2026-08-18 — Pin del mapa rediseñado (selección animada) + fixes de búsqueda sin resultados (`app/explorar.tsx`)
+
+Sesión larga de iteración en vivo con Alejandro probando en su iPhone, con
+varias rondas de mockups en Artifact (comparación visual de opciones antes
+de tocar código) y feedback puntual en cada iteración. Resumen de lo que
+quedó — el detalle de cada decisión intermedia está en los comentarios del
+propio código.
+
+**Pin de patio individual: nueva forma de gota invertida como una sola
+pieza.** Antes era un círculo con un triángulo pegado abajo (dos formas
+separadas); ahora es un cuadrado con 3 esquinas redondeadas al 50% + una
+recta, rotado -45° — la técnica clásica del pin de mapa (el mismo truco
+detrás del marcador de Google Maps). Al ser una forma continua, el
+resaltado de selección puede cubrirla completa sin dejar ninguna parte
+fuera, algo que no era posible con el círculo+triángulo suelto.
+
+**Contorno de selección pegado (no un aro con separación), con degradado
+vertical de acento y pop de escala.** Se investigó primero contra
+convenciones reales de Apple (HIG Motion, patrón `UIButton.highlighted`)
+para el timing asimétrico: 120ms ease-out al encender (casi instantáneo,
+confirma que el toque registró), 280ms **lineal** al apagar — no ease-in,
+porque para propiedades de luz/opacidad una curva ease-in comprime el
+cambio visible al final y se lee como "no pasa nada, luego desaparece de
+golpe" en vez de un apagado perceptible. El degradado (sólido arriba, se
+desvanece hacia la punta) se logra con capas de `expo-linear-gradient`
+(gota más grande detrás, pin opaco encima, sin depender de una librería
+nativa nueva) — se evaluó agregar `@react-native-masked-view/masked-view`
+para lograrlo con una máscara real, se instaló y llegó a compilar en
+device, pero se revirtió a favor de esta técnica sin dependencia nueva
+tras confirmar que era viable. Mismo tratamiento (más delgado, sin animar)
+para el borde de "match" de búsqueda.
+
+**Bug real de color: `'transparent'` no es "este color con alpha 0".** Es
+el literal `rgba(0,0,0,0)` — negro con alpha 0. Usarlo como color final de
+un degradado hace que la interpolación pase por tonos grises/negruzcos de
+camino a invisible. Corregido calculando el rgba real a partir del mismo
+acento (`rgba(r,g,b,0)`), para que la interpolación sea alpha puro.
+
+**Tres bugs reales de `tracksViewChanges` en `react-native-maps`,
+encontrados y corregidos:**
+1. Se apagaba en el mismo tick en que terminaba la animación de selección
+   — a veces react-native-maps no alcanzaba a tomar la snapshot final y el
+   marker quedaba pegado a medio fade ("solo se queda el aro"). Fix:
+   respiro de 80ms antes de soltar el tracking.
+2. Nunca consideraba los cambios de match/oculto al escribir en la
+   búsqueda — los pines se quedaban con el snapshot viejo, se veían
+   rotos/desaparecidos de forma errática. Fix: ventana corta de
+   re-tracking cuando cambia el set de resultados (una vez por
+   actualización, no por frame).
+3. Seleccionar un pin y alejar el zoom hasta que se agrupe en cluster
+   dejaba el estado de selección "vivo" sin resetear — al volver a
+   acercar, el anillo aparecía ya encendido de golpe. Fix: reset
+   automático cuando el pin entra en cluster.
+
+**Bug real de diseño: doble anillo concéntrico.** Un pin que era resultado
+de búsqueda Y estaba seleccionado a la vez dibujaba dos círculos de acento
+(el borde de match + el anillo de selección). La selección ahora gana
+sola. Se agregó también `zIndex` explícito para que un pin "prendido"
+nunca quede tapado por un vecino normal cercano.
+
+**Búsqueda sin resultados: dos fixes para que el mapa/sheet no se sientan
+"sucios".**
+- Los pines que no hacen match ya no se muestran atenuados como fantasmas
+  translúcidos — se ocultan por completo mientras hay búsqueda activa.
+- El sheet de "sin resultados" se cortaba contra el borde inferior — el
+  detent medio asumía siempre N filas de resultado (`patioRow`), nunca el
+  bloque más alto de ese estado (ícono + texto + pills). Ahora se expande
+  al marco completo disponible cuando no hay coincidencias, y el
+  `ScrollView` tiene `flex: 1` real (antes no tenía altura acotada, así
+  que nunca podía hacer scroll — solo se cortaba).
+- Las sugerencias de "otras búsquedas" eran una lista fija (`caldo, tinga,
+  mole...`) sin relación con lo que existe cerca — podían no tener ni un
+  solo lugar real detrás. Ahora salen de las categorías reales de los
+  negocios visibles en el mapa, ordenadas por frecuencia.
+
+**Cluster (varios lugares agrupados, zoom alejado): círculo completo en
+vez de cuadrado redondeado** — deliberadamente distinto a la gota delicada
+del pin individual, a pedido explícito de Alejandro ("pansoncito" vs.
+"delicada").
+
+**Validación:** `npx tsc --noEmit` y `npx expo lint` verdes en cada paso.
+QA en dispositivo real hecho en vivo por Alejandro durante toda la sesión
+(no es un "falta probar" — cada fix nació de un reporte suyo probando en
+su iPhone). Commit `6705c49`.
+
 ## 2026-08-17 (noche) — Rediseño completo del sheet de resultados de búsqueda, con investigación real Apple/Google (`app/explorar.tsx`, `lib/controllers/useFoodieExploreController.ts`)
 
 Sesión larga de iteración en vivo con Alejandro probando en su iPhone, varias

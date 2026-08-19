@@ -4,7 +4,7 @@ import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, Keyboard, PanResponder, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { Animated, Easing, Keyboard, PanResponder, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import MapView, { Marker, type Region } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -21,6 +21,40 @@ import { estaAbiertoAhora } from '@/lib/horario';
 import type { Patio } from '@/lib/patios';
 
 const OPEN_GREEN = '#1F9D55';
+// Degradado del contorno de acento (pin seleccionado y match de búsqueda):
+// sólido arriba, se desvanece hacia la punta. 0.55 = sigue 100% opaco hasta
+// más de la mitad; 0.72 = transparente del todo ya cerca de la punta — corte
+// corto/rápido, no un degradado largo y gradual.
+//
+// Sin `MaskedView`: en vez de recortar un borde con una máscara, se dibuja
+// una gota MÁS GRANDE rellena con este degradado detrás de la gota real
+// (opaca, del tamaño normal) — como la de encima es más chica y centrada,
+// solo se asoma un anillo de la de atrás, que es donde vive el degradado.
+// El truco para que el degradado se vea VERTICAL de verdad (no en diagonal)
+// pese a que la forma está rotada -45°: en vez de contrarrotar el propio
+// degradado (composición de transforms nada confiable entre iOS/Android sin
+// poder probarlo en dispositivo real), se elige la dirección `start`/`end`
+// en el espacio LOCAL (sin rotar) de manera que, después de que el -45° de
+// el pin lo rota para pantalla, quede exactamente vertical. Matemática:
+// rotar (0,1) [abajo en pantalla] por +45° da (-0.707, 0.707) — de ahí
+// start={{x:1,y:0}} → end={{x:0,y:1}} (esquina superior-derecha a
+// inferior-izquierda en local), que es esa misma dirección normalizada.
+const PIN_GLOW_COLORS_LOCATIONS = [0, 0.55, 0.72] as const;
+const PIN_GLOW_START = { x: 1, y: 0 };
+const PIN_GLOW_END = { x: 0, y: 1 };
+// El literal `'transparent'` de CSS/RN es `rgba(0,0,0,0)` — negro con alpha
+// 0, NO "este mismo color con alpha 0". Usarlo como último color de un
+// degradado hace que la interpolación pase por tonos grises/negruzcos de
+// camino a invisible, en vez de un fade limpio de alpha puro. Por eso el
+// color final del degradado tiene que ser el MISMO rgb del acento con
+// alpha 0 explícito.
+function accentToTransparentRgba(hex: string): string {
+  const clean = hex.replace('#', '');
+  const r = parseInt(clean.slice(0, 2), 16);
+  const g = parseInt(clean.slice(2, 4), 16);
+  const b = parseInt(clean.slice(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, 0)`;
+}
 // Se evalúa una sola vez, al cargar este módulo — Metro vuelve a ejecutar
 // todo el cuerpo del archivo en cada Fast Refresh, así que esta constante
 // se recalcula justo cuando el cambio llega al teléfono. Solo para
@@ -74,19 +108,48 @@ function makeStyles(t: Theme) {
     map: { ...StyleSheet.absoluteFillObject, backgroundColor: t.isDark ? '#191A1B' : '#D8D6D0' },
     mapView: { ...StyleSheet.absoluteFillObject },
     pinHitArea: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-    pinMuted: { opacity: 0.18 },
-    pinCategory: { width: 26, height: 26, borderRadius: 9, alignItems: 'center', justifyContent: 'center', backgroundColor: t.isDark ? 'rgba(18,19,22,0.90)' : 'rgba(255,255,255,0.92)', borderWidth: StyleSheet.hairlineWidth, borderColor: t.isDark ? 'rgba(255,255,255,0.18)' : 'rgba(0,0,0,0.10)', shadowColor: '#000', shadowOffset: { width: 0, height: 3 }, shadowOpacity: t.isDark ? 0.24 : 0.12, shadowRadius: 6, elevation: 3 },
+    // Gota invertida como UNA sola pieza (no círculo + triángulo pegado):
+    // cuadrado con 3 esquinas redondeadas al 50% y la esquina inferior
+    // izquierda recta, rotado -45° — la técnica clásica del pin de mapa (el
+    // mismo truco detrás del marcador de Google Maps). Como es una forma
+    // continua, el anillo de abajo (mismo corte + misma rotación) la cubre
+    // completa sin dejar ninguna parte fuera — a diferencia del círculo +
+    // triángulo suelto de antes. El ícono adentro se contrarrota +45° para
+    // quedar derecho.
+    // Sin borde propio en reposo — un hairline blanco/negro fijo se veía
+    // como un filo indeseado alrededor de la gota, sobre todo en oscuro.
+    pinCategory: { width: 26, height: 26, borderTopLeftRadius: 13, borderTopRightRadius: 13, borderBottomRightRadius: 13, borderBottomLeftRadius: 0, transform: [{ rotate: '-45deg' }], alignItems: 'center', justifyContent: 'center', backgroundColor: t.isDark ? 'rgba(18,19,22,0.90)' : 'rgba(255,255,255,0.92)', shadowColor: '#000', shadowOffset: { width: 0, height: 3 }, shadowOpacity: t.isDark ? 0.24 : 0.12, shadowRadius: 6, elevation: 3 },
+    // El relleno normal del pin no es 100% opaco (92%/90% arriba) — a
+    // propósito, deja pasar un poco el mapa de abajo. Pero cuando hay un
+    // degradado detrás (seleccionado o match), ese 8-10% de transparencia
+    // deja que el color se filtre A TRAVÉS de todo el pin, no solo se asome
+    // en el anillo — se ve como un "corte"/silueta de la capa de atrás.
+    // Este override fuerza opacidad completa SOLO mientras el degradado
+    // está activo, para taparlo del todo.
+    pinCategoryOpaque: { backgroundColor: t.isDark ? 'rgb(18,19,22)' : '#FFFFFF' },
+    // Sigue viva para el marker de CLUSTER (`clusterMarkerElements` más
+    // abajo), que conserva la forma de globo clásica — no participa en la
+    // selección ni en el anillo, no tenía el problema de la gota.
     pinPointer: { position: 'absolute', bottom: -5, width: 0, height: 0, borderLeftWidth: 4, borderRightWidth: 4, borderTopWidth: 6, borderLeftColor: 'transparent', borderRightColor: 'transparent' },
-    // Un solo lenguaje de marcador (globo + ícono), como el resto del mapa —
-    // antes un resultado de búsqueda cambiaba a un punto relleno de acento,
-    // una segunda forma que no existe en ningún otro pin de la app. Ahora el
-    // match es el mismo globo con borde de acento; el propio MapKit/Apple
-    // Maps también usa una sola forma de "balloon marker" con glyph para
-    // cualquier pin, nunca un punto sin ícono para resultados de búsqueda.
-    pinCategoryMatch: { borderWidth: 1.5, borderColor: t.accent },
-    pinCategorySelected: { backgroundColor: '#111214', borderColor: '#111214', shadowOpacity: 0.24, shadowRadius: 9 },
+    // Gota MÁS GRANDE detrás, rellena con el degradado (ver constantes
+    // PIN_GLOW_* arriba) — la gota real (pinCategory, opaca, 26x26) se
+    // pinta encima y tapa el centro, dejando solo un anillo de 2px visible
+    // alrededor (antes 3px, se sentía muy grueso). Centrada en pinHitArea
+    // (40x40): (40-30)/2 = 5.
+    pinSelectedGlowPosition: { position: 'absolute', top: 5, left: 5, width: 30, height: 30 },
+    pinSelectedGlowShape: { width: 30, height: 30, borderTopLeftRadius: 15, borderTopRightRadius: 15, borderBottomRightRadius: 15, borderBottomLeftRadius: 0 },
+    // Mismo truco que la selección, pero SIN animar (estático — puede haber
+    // 10-30 pines de match a la vez en una búsqueda; animar cada uno sería
+    // redibujar de más markers nativos en simultáneo) y con anillo más
+    // delgado (1px, gota de 28 en vez de 30) para que la jerarquía visual
+    // quede clara: "hace match" pesa menos que "es EL seleccionado".
+    pinMatchGlowPosition: { position: 'absolute', top: 6, left: 6, width: 28, height: 28 },
+    pinMatchGlowShape: { width: 28, height: 28, borderTopLeftRadius: 14, borderTopRightRadius: 14, borderBottomRightRadius: 14, borderBottomLeftRadius: 0 },
     clusterHitArea: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
-    clusterPin: { width: 32, height: 32, borderRadius: 11, alignItems: 'center', justifyContent: 'center', backgroundColor: t.isDark ? 'rgba(18,19,22,0.94)' : 'rgba(255,255,255,0.96)', borderWidth: StyleSheet.hairlineWidth, borderColor: t.isDark ? 'rgba(255,255,255,0.22)' : 'rgba(0,0,0,0.12)', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: t.isDark ? 0.28 : 0.15, shadowRadius: 7, elevation: 4 },
+    // Círculo completo (radio = mitad del ancho) — "pansoncito", redondo y
+    // simple para cuando hay muchos agrupados lejos; a propósito distinto
+    // de la gota delicada de los pines individuales de cerca.
+    clusterPin: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: t.isDark ? 'rgba(18,19,22,0.94)' : 'rgba(255,255,255,0.96)', borderWidth: StyleSheet.hairlineWidth, borderColor: t.isDark ? 'rgba(255,255,255,0.22)' : 'rgba(0,0,0,0.12)', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: t.isDark ? 0.28 : 0.15, shadowRadius: 7, elevation: 4 },
     searchPill: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, paddingVertical: 15, borderRadius: 18, overflow: 'hidden', backgroundColor: t.isDark ? 'rgba(20,21,24,0.55)' : 'rgba(255,255,255,0.78)', borderWidth: StyleSheet.hairlineWidth, borderColor: btnBorder, shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: btnShadowOpacity + 0.04, shadowRadius: 22, elevation: 4 },
     bottomControls: { flexDirection: 'row', alignItems: 'stretch', gap: 8 },
     searchRow: { flex: 1, height: 50, borderRadius: 18, overflow: 'hidden', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, gap: 8, borderWidth: StyleSheet.hairlineWidth, borderColor: btnBorder, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: btnShadowOpacity, shadowRadius: 16, elevation: 2 },
@@ -104,6 +167,15 @@ function makeStyles(t: Theme) {
     listFilter: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, minHeight: 30, borderRadius: 15, backgroundColor: t.accentLight },
     listFilterText: { fontSize: 12, fontWeight: '900', color: t.accent },
     list: { paddingBottom: 12 },
+    // Solo en modo filtrado el sheet tiene una altura acotada de verdad
+    // (`top`/`bottom` explícitos, ver JSX) — ahí SÍ hace falta `flex: 1`
+    // para que este ScrollView haga scroll en vez de cortarse contra el
+    // `overflow: hidden` del sheet cuando el contenido excede el detent
+    // (ej. el estado "sin resultados", o texto agrandado por accesibilidad).
+    // El sheet de exploración (sin filtrar) no tiene `top` fijo — es
+    // auto-alto hasta `maxHeight: 48%` — y forzar `flex: 1` ahí colapsaría
+    // el ScrollView a 0 por no tener un alto de referencia.
+    listFiltering: { flex: 1 },
     patioRow: { minHeight: 78, marginHorizontal: 8, marginBottom: 7, borderRadius: 18, paddingHorizontal: 12, paddingVertical: 11, flexDirection: 'row', alignItems: 'center', backgroundColor: t.isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.56)' },
     addBox: { width: 32, height: 32, borderRadius: 9, backgroundColor: t.text, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
     addBoxMuted: { backgroundColor: 'transparent', borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
@@ -147,6 +219,8 @@ export default function ExplorarScreen() {
   const params = useLocalSearchParams<{ collection?: string; saved?: string }>();
   const { theme } = useTheme();
   const s = useMemo(() => makeStyles(theme), [theme]);
+  const accentTransparent = useMemo(() => accentToTransparentRgba(theme.accent), [theme.accent]);
+  const pinGlowColors = useMemo(() => [theme.accent, theme.accent, accentTransparent] as const, [theme.accent, accentTransparent]);
   const insets = useSafeAreaInsets();
   const { height: windowHeight } = useWindowDimensions();
   const [keyboardHeight, setKeyboardHeight] = useState(0);
@@ -186,6 +260,69 @@ export default function ExplorarScreen() {
   const [pressedPinId, setPressedPinId] = useState<string | null>(null);
   const pinNavigationPending = useRef(false);
   const pinTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  // Prender/apagar el pin seleccionado no es simétrico: HIG Motion (ease-out
+  // rápido al aparecer) + el propio patrón de UIKit para `UIButton.highlighted`
+  // (se enciende sin animación al tocar, se apaga con fade al soltar) — aquí
+  // 120ms de encendido casi instantáneo, 260ms de apagado suave. Solo el pin
+  // seleccionado anima (uno a la vez); los pines de match de búsqueda quedan
+  // instantáneos como antes por costo de redibujado nativo del Marker.
+  const selectedPinAnimRef = useRef<Map<string, Animated.Value>>(new Map()).current;
+  const getSelectedPinAnim = useCallback((id: string) => {
+    let value = selectedPinAnimRef.get(id);
+    if (!value) {
+      value = new Animated.Value(0);
+      selectedPinAnimRef.set(id, value);
+    }
+    return value;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const prevPressedPinIdRef = useRef<string | null>(null);
+  const [animatingPinIds, setAnimatingPinIds] = useState<Set<string>>(new Set());
+  useEffect(() => {
+    const prev = prevPressedPinIdRef.current;
+    prevPressedPinIdRef.current = pressedPinId;
+    const targets: { id: string; toValue: number }[] = [];
+    if (pressedPinId) targets.push({ id: pressedPinId, toValue: 1 });
+    if (prev && prev !== pressedPinId) targets.push({ id: prev, toValue: 0 });
+    if (targets.length === 0) return;
+    setAnimatingPinIds((curr) => {
+      const next = new Set(curr);
+      targets.forEach((t) => next.add(t.id));
+      return next;
+    });
+    let pending = targets.length;
+    targets.forEach(({ id, toValue }) => {
+      Animated.timing(getSelectedPinAnim(id), {
+        toValue,
+        // Ease-in/ease-out (HIG Motion) es para MOVIMIENTO — aquí es opacidad
+        // pura, y para propiedades de luz (opacidad/color/brillo) la curva
+        // correcta es lineal: con ease-in casi todo el cambio queda
+        // comprimido en el último instante y se lee como "no pasa nada,
+        // luego desaparece de golpe" en vez de un apagado perceptible.
+        duration: toValue === 1 ? 120 : 280,
+        easing: toValue === 1 ? Easing.out(Easing.quad) : Easing.linear,
+        useNativeDriver: false,
+      }).start(() => {
+        pending -= 1;
+        if (pending <= 0) {
+          // `tracksViewChanges` en el Marker se apaga en cuanto sale de
+          // `animatingPinIds` — si eso pasa en el MISMO tick en que termina
+          // la animación, a veces react-native-maps no alcanza a tomar la
+          // snapshot final antes de congelar el marker, y se queda pegado a
+          // medio fade (el bug de "solo se queda el aro"). Un respiro corto
+          // aquí le da tiempo a iOS de rasterizar el frame ya asentado antes
+          // de dejar de rastrear cambios.
+          pinTimers.current.push(setTimeout(() => {
+            setAnimatingPinIds((curr) => {
+              const next = new Set(curr);
+              targets.forEach((t) => next.delete(t.id));
+              return next;
+            });
+          }, 80));
+        }
+      });
+    });
+  }, [pressedPinId, getSelectedPinAnim]);
   const {
     activeSavedCategories,
     aiMode,
@@ -273,6 +410,40 @@ export default function ExplorarScreen() {
   })), [topMatchPerPatio, filters, savedIds, collections]);
   const matchingPatioIds = useMemo(() => new Set(filteredMatches.map((match) => match.patio.id)), [filteredMatches]);
   const filteredPinIds = useMemo(() => new Set(filteredPins.map((patio) => patio.id)), [filteredPins]);
+  // Los pines de match/muted cambian de CONTENIDO nativo (se agrega/quita la
+  // capa de degradado, cambia el relleno a opaco, cambia opacity/tappable)
+  // cada vez que escribes y los resultados se recalculan — pero
+  // `tracksViewChanges` solo miraba selección, nunca esto. react-native-maps
+  // se queda con el snapshot VIEJO del pin (de antes de matchear/mutear) y
+  // no lo vuelve a rasterizar, así que se veía "roto"/desaparecido a medias.
+  // Ventana corta de re-tracking cada vez que el set de matches cambia
+  // (una vez por actualización de búsqueda, no por frame — no reintroduce
+  // el costo de animar 30 pines seguido).
+  const [matchTrackWindow, setMatchTrackWindow] = useState(false);
+  useEffect(() => {
+    if (!isFiltering) return;
+    setMatchTrackWindow(true);
+    const timer = setTimeout(() => setMatchTrackWindow(false), 180);
+    pinTimers.current.push(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [matchingPatioIds]);
+  // Sugerencias del estado "sin resultados": antes era una lista fija
+  // ('caldo', 'tinga', 'mole'...) sin relación con lo que existe cerca —
+  // tocar una sugerencia que no tiene ni un solo lugar real detrás es peor
+  // que no sugerir nada. Estas salen de las categorías reales de los
+  // negocios visibles en el mapa ahora mismo, ordenadas por qué tan
+  // frecuentes son — tocar cualquiera garantiza encontrar algo.
+  const emptyResultsSuggestions = useMemo(() => {
+    const counts = new Map<string, number>();
+    visiblePatios.forEach((patio) => {
+      patio.categories.forEach((category) => {
+        const label = category.trim();
+        if (!label) return;
+        counts.set(label, (counts.get(label) ?? 0) + 1);
+      });
+    });
+    return [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5).map(([label]) => label);
+  }, [visiblePatios]);
   // Igual que Google Maps: al buscar, la cámara se mueve para encuadrar los
   // resultados — no se queda quieta esperando que el humano la mueva a mano.
   // Google documenta esta técnica para exactamente este caso ("mostrar todas
@@ -346,6 +517,20 @@ export default function ExplorarScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [matchedResultIdsKey, isFiltering, searchPending, filteringSheetBottom, mediumSheetHeight]);
   const shouldCluster = !isFiltering && mapRegion.latitudeDelta > 0.018;
+  // Si el pin seleccionado se agrupa en un cluster al alejar el zoom, su
+  // Marker se vuelve invisible (`opacity: included && !shouldCluster ? 1
+  // : 0`) pero nada limpiaba `pressedPinId` ni el `Animated.Value` de su
+  // anillo — quedaban "vivos" en 1. Al volver a acercar el zoom, el pin
+  // reaparecía con el anillo ya prendido de golpe, sin el fade-in de
+  // 120ms. Como es invisible mientras está agrupado, el reset puede ser
+  // instantáneo (`setValue`, no animado) sin que se note.
+  useEffect(() => {
+    if (!shouldCluster || !pressedPinId) return;
+    getSelectedPinAnim(pressedPinId).setValue(0);
+    setPressedPinId(null);
+    setAnimatingPinIds(new Set());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shouldCluster]);
   const stableMapPatios = useMemo(() => allPatios.filter((patio) => patio.latitude > 0 && patio.longitude !== 0), [allPatios]);
   // Rejilla fija de 6×5 = 30 celdas (mismo límite `row>5`/`column>4` de
   // siempre). Antes `clusters` era un array que solo incluía las celdas con
@@ -550,12 +735,20 @@ export default function ExplorarScreen() {
   // re-sincroniza el alto real cada vez que `mediumGap` cambia (ej. cuando
   // el teclado termina de cerrar), mientras el sheet esté en reposo en el
   // detent medio y nadie lo esté arrastrando.
+  // El estado "sin resultados" (icono grande + texto + pills de sugerencia)
+  // es mucho más alto que las N filas de resultado que asume `mediumGap` —
+  // sin este ajuste el contenido se corta contra el borde del sheet en vez
+  // de mostrarse completo. Reusa el mismo mecanismo de arriba: en reposo en
+  // el detent medio, empuja el sheet a top=0 (todo el marco disponible)
+  // mientras la búsqueda no tenga coincidencias.
+  const isEmptySearchResults = isFiltering && !searchPending && filteredMatches.length === 0;
   useEffect(() => {
     if (sheetDetent !== 'medium' || sheetDraggingRef.current || !sheetView.mounted || !sheetView.filtering) return;
-    sheetRestYRef.current = mediumGap;
-    Animated.spring(sheetTopExtra, { toValue: mediumGap, ...SHEET_SPRING_JS }).start();
+    const targetGap = isEmptySearchResults ? 0 : mediumGap;
+    sheetRestYRef.current = targetGap;
+    Animated.spring(sheetTopExtra, { toValue: targetGap, ...SHEET_SPRING_JS }).start();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mediumGap]);
+  }, [mediumGap, isEmptySearchResults]);
   const listPatios = activeSavedCategories.length ? mapFilteredPatios : allPatios;
   useEffect(() => {
     const show = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow', (e) => {
@@ -593,29 +786,74 @@ export default function ExplorarScreen() {
   const patioMarkerElements = useMemo(() => stableMapPatios.map((patio) => {
     const included = filteredPinIds.has(patio.id);
     const selected = pressedPinId === patio.id;
+    const isAnimatingSelection = animatingPinIds.has(patio.id);
+    const showSelectedOverlay = selected || isAnimatingSelection;
     const isMuted = included && isFiltering && !matchingPatioIds.has(patio.id);
-    const showMatch = isFiltering && !isMuted;
+    // El anillo de selección y el borde de "match" son el mismo color de
+    // acento — mostrar los dos a la vez dibuja dos círculos concéntricos.
+    // La selección es la señal más específica, así que gana ella sola.
+    const showMatch = isFiltering && !isMuted && !showSelectedOverlay;
     return (
       <Marker
         key={patio.id}
         coordinate={{ latitude: patio.latitude, longitude: patio.longitude }}
-        opacity={included && !shouldCluster ? 1 : 0}
-        tappable={included && !shouldCluster}
-        tracksViewChanges={selected}
+        // Antes los que no hacían match se mostraban atenuados (18%) en vez
+        // de ocultarse — se sentían como "fantasmas" ensuciando el mapa.
+        // Ahora, mientras hay búsqueda activa, solo se ven los que sí hacen
+        // match; el resto se oculta igual que los que ya estaban excluidos.
+        opacity={included && !shouldCluster && !isMuted ? 1 : 0}
+        tappable={included && !shouldCluster && !isMuted}
+        // Un pin "prendido" (seleccionado o match) no debe quedar tapado
+        // por el cuerpo de un vecino normal si están cerca en el mapa —
+        // zIndex sí funciona en iOS aquí (usa layer.zPosition nativo).
+        zIndex={selected ? 3 : isAnimatingSelection ? 2 : showMatch ? 1 : 0}
+        tracksViewChanges={selected || isAnimatingSelection || (matchTrackWindow && (showMatch || isMuted))}
         onPress={(event: any) => {
           if (!included) return;
           event.stopPropagation?.();
           openPatioFromPin(patio.id);
         }}>
-        <View style={[s.pinHitArea, isMuted && s.pinMuted]}>
-          <View style={[s.pinCategory, showMatch && s.pinCategoryMatch, selected && s.pinCategorySelected]}>
-            <Ionicons name={categoryIcon(patio.categories[0] ?? 'Fondita')} size={13} color={selected ? '#FFFFFF' : theme.text} />
-            <View style={[s.pinPointer, { borderTopColor: selected ? '#111214' : theme.isDark ? 'rgba(18,19,22,0.90)' : 'rgba(255,255,255,0.92)' }]} />
+        <View style={s.pinHitArea}>
+          {showSelectedOverlay && (
+            <Animated.View
+              pointerEvents="none"
+              style={[
+                s.pinSelectedGlowPosition,
+                {
+                  opacity: getSelectedPinAnim(patio.id),
+                  transform: [
+                    { rotate: '-45deg' },
+                    { scale: getSelectedPinAnim(patio.id).interpolate({ inputRange: [0, 1], outputRange: [0.9, 1] }) },
+                  ],
+                },
+              ]}>
+              <LinearGradient
+                colors={pinGlowColors}
+                locations={PIN_GLOW_COLORS_LOCATIONS}
+                start={PIN_GLOW_START}
+                end={PIN_GLOW_END}
+                style={s.pinSelectedGlowShape}
+              />
+            </Animated.View>
+          )}
+          {showMatch && (
+            <View pointerEvents="none" style={[s.pinMatchGlowPosition, { transform: [{ rotate: '-45deg' }] }]}>
+              <LinearGradient
+                colors={pinGlowColors}
+                locations={PIN_GLOW_COLORS_LOCATIONS}
+                start={PIN_GLOW_START}
+                end={PIN_GLOW_END}
+                style={s.pinMatchGlowShape}
+              />
+            </View>
+          )}
+          <View style={[s.pinCategory, (showSelectedOverlay || showMatch) && s.pinCategoryOpaque]}>
+            <Ionicons name={categoryIcon(patio.categories[0] ?? 'Fondita')} size={13} color={theme.text} style={{ transform: [{ rotate: '45deg' }] }} />
           </View>
         </View>
       </Marker>
     );
-  }), [filteredPinIds, isFiltering, matchingPatioIds, openPatioFromPin, pressedPinId, s, shouldCluster, stableMapPatios, theme]);
+  }), [animatingPinIds, filteredPinIds, getSelectedPinAnim, isFiltering, matchingPatioIds, matchTrackWindow, openPatioFromPin, pinGlowColors, pressedPinId, s, shouldCluster, stableMapPatios, theme]);
 
   const clusterMarkerElements = useMemo(() => clusterGridKeys.map((key) => {
     const cell = clusterCells.get(key);
@@ -979,7 +1217,7 @@ export default function ExplorarScreen() {
           )}
 
           <ScrollView
-            style={s.list}
+            style={[s.list, sheetView.filtering && s.listFiltering]}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode="on-drag"
@@ -994,14 +1232,18 @@ export default function ExplorarScreen() {
                   <Text style={s.emptyEyebrow} allowFontScaling={true}>{noWidow('Sin resultados')}</Text>
                   <Text style={s.emptyTitle} allowFontScaling={true}>{noWidow('No hay coincidencias cerca')}</Text>
                   <Text style={s.emptySub} allowFontScaling={true}>{noWidow('Mueve el mapa o cambia tu búsqueda.')}</Text>
-                  <Text style={s.emptyPruebaLabel} allowFontScaling={true}>{noWidow('OTRAS BÚSQUEDAS')}</Text>
-                  <View style={s.emptyPills}>
-                    {['caldo', 'tinga', 'mole', 'pozole', 'veggie'].map((q) => (
-                      <TouchableOpacity key={q} onPress={() => searchFor(q)} activeOpacity={0.8} style={s.emptyPill} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }} accessibilityRole="button" accessibilityLabel={`Buscar ${q}`}>
-                        <Text style={s.emptyPillText} allowFontScaling={true}>{q}</Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
+                  {!!emptyResultsSuggestions.length && (
+                    <>
+                      <Text style={s.emptyPruebaLabel} allowFontScaling={true}>{noWidow('CERCA DE TI')}</Text>
+                      <View style={s.emptyPills}>
+                        {emptyResultsSuggestions.map((q) => (
+                          <TouchableOpacity key={q} onPress={() => searchFor(q)} activeOpacity={0.8} style={s.emptyPill} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }} accessibilityRole="button" accessibilityLabel={`Buscar ${q}`}>
+                            <Text style={s.emptyPillText} allowFontScaling={true}>{q}</Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    </>
+                  )}
                 </View>
                 )
               ) : (

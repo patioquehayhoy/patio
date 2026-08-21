@@ -415,6 +415,18 @@ export default function ExplorarScreen() {
   // Ventana corta de re-tracking cada vez que el set de matches cambia
   // (una vez por actualización de búsqueda, no por frame — no reintroduce
   // el costo de animar 30 pines seguido).
+  //
+  // 2026-08-20: esta ventana marcaba tracksViewChanges=true en TODOS los
+  // pines que hacen match Y TODOS los que se mutean a la vez — en una
+  // búsqueda típica eso puede ser 25-30 vistas nativas de Marker
+  // reconciliándose en el mismo instante, que es exactamente el patrón que
+  // ya crasheó esta app antes (NSInvalidArgumentException en
+  // -[AIRMap insertReactSubview:atIndex:], ver docs/HANDOFF.md). Un pin que
+  // se MUTEA queda con opacity=0 (invisible) — su contenido interno (el
+  // anillo) puede quedar con el snapshot viejo sin que nadie lo note, porque
+  // nadie lo ve. Solo los pines que SÍ deben mostrarse con contenido nuevo
+  // (match) necesitan el re-snapshot; ver `matchTrackWindow` en el JSX del
+  // Marker, ya no incluye `isMuted`.
   const [matchTrackWindow, setMatchTrackWindow] = useState(false);
   useEffect(() => {
     if (!isFiltering) return;
@@ -801,7 +813,7 @@ export default function ExplorarScreen() {
         // por el cuerpo de un vecino normal si están cerca en el mapa —
         // zIndex sí funciona en iOS aquí (usa layer.zPosition nativo).
         zIndex={selected ? 3 : isAnimatingSelection ? 2 : showMatch ? 1 : 0}
-        tracksViewChanges={selected || isAnimatingSelection || (matchTrackWindow && (showMatch || isMuted))}
+        tracksViewChanges={selected || isAnimatingSelection || (matchTrackWindow && showMatch)}
         onPress={(event: any) => {
           if (!included) return;
           event.stopPropagation?.();

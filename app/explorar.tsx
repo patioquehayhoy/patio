@@ -12,8 +12,9 @@ import { MAP_STYLE_DARK, MAP_STYLE_LIGHT } from '@/lib/map-style';
 import { publicPrice } from '@/lib/prices';
 import { FoodieLoading } from '@/components/foodie-loading';
 import { BottomTabBar } from '@/components/bottom-tab-bar';
-import { EMPTY_FOODIE_FILTERS, FoodieFilterBar, matchesFoodieFilters, type FoodieFilters } from '@/components/foodie-filter-bar';
+import { FoodieFilterBar, matchesFoodieFilters } from '@/components/foodie-filter-bar';
 import { FOODIE_INITIAL_REGION, useFoodieExploreController } from '@/lib/controllers/useFoodieExploreController';
+import { useFoodieFilters } from '@/lib/foodie-filters-context';
 import { noWidow } from '@/lib/typography';
 import { Fonts, Radius, useTheme, type Theme } from '@/lib/theme';
 import { createCollection, getCollections, type PatioCollection } from '@/lib/collections';
@@ -55,12 +56,6 @@ function accentToTransparentRgba(hex: string): string {
   const b = parseInt(clean.slice(4, 6), 16);
   return `rgba(${r}, ${g}, ${b}, 0)`;
 }
-// Se evalúa una sola vez, al cargar este módulo — Metro vuelve a ejecutar
-// todo el cuerpo del archivo en cada Fast Refresh, así que esta constante
-// se recalcula justo cuando el cambio llega al teléfono. Solo para
-// confirmar en dispositivo "¿ya tengo la versión más reciente?", nunca sale
-// en producción.
-const LOADED_AT = new Date();
 // Dos buscadores con alturas REALES distintas comparten esta barra de
 // filtros — bug encontrado tras varias rondas de "sigue sin pegarse":
 // - Inactivo (pill "¿Qué se te antoja?", sin escribir): 10 de margen + ~50
@@ -156,7 +151,12 @@ function makeStyles(t: Theme) {
     searchInput: { flex: 1, fontSize: 15, fontWeight: '400', color: t.text, height: 50, paddingVertical: 0 },
     aiProButton: { minHeight: 30, paddingHorizontal: 8, borderRadius: 15, flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: t.accentSoft },
     aiProText: { fontSize: 10.5, fontWeight: '800', color: t.accent, letterSpacing: 0.3 },
-    sheet: { position: 'absolute', left: 14, right: 14, bottom: 14, maxHeight: '48%', borderRadius: Radius.sheet, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: t.isDark ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.18)', shadowColor: '#000', shadowOffset: { width: 0, height: 12 }, shadowOpacity: t.isDark ? 0.20 : 0.08, shadowRadius: 32, elevation: 8 },
+    // Edge-to-edge (sin margen lateral): mismo criterio que el sheet de
+    // Filtros/Listas de FoodieFilterBar — ancho completo, borde solo arriba
+    // (decisión 2026-08-20). Las esquinas inferiores siguen redondeándose en
+    // modo idle (flota sobre la tab bar, con aire debajo) y se aplanan en
+    // modo filtrado (llega hasta abajo del todo) — eso ya lo maneja el JSX.
+    sheet: { position: 'absolute', left: 0, right: 0, maxHeight: '48%', borderRadius: Radius.sheet, overflow: 'hidden', borderTopWidth: StyleSheet.hairlineWidth, borderColor: t.isDark ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.18)', shadowColor: '#000', shadowOffset: { width: 0, height: 12 }, shadowOpacity: t.isDark ? 0.20 : 0.08, shadowRadius: 32, elevation: 8 },
     grabber: { alignSelf: 'center', width: 36, height: 4, borderRadius: 2, backgroundColor: t.isDark ? 'rgba(255,255,255,0.16)' : 'rgba(0,0,0,0.10)', marginTop: 7 },
     grabberTouch: { height: 20, alignItems: 'center', justifyContent: 'flex-start' },
     price: { fontSize: 24, lineHeight: 28, fontWeight: '400', color: t.text },
@@ -345,7 +345,6 @@ export default function ExplorarScreen() {
     searchInputRef,
     searchPending,
     setAiMode,
-    savedIds,
     setVisibleRegion,
     sheetMode,
     topMatchPerPatio,
@@ -365,7 +364,7 @@ export default function ExplorarScreen() {
       }, 360));
     }, 145));
   }, []);
-  const [filters, setFilters] = useState<FoodieFilters>(EMPTY_FOODIE_FILTERS);
+  const { filters, setFilters } = useFoodieFilters();
   const [collections, setCollections] = useState<PatioCollection[]>([]);
   useEffect(() => {
     getCollections().then(async (items) => {
@@ -379,8 +378,7 @@ export default function ExplorarScreen() {
   }, []);
   useEffect(() => {
     if (params.collection) setFilters((f) => ({ ...f, collectionIds: [params.collection as string] }));
-    else if (params.saved === '1') setFilters((f) => ({ ...f, saved: true }));
-  }, [params.collection, params.saved]);
+  }, [params.collection, setFilters]);
   // Los atributos (categoría, pagos, horario) se combinan por intersección
   // (AND) — como Google Maps. Las listas se combinan por unión (OR): elegir
   // dos listas muestra los lugares de cualquiera de las dos, para comparar
@@ -390,11 +388,10 @@ export default function ExplorarScreen() {
     patioId: patio.id,
     hasTodayMenu: patio.menu.some((section) => section.items.length > 0),
     isOpenNow: !!(patio.weeklyHours && estaAbiertoAhora(patio.weeklyHours)),
-    isSaved: savedIds.includes(patio.id),
     categories: patio.categories,
     payments: patio.payments,
     collections,
-  })), [collections, filters, savedIds, visiblePatios]);
+  })), [collections, filters, visiblePatios]);
   // Los filtros también deben aplicar cuando ya estás buscando una palabra
   // (no solo en el mapa idle) — así lo hace Apple Maps: los chips de filtro
   // siguen vivos y afectan los resultados de la búsqueda, no desaparecen en
@@ -403,11 +400,10 @@ export default function ExplorarScreen() {
     patioId: match.patio.id,
     hasTodayMenu: match.patio.menu.some((section) => section.items.length > 0),
     isOpenNow: !!(match.patio.weeklyHours && estaAbiertoAhora(match.patio.weeklyHours)),
-    isSaved: savedIds.includes(match.patio.id),
     categories: match.patio.categories,
     payments: match.patio.payments,
     collections,
-  })), [topMatchPerPatio, filters, savedIds, collections]);
+  })), [topMatchPerPatio, filters, collections]);
   const matchingPatioIds = useMemo(() => new Set(filteredMatches.map((match) => match.patio.id)), [filteredMatches]);
   const filteredPinIds = useMemo(() => new Set(filteredPins.map((patio) => patio.id)), [filteredPins]);
   // Los pines de match/muted cambian de CONTENIDO nativo (se agrega/quita la
@@ -456,9 +452,7 @@ export default function ExplorarScreen() {
   // `filteredMatches` ya trae un solo resultado por Patio (topMatchPerPatio
   // dedup arriba), así que no hace falta deduplicar de nuevo aquí. La llave
   // ordenada evita relanzar el fit cuando la lista se recalcula por razones
-  // que no cambian qué lugares aparecen (ej. tocar un corazón mientras se
-  // busca cambia `savedIds` y por lo tanto la referencia de `filteredMatches`,
-  // pero no el conjunto de resultados).
+  // que no cambian qué lugares aparecen.
   const matchedResultIdsKey = useMemo(
     () => filteredMatches.map((match) => match.patio.id).sort().join('|'),
     [filteredMatches]
@@ -910,17 +904,6 @@ export default function ExplorarScreen() {
     <View style={s.container}>
       <Stack.Screen options={{ headerShown: false }} />
 
-      {__DEV__ && (
-        <View
-          pointerEvents="none"
-          style={{ position: 'absolute', top: insets.top + 2, right: 8, zIndex: 999, backgroundColor: 'rgba(0,0,0,0.55)', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 }}>
-          <Text style={{ fontSize: 9, fontWeight: '700', color: '#FFFFFF' }}>
-            {LOADED_AT.toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit' })}{' '}
-            {LOADED_AT.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-          </Text>
-        </View>
-      )}
-
       <View style={s.map}>
         <MapView
           ref={mapRef}
@@ -1163,9 +1146,9 @@ export default function ExplorarScreen() {
         // cambia de tamaño (detent medio/grande, alto real del teclado).
         <Animated.View
           pointerEvents="box-none"
-          style={{ position: 'absolute', left: 14, right: 14, top: 0, bottom: 0, transform: [{ translateY: sheetTranslateY }] }}>
+          style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, transform: [{ translateY: sheetTranslateY }] }}>
         <Animated.View
-          style={[s.sheet, { left: 0, right: 0 }, sheetView.filtering ? {
+          style={[s.sheet, sheetView.filtering ? {
             // `FILTERING_SHEET_TOP_OFFSET` es el borde real donde termina
             // la barra de filtros — antes el sheet empezaba justo ahí y la
             // hubiera tapado. `sheetTopExtra` encoge el sheet en el detent

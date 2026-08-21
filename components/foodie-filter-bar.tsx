@@ -20,21 +20,19 @@ import { noWidow } from '@/lib/typography';
 export type FoodieFilters = {
   today: boolean;
   open: boolean;
-  saved: boolean;
   categories: string[];
   payments: string[];
   collectionIds: string[];
 };
 
-export const EMPTY_FOODIE_FILTERS: FoodieFilters = { today: false, open: false, saved: false, categories: [], payments: [], collectionIds: [] };
+export const EMPTY_FOODIE_FILTERS: FoodieFilters = { today: false, open: false, categories: [], payments: [], collectionIds: [] };
 
-// Cuenta SOLO lo que vive dentro del panel "Filtros" (categoría, pagos,
-// guardados) — Menú hoy/Abiertos tienen su propia pill visible y su propio
-// feedback de selección; contarlos aquí también hacía aparecer el badge
-// naranja sobre el botón de Filtros al tocar esas dos, sin que ese botón
-// tuviera nada que ver.
+// Cuenta SOLO lo que vive dentro del panel "Filtros" (categoría, pagos) —
+// Menú hoy/Abiertos tienen su propia pill visible y su propio feedback de
+// selección; contarlos aquí también hacía aparecer el badge naranja sobre el
+// botón de Filtros al tocar esas dos, sin que ese botón tuviera nada que ver.
 export function foodieFilterCount(f: FoodieFilters) {
-  return (f.saved ? 1 : 0) + f.categories.length + f.payments.length;
+  return f.categories.length + f.payments.length;
 }
 
 // Único origen de verdad para "¿este lugar cumple los filtros?" — antes esta
@@ -47,14 +45,12 @@ export function matchesFoodieFilters(filters: FoodieFilters, input: {
   patioId: string;
   hasTodayMenu: boolean;
   isOpenNow: boolean;
-  isSaved: boolean;
   categories: string[];
   payments: string[];
   collections: PatioCollection[];
 }): boolean {
   if (filters.today && !input.hasTodayMenu) return false;
   if (filters.open && !input.isOpenNow) return false;
-  if (filters.saved && !input.isSaved) return false;
   if (filters.categories.length && !input.categories.some((category) => filters.categories.includes(category))) return false;
   if (filters.payments.length && !input.payments.some((method) => filters.payments.includes(method))) return false;
   if (filters.collectionIds.length) {
@@ -83,6 +79,11 @@ function styles(t: Theme) {
     root: { height: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingHorizontal: 16 },
     pill: { height: 34, paddingHorizontal: 12, borderRadius: 17, justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
     iconPill: { width: 34, paddingHorizontal: 0, alignItems: 'center' },
+    // Recorta el BlurView a la cápsula sin recortar también el badge — el
+    // badge vive fuera de los bordes del pill (top/right negativos) y con
+    // `overflow: hidden` en el propio TouchableOpacity se cercenaba a una
+    // astilla en vez de mostrarse como círculo completo.
+    pillBlurClip: { ...StyleSheet.absoluteFillObject, borderRadius: 17, overflow: 'hidden' },
     pillText: { fontSize: 12.5, fontWeight: '600' },
     // El badge (el número) es la ÚNICA señal de "hay filtros activos" — el
     // botón que abre el sheet se queda siempre en tono neutro. Llenarlo de
@@ -91,10 +92,12 @@ function styles(t: Theme) {
     badge: { position: 'absolute', top: -4, right: -4, minWidth: 16, height: 16, borderRadius: 8, paddingHorizontal: 4, alignItems: 'center', justifyContent: 'center' },
     badgeText: { fontSize: 10, fontWeight: '700' },
     // Sheet real (no popover) — en iPhone Apple usa sheets para esto, los
-    // popovers son de iPad/Mac. Mismo tratamiento flotante con margen que ya
-    // usa el sheet de resultados de esta pantalla (no edge-to-edge).
+    // popovers son de iPad/Mac. Edge-to-edge (sin margen lateral ni inferior,
+    // solo esquinas superiores redondeadas) — el tratamiento flotante con
+    // margen en las 4 puntas se sentía como una tarjeta encimada, no como el
+    // sheet nativo que cubre el ancho completo (decisión 2026-08-20).
     backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.25)' },
-    sheet: { position: 'absolute', left: 14, right: 14, bottom: 14, borderRadius: 28, overflow: 'hidden', backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: border, shadowColor: '#000', shadowOffset: { width: 0, height: 12 }, shadowOpacity: t.isDark ? 0.30 : 0.14, shadowRadius: 32, elevation: 12 },
+    sheet: { position: 'absolute', left: 0, right: 0, bottom: 0, borderTopLeftRadius: 28, borderTopRightRadius: 28, overflow: 'hidden', backgroundColor: t.surface, borderTopWidth: StyleSheet.hairlineWidth, borderColor: border, shadowColor: '#000', shadowOffset: { width: 0, height: -4 }, shadowOpacity: t.isDark ? 0.30 : 0.14, shadowRadius: 24, elevation: 12 },
     grabberTouch: { height: 22, alignItems: 'center', justifyContent: 'flex-start' },
     grabber: { width: 36, height: 4, borderRadius: 2, marginTop: 8, backgroundColor: t.isDark ? 'rgba(255,255,255,0.16)' : 'rgba(0,0,0,0.10)' },
     panelHeader: { minHeight: 44, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.border },
@@ -116,7 +119,19 @@ function styles(t: Theme) {
   });
 }
 
-const HIT_SLOP = { top: 5, bottom: 5, left: 4, right: 4 };
+// Apple HIG: 44×44pt es el tap target mínimo — los pills de 34pt de alto lo
+// alcanzan con este hitSlop (34+5+5=44); los de ícono (34×34) llegan a 44×44
+// completo con left/right también en 5.
+const HIT_SLOP = { top: 5, bottom: 5, left: 5, right: 5 };
+// Los chips de categoría/pago (36pt de alto) y el botón "Crear" de lista
+// (34pt) solo necesitan reforzar el eje vertical — llevarlos a 44 en
+// horizontal invadiría el gap de 8pt entre chips vecinos en la misma fila.
+const CHIP_HIT_SLOP = { top: 4, bottom: 4, left: 0, right: 0 };
+const CREATE_BTN_HIT_SLOP = { top: 5, bottom: 5, left: 0, right: 0 };
+// "Limpiar" (texto ~14pt) y "Cerrar" (ícono 20×20) son los más chicos del
+// header — sin vecino a la derecha, "Cerrar" puede crecer más ahí.
+const CLEAR_HIT_SLOP = { top: 13, bottom: 13, left: 8, right: 4 };
+const CLOSE_HIT_SLOP = { top: 12, bottom: 12, left: 10, right: 16 };
 
 function QuickToggle({ label, active, onPress, s, theme }: { label: string; active: boolean; onPress: () => void; s: ReturnType<typeof styles>; theme: ReturnType<typeof useTheme>['theme'] }) {
   return (
@@ -188,8 +203,8 @@ function FilterSheet({ visible, onClose, title, onClear, children, s, theme }: {
         <View style={s.panelHeader}>
           <Text style={s.panelTitle}>{title}</Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            {!!onClear && <TouchableOpacity hitSlop={HIT_SLOP} onPress={onClear}><Text style={s.panelClear}>Limpiar</Text></TouchableOpacity>}
-            <TouchableOpacity hitSlop={HIT_SLOP} onPress={onClose} accessibilityLabel="Cerrar"><Ionicons name="close" size={20} color={theme.textSecondary} /></TouchableOpacity>
+            {!!onClear && <TouchableOpacity hitSlop={CLEAR_HIT_SLOP} onPress={onClear}><Text style={s.panelClear}>Limpiar</Text></TouchableOpacity>}
+            <TouchableOpacity hitSlop={CLOSE_HIT_SLOP} onPress={onClose} accessibilityLabel="Cerrar"><Ionicons name="close" size={20} color={theme.textSecondary} /></TouchableOpacity>
           </View>
         </View>
         <ScrollView keyboardShouldPersistTaps="handled">{children}</ScrollView>
@@ -198,13 +213,9 @@ function FilterSheet({ visible, onClose, title, onClear, children, s, theme }: {
   );
 }
 
-export function FoodieFilterBar({ filters, onChange, collections, categories, onCollectionCreated, hideSaved }: {
+export function FoodieFilterBar({ filters, onChange, collections, categories, onCollectionCreated }: {
   filters: FoodieFilters; onChange: (next: FoodieFilters) => void; collections: PatioCollection[]; categories: string[];
   onCollectionCreated?: (collection: PatioCollection) => void;
-  // Guardados: en Explorar es un filtro real (mapa completo → solo lo
-  // guardado). En la propia pantalla de Guardados todo lo que se ve YA es
-  // guardado — el chip no tendría efecto, así que no se ofrece ahí.
-  hideSaved?: boolean;
 }) {
   const { theme } = useTheme();
   const s = styles(theme);
@@ -245,11 +256,13 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
     <TouchableOpacity
       hitSlop={HIT_SLOP}
       onPress={() => togglePanel('filters')}
-      style={[s.pill, s.iconPill, { backgroundColor: theme.glass, borderColor: theme.border }]}
+      style={[s.pill, s.iconPill, { backgroundColor: theme.glass, borderColor: theme.border, overflow: 'visible' }]}
       accessibilityRole="button"
       accessibilityLabel="Filtros"
       accessibilityHint="Combina categoría y pagos para filtrar el mapa">
-      <BlurView intensity={30} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
+      <View style={s.pillBlurClip}>
+        <BlurView intensity={30} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
+      </View>
       <Ionicons name="options-outline" size={16} color={theme.text} />
       {attributeCount > 0 && <View style={[s.badge, { backgroundColor: theme.accent }]}><Text style={[s.badgeText, { color: theme.bg }]}>{attributeCount}</Text></View>}
     </TouchableOpacity>
@@ -257,11 +270,13 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
     <TouchableOpacity
       hitSlop={HIT_SLOP}
       onPress={() => togglePanel('lists')}
-      style={[s.pill, s.iconPill, { backgroundColor: theme.glass, borderColor: theme.border }]}
+      style={[s.pill, s.iconPill, { backgroundColor: theme.glass, borderColor: theme.border, overflow: 'visible' }]}
       accessibilityRole="button"
       accessibilityLabel={activeCollections.length ? `Listas: ${listsLabel}` : 'Listas'}
       accessibilityHint="Une una o varias de tus listas guardadas sobre el mapa">
-      <BlurView intensity={30} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
+      <View style={s.pillBlurClip}>
+        <BlurView intensity={30} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
+      </View>
       <Ionicons name="bookmark-outline" size={16} color={theme.text} />
       {activeCollections.length > 0 && <View style={[s.badge, { backgroundColor: theme.accent }]}><Text style={[s.badgeText, { color: theme.bg }]}>{activeCollections.length}</Text></View>}
     </TouchableOpacity>
@@ -270,19 +285,8 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
       visible={openPanel === 'filters'}
       onClose={() => setOpenPanel(null)}
       title="Filtros"
-      onClear={(filters.categories.length > 0 || filters.payments.length > 0 || filters.saved) ? () => { Haptics.selectionAsync(); onChange({ ...filters, saved: false, categories: [], payments: [] }); } : undefined}
+      onClear={(filters.categories.length > 0 || filters.payments.length > 0) ? () => { Haptics.selectionAsync(); onChange({ ...filters, categories: [], payments: [] }); } : undefined}
       s={s} theme={theme}>
-      {!hideSaved && (
-        <View style={s.section}>
-          <Text style={s.sectionLabel}>Guardados</Text>
-          <View style={s.chipsWrap}>
-            <TouchableOpacity onPress={() => { Haptics.selectionAsync(); onChange({ ...filters, saved: !filters.saved }); }} style={[s.chip, filters.saved && s.chipActive]} accessibilityRole="button" accessibilityState={{ selected: filters.saved }}>
-              <Text style={[s.chipText, filters.saved && s.chipTextActive]}>{noWidow('Solo guardados')}</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      )}
-
       {categories.length > 0 && (
         <View style={s.section}>
           <Text style={s.sectionLabel}>Categoría</Text>
@@ -290,7 +294,7 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
             {categories.map((category) => {
               const active = filters.categories.includes(category);
               return (
-                <TouchableOpacity key={category} onPress={() => { Haptics.selectionAsync(); onChange({ ...filters, categories: toggleValue(filters.categories, category) }); }} style={[s.chip, active && s.chipActive]} accessibilityRole="button" accessibilityState={{ selected: active }}>
+                <TouchableOpacity key={category} hitSlop={CHIP_HIT_SLOP} onPress={() => { Haptics.selectionAsync(); onChange({ ...filters, categories: toggleValue(filters.categories, category) }); }} style={[s.chip, active && s.chipActive]} accessibilityRole="button" accessibilityState={{ selected: active }}>
                   <Text style={[s.chipText, active && s.chipTextActive]}>{category}</Text>
                 </TouchableOpacity>
               );
@@ -305,7 +309,7 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
           {PAYMENT_METHODS.map((method) => {
             const active = filters.payments.includes(method);
             return (
-              <TouchableOpacity key={method} onPress={() => { Haptics.selectionAsync(); onChange({ ...filters, payments: toggleValue(filters.payments, method) }); }} style={[s.chip, active && s.chipActive]} accessibilityRole="button" accessibilityState={{ selected: active }}>
+              <TouchableOpacity key={method} hitSlop={CHIP_HIT_SLOP} onPress={() => { Haptics.selectionAsync(); onChange({ ...filters, payments: toggleValue(filters.payments, method) }); }} style={[s.chip, active && s.chipActive]} accessibilityRole="button" accessibilityState={{ selected: active }}>
                 <Text style={[s.chipText, active && s.chipTextActive]}>{method}</Text>
               </TouchableOpacity>
             );
@@ -334,7 +338,7 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
             autoCapitalize="words"
             style={s.createInput}
           />
-          <TouchableOpacity disabled={!newListTitle.trim()} onPress={handleCreateList} style={[s.createBtn, !newListTitle.trim() && s.createBtnDisabled]}>
+          <TouchableOpacity disabled={!newListTitle.trim()} hitSlop={CREATE_BTN_HIT_SLOP} onPress={handleCreateList} style={[s.createBtn, !newListTitle.trim() && s.createBtnDisabled]}>
             <Text style={s.createBtnText}>Crear</Text>
           </TouchableOpacity>
         </View>

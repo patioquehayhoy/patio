@@ -5,8 +5,9 @@ import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-nati
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BottomTabBar } from '@/components/bottom-tab-bar';
-import { EMPTY_FOODIE_FILTERS, FoodieFilterBar, matchesFoodieFilters, type FoodieFilters } from '@/components/foodie-filter-bar';
+import { FoodieFilterBar, matchesFoodieFilters } from '@/components/foodie-filter-bar';
 import { todayDish, useFavoritePatiosController } from '@/lib/controllers/useFavoritePatiosController';
+import { useFoodieFilters } from '@/lib/foodie-filters-context';
 import { Fonts, Radius, useTheme, type Theme } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
 import { estaAbiertoAhora } from '@/lib/horario';
@@ -74,7 +75,7 @@ export default function FavoritosScreen() {
   // Filtros: pensados para cuando los guardados crecen (~70 items). 'hoy'
   // filtra por menú publicado; el resto son las categorías reales de lo
   // guardado — se construyen solas, sin taxonomía inventada.
-  const [filters, setFilters] = useState<FoodieFilters>(EMPTY_FOODIE_FILTERS);
+  const { filters, setFilters } = useFoodieFilters();
   const [collections, setCollections] = useState<PatioCollection[]>([]);
   useEffect(() => {
     getCollections().then(setCollections).catch(() => {});
@@ -87,7 +88,6 @@ export default function FavoritosScreen() {
     patioId: patio.id,
     hasTodayMenu: todayDish(patio) !== null,
     isOpenNow: !!(patio.weeklyHours && estaAbiertoAhora(patio.weeklyHours)),
-    isSaved: true,
     categories: patio.categories,
     payments: patio.payments,
     collections,
@@ -138,7 +138,7 @@ export default function FavoritosScreen() {
       <Stack.Screen options={{ headerShown: false }} />
       <ScrollView contentContainerStyle={[s.content, { paddingBottom: insets.bottom + 40 }]} showsVerticalScrollIndicator={false}>
         {patios.length > 0 && (
-          <View style={s.filterWrap}><FoodieFilterBar filters={filters} onChange={setFilters} collections={collections} categories={categories} onCollectionCreated={(c) => setCollections((prev) => [c, ...prev])} hideSaved /></View>
+          <View style={s.filterWrap}><FoodieFilterBar filters={filters} onChange={setFilters} collections={collections} categories={categories} onCollectionCreated={(c) => setCollections((prev) => [c, ...prev])} /></View>
         )}
 
         {patios.length === 0 ? (

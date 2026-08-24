@@ -1,5 +1,48 @@
 # HANDOFF
 
+## 2026-08-24 (cont. 4) — Decisión de fondo: Menús ES Guardados, se deroga la ley de no-mezcla
+
+Alejandro llegó a una conclusión de fondo tras las correcciones anteriores:
+**"la pantalla de Menús debe ser Guardados, punto"** — no una pantalla que
+se le parezca, sino que comparta el mismo lenguaje visual y de interacción,
+porque "organizar tus cosas" (lugares guardados o menús propios) es el
+mismo problema de UI. Además pidió derogar la ley de `CLAUDE.md` que
+prohibía mezclar los flujos de Fondero y Foodie — "nos está haciendo daño".
+
+**`CLAUDE.md`:** la ley "no mezclar ni contaminar" se marcó derogada con
+fecha. Queda la distinción de CONTENIDO/JTBD (un Fondero no ve lugares, un
+Foodie no ve menús) pero ya no la distinción de construcción de pantalla —
+cuando dos pantallas resuelven el mismo problema, deben compartir
+tarjeta/filtro/selección/vacío.
+
+**`historial.tsx` reescrita para calcar `favoritos.tsx` punto por punto:**
+- Filas → tarjetas individuales (`t.surface`, `Radius.card`, gap entre
+  tarjetas), no la lista continua con separadores hairline de antes.
+- Estado vacío completo: ícono en caja + título + cuerpo + botón CTA
+  naranja — antes solo tenía texto informativo sin acción.
+- Estado "sin resultados de filtro" separado del vacío real (mismo patrón
+  `filterEmptyCard` de Guardados) — antes ambos casos compartían el mismo
+  mensaje.
+- Header (crear + Listas) se OCULTA por completo cuando no hay ningún menú,
+  igual que Guardados oculta su filtro — el CTA del vacío ya cubre "crear
+  el primero".
+
+**El "+" se movió DE NUEVO** — esta vez de la barra de navegación al header
+propio de la pantalla, arriba a la izquierda, ícono plano sin fondo
+(pedido explícito: "como Instagram", refiriéndose al ícono de cámara/crear
+en la esquina superior izquierda del feed, no a un tab de navegación).
+`bottom-tab-bar.tsx` volvió a ser el archivo original de 3 tabs planos, sin
+ninguna lógica especial de Fondero — la tercera vuelta en el mismo día
+sobre este mismo botón (naranja en nav → nav neutro → dentro de pantalla →
+nav neutro con "+" → header propio de la pantalla). El pill de "Listas" se
+volvió idéntico (34×34, glass, badge) al de `foodie-filter-bar.tsx`.
+
+`CLAUDE.md`, `app/historial.tsx`, `components/bottom-tab-bar.tsx`.
+`tsc`/`lint` verdes. Pendiente: QA de Alejandro; decidir si vale la pena
+además unificar la capa de datos (`lib/menu-collections.ts` sigue siendo un
+mirror separado de `lib/collections.ts`, no la misma tabla) — no se tocó
+esta sesión por no haber sido pedido explícitamente.
+
 ## 2026-08-24 (cont. 3) — Corrección de Alejandro: el "+" sí va en la navegación, checkmark de selección roto, espacios en nombres de lista
 
 Alejandro corrigió tres cosas de la entrada anterior tras probar:

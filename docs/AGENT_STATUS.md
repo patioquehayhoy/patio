@@ -4,6 +4,45 @@
 
 ---
 
+## Ciclo 13 — 2026-08-24 (decisión de fondo: Menús ES Guardados, se deroga ley de no-mezcla)
+
+**Qué hizo:**
+- Alejandro concluyó que Menús debe ser literalmente Guardados (mismo
+  lenguaje visual/interacción, no una versión parecida) y pidió derogar la
+  ley de `CLAUDE.md` que prohibía mezclar flujos de Fondero/Foodie —
+  "nos está haciendo daño". Se marcó derogada con fecha, preservando la
+  distinción de contenido/JTBD.
+- Reescribió `historial.tsx` para calcar `favoritos.tsx` punto por punto:
+  tarjetas individuales (antes lista continua con hairlines), estado vacío
+  completo con CTA (antes solo texto), estado "sin resultados de filtro"
+  separado del vacío real, header oculto por completo cuando no hay ningún
+  menú (antes siempre visible).
+- Movió el "+" de crear menú DE NUEVO — de la navegación al header propio
+  de `historial.tsx`, arriba a la izquierda, ícono plano sin fondo
+  ("como Instagram", ícono de cámara/crear en esquina superior izquierda
+  del feed, no un tab). `bottom-tab-bar.tsx` volvió a ser el archivo
+  original sin lógica de Fondero. Pill de "Listas" ahora idéntico (34×34,
+  glass, badge) al de `foodie-filter-bar.tsx`.
+
+**Qué encontró:**
+- Este es el 3er ajuste del mismo botón en el mismo día (naranja en nav →
+  nav neutro → dentro de pantalla → nav neutro con "+" → header propio).
+  Patrón real: cuando una corrección de Alejandro llega en varias frases
+  cortas seguidas, vale más confirmar el entendimiento completo antes de
+  ejecutar que iterar a ciegas — el turno anterior donde se preguntó "dime
+  qué entiendes antes de que hagas nada" evitó una 4ª vuelta equivocada.
+
+**Qué sigue:**
+- QA de Alejandro en su iPhone.
+- Decisión abierta, no pedida explícitamente: ¿unificar también la capa de
+  datos (`lib/menu-collections.ts` sigue siendo tabla separada de
+  `lib/collections.ts`, mismo shape pero no la misma fuente)?
+
+**Validación:**
+- `npx tsc --noEmit` — verde ✅. `npx expo lint` — verde ✅.
+
+---
+
 ## Ciclo 12 — 2026-08-24 (corrección: "+" sí va en navegación + 2 bugs reales)
 
 **Qué hizo:**

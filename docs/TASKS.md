@@ -2,15 +2,50 @@
 
 > Última actualización: 2026-08-24.
 
-## BUG SIN RESOLVER — sheet "Tus listas" roto al entrar a Renombrar
+## DECISIÓN PENDIENTE — nombre de "listas" de menús
 
-Reportado por Alejandro 2026-08-24, sesión larga de rediseño de Guardados/
-Listas/Menús. **No se pudo confirmar la causa raíz porque el agente no puede
-ver imágenes en esta sesión (límite de la sesión agotado tras muchas
-capturas) ni probar en simulador/device (regla del proyecto: Alejandro
-prueba, el agente no interactúa con la UI).** Quien retome esto SÍ debe poder
-ver capturas/grabación si Alejandro las manda, y debe recordarle que él
-prueba — no abrir el simulador para "solo confirmar".
+Alejandro señaló 2026-08-24 que "listas" (para organizar menús publicados en
+`historial.tsx`, `lib/menu-collections.ts`) le genera ruido — no está seguro
+de si debería llamarse "listas" (como Guardados), "carpetas", u otra cosa.
+Pidió avanzar con el ajuste funcional sin resolver el nombre. No renombrar
+sin que él lo decida — toca `MenuListsSheet`, copy de botones/labels en
+`historial.tsx`, y el tipo `MenuCollection`/nombres de función en
+`lib/menu-collections.ts` si cambia.
+
+## IDEA DE PRODUCTO (importante, sin construir) — anuncios categorizados a clientes
+
+Anotado por Alejandro 2026-08-24, sin detallar todavía. La idea: que un
+Fondero pueda mandar avisos categorizados a todos sus clientes/seguidores —
+no solo "publiqué menú", sino estados operativos tipo "Hoy cerramos",
+"Mañana solo promoción", etc. Categorías exactas sin definir aún ("no sé
+cuáles categorías puedan existir"). Mencionado como posible **función de
+venta** (candidato a monetización/Plan, no necesariamente gratis) — ver
+[[monetization_strategy]] y la sección "PENDIENTE — monetización de listas"
+más abajo en este archivo para el mismo tipo de conversación de pricing.
+
+Depende de que exista backend de notificaciones/seguidores real (ver "Backend
+social mínimo" en el ciclo 2026-07-25 más abajo — follows/push por
+publicación sigue sin construirse). No implementar sin que Alejandro aterrice
+primero: el set de categorías, si es gratis o de pago, y si depende de tener
+seguidores reales o puede lanzarse antes.
+
+## [x] RESUELTO 2026-08-24 — sheet "Tus listas" roto al entrar a Renombrar
+
+**Resuelto en sesión posterior el mismo día, con grabación de pantalla real
+(frames extraídos con `ffmpeg`, no se adivinó).** Causa raíz: `measureLayout`
+contra el `ScrollView` da la posición relativa al viewport visible, no
+absoluta al contenido — `scrollTo` la trataba como absoluta y subestimaba el
+scroll necesario en listas largas. Se abandonó el editor inline y se
+reemplazó por el patrón nativo de Apple para renombrar (alert con campo de
+texto, como Archivos/Recordatorios/Fotos): `Alert.prompt` en iOS, diálogo
+propio centrado en Android. Detalle completo en `docs/HANDOFF.md`, entrada
+"2026-08-24 (cont.)". Confirmado por Alejandro en su iPhone. Queda sin QA de
+Android (sin evidencia de que el proyecto pruebe activamente ahí).
+
+Reportado originalmente por Alejandro 2026-08-24, sesión larga de rediseño de
+Guardados/Listas/Menús. En ese momento no se pudo confirmar la causa raíz
+porque el agente no podía ver imágenes en esa sesión (límite agotado tras
+muchas capturas) ni probar en simulador/device.
 
 **Síntoma reportado (palabras de Alejandro):** al tocar "Renombrar" en una
 lista dentro del panel "Tus listas" (`components/foodie-filter-bar.tsx`), el

@@ -1,5 +1,150 @@
 # HANDOFF
 
+## 2026-08-24 (cont. 3) — Corrección de Alejandro: el "+" sí va en la navegación, checkmark de selección roto, espacios en nombres de lista
+
+Alejandro corrigió tres cosas de la entrada anterior tras probar:
+
+**El botón de crear menú SÍ debe vivir en la barra de navegación** — como
+"+" de Instagram/apps de Apple, no movido a `historial.tsx`. La pasada
+anterior interpretó mal: el problema nunca fue QUE viviera en la navegación,
+sino que fuera un botón grande y naranja (chrome de nav no debe llevar
+acento). Se revirtió: `bottom-tab-bar.tsx` vuelve a tener el disparador,
+ahora como ícono plano "+" (`Ionicons "add"`, mismo tamaño 49×40 que los
+otros tabs, color neutro `c.mute`, sin tinte de "activo" porque es una
+acción, no un destino), como primer ítem de la barra, a la izquierda de
+"Menús". El badge de "te falta publicar hoy" se movió con él. `historial.tsx`
+perdió el botón "Nuevo menú"; el botón "Listas" se quedó solo, alineado a la
+derecha.
+
+**Checkmark de selección no registraba el toque.** En `historial.tsx`, el
+círculo de selección vivía FUERA del `TouchableOpacity` de la fila (como
+hermano sin `onPress` propio) — tocar justo el círculo no hacía nada, solo
+tocar el bloque de texto de al lado registraba. Corregido copiando 1:1 el
+patrón de `renderPatio` en `app/favoritos.tsx` (Guardados): el círculo vive
+DENTRO del mismo `TouchableOpacity` que el resto de la fila, un solo target
+de toque para toda la fila. De paso se homologaron los estilos de la barra
+de selección en lote (`actionBar`/`actionButtons`/`actionBtn`) a los valores
+exactos de `favoritos.tsx` (fondo translúcido + sombra, gap 5, texto 13) en
+vez de los que se habían inventado en la pasada anterior.
+
+**Bug real: nombres de lista de menús no aceptaban espacios.** Reusaba
+`normalizeCollectionTitle` de `lib/collections.ts`, que a propósito quita
+TODOS los espacios porque esos títulos son pills compactas en la barra de
+filtros de Guardados — pero una lista de menús se renderiza como fila de
+texto normal, sin esa restricción. Se creó `normalizeMenuListTitle` en
+`lib/menu-collections.ts` (permite espacios, solo recorta a 32 caracteres) y
+se usa en su lugar en `menu-lists-sheet.tsx`.
+
+**Pendiente de decisión, sin resolver:** Alejandro señaló que "listas" le
+genera ruido como nombre para esta feature de menús (¿"listas" vs
+"carpetas" o algo distinto?) — pidió avanzar con el ajuste funcional sin
+resolver el nombre todavía. Queda abierto para cuando lo decida.
+
+`components/bottom-tab-bar.tsx`, `app/historial.tsx`,
+`lib/menu-collections.ts`, `components/menu-lists-sheet.tsx`. `tsc`/`lint`
+verdes.
+
+## 2026-08-24 (cont. 2) — Botón de cámara ya no naranja, entrada de Menús ya no salta directo a la cámara, listas propias para organizar menús
+
+Alejandro reportó tres cosas juntas: el botón de cámara en la barra inferior
+de Fondero se veía naranja sin razón clara, la entrada a "Menús" saltaba
+directo al visor de cámara sin pasar por ningún estado intermedio, y pidió
+poder organizar sus menús publicados en listas propias (como ya existe para
+Guardados). Antes de construir lo tercero se le preguntó qué problema real
+quería resolver (los menús hoy son 1 por día, sin ningún concepto de
+categoría) — eligió el patrón de listas personalizadas, igual que Guardados.
+
+**Botón de cámara + flujo de entrada.** `bottom-tab-bar.tsx` tenía un botón
+EXTRA (cámara, naranja fijo) al lado de los 3 tabs de Fondero, que saltaba a
+`/foto-menu` (visor de cámara completo) sin pasar por `historial.tsx`. Esto
+violaba la ley de acento de `CLAUDE.md` — naranja es para LA acción
+prominente de UNA pantalla, no para chrome de navegación que vive repetido
+en las tres pantallas de Fondero (Menús/Actividad/Perfil), donde solo una de
+ellas tiene sentido con esa acción. Se quitó el botón por completo; el punto
+de "te falta publicar hoy" ahora es un badge sobre el ícono del tab "Menús"
+(patrón real de iOS: punto de atención en un tab bar item). La acción
+"Nuevo menú" se movió a `historial.tsx` como botón prominente propio
+(naranja, ahí sí es LA acción de esa pantalla), siempre visible arriba de la
+lista, no solo en el estado vacío. Sigue yendo a `foto-menu.tsx`, que ya
+ofrecía Fotos/Cámara/Escribir — solo cambió DÓNDE vive el disparador.
+
+**Listas propias para menús (`lib/menu-collections.ts`, nuevo).** Mismo
+patrón de datos que `lib/collections.ts` (Guardados) pero puramente local —
+sin publicación ni visibilidad, es organización personal del Fondero sobre
+su propio historial: `{ id, title, fechas[], createdAt }`. Reutiliza
+`normalizeCollectionTitle` de `lib/collections.ts` (una palabra, máx. 18) en
+vez de duplicar la lógica.
+
+**`components/menu-lists-sheet.tsx` (nuevo).** Sheet con dos modos: `filter`
+(elegir qué listas ver, unión igual que Guardados) y `assign` (meter uno o
+varios menús a una o varias listas, desde el "···" de un menú o desde la
+barra de selección en lote). Renombrar/Eliminar lista usan el MISMO patrón
+nativo validado hoy en `foodie-filter-bar.tsx` (`Alert.prompt` en iOS,
+diálogo propio en Android) — no se repitió el editor inline que costó 4
+intentos fallidos ahí. Se decidió NO extraer un componente de sheet
+compartido con `foodie-filter-bar.tsx` a pesar de la semejanza visual: los
+dos casos difieren lo suficiente (aquí no hay mapa que filtrar, y existe el
+modo "asignar" que Foodie no tiene) y `foodie-filter-bar.tsx` se acababa de
+estabilizar esta misma sesión — no valía la pena el riesgo de tocarlo de
+nuevo para una abstracción prematura.
+
+`historial.tsx`: nuevo botón "Listas" (ícono, con badge de conteo) junto a
+"Nuevo menú"; filtrar por lista reemplaza el agrupado por fecha mientras hay
+un filtro activo; "Añadir a lista" en el menú "···" de cada fila y en la
+barra de selección en lote. Al borrar un menú (individual o en lote),
+`useMenuHistoryController.ts` ahora también limpia su fecha de todas las
+listas (`removeFechasFromAllCollections`) para no dejar referencias muertas.
+
+`components/bottom-tab-bar.tsx`, `app/historial.tsx`,
+`lib/controllers/useMenuHistoryController.ts`,
+`lib/menu-collections.ts` (nuevo), `components/menu-lists-sheet.tsx` (nuevo).
+`tsc`/`lint` verdes. Pendiente: QA de Alejandro en su iPhone de las tres
+piezas.
+
+## 2026-08-24 (cont.) — Bug de renombrar tapado por teclado: resuelto con alert nativo, no con más parches de scroll
+
+Continuación de la sesión de arriba. El bug reportado por Alejandro (sheet
+"Tus listas" → "Renombrar" → el campo queda tapado por el teclado) ya había
+tenido 4 intentos fallidos (ver historial en `docs/TASKS.md`). Se diagnosticó
+con evidencia real esta vez: se pidió grabación de pantalla y se extrajeron
+frames con `ffmpeg` para ver el fallo en movimiento (no se adivinó).
+
+**Causa raíz confirmada:** `scrollRenameIntoView` medía la posición del
+input con `TextInput.measureLayout(scrollHandle, ...)` — esa API devuelve la
+posición YA relativa al viewport visible del `ScrollView` (post-scroll), no
+la posición absoluta dentro del contenido. El código la trataba como
+absoluta y hacía `scroll.scrollTo({ y: medición - 12 })`; cada vez que el
+sheet ya estaba desplazado por un renombrado previo, el nuevo scroll se
+quedaba corto por casi exactamente el offset ya acumulado. Con la lista 1ª o
+2ª funcionaba (offset previo ≈0); con una lista 8ª-9ª el campo quedaba con
+un hairline visible, tapado por el teclado — visible en los frames de la
+grabación.
+
+**Solución: se dejó de pelear con `scrollTo`/`measureLayout` (ya iban 4
+intentos) y se reemplazó el editor inline por el patrón nativo de Apple para
+renombrar un ítem corto de una lista** — el mismo que usan Archivos,
+Recordatorios y Fotos: un alert con campo de texto, flotante, centrado y
+evitado del teclado por el propio sistema. Estructuralmente no puede
+quedar tapado, sin importar la posición del ítem ni cuántas listas existan.
+
+- **iOS:** `Alert.prompt` — simétrico con "Eliminar", que en este mismo menú
+  "···" ya usaba `Alert.alert` nativo desde antes (no es un elemento nuevo
+  de chrome nativo en la app; la decisión de esta sesión anterior de NO usar
+  `UIMenu` nativo aplicaba al menú contextual anclado, no a alerts/prompts
+  de confirmación puntual).
+- **Android:** `Alert.prompt` no existe en esa plataforma — diálogo propio
+  (Modal + `BlurView`, mismo lenguaje visual glass del archivo), centrado y
+  de tamaño fijo, nunca dentro de un `ScrollView`.
+- Se eliminó por completo el editor inline: `editingId`, `editTitle`,
+  `renameInputRef`, `listsScrollRef`, `scrollRenameIntoView`,
+  `findNodeHandle`. Menos código y menos superficie de bug que la versión
+  anterior.
+
+`components/foodie-filter-bar.tsx`. `tsc`/`lint` verdes. Confirmado por
+Alejandro en su iPhone tras el fix. Pendiente real: no se probó en Android
+(el diálogo de respaldo no tiene QA de dispositivo todavía — no hay
+evidencia de que este proyecto pruebe activamente en Android).
+
 ## 2026-08-24 — Selección múltiple, homologación Guardados/Listas/Menús, y colapso del chooser `/menu`
 
 Sesión muy larga de iteración en vivo con Alejandro sobre todo el flujo de

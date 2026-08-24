@@ -4,6 +4,122 @@
 
 ---
 
+## Ciclo 12 — 2026-08-24 (corrección: "+" sí va en navegación + 2 bugs reales)
+
+**Qué hizo:**
+- Corrigió sobreinterpretación del ciclo anterior: Alejandro aclaró que el
+  botón de crear menú SÍ debe vivir en la barra de navegación (como el "+"
+  de Instagram/apps de Apple) — el problema nunca fue DÓNDE vivía, sino que
+  era un botón grande y naranja. Se revirtió a vivir en
+  `bottom-tab-bar.tsx`, ahora como ícono "+" plano homologado a los otros
+  tabs (mismo tamaño, color neutro, sin tinte de "activo"), primer ítem de
+  la barra. `historial.tsx` perdió el botón "Nuevo menú" que se le había
+  agregado; "Listas" se quedó solo.
+- Arregló bug real: el checkmark de selección en `historial.tsx` no
+  registraba el toque si caía justo sobre el círculo (vivía fuera del
+  `TouchableOpacity` de la fila). Copiado 1:1 el patrón de
+  `renderPatio` en `favoritos.tsx` — un solo touchable para toda la fila.
+  De paso homologó `actionBar`/`actionButtons`/`actionBtn` a los valores
+  exactos de `favoritos.tsx` en vez de los inventados en el ciclo anterior.
+- Arregló bug real: nombrar una lista de menús no aceptaba espacios
+  (reusaba la normalización de Guardados, que los quita a propósito para
+  pills compactas). Nueva `normalizeMenuListTitle` en
+  `lib/menu-collections.ts` que sí permite espacios.
+
+**Qué encontró:**
+- Lección: cuando el usuario dice "el botón X no debería verse/comportarse
+  así", verificar primero si la corrección es solo visual/de escala antes
+  de asumir que hay que reubicar el elemento a otra pantalla — la pasada
+  anterior resolvió correctamente el color pero sobre-corrigió la posición.
+
+**Qué sigue:**
+- Decisión pendiente de Alejandro: nombre de "listas" para menús (¿"listas"
+  vs "carpetas"?) — ver `docs/TASKS.md`.
+- QA de Alejandro en su iPhone de los tres ajustes.
+
+**Validación:**
+- `npx tsc --noEmit` — verde ✅. `npx expo lint` — verde ✅.
+
+---
+
+## Ciclo 11 — 2026-08-24 (botón de cámara neutro, entrada de Menús sin cámara forzada, listas de menús)
+
+**Qué hizo:**
+- Quitó el botón de cámara naranja de `bottom-tab-bar.tsx` (chrome de
+  navegación repetido en 3 pantallas de Fondero, violaba la ley de acento
+  "naranja = la acción prominente de UNA pantalla"). El aviso de "falta
+  publicar hoy" ahora es un badge sobre el ícono del tab "Menús" (patrón
+  real de iOS), no un botón de acción aparte.
+- Movió "Nuevo menú" a `historial.tsx` como botón prominente propio
+  (naranja, siempre visible, no solo en el vacío) — ahí sí es LA acción de
+  esa pantalla. Sigue yendo a `foto-menu.tsx` (Cámara/Fotos/Escribir ya
+  integrados desde antes); solo cambió dónde vive el disparador.
+- Preguntó a Alejandro qué problema real resolver con "listas de menús"
+  (los menús son 1/día, sin categorías previas) antes de construir — eligió
+  listas personalizadas estilo Guardados.
+- Construyó `lib/menu-collections.ts` (mismo modelo que `lib/collections.ts`,
+  puramente local) y `components/menu-lists-sheet.tsx` (sheet con modos
+  filtrar/asignar). Renombrar/Eliminar lista reutilizan el patrón nativo
+  (`Alert.prompt`/diálogo Android) validado en el ciclo anterior — no se
+  repitió el editor inline roto.
+- `historial.tsx`: botón "Listas" con badge, filtro por lista, "Añadir a
+  lista" en "···" y en selección en lote. Borrar un menú limpia su fecha de
+  todas las listas (`useMenuHistoryController.ts`).
+
+**Qué encontró:**
+- Deliberadamente NO se extrajo un sheet compartido con
+  `foodie-filter-bar.tsx` pese a la semejanza visual: ese archivo se acababa
+  de estabilizar en el ciclo anterior (mismo día) y forzar una abstracción
+  ahí habría arriesgado una regresión para ahorrar código en un componente
+  con un modo (`assign`) que Foodie no necesita.
+
+**Qué sigue:**
+- QA de Alejandro en su iPhone de las tres piezas (botón, flujo, listas).
+- Resto del backlog sin cambios — ver `docs/TASKS.md`.
+
+**Validación:**
+- `npx tsc --noEmit` — verde ✅. `npx expo lint` — verde ✅.
+
+---
+
+## Ciclo 10 — 2026-08-24 (bug de renombrar resuelto: alert nativo en vez de scroll manual)
+
+**Qué hizo:**
+- Alejandro reportó (con video + captura) que renombrar una lista en el
+  sheet "Tus listas" dejaba el campo tapado por el teclado. Se extrajeron
+  frames del video con `ffmpeg` para diagnosticar con evidencia real en vez
+  de adivinar a la 5ª vez.
+- Diagnóstico: `TextInput.measureLayout` contra el `ScrollView` devuelve la
+  posición relativa al viewport YA visible (post-scroll), no absoluta al
+  contenido. El código la usaba como absoluta en `scrollTo`, así que en
+  listas largas el scroll se quedaba corto por casi el offset ya acumulado
+  de un renombrado previo — coincide exactamente con los 4 intentos
+  fallidos documentados en `docs/TASKS.md`.
+- Se abandonó el editor inline (scroll + measureLayout + keyboard height) y
+  se reemplazó por el patrón nativo de Apple para renombrar un ítem corto:
+  `Alert.prompt` en iOS (simétrico con "Eliminar", que ya usaba
+  `Alert.alert` en el mismo menú), diálogo propio centrado con `BlurView`
+  en Android (`Alert.prompt` no existe ahí). Detalle en `docs/HANDOFF.md`.
+- `components/foodie-filter-bar.tsx`. Confirmado por Alejandro en su iPhone.
+
+**Qué encontró:**
+- Root cause real distinto a la hipótesis que había quedado anotada en
+  `docs/TASKS.md` (esa apuntaba a que `visibleSheetHeight` no se re-medía
+  al cambiar de alto la fila) — fue la coordenada de `measureLayout`, no el
+  alto del sheet. Lección: cuando algo "sigue roto" tras varios intentos,
+  pedir grabación/evidencia real antes de seguir ajustando la misma
+  hipótesis.
+
+**Qué sigue:**
+- QA de Android del diálogo de respaldo — no hay evidencia de que este
+  proyecto pruebe activamente en esa plataforma todavía.
+- El resto del backlog no cambió — ver `docs/TASKS.md`.
+
+**Validación:**
+- `npx tsc --noEmit` — verde ✅. `npx expo lint` — verde ✅.
+
+---
+
 ## Ciclo 9 — 2026-08-18 (pin del mapa rediseñado + fixes de búsqueda sin resultados)
 
 **Qué hizo:**

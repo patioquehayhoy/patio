@@ -27,8 +27,16 @@ export function useFavoritePatiosController() {
 
   const withMenu = useMemo(() => patios.filter((patio) => todayDish(patio) !== null).length, [patios]);
 
+  // Ya tenemos los objetos completos en memoria — quitar localmente evita un
+  // refetch de red tras una eliminación en lote que el usuario ya confirmó.
+  const removeLocally = useCallback((ids: string[]) => {
+    const toRemove = new Set(ids);
+    setPatios((current) => current.filter((patio) => !toRemove.has(patio.id)));
+  }, []);
+
   return {
     patios,
     withMenu,
+    removeLocally,
   };
 }

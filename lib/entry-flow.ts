@@ -7,7 +7,7 @@ export const USER_ROLE_KEY = '@patio_user_role';
 export const ONBOARDING_DONE_KEY = 'onboarding_done';
 
 export type UserRole = 'foodie' | 'fondero';
-export type PostOnboardingRoute = '/explorar' | '/fondero-acceso' | '/patio-smart' | '/menu';
+export type PostOnboardingRoute = '/explorar' | '/fondero-acceso' | '/patio-smart' | '/historial';
 
 function parseRole(value: unknown): UserRole | null {
   const candidate = Array.isArray(value) ? value[0] : value;
@@ -48,7 +48,7 @@ export async function completeOnboarding(intent?: unknown): Promise<PostOnboardi
 
   try {
     const { needsSetup } = await initializeSignedInUser(session);
-    return needsSetup ? '/patio-smart' : '/menu';
+    return needsSetup ? '/patio-smart' : '/historial';
   } catch {
     // A signed-in business must never fall through to the Foodie map because
     // profile hydration failed. Patio Smart can recover once connectivity is back.

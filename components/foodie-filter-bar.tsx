@@ -2,10 +2,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import { useEffect, useRef, useState } from 'react';
-import { Animated, Modal, PanResponder, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { Alert, Animated, Dimensions, findNodeHandle, Keyboard, KeyboardAvoidingView, Modal, PanResponder, Platform, ScrollView, Share, StyleSheet, Text, TextInput, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { createCollection, normalizeCollectionTitle, type PatioCollection } from '@/lib/collections';
+import { ACTION_SHEET_MENU_WIDTH } from '@/components/action-sheet';
+import { createCollection, deleteCollection, normalizeCollectionTitle, publishCollection, renameCollection, type PatioCollection } from '@/lib/collections';
 import { useTheme, type Theme } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
 
@@ -96,11 +97,17 @@ function styles(t: Theme) {
     // solo esquinas superiores redondeadas) — el tratamiento flotante con
     // margen en las 4 puntas se sentía como una tarjeta encimada, no como el
     // sheet nativo que cubre el ancho completo (decisión 2026-08-20).
+    kav: { flex: 1 },
     backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.25)' },
-    sheet: { position: 'absolute', left: 0, right: 0, bottom: 0, borderTopLeftRadius: 28, borderTopRightRadius: 28, overflow: 'hidden', backgroundColor: t.surface, borderTopWidth: StyleSheet.hairlineWidth, borderColor: border, shadowColor: '#000', shadowOffset: { width: 0, height: -4 }, shadowOpacity: t.isDark ? 0.30 : 0.14, shadowRadius: 24, elevation: 12 },
-    grabberTouch: { height: 22, alignItems: 'center', justifyContent: 'flex-start' },
-    grabber: { width: 36, height: 4, borderRadius: 2, marginTop: 8, backgroundColor: t.isDark ? 'rgba(255,255,255,0.16)' : 'rgba(0,0,0,0.10)' },
-    panelHeader: { minHeight: 44, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.border },
+    // Vidrio real (ley de CLAUDE.md "Glass y superficies flotantes": todo
+    // panel flotante usa BlurView, nunca fondo sólido) — antes era
+    // `backgroundColor: t.surface` opaco, violación real detectada en
+    // auditoría 2026-08-23. intensity 20/16 y tinte según la tabla.
+    sheet: { position: 'absolute', left: 0, right: 0, bottom: 0, borderTopLeftRadius: 28, borderTopRightRadius: 28, overflow: 'hidden', borderTopWidth: StyleSheet.hairlineWidth, borderColor: border, shadowColor: '#000', shadowOffset: { width: 0, height: -4 }, shadowOpacity: t.isDark ? 0.30 : 0.14, shadowRadius: 24, elevation: 12 },
+    sheetTint: { ...StyleSheet.absoluteFillObject, backgroundColor: t.isDark ? 'rgba(20,21,24,0.72)' : 'rgba(255,255,255,0.70)' },
+    grabberTouch: { alignItems: 'center' },
+    grabber: { width: 36, height: 4, borderRadius: 2, marginTop: 8, marginBottom: 4, backgroundColor: t.isDark ? 'rgba(255,255,255,0.16)' : 'rgba(0,0,0,0.10)' },
+    panelHeader: { width: '100%', minHeight: 44, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.border },
     panelTitle: { fontSize: 17, fontWeight: '700', color: t.text },
     panelClear: { fontSize: 14, fontWeight: '600', color: t.accent },
     section: { paddingTop: 14 },
@@ -112,10 +119,28 @@ function styles(t: Theme) {
     chipTextActive: { color: t.bg },
     option: { minHeight: 48, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 8, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border },
     optionText: { flex: 1, fontSize: 15, fontWeight: '500', color: t.text },
+    // Fila de una lista real (a diferencia de "Nueva lista"): el toggle
+    // ocupa la mayoría de la fila, "···" vive aparte para no competir con
+    // el gesto principal (unir/quitar del mapa).
+    listRowMain: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: 8 },
+    // Homologado con navButton de coleccion/[id].tsx: ícono suelto, sin
+    // caja de fondo — corregido 2026-08-24, había ido en la dirección
+    // contraria (le había puesto caja en vez de quitársela a los otros).
+    listRowMore: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
     createInput: { flex: 1, fontSize: 15, fontWeight: '500', color: t.text, padding: 0 },
     createBtn: { minHeight: 34, paddingHorizontal: 14, borderRadius: 100, alignItems: 'center', justifyContent: 'center', backgroundColor: t.text },
     createBtnDisabled: { opacity: 0.35 },
     createBtnText: { fontSize: 13, fontWeight: '700', color: t.bg },
+    // Menú de acciones por lista — anclado junto al botón "···" (mismo
+    // componente visual que components/action-sheet.tsx), dentro del MISMO
+    // Modal del panel (ver comentario en FilterSheet), no un Modal propio.
+    inlineMenu: { position: 'absolute', borderRadius: 18, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: t.isDark ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.75)', shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: t.isDark ? 0.32 : 0.16, shadowRadius: 20, elevation: 10 },
+    inlineMenuTint: { ...StyleSheet.absoluteFillObject, backgroundColor: t.isDark ? 'rgba(28,29,32,0.78)' : 'rgba(255,255,255,0.78)' },
+    inlineTitleRow: { minHeight: 34, paddingHorizontal: 14, alignItems: 'center', justifyContent: 'center' },
+    inlineTitleText: { fontSize: 12, fontWeight: '700', color: t.textSecondary, textAlign: 'center' },
+    inlineRow: { minHeight: 46, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
+    divider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border },
+    inlineRowText: { fontSize: 15.5, fontWeight: '500' },
   });
 }
 
@@ -152,15 +177,31 @@ function QuickToggle({ label, active, onPress, s, theme }: { label: string; acti
 // arrastrable): el contenido cabe cómodo en una sola altura generosa con
 // scroll propio — replicar el resize de dos alturas de UIKit es la única
 // pieza de la HIG que no se copió 1:1 aquí, a propósito, por costo/beneficio.
-function FilterSheet({ visible, onClose, title, onClear, children, s, theme }: {
+function FilterSheet({ visible, onClose, title, onClear, children, overlay, scrollRef, s, theme }: {
   visible: boolean; onClose: () => void; title: string; onClear?: () => void;
-  children: React.ReactNode; s: ReturnType<typeof styles>; theme: ReturnType<typeof useTheme>['theme'];
+  children: React.ReactNode; overlay?: React.ReactNode; scrollRef?: React.RefObject<ScrollView | null>; s: ReturnType<typeof styles>; theme: ReturnType<typeof useTheme>['theme'];
 }) {
   const insets = useSafeAreaInsets();
   const { height: screenHeight } = useWindowDimensions();
   const sheetHeight = Math.min(screenHeight * 0.62, 560);
   const translateY = useRef(new Animated.Value(sheetHeight)).current;
   const [rendered, setRendered] = useState(visible);
+  // Alto REAL del sheet cuando el teclado está arriba — sin esto, un alto
+  // fijo empujado hacia arriba por el teclado se sale de la pantalla por
+  // ARRIBA (el header queda fuera de vista). Bug real diagnosticado
+  // 2026-08-24 a mano (no se pudo probar en device): con sheetHeight≈523pt
+  // y teclado≈336pt, el sheet ya no cabía en los ≈508pt libres.
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  useEffect(() => {
+    const showEvt = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvt = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+    const showSub = Keyboard.addListener(showEvt, (e) => setKeyboardHeight(e.endCoordinates.height));
+    const hideSub = Keyboard.addListener(hideEvt, () => setKeyboardHeight(0));
+    return () => { showSub.remove(); hideSub.remove(); };
+  }, []);
+  const visibleSheetHeight = keyboardHeight > 0
+    ? Math.min(sheetHeight, screenHeight - keyboardHeight - insets.top - 16)
+    : sheetHeight;
 
   useEffect(() => {
     if (visible) {
@@ -195,33 +236,77 @@ function FilterSheet({ visible, onClose, title, onClear, children, s, theme }: {
 
   return (
     <Modal transparent visible animationType="none" onRequestClose={onClose} statusBarTranslucent>
-      <TouchableOpacity activeOpacity={1} style={s.backdrop} onPress={onClose} accessibilityLabel="Cerrar" />
-      <Animated.View style={[s.sheet, { height: sheetHeight, paddingBottom: insets.bottom || 8, transform: [{ translateY }] }]}>
-        <View {...pan.panHandlers} style={s.grabberTouch}>
-          <View style={s.grabber} />
-        </View>
-        <View style={s.panelHeader}>
-          <Text style={s.panelTitle}>{title}</Text>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            {!!onClear && <TouchableOpacity hitSlop={CLEAR_HIT_SLOP} onPress={onClear}><Text style={s.panelClear}>Limpiar</Text></TouchableOpacity>}
-            <TouchableOpacity hitSlop={CLOSE_HIT_SLOP} onPress={onClose} accessibilityLabel="Cerrar"><Ionicons name="close" size={20} color={theme.textSecondary} /></TouchableOpacity>
+      {/* KeyboardAvoidingView real — antes el input de renombrar (dentro de
+          "children") quedaba tapado por completo por el teclado, sin forma
+          de verlo ni confirmarlo (bug real reportado 2026-08-24, capturas).
+          save-to-list-sheet.tsx ya lo tenía bien; a este sheet le faltaba. */}
+      <KeyboardAvoidingView style={s.kav} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <TouchableOpacity activeOpacity={1} style={s.backdrop} onPress={onClose} accessibilityLabel="Cerrar" />
+        <Animated.View style={[s.sheet, { height: visibleSheetHeight, paddingBottom: insets.bottom || 8, transform: [{ translateY }] }]}>
+          <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
+          <View pointerEvents="none" style={s.sheetTint} />
+          {/* Zona de arrastre ampliada (antes 22pt, muy angosta para agarrar
+              con precisión — reportado como "no funciona el swipe" 2026-08-24):
+              ahora cubre el grabber Y el header completo. */}
+          <View {...pan.panHandlers} style={s.grabberTouch}>
+            <View style={s.grabber} />
+            <View style={s.panelHeader}>
+              <Text style={s.panelTitle}>{title}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                {!!onClear && <TouchableOpacity hitSlop={CLEAR_HIT_SLOP} onPress={onClear}><Text style={s.panelClear}>Limpiar</Text></TouchableOpacity>}
+                <TouchableOpacity hitSlop={CLOSE_HIT_SLOP} onPress={onClose} accessibilityLabel="Cerrar"><Ionicons name="close" size={20} color={theme.textSecondary} /></TouchableOpacity>
+              </View>
+            </View>
           </View>
-        </View>
-        <ScrollView keyboardShouldPersistTaps="handled">{children}</ScrollView>
-      </Animated.View>
+          <ScrollView ref={scrollRef} keyboardShouldPersistTaps="handled">{children}</ScrollView>
+        </Animated.View>
+        {/* El menú de acciones por lista vive AQUÍ — dentro del mismo Modal
+            (evita el bug real de dos <Modal> de RN anidados en iOS, ver
+            auditoría 2026-08-24), pero FUERA del Animated.View del sheet: ese
+            contenedor tiene alto fijo + overflow:hidden + esquinas
+            redondeadas propias, así que un overlay puesto DENTRO se recortaba
+            contra esos bordes en vez de cubrir la pantalla completa (bug real
+            reportado por Alejandro — esquinas cortadas, card apretada contra
+            el panel de abajo). Como hermano del sheet, cubre toda la pantalla
+            igual que el ActionSheet real. */}
+        {overlay}
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
 
-export function FoodieFilterBar({ filters, onChange, collections, categories, onCollectionCreated }: {
+export function FoodieFilterBar({ filters, onChange, collections, categories, onCollectionCreated, onCollectionUpdated, onCollectionRemoved }: {
   filters: FoodieFilters; onChange: (next: FoodieFilters) => void; collections: PatioCollection[]; categories: string[];
   onCollectionCreated?: (collection: PatioCollection) => void;
+  onCollectionUpdated?: (collection: PatioCollection) => void;
+  onCollectionRemoved?: (collectionId: string) => void;
 }) {
   const { theme } = useTheme();
   const s = styles(theme);
   const [openPanel, setOpenPanel] = useState<OpenPanel>(null);
   const [creatingList, setCreatingList] = useState(false);
   const [newListTitle, setNewListTitle] = useState('');
+  // Acciones por lista detrás de "···" — ley de CLAUDE.md 13-jul: todo
+  // accionable vive tras ···, un solo gesto para descubrir acciones en toda
+  // la app. "Listas" es el destino real donde se navegan/administran las
+  // listas — por eso viven aquí y no en el sheet de "guardar en lista".
+  // Menú nativo (Alert), no fila expandible: Fotos gestiona un álbum con un
+  // menú que flota encima, nunca reacomodando el layout de la lista (auditado
+  // 2026-08-23 tras confusión real de que la fila empujaba el contenido).
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [actionsTarget, setActionsTarget] = useState<PatioCollection | null>(null);
+  const [actionsLayout, setActionsLayout] = useState<{ top?: number; bottom?: number; left: number } | null>(null);
+  const moreRefs = useRef<Map<string, View | null>>(new Map());
+  // Para hacer scroll automático a la fila cuando entras a renombrar — sin
+  // esto, en una lista larga la fila puede quedar fuera de vista incluso
+  // después de que el sheet sube por el teclado (reportado 2026-08-24).
+  // Segunda vuelta: en vez de guardar la posición ANTES de editar (con un
+  // setTimeout arbitrario que podía correr antes de que el teclado/sheet
+  // terminaran de moverse), se mide la posición REAL del input hasta que
+  // toma foco de verdad — ver onFocus abajo.
+  const listsScrollRef = useRef<ScrollView | null>(null);
+  const renameInputRef = useRef<TextInput | null>(null);
   const attributeCount = foodieFilterCount(filters);
   const activeCollections = collections.filter((item) => filters.collectionIds.includes(item.id));
   const listsLabel = activeCollections.length === 0 ? 'Listas' : activeCollections.length === 1 ? activeCollections[0].title : `${activeCollections.length} listas`;
@@ -240,6 +325,85 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
     setNewListTitle('');
     setCreatingList(false);
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+  };
+
+  const startRename = (collection: PatioCollection) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+    setEditingId(collection.id);
+    setEditTitle(collection.title);
+  };
+
+  // Dispara con el foco real del input (autoFocus ya está puesto), no con
+  // un tiempo adivinado — measureLayout da la posición actual DEL INPUT
+  // relativa al contenido del scroll, en el momento real en que el teclado
+  // empieza a aparecer, sin importar si el sheet ya terminó de encogerse.
+  const scrollRenameIntoView = () => {
+    const input = renameInputRef.current;
+    const scroll = listsScrollRef.current;
+    const scrollHandle = scroll ? findNodeHandle(scroll) : null;
+    if (!input || !scroll || !scrollHandle) return;
+    input.measureLayout(
+      scrollHandle,
+      (_x, y, _width, _height) => scroll.scrollTo({ y: Math.max(0, y - 12), animated: true }),
+      () => {},
+    );
+  };
+
+  const saveRename = async () => {
+    if (!editingId) return;
+    const title = editTitle.trim();
+    if (title) {
+      const renamed = await renameCollection(editingId, title);
+      if (renamed) onCollectionUpdated?.(renamed);
+    }
+    setEditingId(null);
+  };
+
+  const shareCollection = async (collection: PatioCollection) => {
+    Haptics.selectionAsync().catch(() => {});
+    const target = collection.visibility === 'private' ? { ...collection, visibility: 'unlisted' as const } : collection;
+    const published = await publishCollection(target);
+    if (published.remoteId !== collection.remoteId || published.visibility !== collection.visibility) {
+      onCollectionUpdated?.(published);
+    }
+    const link = published.remoteId ? `\n\npatio://coleccion-publica/${published.remoteId}` : '';
+    const desc = published.description ? `\n${published.description}` : '';
+    await Share.share({ message: `${published.title} — mis lugares en Patio${desc}${link}` }).catch(() => {});
+  };
+
+  const removeCollection = (collection: PatioCollection) => {
+    Alert.alert(
+      noWidow('Eliminar lista'),
+      noWidow(`Se borrará "${collection.title}". No se puede deshacer.`),
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: async () => {
+            await deleteCollection(collection.id);
+            onCollectionRemoved?.(collection.id);
+            if (filters.collectionIds.includes(collection.id)) {
+              onChange({ ...filters, collectionIds: filters.collectionIds.filter((id) => id !== collection.id) });
+            }
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+          },
+        },
+      ],
+    );
+  };
+
+  const openListActions = (collection: PatioCollection) => {
+    Haptics.selectionAsync().catch(() => {});
+    const anchor = moreRefs.current.get(collection.id);
+    if (!anchor) return;
+    anchor.measureInWindow((x, y, width, height) => {
+      const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+      const spaceBelow = screenHeight - (y + height);
+      const left = Math.min(Math.max(8, x + width - ACTION_SHEET_MENU_WIDTH), screenWidth - ACTION_SHEET_MENU_WIDTH - 8);
+      setActionsLayout(spaceBelow > 220 ? { top: y + height + 8, left } : { bottom: screenHeight - y + 8, left });
+      setActionsTarget(collection);
+    });
   };
 
   // Copiado de Apple Maps real (verificado, no de memoria): en su fila de
@@ -323,6 +487,39 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
       onClose={() => setOpenPanel(null)}
       title="Tus listas"
       onClear={activeCollections.length > 0 ? () => { Haptics.selectionAsync(); onChange({ ...filters, collectionIds: [] }); } : undefined}
+      scrollRef={listsScrollRef}
+      overlay={actionsTarget && actionsLayout && (
+        <>
+          {/* Menú anclado junto al botón "···" que tocaste — mismo
+              componente visual que ActionSheet (vidrio, sin fila de
+              Cancelar, se cierra tocando fuera), homologado 2026-08-24 tras
+              auditoría: antes esta versión era un bottom-sheet distinto al
+              de Menús/coleccion. Vive aquí (no en el <Modal> de ActionSheet)
+              por el mismo motivo que el resto del overlay: evitar dos
+              Modal de RN anidados. */}
+          <TouchableOpacity activeOpacity={1} style={StyleSheet.absoluteFillObject} onPress={() => setActionsTarget(null)} accessibilityLabel="Cerrar acciones" />
+          <View style={[s.inlineMenu, { width: ACTION_SHEET_MENU_WIDTH, left: actionsLayout.left, top: actionsLayout.top, bottom: actionsLayout.bottom }]}>
+            <BlurView intensity={theme.isDark ? 26 : 30} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
+            <View pointerEvents="none" style={s.inlineMenuTint} />
+            <View style={s.inlineTitleRow}><Text style={s.inlineTitleText} numberOfLines={1}>{noWidow(actionsTarget.title)}</Text></View>
+            {[
+              { label: 'Compartir', icon: 'share-outline' as const, onPress: () => shareCollection(actionsTarget) },
+              { label: 'Renombrar', icon: 'text-outline' as const, onPress: () => startRename(actionsTarget) },
+              { label: 'Eliminar', icon: 'trash-outline' as const, onPress: () => removeCollection(actionsTarget) },
+            ].map((option, index) => (
+              <TouchableOpacity
+                key={option.label}
+                onPress={() => { setActionsTarget(null); option.onPress(); }}
+                style={[s.inlineRow, (index > 0 || !!actionsTarget.title) && s.divider]}
+                accessibilityRole="button"
+                accessibilityLabel={option.label}>
+                <Text style={[s.inlineRowText, { color: theme.text }]}>{option.label}</Text>
+                <Ionicons name={option.icon} size={17} color={theme.text} />
+              </TouchableOpacity>
+            ))}
+          </View>
+        </>
+      )}
       s={s} theme={theme}>
       {creatingList ? (
         <View style={s.option}>
@@ -350,12 +547,48 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
       )}
       {collections.map((collection) => {
         const active = filters.collectionIds.includes(collection.id);
+        if (editingId === collection.id) {
+          return (
+            <View key={collection.id} style={s.option}>
+              <TextInput
+                ref={renameInputRef}
+                autoFocus
+                onFocus={scrollRenameIntoView}
+                value={editTitle}
+                onChangeText={(value) => setEditTitle(normalizeCollectionTitle(value))}
+                onSubmitEditing={saveRename}
+                onBlur={saveRename}
+                placeholder="Una palabra, ej. Tacos"
+                placeholderTextColor={theme.textMute}
+                returnKeyType="done"
+                autoCapitalize="words"
+                style={s.createInput}
+              />
+              <TouchableOpacity hitSlop={CREATE_BTN_HIT_SLOP} onPress={saveRename} style={s.createBtn}>
+                <Text style={s.createBtnText}>Listo</Text>
+              </TouchableOpacity>
+            </View>
+          );
+        }
         return (
-          <TouchableOpacity key={collection.id} onPress={() => { Haptics.selectionAsync(); onChange({ ...filters, collectionIds: toggleValue(filters.collectionIds, collection.id) }); }} style={s.option}>
-            <Ionicons name="bookmark" size={16} color={theme.textSecondary} />
-            <Text style={s.optionText}>{collection.title}</Text>
-            {active && <Ionicons name="checkmark" size={18} color={theme.text} />}
-          </TouchableOpacity>
+          <View key={collection.id} style={s.option}>
+            <TouchableOpacity
+              onPress={() => { Haptics.selectionAsync(); onChange({ ...filters, collectionIds: toggleValue(filters.collectionIds, collection.id) }); }}
+              style={s.listRowMain}>
+              <Ionicons name="bookmark" size={16} color={theme.textSecondary} />
+              <Text style={s.optionText}>{collection.title}</Text>
+              {active && <Ionicons name="checkmark" size={18} color={theme.text} />}
+            </TouchableOpacity>
+            <TouchableOpacity
+              ref={(el) => { moreRefs.current.set(collection.id, el); }}
+              accessibilityRole="button"
+              accessibilityLabel="Acciones de la lista"
+              hitSlop={8}
+              style={s.listRowMore}
+              onPress={() => openListActions(collection)}>
+              <Ionicons name="ellipsis-horizontal" size={17} color={theme.textSecondary} />
+            </TouchableOpacity>
+          </View>
         );
       })}
     </FilterSheet>

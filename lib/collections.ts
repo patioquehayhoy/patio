@@ -69,6 +69,16 @@ export async function updateCollection(next: PatioCollection) {
   await AsyncStorage.setItem(KEY, JSON.stringify(current.map((item) => item.id === next.id ? next : item)));
 }
 
+export async function deleteCollection(id: string) {
+  const current = await getCollections();
+  const target = current.find((item) => item.id === id);
+  await AsyncStorage.setItem(KEY, JSON.stringify(current.filter((item) => item.id !== id)));
+  if (target?.remoteId) {
+    await supabase.from('collection_places').delete().eq('collection_id', target.remoteId);
+    await supabase.from('collections').delete().eq('id', target.remoteId);
+  }
+}
+
 export async function renameCollection(id: string, title: string) {
   const collection = await getCollection(id);
   if (!collection) return null;
@@ -88,6 +98,20 @@ export async function togglePatioInCollection(collectionId: string, patioId: str
     ? collection.patioIds.filter((id) => id !== patioId)
     : [...collection.patioIds, patioId];
   const next = { ...collection, patioIds };
+  await updateCollection(next);
+  return next;
+}
+
+// Para selección múltiple: una sola lectura/escritura para varios ids a la
+// vez — togglePatioInCollection en un Promise.all pierde ids (cada llamada
+// lee el storage antes de que la anterior termine de escribir).
+export async function setPatiosInCollection(collectionId: string, patioIds: string[], present: boolean) {
+  const collection = await getCollection(collectionId);
+  if (!collection) return null;
+  const nextIds = present
+    ? [...new Set([...collection.patioIds, ...patioIds])]
+    : collection.patioIds.filter((id) => !patioIds.includes(id));
+  const next = { ...collection, patioIds: nextIds };
   await updateCollection(next);
   return next;
 }

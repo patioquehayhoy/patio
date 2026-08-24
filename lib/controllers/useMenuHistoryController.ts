@@ -2,7 +2,7 @@ import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Alert } from 'react-native';
 
-import { deleteLocalMenu, getLocalMenus, renameLocalMenu, seedDemoHistory } from '@/lib/menu-history';
+import { deleteLocalMenu, deleteLocalMenus, getLocalMenus, renameLocalMenu, seedDemoHistory } from '@/lib/menu-history';
 import { setMenuData, type MenuData } from '@/lib/menu-store';
 import { supabase } from '@/lib/supabase';
 import { getFonditaId } from '@/lib/user-store';
@@ -116,9 +116,30 @@ export function useMenuHistoryController() {
     );
   }, []);
 
+  const deleteMenus = useCallback((fechas: string[]) => {
+    Alert.alert(
+      'Eliminar menús',
+      `Se borrarán ${fechas.length} ${fechas.length === 1 ? 'menú' : 'menús'} del historial. No se puede deshacer.`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: async () => {
+            await deleteLocalMenus(fechas);
+            const id = getFonditaId();
+            if (id) await supabase.from('menus').delete().eq('fondita_id', id).in('fecha', fechas);
+            setMenus((prev) => prev.filter((m) => !fechas.includes(m.fecha)));
+          },
+        },
+      ],
+    );
+  }, []);
+
   return {
     closeRename,
     deleteMenu,
+    deleteMenus,
     draftName,
     editing,
     loading,

@@ -1,11 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
-import { router, Stack } from 'expo-router';
-import { useState } from 'react';
+import { BlurView } from 'expo-blur';
+import * as Haptics from 'expo-haptics';
+import { Stack } from 'expo-router';
+import { useRef, useState } from 'react';
 import { Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { ActionSheet } from '@/components/action-sheet';
 import { BottomTabBar } from '@/components/bottom-tab-bar';
-import { dateLabel, defaultHistoryTitle, useMenuHistoryController } from '@/lib/controllers/useMenuHistoryController';
+import { dateLabel, defaultHistoryTitle, useMenuHistoryController, type PublishedMenu } from '@/lib/controllers/useMenuHistoryController';
 import { fonderoPalette } from '@/lib/fondero-palette';
 import { useTabBarScroll } from '@/lib/tab-bar-visibility';
 import { Fonts, useTheme } from '@/lib/theme';
@@ -16,10 +19,29 @@ export default function HistorialScreen() {
   const { theme } = useTheme();
   const c = fonderoPalette(theme.isDark);
   const { onScroll } = useTabBarScroll();
-  const { closeRename, deleteMenu, draftName, editing, loading, menus, openRename, reuse, saveName, setDraftName } = useMenuHistoryController();
-  // Acciones por menú detrás de "···", homologado con el patrón de secciones
-  // del composer: un solo gesto para descubrir acciones en toda la app.
-  const [actionsFor, setActionsFor] = useState<string | null>(null);
+  const { closeRename, deleteMenu, deleteMenus, draftName, editing, loading, menus, openRename, reuse, saveName, setDraftName } = useMenuHistoryController();
+  // Acciones por menú detrás de "···" — menú flotante (ActionSheet), no fila
+  // que empuja el layout (auditado 2026-08-23, mismo arreglo que Listas).
+  const [actionsFor, setActionsFor] = useState<PublishedMenu | null>(null);
+  const moreRefs = useRef<Map<string, View | null>>(new Map());
+  // Selección en lote tipo Notas: long-press entra al modo, checkmark
+  // guía cada fila, "Cancelar" solo existe mientras el modo está activo.
+  const [selecting, setSelecting] = useState(false);
+  const [selectedFechas, setSelectedFechas] = useState<Set<string>>(new Set());
+
+  const exitSelecting = () => {
+    setSelecting(false);
+    setSelectedFechas(new Set());
+  };
+
+  const toggleSelect = (fecha: string) => {
+    Haptics.selectionAsync().catch(() => {});
+    setSelectedFechas((current) => {
+      const next = new Set(current);
+      if (next.has(fecha)) next.delete(fecha); else next.add(fecha);
+      return next;
+    });
+  };
 
   // Agrupado por periodo cuando hay suficiente historial para que ayude a
   // ubicarse — con poco historial (todo cae en un solo periodo) se queda
@@ -44,62 +66,37 @@ export default function HistorialScreen() {
 
   const renderMenuRow = (menu: (typeof menus)[number], showTopBorder: boolean) => {
     const key = menu.fecha;
-    const actionsOpen = actionsFor === key;
+    const isSelected = selectedFechas.has(key);
     return (
       <View key={key} style={showTopBorder && { borderTopColor: c.border, borderTopWidth: StyleSheet.hairlineWidth }}>
         <View style={s.row}>
+          {selecting && (
+            <Ionicons name={isSelected ? 'checkmark-circle' : 'ellipse-outline'} size={22} color={isSelected ? c.accent : c.textMute} />
+          )}
           <TouchableOpacity
             style={{ flex: 1 }}
-            onPress={() => reuse(menu.secciones)}
+            onPress={() => (selecting ? toggleSelect(key) : reuse(menu.secciones))}
+            onLongPress={() => { if (!selecting) { Haptics.selectionAsync().catch(() => {}); setSelecting(true); toggleSelect(key); } }}
             activeOpacity={0.74}
             accessibilityRole="button"
-            accessibilityLabel={`Usar menú de ${dateLabel(menu.fecha)}`}>
+            accessibilityLabel={selecting ? `${isSelected ? 'Quitar de la selección' : 'Seleccionar'} menú de ${dateLabel(menu.fecha)}` : `Usar menú de ${dateLabel(menu.fecha)}`}>
             <Text style={[s.date, { color: c.accent }]}>
               {dateLabel(menu.fecha)}
             </Text>
             <Text style={[s.summary, { color: c.text }]} numberOfLines={2}>{menu.nombre || defaultHistoryTitle(menu)}</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessibilityLabel="Acciones del menú"
-            accessibilityState={{ expanded: actionsOpen }}
-            style={[s.iconBtn, { backgroundColor: c.iconBg }]}
-            onPress={() => setActionsFor(actionsOpen ? null : key)}
-            activeOpacity={0.72}>
-            <Ionicons name="ellipsis-horizontal" size={17} color={c.textSecondary} />
-          </TouchableOpacity>
+          {!selecting && (
+            <TouchableOpacity
+              ref={(el) => { moreRefs.current.set(key, el); }}
+              accessibilityRole="button"
+              accessibilityLabel="Acciones del menú"
+              style={s.iconBtn}
+              onPress={() => setActionsFor(menu)}
+              activeOpacity={0.72}>
+              <Ionicons name="ellipsis-horizontal" size={17} color={c.textSecondary} />
+            </TouchableOpacity>
+          )}
         </View>
-        {actionsOpen && (
-          <View style={[s.actionsRow, { backgroundColor: c.iconBg }]}>
-            <TouchableOpacity
-              onPress={() => { setActionsFor(null); reuse(menu.secciones); }}
-              style={s.action}
-              hitSlop={{ top: 5, bottom: 5, left: 2, right: 2 }}
-              accessibilityRole="button"
-              accessibilityLabel="Editar y usar este menú">
-              <Ionicons name="create-outline" size={15} color={c.text} />
-              <Text style={[s.actionText, { color: c.text }]}>{noWidow('Editar y usar')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => { setActionsFor(null); openRename(menu); }}
-              style={s.action}
-              hitSlop={{ top: 5, bottom: 5, left: 2, right: 2 }}
-              accessibilityRole="button"
-              accessibilityLabel="Renombrar menú">
-              <Ionicons name="text-outline" size={15} color={c.text} />
-              <Text style={[s.actionText, { color: c.text }]}>Renombrar</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => { setActionsFor(null); deleteMenu(menu); }}
-              style={s.action}
-              hitSlop={{ top: 5, bottom: 5, left: 2, right: 2 }}
-              accessibilityRole="button"
-              accessibilityLabel="Eliminar menú">
-              <Ionicons name="trash-outline" size={15} color={c.danger} />
-              <Text style={[s.actionText, { color: c.danger }]}>Eliminar</Text>
-            </TouchableOpacity>
-          </View>
-        )}
       </View>
     );
   };
@@ -107,25 +104,25 @@ export default function HistorialScreen() {
   return (
     <View style={[s.root, { backgroundColor: c.bg, paddingTop: insets.top }]}>
       <Stack.Screen options={{ headerShown: false }} />
-      <ScrollView onScroll={onScroll} scrollEventThrottle={16} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 24, paddingBottom: insets.bottom + 120 }} showsVerticalScrollIndicator={false}>
-        <TouchableOpacity
-          accessibilityRole="button"
-          accessibilityLabel="Crear un menú nuevo"
-          style={[s.newButton, { borderColor: c.textMute }]}
-          onPress={() => router.push('/menu')}
-          activeOpacity={0.72}>
-          <Ionicons name="add" size={17} color={c.text} />
-          <Text style={[s.newButtonText, { color: c.text }]}>{noWidow('Menú nuevo')}</Text>
-        </TouchableOpacity>
-
+      {/* La acción del día vive en el tab "Menús" de la barra inferior
+          (bottom-tab-bar.tsx: punto de estado + tap directo a cámara cuando
+          falta publicar), no aquí — evita duplicar el control en dos
+          lugares. Esta pantalla es solo la lista/historial. Selección en
+          lote tipo Notas: long-press entra al modo, sin texto "Seleccionar"
+          permanente — mismo patrón que Guardados. */}
+      {selecting && (
+        <View style={s.selectRow}>
+          <TouchableOpacity onPress={exitSelecting} accessibilityRole="button" accessibilityLabel="Cancelar selección" hitSlop={8} style={s.selectToggle}>
+            <Text style={[s.selectToggleText, { color: c.accent }]}>Cancelar</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+      <ScrollView onScroll={onScroll} scrollEventThrottle={16} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: selecting ? 4 : 24, paddingBottom: insets.bottom + (selecting ? 100 : 120) }} showsVerticalScrollIndicator={false}>
         {!loading && menus.length === 0 ? (
           <View style={[s.empty, { borderColor: c.border }]}>
             <Ionicons name="receipt-outline" size={28} color={c.textMute} />
             <Text style={[s.emptyTitle, { color: c.text }]}>{noWidow('Todavía no hay menús')}</Text>
             <Text style={[s.emptyBody, { color: c.textSecondary }]}>{noWidow('Cuando publiques uno aparecerá aquí para volver a usarlo.')}</Text>
-            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Crear menú" style={[s.emptyButton, { backgroundColor: c.accent }]} onPress={() => router.replace('/menu')} activeOpacity={0.84}>
-              <Text style={s.emptyButtonText}>{noWidow('Crear menú')}</Text>
-            </TouchableOpacity>
           </View>
         ) : showGroupLabels ? (
           groups.map((group, groupIndex) => (
@@ -168,29 +165,64 @@ export default function HistorialScreen() {
           </View>
         </View>
       </Modal>
-      <BottomTabBar variant="fondero" />
+      {selecting ? (
+        <View style={[s.actionBar, { paddingBottom: insets.bottom + 10, borderTopColor: c.border }]}>
+          <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
+          <Text style={[s.actionCount, { color: c.textSecondary }]}>
+            {selectedFechas.size} {selectedFechas.size === 1 ? 'seleccionado' : 'seleccionados'}
+          </Text>
+          <TouchableOpacity
+            disabled={selectedFechas.size === 0}
+            onPress={() => { const fechas = Array.from(selectedFechas); deleteMenus(fechas); exitSelecting(); }}
+            accessibilityRole="button"
+            accessibilityLabel="Eliminar menús seleccionados"
+            style={[s.actionBtn, selectedFechas.size === 0 && s.actionBtnDisabled, { borderColor: c.border }]}>
+            <Ionicons name="trash-outline" size={18} color={c.text} />
+            <Text style={[s.actionBtnText, { color: c.text }]}>Eliminar</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <BottomTabBar variant="fondero" />
+      )}
+      <ActionSheet
+        visible={!!actionsFor}
+        anchorRef={{ current: actionsFor ? moreRefs.current.get(actionsFor.fecha) ?? null : null }}
+        title={actionsFor ? (actionsFor.nombre || defaultHistoryTitle(actionsFor)) : undefined}
+        onDismiss={() => setActionsFor(null)}
+        options={actionsFor ? [
+          { label: 'Editar y usar', icon: 'create-outline', onPress: () => reuse(actionsFor.secciones) },
+          { label: 'Renombrar', icon: 'text-outline', onPress: () => openRename(actionsFor) },
+          { label: 'Eliminar', icon: 'trash-outline', destructive: true, onPress: () => deleteMenu(actionsFor) },
+        ] : []}
+      />
     </View>
   );
 }
 
 const s = StyleSheet.create({
   root: { flex: 1 },
-  newButton: { alignSelf: 'flex-start', marginTop: 16, minHeight: 44, paddingHorizontal: 14, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, borderStyle: 'dashed', flexDirection: 'row', alignItems: 'center', gap: 4 },
-  newButtonText: { fontSize: 14, fontWeight: '700' },
-  empty: { marginTop: 34, padding: 24, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center' },
+  empty: { marginTop: 24, padding: 24, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center' },
   emptyTitle: { marginTop: 14, fontSize: 20, fontWeight: '800' },
   emptyBody: { maxWidth: 270, marginTop: 7, textAlign: 'center', fontSize: 14, lineHeight: 20 },
-  emptyButton: { minHeight: 48, marginTop: 20, paddingHorizontal: 22, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
-  emptyButtonText: { color: '#fff', fontSize: 15, fontWeight: '700' },
   list: { marginTop: 28, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
   groupLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1.4, textTransform: 'uppercase' },
   row: { minHeight: 84, paddingHorizontal: 17, paddingVertical: 15, flexDirection: 'row', alignItems: 'center', gap: 8 },
   date: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.8 },
   summary: { marginTop: 5, fontSize: 15, lineHeight: 20, fontWeight: '500' },
-  iconBtn: { width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-  actionsRow: { alignSelf: 'flex-end', flexDirection: 'row', gap: 4, padding: 5, borderRadius: 12, marginRight: 17, marginBottom: 12 },
-  action: { minHeight: 34, paddingHorizontal: 10, flexDirection: 'row', alignItems: 'center', gap: 4 },
-  actionText: { fontSize: 12, fontWeight: '500' },
+  // Homologado con navButton de coleccion/[id].tsx: ícono suelto, sin caja
+  // de fondo, círculo completo — mismo botón "···" en toda la app.
+  iconBtn: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
+  selectRow: { paddingHorizontal: 20, paddingTop: 12, flexDirection: 'row', justifyContent: 'flex-end' },
+  selectToggle: { minHeight: 32, justifyContent: 'center' },
+  selectToggleText: { fontSize: 14, fontWeight: '700' },
+  actionBar: {
+    position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 20, paddingTop: 14, overflow: 'hidden',
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  actionCount: { fontSize: 12, fontWeight: '600', textAlign: 'center', marginBottom: 10 },
+  actionBtn: { minHeight: 48, borderRadius: 14, borderWidth: 1.5, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
+  actionBtnDisabled: { opacity: 0.35 },
+  actionBtnText: { fontSize: 14, fontWeight: '700' },
   modalBackdrop: { flex: 1, paddingHorizontal: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.42)' },
   modalCard: { width: '100%', maxWidth: 360, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, padding: 18 },
   modalTitle: { fontSize: 22, fontWeight: '900', fontFamily: Fonts.brand },

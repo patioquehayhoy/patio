@@ -866,7 +866,7 @@ export default function PatioDetailScreen() {
       </Animated.ScrollView>
       <SaveToListSheet
         visible={saveSheetVisible}
-        patioId={patio.id}
+        patioIds={[patio.id]}
         patioName={patio.name}
         onDismiss={() => setSaveSheetVisible(false)}
       />

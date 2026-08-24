@@ -75,7 +75,10 @@ export default function LoginCallback() {
       }
       await saveUserRole('fondero').catch(() => {});
       const { needsSetup } = await initializeSignedInUser(session);
-      safeRedirect(needsSetup ? '/patio-smart' : '/menu');
+      // Mismo criterio que index.tsx: entrar por magic link con el negocio
+      // ya dado de alta manda a la base real (Menús/historial), no al
+      // chooser de primera vez (auditado 2026-08-24).
+      safeRedirect(needsSetup ? '/patio-smart' : '/historial');
     };
 
     async function handle() {

@@ -26,7 +26,7 @@ export function useFoodieAccountController() {
 
   const handleDevFondero = useCallback(async () => {
     await saveUserRole('fondero').catch(() => {});
-    router.replace('/menu');
+    router.replace('/historial');
   }, []);
 
   const handleFonderoAccess = useCallback(async () => {

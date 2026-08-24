@@ -21,7 +21,7 @@ export default function FotoMenuScreen() {
   const c = fonderoPalette(theme.isDark);
   const s = makeStyles(theme);
   const { analyzePhoto, cancelRead, choosePhoto, menu, prepareCamera, state } = useFotoMenuController({
-    onExit: () => router.replace('/menu'),
+    onExit: () => router.replace('/historial'),
     onManual: () => router.replace('/menu-editar'),
   });
   const launched = useRef(false);
@@ -62,7 +62,7 @@ export default function FotoMenuScreen() {
         source="foto"
         // Cerrar la revisión sale del flujo — regresar a 'idle' dejaba una
         // pantalla en blanco sin cámara ni salida.
-        onBack={() => router.replace('/menu')}
+        onBack={() => router.replace('/historial')}
         onRetake={retake}
       />
     );
@@ -106,7 +106,7 @@ export default function FotoMenuScreen() {
 
       <SafeAreaView style={s.cameraOverlay} pointerEvents="box-none">
         <View style={s.cameraTop}>
-          <TouchableOpacity accessibilityRole="button" accessibilityLabel="Cerrar cámara" style={s.cameraControl} onPress={() => router.replace('/menu')}>
+          <TouchableOpacity accessibilityRole="button" accessibilityLabel="Cerrar cámara" style={s.cameraControl} onPress={() => router.replace('/historial')}>
             <Ionicons name="close" size={23} color="#fff" />
           </TouchableOpacity>
           <View style={s.cameraCopy}>
@@ -144,7 +144,10 @@ export default function FotoMenuScreen() {
             disabled={!cameraReady || capturing}>
             <View style={s.shutterInner} />
           </TouchableOpacity>
-          <View style={s.libraryButton} />
+          <TouchableOpacity accessibilityRole="button" accessibilityLabel="Escribirlo a mano" style={s.libraryButton} onPress={() => router.push('/menu-editar')}>
+            <Ionicons name="create-outline" size={22} color="#fff" />
+            <Text style={s.libraryText}>Escribir</Text>
+          </TouchableOpacity>
         </View>
       </SafeAreaView>
     </View>

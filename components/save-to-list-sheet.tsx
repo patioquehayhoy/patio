@@ -19,7 +19,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { createCollection, getCollections, normalizeCollectionTitle, renameCollection, togglePatioInCollection, type PatioCollection } from '@/lib/collections';
+import { createCollection, getCollections, normalizeCollectionTitle, setPatiosInCollection, togglePatioInCollection, type PatioCollection } from '@/lib/collections';
 import { Fonts, useTheme, type Theme } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
 
@@ -27,12 +27,12 @@ const SCREEN_HEIGHT = Dimensions.get('screen').height;
 
 type SaveToListSheetProps = {
   visible: boolean;
-  patioId: string;
+  patioIds: string[];
   patioName: string;
   onDismiss: () => void;
 };
 
-export function SaveToListSheet({ visible, patioId, patioName, onDismiss }: SaveToListSheetProps) {
+export function SaveToListSheet({ visible, patioIds, patioName, onDismiss }: SaveToListSheetProps) {
   const { theme } = useTheme();
   const s = makeStyles(theme);
   const insets = useSafeAreaInsets();
@@ -40,8 +40,6 @@ export function SaveToListSheet({ visible, patioId, patioName, onDismiss }: Save
   const [collections, setCollections] = useState<PatioCollection[]>([]);
   const [newTitle, setNewTitle] = useState('');
   const [creating, setCreating] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editTitle, setEditTitle] = useState('');
 
   const load = useCallback(() => {
     getCollections().then(setCollections).catch(() => {});
@@ -78,7 +76,10 @@ export function SaveToListSheet({ visible, patioId, patioName, onDismiss }: Save
   })).current;
 
   const toggleCollection = async (collection: PatioCollection) => {
-    const next = await togglePatioInCollection(collection.id, patioId);
+    const allIn = patioIds.every((id) => collection.patioIds.includes(id));
+    const next = patioIds.length > 1
+      ? await setPatiosInCollection(collection.id, patioIds, !allIn)
+      : await togglePatioInCollection(collection.id, patioIds[0]);
     if (!next) return;
     setCollections((current) => current.map((item) => item.id === next.id ? next : item));
     Haptics.selectionAsync().catch(() => {});
@@ -88,27 +89,13 @@ export function SaveToListSheet({ visible, patioId, patioName, onDismiss }: Save
     const title = newTitle.trim();
     if (!title) return;
     const collection = await createCollection(title);
-    const selected = await togglePatioInCollection(collection.id, patioId);
+    const selected = patioIds.length > 1
+      ? await setPatiosInCollection(collection.id, patioIds, true)
+      : await togglePatioInCollection(collection.id, patioIds[0]);
     if (selected) setCollections((current) => [selected, ...current]);
     setNewTitle('');
     setCreating(false);
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-  };
-
-  const startRename = (collection: PatioCollection) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
-    setEditingId(collection.id);
-    setEditTitle(collection.title);
-  };
-
-  const saveRename = async () => {
-    if (!editingId) return;
-    const title = editTitle.trim();
-    if (title) {
-      const renamed = await renameCollection(editingId, title);
-      if (renamed) setCollections((current) => current.map((item) => item.id === renamed.id ? renamed : item));
-    }
-    setEditingId(null);
   };
 
   return (
@@ -129,8 +116,12 @@ export function SaveToListSheet({ visible, patioId, patioName, onDismiss }: Save
               <Ionicons name="checkmark" size={16} color={theme.accent} />
             </View>
             <View style={s.headerCopy}>
-              <Text style={s.title}>Guardado</Text>
-              <Text style={s.subtitle} numberOfLines={2}>{noWidow(`${patioName} ya está en Guardados. Elige una lista para organizarlo.`)}</Text>
+              <Text style={s.title}>{noWidow(patioIds.length > 1 ? 'Organizar' : 'Guardado')}</Text>
+              <Text style={s.subtitle} numberOfLines={2}>
+                {noWidow(patioIds.length > 1
+                  ? `${patioIds.length} lugares seleccionados. Elige una lista.`
+                  : `${patioName} ya está en Guardados. Elige una lista para organizarlo.`)}
+              </Text>
             </View>
             <TouchableOpacity accessibilityLabel="Terminar" accessibilityRole="button" hitSlop={8} onPress={dismiss} style={s.closeButton}>
               <Text style={s.closeText}>Listo</Text>
@@ -139,37 +130,18 @@ export function SaveToListSheet({ visible, patioId, patioName, onDismiss }: Save
 
           <Text style={s.sectionLabel}>{noWidow('TUS LISTAS')}</Text>
           <ScrollView style={s.list} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+            {/* Esta hoja SOLO decide en qué listas vive el lugar — renombrar,
+                compartir y eliminar la lista viven en el panel "Listas" del
+                filtro (foodie-filter-bar.tsx), que es donde de verdad se
+                navegan/administran las listas como destino propio. */}
             {collections.map((collection, index) => {
-              const selected = collection.patioIds.includes(patioId);
-              if (editingId === collection.id) {
-                return (
-                  <View key={collection.id} style={[s.row, index > 0 && s.divider]}>
-                    <View style={s.listIcon}><Ionicons name="pencil" size={16} color={theme.textSecondary} /></View>
-                    <TextInput
-                      autoFocus
-                      value={editTitle}
-                      onChangeText={(value) => setEditTitle(normalizeCollectionTitle(value))}
-                      onSubmitEditing={saveRename}
-                      onBlur={saveRename}
-                      placeholder="Una palabra, ej. Tacos"
-                      placeholderTextColor={theme.textMute}
-                      returnKeyType="done"
-                      autoCapitalize="words"
-                      style={s.input}
-                    />
-                    <TouchableOpacity onPress={saveRename} style={s.createButton} accessibilityRole="button" accessibilityLabel="Guardar nombre de la lista">
-                      <Text style={s.createText}>Listo</Text>
-                    </TouchableOpacity>
-                  </View>
-                );
-              }
+              const selected = patioIds.every((id) => collection.patioIds.includes(id));
               return (
                 <TouchableOpacity
                   key={collection.id}
                   accessibilityRole="checkbox"
                   accessibilityState={{ checked: selected }}
                   onPress={() => toggleCollection(collection)}
-                  onLongPress={() => startRename(collection)}
                   style={[s.row, index > 0 && s.divider]}>
                   <View style={[s.listIcon, selected && s.listIconSelected]}>
                     <Ionicons name="bookmark-outline" size={17} color={selected ? theme.accent : theme.textSecondary} />

@@ -11,10 +11,11 @@ import { USER_ROLE_KEY } from '@/lib/entry-flow';
 import { fonderoPalette, type FonderoColors } from '@/lib/fondero-palette';
 import {
   getFonditaDireccion,
+  getFonditaName,
   getMenuData,
 } from '@/lib/menu-store';
 import { supabase } from '@/lib/supabase';
-import { useTheme } from '@/lib/theme';
+import { Fonts, useTheme } from '@/lib/theme';
 import { useTabBarScroll } from '@/lib/tab-bar-visibility';
 import { noWidow } from '@/lib/typography';
 
@@ -38,10 +39,12 @@ export default function PerfilScreen() {
   const { onScroll } = useTabBarScroll();
   const [address, setAddress] = useState('');
   const [hasMenu, setHasMenu] = useState(false);
+  const [fonditaName, setFonditaName] = useState('');
 
   useFocusEffect(useCallback(() => {
     setAddress(getFonditaDireccion());
     setHasMenu(!!getMenuData()?.secciones.some(section => section.platillos.some(dish => dish.nombre.trim())));
+    setFonditaName(getFonditaName());
   }, []));
 
   const signOut = async () => {
@@ -61,16 +64,23 @@ export default function PerfilScreen() {
     <View style={[s.root, { backgroundColor: c.bg, paddingTop: insets.top }]}>
       <Stack.Screen options={{ headerShown: false }} />
       <ScrollView onScroll={onScroll} scrollEventThrottle={16} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 24, paddingBottom: insets.bottom + 110 }} showsVerticalScrollIndicator={false}>
-        {/* Estado en vivo (¿publiqué hoy o no?), separado de la dirección: son
-            dos tipos de información distintos y no deben vivir en una sola
-            línea. El punto de color es el indicador de estado; la dirección
-            se mueve a la fila "Editar mi negocio", que es donde realmente
-            vive ese dato. */}
-        <View style={s.statusRow}>
-          <View style={[s.statusDot, { backgroundColor: hasMenu ? c.accent : c.textMute }]} />
-          <Text style={[s.statusText, { color: hasMenu ? c.accent : c.textSecondary }]} numberOfLines={1}>
-            {noWidow(hasMenu ? 'Menú publicado hoy' : 'Aún no publicas el menú de hoy')}
+        {/* Identidad primero: el nombre de la fondita es el héroe de la
+            pantalla (patrón de tarjeta de cuenta de Apple — Settings/App
+            Store ponen la identidad antes del grouped list, nunca después).
+            El estado en vivo (¿publiqué hoy o no?) vive debajo como
+            subtítulo de esa identidad, separado de la dirección: son dos
+            tipos de información distintos. La dirección vive en la fila
+            "Editar mi negocio", que es donde realmente pertenece. */}
+        <View style={s.identity}>
+          <Text style={[s.fonditaName, { color: c.text }]} numberOfLines={1}>
+            {fonditaName || 'Tu fondita'}
           </Text>
+          <View style={s.statusRow}>
+            <View style={[s.statusDot, { backgroundColor: hasMenu ? c.accent : c.textMute }]} />
+            <Text style={[s.statusText, { color: hasMenu ? c.accent : c.textSecondary }]} numberOfLines={1}>
+              {noWidow(hasMenu ? 'Menú publicado hoy' : 'Aún no publicas el menú de hoy')}
+            </Text>
+          </View>
         </View>
 
         {/* Grupos por propósito, no por lo que "quepa junto" — espejo real
@@ -125,7 +135,9 @@ export default function PerfilScreen() {
 
 const s = StyleSheet.create({
   root: { flex: 1 },
-  statusRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 },
+  identity: { marginBottom: 4 },
+  fonditaName: { fontSize: 30, fontWeight: '900', fontFamily: Fonts.brand, letterSpacing: -0.8 },
+  statusRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6 },
   statusDot: { width: 7, height: 7, borderRadius: 4 },
   statusText: { fontSize: 13, fontWeight: '600' },
 });

@@ -38,7 +38,7 @@ export function useMenuPreviewController() {
   const fecha = new Date().toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' }).toUpperCase();
 
   const handleBack = useCallback(() => {
-    router.replace('/menu');
+    router.replace('/historial');
   }, []);
 
   const handleOpenProfile = useCallback(() => {

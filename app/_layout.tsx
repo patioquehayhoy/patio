@@ -80,7 +80,6 @@ function RootStack() {
         <Stack.Screen name="vistos" options={{ headerShown: false }} />
         <Stack.Screen name="onboarding" options={{ headerShown: false }} />
         <Stack.Screen name="login-callback" options={{ headerShown: false }} />
-        <Stack.Screen name="menu" options={{ title: '' }} />
         <Stack.Screen name="foto-menu" options={{ headerShown: false }} />
         <Stack.Screen name="menu-editar" options={{ headerShown: false }} />
         <Stack.Screen name="menu-publicado" options={{ headerShown: false }} />

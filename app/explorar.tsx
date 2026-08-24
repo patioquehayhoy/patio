@@ -1034,6 +1034,8 @@ export default function ExplorarScreen() {
             collections={collections}
             categories={[...new Set(allPatios.flatMap((patio) => patio.categories))].sort((a, b) => a.localeCompare(b, 'es'))}
             onCollectionCreated={(c) => setCollections((prev) => [c, ...prev])}
+            onCollectionUpdated={(c) => setCollections((prev) => prev.map((item) => item.id === c.id ? c : item))}
+            onCollectionRemoved={(id) => setCollections((prev) => prev.filter((item) => item.id !== id))}
           />
         </View>
       )}
@@ -1049,6 +1051,8 @@ export default function ExplorarScreen() {
             collections={collections}
             categories={[...new Set(allPatios.flatMap((patio) => patio.categories))].sort((a, b) => a.localeCompare(b, 'es'))}
             onCollectionCreated={(c) => setCollections((prev) => [c, ...prev])}
+            onCollectionUpdated={(c) => setCollections((prev) => prev.map((item) => item.id === c.id ? c : item))}
+            onCollectionRemoved={(id) => setCollections((prev) => prev.filter((item) => item.id !== id))}
           />
         </View>
       )}

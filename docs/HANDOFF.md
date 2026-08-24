@@ -1,5 +1,92 @@
 # HANDOFF
 
+## 2026-08-24 — Selección múltiple, homologación Guardados/Listas/Menús, y colapso del chooser `/menu`
+
+Sesión muy larga de iteración en vivo con Alejandro sobre todo el flujo de
+"organizar mis cosas guardadas" en Foodie y Fondero. Empezó como selección
+múltiple en Guardados y terminó tocando navegación de arranque de toda la
+app. Varias rondas de corrección directa — el detalle línea por línea está
+en los comentarios del código, aquí el resumen de lo que quedó y lo que NO.
+
+**Selección múltiple tipo Fotos de iOS, en Guardados (`app/favoritos.tsx`) y
+Menús (`app/historial.tsx`).** Long-press entra al modo (sin texto
+"Seleccionar" permanente — decisión explícita de Alejandro, no fidelidad
+1:1 a Fotos), checkmarks por fila, barra de vidrio abajo reemplaza la tab
+bar con las acciones en lote (Añadir a lista / Compartir / Quitar en
+Guardados; Eliminar en Menús). `lib/favorites.ts`, `lib/collections.ts` y
+`lib/menu-history.ts` ganaron funciones de lote (`removeFavoritePatios`,
+`setPatiosInCollection`, `deleteLocalMenus`) — llamar las versiones
+individuales en `Promise.all` perdía ids por condición de carrera
+(lectura-escritura no atómica en AsyncStorage).
+
+**Compartir una selección publica una colección real, no solo texto.**
+`favoritos.tsx` crea una colección `unlisted` al vuelo y comparte
+`patio://coleccion-publica/...` — reusa `publishCollection`/
+`collection_places` que ya existían. De paso se corrigió un bug real en
+`app/coleccion/[id].tsx`: compartir una lista privada NUNCA la publicaba
+(lógica invertida), así que el link nunca funcionaba.
+
+**`components/action-sheet.tsx` (nuevo) — menú contextual anclado, no
+Alert.alert ni bottom-sheet.** Decisión de fondo, no solo estética: mezclar
+chrome nativo de iOS (Alert, o peor, un `UIMenu` real vía librería como
+`zeego`) con una app de identidad visual propia (vidrio, tipografía de
+marca) rompe la marca — se validó explícitamente con Alejandro no adoptar
+`UIMenu` nativo por esto, aun sabiendo que tiene costo de build. Se copia el
+PATRÓN de Apple (menú anclado junto al botón que tocaste, sin fila de
+Cancelar) pero el lenguaje visual es 100% Patio. Usado en `historial.tsx` y
+`coleccion/[id].tsx` vía el componente; en `foodie-filter-bar.tsx` se
+reimplementó el mismo patrón INLINE (no como `<Modal>` propio) porque vive
+dentro de otro `<Modal>` ya abierto (el panel "Tus listas") — dos `Modal` de
+RN anidados en iOS es un bug real y documentado: el de encima deja de
+recibir touches. Esto costó dos vueltas de arreglo (ver bug abierto abajo,
+relacionado pero distinto).
+
+**Botón "···" homologado en los tres lugares (Listas, Menús, ficha de
+lista): 44×44, círculo, sin caja de fondo.** `coleccion/[id].tsx` ya lo
+tenía bien desde antes; los otros dos se corrigieron para igualarlo (se
+había ido en la dirección contraria — agregándole caja a los que no la
+tenían, en vez de quitársela al que sí).
+
+**`/menu` (el chooser "Tomar foto / Elegir de Fotos / Escribirlo")
+eliminado por completo.** Auditoría real: `index.tsx` y `login-callback.tsx`
+mandaban a CUALQUIER Fondero con negocio ya dado de alta a este chooser en
+cada apertura de la app, sin importar cuántos menús llevara publicados — se
+sentía como onboarding permanente. Como `foto-menu.tsx` ya tiene Fotos y
+Escribir integrados junto al shutter (construido en esta misma sesión), el
+chooser aparte quedó redundante. Los 6 puntos que apuntaban a `/menu`
+(`index.tsx`, `login-callback.tsx`, `patio-smart.tsx`, `preview.tsx`,
+`lib/entry-flow.ts`, `useFoodieAccountController.ts`,
+`useMenuPreviewController.ts`) ahora van a `/foto-menu` (crear) o
+`/historial` (base real). Sin naranja destacado en ninguna opción — la
+lógica de "acción dominante" ya no aplica sin el chooser como camino
+diario.
+
+**Bug corregido: pantalla "atorada" (contenido de la pantalla anterior
+visible detrás) al navegar en Fondero.** Causa real: la presentación
+`transparentModal` + `contentStyle: {backgroundColor:'transparent'}` que se
+le había puesto a `/menu` (ya eliminado) dependía de "ver" la pantalla de
+atrás — cuando la transición no cerraba limpio, quedaba visible. `patio/[id].tsx`
+usa el mismo patrón desde antes de esta sesión y NO se tocó — si el mismo
+síntoma aparece ahí, es el siguiente sospechoso.
+
+### Bug SIN resolver — ver `docs/TASKS.md` sección "BUG SIN RESOLVER"
+
+El sheet "Tus listas" (`foodie-filter-bar.tsx`) sigue con el campo de
+"Renombrar" tapado por el teclado según el último reporte de Alejandro, a
+pesar de tres vueltas de arreglo (KeyboardAvoidingView, altura dinámica del
+sheet según teclado, medición real vía `onFocus`+`measureLayout`).
+Alejandro insinuó que hay "algo del contexto" sin resolver y cortó la
+sesión antes de aclarar qué. El agente no pudo ver las últimas capturas
+(límite de imágenes de la sesión agotado) ni puede probar en simulador
+(regla del proyecto). Detalle completo, hipótesis sin probar y primer paso
+recomendado en `docs/TASKS.md`.
+
+**Validación:** `npx tsc --noEmit` y `npx expo lint` verdes en cada paso de
+la sesión, incluida la versión final.
+
+**Push pendiente:** este entorno no tiene credenciales de escritura al
+remoto (403) — Alejandro debe subirlo él, como en sesiones anteriores.
+
 ## 2026-08-18 — Pin del mapa rediseñado (selección animada) + fixes de búsqueda sin resultados (`app/explorar.tsx`)
 
 Sesión larga de iteración en vivo con Alejandro probando en su iPhone, con

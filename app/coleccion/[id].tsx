@@ -1,10 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { useCallback, useState } from 'react';
-import { ScrollView, Share, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useCallback, useRef, useState } from 'react';
+import * as Haptics from 'expo-haptics';
+import { Alert, ScrollView, Share, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { getCollection, publishCollection, updateCollection, type PatioCollection } from '@/lib/collections';
+import { ActionSheet } from '@/components/action-sheet';
+import { deleteCollection, getCollection, publishCollection, updateCollection, type PatioCollection } from '@/lib/collections';
 import { todayDish } from '@/lib/controllers/useFavoritePatiosController';
 import { fetchPublicFonditas, type Patio } from '@/lib/patios';
 import { publicPrice } from '@/lib/prices';
@@ -33,8 +35,36 @@ export default function CollectionDetail() {
   };
   const share = async () => {
     if (!item) return;
-    const published = item.visibility === 'private' ? item : await publishCollection(item);
+    // Bug real corregido en auditoría 2026-08-23: antes, si la lista era
+    // privada, NUNCA se publicaba — se compartía sin link, solo texto suelto.
+    // Ahora sube automáticamente a `unlisted` para que el link sí funcione.
+    const target = item.visibility === 'private' ? { ...item, visibility: 'unlisted' as const } : item;
+    const published = await publishCollection(target);
+    if (published.remoteId !== item.remoteId || published.visibility !== item.visibility) setItem(published);
     await Share.share({ message: `${item.title}\n${patios.map((patio) => `• ${patio.name}`).join('\n')}${published.remoteId ? `\n\npatio://coleccion-publica/${published.remoteId}` : ''}` });
+  };
+
+  const [actionsOpen, setActionsOpen] = useState(false);
+  const moreRef = useRef<View | null>(null);
+
+  const confirmDelete = () => {
+    if (!item) return;
+    Alert.alert(
+      noWidow('Eliminar lista'),
+      noWidow(`Se borrará "${item.title}". No se puede deshacer.`),
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: async () => {
+            await deleteCollection(item.id);
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+            router.back();
+          },
+        },
+      ],
+    );
   };
 
   if (!item) return <View style={[s.root, { backgroundColor: theme.bg }]} />;
@@ -44,7 +74,7 @@ export default function CollectionDetail() {
       <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: insets.bottom + 42 }}>
         <View style={s.nav}>
           <TouchableOpacity accessibilityRole="button" accessibilityLabel="Volver" style={s.navButton} onPress={() => router.back()}><Ionicons name="chevron-back" size={23} color={theme.text} /></TouchableOpacity>
-          <TouchableOpacity accessibilityRole="button" accessibilityLabel="Compartir lista" style={s.navButton} onPress={share}><Ionicons name="share-outline" size={21} color={theme.text} /></TouchableOpacity>
+          <TouchableOpacity ref={moreRef} accessibilityRole="button" accessibilityLabel="Acciones de la lista" style={s.navButton} onPress={() => { Haptics.selectionAsync().catch(() => {}); setActionsOpen(true); }}><Ionicons name="ellipsis-horizontal" size={21} color={theme.text} /></TouchableOpacity>
         </View>
 
         <TextInput value={item.title} onChangeText={(title) => patch({ title })} multiline style={[s.title, { color: theme.text }]} />
@@ -104,6 +134,16 @@ export default function CollectionDetail() {
           </View>
         )}
       </ScrollView>
+      <ActionSheet
+        visible={actionsOpen}
+        anchorRef={moreRef}
+        title={item.title}
+        onDismiss={() => setActionsOpen(false)}
+        options={[
+          { label: 'Compartir', icon: 'share-outline', onPress: share },
+          { label: 'Eliminar lista', icon: 'trash-outline', destructive: true, onPress: confirmDelete },
+        ]}
+      />
     </View>
   );
 }

@@ -59,6 +59,20 @@ export async function deleteLocalMenu(fecha: string): Promise<void> {
   }
 }
 
+// Para selección múltiple: una sola lectura/escritura para varias fechas a
+// la vez — deleteLocalMenu en un Promise.all pierde fechas (cada llamada lee
+// el storage antes de que la anterior termine de escribir).
+export async function deleteLocalMenus(fechas: string[]): Promise<void> {
+  try {
+    const list = await getLocalMenus();
+    const toRemove = new Set(fechas);
+    const next = list.filter((menu) => !toRemove.has(menu.fecha));
+    await AsyncStorage.setItem(KEY, JSON.stringify(next));
+  } catch {
+    // Best-effort.
+  }
+}
+
 export async function getLocalMenus(): Promise<LocalMenuEntry[]> {
   try {
     const raw = await AsyncStorage.getItem(KEY);

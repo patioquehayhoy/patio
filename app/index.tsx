@@ -43,7 +43,11 @@ export default function BootScreen() {
         // Supabase alcanzó a verificar aunque iOS reabra la app sin conservar
         // todos los parámetros del deep link.
         if (data.session && savedRole !== 'foodie') {
-          goVia({ pathname: setup?.needsSetup ? '/patio-smart' : '/menu' });
+          // Un Fondero recurrente (ya dado de alta) aterriza en su base real
+          // (Menús/historial), no en el chooser de "cómo quieres empezar" —
+          // ese chooser es primera vez / recién dado de alta, no el arranque
+          // diario de alguien que ya publicó antes (auditado 2026-08-24).
+          goVia({ pathname: setup?.needsSetup ? '/patio-smart' : '/historial' });
           return;
         }
         if (__DEV__) {

@@ -1,6 +1,92 @@
 # TASKS — Cola de trabajo para agentes
 
-> Última actualización: 2026-08-17.
+> Última actualización: 2026-08-24.
+
+## BUG SIN RESOLVER — sheet "Tus listas" roto al entrar a Renombrar
+
+Reportado por Alejandro 2026-08-24, sesión larga de rediseño de Guardados/
+Listas/Menús. **No se pudo confirmar la causa raíz porque el agente no puede
+ver imágenes en esta sesión (límite de la sesión agotado tras muchas
+capturas) ni probar en simulador/device (regla del proyecto: Alejandro
+prueba, el agente no interactúa con la UI).** Quien retome esto SÍ debe poder
+ver capturas/grabación si Alejandro las manda, y debe recordarle que él
+prueba — no abrir el simulador para "solo confirmar".
+
+**Síntoma reportado (palabras de Alejandro):** al tocar "Renombrar" en una
+lista dentro del panel "Tus listas" (`components/foodie-filter-bar.tsx`), el
+campo de texto que aparece queda tapado por el teclado — "todas las veces",
+sugiriendo que podría pasar incluso con filas cercanas al principio de la
+lista, no solo con filas lejos del scroll. Última pista de Alejandro antes de
+cortar la sesión: "no estás considerando algo del contexto" — sin especificar
+cuál; no se alcanzó a aclarar.
+
+**Lo que ya se intentó, en orden, y por qué se descartó o quedó incompleto:**
+1. Agregar `KeyboardAvoidingView` (antes no existía) — necesario pero no
+   suficiente solo.
+2. `scrollTo` con un offset guardado en un `setTimeout(60ms)` desde el botón
+   "···" — descartado: corría antes de que el teclado/sheet terminaran de
+   moverse, y el offset se calculaba ANTES de entrar a modo edición (la fila
+   cambia de alto al convertirse en `TextInput` + botón "Listo").
+3. Alto del sheet dinámico según altura de teclado (`visibleSheetHeight` en
+   `FilterSheet`, vía listeners `keyboardWillShow`/`keyboardWillHide`) — se
+   quedó, parece correcto por cálculo a mano pero sin confirmar en device.
+4. Reemplazar el offset guardado por `measureLayout` disparado en el
+   `onFocus` real del `TextInput` (ref `renameInputRef`, mide contra
+   `listsScrollRef` vía `findNodeHandle`) — última versión, tampoco
+   confirmada.
+
+**Hipótesis sin probar que Alejandro insinuó y no se alcanzó a investigar:**
+que el `Animated.View` del sheet (`s.sheet`, altura fija vía
+`height: visibleSheetHeight`) no se re-mide correctamente cuando la fila en
+edición cambia de altura al convertirse en `TextInput`, y que eso rompe el
+layout del sheet completo apenas se entra a modo edición — independiente de
+scroll o posición. Si es así, el problema no está en `scrollTo`/
+`measureLayout` (que ya se tocaron 3 veces) sino en cómo se calcula/aplica
+`visibleSheetHeight` cuando el contenido interno cambia de tamaño. Vale la
+pena investigar esto ANTES de tocar de nuevo el scroll.
+
+**Archivo:** `components/foodie-filter-bar.tsx`, componente `FilterSheet` y
+el bloque de renombrar inline dentro de `FoodieFilterBar` (busca
+`editingId`, `renameInputRef`, `scrollRenameIntoView`, `visibleSheetHeight`).
+
+**Primer paso recomendado para quien retome esto:** pedirle a Alejandro una
+grabación de pantalla nueva (o capturas) y CONFIRMAR primero si pasa con una
+fila arriba de la lista sin necesidad de scroll — eso decide si el bug es de
+scroll/posición o de layout del sheet completo.
+
+## PENDIENTE — monetización de listas (cobro por lista de influencer)
+
+Surgió en sesión 2026-08-23, tras construir selección múltiple + compartir en
+Guardados (`app/favoritos.tsx`): compartir una selección ahora la publica
+como colección `unlisted` real con link (`patio://coleccion-publica/...`),
+reusando `publishCollection`/`collection_places` que ya existían para listas
+guardadas. La pieza de datos para "lista pública compartible" ya está
+completa y funcionando.
+
+**Idea de producto (sin construir, solo anotada):** que alguien con
+audiencia (ej. un influencer local) pueda cobrar por desbloquear su lista
+curada de lugares (ej. "mis 10 lugares favoritos de CDMX"), en vez de
+compartirla gratis.
+
+**Lo que falta si se decide construir:**
+- Candado en la colección: preview gratis de 2-3 lugares, resto bloqueado
+  hasta pagar (nuevo estado de `visibility` o campo de precio en
+  `collections`).
+- Pago vía StoreKit/In-App Purchase — es la única vía permitida por Apple
+  para desbloquear contenido digital dentro de la app. Apple cobra comisión:
+  **30% estándar**, pero **15% si Patio califica para el App Store Small
+  Business Program** (facturación bruta anual <$1M USD por cuenta de
+  desarrollador — Patio calificaría hoy). Aplica también a suscripciones
+  después del primer año activo (30%→15%). Fuera de la compra dentro de la
+  app, sí se puede promocionar/vender el acceso por fuera (redes, sitio web)
+  sin que Apple se lleve nada — la restricción de IAP es solo para el
+  desbloqueo que ocurre *dentro* de la app.
+- Riesgo real no es la mecánica (ya existe la mitad): es si hay demanda de
+  pagar por una lista antes de que Patio tenga suficiente red/tráfico propio
+  — más una apuesta de *cuándo* prender esto que de dificultad técnica.
+
+**No implementar sin decisión explícita de Alejandro sobre alcance y
+timing.**
 
 ## PROGRAMADO 2026-08-17 · 3am — barrido de consistencia + rediseño de Guardados
 

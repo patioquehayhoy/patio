@@ -31,3 +31,14 @@ export async function removeFavoritePatio(id: string) {
   await setFavoritePatioIds(next);
   return next;
 }
+
+// Una sola lectura/escritura para varios ids a la vez — llamar
+// removeFavoritePatio en un Promise.all pierde ids (cada llamada lee el
+// storage antes de que la anterior termine de escribir).
+export async function removeFavoritePatios(ids: string[]) {
+  const current = await getFavoritePatioIds();
+  const toRemove = new Set(ids);
+  const next = current.filter((favoriteId) => !toRemove.has(favoriteId));
+  await setFavoritePatioIds(next);
+  return next;
+}

@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import { useEffect, useRef, useState } from 'react';
-import { Alert, Animated, Dimensions, findNodeHandle, Keyboard, KeyboardAvoidingView, Modal, PanResponder, Platform, ScrollView, Share, StyleSheet, Text, TextInput, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { Alert, Animated, Dimensions, Keyboard, KeyboardAvoidingView, Modal, PanResponder, Platform, ScrollView, Share, StyleSheet, Text, TextInput, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ACTION_SHEET_MENU_WIDTH } from '@/components/action-sheet';
@@ -141,6 +141,22 @@ function styles(t: Theme) {
     inlineRow: { minHeight: 46, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
     divider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border },
     inlineRowText: { fontSize: 15.5, fontWeight: '500' },
+    // Diálogo de renombrar en Android (Alert.prompt no existe ahí) — mismo
+    // lenguaje visual de tarjeta flotante glass que el resto del archivo,
+    // pero centrado y de tamaño fijo (patrón alert de Archivos/Recordatorios/
+    // Fotos de Apple): un diálogo así nunca puede quedar tapado por el
+    // teclado sin importar cuántas listas existan, porque no vive dentro de
+    // un ScrollView — ver nota en startRename.
+    renameBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40 },
+    renameCard: { width: '100%', maxWidth: 320, borderRadius: 18, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: border },
+    renameCardTint: { ...StyleSheet.absoluteFillObject, backgroundColor: t.isDark ? 'rgba(28,29,32,0.86)' : 'rgba(255,255,255,0.86)' },
+    renameTitle: { fontSize: 15, fontWeight: '700', color: t.text, textAlign: 'center', paddingTop: 18, paddingHorizontal: 16 },
+    renameInput: { marginTop: 14, marginHorizontal: 16, height: 40, borderRadius: 10, paddingHorizontal: 12, fontSize: 15, color: t.text, backgroundColor: t.isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' },
+    renameActions: { flexDirection: 'row', marginTop: 16, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border },
+    renameActionBtn: { flex: 1, height: 46, alignItems: 'center', justifyContent: 'center' },
+    renameActionDivider: { borderLeftWidth: StyleSheet.hairlineWidth, borderLeftColor: t.border },
+    renameActionText: { fontSize: 15.5, fontWeight: '600', color: t.text },
+    renameActionTextPrimary: { fontWeight: '700', color: t.accent },
   });
 }
 
@@ -177,9 +193,9 @@ function QuickToggle({ label, active, onPress, s, theme }: { label: string; acti
 // arrastrable): el contenido cabe cómodo en una sola altura generosa con
 // scroll propio — replicar el resize de dos alturas de UIKit es la única
 // pieza de la HIG que no se copió 1:1 aquí, a propósito, por costo/beneficio.
-function FilterSheet({ visible, onClose, title, onClear, children, overlay, scrollRef, s, theme }: {
+function FilterSheet({ visible, onClose, title, onClear, children, overlay, s, theme }: {
   visible: boolean; onClose: () => void; title: string; onClear?: () => void;
-  children: React.ReactNode; overlay?: React.ReactNode; scrollRef?: React.RefObject<ScrollView | null>; s: ReturnType<typeof styles>; theme: ReturnType<typeof useTheme>['theme'];
+  children: React.ReactNode; overlay?: React.ReactNode; s: ReturnType<typeof styles>; theme: ReturnType<typeof useTheme>['theme'];
 }) {
   const insets = useSafeAreaInsets();
   const { height: screenHeight } = useWindowDimensions();
@@ -258,7 +274,7 @@ function FilterSheet({ visible, onClose, title, onClear, children, overlay, scro
               </View>
             </View>
           </View>
-          <ScrollView ref={scrollRef} keyboardShouldPersistTaps="handled">{children}</ScrollView>
+          <ScrollView keyboardShouldPersistTaps="handled">{children}</ScrollView>
         </Animated.View>
         {/* El menú de acciones por lista vive AQUÍ — dentro del mismo Modal
             (evita el bug real de dos <Modal> de RN anidados en iOS, ver
@@ -293,20 +309,21 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
   // Menú nativo (Alert), no fila expandible: Fotos gestiona un álbum con un
   // menú que flota encima, nunca reacomodando el layout de la lista (auditado
   // 2026-08-23 tras confusión real de que la fila empujaba el contenido).
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editTitle, setEditTitle] = useState('');
   const [actionsTarget, setActionsTarget] = useState<PatioCollection | null>(null);
   const [actionsLayout, setActionsLayout] = useState<{ top?: number; bottom?: number; left: number } | null>(null);
   const moreRefs = useRef<Map<string, View | null>>(new Map());
-  // Para hacer scroll automático a la fila cuando entras a renombrar — sin
-  // esto, en una lista larga la fila puede quedar fuera de vista incluso
-  // después de que el sheet sube por el teclado (reportado 2026-08-24).
-  // Segunda vuelta: en vez de guardar la posición ANTES de editar (con un
-  // setTimeout arbitrario que podía correr antes de que el teclado/sheet
-  // terminaran de moverse), se mide la posición REAL del input hasta que
-  // toma foco de verdad — ver onFocus abajo.
-  const listsScrollRef = useRef<ScrollView | null>(null);
-  const renameInputRef = useRef<TextInput | null>(null);
+  // Renombrar usa el patrón nativo de Apple (Archivos, Recordatorios, Fotos):
+  // un alert con campo de texto, flotante y centrado por el sistema — no
+  // depende de la posición de scroll ni del número de listas. Reemplaza el
+  // editor inline dentro del sheet (4 intentos fallidos documentados en
+  // TASKS.md 2026-08-24: el cálculo de scroll usaba measureLayout contra el
+  // ScrollView, que da la posición YA relativa al viewport visible en vez de
+  // absoluta al contenido — sumarle otra vez el offset de scroll subestimaba
+  // cuánto faltaba avanzar en listas largas, dejando la fila casi tapada por
+  // el teclado; confirmado en grabación de pantalla 2026-08-24).
+  // Alert.prompt es solo iOS; Android usa el diálogo propio de abajo.
+  const [renameTarget, setRenameTarget] = useState<PatioCollection | null>(null);
+  const [renameValue, setRenameValue] = useState('');
   const attributeCount = foodieFilterCount(filters);
   const activeCollections = collections.filter((item) => filters.collectionIds.includes(item.id));
   const listsLabel = activeCollections.length === 0 ? 'Listas' : activeCollections.length === 1 ? activeCollections[0].title : `${activeCollections.length} listas`;
@@ -327,36 +344,30 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
   };
 
+  const commitRename = async (collectionId: string, rawTitle: string) => {
+    const title = normalizeCollectionTitle(rawTitle.trim());
+    if (!title) return;
+    const renamed = await renameCollection(collectionId, title);
+    if (renamed) onCollectionUpdated?.(renamed);
+  };
+
   const startRename = (collection: PatioCollection) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
-    setEditingId(collection.id);
-    setEditTitle(collection.title);
-  };
-
-  // Dispara con el foco real del input (autoFocus ya está puesto), no con
-  // un tiempo adivinado — measureLayout da la posición actual DEL INPUT
-  // relativa al contenido del scroll, en el momento real en que el teclado
-  // empieza a aparecer, sin importar si el sheet ya terminó de encogerse.
-  const scrollRenameIntoView = () => {
-    const input = renameInputRef.current;
-    const scroll = listsScrollRef.current;
-    const scrollHandle = scroll ? findNodeHandle(scroll) : null;
-    if (!input || !scroll || !scrollHandle) return;
-    input.measureLayout(
-      scrollHandle,
-      (_x, y, _width, _height) => scroll.scrollTo({ y: Math.max(0, y - 12), animated: true }),
-      () => {},
-    );
-  };
-
-  const saveRename = async () => {
-    if (!editingId) return;
-    const title = editTitle.trim();
-    if (title) {
-      const renamed = await renameCollection(editingId, title);
-      if (renamed) onCollectionUpdated?.(renamed);
+    if (Platform.OS === 'ios') {
+      Alert.prompt(
+        'Renombrar lista',
+        undefined,
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          { text: 'Guardar', onPress: (value?: string) => commitRename(collection.id, value ?? '') },
+        ],
+        'plain-text',
+        collection.title,
+      );
+    } else {
+      setRenameValue(collection.title);
+      setRenameTarget(collection);
     }
-    setEditingId(null);
   };
 
   const shareCollection = async (collection: PatioCollection) => {
@@ -487,7 +498,6 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
       onClose={() => setOpenPanel(null)}
       title="Tus listas"
       onClear={activeCollections.length > 0 ? () => { Haptics.selectionAsync(); onChange({ ...filters, collectionIds: [] }); } : undefined}
-      scrollRef={listsScrollRef}
       overlay={actionsTarget && actionsLayout && (
         <>
           {/* Menú anclado junto al botón "···" que tocaste — mismo
@@ -547,29 +557,6 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
       )}
       {collections.map((collection) => {
         const active = filters.collectionIds.includes(collection.id);
-        if (editingId === collection.id) {
-          return (
-            <View key={collection.id} style={s.option}>
-              <TextInput
-                ref={renameInputRef}
-                autoFocus
-                onFocus={scrollRenameIntoView}
-                value={editTitle}
-                onChangeText={(value) => setEditTitle(normalizeCollectionTitle(value))}
-                onSubmitEditing={saveRename}
-                onBlur={saveRename}
-                placeholder="Una palabra, ej. Tacos"
-                placeholderTextColor={theme.textMute}
-                returnKeyType="done"
-                autoCapitalize="words"
-                style={s.createInput}
-              />
-              <TouchableOpacity hitSlop={CREATE_BTN_HIT_SLOP} onPress={saveRename} style={s.createBtn}>
-                <Text style={s.createBtnText}>Listo</Text>
-              </TouchableOpacity>
-            </View>
-          );
-        }
         return (
           <View key={collection.id} style={s.option}>
             <TouchableOpacity
@@ -592,5 +579,44 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
         );
       })}
     </FilterSheet>
+
+    {/* Respaldo Android — Alert.prompt no existe en esa plataforma. Modal
+        propio, centrado y de tamaño fijo (no vive dentro de un ScrollView),
+        mismo lenguaje visual glass que el resto del archivo. Nido de dos
+        <Modal> es seguro aquí porque el bug de Modales anidados documentado
+        arriba es específico de iOS (ver comentario en FilterSheet) y esta
+        rama nunca corre en iOS. */}
+    {Platform.OS !== 'ios' && (
+      <Modal transparent visible={!!renameTarget} animationType="fade" onRequestClose={() => setRenameTarget(null)}>
+        <KeyboardAvoidingView style={s.kav} behavior="padding">
+          <TouchableOpacity activeOpacity={1} style={s.renameBackdrop} onPress={() => setRenameTarget(null)}>
+            <TouchableOpacity activeOpacity={1} style={s.renameCard} onPress={() => {}}>
+              <BlurView intensity={theme.isDark ? 30 : 40} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
+              <View pointerEvents="none" style={s.renameCardTint} />
+              <Text style={s.renameTitle}>{noWidow('Renombrar lista')}</Text>
+              <TextInput
+                autoFocus
+                value={renameValue}
+                onChangeText={(value) => setRenameValue(normalizeCollectionTitle(value))}
+                onSubmitEditing={() => { if (renameTarget) commitRename(renameTarget.id, renameValue); setRenameTarget(null); }}
+                placeholder="Una palabra, ej. Tacos"
+                placeholderTextColor={theme.textMute}
+                returnKeyType="done"
+                autoCapitalize="words"
+                style={s.renameInput}
+              />
+              <View style={s.renameActions}>
+                <TouchableOpacity style={s.renameActionBtn} onPress={() => setRenameTarget(null)}>
+                  <Text style={s.renameActionText}>Cancelar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[s.renameActionBtn, s.renameActionDivider]} onPress={() => { if (renameTarget) commitRename(renameTarget.id, renameValue); setRenameTarget(null); }}>
+                  <Text style={[s.renameActionText, s.renameActionTextPrimary]}>Guardar</Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </KeyboardAvoidingView>
+      </Modal>
+    )}
   </View>;
 }

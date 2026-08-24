@@ -6,7 +6,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect } from 'react';
 
-import { getMenuData } from '@/lib/menu-store';
 import { useTheme } from '@/lib/theme';
 import { useTabBarTranslate } from '@/lib/tab-bar-visibility';
 
@@ -62,18 +61,6 @@ export function BottomTabBar({ variant = 'fondero' }: { variant?: 'foodie' | 'fo
   const isDark = theme.isDark;
   const c = isDark ? DARK : LIGHT;
   const tabs = variant === 'foodie' ? FOODIE_TABS : FONDERO_TABS;
-  // Señal reutilizada de Mi Patio (mismo criterio que el status-dot de
-  // perfil.tsx: "¿publiqué hoy?"). Vive como badge sobre el "+" de crear
-  // menú. Corregido 2026-08-24: primero se quitó el botón de cámara de la
-  // navegación por completo (violaba la ley de acento al ser naranja y
-  // repetirse en las 3 pantallas de Fondero) — corrección de Alejandro
-  // sobre esa primera pasada: la acción SÍ debe vivir en la navegación
-  // (mismo lugar que el "+" de crear en Instagram/apps de Apple), solo que
-  // como ícono plano homologado al resto de los tabs, no como botón grande
-  // de fondo de color. Queda como el primer ítem de la barra, a la
-  // izquierda de "Menús", sin tinte de "activo" (no es un destino
-  // persistente, es una acción — igual que el "+" de esas apps).
-  const pendingToday = variant === 'fondero' && !getMenuData()?.secciones.some((section) => section.platillos.some((dish) => dish.nombre.trim()));
   return (
     <Animated.View style={[styles.wrap, { bottom: (insets.bottom || 10) + 4 }, translateY ? { transform: [{ translateY }] } : null]}>
       <LinearGradient
@@ -92,22 +79,6 @@ export function BottomTabBar({ variant = 'fondero' }: { variant?: 'foodie' | 'fo
           style={StyleSheet.absoluteFill}
           pointerEvents="none"
         />
-        {variant === 'fondero' && (
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessibilityLabel={pendingToday ? 'Nuevo menú, pendiente publicar hoy' : 'Nuevo menú'}
-            style={styles.tab}
-            activeOpacity={0.7}
-            hitSlop={{ top: 10, bottom: 10, left: 6, right: 6 }}
-            onPress={() => {
-              Keyboard.dismiss();
-              reveal();
-              router.push('/foto-menu');
-            }}>
-            <Ionicons name="add" size={24} color={c.mute} />
-            {pendingToday && <View style={[styles.badge, { backgroundColor: c.accent, borderColor: c.pill }]} />}
-          </TouchableOpacity>
-        )}
         {tabs.map(({ path, label, icon }) => {
           const active = pathname === path;
           const onTabPress = () => {
@@ -157,7 +128,4 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   tab: { width: 49, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
-  // Punto de atención sobre el ícono (patrón real de badge de tab bar iOS),
-  // no un botón de acción propio — ver nota arriba (corregido 2026-08-24).
-  badge: { position: 'absolute', top: 6, right: 11, width: 8, height: 8, borderRadius: 4, borderWidth: 1.5 },
 });

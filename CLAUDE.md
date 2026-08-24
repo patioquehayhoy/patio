@@ -18,7 +18,17 @@ Antes de cualquier cambio de UI, copy o flujo, leer los siguientes documentos en
 - `"¿Qué hay hoy?"` y `"Saaaaaaabes."` van SIEMPRE juntos como par de marca — nunca separados en una misma pieza
 - **PROHIBIDO el lenguaje comparativo** "no es X, es Y" ("Esto no es un delivery…", "no es solo un menú…"). Es contaminación de identidad verbal: se afirma lo que Patio ES, sin apoyarse en negaciones (ley dictada 2026-07-07)
 - El tono es humano, local, editorial — nunca genérico ni de marketing
-- Fondero y Foodie son roles distintos con JTBDs distintos — no mezclar ni contaminar sus flujos
+- Fondero y Foodie son roles distintos con JTBDs distintos. **Derogado
+  2026-08-24:** la prohibición total de "no mezclar ni contaminar sus
+  flujos" quedó eliminada por decisión de Alejandro — estaba haciendo daño
+  al bloquear que dos pantallas que resuelven el mismo problema (ej.
+  Guardados y Menús: organizar una colección propia) compartan el mismo
+  lenguaje visual y de interacción. Ahora la regla es la inversa: cuando dos
+  pantallas hacen lo mismo, DEBEN compartir tarjeta/filtro/selección/vacío
+  en vez de reinventarse por separado (ver caso Guardados↔Menús). Lo que
+  sigue sin mezclarse es el CONTENIDO y el JTBD de cada flujo — un Fondero
+  no ve lugares guardados, un Foodie no ve sus menús — no la forma en que se
+  construyen las pantallas.
 - **LEY TIPOGRÁFICA ABSOLUTA — CERO VIUDAS:** ningún título, subtítulo, párrafo,
   ayuda, alerta o CTA de varias palabras puede dejar una palabra sola en la
   última línea. Todo copy estático de UI debe pasar por `noWidow()` de

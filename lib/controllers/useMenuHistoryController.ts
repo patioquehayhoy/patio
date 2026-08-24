@@ -3,6 +3,7 @@ import { useCallback, useState } from 'react';
 import { Alert } from 'react-native';
 
 import { deleteLocalMenu, deleteLocalMenus, getLocalMenus, renameLocalMenu, seedDemoHistory } from '@/lib/menu-history';
+import { removeFechasFromAllCollections } from '@/lib/menu-collections';
 import { setMenuData, type MenuData } from '@/lib/menu-store';
 import { supabase } from '@/lib/supabase';
 import { getFonditaId } from '@/lib/user-store';
@@ -107,6 +108,7 @@ export function useMenuHistoryController() {
           style: 'destructive',
           onPress: async () => {
             await deleteLocalMenu(menu.fecha);
+            await removeFechasFromAllCollections([menu.fecha]);
             const id = getFonditaId();
             if (id) await supabase.from('menus').delete().eq('fondita_id', id).eq('fecha', menu.fecha);
             setMenus((prev) => prev.filter((m) => m.fecha !== menu.fecha));
@@ -127,6 +129,7 @@ export function useMenuHistoryController() {
           style: 'destructive',
           onPress: async () => {
             await deleteLocalMenus(fechas);
+            await removeFechasFromAllCollections(fechas);
             const id = getFonditaId();
             if (id) await supabase.from('menus').delete().eq('fondita_id', id).in('fecha', fechas);
             setMenus((prev) => prev.filter((m) => !fechas.includes(m.fecha)));

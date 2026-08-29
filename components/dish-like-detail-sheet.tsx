@@ -11,7 +11,7 @@ import { noWidow } from '@/lib/typography';
 const SHEET_DISMISS_MS = 190;
 const SHEET_SPRING = { stiffness: 320, damping: 30, mass: 0.75, useNativeDriver: true } as const;
 
-export type DishLikeAuthor = { name: string; avatarUrl?: string; daysAgo: number };
+export type DishLikeAuthor = { name: string; avatarUrl?: string; label: string };
 
 // El total de un platillo se acumula entre publicaciones a propósito
 // (canonicalDishName en lib/menu-store.ts) — no es "la milanesa del
@@ -62,7 +62,7 @@ export function DishLikeDetailSheet({ visible, onClose, dishName, authors }: {
             <View key={`${author.name}-${index}`} style={[s.row, index > 0 && { borderTopColor: c.border, borderTopWidth: StyleSheet.hairlineWidth }]}>
               <AvatarCircle name={author.name} avatarUrl={author.avatarUrl} backgroundColor={c.iconBg} textColor={c.textSecondary} size={34} />
               <Text style={[s.rowText, { color: c.text }]}>{author.name}</Text>
-              <Text style={[s.rowTime, { color: c.textMute }]}>{author.daysAgo === 0 ? 'Hoy' : `Hace ${author.daysAgo} ${author.daysAgo === 1 ? 'día' : 'días'}`}</Text>
+              <Text style={[s.rowTime, { color: c.textMute }]} numberOfLines={1}>{author.label}</Text>
             </View>
           ))}
         </Animated.View>
@@ -81,5 +81,5 @@ const s = StyleSheet.create({
   subtitle: { marginTop: 2, fontSize: 13, fontWeight: '400' },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 20, paddingVertical: 12 },
   rowText: { flex: 1, fontSize: 14.5, fontWeight: '600' },
-  rowTime: { fontSize: 12, fontWeight: '400' },
+  rowTime: { maxWidth: 130, fontSize: 12, fontWeight: '400', textAlign: 'right' },
 });

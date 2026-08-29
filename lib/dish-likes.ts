@@ -125,7 +125,7 @@ export async function getDishLikeEvents(fonditaId: string): Promise<DishLikeEven
 
 export type DishLikeDetail = {
   dishName: string;
-  authors: { name: string; avatarUrl?: string; daysAgo: number }[];
+  authors: { name: string; avatarUrl?: string; fecha: string }[];
 };
 
 // Historial completo de un platillo (todas las veces que se sirvió, no solo
@@ -146,7 +146,6 @@ export async function getDishLikeDetail(fonditaId: string, dishName: string): Pr
   const { data: profiles } = await supabase.from('user_profiles').select('user_id,display_name,avatar_url').in('user_id', userIds);
   const profilesById = new Map((profiles ?? []).map((profile: any) => [profile.user_id, profile]));
 
-  const now = Date.now();
   const authors = (data as any[]).flatMap((row) => {
     const profile: any = profilesById.get(row.user_id);
     const name = profile?.display_name?.trim();
@@ -154,7 +153,7 @@ export async function getDishLikeDetail(fonditaId: string, dishName: string): Pr
     return [{
       name,
       avatarUrl: profile?.avatar_url || undefined,
-      daysAgo: Math.max(0, Math.floor((now - new Date(row.created_at).getTime()) / 86400000)),
+      fecha: new Date(row.created_at).toISOString().split('T')[0],
     }];
   });
   return { dishName, authors };

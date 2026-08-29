@@ -10,6 +10,7 @@ import { DishLikeDetailSheet, type DishLikeAuthor } from '@/components/dish-like
 import { formatLikeAuthors, markActivitySeen } from '@/lib/activity-feed';
 import { getDishLikeDetail, getDishLikeEvents, type DishLikeEvent } from '@/lib/dish-likes';
 import { fonderoPalette } from '@/lib/fondero-palette';
+import { dateLabel, defaultHistoryTitle, useMenuHistoryController } from '@/lib/controllers/useMenuHistoryController';
 import { getFonditaId, getFonditaName } from '@/lib/menu-store';
 import { getPublicPatioReviews, replyToReview, type PublicPatioReview } from '@/lib/ratings';
 import { getDemoPatioStats, type PatioStatsSnapshot } from '@/lib/patio-stats';
@@ -46,6 +47,7 @@ export default function ResenasScreen() {
   const { theme } = useTheme();
   const c = fonderoPalette(theme.isDark);
   const { onScroll } = useTabBarScroll();
+  const { menus } = useMenuHistoryController();
   const [reviews, setReviews] = useState<PublicPatioReview[]>([]);
   const [dishLikes, setDishLikes] = useState<DishLikeEvent[]>([]);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
@@ -77,21 +79,36 @@ export default function ResenasScreen() {
     }
   };
 
+  // Nombre del MENÚ (no de la fecha en crudo) donde vivía el platillo ese
+  // día — buscado fresco cada vez, nunca guardado: si renombras el menú
+  // después, el detalle ya muestra el nombre nuevo solo, sin copia vieja.
+  const menuLabelForFecha = (fecha: string) => {
+    const menu = menus.find((m) => m.fecha === fecha);
+    return menu ? (menu.nombre || defaultHistoryTitle(menu)) : dateLabel(fecha);
+  };
+
   const [detailDish, setDetailDish] = useState<{ name: string; authors: DishLikeAuthor[] } | null>(null);
   const openDishLikeDetail = async (dishName: string) => {
     const fonditaId = getFonditaId();
     if (fonditaId) {
       const detail = await getDishLikeDetail(fonditaId, dishName).catch(() => null);
       if (detail) {
-        setDetailDish({ name: detail.dishName, authors: detail.authors });
+        setDetailDish({
+          name: detail.dishName,
+          authors: detail.authors.map((author) => ({ name: author.name, avatarUrl: author.avatarUrl, label: menuLabelForFecha(author.fecha) })),
+        });
         return;
       }
     }
     // Demo/sin cuenta: junta todos los eventos de ejemplo de ese platillo
     // (puede haber más de uno) en vez de solo el grupo del día que se tocó.
+    // No hay menú real que cruzar aquí — es texto relativo, no una fecha real.
     const authors = (demo?.dishLikes ?? [])
       .filter((event) => event.dishName === dishName)
-      .flatMap((event) => event.authors.map((name) => ({ name, daysAgo: event.daysAgo })));
+      .flatMap((event) => event.authors.map((name) => ({
+        name,
+        label: event.daysAgo === 0 ? 'Hoy' : `Hace ${event.daysAgo} ${event.daysAgo === 1 ? 'día' : 'días'}`,
+      })));
     setDetailDish({ name: dishName, authors });
   };
 

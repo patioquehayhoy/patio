@@ -6,8 +6,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AvatarCircle } from '@/components/avatar-circle';
 import { BottomTabBar } from '@/components/bottom-tab-bar';
+import { DishLikeDetailSheet, type DishLikeAuthor } from '@/components/dish-like-detail-sheet';
 import { formatLikeAuthors, markActivitySeen } from '@/lib/activity-feed';
-import { getDishLikeEvents, type DishLikeEvent } from '@/lib/dish-likes';
+import { getDishLikeDetail, getDishLikeEvents, type DishLikeEvent } from '@/lib/dish-likes';
 import { fonderoPalette } from '@/lib/fondero-palette';
 import { getFonditaId, getFonditaName } from '@/lib/menu-store';
 import { getPublicPatioReviews, replyToReview, type PublicPatioReview } from '@/lib/ratings';
@@ -74,6 +75,24 @@ export default function ResenasScreen() {
     } catch {
       Alert.alert(noWidow('No se pudo responder'), noWidow('Intenta nuevamente cuando tengas conexión.'));
     }
+  };
+
+  const [detailDish, setDetailDish] = useState<{ name: string; authors: DishLikeAuthor[] } | null>(null);
+  const openDishLikeDetail = async (dishName: string) => {
+    const fonditaId = getFonditaId();
+    if (fonditaId) {
+      const detail = await getDishLikeDetail(fonditaId, dishName).catch(() => null);
+      if (detail) {
+        setDetailDish({ name: detail.dishName, authors: detail.authors });
+        return;
+      }
+    }
+    // Demo/sin cuenta: junta todos los eventos de ejemplo de ese platillo
+    // (puede haber más de uno) en vez de solo el grupo del día que se tocó.
+    const authors = (demo?.dishLikes ?? [])
+      .filter((event) => event.dishName === dishName)
+      .flatMap((event) => event.authors.map((name) => ({ name, daysAgo: event.daysAgo })));
+    setDetailDish({ name: dishName, authors });
   };
 
   const hasReal = reviews.length > 0 || dishLikes.length > 0;
@@ -152,8 +171,11 @@ export default function ResenasScreen() {
   const showGroupLabels = groups.length > 1;
 
   const renderItem = (item: ActivityItem, index: number) => (
-    <View
+    <TouchableOpacity
       key={item.key}
+      activeOpacity={item.kind === 'like' ? 0.7 : 1}
+      disabled={item.kind !== 'like'}
+      onPress={() => { if (item.dishName) openDishLikeDetail(item.dishName); }}
       style={[s.row, index > 0 && { borderTopColor: c.border, borderTopWidth: StyleSheet.hairlineWidth }]}>
       <AvatarCircle name={item.author} avatarUrl={item.avatarUrl} backgroundColor={c.iconBg} textColor={c.textSecondary} />
       <View style={s.rowBody}>
@@ -203,7 +225,7 @@ export default function ResenasScreen() {
           )
         )}
       </View>
-    </View>
+    </TouchableOpacity>
   );
 
   return (
@@ -230,6 +252,12 @@ export default function ResenasScreen() {
         )}
       </ScrollView>
       <BottomTabBar variant="fondero" />
+      <DishLikeDetailSheet
+        visible={!!detailDish}
+        onClose={() => setDetailDish(null)}
+        dishName={detailDish?.name ?? ''}
+        authors={detailDish?.authors ?? []}
+      />
     </View>
   );
 }

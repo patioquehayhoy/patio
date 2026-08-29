@@ -122,3 +122,40 @@ export async function getDishLikeEvents(fonditaId: string): Promise<DishLikeEven
     daysAgo: Math.max(0, Math.floor((now - group.latest) / 86400000)),
   }));
 }
+
+export type DishLikeDetail = {
+  dishName: string;
+  authors: { name: string; avatarUrl?: string; daysAgo: number }[];
+};
+
+// Historial completo de un platillo (todas las veces que se sirvió, no solo
+// el grupo del día que se tocó) — para responder "¿quién más y cuándo?" al
+// entrar al detalle de una notificación de like.
+export async function getDishLikeDetail(fonditaId: string, dishName: string): Promise<DishLikeDetail> {
+  if (!/^[0-9a-f-]{36}$/i.test(fonditaId)) return { dishName, authors: [] };
+  const canonical = canonicalDishName(dishName);
+  const { data, error } = await supabase
+    .from('dish_likes')
+    .select('user_id,created_at')
+    .eq('fondita_id', fonditaId)
+    .eq('dish_name', canonical)
+    .order('created_at', { ascending: false });
+  if (error || !data?.length) return { dishName, authors: [] };
+
+  const userIds = [...new Set(data.map((row: any) => row.user_id))];
+  const { data: profiles } = await supabase.from('user_profiles').select('user_id,display_name,avatar_url').in('user_id', userIds);
+  const profilesById = new Map((profiles ?? []).map((profile: any) => [profile.user_id, profile]));
+
+  const now = Date.now();
+  const authors = (data as any[]).flatMap((row) => {
+    const profile: any = profilesById.get(row.user_id);
+    const name = profile?.display_name?.trim();
+    if (!name) return [];
+    return [{
+      name,
+      avatarUrl: profile?.avatar_url || undefined,
+      daysAgo: Math.max(0, Math.floor((now - new Date(row.created_at).getTime()) / 86400000)),
+    }];
+  });
+  return { dishName, authors };
+}

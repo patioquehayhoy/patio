@@ -61,8 +61,10 @@ export function DishLikeDetailSheet({ visible, onClose, dishName, authors }: {
           {authors.map((author, index) => (
             <View key={`${author.name}-${index}`} style={[s.row, index > 0 && { borderTopColor: c.border, borderTopWidth: StyleSheet.hairlineWidth }]}>
               <AvatarCircle name={author.name} avatarUrl={author.avatarUrl} backgroundColor={c.iconBg} textColor={c.textSecondary} size={34} />
-              <Text style={[s.rowText, { color: c.text }]}>{author.name}</Text>
-              <Text style={[s.rowTime, { color: c.textMute }]} numberOfLines={1}>{author.label}</Text>
+              <View style={s.rowBody}>
+                <Text style={[s.rowText, { color: c.text }]} numberOfLines={1}>{author.name}</Text>
+                <Text style={[s.rowSubtext, { color: c.textMute }]} numberOfLines={1}>{noWidow(author.label)}</Text>
+              </View>
             </View>
           ))}
         </Animated.View>
@@ -80,6 +82,7 @@ const s = StyleSheet.create({
   title: { fontSize: 18, fontWeight: '800' },
   subtitle: { marginTop: 2, fontSize: 13, fontWeight: '400' },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 20, paddingVertical: 12 },
-  rowText: { flex: 1, fontSize: 14.5, fontWeight: '600' },
-  rowTime: { maxWidth: 130, fontSize: 12, fontWeight: '400', textAlign: 'right' },
+  rowBody: { flex: 1, minWidth: 0 },
+  rowText: { fontSize: 14.5, fontWeight: '600' },
+  rowSubtext: { marginTop: 1, fontSize: 12.5, fontWeight: '400' },
 });

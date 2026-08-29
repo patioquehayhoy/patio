@@ -1,5 +1,177 @@
 # HANDOFF
 
+## 2026-08-28/29 — Compromiso mutuo Fondero↔Foodie (Cold Start Theory), permiso de cámara en contexto (HIG), y bug real de reseñas destapado
+
+Sesión muy larga, iterativa, con Alejandro probando en vivo en su iPhone
+(build local vía `expo run:ios --device`, USB, sin EAS). El hilo conductor:
+Alejandro pidió una función que ayudara al compromiso/red de ambos lados de
+Patio, grounded en *The Cold Start Problem* (Andrew Chen) — de ahí salió
+todo lo demás. Resumen de lo que quedó, no de cada vuelta intermedia (el
+detalle de cada decisión vive en los comentarios del propio código).
+
+### Bugs de UX encontrados y corregidos primero
+
+- **`components/menu-composer.tsx`**: el menú "Subir/Bajar/Eliminar" de una
+  sección era un bloque inline sin backdrop — nada escuchaba el toque
+  afuera, se quedaba pegado en pantalla sin importar dónde tocaras. Se
+  reemplazó por `ActionSheet` (el mismo componente homologado que ya usan
+  Historial/Colección), que trae backdrop real y se auto-cierra al elegir
+  una opción. Subir/Bajar ahora se ocultan solos cuando no aplican (primera/
+  última sección) en vez de mostrarse atenuados.
+- **Modal "Renombrar menú" (`app/historial.tsx`)**: en modo oscuro, la
+  tarjeta usaba `c.surface` (4% blanco, casi transparente — pensado para
+  cards SOBRE el fondo sólido de pantalla, no para flotar sobre un velo) →
+  se veía el texto de la lista de atrás a través de la tarjeta. Se agregó
+  `surface2` a `lib/fondero-palette.ts` (superficie opaca real para
+  modales, mismos valores que ya usa el lado Foodie) y se aplicó ahí. De
+  paso, el modal no tenía `KeyboardAvoidingView` — se agregó (mismo patrón
+  que `menu-composer.tsx`), así el teclado ya no lo pega sin aire.
+- **`components/menu-lists-sheet.tsx`**: el `Modal` usaba
+  `animationType="slide"`, que anima TODO el árbol junto (velo + sheet)
+  como un solo bloque — el velo (que solo cubre el área arriba del sheet)
+  se veía deslizarse raro desde abajo en vez de aparecer fijo. Corregido al
+  mismo mecanismo ya probado en `foodie-filter-bar.tsx`: `animationType=
+  "none"` + `Animated.View` con `translateY`/spring solo en el sheet: el
+  velo aparece fijo, solo el sheet se mueve.
+
+### Racha de publicación (Fondero) — grounded en Cold Start Theory
+
+`computeStreak()` en `lib/controllers/useMenuHistoryController.ts`: días
+consecutivos reales de publicación (nunca sintéticos), contados hacia atrás
+desde el último menú real — no revienta la racha solo por no haber
+publicado hoy todavía; se rompe si hay más de un día de hueco. Píldora
+(ícono `flame` + número) en el header de Menús junto a "Listas", solo si
+`streak > 0`. Color cambiado de acento naranja a neutro tras feedback de
+Alejandro: el naranja se reserva para acción prominente/alerta, no para un
+dato/logro — y ahora es tocable, muestra una explicación simple (Alejandro
+no entendía qué significaba el ícono).
+
+### Permiso de cámara en contexto (HIG Privacy) + `NewMenuSheet`
+
+Investigación real (WebSearch, developer.apple.com): la guía de Privacy de
+Apple usa como ejemplo textual "elegir Cámara de un action sheet dispara el
+permiso" — confirma que WhatsApp/Instagram/ChatGPT/Claude nunca abren la
+cámara de golpe al tocar su botón de "+"; siempre muestran primero un menú
+de opciones y solo activan la fuente elegida. Antes `foto-menu.tsx` pedía
+permiso de cámara automáticamente al entrar, sin que la persona hubiera
+elegido cámara todavía (rompía el momento de elección, se sentía "de
+golpe").
+
+**`components/new-menu-sheet.tsx` (nuevo)**: sheet con estructura de dos
+grupos (opciones + Cancelar separado, como un action sheet real) con tres
+caminos — Tomar foto / Elegir de Fotos / Escribir a mano. Reemplaza el
+salto directo a cámara en los 4 puntos de entrada a "crear menú"
+(`historial.tsx` ×2, `preview.tsx`, `patio-smart.tsx`). `foto-menu.tsx`
+volvió a ser un visor de cámara simple y de un solo propósito (pide permiso
+de inmediato al entrar, ya es seguro porque la elección ya se hizo un paso
+antes) — se quitaron los botones "Fotos"/"Escribir" que quedaban dentro de
+la cámara (redundantes y confusos ahí, señalado por Alejandro). "Elegir de
+Fotos" pasa el parámetro `source=library` como objeto `{pathname, params}`,
+no como string con `?` pegado — un query string a mano no se parseaba bien
+contra rutas tipadas de Expo Router (bug real encontrado y corregido).
+
+### Like por platillo (backend real) + Actividad fusionada
+
+`lib/menu-store.ts::canonicalDishName()` resuelve un hueco real: cada
+platillo nace con id nuevo por publicación, sin liga entre "el mole de hoy"
+y "el de la semana pasada" — ahora se agrupan por nombre canónico para que
+el like se acumule en vez de resetearse cada publicación (a propósito:
+"esta milanesa lleva 12 likes" es una señal real, "le gustó el martes" no).
+
+- Tabla real `dish_likes` (migración `20260828`, **aplicada** a Supabase).
+- `lib/dish-likes.ts`: mismo patrón de degradación que `ratings.ts` — like
+  siempre local/optimista (sin cuenta), sincroniza a Supabase solo si hay
+  sesión real.
+- Corazón por platillo en `app/patio/[id].tsx` (ficha pública).
+- `app/resenas.tsx` (Actividad): likes se fusionan por platillo+día (sin
+  contenido propio, como Instagram con likes — nunca con comentarios/
+  reseñas, que sí llevan texto único y se quedan individuales con su
+  Responder). Se quitó la tarjeta de estadísticas de arriba (vistas/
+  calificación) a pedido de Alejandro — candidato a hooks de retención
+  reales más adelante, no vanity metrics.
+- Datos sintéticos deterministas (`lib/patio-stats.ts`, solo `__DEV__`) para
+  ver el flujo sin esperar likes reales.
+- Punto de "actividad sin ver" en el tab (icono corazón, antes
+  `chatbubble-ellipses-outline`) — no hay push real todavía, es la señal
+  más honesta posible sin backend de notificaciones.
+
+**Detalle de like (pedido tras QA de Alejandro)**: tocar una fila de like
+abría en nada. Ahora abre `components/dish-like-detail-sheet.tsx` con el
+histórico COMPLETO del platillo (no solo el grupo del día tocado) y quién
+dio like. Segunda vuelta: Alejandro preguntó "¿de qué menú fue este like?"
+— como el like es cumulativo por nombre de platillo (no por día), se
+resuelve el **nombre del menú** por fecha contra el historial real
+(`useMenuHistoryController`), buscado fresco cada vez que se abre el sheet
+— si renombras el menú después, el detalle ya muestra el nombre nuevo
+solo, nunca una copia congelada. Auditado contra HIG (Lists and tables):
+primera versión metía el nombre en una columna angosta de 130px estilo
+"hora" (se truncaba, se leía como metadata) — corregido a nombre arriba +
+menú completo debajo, mismo patrón que Mensajes (contacto + preview).
+
+### Bug real encontrado de paso: `reviews.id` nunca existió en producción
+
+Investigando el "like a reseña" del lado Foodie, se confirmó con una
+consulta directa a la base real que `reviews.id` no existía — la migración
+`20260804_make_reviews_immutable.sql` (que la agrega) llevaba desde agosto
+sin aplicarse. Esto significa que **ninguna reseña real se había mostrado
+nunca en ningún Patio real** — `getPublicPatioReviews()` fallaba en
+silencio (`if (error) return []`) y siempre regresaba vacío. Ya corregido y
+verificado (`HTTP 200` en `reviews?select=id`).
+
+### Like a reseña (Foodie) — reciprocidad simétrica
+
+Mismo principio que el like de platillo, aplicado al otro lado de la red:
+si el Fondero ve reciprocidad al publicar, el Foodie también debe verla al
+reseñar. Tabla real `review_likes` (migración `20260829`, **aplicada**).
+`lib/review-likes.ts` (mismo patrón de degradación). El corazón de cada
+reseña en `patio/[id].tsx` (antes 100% local/efímero, se olvidaba al salir
+de la pantalla) ya persiste de verdad para reseñas reales — las
+demo/sintéticas de esa pantalla (con hilos de comentarios falsos,
+`ReviewThreadReply`) se dejaron intactas, fuera de alcance.
+
+`app/notificaciones.tsx` (nuevo): espejo de Actividad del lado Foodie,
+entrada desde Cuenta → "Notificaciones", punto de "sin ver" en el tab
+Perfil. Se me pasó el fallback demo la primera vez (Alejandro lo notó al
+preguntar cómo probarlo sin una segunda cuenta) — corregido igual que
+Actividad, sintético y determinista solo en `__DEV__`.
+
+Extraídos a compartidos: `components/avatar-circle.tsx` (antes duplicado) y
+`formatLikeAuthors` en `lib/activity-feed.ts`.
+
+### Infraestructura — migraciones aplicadas a Supabase real
+
+Por primera vez esta sesión se logró autenticar el CLI de Supabase de este
+entorno contra la cuenta correcta (dueña de `lafondita`/Patio) — por
+defecto estaba logueado a la cuenta de T1FC/T1ops. Requirió que Alejandro
+generara un **personal access token** desde
+supabase.com/dashboard/account/tokens (`supabase login` interactivo no
+funciona en este entorno, no es una terminal real/TTY) y lo pegara en el
+chat. Con eso se aplicaron tres migraciones reales, una por una, aislando
+con cuidado las que NO debían tocarse (sobre todo
+`20260817_rollback_categorias_multitag.sql` — un archivo que nunca debía
+correr junto con `20260816`, hubiera borrado la columna justo después de
+crearla): `20260804` (fix de `reviews.id`), `20260828` (`dish_likes`),
+`20260829` (`review_likes`). Técnica usada: mover temporalmente los
+archivos de migración que NO se querían aplicar fuera de
+`supabase/migrations/`, correr `supabase db push --dry-run` para confirmar
+qué se aplicaría, aplicar, y restaurar los archivos movidos a su lugar
+exacto (verificado con `git status` que quedaran sin cambios).
+
+**Siguen pendientes, sin tocar**: `20260816_add_categorias_multitag.sql` y
+su rollback — necesitan la revisión ya documentada en `docs/TASKS.md`
+(¿`tipo_negocio` tiene un `CHECK` que la rompa?) antes de aplicarse.
+
+### Git
+
+6 commits creados esta sesión (`847ce31`…`23dc5f2`), working tree limpio.
+**No se pudo hacer `git push`** — mismo bloqueo ya documentado antes: las
+credenciales de Git de este entorno son de la cuenta `T1Alejandro`, sin
+permiso de escritura sobre `patioquehayhoy/patio` (403). Alejandro debe
+correr `git push origin rebuild/patio-final` él mismo.
+
+`npx tsc --noEmit` y `npx expo lint` verdes después de cada cambio, en cada
+commit.
+
 ## 2026-08-24 (cont. 4) — Decisión de fondo: Menús ES Guardados, se deroga la ley de no-mezcla
 
 Alejandro llegó a una conclusión de fondo tras las correcciones anteriores:

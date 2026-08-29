@@ -292,8 +292,10 @@ real sobre la UI vigente; la rama anterior conserva Patio Vivo recuperable.
 - Tarjetas de búsqueda compactas: sin giro persistente; distancia junto a rating.
 - Pleca de ficha: apertura izquierda, pagos centro, horario derecha.
 - Horario ausente o parcial nunca se rellena con datos inventados.
-- Reseñas append-only por visita: una por cuenta/Patio/día, sin edición; nueva
-  política SQL pendiente de aplicar en Supabase remoto.
+- Reseñas append-only por visita: una por cuenta/Patio/día, sin edición.
+  **Aplicada 2026-08-29** (`20260804_make_reviews_immutable.sql`) — hasta
+  entonces `reviews.id` no existía en la base real y ninguna reseña real se
+  mostraba en ningún Patio (`getPublicPatioReviews()` fallaba en silencio).
 
 ## Estado ejecutivo
 

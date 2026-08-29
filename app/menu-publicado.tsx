@@ -54,7 +54,7 @@ export default function MenuPublicadoScreen() {
           <Ionicons name="eye-outline" size={17} color="#FFFFFF" />
           <Text style={s.primaryText}>{noWidow('Ver menú publicado')}</Text>
         </TouchableOpacity>
-        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Listo" style={s.secondary} onPress={() => router.replace('/perfil')} activeOpacity={0.72}>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Listo" style={s.secondary} onPress={() => router.replace('/historial')} activeOpacity={0.72}>
           <Text style={s.secondaryText}>Listo</Text>
         </TouchableOpacity>
       </View>

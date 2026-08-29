@@ -20,6 +20,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BusinessPaymentSelector } from '@/components/business-payment-selector';
 import { BusinessScheduleEditor } from '@/components/business-schedule-editor';
+import { NewMenuSheet } from '@/components/new-menu-sheet';
 import { saveUserRole } from '@/lib/entry-flow';
 import { fonderoPalette, type FonderoColors } from '@/lib/fondero-palette';
 import { sanitizeNombreInput } from '@/lib/fondita-name';
@@ -138,6 +139,7 @@ export default function PatioSmartScreen() {
   const [stage, setStage] = useState<Stage>('name');
   const [loading, setLoading] = useState(false);
   const [locating, setLocating] = useState(false);
+  const [newMenuSheetVisible, setNewMenuSheetVisible] = useState(false);
   const [result, setResult] = useState<SmartSetupResult>(INITIAL_RESULT);
 
   useEffect(() => {
@@ -298,7 +300,7 @@ export default function PatioSmartScreen() {
             {noWidow('Toma una foto del menú o agrégalo en unos cuantos pasos.')}
           </Text>
           <TouchableOpacity
-            onPress={() => router.replace('/foto-menu')}
+            onPress={() => setNewMenuSheetVisible(true)}
             activeOpacity={0.82}
             style={s.finishButton}
             accessibilityRole="button"
@@ -307,6 +309,7 @@ export default function PatioSmartScreen() {
               {noWidow('Crear mi primer menú')}
             </Text>
           </TouchableOpacity>
+          <NewMenuSheet visible={newMenuSheetVisible} onClose={() => setNewMenuSheetVisible(false)} replaceOnNavigate />
           <TouchableOpacity
             onPress={() => setStage('name')}
             activeOpacity={0.68}

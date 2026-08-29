@@ -1,14 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
-import { router, Stack, useFocusEffect } from 'expo-router';
+import { Stack, useFocusEffect } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
-import { Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ActionSheet } from '@/components/action-sheet';
 import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { MenuListsSheet } from '@/components/menu-lists-sheet';
+import { NewMenuSheet } from '@/components/new-menu-sheet';
 import { dateLabel, defaultHistoryTitle, useMenuHistoryController, type PublishedMenu } from '@/lib/controllers/useMenuHistoryController';
 import { fonderoPalette } from '@/lib/fondero-palette';
 import { getMenuCollections, type MenuCollection } from '@/lib/menu-collections';
@@ -31,8 +32,9 @@ export default function HistorialScreen() {
   const { theme } = useTheme();
   const c = fonderoPalette(theme.isDark);
   const { onScroll } = useTabBarScroll();
-  const { closeRename, deleteMenu, deleteMenus, draftName, editing, loading, menus, openRename, reuse, saveName, setDraftName } = useMenuHistoryController();
+  const { closeRename, deleteMenu, deleteMenus, draftName, editing, loading, menus, openRename, reuse, saveName, setDraftName, streak } = useMenuHistoryController();
   const [actionsFor, setActionsFor] = useState<PublishedMenu | null>(null);
+  const [newMenuSheetVisible, setNewMenuSheetVisible] = useState(false);
   const moreRefs = useRef<Map<string, View | null>>(new Map());
   const [selecting, setSelecting] = useState(false);
   const [selectedFechas, setSelectedFechas] = useState<Set<string>>(new Set());
@@ -146,7 +148,7 @@ export default function HistorialScreen() {
           <View style={s.headerRow}>
             <TouchableOpacity
               style={s.createBtn}
-              onPress={() => router.push('/foto-menu')}
+              onPress={() => setNewMenuSheetVisible(true)}
               accessibilityRole="button"
               accessibilityLabel={pendingToday ? 'Nuevo menú, pendiente publicar hoy' : 'Nuevo menú'}
               activeOpacity={0.7}
@@ -154,22 +156,38 @@ export default function HistorialScreen() {
               <Ionicons name="add" size={26} color={c.text} />
               {pendingToday && <View style={[s.createBadge, { backgroundColor: c.accent, borderColor: c.bg }]} />}
             </TouchableOpacity>
-            <TouchableOpacity
-              style={[s.listsBtn, { borderColor: c.border, backgroundColor: c.surface }]}
-              onPress={() => setSheetMode('filter')}
-              accessibilityRole="button"
-              accessibilityLabel={activeListIds.length ? `Listas, ${activeListIds.length} activas` : 'Listas'}
-              activeOpacity={0.75}>
-              <View style={s.listsBlurClip}>
-                <BlurView intensity={30} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
-              </View>
-              <Ionicons name="bookmark-outline" size={16} color={c.text} />
-              {activeListIds.length > 0 && (
-                <View style={[s.listsBadge, { backgroundColor: c.accent }]}>
-                  <Text style={s.listsBadgeText}>{activeListIds.length}</Text>
-                </View>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              {streak > 0 && (
+                <TouchableOpacity
+                  style={[s.streakPill, { borderColor: c.border, backgroundColor: c.surface }]}
+                  activeOpacity={0.75}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Racha de ${streak} ${streak === 1 ? 'día' : 'días'} seguidos publicando menú. Toca para más información`}
+                  onPress={() => Alert.alert(
+                    `Racha de ${streak} ${streak === 1 ? 'día' : 'días'}`,
+                    `Llevas ${streak} ${streak === 1 ? 'día seguido publicando' : 'días seguidos publicando'} tu menú. Se rompe si dejas pasar un día completo sin publicar.`,
+                  )}>
+                  <Ionicons name="flame" size={14} color={c.text} />
+                  <Text style={[s.streakText, { color: c.text }]}>{streak}</Text>
+                </TouchableOpacity>
               )}
-            </TouchableOpacity>
+              <TouchableOpacity
+                style={[s.listsBtn, { borderColor: c.border, backgroundColor: c.surface }]}
+                onPress={() => setSheetMode('filter')}
+                accessibilityRole="button"
+                accessibilityLabel={activeListIds.length ? `Listas, ${activeListIds.length} activas` : 'Listas'}
+                activeOpacity={0.75}>
+                <View style={s.listsBlurClip}>
+                  <BlurView intensity={30} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
+                </View>
+                <Ionicons name="bookmark-outline" size={16} color={c.text} />
+                {activeListIds.length > 0 && (
+                  <View style={[s.listsBadge, { backgroundColor: c.accent }]}>
+                    <Text style={s.listsBadgeText}>{activeListIds.length}</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
         )
       )}
@@ -181,7 +199,7 @@ export default function HistorialScreen() {
             </View>
             <Text style={[s.emptyTitle, { color: c.text }]}>{noWidow('Publica tu primer menú')}</Text>
             <Text style={[s.emptyBody, { color: c.textSecondary }]}>{noWidow('Cuando publiques uno aparecerá aquí para volver a usarlo.')}</Text>
-            <TouchableOpacity style={[s.cta, { backgroundColor: c.accent }]} onPress={() => router.push('/foto-menu')} activeOpacity={0.82} accessibilityRole="button" accessibilityLabel="Nuevo menú">
+            <TouchableOpacity style={[s.cta, { backgroundColor: c.accent }]} onPress={() => setNewMenuSheetVisible(true)} activeOpacity={0.82} accessibilityRole="button" accessibilityLabel="Nuevo menú">
               <Text style={s.ctaText}>{noWidow('Nuevo menú')}</Text>
             </TouchableOpacity>
           </View>
@@ -206,30 +224,32 @@ export default function HistorialScreen() {
         )}
       </ScrollView>
       <Modal visible={!!editing} transparent animationType="fade" onRequestClose={closeRename}>
-        <View style={s.modalBackdrop}>
-          <View style={[s.modalCard, { backgroundColor: c.surface, borderColor: c.border }]}>
-            <Text style={[s.modalTitle, { color: c.text }]}>{noWidow('Renombrar menú')}</Text>
-            <TextInput
-              value={draftName}
-              onChangeText={(value) => setDraftName(value.slice(0, 48))}
-              style={[s.nameInput, { color: c.text, borderColor: c.border }]}
-              placeholder="Ej. Viernes de pozole"
-              placeholderTextColor={c.textMute}
-              selectionColor={c.accent}
-              autoFocus
-              returnKeyType="done"
-              onSubmitEditing={saveName}
-            />
-            <View style={s.modalActions}>
-              <TouchableOpacity accessibilityRole="button" accessibilityLabel="Cancelar" style={[s.modalBtn, { borderColor: c.border }]} onPress={closeRename} activeOpacity={0.75}>
-                <Text style={[s.modalBtnText, { color: c.textSecondary }]}>Cancelar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity accessibilityRole="button" accessibilityLabel="Guardar nombre" style={[s.modalBtn, s.modalPrimary, { backgroundColor: c.accent }]} onPress={saveName} activeOpacity={0.82}>
-                <Text style={s.modalPrimaryText}>Guardar</Text>
-              </TouchableOpacity>
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+          <View style={s.modalBackdrop}>
+            <View style={[s.modalCard, { backgroundColor: c.surface2, borderColor: c.border }]}>
+              <Text style={[s.modalTitle, { color: c.text }]}>{noWidow('Renombrar menú')}</Text>
+              <TextInput
+                value={draftName}
+                onChangeText={(value) => setDraftName(value.slice(0, 48))}
+                style={[s.nameInput, { color: c.text, borderColor: c.border }]}
+                placeholder="Ej. Viernes de pozole"
+                placeholderTextColor={c.textMute}
+                selectionColor={c.accent}
+                autoFocus
+                returnKeyType="done"
+                onSubmitEditing={saveName}
+              />
+              <View style={s.modalActions}>
+                <TouchableOpacity accessibilityRole="button" accessibilityLabel="Cancelar" style={[s.modalBtn, { borderColor: c.border }]} onPress={closeRename} activeOpacity={0.75}>
+                  <Text style={[s.modalBtnText, { color: c.textSecondary }]}>Cancelar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity accessibilityRole="button" accessibilityLabel="Guardar nombre" style={[s.modalBtn, s.modalPrimary, { backgroundColor: c.accent }]} onPress={saveName} activeOpacity={0.82}>
+                  <Text style={s.modalPrimaryText}>Guardar</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
       {selecting ? (
         <View style={[s.actionBar, {
@@ -291,6 +311,7 @@ export default function HistorialScreen() {
         onClearFilter={() => setActiveListIds([])}
         targetFechas={assignFechas}
       />
+      <NewMenuSheet visible={newMenuSheetVisible} onClose={() => setNewMenuSheetVisible(false)} />
     </View>
   );
 }
@@ -300,6 +321,10 @@ const s = StyleSheet.create({
   headerRow: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   createBtn: { width: 34, height: 34, alignItems: 'center', justifyContent: 'center' },
   createBadge: { position: 'absolute', top: 2, right: 2, width: 9, height: 9, borderRadius: 4.5, borderWidth: 1.5 },
+  // Racha de publicación — mismo alto/radio que listsBtn para leerse como
+  // pareja en el header, pero cápsula (ancho variable) por llevar número.
+  streakPill: { height: 34, borderRadius: 17, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10 },
+  streakText: { fontSize: 13, fontWeight: '700' },
   // Pill idéntico al botón "Listas" de foodie-filter-bar.tsx (34×34,
   // borderRadius 17, glass) — copiado, no reinventado (ley de Alejandro
   // 2026-08-24: Menús comparte lenguaje visual con Guardados).

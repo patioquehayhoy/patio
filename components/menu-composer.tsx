@@ -17,6 +17,7 @@ import { emptyMenu, useFonderoMenuDraftController } from '@/lib/controllers/useF
 import { fonderoPalette, type FonderoColors } from '@/lib/fondero-palette';
 import type { MenuData, Platillo, Seccion } from '@/lib/menu-store';
 import { useTheme } from '@/lib/theme';
+import { ActionSheet } from '@/components/action-sheet';
 import { GlassIconButton } from '@/components/glass-button';
 import { noWidow } from '@/lib/typography';
 
@@ -37,6 +38,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
   const {
     addDish,
     addSection,
+    closeSectionActions,
     collapsed,
     data,
     details,
@@ -55,6 +57,18 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
     toggleCollapsed,
     toggleSectionActions,
   } = useFonderoMenuDraftController(initialData, source);
+
+  // Anclaje del "···" de cada sección al mismo menú contextual homologado
+  // que Historial/Colección (components/action-sheet.tsx) — antes esta
+  // pantalla tenía su propio bloque inline sin backdrop, que se quedaba
+  // "pegado" en pantalla porque nada escuchaba el toque afuera.
+  const sectionMoreRefs = useRef<Map<string, View | null>>(new Map());
+  const activeSectionIndex = data.secciones.findIndex((section) => section.id === sectionActions);
+  const sectionActionOptions = activeSectionIndex >= 0 ? [
+    ...(activeSectionIndex > 0 ? [{ label: 'Subir', icon: 'arrow-up' as const, onPress: () => moveSection(sectionActions!, -1) }] : []),
+    ...(activeSectionIndex < data.secciones.length - 1 ? [{ label: 'Bajar', icon: 'arrow-down' as const, onPress: () => moveSection(sectionActions!, 1) }] : []),
+    { label: 'Eliminar', icon: 'trash-outline' as const, destructive: true, onPress: () => removeSection(sectionActions!) },
+  ] : [];
 
   // Revelación progresiva: las sugerencias de sección son secundarias una vez
   // que ya hay secciones armadas — no compiten por espacio con el contenido
@@ -139,6 +153,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                     returnKeyType="done"
                   />
                   <TouchableOpacity
+                    ref={(el) => { sectionMoreRefs.current.set(section.id, el); }}
                     style={s.moreButton}
                     hitSlop={3}
                     onPress={() => toggleSectionActions(section.id)}
@@ -149,42 +164,6 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                     <Ionicons name="ellipsis-horizontal" size={19} color={c.textSecondary} />
                   </TouchableOpacity>
                 </View>
-
-                {actionsOpen && (
-                  <View style={s.sectionActions}>
-                    <TouchableOpacity
-                      disabled={sectionIndex === 0}
-                      onPress={() => moveSection(section.id, -1)}
-                      style={s.action}
-                      hitSlop={{ top: 5, bottom: 5, left: 2, right: 2 }}
-                      accessibilityRole="button"
-                      accessibilityLabel="Subir sección"
-                      accessibilityState={{ disabled: sectionIndex === 0 }}>
-                      <Ionicons name="arrow-up" size={15} color={sectionIndex === 0 ? c.textMute : c.text} />
-                      <Text style={[s.actionText, sectionIndex === 0 && { color: c.textMute }]}>Subir</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      disabled={sectionIndex === data.secciones.length - 1}
-                      onPress={() => moveSection(section.id, 1)}
-                      style={s.action}
-                      hitSlop={{ top: 5, bottom: 5, left: 2, right: 2 }}
-                      accessibilityRole="button"
-                      accessibilityLabel="Bajar sección"
-                      accessibilityState={{ disabled: sectionIndex === data.secciones.length - 1 }}>
-                      <Ionicons name="arrow-down" size={15} color={sectionIndex === data.secciones.length - 1 ? c.textMute : c.text} />
-                      <Text style={[s.actionText, sectionIndex === data.secciones.length - 1 && { color: c.textMute }]}>Bajar</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={() => removeSection(section.id)}
-                      style={s.action}
-                      hitSlop={{ top: 5, bottom: 5, left: 2, right: 2 }}
-                      accessibilityRole="button"
-                      accessibilityLabel="Eliminar sección">
-                      <Ionicons name="trash-outline" size={15} color="#D94841" />
-                      <Text style={[s.actionText, { color: '#D94841' }]}>Eliminar</Text>
-                    </TouchableOpacity>
-                  </View>
-                )}
 
                 {!isCollapsed && (
                   <>
@@ -393,6 +372,13 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <ActionSheet
+        visible={!!sectionActions}
+        anchorRef={{ current: sectionActions ? sectionMoreRefs.current.get(sectionActions) ?? null : null }}
+        onDismiss={closeSectionActions}
+        options={sectionActionOptions}
+      />
     </View>
   );
 }
@@ -411,9 +397,6 @@ function makeStyles(c: FonderoColors) {
     collapseButton: { width: 30, height: 36, alignItems: 'flex-start', justifyContent: 'center' },
     sectionName: { flex: 1, paddingVertical: 6, fontSize: 18, lineHeight: 22, fontWeight: '800', letterSpacing: 0.5, color: c.text },
     moreButton: { width: 38, height: 38, alignItems: 'flex-end', justifyContent: 'center' },
-    sectionActions: { alignSelf: 'flex-end', flexDirection: 'row', gap: 4, padding: 5, borderRadius: 12, backgroundColor: c.iconBg, marginBottom: 8 },
-    action: { minHeight: 34, paddingHorizontal: 10, flexDirection: 'row', alignItems: 'center', gap: 4 },
-    actionText: { fontSize: 12, fontWeight: '500', color: c.text },
     currency: { fontSize: 13, color: c.textMute },
     dish: { paddingVertical: 7, paddingLeft: 30 },
     dishDivider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: c.border },

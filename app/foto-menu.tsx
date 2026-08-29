@@ -31,6 +31,12 @@ export default function FotoMenuScreen() {
   const [capturing, setCapturing] = useState(false);
   const [flashOn, setFlashOn] = useState(false);
 
+  // Pedir el permiso de cámara aquí ya es seguro (HIG Privacy: acceso en
+  // contexto): para llegar a esta pantalla sin `source=library` la persona
+  // ya eligió "Tomar foto" en NewMenuSheet — la elección explícita vive un
+  // paso antes, no aquí. Antes esta pantalla se abría directo desde el "+"
+  // y pedía el permiso de golpe sin que la persona hubiera elegido cámara
+  // todavía; ahora ese momento de elección ocurre siempre antes de entrar.
   useEffect(() => {
     if (!launched.current) {
       launched.current = true;
@@ -38,6 +44,8 @@ export default function FotoMenuScreen() {
       else void prepareCamera().then(setCameraAllowed);
     }
   }, [choosePhoto, prepareCamera, source]);
+
+  const shutterDisabled = !cameraReady || capturing;
 
   const capture = async () => {
     if (!cameraRef.current || !cameraReady || capturing) return;
@@ -131,22 +139,14 @@ export default function FotoMenuScreen() {
         </View>
 
         <View style={s.cameraBottom}>
-          <TouchableOpacity accessibilityRole="button" accessibilityLabel="Elegir de Fotos" style={s.libraryButton} onPress={choosePhoto}>
-            <Ionicons name="images-outline" size={22} color="#fff" />
-            <Text style={s.libraryText}>Fotos</Text>
-          </TouchableOpacity>
           <TouchableOpacity
             accessibilityRole="button"
             accessibilityLabel="Tomar foto"
-            accessibilityState={{ disabled: !cameraReady || capturing }}
-            style={[s.shutterOuter, (!cameraReady || capturing) && s.shutterOff]}
+            accessibilityState={{ disabled: shutterDisabled }}
+            style={[s.shutterOuter, shutterDisabled && s.shutterOff]}
             onPress={capture}
-            disabled={!cameraReady || capturing}>
+            disabled={shutterDisabled}>
             <View style={s.shutterInner} />
-          </TouchableOpacity>
-          <TouchableOpacity accessibilityRole="button" accessibilityLabel="Escribirlo a mano" style={s.libraryButton} onPress={() => router.push('/menu-editar')}>
-            <Ionicons name="create-outline" size={22} color="#fff" />
-            <Text style={s.libraryText}>Escribir</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -177,9 +177,7 @@ function makeStyles(theme: Theme) {
     cornerTR: { top: 0, right: 0, borderTopWidth: 2, borderRightWidth: 2, borderTopRightRadius: 8 },
     cornerBL: { bottom: 0, left: 0, borderBottomWidth: 2, borderLeftWidth: 2, borderBottomLeftRadius: 8 },
     cornerBR: { bottom: 0, right: 0, borderBottomWidth: 2, borderRightWidth: 2, borderBottomRightRadius: 8 },
-    cameraBottom: { minHeight: 122, paddingBottom: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-    libraryButton: { width: 72, minHeight: 54, alignItems: 'center', justifyContent: 'center' },
-    libraryText: { marginTop: 4, color: '#fff', fontSize: 11.5, fontWeight: '600' },
+    cameraBottom: { minHeight: 122, paddingBottom: 10, alignItems: 'center', justifyContent: 'center' },
     shutterOuter: { width: 76, height: 76, borderRadius: 38, borderWidth: 3, borderColor: '#fff', alignItems: 'center', justifyContent: 'center' },
     shutterInner: { width: 62, height: 62, borderRadius: 31, backgroundColor: '#fff' },
     shutterOff: { opacity: 0.45 },

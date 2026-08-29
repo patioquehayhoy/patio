@@ -1,4 +1,4 @@
-import { router, Stack } from 'expo-router';
+import { Stack } from 'expo-router';
 import * as Sharing from 'expo-sharing';
 import { useRef, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -10,6 +10,7 @@ import { useMenuPreviewController } from '@/lib/controllers/useMenuPreviewContro
 import { Fonts, useTheme } from '@/lib/theme';
 import { fonderoPalette, type FonderoColors } from '@/lib/fondero-palette';
 import { GlassIconButton } from '@/components/glass-button';
+import { NewMenuSheet } from '@/components/new-menu-sheet';
 import { noWidow } from '@/lib/typography';
 
 // Vista canónica del menú publicado. Vive dentro de Patio y siempre conserva la
@@ -24,6 +25,7 @@ export default function PreviewScreen() {
   const { businessName, fecha, handleBack, handleOpenProfile, handleShare, patioId, sections } = useMenuPreviewController();
   const posterRef = useRef<View>(null);
   const [sharing, setSharing] = useState(false);
+  const [newMenuSheetVisible, setNewMenuSheetVisible] = useState(false);
 
   const sharePoster = async () => {
     if (sharing || !posterRef.current) return;
@@ -53,9 +55,10 @@ export default function PreviewScreen() {
         </View>
         <Text style={s.emptyTitle}>{noWidow('Primero publica lo de hoy')}</Text>
         <Text style={s.emptyBody}>{noWidow('Cuando tu menú esté listo, aquí aparecerá publicado.')}</Text>
-        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Crear menú" style={s.emptyButton} onPress={() => router.replace('/foto-menu')} activeOpacity={0.84}>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Crear menú" style={s.emptyButton} onPress={() => setNewMenuSheetVisible(true)} activeOpacity={0.84}>
           <Text style={s.emptyButtonText}>{noWidow('Crear menú')}</Text>
         </TouchableOpacity>
+        <NewMenuSheet visible={newMenuSheetVisible} onClose={() => setNewMenuSheetVisible(false)} replaceOnNavigate />
       </View>
     );
   }

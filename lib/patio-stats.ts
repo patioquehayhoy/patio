@@ -23,11 +23,18 @@ export type DemoReview = {
   daysAgo: number;
 };
 
+export type DemoDishLike = {
+  dishName: string;
+  authors: string[];
+  daysAgo: number;
+};
+
 export type PatioStatsSnapshot = {
   views: number;
   ratingAvg: number;
   ratingCount: number;
   reviews: DemoReview[];
+  dishLikes: DemoDishLike[];
 };
 
 const DEMO_NOTES: { note: string; author: string }[] = [
@@ -37,6 +44,13 @@ const DEMO_NOTES: { note: string; author: string }[] = [
   { note: 'Las tortillas hechas a mano se sienten.', author: 'Diego' },
   { note: 'Buen trato y porciones generosas.', author: 'Marisol' },
 ];
+
+// Nombres genéricos de fondita mexicana — el like es una feature nueva sin
+// datos reales todavía en ninguna cuenta; no hay menú real del que tomar
+// nombres de platillo de forma honesta, así que se usa un pool creíble en
+// vez de inventar contra el menú real de alguien.
+const DEMO_DISHES = ['Mole con pollo', 'Chiles rellenos', 'Consomé de pollo', 'Milanesa de res', 'Enchiladas verdes'];
+const DEMO_LIKE_AUTHORS = ['Ana', 'Luis', 'Vale', 'Diego', 'Marisol', 'Fernanda', 'Carlos'];
 
 function seedHash(seed: string): number {
   let hash = 0;
@@ -60,5 +74,18 @@ export function getDemoPatioStats(seed: string): PatioStatsSnapshot | null {
     };
   });
   const ratingAvg = Math.round((reviews.reduce((sum, r) => sum + r.stars, 0) / reviews.length) * 10) / 10;
-  return { views: 8 + (hash % 40), ratingAvg, ratingCount, reviews };
+
+  // 1-3 platillos con like, cada uno de 1-3 personas — para que se vea la
+  // fusión real de la fila agrupada, no solo un caso trivial de una persona.
+  const likeEventCount = 1 + (hash % 3);
+  const dishLikes: DemoDishLike[] = Array.from({ length: likeEventCount }, (_, i) => {
+    const h = seedHash(`${seed}-like-${i}`);
+    const authorCount = 1 + (h % 3);
+    const authors = [...new Set(Array.from({ length: authorCount }, (_, j) =>
+      DEMO_LIKE_AUTHORS[seedHash(`${seed}-like-${i}-${j}`) % DEMO_LIKE_AUTHORS.length]
+    ))];
+    return { dishName: DEMO_DISHES[h % DEMO_DISHES.length], authors, daysAgo: h % 10 };
+  });
+
+  return { views: 8 + (hash % 40), ratingAvg, ratingCount, reviews, dishLikes };
 }

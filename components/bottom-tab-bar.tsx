@@ -4,8 +4,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Animated, Keyboard, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
+import { hasUnseenActivity } from '@/lib/activity-feed';
+import { getFonditaId } from '@/lib/menu-store';
 import { useTheme } from '@/lib/theme';
 import { useTabBarTranslate } from '@/lib/tab-bar-visibility';
 
@@ -26,7 +28,7 @@ const FOODIE_TABS: Tab[] = [
 
 const FONDERO_TABS: Tab[] = [
   { path: '/historial', label: 'Menús',     icon: 'restaurant-outline' },
-  { path: '/resenas',   label: 'Actividad', icon: 'chatbubble-ellipses-outline' },
+  { path: '/resenas',   label: 'Actividad', icon: 'heart-outline' },
   { path: '/perfil',    label: 'Perfil',    icon: 'person-outline' },
 ];
 
@@ -55,6 +57,16 @@ export function BottomTabBar({ variant = 'fondero' }: { variant?: 'foodie' | 'fo
   useEffect(() => {
     reveal();
   }, [pathname, reveal]);
+
+  // Punto de "hay algo nuevo" en Actividad — no hay push todavía (ver
+  // docs/TASKS.md), así que esto es lo único que avisa sin tener que entrar
+  // a revisar. Se recalcula cada vez que se aterriza en cualquier pantalla
+  // Fondero; se limpia cuando resenas.tsx marca la visita (markActivitySeen).
+  const [hasUnseen, setHasUnseen] = useState(false);
+  useEffect(() => {
+    if (variant !== 'fondero') return;
+    hasUnseenActivity(getFonditaId()).then(setHasUnseen).catch(() => {});
+  }, [variant, pathname]);
   // El COLOR de la barra sigue el tema real de la app (claro/oscuro), no el rol.
   // Antes usaba `variant === 'fondero'` → en modo oscuro + pantalla Foodie la barra
   // salía blanca. `variant` ahora SOLO decide qué tabs se muestran.
@@ -101,6 +113,9 @@ export function BottomTabBar({ variant = 'fondero' }: { variant?: 'foodie' | 'fo
               hitSlop={{ top: 10, bottom: 10, left: 6, right: 6 }}
               onPress={onTabPress}>
               <Ionicons name={icon} size={22} color={active ? c.accent : c.mute} />
+              {path === '/resenas' && hasUnseen && !active && (
+                <View style={[styles.dot, { backgroundColor: c.accent, borderColor: c.pill }]} />
+              )}
             </TouchableOpacity>
           );
         })}
@@ -128,4 +143,5 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   tab: { width: 49, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+  dot: { position: 'absolute', top: 6, right: 11, width: 8, height: 8, borderRadius: 4, borderWidth: 1.5 },
 });

@@ -1,5 +1,5 @@
 import { router, useFocusEffect } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Alert } from 'react-native';
 
 import { deleteLocalMenu, deleteLocalMenus, getLocalMenus, renameLocalMenu, seedDemoHistory } from '@/lib/menu-history';
@@ -21,6 +21,32 @@ function summary(menu: MenuData): string {
 
 export function dateLabel(fecha: string): string {
   return new Date(`${fecha}T12:00:00`).toLocaleDateString('es-MX', { day: 'numeric', month: 'long' });
+}
+
+// Racha real de publicación, contada desde el último menú publicado hacia
+// atrás — no desde "hoy" a fuerza, para no reventar la racha solo porque
+// todavía no publicas hoy. Se rompe si hay más de un día de hueco entre el
+// último menú y hoy. Base para el mecanismo de compromiso mutuo Fondero/
+// Foodie (The Cold Start Problem, Andrew Chen): el lado difícil de la red
+// (Fondero) necesita una razón propia para volver a diario, independiente
+// del tamaño de la red — la racha es esa razón, calculada 100% de menús
+// reales, nunca de datos sintéticos.
+export function computeStreak(fechas: string[]): number {
+  const uniqueSorted = Array.from(new Set(fechas)).sort().reverse();
+  if (uniqueSorted.length === 0) return 0;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const mostRecent = new Date(`${uniqueSorted[0]}T12:00:00`);
+  const gapFromToday = Math.round((today.getTime() - mostRecent.getTime()) / 86400000);
+  if (gapFromToday > 1) return 0;
+  let streak = 1;
+  for (let i = 1; i < uniqueSorted.length; i++) {
+    const prev = new Date(`${uniqueSorted[i - 1]}T12:00:00`);
+    const curr = new Date(`${uniqueSorted[i]}T12:00:00`);
+    if (Math.round((prev.getTime() - curr.getTime()) / 86400000) === 1) streak++;
+    else break;
+  }
+  return streak;
 }
 
 export function defaultHistoryTitle(menu: PublishedMenu): string {
@@ -139,6 +165,8 @@ export function useMenuHistoryController() {
     );
   }, []);
 
+  const streak = useMemo(() => computeStreak(menus.map((menu) => menu.fecha)), [menus]);
+
   return {
     closeRename,
     deleteMenu,
@@ -151,5 +179,6 @@ export function useMenuHistoryController() {
     reuse,
     saveName,
     setDraftName,
+    streak,
   };
 }

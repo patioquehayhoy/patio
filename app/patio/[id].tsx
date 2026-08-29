@@ -12,6 +12,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AgentSpinner } from '@/components/agent-spinner';
 import { SaveToListSheet } from '@/components/save-to-list-sheet';
 import { usePatioDetailController } from '@/lib/controllers/usePatioDetailController';
+import { getLikedDishNames, toggleDishLike } from '@/lib/dish-likes';
+import { canonicalDishName } from '@/lib/menu-store';
 import { formatHHMM12 } from '@/lib/horario';
 import { MAP_STYLE_DARK, MAP_STYLE_LIGHT } from '@/lib/map-style';
 import { Fonts, Radius, Spacing, useTheme, type Theme } from '@/lib/theme';
@@ -140,6 +142,7 @@ function makeStyles(t: Theme) {
     groupItemName: { flex: 1, fontSize: 16, fontWeight: '600', color: t.text, letterSpacing: -0.18, lineHeight: 21 },
     groupItemDescription: { marginTop: 3, fontSize: 13, lineHeight: 18, fontWeight: '400', letterSpacing: -0.03, color: t.textSecondary },
     groupItemPrice: { fontSize: 15, lineHeight: 21, fontWeight: '700', color: t.text },
+    dishLikeBtn: { width: 21, height: 21, alignItems: 'center', justifyContent: 'center' },
     groupDashed: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.border, marginTop: 4 },
     reviewSection: { paddingTop: 28, marginBottom: 22 },
     reviewsSummary: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
@@ -283,6 +286,26 @@ export default function PatioDetailScreen() {
   const handleSavePress = async () => {
     if (!isSaved) await handleToggleSaved();
     setSaveSheetVisible(true);
+  };
+
+  // Like por platillo: micro-señal de compromiso de fricción casi cero,
+  // independiente de la reseña completa (lib/dish-likes.ts).
+  const [likedDishNames, setLikedDishNames] = useState<Set<string>>(new Set());
+  useEffect(() => {
+    if (!patio?.id) return;
+    getLikedDishNames(patio.id).then(setLikedDishNames).catch(() => {});
+  }, [patio?.id]);
+
+  const handleToggleDishLike = async (dishName: string) => {
+    if (!patio?.id) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    const nowLiked = await toggleDishLike(patio.id, dishName);
+    setLikedDishNames((current) => {
+      const next = new Set(current);
+      const key = canonicalDishName(dishName);
+      if (nowLiked) next.add(key); else next.delete(key);
+      return next;
+    });
   };
 
   useEffect(() => {
@@ -493,17 +516,30 @@ export default function PatioDetailScreen() {
                       <Text style={s.groupTitle} allowFontScaling={true}>{section.section}</Text>
                     </View>
                   )}
-                  {section.items.map((item) => (
-                    <View key={`${section.section}-${item.name}`} style={s.groupItem}>
-                      <View style={{ flex: 1 }}>
-                        <Text style={s.groupItemName} allowFontScaling={true}>{item.name}</Text>
-                        {!!item.description && (
-                          <Text style={s.groupItemDescription} allowFontScaling={true}>{noWidow(item.description)}</Text>
-                        )}
+                  {section.items.map((item) => {
+                    const dishLiked = likedDishNames.has(canonicalDishName(item.name));
+                    return (
+                      <View key={`${section.section}-${item.name}`} style={s.groupItem}>
+                        <View style={{ flex: 1 }}>
+                          <Text style={s.groupItemName} allowFontScaling={true}>{item.name}</Text>
+                          {!!item.description && (
+                            <Text style={s.groupItemDescription} allowFontScaling={true}>{noWidow(item.description)}</Text>
+                          )}
+                        </View>
+                        {!!item.price && <Text style={s.groupItemPrice} allowFontScaling={true}>{item.price}</Text>}
+                        <TouchableOpacity
+                          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                          onPress={() => handleToggleDishLike(item.name)}
+                          activeOpacity={0.7}
+                          accessibilityRole="button"
+                          accessibilityLabel={dishLiked ? `Quitar like a ${item.name}` : `Dar like a ${item.name}`}
+                          accessibilityState={{ selected: dishLiked }}
+                          style={s.dishLikeBtn}>
+                          <Ionicons name={dishLiked ? 'heart' : 'heart-outline'} size={17} color={dishLiked ? theme.accent : theme.textMute} />
+                        </TouchableOpacity>
                       </View>
-                      {!!item.price && <Text style={s.groupItemPrice} allowFontScaling={true}>{item.price}</Text>}
-                    </View>
-                  ))}
+                    );
+                  })}
                   {si < sections.length - 1 && <View style={s.groupDashed} />}
                 </View>
               ))}

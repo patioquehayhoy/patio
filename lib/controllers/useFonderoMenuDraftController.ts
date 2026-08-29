@@ -154,6 +154,10 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
     setSectionActions((current) => current === sectionId ? null : sectionId);
   }, []);
 
+  const closeSectionActions = useCallback(() => {
+    setSectionActions(null);
+  }, []);
+
   const revealDetails = useCallback((dishId: string) => {
     setDetails((prev) => ({ ...prev, [dishId]: true }));
   }, []);
@@ -255,6 +259,7 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
   return {
     addDish,
     addSection,
+    closeSectionActions,
     collapsed,
     data,
     dayPrice,

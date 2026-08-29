@@ -1,8 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
-import { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Alert, Animated, KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { createMenuCollection, deleteMenuCollection, normalizeMenuListTitle, renameMenuCollection, setMenusInCollection, type MenuCollection } from '@/lib/menu-collections';
@@ -19,6 +19,11 @@ import { noWidow } from '@/lib/typography';
 // propio en Android) validado hoy en foodie-filter-bar.tsx — no repetir el
 // editor inline dentro de un ScrollView, que ahí costó 4 intentos fallidos.
 type Mode = 'filter' | 'assign';
+
+// Mismo timing que el sheet de referencia (foodie-filter-bar.tsx): spring al
+// entrar, timing corto al salir — un solo lenguaje de movimiento entre sheets.
+const SHEET_DISMISS_MS = 190;
+const SHEET_SPRING = { stiffness: 320, damping: 30, mass: 0.75, useNativeDriver: true } as const;
 
 export function MenuListsSheet({
   visible, onClose, mode, collections, onCollectionCreated, onCollectionUpdated, onCollectionRemoved,
@@ -44,6 +49,28 @@ export function MenuListsSheet({
   const [newTitle, setNewTitle] = useState('');
   const [renameTarget, setRenameTarget] = useState<MenuCollection | null>(null);
   const [renameValue, setRenameValue] = useState('');
+
+  // El Modal ya NO anima (animationType="none"): antes "slide" animaba TODO
+  // el árbol junto (velo negro + sheet) como un solo bloque, así que el velo
+  // — que solo cubre el área arriba del sheet — entraba deslizándose desde
+  // abajo en vez de aparecer fijo, y se veía como una franja oscura rara
+  // "flotando" al fondo mientras el sheet subía (bug real reportado
+  // 2026-08-28). Ahora solo el sheet se anima (spring), el velo aparece fijo.
+  const { height: screenHeight } = useWindowDimensions();
+  const translateY = useRef(new Animated.Value(screenHeight)).current;
+  const [rendered, setRendered] = useState(visible);
+  useEffect(() => {
+    if (visible) {
+      translateY.setValue(screenHeight);
+      setRendered(true);
+      Animated.spring(translateY, { toValue: 0, ...SHEET_SPRING }).start();
+    } else if (rendered) {
+      Animated.timing(translateY, { toValue: screenHeight, duration: SHEET_DISMISS_MS, useNativeDriver: true }).start(({ finished }) => {
+        if (finished) setRendered(false);
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible, screenHeight]);
 
   const isChecked = (collection: MenuCollection) => mode === 'filter'
     ? selectedIds.includes(collection.id)
@@ -120,11 +147,13 @@ export function MenuListsSheet({
     );
   };
 
+  if (!rendered) return null;
+
   return (
-    <Modal transparent visible={visible} animationType="slide" onRequestClose={onClose} statusBarTranslucent>
+    <Modal transparent visible animationType="none" onRequestClose={onClose} statusBarTranslucent>
       <KeyboardAvoidingView style={s.kav} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <TouchableOpacity activeOpacity={1} style={s.backdrop} onPress={onClose} accessibilityLabel="Cerrar" />
-        <View style={[s.sheet, { paddingBottom: insets.bottom || 8 }]}>
+        <Animated.View style={[s.sheet, { paddingBottom: insets.bottom || 8, transform: [{ translateY }] }]}>
           <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
           <View pointerEvents="none" style={s.sheetTint} />
           <View style={s.grabber} />
@@ -194,7 +223,7 @@ export function MenuListsSheet({
               );
             })}
           </ScrollView>
-        </View>
+        </Animated.View>
 
         {/* Respaldo Android para renombrar — Alert.prompt no existe ahí. */}
         {Platform.OS !== 'ios' && (

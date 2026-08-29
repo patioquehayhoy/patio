@@ -70,6 +70,20 @@ export function canonicalSeccion(nombre: string): string {
     .replace(/\s+/g, ' ');
 }
 
+// Forma canónica de un nombre de platillo para acumular likes entre
+// publicaciones distintas: el "Mole con pollo" de hoy y el de la semana
+// pasada deben contar como el mismo platillo, no como dos objetos sueltos
+// (hoy cada Platillo nace con un id nuevo por publicación — makePlatilloId()
+// — sin ninguna liga entre días). Mismo criterio que canonicalSeccion.
+export function canonicalDishName(nombre: string): string {
+  return nombre
+    .trim()
+    .toUpperCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/\s+/g, ' ');
+}
+
 export function makeDefaultMenu(tipo?: string | null): MenuData {
   const nombres: string[] = (tipo ? SECCION_DEFAULTS[tipo] : null) ?? SECCION_DEFAULTS['fondita'];
   return {

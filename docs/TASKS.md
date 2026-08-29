@@ -12,6 +12,31 @@ sin que él lo decida — toca `MenuListsSheet`, copy de botones/labels en
 `historial.tsx`, y el tipo `MenuCollection`/nombres de función en
 `lib/menu-collections.ts` si cambia.
 
+## [x] Racha de publicación (Fondero) — hecho 2026-08-28; mitad Foodie pendiente de backend social
+
+Grounded en *The Cold Start Problem* (Andrew Chen): Fondero es el "lado
+difícil" de la red (escaso, alto valor) y necesita una razón propia para
+volver a diario que no dependa del tamaño de la red todavía. La racha es esa
+razón — mide compromiso real, no vanity metrics.
+
+**Hecho:** `computeStreak()` en `lib/controllers/useMenuHistoryController.ts`
+cuenta días consecutivos de publicación real hacia atrás desde el último
+menú (no desde "hoy" a fuerza — no revienta la racha solo porque todavía no
+publicas hoy; se rompe si hay más de un día de hueco). 100% de menús reales,
+nunca de `seedDemoHistory()` (gated a `__DEV__`). Se muestra como píldora
+(ícono `flame` + número) en el header de `historial.tsx`, junto a "Listas",
+solo cuando `streak > 0`.
+
+**Pendiente — la mitad que cierra el loop de doble sentido:** cuando un
+Foodie con un Patio en Guardados ve que ese Patio extiende/alcanza una
+racha, debería recibir una notificación ligera y específica ("[Patio] lleva
+7 días seguidos con menú nuevo — hoy: [platillo]") — la reciprocidad es lo
+que el libro señala como el mecanismo real: el lado difícil ve que su
+constancia genera tráfico real, no silencio. Bloqueado por lo mismo de
+siempre: no existe backend de follows/push todavía (ver "Backend social
+mínimo", ciclo 2026-07-25 más abajo). No implementar hasta que ese backend
+exista — construirlo antes sería otro hook sin dientes.
+
 ## IDEA DE PRODUCTO (importante, sin construir) — anuncios categorizados a clientes
 
 Anotado por Alejandro 2026-08-24, sin detallar todavía. La idea: que un

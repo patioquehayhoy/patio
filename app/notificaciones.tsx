@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AvatarCircle } from '@/components/avatar-circle';
 import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { formatLikeAuthors, markReviewLikesSeen } from '@/lib/activity-feed';
-import { getMyReviewLikeEvents, type MyReviewLikeEvent } from '@/lib/review-likes';
+import { getDemoReviewLikeEvents, getMyReviewLikeEvents, type MyReviewLikeEvent } from '@/lib/review-likes';
 import { useTheme, type Theme } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
 
@@ -22,7 +22,9 @@ export default function NotificacionesScreen() {
   const [events, setEvents] = useState<MyReviewLikeEvent[]>([]);
   const load = useCallback(() => {
     markReviewLikesSeen().catch(() => {});
-    getMyReviewLikeEvents().then(setEvents).catch(() => setEvents([]));
+    getMyReviewLikeEvents()
+      .then((real) => setEvents(real.length ? real : getDemoReviewLikeEvents('foodie-demo')))
+      .catch(() => setEvents(getDemoReviewLikeEvents('foodie-demo')));
   }, []);
   useFocusEffect(load);
 
@@ -57,7 +59,7 @@ export default function NotificacionesScreen() {
                   <TouchableOpacity
                     key={`${event.reviewId}-${index}`}
                     style={[s.row, index > 0 && { borderTopColor: theme.border, borderTopWidth: StyleSheet.hairlineWidth }]}
-                    onPress={() => router.push({ pathname: '/patio/[id]', params: { id: event.fonditaId } })}
+                    onPress={() => { if (event.fonditaId) router.push({ pathname: '/patio/[id]', params: { id: event.fonditaId } }); }}
                     activeOpacity={0.7}
                     accessibilityRole="button"
                     accessibilityLabel={`Ver ${event.fonditaName}`}>

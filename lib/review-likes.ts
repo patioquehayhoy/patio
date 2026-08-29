@@ -61,6 +61,39 @@ export type MyReviewLikeEvent = {
   daysAgo: number;
 };
 
+// Probar esta pantalla de verdad requiere una segunda identidad (alguien
+// más liking tu reseña) — no hay forma honesta de simularlo con una sola
+// cuenta. Mientras no haya esa segunda cuenta a mano, esto deja ver cómo se
+// siente la interacción — mismo criterio que getDemoPatioStats en
+// lib/patio-stats.ts (Fondero): determinista, nunca fuera de __DEV__.
+const DEMO_FONDITAS = ['El Buen Sabor', 'Fonda Lupita', 'Antojitos Mary'];
+const DEMO_LIKE_AUTHORS = ['Ana', 'Luis', 'Vale', 'Diego', 'Marisol'];
+
+function seedHash(seed: string): number {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
+  return hash;
+}
+
+export function getDemoReviewLikeEvents(seed: string): MyReviewLikeEvent[] {
+  if (!__DEV__) return [];
+  const count = 1 + (seedHash(seed) % 3);
+  return Array.from({ length: count }, (_, i) => {
+    const h = seedHash(`${seed}-review-like-${i}`);
+    const authorCount = 1 + (h % 3);
+    const authors = [...new Set(Array.from({ length: authorCount }, (_, j) =>
+      DEMO_LIKE_AUTHORS[seedHash(`${seed}-review-like-${i}-${j}`) % DEMO_LIKE_AUTHORS.length]
+    ))];
+    return {
+      reviewId: `demo-${i}`,
+      fonditaId: '',
+      fonditaName: DEMO_FONDITAS[h % DEMO_FONDITAS.length],
+      authors: authors.map((name) => ({ name })),
+      daysAgo: h % 10,
+    };
+  });
+}
+
 // Para la pantalla de notificaciones del Foodie: reseñas propias que
 // recibieron like de alguien más. Se fusiona por reseña+día (el like no
 // trae contenido propio, mismo criterio que dish_likes en Actividad).

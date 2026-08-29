@@ -1,13 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Stack, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { Alert, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { AvatarCircle } from '@/components/avatar-circle';
 import { BottomTabBar } from '@/components/bottom-tab-bar';
-import { markActivitySeen } from '@/lib/activity-feed';
+import { formatLikeAuthors, markActivitySeen } from '@/lib/activity-feed';
 import { getDishLikeEvents, type DishLikeEvent } from '@/lib/dish-likes';
-import { fonderoPalette, type FonderoColors } from '@/lib/fondero-palette';
+import { fonderoPalette } from '@/lib/fondero-palette';
 import { getFonditaId, getFonditaName } from '@/lib/menu-store';
 import { getPublicPatioReviews, replyToReview, type PublicPatioReview } from '@/lib/ratings';
 import { getDemoPatioStats, type PatioStatsSnapshot } from '@/lib/patio-stats';
@@ -38,21 +39,6 @@ type ActivityItem = {
   dishName?: string;
   likeCount?: number;
 };
-
-function formatLikeAuthors(names: string[]): string {
-  if (names.length <= 1) return names[0] ?? '';
-  if (names.length === 2) return `${names[0]} y ${names[1]}`;
-  return `${names[0]}, ${names[1]} y ${names.length - 2} más`;
-}
-
-function Avatar({ author, avatarUrl, c }: { author: string; avatarUrl?: string; c: FonderoColors }) {
-  if (avatarUrl) return <Image source={{ uri: avatarUrl }} style={s.avatar} />;
-  return (
-    <View style={[s.avatar, s.avatarFallback, { backgroundColor: c.iconBg }]}>
-      <Text style={[s.avatarInitial, { color: c.textSecondary }]}>{(author[0] ?? '?').toUpperCase()}</Text>
-    </View>
-  );
-}
 
 export default function ResenasScreen() {
   const insets = useSafeAreaInsets();
@@ -169,7 +155,7 @@ export default function ResenasScreen() {
     <View
       key={item.key}
       style={[s.row, index > 0 && { borderTopColor: c.border, borderTopWidth: StyleSheet.hairlineWidth }]}>
-      <Avatar author={item.author} avatarUrl={item.avatarUrl} c={c} />
+      <AvatarCircle name={item.author} avatarUrl={item.avatarUrl} backgroundColor={c.iconBg} textColor={c.textSecondary} />
       <View style={s.rowBody}>
         <View style={s.rowHead}>
           <Text style={[s.rowText, { color: c.text }]}>
@@ -256,9 +242,6 @@ const s = StyleSheet.create({
   // Fila estilo actividad de Instagram: avatar circular al frente, texto a
   // la derecha — nombre en bold seguido de la acción, hora a la derecha.
   row: { flexDirection: 'row', gap: 12, paddingHorizontal: 16, paddingVertical: 14 },
-  avatar: { width: 40, height: 40, borderRadius: 20 },
-  avatarFallback: { alignItems: 'center', justifyContent: 'center' },
-  avatarInitial: { fontSize: 15, fontWeight: '700' },
   rowBody: { flex: 1, minWidth: 0 },
   rowHead: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
   rowText: { flex: 1, fontSize: 13.5, lineHeight: 18, fontWeight: '400' },

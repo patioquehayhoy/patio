@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
 
-import { hasUnseenActivity } from '@/lib/activity-feed';
+import { hasUnseenActivity, hasUnseenReviewLikes } from '@/lib/activity-feed';
 import { getFonditaId } from '@/lib/menu-store';
 import { useTheme } from '@/lib/theme';
 import { useTabBarTranslate } from '@/lib/tab-bar-visibility';
@@ -64,8 +64,11 @@ export function BottomTabBar({ variant = 'fondero' }: { variant?: 'foodie' | 'fo
   // Fondero; se limpia cuando resenas.tsx marca la visita (markActivitySeen).
   const [hasUnseen, setHasUnseen] = useState(false);
   useEffect(() => {
-    if (variant !== 'fondero') return;
-    hasUnseenActivity(getFonditaId()).then(setHasUnseen).catch(() => {});
+    if (variant === 'fondero') {
+      hasUnseenActivity(getFonditaId()).then(setHasUnseen).catch(() => {});
+    } else {
+      hasUnseenReviewLikes().then(setHasUnseen).catch(() => {});
+    }
   }, [variant, pathname]);
   // El COLOR de la barra sigue el tema real de la app (claro/oscuro), no el rol.
   // Antes usaba `variant === 'fondero'` → en modo oscuro + pantalla Foodie la barra
@@ -113,7 +116,7 @@ export function BottomTabBar({ variant = 'fondero' }: { variant?: 'foodie' | 'fo
               hitSlop={{ top: 10, bottom: 10, left: 6, right: 6 }}
               onPress={onTabPress}>
               <Ionicons name={icon} size={22} color={active ? c.accent : c.mute} />
-              {path === '/resenas' && hasUnseen && !active && (
+              {((variant === 'fondero' && path === '/resenas') || (variant === 'foodie' && path === '/cuenta')) && hasUnseen && !active && (
                 <View style={[styles.dot, { backgroundColor: c.accent, borderColor: c.pill }]} />
               )}
             </TouchableOpacity>

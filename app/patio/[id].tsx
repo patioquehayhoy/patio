@@ -14,6 +14,7 @@ import { SaveToListSheet } from '@/components/save-to-list-sheet';
 import { usePatioDetailController } from '@/lib/controllers/usePatioDetailController';
 import { getLikedDishNames, toggleDishLike } from '@/lib/dish-likes';
 import { canonicalDishName } from '@/lib/menu-store';
+import { getLikedReviewIds, getReviewLikeCounts, toggleReviewLike } from '@/lib/review-likes';
 import { formatHHMM12 } from '@/lib/horario';
 import { MAP_STYLE_DARK, MAP_STYLE_LIGHT } from '@/lib/map-style';
 import { Fonts, Radius, Spacing, useTheme, type Theme } from '@/lib/theme';
@@ -360,6 +361,25 @@ export default function PatioDetailScreen() {
     setReviewLikes(likes);
     setReviewReplies(replies);
   }, [patio?.name, reviews]);
+
+  // Overlay de datos reales sobre las reseñas reales (las que sí tienen
+  // reviewId de Supabase) — las demo/sintéticas de arriba se quedan tal
+  // cual, esto solo reemplaza el conteo/mine de las genuinas.
+  useEffect(() => {
+    const realReviews = reviews.filter((review) => !!review.reviewId);
+    if (!realReviews.length) return;
+    const reviewIds = realReviews.map((review) => review.reviewId!);
+    Promise.all([getReviewLikeCounts(reviewIds), getLikedReviewIds(reviewIds)]).then(([counts, liked]) => {
+      setReviewLikes((current) => {
+        const next = { ...current };
+        for (const review of realReviews) {
+          const key = `${review.userId}-${review.timestamp}`;
+          next[key] = { count: counts[review.reviewId!] ?? 0, mine: liked.has(review.reviewId!) };
+        }
+        return next;
+      });
+    }).catch(() => {});
+  }, [reviews]);
 
   useEffect(() => {
     if (!status) {
@@ -753,7 +773,11 @@ export default function PatioDetailScreen() {
                         <TouchableOpacity
                           style={s.reviewAction}
                           hitSlop={4}
-                          onPress={() => setReviewLikes((current) => ({ ...current, [reviewKey]: { mine: !like.mine, count: Math.max(0, like.count + (like.mine ? -1 : 1)) } }))}
+                          onPress={() => {
+                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+                            setReviewLikes((current) => ({ ...current, [reviewKey]: { mine: !like.mine, count: Math.max(0, like.count + (like.mine ? -1 : 1)) } }));
+                            if (review.reviewId) void toggleReviewLike(review.reviewId);
+                          }}
                           accessibilityRole="button"
                           accessibilityLabel="Me gusta"
                           accessibilityState={{ selected: like.mine }}>

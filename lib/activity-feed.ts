@@ -34,3 +34,38 @@ export async function hasUnseenActivity(fonditaId: string | null): Promise<boole
 export async function markActivitySeen(): Promise<void> {
   await AsyncStorage.setItem(SEEN_KEY, String(Date.now()));
 }
+
+const FOODIE_SEEN_KEY = '@patio_review_likes_seen_at';
+
+// Mismo mecanismo, lado Foodie: ¿alguien le dio like a una reseña mía desde
+// la última vez que revisé? Reciprocidad simétrica a la del Fondero con sus
+// platillos — sin esto, escribir una reseña nunca tenía retorno visible.
+export async function hasUnseenReviewLikes(): Promise<boolean> {
+  const { data: user } = await supabase.auth.getUser();
+  if (!user.user) return false;
+  const { data: myReviews } = await supabase.from('reviews').select('id').eq('user_id', user.user.id);
+  const reviewIds = (myReviews ?? []).map((row: any) => row.id);
+  if (!reviewIds.length) return false;
+  const [{ data: latestLike }, seenRaw] = await Promise.all([
+    supabase.from('review_likes').select('created_at').in('review_id', reviewIds).neq('user_id', user.user.id)
+      .order('created_at', { ascending: false }).limit(1).maybeSingle(),
+    AsyncStorage.getItem(FOODIE_SEEN_KEY),
+  ]);
+  if (!latestLike) return false;
+  const latest = new Date((latestLike as any).created_at).getTime();
+  return latest > (seenRaw ? Number(seenRaw) : 0);
+}
+
+export async function markReviewLikesSeen(): Promise<void> {
+  await AsyncStorage.setItem(FOODIE_SEEN_KEY, String(Date.now()));
+}
+
+// Compartido entre resenas.tsx (Fondero) y notificaciones.tsx (Foodie): un
+// like no tiene contenido propio, así que varias personas se fusionan en un
+// solo texto — mismo criterio que usa Instagram para likes (nunca para
+// comentarios/reseñas, que sí llevan texto único).
+export function formatLikeAuthors(names: string[]): string {
+  if (names.length <= 1) return names[0] ?? '';
+  if (names.length === 2) return `${names[0]} y ${names[1]}`;
+  return `${names[0]}, ${names[1]} y ${names.length - 2} más`;
+}

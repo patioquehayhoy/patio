@@ -60,6 +60,7 @@ export default function CuentaScreen() {
           <SettingsGroup c={sc} label="Perfil">
             <SettingsRow c={sc} icon="person-outline" title={hasSession ? 'Editar perfil' : 'Iniciar sesión'} sub={hasSession ? 'Nombre, foto y descripción' : 'Sincroniza listas y reseñas'} onPress={() => router.push(hasSession ? '/perfil-comunidad' : '/comunidad-acceso')} />
             {userId && <SettingsRow c={sc} icon="at-outline" title="Ver perfil público" divider onPress={() => router.push({ pathname: '/foodie/[id]', params: { id: userId } })} />}
+            {userId && <SettingsRow c={sc} icon="heart-outline" title="Notificaciones" sub="Cuando alguien le da like a tu reseña" divider onPress={() => router.push('/notificaciones')} />}
           </SettingsGroup>
 
           <SettingsGroup c={sc} label="Preferencias">

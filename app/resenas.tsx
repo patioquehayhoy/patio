@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AvatarCircle } from '@/components/avatar-circle';
 import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { DishLikeDetailSheet, type DishLikeAuthor } from '@/components/dish-like-detail-sheet';
+import { LikeAvatarStack } from '@/components/like-avatar-stack';
 import { formatLikeAuthors, markActivitySeen } from '@/lib/activity-feed';
 import { getDishLikeDetail, getDishLikeEvents, type DishLikeEvent } from '@/lib/dish-likes';
 import { fonderoPalette } from '@/lib/fondero-palette';
@@ -40,6 +41,7 @@ type ActivityItem = {
   canReply: boolean;
   dishName?: string;
   likeCount?: number;
+  likeAuthors?: { name: string; avatarUrl?: string }[];
 };
 
 export default function ResenasScreen() {
@@ -140,6 +142,7 @@ export default function ResenasScreen() {
           canReply: false,
           dishName: event.dishName,
           likeCount: event.count,
+          likeAuthors: event.authors,
         })),
       ].sort((a, b) => a.daysAgo - b.daysAgo)
     : demo
@@ -164,6 +167,7 @@ export default function ResenasScreen() {
           canReply: false,
           dishName: event.dishName,
           likeCount: event.authors.length,
+          likeAuthors: event.authors.map((name) => ({ name })),
         })),
       ].sort((a, b) => a.daysAgo - b.daysAgo)
     : [];
@@ -194,7 +198,11 @@ export default function ResenasScreen() {
       disabled={item.kind !== 'like'}
       onPress={() => { if (item.dishName) openDishLikeDetail(item.dishName); }}
       style={[s.row, index > 0 && { borderTopColor: c.border, borderTopWidth: StyleSheet.hairlineWidth }]}>
-      <AvatarCircle name={item.author} avatarUrl={item.avatarUrl} backgroundColor={c.iconBg} textColor={c.textSecondary} />
+      {item.kind === 'like' ? (
+        <LikeAvatarStack authors={item.likeAuthors ?? []} backgroundColor={c.iconBg} textColor={c.textSecondary} ringColor={c.bg} accent={c.accent} />
+      ) : (
+        <AvatarCircle name={item.author} avatarUrl={item.avatarUrl} backgroundColor={c.iconBg} textColor={c.textSecondary} />
+      )}
       <View style={s.rowBody}>
         <View style={s.rowHead}>
           <Text style={[s.rowText, { color: c.text }]}>
@@ -204,9 +212,7 @@ export default function ResenasScreen() {
           </Text>
           <Text style={[s.rowTime, { color: c.textMute }]}>{item.daysAgo === 0 ? 'Hoy' : `${item.daysAgo}d`}</Text>
         </View>
-        {item.kind === 'like' ? (
-          <Ionicons name="heart" size={13} color={c.accent} style={{ marginTop: 6 }} />
-        ) : (
+        {item.kind !== 'like' && (
           <View style={s.starsRow}>
             {[1, 2, 3, 4, 5].map((n) => (
               <Ionicons key={n} name={n <= item.stars ? 'star' : 'star-outline'} size={12} color={n <= item.stars ? c.accent : c.textMute} />

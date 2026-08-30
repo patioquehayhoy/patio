@@ -108,8 +108,8 @@ export default function HistorialScreen() {
           <Ionicons name={isSelected ? 'checkmark-circle' : 'ellipse-outline'} size={22} color={isSelected ? c.accent : c.textMute} />
         )}
         <View style={{ flex: 1, minWidth: 0 }}>
-          <Text style={[s.date, { color: c.accent }]}>{dateLabel(menu.fecha)}</Text>
           <Text style={[s.summary, { color: c.text }]} numberOfLines={2}>{menu.nombre || defaultHistoryTitle(menu)}</Text>
+          <Text style={[s.date, { color: c.textMute }]}>{dateLabel(menu.fecha)}</Text>
         </View>
         {!selecting && (
           <TouchableOpacity
@@ -344,10 +344,18 @@ const s = StyleSheet.create({
   filterEmptyText: { marginTop: 10, fontSize: 14, lineHeight: 20, fontWeight: '400', textAlign: 'center' },
   // Pila de tarjetas — mismo lenguaje que `list`/`card` de favoritos.tsx.
   list: { gap: 10 },
-  card: { flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: Radius.card, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 14, paddingVertical: 12 },
+  card: { flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: Radius.card, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 14, paddingVertical: 7 },
   groupLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1.4, textTransform: 'uppercase' },
-  date: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.8 },
-  summary: { marginTop: 5, fontSize: 15, lineHeight: 20, fontWeight: '500' },
+  // Nombre = identidad del menú, lidera la fila (antes iba abajo, más chico
+  // y menos peso que la fecha — jerarquía invertida). Fecha = contexto,
+  // va después, muda y sin el acento de marca (el naranja es para acciones,
+  // no para decorar metadata — regla homologada de paleta). Mismo criterio
+  // tipográfico que "Labels de sección" (mayúsculas+bold) quedaba mal
+  // prestado a la fecha de cada fila, compitiendo visualmente con el label
+  // real de sección ("Esta semana") unos px arriba (pedido Alejandro
+  // 2026-08-30, fundamentos HIG de grouping/jerarquía).
+  summary: { fontSize: 16, lineHeight: 21, fontWeight: '700' },
+  date: { marginTop: 2, fontSize: 12.5, fontWeight: '400' },
   // Homologado con navButton de coleccion/[id].tsx: ícono suelto, sin caja
   // de fondo, círculo completo — mismo botón "···" en toda la app.
   iconBtn: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },

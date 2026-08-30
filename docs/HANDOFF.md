@@ -1,5 +1,77 @@
 # HANDOFF
 
+## 2026-08-30 — Facepile de likes (Actividad), gesto real en detalle de like, jerarquía de Menús
+
+Sesión corta enfocada en pulir dos pantallas del lado Fondero a partir de
+feedback directo de Alejandro viendo la app. No hubo prueba en dispositivo
+real esta sesión (problemas de conexión del iPhone al dev server, ver nota
+al final) — todo verificado solo con `tsc --noEmit`, pendiente de que
+Alejandro lo confirme en su iPhone.
+
+### Actividad (`app/resenas.tsx`) — facepile de quién dio like
+
+Antes cada fila de "like" fusionado mostraba un solo avatar (el primer
+autor) + un ícono de corazón suelto flotando debajo del texto, sin relación
+visual con nada. Alejandro pidió el patrón tipo Instagram: círculos
+apilados de quién dio like + el corazón como badge sobre el stack.
+
+**`components/like-avatar-stack.tsx`** (nuevo): hasta 3 círculos
+superpuestos con anillo del color de fondo de pantalla (efecto "recorte"),
+`+N` si son más, corazón como badge circular sobrepuesto. Primera versión
+tenía un bug real: el ancho del contenedor crecía con la cantidad de
+avatares (1 vs 3), así que el corazón y el inicio del texto de la fila
+caían en un x distinto en cada fila — se veía descuadrado fila a fila.
+Corregido: el ancho es SIEMPRE el del caso de 3 slots (constante), y el
+badge se posiciona relativo al último círculo real renderizado, no a la
+esquina fija del contenedor — así 1 like o 3 quedan igual de alineados.
+
+`ActivityItem` ganó `likeAuthors` (nombre + avatar de cada persona, no solo
+el primero) para poder alimentar el stack completo; antes solo se guardaba
+`avatarUrl` del primer autor.
+
+### Detalle de like (`components/dish-like-detail-sheet.tsx`) — gesto real
+
+El "grabber" (barrita gris arriba del sheet) era puramente decorativo — no
+tenía ningún listener de arrastre, prometía un gesto que no cumplía
+(violación de HIG: una afordancia visual sin comportamiento real). Se le
+puso el mismo `PanResponder` ya probado en `save-to-list-sheet.tsx`:
+arrastra y suelta pasado el umbral (70pt o velocidad>0.9) cierra desde
+donde iba el dedo, si no regresa con resorte. También se sincronizó la
+opacidad del velo de fondo con la posición del sheet (antes aparecía de
+golpe al 100% mientras el sheet sí animaba con spring — inconsistente).
+
+### Menús (`app/historial.tsx`) — jerarquía de la tarjeta
+
+La tarjeta de cada menú tenía la jerarquía invertida: la fecha iba arriba
+en acento naranja + mayúsculas + bold (tratamiento de "label de sección"),
+y el nombre del menú —lo que de verdad identifica la tarjeta— iba abajo,
+más chico y con menos peso. Además la fecha en mayúsculas/bold competía
+visualmente con el label real de sección ("Esta semana") unas líneas
+arriba, usando casi el mismo lenguaje tipográfico para dos niveles
+distintos de jerarquía.
+
+Corregido: nombre del menú primero (bold, 16pt, lidera), fecha después
+(muda, sin acento, sin mayúsculas — es contexto, no acción). El naranja
+queda libre para cuando sí haya una acción real que resaltar, siguiendo la
+regla de paleta ya homologada del proyecto. De paso se ajustó
+`paddingVertical` de la tarjeta (12→7) para cumplir la regla de densidad
+de listas del propio CLAUDE.md, que nombra literalmente "historial" como
+pantalla sujeta a ese máximo.
+
+### Nota operativa — conexión del iPhone al dev server
+
+Varios intentos fallidos de conectar el iPhone de Alejandro (por túnel
+`exp.direct`, por LAN, y por USB vía `xcrun devicectl ... --payload-url`)
+durante la sesión — el deep link nunca llegó a generar una petición real
+al Metro server (confirmado revisando el log del bundler, cero peticiones
+entrantes). La causa más probable es intermitencia de la conexión
+USB/red del propio dispositivo (un intento de `devicectl launch` sí
+devolvió un error real de conexión: "Connection reset by peer"), no algo
+del lado del servidor — el túnel respondía 200 al probarlo con `curl`
+directo desde la Mac. Sin resolver: la próxima sesión debería empezar
+confirmando que el iPhone tiene WiFi con internet real antes de intentar
+nada más.
+
 ## 2026-08-28/29 — Compromiso mutuo Fondero↔Foodie (Cold Start Theory), permiso de cámara en contexto (HIG), y bug real de reseñas destapado
 
 Sesión muy larga, iterativa, con Alejandro probando en vivo en su iPhone

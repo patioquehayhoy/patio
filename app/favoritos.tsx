@@ -2,10 +2,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import { router, Stack } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ScrollView, Share, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { ActionSheet } from '@/components/action-sheet';
 import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { FoodieFilterBar, matchesFoodieFilters } from '@/components/foodie-filter-bar';
 import { SaveToListSheet } from '@/components/save-to-list-sheet';
@@ -48,6 +49,14 @@ function makeStyles(t: Theme) {
     card: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: t.surface, borderRadius: Radius.card, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, paddingHorizontal: 14, paddingVertical: 7 },
     thumb: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: t.bg, position: 'relative' },
     menuDot: { position: 'absolute', right: -2, top: -2, width: 9, height: 9, borderRadius: 5, borderWidth: 2, borderColor: t.surface, backgroundColor: OPEN_GREEN },
+    // "Ya fui" — MISMO tamaño/borde que menuDot (9px, punto sólido, sin
+    // ícono adentro), solo cambia posición (abajo en vez de arriba) y color
+    // (acento en vez de verde) — dos badges de esquina con lenguajes
+    // distintos en un ícono de 40px se veía inconsistente. El dato ya
+    // existía (SavedPatioMeta.status, capturado en guardar/[id].tsx) pero
+    // nunca se leía de vuelta en la lista (pedido de Alejandro 2026-08-30).
+    visitedDot: { position: 'absolute', right: -2, bottom: -2, width: 9, height: 9, borderRadius: 5, borderWidth: 2, borderColor: t.surface, backgroundColor: t.accent },
+    myRatingText: { fontSize: 11.5, fontWeight: '700', color: t.accent },
     body: { flex: 1, minWidth: 0, justifyContent: 'center' },
     // Nombre + platillo de hoy son una sola unidad óptica (identidad +
     // "descripción" del lugar, igual que título/artista en Apple Music —
@@ -94,7 +103,7 @@ export default function FavoritosScreen() {
   const { theme } = useTheme();
   const s = makeStyles(theme);
   const insets = useSafeAreaInsets();
-  const { patios, removeLocally } = useFavoritePatiosController();
+  const { patios, metaById, removeLocally } = useFavoritePatiosController();
 
   // Filtros: pensados para cuando los guardados crecen (~70 items). 'hoy'
   // filtra por menú publicado; el resto son las categorías reales de lo
@@ -160,10 +169,42 @@ export default function FavoritosScreen() {
     collections,
   })), [collections, patios, filters]);
 
+  // `patios` ya viene más-reciente-primero desde el storage (ver
+  // lib/favorites.ts) — "Más reciente" no necesita tocar nada, es la base.
+  // "Menú hoy" es un ordenamiento ESTABLE sobre esa base (los que tienen
+  // menú hoy suben, pero dentro de cada grupo se conserva el orden de
+  // guardado) — no una regla aparte. Con Array.prototype.sort estable
+  // (garantizado desde ES2019) alcanza con la comparación booleana.
+  // Pedido de Alejandro 2026-08-30: para su propio uso (~40 guardados) el
+  // orden por default sin decisiones no basta, así que además de un buen
+  // default se expone el control.
+  const [sortMode, setSortMode] = useState<'today' | 'recent' | 'rating' | 'az'>('today');
+  const [sortSheetVisible, setSortSheetVisible] = useState(false);
+  const sortBtnRef = useRef<View>(null);
+  const sorted = useMemo(() => {
+    switch (sortMode) {
+      case 'today':
+        return [...filtered].sort((a, b) => Number(todayDish(b) !== null) - Number(todayDish(a) !== null));
+      case 'rating':
+        return [...filtered].sort((a, b) => (metaById[b.id]?.rating ?? -1) - (metaById[a.id]?.rating ?? -1));
+      case 'az':
+        return [...filtered].sort((a, b) => a.name.localeCompare(b.name, 'es'));
+      case 'recent':
+      default:
+        return filtered;
+    }
+  }, [filtered, sortMode, metaById]);
+  // "Menú primero" (no "Menú hoy") a propósito: el filtro de arriba YA se
+  // llama "Menú hoy" y OCULTA lo que no aplica — esto es otra cosa, ordena
+  // sin ocultar. Mismo nombre para dos mecanismos distintos habría sido la
+  // incoherencia real (auditoría pedida por Alejandro 2026-08-30).
+  const SORT_LABELS: Record<typeof sortMode, string> = { today: 'Menú primero', recent: 'Más reciente', rating: 'Tu calificación', az: 'Alfabético' };
+
   const renderPatio = (patio: (typeof patios)[number]) => {
     const today = todayDish(patio);
     const hasMenu = today !== null;
     const isSelected = selectedIds.has(patio.id);
+    const meta = metaById[patio.id];
     return (
       <TouchableOpacity
         key={patio.id}
@@ -179,6 +220,7 @@ export default function FavoritosScreen() {
         <View style={s.thumb}>
           <Ionicons name="restaurant-outline" size={16} color={theme.textSecondary} />
           {hasMenu && <View style={s.menuDot} />}
+          {meta?.status === 'visited' && <View style={s.visitedDot} accessibilityLabel="Ya fuiste" />}
         </View>
         <View style={s.body}>
           <View style={s.nameRow}>
@@ -196,6 +238,11 @@ export default function FavoritosScreen() {
                 <Text style={s.separator}>·</Text>
                 <Ionicons name="star" size={10} color={theme.textSecondary} />
                 <Text style={s.contextText}>{patio.rating}{patio.ratingCount != null ? ` (${patio.ratingCount})` : ''}</Text>
+              </>}
+              {!!meta?.rating && <>
+                <Text style={s.separator}>·</Text>
+                <Ionicons name="star" size={10} color={theme.accent} />
+                <Text style={s.myRatingText}>{meta.rating}</Text>
               </>}
             </View>
           </View>
@@ -235,6 +282,12 @@ export default function FavoritosScreen() {
                   onCollectionCreated={(c) => setCollections((prev) => [c, ...prev])}
                   onCollectionUpdated={(c) => setCollections((prev) => prev.map((item) => item.id === c.id ? c : item))}
                   onCollectionRemoved={(id) => setCollections((prev) => prev.filter((item) => item.id !== id))}
+                  trailingAction={{
+                    icon: 'swap-vertical',
+                    label: `Orden: ${SORT_LABELS[sortMode]}`,
+                    onPress: () => { Haptics.selectionAsync().catch(() => {}); setSortSheetVisible(true); },
+                    anchorRef: sortBtnRef,
+                  }}
                 />
               </View>
             )}
@@ -260,7 +313,7 @@ export default function FavoritosScreen() {
                 <Text style={s.filterEmptyText} allowFontScaling={true}>{noWidow('Ninguno de tus guardados entra en ese filtro hoy.')}</Text>
               </View>
             )}
-            {filtered.map(renderPatio)}
+            {sorted.map(renderPatio)}
           </View>
         )}
       </ScrollView>
@@ -308,6 +361,17 @@ export default function FavoritosScreen() {
         patioIds={Array.from(selectedIds)}
         patioName=""
         onDismiss={() => { setSaveSheetVisible(false); exitSelecting(); }}
+      />
+      <ActionSheet
+        visible={sortSheetVisible}
+        anchorRef={sortBtnRef}
+        title="Ordenar por"
+        onDismiss={() => setSortSheetVisible(false)}
+        options={(['today', 'recent', 'rating', 'az'] as const).map((mode) => ({
+          label: SORT_LABELS[mode],
+          icon: mode === sortMode ? 'checkmark' : mode === 'today' ? 'flame-outline' : mode === 'recent' ? 'time-outline' : mode === 'rating' ? 'star-outline' : 'text-outline',
+          onPress: () => setSortMode(mode),
+        }))}
       />
     </View>
   );

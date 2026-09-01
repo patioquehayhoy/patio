@@ -18,9 +18,13 @@ export async function setFavoritePatioIds(ids: string[]) {
   await AsyncStorage.setItem(FAVORITES_KEY, JSON.stringify(Array.from(new Set(ids))));
 }
 
+// El nuevo id va AL FRENTE (no al final): Guardados se lee más-reciente-
+// primero, igual que Guardado de Instagram o Marcadores de Safari — antes
+// se agregaba al final y lo que acababas de guardar quedaba hasta abajo
+// (pedido de Alejandro 2026-08-30).
 export async function toggleFavoritePatio(id: string) {
   const current = await getFavoritePatioIds();
-  const next = current.includes(id) ? current.filter((favoriteId) => favoriteId !== id) : [...current, id];
+  const next = current.includes(id) ? current.filter((favoriteId) => favoriteId !== id) : [id, ...current];
   await setFavoritePatioIds(next);
   return next;
 }

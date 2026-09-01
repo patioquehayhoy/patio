@@ -1,5 +1,88 @@
 # HANDOFF
 
+## 2026-08-30 (cont.) — Orden y metadata real en Guardados, facepile en clúster cuadrado, "Publicar igual" desde Menús
+
+Segunda mitad de la sesión, misma fecha. Sin prueba en dispositivo real
+otra vez (conexión del iPhone seguía sin resolverse) — todo verificado con
+`npx tsc --noEmit` (limpio en cada paso), pendiente de confirmación de
+Alejandro en su iPhone.
+
+### Guardados (`app/favoritos.tsx`) — orden real + metadata que ya existía y nunca se leía
+
+Alejandro usa Guardados como un catálogo real (~40 lugares), no una lista
+corta — necesitaba ordenar, no solo filtrar. Auditoría reveló dos cosas:
+
+- **Bug real en el orden:** `lib/favorites.ts::toggleFavoritePatio` agregaba
+  el nuevo id al FINAL del arreglo — lo más viejo aparecía primero, lo
+  recién guardado hasta abajo. Corregido: ahora antepone (`[id, ...current]`).
+- **Dato fantasma:** `app/guardar/[id].tsx` ya captura por lugar estatus
+  ("Quiero ir"/"Ya fui"), nota y calificación personal 1-5 estrellas
+  (`SavedPatioMeta` en `lib/collections.ts`), persistido en AsyncStorage y
+  Supabase (`saved_patios.personal_rating`) — pero la lista nunca lo volvía
+  a leer. Nuevo `getAllSavedPatioMeta()` (una sola lectura para todos) +
+  `useFavoritePatiosController` expone `metaById`. La tarjeta ahora muestra
+  la calificación propia (texto, acento) junto a la pública, y un punto de
+  esquina para "Ya fui" (mismo tamaño/idioma que el punto verde de "menú
+  hoy" — un primer intento con ícono y 16px se veía inconsistente entre sí,
+  corregido a juego).
+- **Botón de orden:** `FoodieFilterBar` ganó un prop opcional
+  `trailingAction` — un 5º pill igual a Filtros/Listas, solo cuando se pasa
+  (explorar.tsx nunca lo pasa, ahí la barra sigue siendo exactamente 4
+  elementos). Primer intento lo puse como fila externa al componente y
+  rompía el centrado documentado de esa barra — corregido moviéndolo
+  adentro. Abre un `ActionSheet` con Menú primero (default) / Más reciente /
+  Tu calificación / Alfabético, checkmark en la activa. Nombrado "Menú
+  primero", no "Menú hoy", a propósito: el filtro de arriba ya se llama así
+  y OCULTA lo que no aplica — esto reordena sin ocultar, mismo nombre para
+  dos mecanismos hubiera sido la incoherencia real.
+
+### Facepile de likes — de rectángulo a clúster cuadrado
+
+Corrección sobre lo del rato anterior: apilar 3 círculos en fila horizontal
+hacía un contenedor rectangular (~73×38) cuyo ancho variaba con la cantidad
+de likes, descuadrando la columna de texto y el corazón fila a fila.
+`components/like-avatar-stack.tsx` reescrito: el contenedor es SIEMPRE un
+cuadrado de `size`×`size` (default 40, igual que `AvatarCircle` en filas de
+reseña — mismo ancho de columna en toda la lista), los círculos se acomodan
+en clúster por esquinas (1 llena el cuadrado completo y se ve idéntico a un
+avatar normal; 2 en diagonal; 3 en triángulo), y el corazón vive fijo en la
+esquina inferior derecha del CUADRADO, nunca de un círculo — no se mueve
+sin importar cuántos dieron like.
+
+### Menús (`app/historial.tsx`) — el foco de "pendiente hoy" se apagaba sin publicar, + "Publicar igual"
+
+Bug real encontrado por Alejandro: `pendingToday` (el foco rojo sobre el
+"+") checaba si el BORRADOR en memoria (`getMenuData()`) tenía platillos
+con nombre — y `reuse()` (tocar un menú guardado) escribe ese menú al
+borrador ANTES de llevarte al editor. Resultado: el foco se apagaba al
+solo TOCAR un guardado, no al publicar de verdad — rompía la premisa de la
+racha ("días reales de publicación, nunca sintéticos"). Corregido: ahora
+compara contra el historial YA publicado (`menus.some(m => m.fecha ===
+hoy)`), mismo formato de fecha que ya usa `lib/menu-history.ts` al guardar.
+
+De paso, mismo hallazgo destapó una fricción real: republicar un menú
+guardado siempre forzaba pasar por el editor completo, incluso cuando de
+verdad era igual a antes — en tensión directa con la promesa de Patio de
+publicar "en segundos". Se extrajo el núcleo real de publicar
+(`publishMenuNow` en `lib/controllers/useFonderoMenuDraftController.ts`,
+antes duplicado inline dentro del hook) para que tanto el editor como
+Menús lo compartan. Nueva opción "Publicar igual" en el menú "···" de cada
+guardado (junto a "Editar y usar", que se queda para cuando sí cambió
+algo) — publica directo (mismo camino real: `saveMenuHoy`, aviso push,
+historial local) sin pasar por el editor.
+
+### Racha de publicación — se preguntó si debía dejar de estar siempre visible
+
+Alejandro cuestionó si el pill de racha (🔥) en el header de Menús debería
+ser siempre visible o condicional. Grounding real en *The Cold Start
+Problem* (Andrew Chen), capítulo del "hard side": en un marketplace de dos
+lados, el lado difícil de reclutar (Fondero) necesita una razón propia
+para volver, independiente de si el otro lado (Foodie) ya es suficiente —
+"come for the tool, stay for the network". Esconder la racha cuando "no
+urge" debilitaría exactamente esa premisa (valor consistente, no
+intermitente). Se decidió dejarla como está — siempre visible, ya neutra
+en color desde la sesión pasada. Sin cambio de código, solo la decisión.
+
 ## 2026-08-30 — Facepile de likes (Actividad), gesto real en detalle de like, jerarquía de Menús
 
 Sesión corta enfocada en pulir dos pantallas del lado Fondero a partir de

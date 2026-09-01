@@ -4,21 +4,18 @@ import { StyleSheet, Text, View } from 'react-native';
 import { AvatarCircle } from '@/components/avatar-circle';
 
 const MAX_VISIBLE = 3;
-const OVERLAP_RATIO = 0.42;
 
-// Facepile de quién dio like, estilo Instagram: círculos apilados con un
-// anillo del color de fondo de la pantalla para que se "recorten" entre
-// ellos, y el corazón como badge sobrepuesto en vez de ícono suelto aparte
-// (pedido de Alejandro 2026-08-30, sobre app/resenas.tsx).
-//
-// El ancho del contenedor es SIEMPRE el del caso de 3 slots, sin importar
-// cuántos dieron like de verdad — si crecía con la cantidad (1 vs 3
-// círculos), el texto de la fila y el corazón caían en un x distinto en
-// cada fila y todo se veía descuadrado fila a fila. El corazón, en cambio,
-// sí seva al último círculo real (avatar u óvalo "+N"), no a la esquina
-// fija del contenedor, para quedar pegado a él con 1 o con 3 likes por
-// igual (corrección pedida por Alejandro 2026-08-30).
-export function LikeAvatarStack({ authors, backgroundColor, textColor, ringColor, accent, size = 34 }: {
+// Facepile de quién dio like — corregido 2026-08-30 tras feedback de
+// Alejandro: la primera versión apilaba los círculos en una fila horizontal
+// (3 círculos overlapeados = un rectángulo ancho), lo que rompía el
+// "cuadrado" que ocupa un avatar normal en cualquier otra fila de la lista
+// (AvatarCircle, 40×40) y hacía que el corazón se desplazara según la
+// cantidad. Ahora el contenedor es SIEMPRE un cuadrado de `size`×`size` —
+// igual de ancho que un avatar solo, aunque haya 1, 2 o 3 — y los círculos
+// se acomodan en clúster (esquinas), como el ícono de un grupo, no en tira.
+// El corazón vive fijo en la esquina inferior derecha del cuadrado, nunca
+// de un círculo individual, así que nunca se mueve.
+export function LikeAvatarStack({ authors, backgroundColor, textColor, ringColor, accent, size = 40 }: {
   authors: { name: string; avatarUrl?: string }[];
   backgroundColor: string;
   textColor: string;
@@ -28,37 +25,50 @@ export function LikeAvatarStack({ authors, backgroundColor, textColor, ringColor
 }) {
   if (authors.length === 0) return null;
 
-  const overlap = size * OVERLAP_RATIO;
-  const step = size - overlap;
-  const ringSize = size + 4;
   const hasOverflow = authors.length > MAX_VISIBLE;
   const avatarCount = hasOverflow ? MAX_VISIBLE - 1 : Math.min(authors.length, MAX_VISIBLE);
   const visible = authors.slice(0, avatarCount);
   const overflowCount = authors.length - avatarCount;
-  const lastSlotIndex = hasOverflow ? avatarCount : avatarCount - 1;
-  const badgeSize = Math.round(size * 0.52);
-  const width = size + (MAX_VISIBLE - 1) * step;
+  const badgeSize = Math.round(size * 0.44);
+
+  // Posiciones por clúster (esquinas del cuadrado, no una fila) — igual de
+  // ancho sea 1, 2 o 3. La esquina inferior derecha se deja más libre a
+  // propósito: ahí vive el corazón.
+  const layout: { left: number; top: number; circle: number }[] =
+    avatarCount <= 1
+      ? [{ left: 0, top: 0, circle: size }]
+      : avatarCount === 2
+      ? (() => { const c = size * 0.68; return [{ left: 0, top: 0, circle: c }, { left: size - c, top: size - c, circle: c }]; })()
+      : (() => { const c = size * 0.58; return [{ left: 0, top: 0, circle: c }, { left: size - c, top: 0, circle: c }, { left: 0, top: size - c, circle: c }]; })();
 
   return (
-    <View style={{ width, height: ringSize }}>
-      {visible.map((author, index) => (
-        <View
-          key={`${author.name}-${index}`}
-          style={[s.ring, { left: index * step, width: ringSize, height: ringSize, borderRadius: ringSize / 2, backgroundColor: ringColor, zIndex: index }]}>
-          <AvatarCircle name={author.name} avatarUrl={author.avatarUrl} backgroundColor={backgroundColor} textColor={textColor} size={size} />
-        </View>
-      ))}
-      {hasOverflow && (
-        <View
-          style={[s.ring, { left: avatarCount * step, width: ringSize, height: ringSize, borderRadius: ringSize / 2, backgroundColor: ringColor, zIndex: avatarCount }]}>
-          <View style={[s.overflowFill, { width: size, height: size, borderRadius: size / 2, backgroundColor }]}>
-            <Text style={[s.overflowText, { color: textColor, fontSize: size * 0.3 }]}>{`+${overflowCount}`}</Text>
+    <View style={{ width: size, height: size }}>
+      {visible.map((author, index) => {
+        const slot = layout[index];
+        const ringSize = slot.circle + 4;
+        return (
+          <View
+            key={`${author.name}-${index}`}
+            style={[s.ring, {
+              left: slot.left - 2, top: slot.top - 2, width: ringSize, height: ringSize, borderRadius: ringSize / 2,
+              backgroundColor: avatarCount > 1 ? ringColor : 'transparent', zIndex: index,
+            }]}>
+            <AvatarCircle name={author.name} avatarUrl={author.avatarUrl} backgroundColor={backgroundColor} textColor={textColor} size={slot.circle} />
           </View>
-        </View>
-      )}
+        );
+      })}
+      {hasOverflow && (() => {
+        const slot = layout[avatarCount];
+        const ringSize = slot.circle + 4;
+        return (
+          <View style={[s.ring, { left: slot.left - 2, top: slot.top - 2, width: ringSize, height: ringSize, borderRadius: ringSize / 2, backgroundColor: ringColor, zIndex: avatarCount }]}>
+            <View style={[s.overflowFill, { width: slot.circle, height: slot.circle, borderRadius: slot.circle / 2, backgroundColor }]}>
+              <Text style={[s.overflowText, { color: textColor, fontSize: slot.circle * 0.34 }]}>{`+${overflowCount}`}</Text>
+            </View>
+          </View>
+        );
+      })()}
       <View style={[s.badge, {
-        left: lastSlotIndex * step + size - badgeSize * 0.65,
-        top: size - badgeSize * 0.65,
         width: badgeSize, height: badgeSize, borderRadius: badgeSize / 2, backgroundColor: ringColor, zIndex: MAX_VISIBLE + 1,
       }]}>
         <View style={[s.badgeFill, { width: badgeSize - 4, height: badgeSize - 4, borderRadius: (badgeSize - 4) / 2, backgroundColor: accent }]}>
@@ -70,9 +80,9 @@ export function LikeAvatarStack({ authors, backgroundColor, textColor, ringColor
 }
 
 const s = StyleSheet.create({
-  ring: { position: 'absolute', top: -2, alignItems: 'center', justifyContent: 'center' },
+  ring: { position: 'absolute', alignItems: 'center', justifyContent: 'center' },
   overflowFill: { alignItems: 'center', justifyContent: 'center' },
   overflowText: { fontWeight: '700' },
-  badge: { position: 'absolute', alignItems: 'center', justifyContent: 'center' },
+  badge: { position: 'absolute', right: -2, bottom: -2, alignItems: 'center', justifyContent: 'center' },
   badgeFill: { alignItems: 'center', justifyContent: 'center' },
 });

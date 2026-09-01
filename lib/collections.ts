@@ -127,6 +127,20 @@ export async function getSavedPatioMeta(patioId: string): Promise<SavedPatioMeta
   }
 }
 
+// Una sola lectura para TODOS los guardados a la vez — usada por la lista
+// de Guardados para mostrar estatus/calificación propia en cada tarjeta sin
+// leer el mismo blob de AsyncStorage una vez por lugar.
+export async function getAllSavedPatioMeta(): Promise<Record<string, SavedPatioMeta>> {
+  const raw = await AsyncStorage.getItem(META_KEY);
+  if (!raw) return {};
+  try {
+    const all = JSON.parse(raw) as SavedPatioMeta[];
+    return Object.fromEntries(all.map((item) => [item.patioId, item]));
+  } catch {
+    return {};
+  }
+}
+
 export async function saveSavedPatioMeta(meta: SavedPatioMeta) {
   const raw = await AsyncStorage.getItem(META_KEY);
   let all: SavedPatioMeta[] = [];

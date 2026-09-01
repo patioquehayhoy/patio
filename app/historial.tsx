@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
-import { Stack, useFocusEffect } from 'expo-router';
+import { router, Stack, useFocusEffect } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
 import { Alert, KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -10,10 +10,10 @@ import { ActionSheet } from '@/components/action-sheet';
 import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { MenuListsSheet } from '@/components/menu-lists-sheet';
 import { NewMenuSheet } from '@/components/new-menu-sheet';
+import { cleanMenu, publishMenuNow } from '@/lib/controllers/useFonderoMenuDraftController';
 import { dateLabel, defaultHistoryTitle, useMenuHistoryController, type PublishedMenu } from '@/lib/controllers/useMenuHistoryController';
 import { fonderoPalette } from '@/lib/fondero-palette';
 import { getMenuCollections, type MenuCollection } from '@/lib/menu-collections';
-import { getMenuData } from '@/lib/menu-store';
 import { useTabBarScroll } from '@/lib/tab-bar-visibility';
 import { Fonts, Radius, useTheme } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
@@ -42,7 +42,15 @@ export default function HistorialScreen() {
   const [activeListIds, setActiveListIds] = useState<string[]>([]);
   const [sheetMode, setSheetMode] = useState<'filter' | 'assign' | null>(null);
   const [assignFechas, setAssignFechas] = useState<string[]>([]);
-  const pendingToday = !getMenuData()?.secciones.some((section) => section.platillos.some((dish) => dish.nombre.trim()));
+  // Antes checaba si el BORRADOR en memoria tenía platillos con nombre —
+  // "Editar y usar" un guardado escribe al borrador ANTES de llevarte al
+  // editor, así que el foco se apagaba al solo tocar, no al publicar de
+  // verdad (bug real, encontrado por Alejandro 2026-08-30). Ahora checa
+  // contra el historial YA publicado — mismo formato de fecha que usa
+  // lib/menu-history.ts al guardar (`hoy()`, ISO-UTC), para comparar
+  // strings iguales a como se guardaron.
+  const todayFecha = new Date().toISOString().split('T')[0];
+  const pendingToday = !menus.some((menu) => menu.fecha === todayFecha);
 
   useFocusEffect(useCallback(() => {
     getMenuCollections().then(setCollections);
@@ -64,6 +72,31 @@ export default function HistorialScreen() {
       if (next.has(fecha)) next.delete(fecha); else next.add(fecha);
       return next;
     });
+  };
+
+  // "Publicar igual": mismo menú guardado, sin pasar por el editor completo
+  // — para cuando de verdad es igual a antes. "Editar y usar" sigue
+  // existiendo para cuando algo cambió (precio, agotado, etc.) — pedido de
+  // Alejandro 2026-08-30, tras notar que republicar siempre forzaba el
+  // editor incluso sin nada que cambiar.
+  const [publishingReused, setPublishingReused] = useState(false);
+  const publishReused = async (menu: PublishedMenu) => {
+    if (publishingReused) return;
+    const clean = cleanMenu(menu.secciones);
+    if (!clean.secciones.length) {
+      Alert.alert(noWidow('Nada que publicar'), noWidow('Este menú no tiene platillos.'));
+      return;
+    }
+    setPublishingReused(true);
+    try {
+      await publishMenuNow(clean);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+      router.replace('/menu-publicado');
+    } catch {
+      Alert.alert(noWidow('No se pudo publicar'), noWidow('Revisa tu conexión e inténtalo otra vez.'));
+    } finally {
+      setPublishingReused(false);
+    }
   };
 
   // Agrupado por periodo cuando hay suficiente historial para que ayude a
@@ -292,6 +325,7 @@ export default function HistorialScreen() {
         title={actionsFor ? (actionsFor.nombre || defaultHistoryTitle(actionsFor)) : undefined}
         onDismiss={() => setActionsFor(null)}
         options={actionsFor ? [
+          { label: 'Publicar igual', icon: 'checkmark-done-outline', onPress: () => publishReused(actionsFor) },
           { label: 'Editar y usar', icon: 'create-outline', onPress: () => reuse(actionsFor.secciones) },
           { label: 'Renombrar', icon: 'text-outline', onPress: () => openRename(actionsFor) },
           { label: 'Añadir a lista', icon: 'bookmark-outline', onPress: () => { setAssignFechas([actionsFor.fecha]); setSheetMode('assign'); } },

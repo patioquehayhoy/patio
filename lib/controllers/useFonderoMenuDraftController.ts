@@ -37,6 +37,35 @@ const blankSection = (name = 'MENÚ DE HOY'): Seccion => ({
   platillos: [blankDish()],
 });
 
+// Núcleo real de "publicar" — separado del hook para que otras pantallas
+// (ej. "Publicar igual" desde Menús, sin pasar por todo el editor) puedan
+// escribir un menú como el público de hoy por el mismo camino real, en vez
+// de reinventar/duplicar los mismos pasos. Asume `data` ya limpio
+// (cleanMenu) y no vacío — el caller decide qué hacer si está vacío.
+export async function publishMenuNow(data: MenuData, opts: { source?: 'foto' | 'manual' } = {}): Promise<MenuData> {
+  const clean = cleanMenu(data);
+  setMenuData(clean);
+  await saveLocalMenu(clean);
+  if (__DEV__) await saveDevPublishedMenu(clean);
+  const fonditaId = getFonditaId();
+  if (fonditaId) {
+    await saveMenuHoy(fonditaId, clean);
+    // Publishing succeeds independently of push delivery. The server
+    // deduplicates corrections to today's menu and records every attempt.
+    announceMenuPublication(fonditaId).catch((error) => {
+      if (__DEV__) console.warn('[push] no se pudo anunciar la publicación', error);
+    });
+  }
+  if (opts.source === 'foto') {
+    const snapshot = getMenuExtractionSnapshot();
+    if (snapshot) {
+      await recordMenuCorrection(snapshot.menu, clean, snapshot.warnings);
+      clearMenuExtractionSnapshot();
+    }
+  }
+  return clean;
+}
+
 export function emptyMenu(): MenuData {
   // Sin nombre pre-llenado: "MENÚ DE HOY" se leía como contenido ya escrito,
   // no como guía. El placeholder de la primera sección hace ese trabajo.
@@ -59,7 +88,7 @@ function normalizeDraftPresentation(data: MenuData): MenuData {
   };
 }
 
-function cleanMenu(data: MenuData): MenuData {
+export function cleanMenu(data: MenuData): MenuData {
   return {
     secciones: data.secciones
       .map((section) => ({
@@ -229,25 +258,7 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
 
     setPublishing(true);
     try {
-      setMenuData(clean);
-      await saveLocalMenu(clean);
-      if (__DEV__) await saveDevPublishedMenu(clean);
-      const fonditaId = getFonditaId();
-      if (fonditaId) {
-        await saveMenuHoy(fonditaId, clean);
-        // Publishing succeeds independently of push delivery. The server
-        // deduplicates corrections to today's menu and records every attempt.
-        announceMenuPublication(fonditaId).catch((error) => {
-          if (__DEV__) console.warn('[push] no se pudo anunciar la publicación', error);
-        });
-      }
-      if (source === 'foto') {
-        const snapshot = getMenuExtractionSnapshot();
-        if (snapshot) {
-          await recordMenuCorrection(snapshot.menu, clean, snapshot.warnings);
-          clearMenuExtractionSnapshot();
-        }
-      }
+      await publishMenuNow(clean, { source });
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       router.replace('/menu-publicado');
     } catch {

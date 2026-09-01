@@ -291,11 +291,17 @@ function FilterSheet({ visible, onClose, title, onClear, children, overlay, s, t
   );
 }
 
-export function FoodieFilterBar({ filters, onChange, collections, categories, onCollectionCreated, onCollectionUpdated, onCollectionRemoved }: {
+export function FoodieFilterBar({ filters, onChange, collections, categories, onCollectionCreated, onCollectionUpdated, onCollectionRemoved, trailingAction }: {
   filters: FoodieFilters; onChange: (next: FoodieFilters) => void; collections: PatioCollection[]; categories: string[];
   onCollectionCreated?: (collection: PatioCollection) => void;
   onCollectionUpdated?: (collection: PatioCollection) => void;
   onCollectionRemoved?: (collectionId: string) => void;
+  // Pill opcional del mismo tamaño/vidrio que Filtros/Listas, al final de la
+  // misma fila centrada — para pantallas que necesitan UN control más de
+  // este mismo tipo (ej. orden en Guardados) sin volverlo un 5° elemento
+  // fijo también en el mapa (explorar.tsx nunca lo pasa, así que ahí la fila
+  // sigue siendo exactamente 4 elementos, sin cambiar nada).
+  trailingAction?: { icon: keyof typeof Ionicons.glyphMap; label: string; badge?: number; onPress: () => void; anchorRef?: React.RefObject<View | null> };
 }) {
   const { theme } = useTheme();
   const s = styles(theme);
@@ -422,8 +428,9 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
   // toggle se apaga tocándolo de nuevo, y cada sheet (Filtros/Listas) ya
   // trae su propio "Limpiar" acotado a lo suyo. Un botón aparte para
   // "borrar todo de un jalón" no es un patrón que Apple use aquí. Fila
-  // centrada (no pegada a la izquierda): son 4 elementos fijos siempre, el
-  // ancho total no cambia con el estado, así que centrar no salta.
+  // centrada (no pegada a la izquierda): son 4 elementos fijos siempre (5
+  // con `trailingAction`, ej. orden en Guardados) — el número no cambia con
+  // el estado dentro de una misma pantalla, así que centrar no salta.
   return <View style={s.root}>
     <QuickToggle label="Menú hoy" active={filters.today} onPress={() => { Haptics.selectionAsync(); onChange({ ...filters, today: !filters.today }); }} s={s} theme={theme} />
     <QuickToggle label="Abiertos" active={filters.open} onPress={() => { Haptics.selectionAsync(); onChange({ ...filters, open: !filters.open }); }} s={s} theme={theme} />
@@ -455,6 +462,22 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
       <Ionicons name="bookmark-outline" size={16} color={theme.text} />
       {activeCollections.length > 0 && <View style={[s.badge, { backgroundColor: theme.accent }]}><Text style={[s.badgeText, { color: theme.bg }]}>{activeCollections.length}</Text></View>}
     </TouchableOpacity>
+
+    {trailingAction && (
+      <TouchableOpacity
+        ref={trailingAction.anchorRef}
+        hitSlop={HIT_SLOP}
+        onPress={trailingAction.onPress}
+        style={[s.pill, s.iconPill, { backgroundColor: theme.glass, borderColor: theme.border, overflow: 'visible' }]}
+        accessibilityRole="button"
+        accessibilityLabel={trailingAction.label}>
+        <View style={s.pillBlurClip}>
+          <BlurView intensity={30} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
+        </View>
+        <Ionicons name={trailingAction.icon} size={16} color={theme.text} />
+        {!!trailingAction.badge && <View style={[s.badge, { backgroundColor: theme.accent }]}><Text style={[s.badgeText, { color: theme.bg }]}>{trailingAction.badge}</Text></View>}
+      </TouchableOpacity>
+    )}
 
     <FilterSheet
       visible={openPanel === 'filters'}

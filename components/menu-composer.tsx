@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { Stack } from 'expo-router';
 import { useMemo, useRef, useState } from 'react';
 import {
@@ -43,6 +44,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
     data,
     details,
     moveSection,
+    nombre,
     patchDish,
     patchSection,
     publish,
@@ -51,12 +53,43 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
     removeSection,
     revealDetails,
     saveDraft,
+    saveNombre,
     savedFlash,
     sectionActions,
     sectionSuggestions,
+    setNombre,
     toggleCollapsed,
     toggleSectionActions,
   } = useFonderoMenuDraftController(initialData, source);
+
+  // Palomita al salir del campo de nombre — mismo ícono que el check de
+  // "Guardado" del botón Guardar (abajo), pero sin su auto-ocultado por
+  // temporizador: si la persona no volvía a mirar el nav en esos ~2
+  // segundos, la confirmación desaparecía sola sin que nadie la viera
+  // (ruido reportado 2026-09-06). Como es un GlassIconButton real (se ve
+  // tocable), tenía que responder al toque de verdad — Apple: un control
+  // interactivo sin reacción al tocarlo es un control roto, no uno
+  // discreto. Se resuelve por evento real, nunca por timer:
+  // - Toca la palomita → confirma que la vio y desaparece (con háptico).
+  // - Vuelve a entrar al campo a editar → desaparece también (ya no aplica).
+  // Dos casos más, como en Notas de Apple:
+  // - Si BORRASTE el nombre, se guarda igual (para que el placeholder
+  //   "Nuevo menú" se quede así al reabrir, no reaparezca el nombre viejo)
+  //   pero SIN palomita — no hay nada positivo que confirmar al vaciar algo.
+  // - Si no cambió nada desde que entraste al campo (solo tocaste y saliste),
+  //   no se guarda ni se anima — Apple no da feedback cuando no pasó nada.
+  const nombreInputRef = useRef<TextInput | null>(null);
+  const nombreOnFocus = useRef('');
+  const [nombreSaved, setNombreSaved] = useState(false);
+  const focusNombre = () => {
+    nombreOnFocus.current = nombre;
+    setNombreSaved(false);
+  };
+  const confirmNombre = async () => {
+    if (nombre === nombreOnFocus.current) return;
+    await saveNombre();
+    if (nombre.trim()) setNombreSaved(true);
+  };
 
   // Anclaje del "···" de cada sección al mismo menú contextual homologado
   // que Historial/Colección (components/action-sheet.tsx) — antes esta
@@ -118,8 +151,42 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <View style={[s.nav, { paddingTop: insets.top + 6 }]}>
           <GlassIconButton icon="close" accessibilityLabel="Cerrar" onPress={onBack} size={38} iconSize={19} />
-          <Text style={s.navTitle}>{source === 'foto' ? 'Revisión' : 'Nuevo menú'}</Text>
-          {source === 'foto' && onRetake ? (
+          {/* Título del menú de hoy, como el de una nota: en blanco muestra el
+              placeholder de siempre, y en cuanto el fondero le pone nombre
+              (aquí mismo, sin salir a Menús) ese nombre se queda — ley
+              dictada 2026-09-06. Alineado a la izquierda, ocupando el ancho
+              disponible (un TextInput sin ancho fijo no se encoge a su
+              contenido de forma confiable en RN — intentarlo dejaba el check
+              flotando a medio camino, ni pegado al texto ni al borde;
+              corregido el mismo día). La confirmación vive en el slot fijo
+              de la derecha, como botón real (mismo GlassIconButton que sus
+              vecinos), no como ícono suelto. */}
+          <TextInput
+            ref={nombreInputRef}
+            style={[s.navTitle, { color: nombre.trim() ? c.text : c.textSecondary }]}
+            value={nombre}
+            onChangeText={setNombre}
+            onFocus={focusNombre}
+            onBlur={confirmNombre}
+            onSubmitEditing={() => nombreInputRef.current?.blur()}
+            placeholder={source === 'foto' ? 'Revisión' : 'Nuevo menú'}
+            placeholderTextColor={c.textSecondary}
+            maxLength={60}
+            returnKeyType="done"
+            accessibilityLabel="Nombre del menú"
+          />
+          {nombreSaved ? (
+            <GlassIconButton
+              icon="checkmark"
+              accessibilityLabel="Nombre guardado, toca para continuar"
+              onPress={() => {
+                Haptics.selectionAsync().catch(() => {});
+                setNombreSaved(false);
+              }}
+              size={38}
+              iconSize={18}
+            />
+          ) : source === 'foto' && onRetake ? (
             <GlassIconButton icon="camera-outline" accessibilityLabel="Tomar otra foto" onPress={onRetake} size={38} iconSize={18} />
           ) : <View style={s.navButton} />}
         </View>
@@ -387,44 +454,48 @@ function makeStyles(c: FonderoColors) {
   return StyleSheet.create({
     root: { flex: 1, backgroundColor: c.bg },
     nav: { minHeight: 54, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-    navButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-    navTitle: { fontSize: 14, fontWeight: '600', color: c.textSecondary },
+    // 38×38 — mismo tamaño que los GlassIconButton de este nav (cerca,
+    // cámara, palomita). Antes era 44×44: al alternar con la palomita
+    // (que sí es 38) el slot de la derecha cambiaba de ancho y el título
+    // (flex:1) se reajustaba de golpe — el "flickeo" reportado 2026-09-06.
+    navButton: { width: 38, height: 38, alignItems: 'center', justifyContent: 'center' },
+    navTitle: { flex: 1, textAlign: 'left', paddingHorizontal: 8, fontSize: 16, fontWeight: '700', color: c.textSecondary },
     dayPriceField: { minWidth: 78, height: 40, paddingHorizontal: 10, borderRadius: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', backgroundColor: c.iconBg },
     dayPriceCurrency: { fontSize: 15, fontWeight: '700', color: c.textSecondary },
     dayPriceInput: { minWidth: 56, height: 44, paddingVertical: 0, paddingLeft: 2, textAlign: 'right', fontSize: 17, fontWeight: '700', color: c.text },
     section: { borderTopWidth: StyleSheet.hairlineWidth, borderColor: c.border, paddingVertical: 14 },
     sectionHeader: { minHeight: 44, flexDirection: 'row', alignItems: 'center' },
     collapseButton: { width: 30, height: 36, alignItems: 'flex-start', justifyContent: 'center' },
-    sectionName: { flex: 1, paddingVertical: 6, fontSize: 18, lineHeight: 22, fontWeight: '800', letterSpacing: 0.5, color: c.text },
+    sectionName: { flex: 1, paddingVertical: 6, fontSize: 18, lineHeight: 22, fontWeight: '900', letterSpacing: 0.5, color: c.text },
     moreButton: { width: 38, height: 38, alignItems: 'flex-end', justifyContent: 'center' },
-    currency: { fontSize: 13, color: c.textMute },
+    currency: { fontSize: 13, fontWeight: '300', color: c.textMute },
     dish: { paddingVertical: 7, paddingLeft: 30 },
     dishDivider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: c.border },
     reviewNote: { marginBottom: 3, flexDirection: 'row', alignItems: 'center', gap: 4 },
-    reviewNoteText: { flex: 1, fontSize: 11, lineHeight: 15, fontWeight: '500', color: c.accent },
+    reviewNoteText: { flex: 1, fontSize: 11, lineHeight: 15, fontWeight: '300', color: c.accent },
     dishMainRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-    dishName: { flex: 1, paddingVertical: 3, fontSize: 16, lineHeight: 21, fontWeight: '600', color: c.text },
+    dishName: { flex: 1, paddingVertical: 3, fontSize: 16, lineHeight: 21, fontWeight: '700', color: c.text },
     removeDish: { width: 30, height: 30, alignItems: 'flex-end', justifyContent: 'center' },
-    addDetail: { paddingTop: 3, fontSize: 12, fontWeight: '400', color: c.textSecondary },
+    addDetail: { paddingTop: 3, fontSize: 12, fontWeight: '300', color: c.textSecondary },
     detailRow: { marginTop: 2, flexDirection: 'row', alignItems: 'center' },
-    description: { flex: 1, paddingVertical: 3, fontSize: 13, color: c.textSecondary },
+    description: { flex: 1, paddingVertical: 3, fontSize: 13, fontWeight: '300', color: c.textSecondary },
     inlinePrice: { minWidth: 68, height: 36, paddingHorizontal: 8, borderRadius: 11, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', backgroundColor: c.iconBg },
-    dishPrice: { width: 44, paddingVertical: 3, textAlign: 'right', fontSize: 15, fontWeight: '600', color: c.text },
+    dishPrice: { width: 44, paddingVertical: 3, textAlign: 'right', fontSize: 15, fontWeight: '700', color: c.text },
     addPrice: { minHeight: 34, paddingHorizontal: 8, flexDirection: 'row', alignItems: 'center', gap: 4 },
-    addPriceText: { fontSize: 12, fontWeight: '500', color: c.textSecondary },
+    addPriceText: { fontSize: 12, fontWeight: '300', color: c.textSecondary },
     addDish: { minHeight: 40, marginLeft: 30, flexDirection: 'row', alignItems: 'center', gap: 8 },
-    addDishText: { fontSize: 13, fontWeight: '600', color: c.accent },
+    addDishText: { fontSize: 13, fontWeight: '700', color: c.accent },
     addSectionBlock: { borderTopWidth: StyleSheet.hairlineWidth, borderColor: c.border, paddingTop: 14 },
     addSectionToggle: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 40 },
-    addSectionToggleText: { fontSize: 14, fontWeight: '600', color: c.accent },
+    addSectionToggleText: { fontSize: 13, fontWeight: '700', color: c.accent },
     addSectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: 28, marginBottom: 10 },
-    addSectionLabel: { fontSize: 10.5, fontWeight: '900', letterSpacing: 1.4, color: c.textMute },
+    addSectionLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1.6, color: c.textMute },
     chipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
     chip: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingLeft: 10, paddingRight: 14, minHeight: 36, borderRadius: 100, backgroundColor: c.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: c.border },
-    chipText: { fontSize: 12, fontWeight: '800', letterSpacing: 0.6, color: c.text },
+    chipText: { fontSize: 12, fontWeight: '700', letterSpacing: 0.6, color: c.text },
     actionsBlock: { marginTop: 28, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
     saveButton: { height: 50, borderRadius: 25, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: c.iconBg },
-    saveText: { fontSize: 15, fontWeight: '600', color: c.text },
+    saveText: { fontSize: 15, fontWeight: '700', color: c.text },
     publishButton: { height: 50, borderRadius: 25, paddingHorizontal: 32, alignItems: 'center', justifyContent: 'center', backgroundColor: c.accent, shadowColor: c.accent, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.28, shadowRadius: 14, elevation: 4 },
     publishText: { fontSize: 15, fontWeight: '700', color: '#fff', letterSpacing: -0.2 },
   });

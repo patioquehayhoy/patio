@@ -1,12 +1,12 @@
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert } from 'react-native';
 
 import { saveMenuHoy } from '@/lib/db';
 import { announceMenuPublication } from '@/lib/community-notifications';
 import { saveDevPublishedMenu } from '@/lib/demo';
-import { saveLocalMenu } from '@/lib/menu-history';
+import { getLocalMenus, renameLocalMenu, saveLocalMenu } from '@/lib/menu-history';
 import { recordMenuCorrection } from '@/lib/menu-learning';
 import {
   canonicalSeccion,
@@ -66,6 +66,10 @@ export async function publishMenuNow(data: MenuData, opts: { source?: 'foto' | '
   return clean;
 }
 
+function hoy(): string {
+  return new Date().toISOString().split('T')[0];
+}
+
 export function emptyMenu(): MenuData {
   // Sin nombre pre-llenado: "MENÚ DE HOY" se leía como contenido ya escrito,
   // no como guía. El placeholder de la primera sección hace ese trabajo.
@@ -116,6 +120,31 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
   const [details, setDetails] = useState<Record<string, boolean>>({});
   const [sectionActions, setSectionActions] = useState<string | null>(null);
   const [publishing, setPublishing] = useState(false);
+
+  // Título del menú de hoy — funciona como el título de una nota: en blanco
+  // muestra el placeholder ("Nuevo menú"/"Revisión"), y en cuanto el fondero
+  // le pone nombre, ese nombre queda. Se lee del historial local (mismo
+  // campo `nombre` que ya usa Menús para renombrar publicados) para que un
+  // menú ya nombrado hoy conserve su título al reabrir el editor.
+  const [nombre, setNombre] = useState('');
+  useEffect(() => {
+    let active = true;
+    getLocalMenus().then((list) => {
+      if (!active) return;
+      const today = list.find((menu) => menu.fecha === hoy());
+      if (today?.nombre) setNombre(today.nombre);
+    });
+    return () => { active = false; };
+  }, []);
+
+  // Guarda el título ni bien el fondero sale del campo — igual que Notas: el
+  // título de una nota en blanco existe desde que lo escribes, no hasta que
+  // guardas el cuerpo. Se llama también al Guardar/Publicar (líneas abajo)
+  // para no perder el nombre si esos pasos ocurren primero.
+  const saveNombre = useCallback(async () => {
+    const clean = cleanMenu(data);
+    await renameLocalMenu(hoy(), nombre, clean);
+  }, [data, nombre]);
 
   const patchSection = useCallback((id: string, patch: Partial<Seccion>) => {
     setData((prev) => ({
@@ -243,10 +272,11 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
       Alert.alert('No se pudo guardar', 'Inténtalo otra vez.');
       return;
     }
+    void renameLocalMenu(hoy(), nombre, clean);
     void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     setSavedFlash(true);
     setTimeout(() => setSavedFlash(false), 1600);
-  }, [data]);
+  }, [data, nombre]);
 
   const publish = useCallback(async () => {
     if (publishing) return;
@@ -259,13 +289,14 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
     setPublishing(true);
     try {
       await publishMenuNow(clean, { source });
+      void renameLocalMenu(hoy(), nombre, clean);
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       router.replace('/menu-publicado');
     } catch {
       Alert.alert('No se pudo publicar', 'Revisa tu conexión e inténtalo otra vez.');
       setPublishing(false);
     }
-  }, [data, publishing, source]);
+  }, [data, nombre, publishing, source]);
 
   return {
     addDish,
@@ -276,6 +307,7 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
     dayPrice,
     details,
     moveSection,
+    nombre,
     patchDish,
     patchSection,
     publish,
@@ -284,10 +316,12 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
     removeSection,
     revealDetails,
     saveDraft,
+    saveNombre,
     savedFlash,
     sectionActions,
     sectionSuggestions,
     setDayPrice,
+    setNombre,
     toggleCollapsed,
     toggleSectionActions,
   };

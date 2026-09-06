@@ -8,7 +8,7 @@ import { CollapsingHeader, CollapsingTitle } from '@/components/collapsing-heade
 import { todayDish } from '@/lib/controllers/patioListHelpers';
 import { useViewedPatiosController } from '@/lib/controllers/useViewedPatiosController';
 import { publicPrice } from '@/lib/prices';
-import { Fonts, Radius, useTheme, type Theme } from '@/lib/theme';
+import { Fonts, useTheme, type Theme } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
 
 const OPEN_GREEN = '#1F9D55';
@@ -57,7 +57,7 @@ function makeStyles(t: Theme) {
     emptyIcon: { width: 68, height: 68, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, backgroundColor: t.surface, alignItems: 'center', justifyContent: 'center', marginBottom: 18 },
     emptyTitle: { fontSize: 22, fontWeight: '900', letterSpacing: -0.5, color: t.text, textAlign: 'center', fontFamily: Fonts.brand },
     emptyText: { marginTop: 10, fontSize: 15, lineHeight: 21, fontWeight: '400', color: t.textSecondary, textAlign: 'center' },
-    cta: { marginTop: 26, height: 54, paddingHorizontal: 24, borderRadius: Radius.card, backgroundColor: t.accent, alignItems: 'center', justifyContent: 'center' },
+    cta: { marginTop: 26, height: 54, paddingHorizontal: 24, borderRadius: 27, backgroundColor: t.accent, alignItems: 'center', justifyContent: 'center' },
     ctaText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
   });
 }

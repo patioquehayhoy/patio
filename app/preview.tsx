@@ -148,7 +148,7 @@ function makeStyles(c: FonderoColors) {
   emptyIcon: { width: 58, height: 58, borderRadius: 20, backgroundColor: c.iconBg, alignItems: 'center', justifyContent: 'center' },
   emptyTitle: { marginTop: 18, fontSize: 26, lineHeight: 30, fontWeight: '900', color: c.text, textAlign: 'center', fontFamily: Fonts.brand },
   emptyBody: { maxWidth: 310, marginTop: 9, fontSize: 14, lineHeight: 20, fontWeight: '400', color: c.textSecondary, textAlign: 'center' },
-  emptyButton: { width: '100%', maxWidth: 330, minHeight: 56, marginTop: 24, borderRadius: 18, backgroundColor: c.accent, alignItems: 'center', justifyContent: 'center' },
+  emptyButton: { width: '100%', maxWidth: 330, minHeight: 56, marginTop: 24, borderRadius: 28, backgroundColor: c.accent, alignItems: 'center', justifyContent: 'center' },
   emptyButtonText: { color: '#fff', fontSize: 16, fontWeight: '700' },
   top: { position: 'absolute', left: 16, right: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', zIndex: 20 },
   // Espaciador de la top bar: mismo ancho que el botón de volver, SIN fondo —

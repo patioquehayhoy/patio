@@ -3,7 +3,7 @@ import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import { router, Stack } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ScrollView, Share, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, ScrollView, Share, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ActionSheet } from '@/components/action-sheet';
@@ -80,7 +80,7 @@ function makeStyles(t: Theme) {
     emptyIcon: { width: 68, height: 68, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, backgroundColor: t.surface, alignItems: 'center', justifyContent: 'center', marginBottom: 18 },
     emptyTitle: { fontSize: 22, fontWeight: '900', letterSpacing: -0.5, color: t.text, textAlign: 'center', fontFamily: Fonts.brand },
     emptyText: { marginTop: 10, fontSize: 15, lineHeight: 21, fontWeight: '400', color: t.textSecondary, textAlign: 'center' },
-    cta: { marginTop: 26, height: 54, paddingHorizontal: 24, borderRadius: Radius.card, backgroundColor: t.accent, alignItems: 'center', justifyContent: 'center' },
+    cta: { marginTop: 26, height: 54, paddingHorizontal: 24, borderRadius: 27, backgroundColor: t.accent, alignItems: 'center', justifyContent: 'center' },
     ctaText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
 
     // Barra de acciones en lote — reemplaza la tab bar mientras se
@@ -135,12 +135,29 @@ export default function FavoritosScreen() {
     });
   };
 
-  const removeSelected = async () => {
+  // Confirmación antes de borrar — el mismo patrón que ya usan
+  // coleccion/[id].tsx y useMenuHistoryController.deleteMenus para su
+  // equivalente en Menús; esta pantalla se había quedado sin ese paso
+  // (bug encontrado en auditoría 2026-09-06).
+  const removeSelected = () => {
     const ids = Array.from(selectedIds);
-    await removeFavoritePatios(ids);
-    removeLocally(ids);
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-    exitSelecting();
+    Alert.alert(
+      'Quitar de Guardados',
+      `Se ${ids.length === 1 ? 'quitará 1 lugar' : `quitarán ${ids.length} lugares`} de Guardados.`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Quitar',
+          style: 'destructive',
+          onPress: async () => {
+            await removeFavoritePatios(ids);
+            removeLocally(ids);
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+            exitSelecting();
+          },
+        },
+      ],
+    );
   };
 
   const shareSelected = async () => {

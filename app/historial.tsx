@@ -301,7 +301,7 @@ export default function HistorialScreen() {
               onPress={() => { setAssignFechas(Array.from(selectedFechas)); setSheetMode('assign'); }}
               accessibilityRole="button"
               accessibilityLabel="Añadir seleccionados a una lista"
-              style={[s.actionBtn, selectedFechas.size === 0 && s.actionBtnDisabled]}>
+              style={[s.actionBtn, { borderColor: c.border }, selectedFechas.size === 0 && s.actionBtnDisabled]}>
               <Ionicons name="bookmark-outline" size={18} color={c.text} />
               <Text style={[s.actionBtnText, { color: c.text }]}>Lista</Text>
             </TouchableOpacity>
@@ -310,7 +310,7 @@ export default function HistorialScreen() {
               onPress={() => { const fechas = Array.from(selectedFechas); deleteMenus(fechas); exitSelecting(); }}
               accessibilityRole="button"
               accessibilityLabel="Eliminar menús seleccionados"
-              style={[s.actionBtn, selectedFechas.size === 0 && s.actionBtnDisabled]}>
+              style={[s.actionBtn, { borderColor: c.border }, selectedFechas.size === 0 && s.actionBtnDisabled]}>
               <Ionicons name="trash-outline" size={18} color={c.text} />
               <Text style={[s.actionBtnText, { color: c.text }]}>Eliminar</Text>
             </TouchableOpacity>

@@ -10,7 +10,7 @@ import { fetchFonditaById, getPatioById, type Patio } from '@/lib/patios';
 import { publicPrice } from '@/lib/prices';
 import { savePatioRating } from '@/lib/ratings';
 import { REVIEW_TAGS as TAGS } from '@/lib/review-tags';
-import { Fonts, Radius, useTheme, type Theme } from '@/lib/theme';
+import { Fonts, useTheme, type Theme } from '@/lib/theme';
 import { supabase } from '@/lib/supabase';
 import { noWidow } from '@/lib/typography';
 
@@ -48,7 +48,7 @@ function makeStyles(t: Theme) {
 
     ctaWrap: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 20, paddingTop: 14 },
     ctaFade: { position: 'absolute', left: 0, right: 0, top: -40, height: 40 },
-    cta: { height: 54, borderRadius: Radius.card, backgroundColor: t.accent, alignItems: 'center', justifyContent: 'center', shadowColor: t.accent, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.4, shadowRadius: 18, elevation: 4 },
+    cta: { height: 54, borderRadius: 27, backgroundColor: t.accent, alignItems: 'center', justifyContent: 'center', shadowColor: t.accent, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.4, shadowRadius: 18, elevation: 4 },
     ctaDisabled: { opacity: 0.4 },
     ctaText: { fontSize: 16, fontWeight: '700', color: '#fff' },
   });

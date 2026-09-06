@@ -117,13 +117,56 @@ En cualquier lista de contenido (menú, póster, historial, resultados):
 > rompería como pareja. No uses esta excepción como precedente para otras
 > pantallas — es específica a esas dos.
 
-- **Botón de confirmación prominente** (la única acción destacada de la pantalla, sea cual sea su verbo — guardar/publicar/continuar/enviar/comenzar): `borderRadius 14`, fondo `ACCENT` (naranja), texto blanco `fontWeight '700'`. Ver `publishButton` en `menu-composer.tsx`, `saveBtn` en `perfil-editar.tsx`.
+- **Botón de confirmación prominente** (la única acción destacada de la pantalla, sea cual sea su verbo — guardar/publicar/continuar/enviar/comenzar): **cápsula completa** — `borderRadius` = altura del botón / 2 (nunca 14; corregido 2026-09-06 tras auditoría: ningún botón de confirmación real en el código usa 14, y 6 de 11 instancias auditadas comparten radio-igual-a-mitad-de-altura de forma exacta e independiente, lo que confirma que es el patrón real homologado, no los 4 outliers en `Radius.card`/18 ni el caso aislado en 16). Fondo `ACCENT` (naranja), texto blanco `fontWeight '700'`. Referencia: `publishButton`/`saveButton` en `menu-composer.tsx` (`height 50, borderRadius 25`, comentario en código "cápsulas HIG en fila"), `saveBtn` en `perfil-editar.tsx` (`height 52, borderRadius 26`), `primary` en `menu-publicado.tsx` (`height 54, borderRadius 27`), `cta` en `preview.tsx` (`height 54, borderRadius 27`), `follow` en `foodie/[id].tsx` (`height 40, borderRadius 20`), `button` en `coleccion-publica/[id].tsx` (`height 48, borderRadius 24`).
 - **Botones primarios compactos genéricos** (cuando no hay una única acción prominente que destacar): `borderRadius 14`, fondo `BLACK (#292929)`, texto blanco `fontWeight '700'`.
-- **Botones de contorno**: `borderWidth 1.5`, `borderColor BLACK`, fondo transparente
+- **Botones de contorno**: `borderWidth 1.5`, fondo transparente. **Corregido 2026-09-06:**
+  esta entrada decía `borderColor BLACK` (literal) — no es lo que corre en el código real.
+  El borde siempre sale del token de paleta `border`/`t.border`/`c.border`
+  (`rgba(17,18,20,0.08)` claro · `rgba(255,255,255,0.10)` oscuro, mismo valor que
+  "Líneas y separadores" abajo), nunca un negro sólido. Un botón de contorno sin ese
+  color explícito no "hereda" nada razonable — sale con el borde por defecto de RN, que
+  no es ninguno de los dos tonos de la paleta (bug real encontrado y corregido en
+  `historial.tsx`: los botones "Lista"/"Eliminar" de la barra de selección en lote eran
+  los únicos elementos con borde en todo el archivo sin `borderColor` explícito).
 - **Segmented control**: `borderRadius 14`, `borderWidth 1`, `overflow hidden`
 - **Separadores**: `StyleSheet.hairlineWidth`, color `t.sep`
 - **Placeholders**: `BLACK60`
 - **Cards / inputs**: fondo `WHITE`, `borderRadius 14`
+
+### Qué significa cada tratamiento de botón — auditoría 2026-09-06
+
+Después de revisar todos los botones de la app (tamaños, radios, colores, comportamiento),
+esto es lo que cada lenguaje visual COMUNICA — no son intercambiables, cada uno tiene un
+rol específico y no debe usarse fuera de él:
+
+- **Naranja (`ACCENT`) de fondo** = "esta es LA acción que se espera que hagas en esta
+  pantalla, y solo hay una." Nunca decoración, nunca dos en la misma pantalla (ver regla
+  homologada 2026-07-22/2026-08-16 arriba).
+- **Negro (`BLACK #292929`) de fondo** = acción primaria genérica cuando NO hay una sola
+  acción que destaque — sigue siendo "la más importante de las disponibles", pero sin el
+  peso narrativo del naranja.
+- **Contorno (borde de paleta, fondo transparente)** = acción secundaria o de igual peso
+  entre varias — el caso típico es una barra de acciones en lote (seleccionar → "Lista" /
+  "Eliminar" / "Compartir" en `favoritos.tsx` y `historial.tsx`): ninguna domina sobre
+  las demás, así que ninguna lleva fondo de color.
+- **Vidrio (`BlurView`/`GlassIconButton`)** = capa de NAVEGACIÓN/control flotante sobre
+  contenido, nunca la capa de contenido en sí (ver "Materials" de Apple: *"Don't use
+  Liquid Glass in the content layer"*). En Patio esto son íconos circulares de nav bar
+  (cerrar, cámara, retroceder) — 38-44pt, `BlurView` + anillo `hairlineWidth`. **Regla
+  añadida 2026-09-06 tras encontrar un botón zombi real:** todo `GlassIconButton` se ve
+  tocable (círculo, blur, sombra) — por lo tanto DEBE reaccionar de verdad al toque.
+  Un ícono con `onPress={() => {}}` (sin efecto) es un control roto disfrazado de
+  funcional, no uno "discreto". Aplica igual a cualquier ícono de feedback/confirmación
+  transitorio (ej. una palomita que confirma un guardado): debe desaparecer por una
+  acción real de la persona (lo toca, o vuelve a editar lo que confirmaba) — nunca por
+  un `setTimeout` arbitrario, porque si la persona no está mirando el nav en ese
+  instante preciso, la confirmación desaparece sin que nadie la haya visto.
+- **Ambas versiones, clara y oscura:** ningún tratamiento de botón cambia de ROL entre
+  temas — el naranja sigue siendo naranja, el contorno sigue siendo contorno — solo
+  cambian los valores de opacidad/rgba del borde y el blur (`intensity` 20 claro / 16
+  oscuro para `BlurView`; `border` `rgba(17,18,20,0.08)` claro / `rgba(255,255,255,0.10)`
+  oscuro). Si un botón se ve distinto por tema más allá de esos dos valores, es una
+  desviación, no una variante válida.
 
 ## Ley visual — altas y formularios
 
@@ -144,27 +187,6 @@ En cualquier lista de contenido (menú, póster, historial, resultados):
   pantalla; instrucciones y acciones viven abajo con una primaria y una secundaria.
 - Fuente completa: `docs/design/foundations/ESSENTIAL_DESIGN_PRINCIPLES.md`,
   sección “Patrón confirmado: altas y formularios Patio”.
-
-## Precio del día en menu-composer.tsx — NO TOCAR
-
-> Corregido 2026-08-14 tras auditoría: `app/menu.tsx` dejó de ser el editor de
-> precio hace tiempo (hoy es el selector "¿Cómo quieres empezar?"); la ley
-> seguía apuntando a un archivo que ya no tenía ese bloque. El editor real de
-> precio vive en `components/menu-composer.tsx` (`dayPriceField`/
-> `dayPriceCurrency`/`dayPriceInput`, líneas ~364-366) — esta entrada ahora
-> protege esa ubicación real.
-
-El bloque del precio del día en `components/menu-composer.tsx` tiene esta
-estructura exacta que NO debe modificarse sin decisión explícita:
-- `dayPriceField`: contenedor `flexDirection row`, `alignItems center`, `justifyContent flex-end`, sin `paddingVertical`
-- `dayPriceCurrency` (Text del signo `$`): `fontSize 15`, `fontWeight '700'`
-- `dayPriceInput` (TextInput): `fontSize 17`, `fontWeight '700'`, `height 44`, `paddingVertical 0`
-
-El precio por platillo (`dishPrice`/`inlinePrice`, mismo archivo) es un bloque
-distinto y no está cubierto por esta ley — solo el precio del día.
-
-Si se edita `menu-composer.tsx` por cualquier razón, verificar que este bloque
-no haya cambiado antes de guardar.
 
 ## Glass y superficies flotantes
 

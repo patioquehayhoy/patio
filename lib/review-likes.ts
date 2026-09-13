@@ -1,3 +1,4 @@
+import { withStorageLock } from './storage-queue';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { supabase } from '@/lib/supabase';
@@ -28,6 +29,7 @@ export async function getLikedReviewIds(reviewIds: string[]): Promise<Set<string
 }
 
 export async function toggleReviewLike(reviewId: string): Promise<boolean> {
+  return withStorageLock(KEY, async () => {
   const liked = await getLocalLiked();
   const wasLiked = liked.has(reviewId);
   if (wasLiked) liked.delete(reviewId); else liked.add(reviewId);
@@ -42,6 +44,7 @@ export async function toggleReviewLike(reviewId: string): Promise<boolean> {
     }
   }
   return !wasLiked;
+  });
 }
 
 export async function getReviewLikeCounts(reviewIds: string[]): Promise<Record<string, number>> {

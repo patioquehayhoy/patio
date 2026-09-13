@@ -1,9 +1,11 @@
 import { PlusJakartaSans_800ExtraBold, useFonts } from '@expo-google-fonts/plus-jakarta-sans';
 import { Asset } from 'expo-asset';
 import * as SplashScreen from 'expo-splash-screen';
-import { router, Stack } from 'expo-router';
+import { router, Stack, usePathname } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
+import { AppState, Platform } from 'react-native';
+import { supabase } from '@/lib/supabase';
 import 'react-native-reanimated';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
@@ -11,7 +13,7 @@ import { ThemeProvider, useTheme } from '@/lib/theme';
 import { TabBarVisibilityProvider } from '@/lib/tab-bar-visibility';
 import { FoodieFiltersProvider } from '@/lib/foodie-filters-context';
 
-SplashScreen.preventAutoHideAsync();
+SplashScreen.preventAutoHideAsync().catch(() => {});
 
 // Botánicas de entrada/onboarding/acceso: precargarlas evita el flash negro
 // del arranque (en dev los assets llegan por red desde Metro).
@@ -24,6 +26,25 @@ const HERO_ASSETS = [
 
 function RootStack() {
   const { theme } = useTheme();
+  const pathname = usePathname();
+  const [pendingPatioId, setPendingPatioId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!pendingPatioId || ['/', '/index', '/warmup', '/login-callback'].includes(pathname)) return;
+    router.push({ pathname: '/patio/[id]', params: { id: pendingPatioId } });
+    setPendingPatioId(null);
+  }, [pathname, pendingPatioId]);
+
+  useEffect(() => {
+    if (Platform.OS === 'web') return;
+    const refresh = (state: string) => {
+      if (state === 'active') supabase.auth.startAutoRefresh();
+      else supabase.auth.stopAutoRefresh();
+    };
+    refresh(AppState.currentState);
+    const subscription = AppState.addEventListener('change', refresh);
+    return () => { subscription.remove(); supabase.auth.stopAutoRefresh(); };
+  }, []);
 
   useEffect(() => {
     let Notifications: typeof import('expo-notifications') | null = null;
@@ -34,10 +55,15 @@ function RootStack() {
       return;
     }
 
+    let lastOpened: string | null = null;
     const openResponse = (response: import('expo-notifications').NotificationResponse | null) => {
+      const identifier = response?.notification.request.identifier;
+      if (!identifier || identifier === lastOpened) return;
       const patioId = response?.notification.request.content.data?.patioId;
       if (typeof patioId === 'string' && patioId) {
-        router.push({ pathname: '/patio/[id]', params: { id: patioId } });
+        lastOpened = identifier;
+        setPendingPatioId(patioId);
+        Notifications?.clearLastNotificationResponseAsync().catch(() => {});
       }
     };
 
@@ -100,7 +126,7 @@ function RootStack() {
 }
 
 export default function RootLayout() {
-  const [fontsLoaded] = useFonts({ PlusJakartaSans_800ExtraBold });
+  const [fontsLoaded, fontError] = useFonts({ PlusJakartaSans_800ExtraBold });
   const [herosLoaded, setHerosLoaded] = useState(false);
 
   useEffect(() => {
@@ -109,10 +135,10 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
-    if (fontsLoaded && herosLoaded) SplashScreen.hideAsync();
-  }, [fontsLoaded, herosLoaded]);
+    if ((fontsLoaded || fontError) && herosLoaded) SplashScreen.hideAsync().catch(() => {});
+  }, [fontError, fontsLoaded, herosLoaded]);
 
-  if (!fontsLoaded || !herosLoaded) return null;
+  if ((!fontsLoaded && !fontError) || !herosLoaded) return null;
 
   return (
     <ThemeProvider>

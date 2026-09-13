@@ -1,179 +1,84 @@
-import { type EmailOtpType, type Session } from '@supabase/supabase-js';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { useGlobalSearchParams, useRouter } from 'expo-router';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as Linking from 'expo-linking';
 
 import { AgentSpinner } from '@/components/agent-spinner';
 import { initializeSignedInUser } from '@/lib/auth';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import { resolveLoginSession } from '@/lib/auth-callback';
+import { safeReturnTo } from '@/lib/auth-links';
 import { COMMUNITY_RETURN_TO_KEY } from '@/lib/community-auth';
 import { getUserRole, saveUserRole } from '@/lib/entry-flow';
-import { supabase } from '@/lib/supabase';
 import { syncLocalLibraryToCloud } from '@/lib/collections';
-
-const OTP_TYPES: EmailOtpType[] = ['signup', 'invite', 'magiclink', 'recovery', 'email_change', 'email'];
-
-function debugLog(...args: unknown[]) {
-  if (__DEV__) console.log(...args);
-}
-
-function normalizeOtpType(rawType: string | null): EmailOtpType {
-  if (!rawType) return 'magiclink';
-  return OTP_TYPES.includes(rawType as EmailOtpType) ? (rawType as EmailOtpType) : 'magiclink';
-}
-
-function extractAuthParams(rawUrl: string): {
-  code: string | null;
-  tokenHash: string | null;
-  type: string | null;
-} {
-  const parsedUrl = new URL(rawUrl);
-  const search = parsedUrl.searchParams;
-  const hash = new URLSearchParams(parsedUrl.hash.startsWith('#') ? parsedUrl.hash.slice(1) : parsedUrl.hash);
-
-  const read = (...keys: string[]) => {
-    for (const key of keys) {
-      const value = search.get(key) ?? hash.get(key);
-      if (value) return value;
-    }
-    return null;
-  };
-
-  return {
-    code: read('code'),
-    tokenHash: read('token_hash', 'token'),
-    type: read('type'),
-  };
-}
+import { useTheme } from '@/lib/theme';
+import { noWidow } from '@/lib/typography';
+import { withSessionLock } from '@/lib/session-queue';
 
 export default function LoginCallback() {
   const router = useRouter();
-  const routeParams = useGlobalSearchParams();
-  const [diag, setDiag] = useState<string>('Verificando link...');
+  const { theme } = useTheme();
+  const params = useLocalSearchParams();
+  const liveUrl = Linking.useURL();
+  const [error, setError] = useState<string | null>(null);
+  const [accessRoute, setAccessRoute] = useState<'/comunidad-acceso' | '/fondero-acceso'>('/fondero-acceso');
+  // Fresh route credentials take precedence over the app's stale launch URL.
+  const query = new URLSearchParams();
+  for (const key of ['code', 'token_hash', 'token', 'type', 'error', 'error_code', 'error_description']) {
+    const value = params[key];
+    const first = Array.isArray(value) ? value[0] : value;
+    if (first) query.set(key, first);
+  }
+  const credentialQuery = query.toString();
+  const callbackUrl = credentialQuery
+    ? `patio://login-callback?${credentialQuery}`
+    : liveUrl?.startsWith('patio://login-callback') ? liveUrl : null;
 
   useEffect(() => {
-    let isCancelled = false;
-
-    const safeRedirect = (path: string, delayMs = 0) => {
-      setTimeout(() => { if (!isCancelled) router.replace(path as any); }, delayMs);
-    };
-
-    const continueWithSession = async (session: Session) => {
+    let cancelled = false;
+    setError(null);
+    const handle = async () => {
       const role = await getUserRole();
+      if (!cancelled) setAccessRoute(role === 'foodie' ? '/comunidad-acceso' : '/fondero-acceso');
+      const rawUrl = callbackUrl ?? await Linking.getInitialURL();
+      if (!rawUrl) throw new Error('No pudimos recuperar el enlace. Solicita uno nuevo.');
+      const session = await resolveLoginSession(rawUrl);
+      if (cancelled) return;
+      let destination: string;
       if (role === 'foodie') {
         await syncLocalLibraryToCloud().catch(() => {});
-        const pending = await AsyncStorage.getItem(COMMUNITY_RETURN_TO_KEY).catch(() => null);
-        if (!session.user.user_metadata?.profile_complete) {
-          safeRedirect(`/perfil-comunidad${pending ? `?returnTo=${encodeURIComponent(pending)}` : ''}`);
-          return;
-        }
-        await AsyncStorage.removeItem(COMMUNITY_RETURN_TO_KEY).catch(() => {});
-        safeRedirect(pending?.startsWith('/') ? pending : '/explorar');
-        return;
-      }
-      await saveUserRole('fondero').catch(() => {});
-      const { needsSetup } = await initializeSignedInUser(session);
-      // Mismo criterio que index.tsx: entrar por magic link con el negocio
-      // ya dado de alta manda a la base real (Menús/historial), no al
-      // chooser de primera vez (auditado 2026-08-24).
-      safeRedirect(needsSetup ? '/patio-smart' : '/historial');
-    };
-
-    async function handle() {
-      // Si la app ya estaba abierta y tapeas el link, getInitialURL es null.
-      // Hay que esperar el evento de Linking durante un tick.
-      let rawUrl: string | null = await Linking.getInitialURL();
-      // Expo Router ya pudo consumir el deep link antes de que Linking lo
-      // entregue. Reconstruimos la URL con los parámetros visibles de la ruta.
-      if (!rawUrl && Object.keys(routeParams).length) {
-        const params = new URLSearchParams();
-        Object.entries(routeParams).forEach(([key, value]) => {
-          const first = Array.isArray(value) ? value[0] : value;
-          if (typeof first === 'string') params.set(key, first);
-        });
-        rawUrl = `patio://login-callback?${params.toString()}`;
-      }
-      if (!rawUrl) {
-        rawUrl = await new Promise<string | null>((resolve) => {
-          const sub = Linking.addEventListener('url', ({ url }) => { sub.remove(); resolve(url); });
-          setTimeout(() => { sub.remove(); resolve(null); }, 800);
-        });
-      }
-      debugLog('[auth] login callback url:', rawUrl);
-
-      if (!rawUrl) {
-        // iOS puede entregar el enlace a Supabase/Expo antes de que esta
-        // pantalla alcance a leerlo. Si la verificación ya creó una sesión,
-        // continuar es correcto; "URL vacía" no equivale a login fallido.
-        setDiag('Recuperando tu sesión…');
-        const { data } = await supabase.auth.getSession();
-        if (data.session) {
-          await continueWithSession(data.session);
-          return;
-        }
-        setDiag('No pudimos recuperar el enlace. Solicita uno nuevo.');
-        safeRedirect('/fondero-acceso', 2200);
-        return;
-      }
-
-      const { code, tokenHash, type } = extractAuthParams(rawUrl);
-      let session: Session | null = null;
-      let errMsg = '';
-
-      if (code) {
-        setDiag('Intercambiando code…');
-        const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-        if (error) { errMsg = `code: ${error.message}`; debugLog('[auth] exchangeCodeForSession error:', error.message); }
-        session = data.session ?? null;
-      } else if (tokenHash) {
-        setDiag('Verificando OTP…');
-        const otpType = normalizeOtpType(type);
-        const { data, error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: otpType });
-        if (error) { errMsg = `otp: ${error.message}`; debugLog('[auth] verifyOtp error:', error.message); }
-        session = data.session ?? null;
+        const pending = safeReturnTo(await AsyncStorage.getItem(COMMUNITY_RETURN_TO_KEY));
+        destination = session.user.user_metadata?.profile_complete
+          ? pending : `/perfil-comunidad?returnTo=${encodeURIComponent(pending)}`;
+        if (session.user.user_metadata?.profile_complete) await AsyncStorage.removeItem(COMMUNITY_RETURN_TO_KEY);
       } else {
-        errMsg = 'sin code ni token_hash en URL';
-        debugLog('[auth] callback sin code/token_hash');
+        await saveUserRole('fondero');
+        const { needsSetup } = await initializeSignedInUser(session);
+        destination = needsSetup ? '/patio-smart' : '/historial';
       }
-
-      if (!session) {
-        const { data } = await supabase.auth.getSession();
-        session = data.session ?? null;
-      }
-
-      if (session) {
-        setDiag('¡Listo! Entrando…');
-        await continueWithSession(session);
-        return;
-      }
-
-      setDiag(`Sin sesión. ${errMsg || 'Causa desconocida'}\nRegresando al inicio…`);
-      safeRedirect('/', 3500);
-    }
-
-    handle().catch((err) => {
-      const msg = err?.message ?? String(err);
-      setDiag(`Error: ${msg}`);
-      console.error('[auth] login callback error:', err);
-      safeRedirect('/', 3500);
+      if (!cancelled) router.replace(destination as never);
+    };
+    void withSessionLock(async () => { if (!cancelled) await handle(); }).catch((reason) => {
+      if (!cancelled) setError(reason instanceof Error ? reason.message : 'No pudimos iniciar sesión. Solicita otro enlace.');
     });
+    return () => { cancelled = true; };
+  }, [callbackUrl, router]);
 
-    return () => { isCancelled = true; };
-  }, [routeParams, router]);
-
-  return (
-    <View style={s.root}>
-      <View style={s.glow} />
-      <AgentSpinner variant="arc" size={30} color="#FF6A3D" />
-      <Text style={s.diag} allowFontScaling={true}>{diag}</Text>
-    </View>
-  );
+  return <View style={[s.root, { backgroundColor: theme.bg }]}>
+    {!error && <AgentSpinner variant="arc" size={30} color={theme.accent} />}
+    <Text style={[s.message, { color: theme.textSecondary }]} accessibilityLiveRegion="polite">
+      {noWidow(error ?? 'Abriendo tu cuenta…')}
+    </Text>
+    {error && <TouchableOpacity style={[s.button, { backgroundColor: theme.accent }]}
+      onPress={() => router.replace(accessRoute)} accessibilityRole="button" accessibilityLabel="Solicitar otro enlace">
+      <Text style={s.buttonText}>{noWidow('Solicitar otro enlace')}</Text>
+    </TouchableOpacity>}
+  </View>;
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#111214', justifyContent: 'center', alignItems: 'center', padding: 28 },
-  glow: { position: 'absolute', top: -150, left: -100, right: -100, height: 600, backgroundColor: 'rgba(255,106,61,0.10)', borderRadius: 300 },
-  diag: { marginTop: 20, fontSize: 14, color: 'rgba(248,248,245,0.7)', textAlign: 'center', fontWeight: '400', lineHeight: 20 },
+  root: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
+  message: { marginTop: 24, fontSize: 15, textAlign: 'center', lineHeight: 22 },
+  button: { minHeight: 52, borderRadius: 26, marginTop: 24, paddingHorizontal: 24, justifyContent: 'center' },
+  buttonText: { color: '#FFFFFF', fontSize: 15, fontWeight: '700' },
 });

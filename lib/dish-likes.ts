@@ -1,3 +1,4 @@
+import { withStorageLock } from './storage-queue';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { canonicalDishName } from '@/lib/menu-store';
@@ -49,6 +50,7 @@ export async function getLikedDishNames(fonditaId: string): Promise<Set<string>>
 // mismo patrón de degradación que savePatioRating en lib/ratings.ts (remoto
 // solo si hay sesión, local siempre).
 export async function toggleDishLike(fonditaId: string, dishName: string): Promise<boolean> {
+  return withStorageLock(KEY, async () => {
   const key = localKey(fonditaId, dishName);
   const liked = await getLocalLiked();
   const wasLiked = liked.has(key);
@@ -73,6 +75,7 @@ export async function toggleDishLike(fonditaId: string, dishName: string): Promi
     }
   }
   return !wasLiked;
+  });
 }
 
 export type DishLikeEvent = {

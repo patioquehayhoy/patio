@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { CameraView } from 'expo-camera';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AgentSpinner } from '@/components/agent-spinner';
@@ -20,13 +20,12 @@ export default function FotoMenuScreen() {
   const { theme } = useTheme();
   const c = fonderoPalette(theme.isDark);
   const s = makeStyles(theme);
-  const { analyzePhoto, cancelRead, choosePhoto, menu, prepareCamera, state } = useFotoMenuController({
+  const { analyzePhoto, cameraAllowed, cancelRead, choosePhoto, menu, prepareCamera, state } = useFotoMenuController({
     onExit: () => router.replace('/historial'),
     onManual: () => router.replace('/menu-editar'),
   });
   const launched = useRef(false);
   const cameraRef = useRef<CameraView | null>(null);
-  const [cameraAllowed, setCameraAllowed] = useState(false);
   const [cameraReady, setCameraReady] = useState(false);
   const [capturing, setCapturing] = useState(false);
   const [flashOn, setFlashOn] = useState(false);
@@ -41,7 +40,7 @@ export default function FotoMenuScreen() {
     if (!launched.current) {
       launched.current = true;
       if (source === 'library') void choosePhoto();
-      else void prepareCamera().then(setCameraAllowed);
+      else void prepareCamera();
     }
   }, [choosePhoto, prepareCamera, source]);
 
@@ -53,14 +52,16 @@ export default function FotoMenuScreen() {
     try {
       const photo = await cameraRef.current.takePictureAsync({ quality: 0.9, exif: false, shutterSound: true });
       if (photo) await analyzePhoto(photo.uri, photo.width, photo.height);
+    } catch {
+      Alert.alert(noWidow('No se pudo tomar la foto'), noWidow('Inténtalo otra vez o elige una foto de tu galería.'));
     } finally {
       setCapturing(false);
     }
   };
 
   const retake = async () => {
-    const allowed = await prepareCamera();
-    setCameraAllowed(allowed);
+    setCameraReady(false);
+    await prepareCamera();
   };
 
   if (state === 'review') {
@@ -105,6 +106,13 @@ export default function FotoMenuScreen() {
           animateShutter
           responsiveOrientationWhenOrientationLocked
           onCameraReady={() => setCameraReady(true)}
+          onMountError={() => {
+            setCameraReady(false);
+            Alert.alert(noWidow('No se pudo abrir la cámara'), noWidow('Puedes elegir una foto de tu galería.'), [
+              { text: 'Elegir de Fotos', onPress: () => { void choosePhoto(); } },
+              { text: 'Cerrar', style: 'cancel', onPress: cancelRead },
+            ]);
+          }}
         />
       ) : (
         <View style={[StyleSheet.absoluteFill, s.cameraLoading]}>

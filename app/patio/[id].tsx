@@ -10,6 +10,7 @@ import MapView, { Marker } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AgentSpinner } from '@/components/agent-spinner';
+import { ContentSafetyMenu } from '@/components/content-safety-menu';
 import { SaveToListSheet } from '@/components/save-to-list-sheet';
 import { usePatioDetailController } from '@/lib/controllers/usePatioDetailController';
 import { getLikedDishNames, toggleDishLike } from '@/lib/dish-likes';
@@ -246,12 +247,15 @@ export default function PatioDetailScreen() {
     patioId,
     proxTexto,
     rangoHoy,
-    reviews,
+    reviews: fetchedReviews,
     sections,
     soldOut,
     status,
     userReview,
   } = usePatioDetailController(id);
+  const [hiddenAuthors, setHiddenAuthors] = useState<string[]>([]);
+  const reviews = useMemo(() => fetchedReviews.filter((review) => !hiddenAuthors.includes(review.userId)), [fetchedReviews, hiddenAuthors]);
+  useEffect(() => { setHiddenAuthors([]); }, [patioId]);
   const heroPhoto = useMemo(() => heroPhotoFor(patioId ?? cleanId ?? ''), [patioId, cleanId]);
   const ratingAverage = useMemo(
     () => reviews.length ? reviews.reduce((sum, review) => sum + review.stars, 0) / reviews.length : 0,
@@ -484,6 +488,7 @@ export default function PatioDetailScreen() {
           <View style={[s.heroNav, { top: insets.top + 8 }]}>
             <GlassIcon name="chevron-back" size={20} onPress={handleBack} label="Regresar" />
             <View style={{ flexDirection: 'row', gap: 8 }}>
+              {patioId && <ContentSafetyMenu targetType="patio" targetId={patioId} />}
               <GlassIcon name="share-outline" size={17} onPress={handleShare} label="Compartir" />
               <GlassIcon
                 name={isSaved ? 'bookmark' : 'bookmark-outline'}
@@ -730,6 +735,9 @@ export default function PatioDetailScreen() {
                   <Text style={s.reviewDate}>
                     {new Date(review.timestamp).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' })}
                   </Text>
+                  {!review.isMine && review.reviewId && <ContentSafetyMenu
+                    targetType="review" targetId={review.reviewId} authorId={review.userId}
+                    onBlocked={() => setHiddenAuthors((current) => [...current, review.userId])} />}
                 </View>
                 <View style={s.reviewStars}>
                   {Array.from({ length: 5 }, (_, star) => (

@@ -1,12 +1,12 @@
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert } from 'react-native';
 
 import { saveMenuHoy } from '@/lib/db';
 import { announceMenuPublication } from '@/lib/community-notifications';
 import { saveDevPublishedMenu } from '@/lib/demo';
-import { getLocalMenus, renameLocalMenu, saveLocalMenu } from '@/lib/menu-history';
+import { getLocalMenus, newMenuDraftId, renameLocalMenu, saveMenuPublication, saveLocalMenu } from '@/lib/menu-history';
 import { recordMenuCorrection } from '@/lib/menu-learning';
 import {
   canonicalSeccion,
@@ -21,6 +21,7 @@ import {
   type Platillo,
   type Seccion,
 } from '@/lib/menu-store';
+import { noWidow } from '@/lib/typography';
 import { getFonditaId } from '@/lib/user-store';
 
 const blankDish = (): Platillo => ({
@@ -42,32 +43,34 @@ const blankSection = (name = 'MENÚ DE HOY'): Seccion => ({
 // escribir un menú como el público de hoy por el mismo camino real, en vez
 // de reinventar/duplicar los mismos pasos. Asume `data` ya limpio
 // (cleanMenu) y no vacío — el caller decide qué hacer si está vacío.
-export async function publishMenuNow(data: MenuData, opts: { source?: 'foto' | 'manual' } = {}): Promise<MenuData> {
+export async function publishMenuNow(data: MenuData, opts: { source?: 'foto' | 'manual'; nombre?: string; draftId?: string } = {}): Promise<MenuData> {
   const clean = cleanMenu(data);
-  setMenuData(clean);
-  await saveLocalMenu(clean);
-  if (__DEV__) await saveDevPublishedMenu(clean);
+  if (!clean.secciones.length) throw new Error('El menú necesita al menos un platillo.');
   const fonditaId = getFonditaId();
+  if (!fonditaId && !__DEV__) throw new Error('Entra a tu cuenta de negocio para publicar.');
+  await saveMenuPublication(clean, opts.nombre, opts.draftId ?? newMenuDraftId(), async (saved) => {
+  if (!fonditaId && !saved) throw new Error('No se pudo guardar el menú.');
   if (fonditaId) {
+    // Solo el guardado remoto confirma que el menú está publicado.
     await saveMenuHoy(fonditaId, clean);
-    // Publishing succeeds independently of push delivery. The server
-    // deduplicates corrections to today's menu and records every attempt.
     announceMenuPublication(fonditaId).catch((error) => {
       if (__DEV__) console.warn('[push] no se pudo anunciar la publicación', error);
     });
+  } else if (__DEV__) {
+    await saveDevPublishedMenu(clean);
   }
+  setMenuData(clean);
   if (opts.source === 'foto') {
     const snapshot = getMenuExtractionSnapshot();
     if (snapshot) {
-      await recordMenuCorrection(snapshot.menu, clean, snapshot.warnings);
+      // El aprendizaje es secundario: no convertir una publicación real en
+      // un mensaje de fallo si este registro local no se pudo escribir.
+      try { await recordMenuCorrection(snapshot.menu, clean, snapshot.warnings); } catch {}
       clearMenuExtractionSnapshot();
     }
   }
+  });
   return clean;
-}
-
-function hoy(): string {
-  return new Date().toISOString().split('T')[0];
 }
 
 export function emptyMenu(): MenuData {
@@ -116,6 +119,7 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
   const [data, setData] = useState<MenuData>(() =>
     normalizeDraftPresentation(initialData.secciones.length ? initialData : emptyMenu())
   );
+  const draftId = useRef(initialData.localDraftId ?? newMenuDraftId()).current;
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const [details, setDetails] = useState<Record<string, boolean>>({});
   const [sectionActions, setSectionActions] = useState<string | null>(null);
@@ -126,16 +130,22 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
   // le pone nombre, ese nombre queda. Se lee del historial local (mismo
   // campo `nombre` que ya usa Menús para renombrar publicados) para que un
   // menú ya nombrado hoy conserve su título al reabrir el editor.
-  const [nombre, setNombre] = useState('');
+  const [nombre, updateNombre] = useState('');
+  const nombreEdited = useRef(false);
+  const savingRef = useRef(false);
+  const setNombre = useCallback((value: string) => {
+    nombreEdited.current = true;
+    updateNombre(value);
+  }, []);
   useEffect(() => {
     let active = true;
     getLocalMenus().then((list) => {
-      if (!active) return;
-      const today = list.find((menu) => menu.fecha === hoy());
-      if (today?.nombre) setNombre(today.nombre);
+      if (!active || nombreEdited.current) return;
+      const today = list.find((menu) => menu.id === draftId);
+      if (today?.nombre) updateNombre(today.nombre);
     });
     return () => { active = false; };
-  }, []);
+  }, [draftId]);
 
   // Guarda el título ni bien el fondero sale del campo — igual que Notas: el
   // título de una nota en blanco existe desde que lo escribes, no hasta que
@@ -143,8 +153,17 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
   // para no perder el nombre si esos pasos ocurren primero.
   const saveNombre = useCallback(async () => {
     const clean = cleanMenu(data);
-    await renameLocalMenu(hoy(), nombre, clean);
-  }, [data, nombre]);
+    try {
+      // Un blur puede terminar después de Guardar/Publicar. Cambiar sólo el
+      // nombre conserva el contenido y la confirmación más recientes; clean
+      // sirve de contenido inicial únicamente si el borrador aún no existe.
+      await renameLocalMenu(draftId, nombre, clean);
+      return true;
+    } catch {
+      Alert.alert(noWidow('No se pudo guardar el nombre'), noWidow('Inténtalo otra vez.'));
+      return false;
+    }
+  }, [data, nombre, draftId]);
 
   const patchSection = useCallback((id: string, patch: Partial<Seccion>) => {
     setData((prev) => ({
@@ -260,43 +279,58 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
   // Guardar sin publicar: para el fondero que ajusta su menú de mañana o sube
   // un precio, sin anunciarlo todavía. Publicar sigue siendo el acto final.
   const [savedFlash, setSavedFlash] = useState(false);
-  const saveDraft = useCallback(async () => {
+  useEffect(() => { setSavedFlash(false); }, [data, nombre]);
+  const saveDraft = useCallback(async (): Promise<boolean> => {
+    if (savingRef.current) return false;
     const clean = cleanMenu(data);
     if (!clean.secciones.length) {
-      Alert.alert('Nada que guardar', 'Escribe al menos un platillo.');
-      return;
+      Alert.alert(noWidow('Nada que guardar'), noWidow('Escribe al menos un platillo.'));
+      return false;
     }
-    setMenuData(clean);
-    const ok = await saveLocalMenu(clean);
-    if (!ok) {
-      Alert.alert('No se pudo guardar', 'Inténtalo otra vez.');
-      return;
+    savingRef.current = true;
+    try {
+      const ok = await saveLocalMenu(clean, nombre, { id: draftId });
+      if (!ok) {
+        Alert.alert(noWidow('No se pudo guardar'), noWidow('Inténtalo otra vez.'));
+        return false;
+      }
+      setMenuData(clean);
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+      setSavedFlash(true);
+      return true;
+    } finally {
+      savingRef.current = false;
     }
-    void renameLocalMenu(hoy(), nombre, clean);
-    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    setSavedFlash(true);
-    setTimeout(() => setSavedFlash(false), 1600);
-  }, [data, nombre]);
+  }, [data, nombre, draftId]);
 
   const publish = useCallback(async () => {
-    if (publishing) return;
+    if (savingRef.current) return;
     const clean = cleanMenu(data);
     if (!clean.secciones.length) {
-      Alert.alert('Falta el menú', 'Escribe al menos un platillo para publicarlo.');
+      Alert.alert(noWidow('Falta el menú'), noWidow('Escribe al menos un platillo para publicarlo.'));
+      return;
+    }
+    if (!getFonditaId() && !__DEV__) {
+      Alert.alert(noWidow('Entra a tu negocio'), noWidow('Inicia sesión para publicar tu menú.'), [
+        { text: 'Ahora no', style: 'cancel' },
+        { text: 'Entrar', onPress: () => router.push('/fondero-acceso') },
+      ]);
       return;
     }
 
+    savingRef.current = true;
     setPublishing(true);
     try {
-      await publishMenuNow(clean, { source });
-      void renameLocalMenu(hoy(), nombre, clean);
-      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      await publishMenuNow(clean, { source, nombre, draftId });
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
       router.replace('/menu-publicado');
     } catch {
-      Alert.alert('No se pudo publicar', 'Revisa tu conexión e inténtalo otra vez.');
+      Alert.alert(noWidow('No se pudo publicar'), noWidow('Revisa tu conexión e inténtalo otra vez.'));
+    } finally {
+      savingRef.current = false;
       setPublishing(false);
     }
-  }, [data, nombre, publishing, source]);
+  }, [data, nombre, source, draftId]);
 
   return {
     addDish,

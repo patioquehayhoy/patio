@@ -1,6 +1,39 @@
 # STATE
 
-> Fuente de verdad operativa. Última actualización: 2026-08-10.
+> Fuente de verdad operativa. Última actualización: 2026-09-12.
+
+## Continuación de auditoría — 2026-09-12
+
+- Corregidos el guardado tardío de título y el reuso del magic link en mounts
+  consecutivos; las transiciones de Auth esperan guardados pendientes y mantienen
+  suspendidas las escrituras si falla la restauración local, hasta recuperarla.
+- TypeScript, lint y 105 pruebas aprobadas. Export JavaScript iOS/Android verde.
+- Smoke de navegación pública 1/1 aprobado sobre el binario Release del 10-sep;
+  no acredita login, publicación, hardware ni las correcciones posteriores.
+- Dependencias: 16 paquetes afectados (8 altos, 8 moderados) tras actualizar
+  uuid para sus consumidores. `npm audit` sigue bloqueante.
+- Los pendientes externos y el P0 de infraestructura siguen vigentes.
+  Detalle y evidencia en [HANDOFF](HANDOFF.md) y la
+  [auditoría](APP_AUDIT_2026-09-10.md).
+
+## Corte de auditoría de lanzamiento — 2026-09-11
+
+- Corregidos acceso por enlace, separación y restauración de datos por cuenta,
+  errores de guardado/publicación, fechas CDMX y respuestas tardías de pantalla.
+- Incorporadas eliminación de cuenta, reportes y bloqueo/desbloqueo. Su backend
+  está preparado en el repositorio; todavía requiere despliegue y ensayo con
+  el esquema real, Auth y Storage. No se modificó producción.
+- Configuración nativa revisada en un prebuild aislado iOS/Android. La
+  compilación local iOS Release para simulador pasó, sin firma de distribución.
+- Ensayo SQL mínimo: 14 comprobaciones reales de RLS, transacciones y cascadas
+  aprobadas. No sustituye la validación del proyecto Supabase real.
+- El lanzamiento sigue bloqueado por backend verificable, configuración
+  Maps/Firebase Android, avisos altos de dependencias, identidad legal e
+  infraestructura, moderación efectiva y QA de dispositivos/firma.
+- Resultados y pendientes actuales: [auditoría](APP_AUDIT_2026-09-10.md),
+  [backend](APP_BACKEND_AUDIT_2026-09-10.md) y
+  [tiendas](STORE_RELEASE_READINESS.md). Los cortes históricos siguientes
+  describen su momento y no anulan estos bloqueos.
 
 ## Corte Foodie — 2026-08-10
 

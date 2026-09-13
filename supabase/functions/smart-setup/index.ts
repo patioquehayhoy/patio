@@ -1,9 +1,5 @@
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
-type SetupRequest = { relato?: string };
+import { requireUser } from '../_shared/auth.ts';
+import { corsHeaders, errorResponse, readJson } from '../_shared/http.ts';
 
 const PROMPT = `
 Extrae datos de un negocio local de comida en México a partir de lo que cuenta su responsable.
@@ -79,15 +75,18 @@ Deno.serve(async (request) => {
   }
 
   try {
+    await requireUser(request);
+    const body = await readJson(request, 24_576);
+    const relato = string(body.relato);
+    if (relato.length < 12 || relato.length > 4_000) {
+      return Response.json({ error: 'Cuéntanos tu negocio en 12 a 4000 caracteres' }, { status: 400, headers: corsHeaders });
+    }
     const apiKey = Deno.env.get('ANTHROPIC_API_KEY');
     if (!apiKey) throw new Error('ANTHROPIC_API_KEY no está configurada');
-    const { relato } = await request.json() as SetupRequest;
-    if (!relato?.trim() || relato.trim().length < 12) {
-      return Response.json({ error: 'Cuéntanos un poco más de tu negocio' }, { status: 400, headers: corsHeaders });
-    }
 
     const anthropic = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
+      signal: AbortSignal.timeout(30_000),
       headers: {
         'content-type': 'application/json',
         'x-api-key': apiKey,
@@ -101,16 +100,15 @@ Deno.serve(async (request) => {
     });
     if (!anthropic.ok) throw new Error('El servicio no respondió');
     const payload = await anthropic.json();
+    if (payload?.stop_reason === 'max_tokens' || payload?.stop_reason === 'refusal') {
+      throw new Error('La preparación no pudo completarse');
+    }
     const answer = payload?.content?.find((item: { type?: string }) => item.type === 'text')?.text ?? '';
     const parsed = JSON.parse(answer.replace(/```json|```/g, '').trim());
     return Response.json(normalize(parsed), {
       headers: { ...corsHeaders, 'content-type': 'application/json' },
     });
   } catch (error) {
-    console.error(error);
-    return Response.json(
-      { error: error instanceof Error ? error.message : 'No pudimos preparar tu Patio' },
-      { status: 500, headers: corsHeaders },
-    );
+    return errorResponse(error, 'No pudimos preparar tu Patio');
   }
 });

@@ -1,5 +1,75 @@
 # HANDOFF
 
+## 2026-09-12 — Cierre de la continuación de auditoría
+
+Se retomó el trabajo interrumpido por límite de uso. Correcciones adicionales:
+
+- El guardado del título ahora modifica sólo el nombre. Un blur tardío ya no
+  sobrescribe platillos recién guardados ni borra la confirmación de publicación.
+  Se actualizaron dos pruebas que todavía usaban la fecha como identidad y se
+  comprobó la independencia de varios borradores del mismo día.
+- Abrir nuevamente el mismo magic link comparte el canje completado sólo si
+  Supabase sigue autenticado en esa misma cuenta. No restaura sesiones cerradas
+  ni reutiliza una identidad después de cambiar de cuenta.
+- Login/logout/eliminación esperan los guardados pendientes antes de modificar
+  Auth y mantienen exclusión hasta terminar el cambio local. Si falla la
+  restauración, las escrituras personales permanecen suspendidas entre intentos;
+  una activación correcta permite continuar. Se probaron guardados que cruzaban
+  el canje y recuperación tras fallo de disco. No constituye una transacción
+  persistente entre Auth y AsyncStorage ante terminación del proceso.
+- Overrides acotados de `uuid@11.1.1` para xcode y ngrok, manteniendo Expo SDK 54
+  y el parche de Maps. Pruebas de consumidores reales incluidas en `npm test`.
+  Auditoría actual: **16 paquetes afectados, 8 altos y 8 moderados**;
+  [reporte](DEPENDENCY_AUDIT_2026-09-12.json). El control de seguridad continúa
+  bloqueante por image-size; decode-uri-component también sigue pendiente.
+
+**Validación final:** `npm run check` verde (TypeScript, lint y **105/105
+pruebas**, 29 verificaciones de configuración con dos pendientes externos).
+Bundles JavaScript actuales iOS/Android exportados correctamente en
+`/private/tmp/patio-release-export-2026-09-12`.
+
+Smoke público Maestro **1/1 PASS**, usando el binario Release del 10 de septiembre,
+en un simulador nuevo aislado; no acredita los cambios de código posteriores a
+ese binario. Se corrigió el manejo del diálogo iOS para abrir la URL. Evidencia:
+`/private/tmp/patio-release-smoke-2026-09-11/run.9z3ZBe/summary.tsv` y su reporte
+JUnit. Ver alcance y reproducción en [Maestro](../maestro/README.md).
+
+**Sigue sin estar lista para publicar.** Permanecen los pendientes de backend
+real, Maps/Firebase/firma Android, infraestructura neutral, privacidad/moderación
+y QA completo en dispositivos descritos en la auditoría. No hubo despliegue,
+envío a tiendas ni borrado de proyectos. Los cambios quedan locales en el worktree.
+
+## 2026-09-11 — Auditoría y preparación de lanzamiento iOS/Android
+
+Solicitud de Alejandro: continuar la auditoría integral y corregir errores
+para preparar el lanzamiento. Trabajo realizado localmente, sin despliegue,
+envío a tiendas ni modificaciones de datos de producción.
+
+Correcciones principales: enlaces de acceso y sesiones; archivos locales por
+cuenta y preservación de guardados de invitado; publicación sin falsos éxitos;
+fecha comercial CDMX; estados de carga, error y reintento; guardados
+concurrentes; publicación transaccional de colecciones; eliminación de
+cuenta; reportes y bloqueos; permisos e icono nativos; configuración EAS y
+controles reproducibles de QA. Se conserva la identidad visual de Patio.
+
+Se añadieron pruebas de regresión y CI. El ensayo PostgreSQL/PGlite aislado
+pasó 14 comprobaciones reales con fixture mínimo. La compilación iOS Release
+para simulador pasó sin firma. La auditoría de npm bajó de 41 paquetes
+afectados a 31 (8 altos, 23 moderados); el control de seguridad sigue siendo
+bloqueante. Ver resultados finales de app y navegación en el informe.
+
+**No marcar como lista para publicación.** Faltan validar y desplegar el
+backend real, configurar Maps/Firebase y firma, resolver dependencias,
+definir responsable/correo/dominio públicos, completar moderación y ensayar
+los casos de aceptación en iPhone/Android. Continúa vigente el P0 de
+propiedad neutral de infraestructura de STATE/TASKS; no se autorizó ni
+ejecutó el borrado de proyectos.
+
+Fuentes de este corte: [auditoría general](APP_AUDIT_2026-09-10.md),
+[backend](APP_BACKEND_AUDIT_2026-09-10.md),
+[tiendas](STORE_RELEASE_READINESS.md),
+[ensayo SQL](../scripts/db-tests/README.md) y [Maestro](../maestro/README.md).
+
 ## 2026-08-30 (cont.) — Orden y metadata real en Guardados, facepile en clúster cuadrado, "Publicar igual" desde Menús
 
 Segunda mitad de la sesión, misma fecha. Sin prueba en dispositivo real

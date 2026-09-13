@@ -26,6 +26,8 @@ export interface Seccion {
 }
 
 export type MenuData = {
+  /** Solo contexto local del editor; cleanMenu lo excluye del menú público. */
+  localDraftId?: string;
   secciones: Seccion[];
 };
 
@@ -97,66 +99,67 @@ export function makeDefaultMenu(tipo?: string | null): MenuData {
 }
 
 // ─── Migration ────────────────────────────────────────────────────────────────
-export function normalizeMenuData(raw: any): MenuData | null {
-  if (!raw) return null;
-
-  // v3: new format (platillos array)
-  if (Array.isArray(raw.secciones)) {
-    const first = raw.secciones[0];
-    if (!first || 'platillos' in first) {
-      return { secciones: raw.secciones } as MenuData;
-    }
-
-    // v2: items-string format → convert to platillos
-    if ('items' in first) {
-      return {
-        secciones: raw.secciones.map((sec: any) => ({
-          id: sec.id ?? makeSectionId(),
-          nombre: sec.nombre ?? '',
-          precio: sec.precio ?? '',
-          platillos: (sec.items ?? []).filter(Boolean).map((item: string) => {
-            const si = item.indexOf(' / ');
-            return {
-              id: makePlatilloId(),
-              nombre: si !== -1 ? item.slice(0, si) : item,
-              descripcion: si !== -1 ? item.slice(si + 3) : '',
-              precio: '',
-            };
-          }),
-        })),
-      };
-    }
-  }
-
-  // v1: original fixed-field format
-  if (raw.primerTiempo || raw.segundoTiempo) {
-    const secciones: Seccion[] = [];
-    const add = (nombre: string, sec: any) => {
-      if (sec?.items?.some(Boolean)) {
-        secciones.push({
-          id: makeSectionId(),
-          nombre,
-          precio: '',
-          platillos: sec.items.filter(Boolean).map((item: string) => {
-            const si = item.indexOf(' / ');
-            return {
-              id: makePlatilloId(),
-              nombre: si !== -1 ? item.slice(0, si) : item,
-              descripcion: si !== -1 ? item.slice(si + 3) : '',
-              precio: '',
-            };
-          }),
-        });
-      }
+export function normalizeMenuData(raw: unknown): MenuData | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const value = raw as Record<string, unknown>;
+  const text = (item: unknown) => typeof item === 'string' ? item : typeof item === 'number' && Number.isFinite(item) ? String(item) : '';
+  const object = (item: unknown): Record<string, unknown> | null =>
+    item && typeof item === 'object' && !Array.isArray(item) ? item as Record<string, unknown> : null;
+  const usedIds = new Set<string>();
+  const uniqueId = (value: unknown, make: () => string) => {
+    let id = text(value);
+    if (!id || usedIds.has(id)) id = make();
+    usedIds.add(id);
+    return id;
+  };
+  const legacyDish = (item: unknown): Platillo | null => {
+    if (typeof item !== 'string' || !item.trim()) return null;
+    const divider = item.indexOf(' / ');
+    return {
+      id: makePlatilloId(),
+      nombre: divider === -1 ? item : item.slice(0, divider),
+      descripcion: divider === -1 ? '' : item.slice(divider + 3),
+      precio: '',
     };
-    add('1ER TIEMPO', raw.primerTiempo);
-    add('2DO TIEMPO', raw.segundoTiempo);
-    add('3ER TIEMPO', raw.tercerTiempoGuisado);
-    add('POSTRES',    raw.postre);
-    add('BEBIDAS',    raw.aguas);
-    return { secciones };
-  }
+  };
+  const section = (item: unknown): Seccion | null => {
+    const sec = object(item);
+    if (!sec) return null;
+    let platillos: Platillo[];
+    if (Array.isArray(sec.platillos)) {
+      platillos = sec.platillos.flatMap((item): Platillo[] => {
+        const dish = object(item);
+        if (!dish) return [];
+        return [{
+          id: uniqueId(dish.id, makePlatilloId),
+          nombre: text(dish.nombre),
+          descripcion: text(dish.descripcion),
+          precio: text(dish.precio),
+          ...(typeof dish.confianza === 'number' && Number.isFinite(dish.confianza) ? { confianza: dish.confianza } : {}),
+          ...(typeof dish.revision === 'string' ? { revision: dish.revision } : {}),
+        }];
+      });
+    } else if (Array.isArray(sec.items)) {
+      platillos = sec.items.map(legacyDish).filter((dish): dish is Platillo => dish !== null);
+    } else return null;
+    return { id: uniqueId(sec.id, makeSectionId), nombre: text(sec.nombre), precio: text(sec.precio), platillos };
+  };
 
+  // Normalize every section, including mixed legacy/current storage. Never
+  // trust the first item as proof that all nested arrays and strings exist.
+  if (Array.isArray(value.secciones)) {
+    return { secciones: value.secciones.map(section).filter((sec): sec is Seccion => sec !== null) };
+  }
+  if (value.primerTiempo || value.segundoTiempo) {
+    const legacy: [string, unknown][] = [
+      ['1ER TIEMPO', value.primerTiempo], ['2DO TIEMPO', value.segundoTiempo],
+      ['3ER TIEMPO', value.tercerTiempoGuisado], ['POSTRES', value.postre], ['BEBIDAS', value.aguas],
+    ];
+    return { secciones: legacy.flatMap(([nombre, item]) => {
+      const sec = section({ ...object(item), nombre });
+      return sec?.platillos.length ? [sec] : [];
+    }) };
+  }
   return null;
 }
 
@@ -215,3 +218,21 @@ export function setPagosTarjeta(v: boolean) { _pagosTarjeta = v; }
 let _fonditaId: string | null = null;
 export function getFonditaId(): string | null { return _fonditaId; }
 export function setFonditaId(id: string | null) { _fonditaId = id; }
+
+// Cierre/cambio de cuenta: ningún borrador, foto ni identidad queda en RAM.
+export function resetMenuStore() {
+  _menuData = null;
+  _cartaData = null;
+  _menuExtractionSnapshot = null;
+  _fonditaName = '';
+  _fonditaDescription = '';
+  _tipoNegocio = null;
+  _fonditaDireccion = '';
+  _fonditaDireccionVisible = false;
+  _fonditaHorario = '';
+  _fonditaHorarioSemanal = null;
+  _pagosEfectivo = false;
+  _pagosTrans = false;
+  _pagosTarjeta = false;
+  _fonditaId = null;
+}

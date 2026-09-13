@@ -1,5 +1,30 @@
 # Próxima sesión — empieza aquí
 
+## Continuación vigente — 2026-09-11
+
+Frente activo: auditoría de lanzamiento. Leer `CLAUDE.md`, el corte superior
+de [HANDOFF](HANDOFF.md), [STATE](STATE.md) y la
+[auditoría actual](APP_AUDIT_2026-09-10.md). El worktree contiene las
+correcciones locales de esta auditoría; conservarlas.
+
+El siguiente trabajo es resolver las dependencias pendientes, autenticar el
+CLI de Supabase para inventariar y restaurar el esquema en un entorno de
+ensayo, comprobar aislamiento/cascadas, configurar Maps/Firebase/firma Android
+y cerrar privacidad/moderación. Después, completar los recorridos de
+[tiendas](STORE_RELEASE_READINESS.md) en iPhone y Android reales.
+
+Validación local: `npm run check` y `npm run check:release:strict`. El segundo
+seguirá fallando mientras falte configuración externa. Mantener también
+`npm audit --audit-level=high` como control bloqueante. Las cifras, evidencia
+y límites actuales están en la auditoría; el smoke de
+[Maestro](../maestro/README.md) sólo cubre navegación pública.
+
+Conservar el P0 de propiedad neutral de infraestructura. No se autorizó borrar
+proyectos ni enviar builds a tiendas. Los estados de julio siguientes se
+conservan como historial y no describen el código, despliegue ni QA actuales.
+
+## Corte histórico — 2026-07-19
+
 > Última actualización: 2026-07-19 — onboarding panorámico guardado y publicado.
 
 > Handoff principal para Claude: leer primero `docs/HANDOFF.md`, sección

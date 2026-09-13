@@ -1,3 +1,4 @@
+import { withStorageLock } from './storage-queue';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { getFavoritePatioIds } from './favorites';
@@ -29,11 +30,13 @@ export async function getViewedPatioIds(): Promise<string[]> {
 // Registra que se abrió una ficha. Se llama al entrar al detalle.
 // Si ya estaba, lo mueve al frente (vista más reciente).
 export async function registerPatioView(patioId: string): Promise<void> {
+  return withStorageLock(VIEWED_KEY, async () => {
   if (!patioId) return;
   const current = await getViewedIds();
   const withoutId = current.filter((id) => id !== patioId);
   const next = [patioId, ...withoutId].slice(0, MAX_VIEWED);
   await AsyncStorage.setItem(VIEWED_KEY, JSON.stringify(next));
+  });
 }
 
 export type FoodieStats = {

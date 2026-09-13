@@ -1,8 +1,9 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Keyboard, Share, type TextInput } from 'react-native';
+import { Alert, Keyboard, Share, type TextInput } from 'react-native';
 import type { Region } from 'react-native-maps';
 
+import { noWidow } from '@/lib/typography';
 import { fetchAiSearchIntent } from '@/lib/aiSearch';
 import { getFavoritePatioIds, toggleFavoritePatio } from '@/lib/favorites';
 import { estaAbiertoAhora } from '@/lib/horario';
@@ -124,7 +125,7 @@ export function useFoodieExploreController() {
       // tarda (sin red, función caída), la búsqueda sigue con la heurística
       // local en vez de quedarse sin resultados.
       const localIntent = interpretAiQuery(submittedQuery);
-      let terms = localIntent.terms.length ? localIntent.terms : [submittedQuery];
+      let terms = aiMode && localIntent.terms.length ? localIntent.terms : [submittedQuery.trim()];
       let openNow = localIntent.openNow;
       let note = '';
       if (aiMode) {
@@ -149,7 +150,11 @@ export function useFoodieExploreController() {
         setAiNote(note);
         setSearchPending(false);
       }
-    })();
+    })().catch(() => {
+      if (cancelled) return;
+      setSearchPending(false);
+      Alert.alert(noWidow('No se pudo completar la búsqueda'), noWidow('Revisa tu conexión e inténtalo otra vez.'));
+    });
 
     return () => {
       cancelled = true;
@@ -185,11 +190,12 @@ export function useFoodieExploreController() {
         if (!mounted) return;
         setSavedIds(ids);
         setActiveSavedCategories(categories);
-      });
-      if (__DEV__) {
-        import('@/lib/demo')
-          .then((demo) => demo.seedDemoFoodie())
-          .then(fetchPublicFonditas)
+      }).catch(() => {});
+      {
+        const refresh = __DEV__
+          ? import('@/lib/demo').then((demo) => demo.seedDemoFoodie()).then(fetchPublicFonditas)
+          : fetchPublicFonditas();
+        refresh
           .then((patios) => {
             if (mounted) setAllPatios(patios);
           })
@@ -323,8 +329,12 @@ export function useFoodieExploreController() {
 
   const toggleSaved = useCallback(async () => {
     if (!selectedId) return;
-    const next = await toggleFavoritePatio(selectedId);
-    setSavedIds(next);
+    try {
+      const next = await toggleFavoritePatio(selectedId);
+      setSavedIds(next);
+    } catch {
+      Alert.alert(noWidow('No se pudo guardar el lugar'), noWidow('Inténtalo otra vez.'));
+    }
   }, [selectedId]);
 
   const handleShareSelected = useCallback(() => {

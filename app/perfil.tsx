@@ -1,10 +1,12 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router, Stack, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BottomTabBar } from '@/components/bottom-tab-bar';
+import { AccountDeletionRow } from '@/components/account-deletion-row';
+import { signOutAccount } from '@/lib/account-session';
 import { SettingsGroup, SettingsRow, type SettingsColors } from '@/components/settings-list';
 import { ToggleSwitch } from '@/components/toggle-switch';
 import { USER_ROLE_KEY } from '@/lib/entry-flow';
@@ -12,8 +14,10 @@ import { fonderoPalette, type FonderoColors } from '@/lib/fondero-palette';
 import {
   getFonditaDireccion,
   getFonditaName,
-  getMenuData,
+  normalizeMenuData,
 } from '@/lib/menu-store';
+import { localMenuDate } from '@/lib/menu-date';
+import { getFonditaId } from '@/lib/user-store';
 import { supabase } from '@/lib/supabase';
 import { Fonts, useTheme } from '@/lib/theme';
 import { useTabBarScroll } from '@/lib/tab-bar-visibility';
@@ -38,19 +42,37 @@ export default function PerfilScreen() {
   const c = fonderoPalette(theme.isDark);
   const { onScroll } = useTabBarScroll();
   const [address, setAddress] = useState('');
-  const [hasMenu, setHasMenu] = useState(false);
+  const [hasMenu, setHasMenu] = useState<boolean | null>(null);
   const [fonditaName, setFonditaName] = useState('');
+  const [hasSession, setHasSession] = useState(false);
 
   useFocusEffect(useCallback(() => {
+    let active = true;
     setAddress(getFonditaDireccion());
-    setHasMenu(!!getMenuData()?.secciones.some(section => section.platillos.some(dish => dish.nombre.trim())));
+    setHasMenu(null);
     setFonditaName(getFonditaName());
+    supabase.auth.getSession().then(({ data }) => { if (active) setHasSession(!!data.session); }).catch(() => {});
+    const id = getFonditaId();
+    if (id) {
+      // Un borrador en memoria nunca confirma que el menú sea público.
+      void supabase.from('menus').select('secciones').eq('fondita_id', id)
+        .eq('fecha', localMenuDate()).maybeSingle()
+        .then(({ data, error }) => {
+          if (!active || error) return;
+          const menu = normalizeMenuData(data?.secciones);
+          setHasMenu(!!menu?.secciones.some((section) => section.platillos.some((dish) => dish.nombre.trim())));
+        }, () => {});
+    } else setHasMenu(false);
+    return () => { active = false; };
   }, []));
 
   const signOut = async () => {
-    await supabase.auth.signOut().catch(() => {});
-    await AsyncStorage.removeItem(USER_ROLE_KEY).catch(() => {});
-    router.replace('/');
+    try {
+      await signOutAccount();
+      router.replace('/');
+    } catch {
+      Alert.alert(noWidow('No pudimos cerrar sesión'), noWidow('Inténtalo de nuevo. Tus datos siguen guardados.'));
+    }
   };
 
   const exploreAsClient = async () => {
@@ -78,7 +100,7 @@ export default function PerfilScreen() {
           <View style={s.statusRow}>
             <View style={[s.statusDot, { backgroundColor: hasMenu ? c.accent : c.textMute }]} />
             <Text style={[s.statusText, { color: hasMenu ? c.accent : c.textSecondary }]} numberOfLines={1}>
-              {noWidow(hasMenu ? 'Menú publicado hoy' : 'Aún no publicas el menú de hoy')}
+              {noWidow(hasMenu === null ? 'Estado del menú por confirmar' : hasMenu ? 'Menú publicado hoy' : 'Aún no publicas el menú de hoy')}
             </Text>
           </View>
         </View>
@@ -125,7 +147,9 @@ export default function PerfilScreen() {
 
         <SettingsGroup c={sc} label="Cuenta">
           <SettingsRow c={sc} icon="repeat-outline" title="Cambiar a modo Foodie" onPress={exploreAsClient} />
+          <SettingsRow c={sc} icon="lock-closed-outline" title="Privacidad" divider onPress={() => router.push('/privacidad')} />
           <SettingsRow c={sc} icon="log-out-outline" title="Cerrar sesión" divider onPress={signOut} />
+          {hasSession && <AccountDeletionRow c={sc} />}
         </SettingsGroup>
       </ScrollView>
       <BottomTabBar variant="fondero" />

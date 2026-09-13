@@ -87,8 +87,8 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
   };
   const confirmNombre = async () => {
     if (nombre === nombreOnFocus.current) return;
-    await saveNombre();
-    if (nombre.trim()) setNombreSaved(true);
+    const saved = await saveNombre();
+    if (saved && nombre.trim()) setNombreSaved(true);
   };
 
   // Anclaje del "···" de cada sección al mismo menú contextual homologado

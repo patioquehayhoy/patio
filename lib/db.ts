@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from './supabase';
 import type { MenuData } from './menu-store';
+import { localMenuDate } from './menu-date';
 
 export const FONDITA_ID_KEY = '@lafondita_fondita_id';
 
@@ -9,7 +10,7 @@ function debugLog(...args: unknown[]) {
 }
 
 function hoy(): string {
-  return new Date().toISOString().split('T')[0];
+  return localMenuDate();
 }
 
 function isUuid(value: string): boolean {
@@ -17,11 +18,13 @@ function isUuid(value: string): boolean {
 }
 
 export async function upsertFondita(email: string): Promise<string | null> {
-  const { data: existing } = await supabase
+  const { data: existing, error: readError } = await supabase
     .from('fonditas')
     .select('id')
     .eq('telefono', email)
     .maybeSingle();
+  // A failed read is not evidence that the business does not exist.
+  if (readError) throw readError;
 
   if (existing) {
     await AsyncStorage.setItem(FONDITA_ID_KEY, existing.id);
@@ -34,7 +37,7 @@ export async function upsertFondita(email: string): Promise<string | null> {
     .select('id')
     .single();
 
-  if (error) { console.error('upsertFondita:', error); return null; }
+  if (error) throw error;
   await AsyncStorage.setItem(FONDITA_ID_KEY, data.id);
   return data.id;
 }
@@ -57,12 +60,11 @@ export async function saveMenuHoy(fonditaId: string, data: MenuData): Promise<vo
 
 export async function deleteMenuHoy(fonditaId: string): Promise<void> {
   if (!isUuid(fonditaId)) {
-    console.warn('[db] deleteMenuHoy skipped: fonditaId inválido para UUID', { fonditaId });
-    return;
+    throw new Error('No se pudo identificar tu Patio para retirar el menú.');
   }
   const fecha = hoy();
   const { error } = await supabase.from('menus').delete().eq('fondita_id', fonditaId).eq('fecha', fecha);
-  if (error) console.error('[db] deleteMenuHoy error:', error);
+  if (error) throw error;
 }
 
 export async function loadMenuHoy(fonditaId: string): Promise<MenuData | null> {
@@ -86,11 +88,10 @@ export async function loadMenuHoy(fonditaId: string): Promise<MenuData | null> {
 
 export async function deleteCarta(fonditaId: string): Promise<void> {
   if (!isUuid(fonditaId)) {
-    console.warn('[db] deleteCarta skipped: fonditaId inválido para UUID', { fonditaId });
-    return;
+    throw new Error('No se pudo identificar tu Patio para retirar la carta.');
   }
   const { error } = await supabase.from('cartas').delete().eq('fondita_id', fonditaId);
-  if (error) console.error('[db] deleteCarta error:', error);
+  if (error) throw error;
 }
 
 export async function saveCarta(fonditaId: string, data: MenuData): Promise<void> {

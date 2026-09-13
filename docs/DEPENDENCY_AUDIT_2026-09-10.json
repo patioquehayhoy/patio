@@ -1,0 +1,52 @@
+{
+  "checkedAt": "2026-09-10",
+  "totals": {
+    "info": 0,
+    "low": 0,
+    "moderate": 23,
+    "high": 8,
+    "critical": 0,
+    "total": 31
+  },
+  "rootAdvisories": [
+    {
+      "package": "decode-uri-component",
+      "issues": [
+        {
+          "title": "decode-uri-component: Denial of service via exponential decoding of malformed percent-encoded input",
+          "url": "https://github.com/advisories/GHSA-vcc3-ghjq-m6fr",
+          "severity": "moderate",
+          "range": "<=0.4.2"
+        }
+      ]
+    },
+    {
+      "package": "image-size",
+      "issues": [
+        {
+          "title": "image-size: ICNS parser allows denial of service through an infinite loop",
+          "url": "https://github.com/advisories/GHSA-w3rx-r6r6-pgpr",
+          "severity": "high",
+          "range": "<=2.0.2"
+        },
+        {
+          "title": "image-size: JXL and HEIF parsers allow denial of service through infinite loops",
+          "url": "https://github.com/advisories/GHSA-5p2g-fcmc-qvqq",
+          "severity": "high",
+          "range": "<=2.0.2"
+        }
+      ]
+    },
+    {
+      "package": "uuid",
+      "issues": [
+        {
+          "title": "uuid: Missing buffer bounds check in v3/v5/v6 when buf is provided",
+          "url": "https://github.com/advisories/GHSA-w5hq-g745-h8pq",
+          "severity": "moderate",
+          "range": "<11.1.1"
+        }
+      ]
+    }
+  ]
+}

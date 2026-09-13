@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Image,
@@ -19,6 +19,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AgentSpinner } from '@/components/agent-spinner';
 import { LOGIN_CALLBACK_URL } from '@/lib/auth';
+import { isValidEmail, safeReturnTo } from '@/lib/auth-links';
 import { COMMUNITY_RETURN_TO_KEY } from '@/lib/community-auth';
 import { saveUserRole } from '@/lib/entry-flow';
 import { supabase } from '@/lib/supabase';
@@ -34,29 +35,36 @@ export default function ComunidadAccesoScreen() {
   const [email, setEmail] = useState('');
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
+  const sending = useRef(false);
 
   useEffect(() => {
     saveUserRole('foodie').catch(() => {});
-    if (returnTo?.startsWith('/')) AsyncStorage.setItem(COMMUNITY_RETURN_TO_KEY, returnTo).catch(() => {});
+    AsyncStorage.setItem(COMMUNITY_RETURN_TO_KEY, safeReturnTo(returnTo)).catch(() => {});
   }, [returnTo]);
 
   const send = async () => {
+    if (sending.current) return;
     const value = email.trim().toLowerCase();
-    if (!value || !value.includes('@')) {
+    if (!isValidEmail(value)) {
       Alert.alert(noWidow('Revisa tu correo'), noWidow('Escribe un correo válido.'));
       return;
     }
+    sending.current = true;
     setBusy(true);
-    const { error } = await supabase.auth.signInWithOtp({
-      email: value,
-      options: { emailRedirectTo: LOGIN_CALLBACK_URL, shouldCreateUser: true },
-    });
-    setBusy(false);
-    if (error) {
+    try {
+      await saveUserRole('foodie');
+      const { error } = await supabase.auth.signInWithOtp({
+        email: value,
+        options: { emailRedirectTo: LOGIN_CALLBACK_URL, shouldCreateUser: true },
+      });
+      if (error) throw error;
+      setSent(true);
+    } catch {
       Alert.alert(noWidow('No pudimos enviar el enlace'), noWidow('Revisa tu conexión e inténtalo de nuevo.'));
-      return;
+    } finally {
+      sending.current = false;
+      setBusy(false);
     }
-    setSent(true);
   };
 
   return (

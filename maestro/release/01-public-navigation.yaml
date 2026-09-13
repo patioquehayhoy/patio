@@ -1,0 +1,40 @@
+appId: com.parcomx.patio
+name: Release - public navigation without signing in
+tags:
+  - release
+  - smoke
+---
+# Requires an installed Release build and a signed-out test device.
+# No clearState, login, role selection, setting changes or backend writes.
+# openLink brings the app forward without changing permission grants.
+- openLink: "patio://entrada"
+# Fresh iOS simulators ask once before opening a custom URL scheme.
+# This only confirms navigation, not camera/location/notification permissions.
+- runFlow:
+    when:
+      visible: '(¿Abrir en|Open in) "Patio".*'
+    commands:
+      - tapOn: 'Abrir|Open'
+- assertVisible: "Entrar a Patio"
+- assertVisible: 'Saaaaaaabes\.'
+- assertNotVisible: ".*DEV.*"
+- tapOn: "Entrar a Patio"
+- assertVisible: 'Saber qué.*hoy\.'
+- tapOn: "Continuar"
+- assertVisible: 'Publicar lo que.*preparas\.'
+- tapOn: "Continuar"
+- assertVisible: 'Pásale, aquí.*es\.'
+- assertVisible: "Ver qué hay hoy"
+- assertVisible: "Publicar lo que preparo"
+# Do not choose a role: that would persist onboarding/preferences.
+- openLink: "patio://cuenta"
+- assertVisible: "Iniciar sesión.*"
+- assertVisible: "Privacidad"
+- tapOn: "Privacidad"
+- assertVisible: "Perfil de Foodie.*visible"
+- assertVisible: 'Muestra tu nombre, presentación y colecciones que decidas.*publicar\.'
+- assertVisible: "Tus reseñas publicadas permanecen visibles.*"
+- tapOn: "Volver"
+- assertVisible: "Privacidad"
+- assertVisible: "Iniciar sesión.*"
+- takeScreenshot: "${MAESTRO_SCREENSHOT_DIR}/release-public-navigation"

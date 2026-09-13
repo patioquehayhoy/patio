@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, Stack } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Linking, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Linking, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Fonts, Radius, useTheme } from '@/lib/theme';
@@ -77,9 +77,9 @@ export default function SoporteScreen() {
             style={[s.send, { backgroundColor: theme.accent }, !canSend && { opacity: 0.35 }]}
             disabled={!canSend}
             accessibilityRole="button"
-            accessibilityLabel="Continuar en Mail"
-            onPress={() => Linking.openURL(encodedMail)}>
-            <Text style={[s.sendText, { color: '#FFFFFF' }]}>{noWidow('Continuar en Mail')}</Text>
+            accessibilityLabel="Abrir correo"
+            onPress={() => { void Linking.openURL(encodedMail).catch(() => Alert.alert(noWidow('No pudimos abrir el correo'), noWidow(`Puedes escribirnos a ${SUPPORT_EMAIL}.`))); }}>
+            <Text style={[s.sendText, { color: '#FFFFFF' }]}>{noWidow('Abrir correo')}</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -103,6 +103,6 @@ const s = StyleSheet.create({
   field: { minHeight: 180, marginTop: 24, padding: 16, borderRadius: Radius.card, borderWidth: StyleSheet.hairlineWidth },
   input: { minHeight: 130, fontSize: 15, lineHeight: 21, textAlignVertical: 'top' },
   counter: { alignSelf: 'flex-end', fontSize: 11 },
-  send: { minHeight: 52, borderRadius: Radius.card, alignItems: 'center', justifyContent: 'center' },
+  send: { minHeight: 52, borderRadius: 26, alignItems: 'center', justifyContent: 'center' },
   sendText: { fontSize: 15, fontWeight: '700' },
 });

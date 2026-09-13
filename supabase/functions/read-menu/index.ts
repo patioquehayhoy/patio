@@ -1,13 +1,5 @@
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
-type MenuRequest = {
-  imageBase64?: string;
-  mediaType?: 'image/jpeg' | 'image/png' | 'image/webp';
-  tipo?: string | null;
-};
+import { requireUser } from '../_shared/auth.ts';
+import { corsHeaders, errorResponse, readJson } from '../_shared/http.ts';
 
 type UnknownRecord = Record<string, unknown>;
 
@@ -198,16 +190,19 @@ Deno.serve(async (request) => {
   }
 
   try {
+    await requireUser(request);
+    const body = await readJson(request, 7_000_000);
+    if (typeof body.imageBase64 !== 'string' || body.imageBase64.length < 100
+      || !/^[A-Za-z0-9+/]+={0,2}$/.test(body.imageBase64)
+      || (body.mediaType !== undefined && !['image/jpeg', 'image/png', 'image/webp'].includes(String(body.mediaType)))) {
+      return Response.json({ error: 'Imagen inválida' }, { status: 400, headers: corsHeaders });
+    }
     const apiKey = Deno.env.get('ANTHROPIC_API_KEY');
     if (!apiKey) throw new Error('ANTHROPIC_API_KEY no está configurada');
 
-    const body = await request.json() as MenuRequest;
-    if (!body.imageBase64 || body.imageBase64.length < 100) {
-      return Response.json({ error: 'Imagen inválida' }, { status: 400, headers: corsHeaders });
-    }
-
     const anthropic = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
+      signal: AbortSignal.timeout(45_000),
       headers: {
         'content-type': 'application/json',
         'x-api-key': apiKey,
@@ -233,7 +228,7 @@ Deno.serve(async (request) => {
                 data: body.imageBase64,
               },
             },
-            { type: 'text', text: buildPrompt(body.tipo) },
+            { type: 'text', text: buildPrompt(typeof body.tipo === 'string' ? body.tipo : null) },
           ],
         }],
       }),
@@ -254,10 +249,6 @@ Deno.serve(async (request) => {
     const result = normalizeResult(parsed);
     return Response.json(result, { headers: { ...corsHeaders, 'content-type': 'application/json' } });
   } catch (error) {
-    console.error(error);
-    return Response.json(
-      { error: error instanceof Error ? error.message : 'No se pudo leer el menú' },
-      { status: 500, headers: corsHeaders },
-    );
+    return errorResponse(error, 'No se pudo leer el menú');
   }
 });

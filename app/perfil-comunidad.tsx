@@ -1,6 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import * as ImagePicker from 'expo-image-picker';
+import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
+import { File } from 'expo-file-system';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert, Image, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -9,6 +11,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '@/lib/supabase';
 import { Fonts, useTheme } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
+import { safeReturnTo } from '@/lib/auth-links';
 
 export default function CommunityProfileScreen() {
   const { theme } = useTheme();
@@ -36,6 +39,7 @@ export default function CommunityProfileScreen() {
   }, []);
 
   const save = async () => {
+    if (busy) return;
     const validName = (value: string) => /^[\p{L}][\p{L}\p{M}' -]{1,39}$/u.test(value.trim());
     if (!validName(firstName) || !validName(lastName)) {
       Alert.alert(noWidow('Revisa tu nombre'), noWidow('Usa entre 2 y 40 letras. Se permiten espacios, apóstrofe y guion.'));
@@ -50,12 +54,13 @@ export default function CommunityProfileScreen() {
       const { data: auth } = await supabase.auth.getUser();
       if (!auth.user) { router.replace('/comunidad-acceso'); return; }
       let avatarUrl = avatarUri;
-      if (avatarUri?.startsWith('file:')) {
-        const response = await fetch(avatarUri);
-        const bytes = await response.arrayBuffer();
+      if (avatarUri && !/^https:\/\//.test(avatarUri)) {
+        const image = await manipulateAsync(avatarUri, [{ resize: { width: 600 } }], { compress: 0.8, format: SaveFormat.JPEG });
+        const bytes = await new File(image.uri).arrayBuffer();
         const path = `${auth.user.id}/avatar.jpg`;
         const upload = await supabase.storage.from('avatars').upload(path, bytes, { contentType: 'image/jpeg', upsert: true });
-        if (!upload.error) avatarUrl = supabase.storage.from('avatars').getPublicUrl(path).data.publicUrl;
+        if (upload.error) throw upload.error;
+        avatarUrl = `${supabase.storage.from('avatars').getPublicUrl(path).data.publicUrl}?v=${Date.now()}`;
       }
       const lastChanged = auth.user.user_metadata?.name_changed_at;
       const changedRecently = lastChanged && Date.now() - new Date(lastChanged).getTime() < 30 * 24 * 60 * 60 * 1000;
@@ -85,10 +90,13 @@ export default function CommunityProfileScreen() {
           last_name: profile.last_name,
         });
       }
-      if (!error) await supabase.auth.updateUser({ data: { first_name: profile.first_name, last_name: profile.last_name, profile_complete: true, avatar_url: avatarUrl, name_changed_at: changingExisting ? new Date().toISOString() : lastChanged } });
+      if (!error) {
+        const { error: metadataError } = await supabase.auth.updateUser({ data: { first_name: profile.first_name, last_name: profile.last_name, profile_complete: true, avatar_url: avatarUrl, name_changed_at: changingExisting ? new Date().toISOString() : lastChanged } });
+        if (metadataError) throw metadataError;
+      }
       if (error) { Alert.alert(noWidow('No pudimos guardar tu perfil'), noWidow('Inténtalo otra vez.')); return; }
-      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      router.replace(returnTo?.startsWith('/') ? returnTo as any : '/explorar');
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+      router.replace(safeReturnTo(returnTo) as never);
     } catch {
       Alert.alert(noWidow('No pudimos guardar tu perfil'), noWidow('Revisa tu conexión e inténtalo otra vez.'));
     } finally {
@@ -106,8 +114,12 @@ export default function CommunityProfileScreen() {
           accessibilityRole="button"
           accessibilityLabel={avatarUri ? 'Cambiar foto de perfil' : 'Agregar foto de perfil'}
           onPress={async () => {
-            const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], allowsEditing: true, aspect: [1, 1], quality: 0.75 });
-            if (!result.canceled) setAvatarUri(result.assets[0].uri);
+            try {
+              const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], allowsEditing: true, aspect: [1, 1], quality: 0.75 });
+              if (!result.canceled && result.assets[0]) setAvatarUri(result.assets[0].uri);
+            } catch {
+              Alert.alert(noWidow('No pudimos abrir tus fotos'), noWidow('Revisa los permisos de Patio en Ajustes e inténtalo de nuevo.'));
+            }
           }}>
           {avatarUri ? <Image source={{ uri: avatarUri }} style={s.avatarImage} /> : <Ionicons name="camera-outline" size={27} color={theme.textMute} />}
         </TouchableOpacity>

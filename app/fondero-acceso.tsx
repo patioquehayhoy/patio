@@ -20,6 +20,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AgentSpinner } from '@/components/agent-spinner';
 import { LOGIN_CALLBACK_URL } from '@/lib/auth';
+import { isValidEmail } from '@/lib/auth-links';
 import { completeOnboarding, saveUserRole } from '@/lib/entry-flow';
 import { supabase } from '@/lib/supabase';
 import { Fonts } from '@/lib/theme';
@@ -61,6 +62,7 @@ export default function FonderoAccesoScreen() {
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState('');
+  const sending = useRef(false);
   const brandFade = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
@@ -83,17 +85,26 @@ export default function FonderoAccesoScreen() {
   }, []);
 
   const handleSend = async () => {
+    if (sending.current) return;
     const trimmed = email.trim().toLowerCase();
-    if (!trimmed) { setError('Ingresa tu correo.'); return; }
+    if (!isValidEmail(trimmed)) { setError('Escribe un correo válido.'); return; }
     setError('');
+    sending.current = true;
     setLoading(true);
-    const { error: err } = await supabase.auth.signInWithOtp({
-      email: trimmed,
-      options: { emailRedirectTo: LOGIN_CALLBACK_URL, shouldCreateUser: true },
-    });
-    setLoading(false);
-    if (err) { showAuthError(err); return; }
-    setSent(true);
+    try {
+      await saveUserRole('fondero');
+      const { error: err } = await supabase.auth.signInWithOtp({
+        email: trimmed,
+        options: { emailRedirectTo: LOGIN_CALLBACK_URL, shouldCreateUser: true },
+      });
+      if (err) { showAuthError(err); return; }
+      setSent(true);
+    } catch {
+      showAuthError({ code: 'network_error' });
+    } finally {
+      sending.current = false;
+      setLoading(false);
+    }
   };
 
   const handleBack = () => {

@@ -5,6 +5,8 @@ import { useEffect, useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BottomTabBar } from '@/components/bottom-tab-bar';
+import { AccountDeletionRow } from '@/components/account-deletion-row';
+import Constants from 'expo-constants';
 import { SettingsGroup, SettingsRow, type SettingsColors } from '@/components/settings-list';
 import { ToggleSwitch } from '@/components/toggle-switch';
 import { useFoodieAccountController } from '@/lib/controllers/useFoodieAccountController';
@@ -100,11 +102,12 @@ export default function CuentaScreen() {
               />
             )}
             {(hasSession || __DEV__) && <SettingsRow c={sc} icon="log-out-outline" title="Cerrar sesión" divider onPress={handleSignOut} />}
+            {hasSession && <AccountDeletionRow c={sc} />}
           </SettingsGroup>
 
           <View style={s.footer}>
             <Ionicons name="ellipse" size={6} color={theme.textMute} />
-            <Text style={s.footerText} allowFontScaling={true}>{noWidow('Patio · v0.1 · CDMX')}</Text>
+            <Text style={s.footerText} allowFontScaling={true}>{noWidow(`Patio · v${Constants.expoConfig?.version ?? '1.0.0'} · CDMX`)}</Text>
           </View>
         </View>
       </ScrollView>

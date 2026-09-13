@@ -2,6 +2,12 @@
 
 > Última actualización: 2026-08-24.
 
+> **Continuación vigente, 2026-09-11:** la cola de cierre de lanzamiento vive
+> en [APP_AUDIT_2026-09-10.md](APP_AUDIT_2026-09-10.md) y
+> [STORE_RELEASE_READINESS.md](STORE_RELEASE_READINESS.md).
+> El backlog de producto siguiente conserva sus decisiones pendientes;
+> consultar [HANDOFF](HANDOFF.md) antes de retomarlo.
+
 ## DECISIÓN PENDIENTE — nombre de "listas" de menús
 
 Alejandro señaló 2026-08-24 que "listas" (para organizar menús publicados en

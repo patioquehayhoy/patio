@@ -1,9 +1,11 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 import { router } from 'expo-router';
 import { useCallback, useState } from 'react';
 
-import { saveUserRole, USER_ROLE_KEY } from '@/lib/entry-flow';
+import { Alert } from 'react-native';
+import { saveUserRole } from '@/lib/entry-flow';
+import { signOutAccount } from '@/lib/account-session';
+import { noWidow } from '@/lib/typography';
 import { getFoodieStats, type FoodieStats } from '@/lib/stats';
 import { supabase } from '@/lib/supabase';
 
@@ -13,15 +15,20 @@ export function useFoodieAccountController() {
 
   useFocusEffect(
     useCallback(() => {
-      getFoodieStats().then(setStats);
-      supabase.auth.getSession().then(({ data }) => setHasSession(!!data.session));
+      let active = true;
+      getFoodieStats().then((value) => { if (active) setStats(value); }).catch(() => {});
+      supabase.auth.getSession().then(({ data }) => { if (active) setHasSession(!!data.session); }).catch(() => {});
+      return () => { active = false; };
     }, [])
   );
 
   const handleSignOut = useCallback(async () => {
-    await supabase.auth.signOut().catch(() => {});
-    await AsyncStorage.removeItem(USER_ROLE_KEY).catch(() => {});
-    router.replace('/');
+    try {
+      await signOutAccount();
+      router.replace('/');
+    } catch {
+      Alert.alert(noWidow('No pudimos cerrar sesión'), noWidow('Inténtalo de nuevo. Tus datos siguen guardados.'));
+    }
   }, []);
 
   const handleDevFondero = useCallback(async () => {

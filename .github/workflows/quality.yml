@@ -1,0 +1,28 @@
+name: Calidad de Patio
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  app:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+      - name: Ensayar RLS y transacciones sobre datos aislados
+        run: |
+          npm install --prefix "$RUNNER_TEMP/patio-sql" --ignore-scripts --no-audit --no-fund @electric-sql/pglite@0.5.8
+          node scripts/db-tests/run-pglite.cjs "$RUNNER_TEMP/patio-sql"
+      - name: Exportar JavaScript de iOS y Android
+        run: npx expo export --platform ios --platform android --output-dir dist
+      - name: Registrar auditoría de dependencias
+        # Remains failing while advisories are unresolved; never use --force
+        # to upgrade the Expo SDK just to make this job green.
+        run: npm audit --audit-level=high

@@ -1,5 +1,7 @@
+import { withStorageLock } from './storage-queue';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '@/lib/supabase';
+import { localMenuDate } from './menu-date';
 
 const KEY = '@patio_ratings';
 
@@ -27,6 +29,7 @@ async function getMap(): Promise<RatingsMap> {
   const raw = await AsyncStorage.getItem(KEY);
   if (!raw) return {};
   const parsed = JSON.parse(raw) as Record<string, PatioRating | PatioRating[]>;
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return {};
   return Object.fromEntries(
     Object.entries(parsed).map(([patioId, value]) => [patioId, Array.isArray(value) ? value : [value]]),
   );
@@ -120,15 +123,17 @@ export async function savePatioRating(
   starsOrInput: number | SaveRatingInput,
   reasons?: string[],
 ): Promise<void> {
+  return withStorageLock(KEY, async () => {
   const map = await getMap();
-  const today = new Date().toDateString();
-  if ((map[patioId] ?? []).some((review) => new Date(review.timestamp).toDateString() === today)) {
+  const today = localMenuDate();
+  if ((map[patioId] ?? []).some((review) => localMenuDate(new Date(review.timestamp)) === today)) {
     throw new Error('REVIEW_ALREADY_PUBLISHED_TODAY');
   }
   const data: SaveRatingInput =
     typeof starsOrInput === 'number'
       ? { stars: starsOrInput, reasons }
       : starsOrInput;
+  if (!Number.isInteger(data.stars) || data.stars < 1 || data.stars > 5) throw new Error('Elige una calificación de 1 a 5 estrellas.');
   const rating: PatioRating = {
     stars: data.stars,
     reasons: data.reasons,
@@ -138,6 +143,7 @@ export async function savePatioRating(
   };
   if (/^[0-9a-f-]{36}$/i.test(patioId)) {
     const { data: user } = await supabase.auth.getUser();
+    if (!user.user) throw new Error('Inicia sesión para publicar tu reseña.');
     if (user.user) {
       const { error } = await supabase.from('reviews').insert({
         user_id: user.user.id,
@@ -145,7 +151,7 @@ export async function savePatioRating(
         stars: data.stars,
         reasons: data.reasons ?? [],
         note: data.note?.trim() || null,
-        visit_date: new Date().toISOString().slice(0, 10),
+        visit_date: localMenuDate(),
         updated_at: new Date().toISOString(),
       });
       if (error) throw error;
@@ -153,4 +159,5 @@ export async function savePatioRating(
   }
   map[patioId] = [...(map[patioId] ?? []), rating];
   await AsyncStorage.setItem(KEY, JSON.stringify(map));
+  });
 }

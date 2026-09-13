@@ -11,6 +11,10 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
+    "test": "node --test scripts/tests/*.test.cjs",
+    "check": "npm run typecheck && npm run lint && npm test && npm run check:release",
+    "check:release": "node scripts/check-release.mjs",
+    "check:release:strict": "node scripts/check-release.mjs --strict",
     "marks": "tsc --noEmit && git add -A && git commit -m 'marks: session checkpoint' && git push origin v2-menu-vivo"
   },
   "dependencies": {
@@ -65,5 +69,16 @@
     "patch-package": "^8.0.1",
     "typescript": "~5.9.2"
   },
-  "private": true
+  "private": true,
+  "overrides": {
+    "@expo/metro-config": {
+      "postcss": "8.5.28"
+    },
+    "@expo/ngrok": {
+      "uuid": "11.1.1"
+    },
+    "xcode": {
+      "uuid": "11.1.1"
+    }
+  }
 }

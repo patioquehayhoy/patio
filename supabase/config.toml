@@ -1,0 +1,19 @@
+# Signed-in calls carry the session JWT in Authorization and the project's
+# publishable key in apikey. Each handler also verifies the user with Auth;
+# neither a publishable key nor an anonymous Auth user authorizes these actions.
+project_id = "patio"
+
+[functions.read-menu]
+verify_jwt = true
+
+[functions.smart-setup]
+verify_jwt = true
+
+[functions.search-intent]
+verify_jwt = true
+
+[functions.send-publication-notifications]
+verify_jwt = true
+
+[functions.delete-account]
+verify_jwt = true

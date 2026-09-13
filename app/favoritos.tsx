@@ -120,6 +120,8 @@ export default function FavoritosScreen() {
   const [selecting, setSelecting] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [saveSheetVisible, setSaveSheetVisible] = useState(false);
+  const selectedActionPending = useRef(false);
+  const shareDraft = useRef<PatioCollection | null>(null);
 
   const exitSelecting = () => {
     setSelecting(false);
@@ -150,10 +152,18 @@ export default function FavoritosScreen() {
           text: 'Quitar',
           style: 'destructive',
           onPress: async () => {
-            await removeFavoritePatios(ids);
-            removeLocally(ids);
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-            exitSelecting();
+            if (selectedActionPending.current) return;
+            selectedActionPending.current = true;
+            try {
+              await removeFavoritePatios(ids);
+              removeLocally(ids);
+              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+              exitSelecting();
+            } catch {
+              Alert.alert(noWidow('No pudimos quitar los lugares'), noWidow('Revisa tu conexión e inténtalo de nuevo.'));
+            } finally {
+              selectedActionPending.current = false;
+            }
           },
         },
       ],
@@ -163,15 +173,37 @@ export default function FavoritosScreen() {
   const shareSelected = async () => {
     const ids = Array.from(selectedIds);
     const names = patios.filter((patio) => selectedIds.has(patio.id)).map((patio) => patio.name);
-    if (!names.length) return;
+    if (!names.length || selectedActionPending.current) return;
+    selectedActionPending.current = true;
     Haptics.selectionAsync().catch(() => {});
     // A diferencia del share de texto plano: convierte la selección en una
     // lista real (unlisted) para que el link abra Patio con los lugares de
     // verdad — no solo nombres sueltos que la otra persona no puede tocar.
-    const created = await setPatiosInCollection((await createCollection('Selección', 'unlisted')).id, ids, true);
-    const published = created ? await publishCollection(created) : null;
-    const link = published?.remoteId ? `\n\npatio://coleccion-publica/${published.remoteId}` : '';
-    await Share.share({ message: `Mis lugares en Patio\n${names.map((name) => `• ${name}`).join('\n')}${link}` }).catch(() => {});
+    try {
+      let draft = shareDraft.current;
+      if (!draft || draft.patioIds.length !== ids.length || !ids.every((id) => draft!.patioIds.includes(id))) {
+        draft = await createCollection('Selección');
+        // Retain a failed publication as a private list and reuse it on retry.
+        shareDraft.current = draft;
+        setCollections((previous) => [draft!, ...previous]);
+      }
+      const created = await setPatiosInCollection(draft.id, ids, true);
+      if (!created) throw new Error('La lista ya no está disponible.');
+      shareDraft.current = created;
+      setCollections((previous) => previous.map((entry) => entry.id === created.id ? created : entry));
+      const published = await publishCollection({ ...created, visibility: 'unlisted' });
+      shareDraft.current = published;
+      setCollections((previous) => previous.map((entry) => entry.id === published.id ? published : entry));
+      const link = `\n\npatio://coleccion-publica/${published.remoteId}`;
+      await Share.share({ message: `Mis lugares en Patio\n${names.map((name) => `• ${name}`).join('\n')}${link}` });
+    } catch (error) {
+      Alert.alert(noWidow('No pudimos compartir los lugares'), noWidow(
+        error instanceof Error && error.message === 'Inicia sesión para compartir esta lista.'
+          ? error.message : 'Revisa tu conexión e inténtalo de nuevo.',
+      ));
+    } finally {
+      selectedActionPending.current = false;
+    }
   };
   const categories = useMemo(
     () => [...new Set(patios.flatMap((patio) => patio.categories).filter(Boolean))].sort(),

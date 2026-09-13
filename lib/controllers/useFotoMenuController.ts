@@ -1,5 +1,5 @@
 import * as ImagePicker from 'expo-image-picker';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, Linking } from 'react-native';
 
 import {
@@ -9,6 +9,7 @@ import {
   setMenuExtractionSnapshot,
   type MenuData,
 } from '@/lib/menu-store';
+import { noWidow } from '@/lib/typography';
 import { leerMenuDeFoto, type MenuSeccion } from '@/lib/vision';
 
 export type FotoMenuState = 'idle' | 'processing' | 'review';
@@ -103,6 +104,9 @@ function visionToMenu(sections: MenuSeccion[], menuPrice: string): MenuData {
 }
 
 export function useFotoMenuController(handlers?: FotoMenuHandlers) {
+  const [cameraAllowed, setCameraAllowed] = useState(false);
+  const handlersRef = useRef(handlers);
+  handlersRef.current = handlers;
   const [state, setState] = useState<FotoMenuState>('idle');
   const [menu, setMenu] = useState<MenuData>({ secciones: [] });
   // analyze necesita volver a preparar la cámara desde el Alert sin ciclo de deps.
@@ -110,10 +114,18 @@ export function useFotoMenuController(handlers?: FotoMenuHandlers) {
   const choosePhotoRef = useRef<() => Promise<void>>(async () => {});
   // Cancelación humana durante la lectura (HIG: no obligar a esperar una
   // animación/proceso sin salida). La promesa en vuelo se ignora al volver.
-  const cancelledRef = useRef(false);
+  const requestRef = useRef(0);
+  const pickerOpenRef = useRef(false);
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; requestRef.current += 1; };
+  }, []);
 
   const analyze = useCallback(async (uri: string, width?: number, height?: number) => {
-    cancelledRef.current = false;
+    if (!mountedRef.current) return;
+    const request = ++requestRef.current;
+    clearMenuExtractionSnapshot();
     setState('processing');
     try {
       const ImageManipulator = await import('expo-image-manipulator');
@@ -126,8 +138,9 @@ export function useFotoMenuController(handlers?: FotoMenuHandlers) {
         target ? [{ resize: target }] : [{ resize: { width: 1568 } }],
         { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG }
       );
+      if (request !== requestRef.current) return;
       const result = await leerMenuDeFoto(normalized.uri);
-      if (cancelledRef.current) return;
+      if (request !== requestRef.current) return;
       const hasDishes = result.secciones.some((section) => section.platillos.some((dish) => dish.nombre.trim()));
       if (result.error || !hasDishes) throw new Error(result.error || 'sin platillos');
       const extractedMenu = visionToMenu(result.secciones, result.precio);
@@ -138,62 +151,80 @@ export function useFotoMenuController(handlers?: FotoMenuHandlers) {
       setMenu(extractedMenu);
       setState('review');
     } catch (error) {
-      if (cancelledRef.current) return;
+      if (request !== requestRef.current) return;
       console.warn('[foto-menu] lectura falló:', error);
       clearMenuExtractionSnapshot();
       setState('idle');
-      Alert.alert('No pudimos leerlo', 'Prueba con otra foto o escríbelo a mano.', [
+      Alert.alert(noWidow('No pudimos leerlo'), noWidow('Prueba con otra foto o escríbelo a mano.'), [
         { text: 'Otra foto', onPress: () => { void prepareCameraRef.current(); } },
-        { text: 'Escribirlo a mano', onPress: () => handlers?.onManual?.() },
-        { text: 'Ahora no', style: 'cancel', onPress: () => handlers?.onExit?.() },
+        { text: 'Escribirlo a mano', onPress: () => handlersRef.current?.onManual?.() },
+        { text: 'Ahora no', style: 'cancel', onPress: () => handlersRef.current?.onExit?.() },
       ]);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const prepareCamera = useCallback(async (): Promise<boolean> => {
-    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
-    if (!permissionResult.granted) {
-      // Sin permiso: explicar y dar control (HIG Privacy) — nunca saltar a
-      // otra fuente sin avisar.
-      Alert.alert('La cámara está desactivada', 'Puedes elegir la foto desde tus fotos o activar la cámara en Ajustes.', [
+    const request = requestRef.current;
+    try {
+      const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+      if (!mountedRef.current || request !== requestRef.current) return false;
+      setCameraAllowed(permissionResult.granted);
+      if (!permissionResult.granted) {
+        Alert.alert(noWidow('La cámara está desactivada'), noWidow('Puedes elegir la foto desde tus fotos o activar la cámara en Ajustes.'), [
+          { text: 'Elegir de Fotos', onPress: () => { void choosePhotoRef.current(); } },
+          { text: 'Abrir Ajustes', onPress: () => { void Linking.openSettings().catch(() => {}); handlersRef.current?.onExit?.(); } },
+          { text: 'Ahora no', style: 'cancel', onPress: () => handlersRef.current?.onExit?.() },
+        ]);
+        return false;
+      }
+      setState('idle');
+      return true;
+    } catch {
+      if (!mountedRef.current || request !== requestRef.current) return false;
+      setCameraAllowed(false);
+      Alert.alert(noWidow('No se pudo abrir la cámara'), noWidow('Puedes elegir una foto de tu galería.'), [
         { text: 'Elegir de Fotos', onPress: () => { void choosePhotoRef.current(); } },
-        { text: 'Abrir Ajustes', onPress: () => { void Linking.openSettings(); handlers?.onExit?.(); } },
-        { text: 'Ahora no', style: 'cancel', onPress: () => handlers?.onExit?.() },
+        { text: 'Ahora no', style: 'cancel', onPress: () => handlersRef.current?.onExit?.() },
       ]);
       return false;
     }
-    setState('idle');
-    return true;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   prepareCameraRef.current = prepareCamera;
 
   const choosePhoto = useCallback(async () => {
-    // El selector del sistema (PHPicker / Photo Picker) corre fuera del
-    // proceso y no necesita permiso — pedirlo solo agregaba un diálogo.
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      quality: 0.85,
-    });
-    const asset = !result.canceled ? result.assets[0] : null;
-    if (asset) await analyze(asset.uri, asset.width, asset.height);
-    else handlers?.onExit?.();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (pickerOpenRef.current) return;
+    pickerOpenRef.current = true;
+    const request = requestRef.current;
+    try {
+      // El selector nativo da acceso solo a la imagen elegida.
+      const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.85 });
+      if (!mountedRef.current || request !== requestRef.current) return;
+      const asset = !result.canceled ? result.assets?.[0] : null;
+      if (asset) await analyze(asset.uri, asset.width, asset.height);
+      else handlersRef.current?.onExit?.();
+    } catch {
+      if (!mountedRef.current || request !== requestRef.current) return;
+      Alert.alert(noWidow('No se pudo abrir Fotos'), noWidow('Inténtalo otra vez.'), [
+        { text: 'Reintentar', onPress: () => { void choosePhotoRef.current(); } },
+        { text: 'Ahora no', style: 'cancel', onPress: () => handlersRef.current?.onExit?.() },
+      ]);
+    } finally {
+      pickerOpenRef.current = false;
+    }
   }, [analyze]);
 
   choosePhotoRef.current = choosePhoto;
 
   const cancelRead = useCallback(() => {
-    cancelledRef.current = true;
+    requestRef.current += 1;
     clearMenuExtractionSnapshot();
     setState('idle');
-    handlers?.onExit?.();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    handlersRef.current?.onExit?.();
   }, []);
 
   return {
+    cameraAllowed,
     cancelRead,
     choosePhoto,
     menu,

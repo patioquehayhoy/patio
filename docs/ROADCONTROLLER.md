@@ -5,6 +5,12 @@
 > Función: decidir qué frente leer, qué carpeta tocar, qué está activo, qué está pausado y cómo no mezclar sistemas.
 > Inspirado en `~/T1all/ROADCONTROLLER.md` (solo el formato; los sistemas no se mezclan).
 
+> **Frente vigente, 2026-09-11:** auditoría y preparación de lanzamiento.
+> Leer el corte superior de [HANDOFF](HANDOFF.md), [STATE](STATE.md) y la
+> [auditoría actual](APP_AUDIT_2026-09-10.md) antes de ejecutar tareas.
+> Las tablas y prioridades fechadas en julio de este mapa son históricas;
+> no acreditan el backend actual ni sustituyen los bloqueos de lanzamiento.
+
 ## 1. Lectura obligatoria
 
 Al iniciar trabajo en Patio:

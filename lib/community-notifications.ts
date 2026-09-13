@@ -33,6 +33,14 @@ function isUuid(value: string): boolean {
 async function requestSystemNotificationPermission(): Promise<boolean> {
   const Notifications = notificationsModule();
   if (!Notifications || Platform.OS === 'web') return false;
+  // Android 13 only presents permission after a channel exists; the push
+  // service uses this same channel id when publishing today's menu.
+  if (Platform.OS === 'android') {
+    await Notifications.setNotificationChannelAsync('default', {
+      name: 'Avisos de Patio',
+      importance: Notifications.AndroidImportance.DEFAULT,
+    });
+  }
   let permission = await Notifications.getPermissionsAsync();
   if (!permission.granted && permission.canAskAgain) {
     permission = await Notifications.requestPermissionsAsync();
@@ -48,7 +56,7 @@ async function currentUserId(): Promise<string> {
 
 export async function getSystemNotificationStatus(): Promise<'granted' | 'denied' | 'undetermined' | 'unavailable'> {
   const Notifications = notificationsModule();
-  if (!Notifications) return 'unavailable';
+  if (!Notifications || Platform.OS === 'web') return 'unavailable';
   const permission = await Notifications.getPermissionsAsync();
   if (permission.granted) return 'granted';
   if (!permission.canAskAgain) return 'denied';

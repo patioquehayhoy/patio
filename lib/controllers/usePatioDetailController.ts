@@ -1,6 +1,6 @@
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Linking, Platform, Share } from 'react-native';
+import { Alert, Linking, Platform, Share } from 'react-native';
 import * as Haptics from 'expo-haptics';
 
 import { syncSavedPatioNotificationSubscriptions } from '@/lib/community-notifications';
@@ -18,6 +18,7 @@ import { fetchFonditaById, getPatioById, type Patio, type PatioMenuSection } fro
 import { publicCurrency, publicPrice } from '@/lib/prices';
 import { getPatioRating, getPublicPatioReviews, type PatioRating, type PublicPatioReview } from '@/lib/ratings';
 import { registerPatioView } from '@/lib/stats';
+import { noWidow } from '@/lib/typography';
 
 type PatioParam = string | string[] | undefined;
 
@@ -99,6 +100,13 @@ export function usePatioDetailController(id: PatioParam) {
   const patioId = patio?.id;
 
   useEffect(() => {
+    let active = true;
+    setPatio(null);
+    setLiveMenu(null);
+    setUserReview(null);
+    setReviews([]);
+    setIsSaved(false);
+    setLoading(true);
     if (!cleanId) {
       setLoading(false);
       return;
@@ -112,18 +120,22 @@ export function usePatioDetailController(id: PatioParam) {
     }
 
     fetchFonditaById(cleanId).then((found) => {
+      if (!active) return;
       setPatio(found);
       setLoading(false);
-    });
+    }).catch(() => { if (active) setLoading(false); });
+    return () => { active = false; };
   }, [cleanId]);
 
   useEffect(() => {
     if (!patioId) return;
-    registerPatioView(patioId);
-    getFavoritePatioIds().then((ids) => setIsSaved(ids.includes(patioId)));
+    let active = true;
+    void registerPatioView(patioId).catch(() => {});
+    getFavoritePatioIds().then((ids) => { if (active) setIsSaved(ids.includes(patioId)); }).catch(() => {});
     fetchMenuForFondita(patioId).then((sections) => {
-      if (sections.length > 0) setLiveMenu(sections);
-    });
+      if (active) setLiveMenu(sections.length ? sections : null);
+    }).catch(() => {});
+    return () => { active = false; };
   }, [patioId]);
 
   useFocusEffect(
@@ -136,7 +148,7 @@ export function usePatioDetailController(id: PatioParam) {
           setReviews(withDemoProfileReviews(patioId, publicReviews));
           setIsSaved(favoriteIds.includes(patioId));
         }
-      });
+      }).catch(() => {});
       return () => {
         active = false;
       };
@@ -196,7 +208,11 @@ export function usePatioDetailController(id: PatioParam) {
     });
     if (url) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-      Linking.openURL(url).catch(() => {});
+      Linking.openURL(url).catch(() => {
+        void Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`).catch(() => {
+          Alert.alert(noWidow('No pudimos abrir el mapa'), noWidow('Inténtalo de nuevo.'));
+        });
+      });
     }
   }, [patio]);
 

@@ -1,6 +1,7 @@
 import { supabase } from './supabase';
 import type { Patio, PatioMenuSection, PatioDishMatch } from './patios';
-import type { MenuData } from './menu-store';
+import { normalizeMenuData, type MenuData } from './menu-store';
+import { localMenuDate } from './menu-date';
 import { publicCurrency } from './prices';
 
 export function cleanMenuText(value?: string): string | undefined {
@@ -17,10 +18,6 @@ export function cleanMenuText(value?: string): string | undefined {
 }
 
 export const cleanMenuDescription = cleanMenuText;
-
-function hoy(): string {
-  return new Date().toISOString().split('T')[0];
-}
 
 function menuDataToSections(data: MenuData): PatioMenuSection[] {
   return data.secciones
@@ -45,10 +42,11 @@ export async function fetchMenuForFondita(fonditaId: string): Promise<PatioMenuS
     .from('menus')
     .select('secciones')
     .eq('fondita_id', fonditaId)
-    .eq('fecha', hoy())
+    .eq('fecha', localMenuDate())
     .maybeSingle();
 
-  if (menuHoy?.secciones) return menuDataToSections(menuHoy.secciones as MenuData);
+  const today = normalizeMenuData(menuHoy?.secciones);
+  if (today?.secciones.some((section) => section.platillos.some((dish) => dish.nombre.trim()))) return menuDataToSections(today);
 
   const { data: carta } = await supabase
     .from('cartas')
@@ -56,7 +54,8 @@ export async function fetchMenuForFondita(fonditaId: string): Promise<PatioMenuS
     .eq('fondita_id', fonditaId)
     .maybeSingle();
 
-  if (carta?.secciones) return menuDataToSections(carta.secciones as MenuData);
+  const permanent = normalizeMenuData(carta?.secciones);
+  if (permanent) return menuDataToSections(permanent);
 
   return [];
 }
@@ -156,7 +155,9 @@ export async function searchLiveMenus(query: string, patios: Patio[]): Promise<P
   const addResults = (fonditaId: string, secciones: MenuData) => {
     const patio = patioMap.get(fonditaId);
     if (!patio) return;
-    for (const match of extractMatches(secciones.secciones, patio, query)) {
+    const normalized = normalizeMenuData(secciones);
+    if (!normalized) return;
+    for (const match of extractMatches(normalized.secciones, patio, query)) {
       const key = `${fonditaId}-${match.item.name}`;
       if (!seen.has(key)) { seen.add(key); results.push(match); }
     }
@@ -173,24 +174,30 @@ export async function searchLiveMenus(query: string, patios: Patio[]): Promise<P
     results.push(match);
   }
 
-  const [cartas, menus] = await Promise.all([
+  // Buscar también en el menú normalizado que ya llegó con el mapa:
+  // funciona sin otra red y conserva búsquedas sin acentos ("cafe"/"café").
+  // Antes esto corría solo en DEV, ocultando el defecto en las pruebas.
+  for (const patio of patios) {
+    for (const match of extractPatioMenuMatches(patio, query)) {
+      const key = `${patio.id}-${match.item.name}`;
+      if (!seen.has(key)) { seen.add(key); results.push(match); }
+    }
+  }
+
+  const [cartas, menus] = await Promise.allSettled([
     supabase.from('cartas').select('fondita_id, secciones').filter('secciones::text', 'ilike', `%${query}%`),
-    supabase.from('menus').select('fondita_id, secciones').eq('fecha', hoy()).filter('secciones::text', 'ilike', `%${query}%`),
+    supabase.from('menus').select('fondita_id, secciones').eq('fecha', localMenuDate()).filter('secciones::text', 'ilike', `%${query}%`),
   ]);
-
   // El menú de hoy tiene prioridad sobre una coincidencia duplicada de carta.
-  for (const row of menus.data ?? []) addResults(row.fondita_id, row.secciones as MenuData);
-  for (const row of cartas.data ?? []) addResults(row.fondita_id, row.secciones as MenuData);
-
-  if (__DEV__) {
-    for (const patio of patios) {
-      for (const match of extractPatioMenuMatches(patio, query)) {
-        const key = `${patio.id}-${match.item.name}`;
-        if (!seen.has(key)) {
-          seen.add(key);
-          results.push(match);
-        }
-      }
+  if (menus.status === 'fulfilled') {
+    for (const row of menus.value.data ?? []) addResults(row.fondita_id, row.secciones as MenuData);
+  }
+  if (cartas.status === 'fulfilled') {
+    for (const row of cartas.value.data ?? []) {
+      // Una carta antigua no debe volver a ofrecer un platillo que no figura
+      // en el menú vigente ya cargado con la ficha del negocio.
+      if (patioMap.get(row.fondita_id)?.menu.length) continue;
+      addResults(row.fondita_id, row.secciones as MenuData);
     }
   }
 

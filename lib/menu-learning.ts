@@ -1,3 +1,4 @@
+import { withStorageLock } from './storage-queue';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import type { MenuData } from '@/lib/menu-store';
@@ -41,6 +42,7 @@ export async function recordMenuCorrection(
   };
 
   try {
+    await withStorageLock(MENU_CORRECTIONS_KEY, async () => {
     const raw = await AsyncStorage.getItem(MENU_CORRECTIONS_KEY);
     const current = raw ? JSON.parse(raw) : [];
     const safe = Array.isArray(current) ? current : [];
@@ -48,6 +50,7 @@ export async function recordMenuCorrection(
       MENU_CORRECTIONS_KEY,
       JSON.stringify([record, ...safe].slice(0, MAX_LOCAL_RECORDS))
     );
+    });
   } catch (error) {
     if (__DEV__) console.warn('[menu-learning] no se guardó la corrección', error);
   }

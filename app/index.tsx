@@ -4,6 +4,8 @@ import { View } from 'react-native';
 
 import { AgentSpinner } from '@/components/agent-spinner';
 import { initializeSignedInUser } from '@/lib/auth';
+import { activateLocalAccount } from '@/lib/account-storage';
+import { withSessionLock } from '@/lib/session-queue';
 import { getUserRole, hasCompletedOnboarding } from '@/lib/entry-flow';
 import { supabase } from '@/lib/supabase';
 
@@ -30,19 +32,24 @@ function goVia(destination: { pathname: string; params?: Record<string, string> 
 
 export default function BootScreen() {
   useEffect(() => {
-    (async () => {
+    let active = true;
+    void withSessionLock(async () => {
+      if (!active) return;
       try {
         const [{ data }, savedRole, onboardingDone] = await Promise.all([
           supabase.auth.getSession(),
           getUserRole(),
           hasCompletedOnboarding(),
         ]);
-        const setup = data.session ? await initializeSignedInUser(data.session) : null;
+        await activateLocalAccount(data.session?.user.id ?? null);
+        if (!active) return;
         // Una sesión autenticada de negocio manda sobre el modo de desarrollo y
         // sobre un rol local viejo. Esto también recupera un magic link que
         // Supabase alcanzó a verificar aunque iOS reabra la app sin conservar
         // todos los parámetros del deep link.
         if (data.session && savedRole !== 'foodie') {
+          const setup = await initializeSignedInUser(data.session);
+          if (!active) return;
           // Un Fondero recurrente (ya dado de alta) aterriza en su base real
           // (Menús/historial), no en el chooser de "cómo quieres empezar" —
           // ese chooser es primera vez / recién dado de alta, no el arranque
@@ -63,8 +70,9 @@ export default function BootScreen() {
           return;
         }
       } catch {}
-      goVia({ pathname: '/entrada' });
-    })();
+      if (active) goVia({ pathname: '/entrada' });
+    });
+    return () => { active = false; };
   }, []);
 
   return (

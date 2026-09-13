@@ -5,91 +5,93 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { makePlatilloId, makeSectionId, normalizeMenuData, type MenuData } from './menu-store';
 
+import { localMenuDate } from './menu-date';
+import { withStorageLock } from './storage-queue';
+
 const KEY = '@patio_menu_history';
-const MAX = 30;
 
-export type LocalMenuEntry = { fecha: string; secciones: MenuData; nombre?: string };
 
-function hoy(): string {
-  return new Date().toISOString().split('T')[0];
+export type LocalMenuEntry = { id: string; fecha: string; secciones: MenuData; nombre?: string; published: boolean };
+export function newMenuDraftId(): string { return `draft:${makeSectionId()}`; }
+
+
+// Las mutaciones leen dentro de la misma cola. Un fallo de lectura nunca
+// se convierte en una lista vacía que sobrescriba el historial existente.
+async function readLocalMenus(): Promise<LocalMenuEntry[]> {
+  const raw = await AsyncStorage.getItem(KEY);
+  if (!raw) return [];
+  const parsed = JSON.parse(raw);
+  if (!Array.isArray(parsed)) throw new Error('Historial inválido');
+  return parsed.flatMap((entry): LocalMenuEntry[] => {
+    if (!entry || typeof entry.fecha !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(entry.fecha)) return [];
+    const secciones = normalizeMenuData(entry.secciones);
+    const nombre = typeof entry.nombre === 'string' ? entry.nombre.trim() : '';
+    return secciones ? [{ id: typeof entry.id === 'string' ? entry.id : entry.fecha, fecha: entry.fecha, secciones, published: entry.published === true, ...(nombre ? { nombre } : {}) }] : [];
+  }).sort((a, b) => b.fecha.localeCompare(a.fecha));
 }
 
-// Devuelve si de verdad se guardó — antes fallaba en silencio y la UI decía
-// "Guardado" sin que fuera cierto (ley dictada 2026-07-22: nunca mentir sobre
-// un guardado). Sigue siendo best-effort para no bloquear la publicación,
-// pero ahora quien llama puede saber y avisar si falló.
-export async function saveLocalMenu(data: MenuData): Promise<boolean> {
-  try {
-    const list = await getLocalMenus();
-    const current = list.find((m) => m.fecha === hoy());
-    const next = [{ fecha: hoy(), secciones: data, nombre: current?.nombre }, ...list.filter((m) => m.fecha !== hoy())].slice(0, MAX);
-    await AsyncStorage.setItem(KEY, JSON.stringify(next));
-    return true;
-  } catch {
-    return false;
-  }
+type SaveOptions = { id?: string; published?: boolean; fecha?: string };
+
+async function writeMenu(data: MenuData, nombre: string | undefined, options: SaveOptions): Promise<void> {
+  const list = await readLocalMenus();
+  const id = options.id ?? newMenuDraftId();
+  const current = list.find((menu) => menu.id === id);
+  const fecha = options.fecha ?? current?.fecha ?? localMenuDate();
+  const published = options.published ?? false;
+  const entry: LocalMenuEntry = {
+    id, fecha, secciones: data, published,
+    nombre: nombre === undefined ? current?.nombre : nombre.trim() || undefined,
+  };
+  // Una publicación por día en servidor; los otros borradores/versiones
+  // permanecen guardados y seleccionables por su identidad propia.
+  const other = list.filter((menu) => menu.id !== id).map((menu) =>
+    published && menu.fecha === fecha ? { ...menu, published: false } : menu);
+  await AsyncStorage.setItem(KEY, JSON.stringify([entry, ...other]));
 }
 
-export async function renameLocalMenu(fecha: string, nombre: string, secciones: MenuData): Promise<void> {
-  try {
+export async function saveLocalMenu(data: MenuData, nombre?: string, options: SaveOptions = {}): Promise<boolean> {
+  return withStorageLock(KEY, async () => {
+    try { await writeMenu(data, nombre, options); return true; } catch { return false; }
+  });
+}
+
+// El cambio de cuenta espera toda la publicación, incluida la red. Las
+// operaciones internas no vuelven a adquirir el lock y no pueden bloquearse.
+export async function saveMenuPublication(data: MenuData, nombre: string | undefined, id: string, publish: (savedLocally: boolean) => Promise<void>): Promise<void> {
+  return withStorageLock(KEY, async () => {
+    const fecha = localMenuDate();
+    let saved = false;
+    try { await writeMenu(data, nombre, { id, fecha }); saved = true; } catch {}
+    await publish(saved);
+    try { await writeMenu(data, nombre, { id, fecha, published: true }); } catch {}
+  });
+}
+
+export async function renameLocalMenu(id: string, nombre: string, secciones: MenuData, fecha = localMenuDate(), published = false): Promise<void> {
+  return withStorageLock(KEY, async () => {
+    const list = await readLocalMenus();
+    const existing = list.find((menu) => menu.id === id);
     const cleanName = nombre.trim();
-    const list = await getLocalMenus();
-    const existing = list.find((menu) => menu.fecha === fecha);
-    const nextEntry: LocalMenuEntry = {
-      fecha,
-      secciones: existing?.secciones ?? secciones,
-      ...(cleanName ? { nombre: cleanName } : {}),
+    const entry: LocalMenuEntry = {
+      id, fecha: existing?.fecha ?? fecha, secciones: existing?.secciones ?? secciones,
+      published: existing?.published ?? published, ...(cleanName ? { nombre: cleanName } : {}),
     };
-    const next = [nextEntry, ...list.filter((menu) => menu.fecha !== fecha)]
-      .sort((a, b) => b.fecha.localeCompare(a.fecha))
-      .slice(0, MAX);
-    await AsyncStorage.setItem(KEY, JSON.stringify(next));
-  } catch {
-    // El nombre es un nicety local; si falla, el historial sigue funcionando.
-  }
+    await AsyncStorage.setItem(KEY, JSON.stringify([entry, ...list.filter((menu) => menu.id !== id)]));
+  });
 }
 
-export async function deleteLocalMenu(fecha: string): Promise<void> {
-  try {
-    const list = await getLocalMenus();
-    const next = list.filter((menu) => menu.fecha !== fecha);
-    await AsyncStorage.setItem(KEY, JSON.stringify(next));
-  } catch {
-    // Best-effort: si falla, el menú sigue en el historial local.
-  }
-}
+export async function deleteLocalMenu(id: string): Promise<void> { return deleteLocalMenus([id]); }
 
-// Para selección múltiple: una sola lectura/escritura para varias fechas a
-// la vez — deleteLocalMenu en un Promise.all pierde fechas (cada llamada lee
-// el storage antes de que la anterior termine de escribir).
-export async function deleteLocalMenus(fechas: string[]): Promise<void> {
-  try {
-    const list = await getLocalMenus();
-    const toRemove = new Set(fechas);
-    const next = list.filter((menu) => !toRemove.has(menu.fecha));
-    await AsyncStorage.setItem(KEY, JSON.stringify(next));
-  } catch {
-    // Best-effort.
-  }
+export async function deleteLocalMenus(ids: string[]): Promise<void> {
+  return withStorageLock(KEY, async () => {
+    const list = await readLocalMenus();
+    const toRemove = new Set(ids);
+    await AsyncStorage.setItem(KEY, JSON.stringify(list.filter((menu) => !toRemove.has(menu.id))));
+  });
 }
 
 export async function getLocalMenus(): Promise<LocalMenuEntry[]> {
-  try {
-    const raw = await AsyncStorage.getItem(KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
-    return parsed
-      .map((entry) => {
-        if (!entry || typeof entry.fecha !== 'string') return null;
-        const secciones = normalizeMenuData(entry.secciones);
-        const nombre = typeof entry.nombre === 'string' ? entry.nombre.trim() : '';
-        return secciones ? { fecha: entry.fecha, secciones, ...(nombre ? { nombre } : {}) } : null;
-      })
-      .filter((entry): entry is LocalMenuEntry => entry !== null);
-  } catch {
-    return [];
-  }
+  try { return await readLocalMenus(); } catch { return []; }
 }
 
 export async function getLatestLocalMenu(): Promise<MenuData | null> {
@@ -133,7 +135,7 @@ export async function seedDemoHistory(): Promise<void> {
   const entries: LocalMenuEntry[] = DEMO_MENUS.map(([daysAgo, secciones]) => {
     const d = new Date();
     d.setDate(d.getDate() - daysAgo);
-    return { fecha: d.toISOString().split('T')[0], secciones };
+    return { id: localMenuDate(d), fecha: localMenuDate(d), secciones, published: true };
   });
   try {
     await AsyncStorage.setItem(KEY, JSON.stringify(entries));

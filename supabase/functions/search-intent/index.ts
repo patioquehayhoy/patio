@@ -1,11 +1,5 @@
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
-type IntentRequest = {
-  query?: string;
-};
+import { requireUser } from '../_shared/auth.ts';
+import { corsHeaders, errorResponse, readJson } from '../_shared/http.ts';
 
 type UnknownRecord = Record<string, unknown>;
 
@@ -75,17 +69,18 @@ Deno.serve(async (request) => {
   }
 
   try {
+    await requireUser(request);
+    const body = await readJson(request, 8_192);
+    const query = text(body.query);
+    if (!query || query.length > 500) {
+      return Response.json({ error: 'Escribe una búsqueda de hasta 500 caracteres' }, { status: 400, headers: corsHeaders });
+    }
     const apiKey = Deno.env.get('ANTHROPIC_API_KEY');
     if (!apiKey) throw new Error('ANTHROPIC_API_KEY no está configurada');
 
-    const body = await request.json() as IntentRequest;
-    const query = text(body.query);
-    if (!query) {
-      return Response.json({ error: 'Falta la búsqueda' }, { status: 400, headers: corsHeaders });
-    }
-
     const anthropic = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
+      signal: AbortSignal.timeout(10_000),
       headers: {
         'content-type': 'application/json',
         'x-api-key': apiKey,
@@ -122,10 +117,6 @@ Deno.serve(async (request) => {
     const result = normalizeResult(parsed);
     return Response.json(result, { headers: { ...corsHeaders, 'content-type': 'application/json' } });
   } catch (error) {
-    console.error(error);
-    return Response.json(
-      { error: error instanceof Error ? error.message : 'No se pudo interpretar la búsqueda' },
-      { status: 500, headers: corsHeaders },
-    );
+    return errorResponse(error, 'No se pudo interpretar la búsqueda');
   }
 });

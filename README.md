@@ -22,3 +22,18 @@ npx expo start --ios
 
 Primera vez en simulador o device: `npx expo run:ios`. Ver "Economía de builds
 EAS" en `CLAUDE.md` antes de proponer un build real.
+
+## Calidad y lanzamiento
+
+```bash
+npm run check
+npm run check:release:strict
+```
+
+El segundo comando exige la configuración externa comprobable. Pasarlo no
+acredita firma, backend desplegado ni pruebas en dispositivos. La auditoría,
+los cambios y los bloqueos de lanzamiento están en
+[`docs/APP_AUDIT_2026-09-10.md`](docs/APP_AUDIT_2026-09-10.md).
+Consulta también el [checklist de tiendas](docs/STORE_RELEASE_READINESS.md),
+el [ensayo SQL aislado](scripts/db-tests/README.md) y el
+[smoke de navegación](maestro/README.md).

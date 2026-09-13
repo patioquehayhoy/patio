@@ -13,6 +13,7 @@ import { NewMenuSheet } from '@/components/new-menu-sheet';
 import { cleanMenu, publishMenuNow } from '@/lib/controllers/useFonderoMenuDraftController';
 import { dateLabel, defaultHistoryTitle, useMenuHistoryController, type PublishedMenu } from '@/lib/controllers/useMenuHistoryController';
 import { fonderoPalette } from '@/lib/fondero-palette';
+import { localMenuDate } from '@/lib/menu-date';
 import { getMenuCollections, type MenuCollection } from '@/lib/menu-collections';
 import { useTabBarScroll } from '@/lib/tab-bar-visibility';
 import { Fonts, Radius, useTheme } from '@/lib/theme';
@@ -42,22 +43,15 @@ export default function HistorialScreen() {
   const [activeListIds, setActiveListIds] = useState<string[]>([]);
   const [sheetMode, setSheetMode] = useState<'filter' | 'assign' | null>(null);
   const [assignFechas, setAssignFechas] = useState<string[]>([]);
-  // Antes checaba si el BORRADOR en memoria tenía platillos con nombre —
-  // "Editar y usar" un guardado escribe al borrador ANTES de llevarte al
-  // editor, así que el foco se apagaba al solo tocar, no al publicar de
-  // verdad (bug real, encontrado por Alejandro 2026-08-30). Ahora checa
-  // contra el historial YA publicado — mismo formato de fecha que usa
-  // lib/menu-history.ts al guardar (`hoy()`, ISO-UTC), para comparar
-  // strings iguales a como se guardaron.
-  const todayFecha = new Date().toISOString().split('T')[0];
-  const pendingToday = !menus.some((menu) => menu.fecha === todayFecha);
+  const todayFecha = localMenuDate();
+  const pendingToday = !menus.some((menu) => menu.published && menu.fecha === todayFecha);
 
   useFocusEffect(useCallback(() => {
     getMenuCollections().then(setCollections);
   }, []));
 
   const visibleMenus = activeListIds.length === 0 ? menus : menus.filter((menu) => (
-    activeListIds.some((id) => collections.find((collection) => collection.id === id)?.fechas.includes(menu.fecha))
+    activeListIds.some((id) => collections.find((collection) => collection.id === id)?.fechas.includes(menu.id))
   ));
 
   const exitSelecting = () => {
@@ -89,7 +83,7 @@ export default function HistorialScreen() {
     }
     setPublishingReused(true);
     try {
-      await publishMenuNow(clean);
+      await publishMenuNow(clean, { nombre: menu.nombre, draftId: menu.published ? undefined : menu.id });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
       router.replace('/menu-publicado');
     } catch {
@@ -126,13 +120,13 @@ export default function HistorialScreen() {
   // touchable, igual que ahí — antes el círculo vivía fuera del
   // TouchableOpacity y no registraba el toque (bug 2026-08-24).
   const renderMenuRow = (menu: (typeof menus)[number]) => {
-    const key = menu.fecha;
+    const key = menu.id;
     const isSelected = selectedFechas.has(key);
     return (
       <TouchableOpacity
         key={key}
         style={[s.card, { backgroundColor: c.surface, borderColor: c.border }]}
-        onPress={() => (selecting ? toggleSelect(key) : reuse(menu.secciones))}
+        onPress={() => (selecting ? toggleSelect(key) : reuse(menu))}
         onLongPress={() => { if (!selecting) { Haptics.selectionAsync().catch(() => {}); setSelecting(true); toggleSelect(key); } }}
         activeOpacity={0.82}
         accessibilityRole="button"
@@ -142,7 +136,7 @@ export default function HistorialScreen() {
         )}
         <View style={{ flex: 1, minWidth: 0 }}>
           <Text style={[s.summary, { color: c.text }]} numberOfLines={2}>{menu.nombre || defaultHistoryTitle(menu)}</Text>
-          <Text style={[s.date, { color: c.textMute }]}>{dateLabel(menu.fecha)}</Text>
+          <Text style={[s.date, { color: c.textMute }]}>{noWidow(`${menu.published ? 'Publicado' : 'Guardado'} · ${dateLabel(menu.fecha)}`)}</Text>
         </View>
         {!selecting && (
           <TouchableOpacity
@@ -321,14 +315,14 @@ export default function HistorialScreen() {
       )}
       <ActionSheet
         visible={!!actionsFor}
-        anchorRef={{ current: actionsFor ? moreRefs.current.get(actionsFor.fecha) ?? null : null }}
+        anchorRef={{ current: actionsFor ? moreRefs.current.get(actionsFor.id) ?? null : null }}
         title={actionsFor ? (actionsFor.nombre || defaultHistoryTitle(actionsFor)) : undefined}
         onDismiss={() => setActionsFor(null)}
         options={actionsFor ? [
           { label: 'Publicar igual', icon: 'checkmark-done-outline', onPress: () => publishReused(actionsFor) },
-          { label: 'Editar y usar', icon: 'create-outline', onPress: () => reuse(actionsFor.secciones) },
+          { label: 'Editar y usar', icon: 'create-outline', onPress: () => reuse(actionsFor) },
           { label: 'Renombrar', icon: 'text-outline', onPress: () => openRename(actionsFor) },
-          { label: 'Añadir a lista', icon: 'bookmark-outline', onPress: () => { setAssignFechas([actionsFor.fecha]); setSheetMode('assign'); } },
+          { label: 'Añadir a lista', icon: 'bookmark-outline', onPress: () => { setAssignFechas([actionsFor.id]); setSheetMode('assign'); } },
           { label: 'Eliminar', icon: 'trash-outline', destructive: true, onPress: () => deleteMenu(actionsFor) },
         ] : []}
       />

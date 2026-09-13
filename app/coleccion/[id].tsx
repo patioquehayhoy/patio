@@ -20,28 +20,59 @@ export default function CollectionDetail() {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   const [item, setItem] = useState<PatioCollection | null>(null);
+  const itemRef = useRef<PatioCollection | null>(null);
+  const confirmedItem = useRef<PatioCollection | null>(null);
+  const editRevision = useRef(0);
+  const actionPending = useRef(false);
+  const [busy, setBusy] = useState(false);
   const [patios, setPatios] = useState<Patio[]>([]);
   const load = useCallback(() => Promise.all([getCollection(String(id)), fetchPublicFonditas()]).then(([collection, all]) => {
     setItem(collection);
+    itemRef.current = collection;
+    confirmedItem.current = collection;
     setPatios(collection ? all.filter((patio) => collection.patioIds.includes(patio.id)) : []);
   }), [id]);
   useFocusEffect(useCallback(() => { load().catch(() => {}); }, [load]));
 
   const patch = async (value: Partial<PatioCollection>) => {
-    if (!item) return;
-    const next = { ...item, ...value };
+    if (!itemRef.current || actionPending.current) return;
+    const next = { ...itemRef.current, ...value };
+    const revision = ++editRevision.current;
+    itemRef.current = next;
     setItem(next);
-    await updateCollection(next);
+    try {
+      await updateCollection(next);
+      confirmedItem.current = next;
+    } catch {
+      if (revision !== editRevision.current) return;
+      itemRef.current = confirmedItem.current;
+      setItem(confirmedItem.current);
+      Alert.alert(noWidow('No pudimos guardar la lista'), noWidow('Se conserva la última versión guardada. Inténtalo de nuevo.'));
+    }
   };
   const share = async () => {
-    if (!item) return;
+    if (!item || actionPending.current) return;
+    actionPending.current = true;
+    setBusy(true);
     // Bug real corregido en auditoría 2026-08-23: antes, si la lista era
     // privada, NUNCA se publicaba — se compartía sin link, solo texto suelto.
     // Ahora sube automáticamente a `unlisted` para que el link sí funcione.
-    const target = item.visibility === 'private' ? { ...item, visibility: 'unlisted' as const } : item;
-    const published = await publishCollection(target);
-    if (published.remoteId !== item.remoteId || published.visibility !== item.visibility) setItem(published);
-    await Share.share({ message: `${item.title}\n${patios.map((patio) => `• ${patio.name}`).join('\n')}${published.remoteId ? `\n\npatio://coleccion-publica/${published.remoteId}` : ''}` });
+    try {
+      const target = item.visibility === 'private' ? { ...item, visibility: 'unlisted' as const } : item;
+      const published = await publishCollection(target);
+      setItem(published);
+      itemRef.current = published;
+      confirmedItem.current = published;
+      await Share.share({ message: `${published.title}\n${patios.map((patio) => `• ${patio.name}`).join('\n')}\n\npatio://coleccion-publica/${published.remoteId}` });
+    } catch (error) {
+      Alert.alert(noWidow('No pudimos compartir la lista'), noWidow(
+        error instanceof Error && error.message === 'Inicia sesión para compartir esta lista.'
+          ? error.message : 'Revisa tu conexión e inténtalo de nuevo.',
+      ));
+    } finally {
+      actionPending.current = false;
+      setBusy(false);
+    }
   };
 
   const [actionsOpen, setActionsOpen] = useState(false);
@@ -58,9 +89,19 @@ export default function CollectionDetail() {
           text: 'Eliminar',
           style: 'destructive',
           onPress: async () => {
-            await deleteCollection(item.id);
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-            router.back();
+            if (actionPending.current) return;
+            actionPending.current = true;
+            setBusy(true);
+            try {
+              await deleteCollection(item.id);
+              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+              router.back();
+            } catch {
+              Alert.alert(noWidow('No pudimos eliminar la lista'), noWidow('La lista sigue disponible. Revisa tu conexión e inténtalo de nuevo.'));
+            } finally {
+              actionPending.current = false;
+              setBusy(false);
+            }
           },
         },
       ],
@@ -77,9 +118,10 @@ export default function CollectionDetail() {
           <TouchableOpacity ref={moreRef} accessibilityRole="button" accessibilityLabel="Acciones de la lista" style={s.navButton} onPress={() => { Haptics.selectionAsync().catch(() => {}); setActionsOpen(true); }}><Ionicons name="ellipsis-horizontal" size={21} color={theme.text} /></TouchableOpacity>
         </View>
 
-        <TextInput value={item.title} onChangeText={(title) => patch({ title })} multiline style={[s.title, { color: theme.text }]} />
+        <TextInput value={item.title} editable={!busy} onChangeText={(title) => patch({ title })} multiline style={[s.title, { color: theme.text }]} />
         <TextInput
           value={item.description}
+          editable={!busy}
           onChangeText={(description) => patch({ description })}
           placeholder="Añade una nota a esta lista"
           placeholderTextColor={theme.textMute}
@@ -94,7 +136,7 @@ export default function CollectionDetail() {
               <Ionicons name="map-outline" size={18} color="#FFFFFF" />
               <Text style={[s.primaryText, { color: '#FFFFFF' }]}>{noWidow('Ver en el mapa')}</Text>
             </TouchableOpacity>
-            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Compartir" style={[s.shareButton, { borderColor: theme.border }]} onPress={share}>
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Compartir" disabled={busy} accessibilityState={{ disabled: busy, busy }} style={[s.shareButton, { borderColor: theme.border }]} onPress={share}>
               <Ionicons name="share-outline" size={19} color={theme.text} />
             </TouchableOpacity>
           </View>

@@ -1,8 +1,18 @@
 # TASKS — Cola de trabajo para agentes
 
-> Última actualización: 2026-08-24.
+> Última actualización: 2026-09-13.
 
-> **Continuación vigente, 2026-09-11:** la cola de cierre de lanzamiento vive
+## Prioridad inmediata — mismo menú en Mapa y Guardados
+
+- [ ] Corregir la divergencia Filtrar/Opciones: misma entrada y menú compartido.
+- [ ] Mantener disponibilidad dentro de Filtros y un solo control superior.
+- [ ] Verificar filtros compartidos, agrupación, feedback y ausencia de solapes
+  en ambas pantallas; validar en iPhone físico, sin simulador.
+
+La versión actual no está aprobada. El cierre fue documental; código pendiente.
+Leer el primer corte de [HANDOFF](HANDOFF.md) antes de continuar.
+
+> **Backlog de lanzamiento, corte 2026-09-11:** la cola de cierre vive
 > en [APP_AUDIT_2026-09-10.md](APP_AUDIT_2026-09-10.md) y
 > [STORE_RELEASE_READINESS.md](STORE_RELEASE_READINESS.md).
 > El backlog de producto siguiente conserva sus decisiones pendientes;

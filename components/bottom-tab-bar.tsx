@@ -99,10 +99,10 @@ export function BottomTabBar({ variant = 'fondero' }: { variant?: 'foodie' | 'fo
           const onTabPress = () => {
             Keyboard.dismiss();
             reveal();
-            // Navegamos SIEMPRE, sin guard. Antes el `if (!active)` dependía de
-            // usePathname (que puede ir un frame atrasado) y "a veces no navegaba".
-            // router.replace a la ruta actual es no-op visual en expo-router, así que
-            // navegar incondicionalmente es seguro y elimina la intermitencia.
+            // Reemplazar la ruta activa puede remontar la pantalla en Expo Router
+            // y reiniciar scroll, búsqueda y controles locales. Un segundo toque
+            // sobre el tab seleccionado conserva exactamente el estado visible.
+            if (active) return;
             router.replace(path as any);
           };
           return (

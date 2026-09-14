@@ -1,6 +1,15 @@
 # STATE
 
-> Fuente de verdad operativa. Última actualización: 2026-09-12.
+> Fuente de verdad operativa. Última actualización: 2026-09-13.
+
+## Prioridad actual — menú compartido sin aprobar
+
+Mapa abre **Filtrar** directamente y Guardados abre **Opciones**. Alejandro
+señaló que esto rompe la intención de usar el mismo menú en ambas pantallas.
+Pendiente unificar la experiencia conservando un solo control y los filtros
+compartidos. Ver checklist en [HANDOFF](HANDOFF.md). El último cierre sólo
+actualizó documentación. La implementación previa pasó 111 pruebas, TypeScript
+y lint; falta corregir el menú y validar visualmente en iPhone físico.
 
 ## Continuación de auditoría — 2026-09-12
 

@@ -63,10 +63,9 @@ function accentToTransparentRgba(hex: string): string {
 //   (`bottomControls` no tiene padding propio).
 // - Activo (ya escribiendo, con flecha atrás + IA): 10 + 50 + 12 de
 //   padding inferior del contenedor — termina en insets.top+72.
-// Usar el mismo número (72) para los dos dejaba 12pt de aire de sobra en el
-// estado inactivo — exactamente lo que se seguía viendo pegado a la
-// captura. Cada estado ahora usa su propio número real.
-const IDLE_FILTER_BAR_TOP_OFFSET = 60;
+// El estado inactivo termina en top+60; sumamos 8pt de separación real.
+// El activo ya incorpora 12pt debajo del campo. Cada estado usa su medida.
+const IDLE_FILTER_BAR_TOP_OFFSET = 68;
 const FILTER_BAR_TOP_OFFSET = 72;
 // `FILTER_BAR_TOP_OFFSET` (borde inferior del buscador) + 44 (barra de
 // filtros) + 8 (aire entre la barra y el sheet) — es el `top` real del
@@ -755,7 +754,14 @@ export default function ExplorarScreen() {
     Animated.spring(sheetTopExtra, { toValue: targetGap, ...SHEET_SPRING_JS }).start();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mediumGap, isEmptySearchResults]);
-  const listPatios = activeSavedCategories.length ? mapFilteredPatios : allPatios;
+  const listPatios = (activeSavedCategories.length ? mapFilteredPatios : allPatios).filter((patio) => matchesFoodieFilters(filters, {
+    patioId: patio.id,
+    hasTodayMenu: patio.menu.some((section) => section.items.length > 0),
+    isOpenNow: !!(patio.weeklyHours && estaAbiertoAhora(patio.weeklyHours)),
+    categories: patio.categories,
+    payments: patio.payments,
+    collections,
+  }));
   useEffect(() => {
     const show = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow', (e) => {
       setKeyboardHeight(e.endCoordinates.height);
@@ -1026,51 +1032,21 @@ export default function ExplorarScreen() {
         />
       </View>
 
-      {!searchActive && !showSheet && (
-        <View style={[s.mapFilters, { top: insets.top + IDLE_FILTER_BAR_TOP_OFFSET }]}>
+      {/* One instance preserves the filter panel while the keyboard/search
+          changes state. No second row of quick toggles beside this control. */}
+      {(!showSheet || (sheetView.mounted && sheetView.filtering)) && (
+        <View pointerEvents="box-none" style={[s.mapFilters, { top: insets.top + (searchActive ? FILTER_BAR_TOP_OFFSET : IDLE_FILTER_BAR_TOP_OFFSET) }]}>
           <FoodieFilterBar
             filters={filters}
             onChange={setFilters}
             collections={collections}
             categories={[...new Set(allPatios.flatMap((patio) => patio.categories))].sort((a, b) => a.localeCompare(b, 'es'))}
+            additionalFilter={activeSavedCategories.length ? { label: activeSavedCategories.join(' · '), onClear: clearSavedMapFilter } : undefined}
             onCollectionCreated={(c) => setCollections((prev) => [c, ...prev])}
             onCollectionUpdated={(c) => setCollections((prev) => prev.map((item) => item.id === c.id ? c : item))}
             onCollectionRemoved={(id) => setCollections((prev) => prev.filter((item) => item.id !== id))}
           />
         </View>
-      )}
-
-      {/* Igual que Apple Maps: los filtros no desaparecen al buscar — siguen
-          vivos justo debajo del buscador y siguen afectando los resultados
-          (ver matchesFoodieFilters aplicado a filteredMatches abajo). */}
-      {sheetView.mounted && sheetView.filtering && (
-        <View style={[s.mapFilters, { top: insets.top + FILTER_BAR_TOP_OFFSET }]}>
-          <FoodieFilterBar
-            filters={filters}
-            onChange={setFilters}
-            collections={collections}
-            categories={[...new Set(allPatios.flatMap((patio) => patio.categories))].sort((a, b) => a.localeCompare(b, 'es'))}
-            onCollectionCreated={(c) => setCollections((prev) => [c, ...prev])}
-            onCollectionUpdated={(c) => setCollections((prev) => prev.map((item) => item.id === c.id ? c : item))}
-            onCollectionRemoved={(id) => setCollections((prev) => prev.filter((item) => item.id !== id))}
-          />
-        </View>
-      )}
-
-      {!!activeSavedCategories.length && !searchActive && (
-        <TouchableOpacity
-          style={[s.listFilter, { position: 'absolute', top: insets.top + 12, alignSelf: 'center' }]}
-          onPress={clearSavedMapFilter}
-          activeOpacity={0.78}
-          hitSlop={{ top: 7, bottom: 7, left: 6, right: 6 }}
-          accessibilityRole="button"
-          accessibilityLabel={`Quitar filtro de mapa: ${activeSavedCategories.join(', ')}`}>
-          <Ionicons name="map-outline" size={13} color={theme.accent} />
-          <Text style={s.listFilterText} numberOfLines={1}>
-            {activeSavedCategories.join(' · ')}
-          </Text>
-          <Ionicons name="close" size={13} color={theme.accent} />
-        </TouchableOpacity>
       )}
 
       {/* Google Maps: la búsqueda es la primera capa del mapa y vive arriba.

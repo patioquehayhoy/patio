@@ -1,5 +1,188 @@
 # HANDOFF
 
+## ESTADO VIGENTE Y APRENDIZAJES — leer antes de tocar esta barra
+
+Estado actual: Mapa y Guardados comparten **Filtros** y **Tus listas** como
+accesos directos. Guardados añade un único botón iconográfico de Vista/Orden.
+Tiene búsqueda local, orden A–Z con índice discreto, controles colapsables y
+reselección estable del tab. Validación final: **113/113 pruebas**, TypeScript,
+lint y release check local (29 correctas, dos credenciales Android externas).
+Falta aprobación visual de Alejandro en iPhone físico.
+
+Lo aprendido, incluida la dirección que salió mal:
+
+- Compartir componente o estado no basta: las acciones comunes deben conservar
+  posición, nombre, icono, sheet y resultado entre Mapa y Guardados.
+- La barra organiza el acceso a lugares. Mostrar como menú intermedio añadió un
+  toque y ocultó Filtros/Listas, por eso se retiró.
+- Menú hoy y Abiertos pertenecen a Filtros. Como botones permanentes competían
+  con búsqueda y listas. Menú primero mezclaba disponibilidad con orden y salió.
+- Vista/Orden sólo existe en Guardados. La palabra Organizar y el doble icono de
+  Apple Music cargaron la fila; quedó un solo icono de vista activa.
+- La cápsula puede medir 36 pt si el blanco táctil sigue siendo 44 pt.
+- Los indicadores activos no deben cambiar el ancho. Limpiar Filtros y limpiar
+  Tus listas son operaciones independientes.
+- Búsqueda e índice A–Z se complementan: al escribir se oculta el índice. Las
+  letras de sección son referencias tenues, no titulares.
+- `router.replace` a la ruta activa podía remontar Guardados. El tab seleccionado
+  ya no navega otra vez.
+- Pruebas verdes acreditan comportamiento, no composición visual. No declarar
+  una variante aprobada sin verla en iPhone físico con datos reales.
+
+## 2026-09-13 — Reseleccionar Guardados ya no remonta la pantalla
+
+`BottomTabBar` navegaba incondicionalmente con `router.replace`, incluso si el
+tab ya estaba activo. En Guardados esto podía remontar la ruta y producir un
+reinicio extraño de scroll, búsqueda y controles. Ahora un segundo toque sobre
+el tab activo sólo cierra teclado/revela la barra y no navega. Los tabs distintos
+conservan `router.replace`. Se añadió una regresión específica.
+
+## 2026-09-13 — Cápsulas visuales de 36 pt, toque de 44 pt
+
+Filtros, Tus listas y Vista/Orden bajaron de 44 a 36 pt de alto visible para
+reducir peso. Permanecen centrados en una fila de 44 pt y usan `hitSlop` de
+4 pt por lado: el blanco táctil sigue siendo 44 × 44 pt. El botón iconográfico
+de Vista/Orden mide 36 × 36 pt visuales con el mismo blanco efectivo. Los chips
+de Filtros miden 32 pt y ahora suman 6 pt arriba/abajo para alcanzar 44 pt.
+
+## 2026-09-13 — Controles de Guardados colapsan con el scroll
+
+El bloque búsqueda + Filtros/Tus listas/Vista se oculta en 200 ms al bajar por
+Guardados y reaparece al subir o volver al inicio. Permanece visible mientras
+hay una búsqueda escrita o el campo tiene foco. Se colapsa también su altura,
+por lo que el contenido recupera el espacio y no queda un hueco vacío.
+
+La geometría inicial se igualó con Mapa: ambos buscadores empiezan en safe area
++ 10 pt, miden 50 pt y dejan 8 pt antes de la barra, cuyo inicio queda en safe
+area + 68 pt. Ambos usan 16 pt laterales. Mapa conserva los controles porque
+su superficie principal no tiene un scroll vertical equivalente.
+
+## 2026-09-13 — Búsqueda en Guardados y filtros más ligeros
+
+Guardados incorpora un buscador persistente sobre la barra, simétrico al mapa
+en lenguaje pero acotado a la biblioteca personal. Busca por lugar, zona,
+categoría, sección y platillo, ignorando acentos. Mientras hay consulta se
+oculta el índice A–Z. Las letras de sección bajaron a 11 pt, tono secundario y
+menos espacio vertical; el índice lateral se conserva para listas largas.
+
+El sheet de Filtros se redujo a 48%/440 pt, con backdrop más tenue, secciones
+compactas y chips de 32 pt. La selección usa acento suave y contorno en vez de
+relleno negro. Mantiene blancos táctiles efectivos y selección múltiple.
+
+## 2026-09-13 — Vista/Orden queda con un solo icono
+
+Se retiró `···` del control de Vista/Orden: la pareja lista/cuadrícula + puntos
+se sentía como dos acciones junto a Filtros y Tus listas. Queda un botón de
+44 × 44 pt con un único icono dinámico (lista o cuadrícula), que abre el mismo
+menú de Vista/Orden. Los puntos pequeños sobre Filtros/Tus listas sólo indican
+estado activo y no tienen interacción propia.
+
+## 2026-09-13 — Contrato elegido: Filtros + Tus listas directos
+
+Alejandro eligió el plan 1 después de revisar la evolución completa de la
+barra. Se eliminó **Mostrar** y su menú intermedio. Mapa y Guardados presentan
+siempre los mismos dos controles declarativos: **Filtros** (`options-outline`)
+y **Tus listas** (`bookmark-outline`), ambos con icono a la izquierda y sheet
+directo. Cada control conserva un blanco táctil de 44 pt; hay 8 pt entre ellos,
+16 pt laterales y un punto discreto sobre el icono cuando está activo.
+
+Los estados y limpiezas quedaron separados: Filtros modifica disponibilidad,
+categoría, pagos y el filtro heredado del mapa; Tus listas modifica únicamente
+colecciones. Guardados conserva aparte el control compacto de Vista/Orden,
+sin texto: un único icono de lista/cuadrícula. **Menú primero** permanece
+eliminado. Las palomitas de selección siguen al borde izquierdo, como en la
+captura de Apple Music entregada por Alejandro.
+
+`npm run check`: TypeScript, lint y **113/113 pruebas** aprobadas; release check
+29 correcto, 0 errores, dos pendientes externos Android. Metro seguía en 8082.
+Falta visto bueno visual en iPhone físico. Sin commit, push ni publicación.
+
+## 2026-09-13 — Menú compartido corregido; pendiente visto bueno en iPhone
+
+Refinamiento posterior: se eliminó el resumen contextual de la barra. El
+control de Vista/Orden ya no muestra la palabra Organizar: presenta el icono
+de la vista activa (lista/cuadrícula) junto a `···`, siguiendo la referencia
+de Apple Music. También se eliminó por completo **Menú primero** como orden;
+un valor histórico guardado cae al default **Más reciente**. La interfaz queda
+declarativa: Mostrar define el contenido y el control compacto su presentación.
+
+Se corrigió la variante rechazada de Filtrar/Opciones. Mapa y Guardados ahora
+comparten exactamente el botón **Mostrar** y su menú: **Filtros** y **Tus
+listas**. Guardados añade un botón separado **Organizar**, reservado para
+**Vista** y **Orden**, porque esas acciones cambian la presentación y no el
+conjunto de lugares mostrado.
+
+Los iconos de los menús se movieron al borde izquierdo, junto a la marca de
+selección, siguiendo Menus de Apple. La barra usa 8 pt entre controles y 16 pt
+laterales. En el mapa se corrigió el estado inactivo que dejaba cero espacio:
+ahora hay 8 pt reales entre el buscador y la barra; en búsqueda activa conserva
+12 pt. La misma entrada Mostrar mantiene los filtros compartidos entre pantallas.
+
+`npm run check`: TypeScript, lint y **112/112 pruebas** aprobadas; release check
+29 correcto, 0 errores y los dos pendientes externos Android ya documentados.
+Falta visto bueno visual en iPhone físico. No se hizo commit, push ni publicación.
+
+## 2026-09-13 — EMPIEZA AQUÍ: menú compartido pendiente de corregir
+
+> Corte anterior, resuelto en la implementación descrita arriba.
+
+Alejandro corrigió:
+«ahora es solo un boton pero rompiste la idea de que fuera el mismo menu
+tanto en pantalla mapa como pantalla guardados».
+
+El error: se comparte `FoodieFilterBar`, pero Mapa abre Filtros directamente
+con **Filtrar**, mientras Guardados abre un menú con **Opciones**. Compartir
+el componente y el estado no cumple la petición de compartir el menú.
+
+Checklist para retomar, antes del backlog de lanzamiento:
+
+- [ ] Unificar la entrada y la experiencia del menú en Mapa y Guardados:
+  misma presentación, agrupación y comportamiento de las acciones comunes.
+- [ ] Mantener un solo control superior; no volver a separar Menú hoy y
+  Abiertos en botones que compitan. Disponibilidad pertenece a Filtros.
+- [ ] Resolver las opciones contextuales de vista/orden sin inventar acciones
+  que el mapa no soporta. El detalle de esta solución sigue pendiente.
+- [ ] Conservar el estado compartido de filtros al cambiar de pantalla y
+  verificar selección, resumen, limpieza y regreso entre paneles.
+- [ ] Auditar ambas pantallas juntas: agrupación, jerarquía, simetría y feedback;
+  comprobar que buscador, barra y contenido no se solapen.
+- [ ] Validar en iPhone físico. No usar simulador. Las pruebas técnicas verdes
+  no acreditan aprobación visual ni resuelven esta corrección.
+
+El índice A–Z es una exploración implementada, no una solución aprobada al
+problema del menú. Sus umbrales (12 lugares y tres iniciales) fueron una
+decisión de implementación. Esta iteración cubre Mapa y Guardados, no Menús.
+
+Código a revisar: `components/foodie-filter-bar.tsx` (rama `isLibrary`),
+`app/explorar.tsx`, `app/favoritos.tsx`, `components/action-sheet.tsx` y
+`lib/foodie-filters-context.tsx`. Conservar los cambios locales y las pruebas;
+no reiniciar el trabajo ni revertir otros frentes.
+
+Última validación de la implementación anterior: `npm run check` pasó con
+111 pruebas, TypeScript y lint; bundle iOS HTTP 200. Pendientes externos Android:
+`GOOGLE_MAPS_ANDROID_API_KEY` y `GOOGLE_SERVICES_JSON`. Sin verificación visual
+en el teléfono. Última conexión LAN conocida: `http://192.168.100.141:8082`,
+Expo dev client; comprobar IP y Metro al retomar. No tocar 8081 (otro proyecto).
+
+Este cierre actualiza documentación por límite de créditos; **no corrige aún
+el código del menú**, no hace commit, push ni publicación. El corte siguiente
+describe lo implementado y queda subordinado a esta corrección.
+
+## 2026-09-13 — Mapa y Guardados: una entrada de organización e índice A–Z
+
+Se replanteó la barra tras el feedback de Alejandro: los accesos permanentes
+Menú hoy/Abiertos seguían compitiendo. Mapa ahora usa **Filtrar** y Guardados
+**Opciones**; disponibilidad vive dentro de Filtros. Se retiró también un
+filtro histórico que podía cubrir el buscador. Guardados mantiene Opciones
+fuera del scroll y ofrece índice por iniciales en Lista + orden A–Z cuando
+hay al menos 12 lugares y tres iniciales. El índice desplaza sin filtrar.
+
+Agrupación de menú, cierre de modales, accesibilidad y preferencias revisadas.
+`npm run check` pasó con **111 pruebas**, TypeScript y lint; permanecen los
+dos pendientes externos Android. No se abrió simulador ni se operó el iPhone.
+Falta confirmación visual en el teléfono. Alcance y fundamentos Apple en
+[la auditoría de controles](LIBRARY_CONTROLS_AUDIT_2026-09-13.md).
+
 ## 2026-09-12 — Cierre de la continuación de auditoría
 
 Se retomó el trabajo interrumpido por límite de uso. Correcciones adicionales:

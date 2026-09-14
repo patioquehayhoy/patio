@@ -1,8 +1,17 @@
 # Próxima sesión — empieza aquí
 
-## Continuación vigente — 2026-09-11
+## Continuación vigente — 2026-09-13
 
-Frente activo: auditoría de lanzamiento. Leer `CLAUDE.md`, el corte superior
+Primero corregir el menú compartido de **Mapa y Guardados**. La versión actual
+usa un botón en cada pantalla, pero abre experiencias distintas y Alejandro
+no la aprobó. Mantener una sola entrada y unificar el menú, sin volver a los
+botones superiores Menú hoy/Abiertos. Checklist y evidencia en el primer corte
+de [HANDOFF](HANDOFF.md). Validar después en iPhone físico, sin simulador.
+El último cierre fue documental: esta corrección de código sigue pendiente.
+
+## Pendientes de lanzamiento — corte 2026-09-11
+
+Después del ajuste de menú, retomar auditoría de lanzamiento. Leer `CLAUDE.md`, el corte superior
 de [HANDOFF](HANDOFF.md), [STATE](STATE.md) y la
 [auditoría actual](APP_AUDIT_2026-09-10.md). El worktree contiene las
 correcciones locales de esta auditoría; conservarlas.

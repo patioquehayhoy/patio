@@ -1,13 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import { router, Stack } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, ScrollView, Share, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Animated, ScrollView, Share, StyleSheet, Text, TextInput, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { ActionSheet } from '@/components/action-sheet';
 import { BottomTabBar } from '@/components/bottom-tab-bar';
+import { AlphabetIndex } from '@/components/alphabet-index';
 import { FoodieFilterBar, matchesFoodieFilters } from '@/components/foodie-filter-bar';
 import { SaveToListSheet } from '@/components/save-to-list-sheet';
 import { todayDish, useFavoritePatiosController } from '@/lib/controllers/useFavoritePatiosController';
@@ -17,8 +18,11 @@ import { noWidow } from '@/lib/typography';
 import { estaAbiertoAhora } from '@/lib/horario';
 import { createCollection, getCollections, publishCollection, setPatiosInCollection, type PatioCollection } from '@/lib/collections';
 import { removeFavoritePatios } from '@/lib/favorites';
+import { alphabeticalSections } from '@/lib/library-index';
 
 const OPEN_GREEN = '#1F9D55';
+const FAVORITES_VIEW_KEY = '@patio_favorites_view';
+const FAVORITES_SORT_KEY = '@patio_favorites_sort';
 
 // Densidad de fila y contenedor calcados de la misma referencia que ya usan
 // vistos.tsx/explorar.tsx (sheet de resultados) en esta app: tarjeta propia
@@ -35,18 +39,28 @@ function makeStyles(t: Theme) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: t.bg },
     content: { paddingBottom: 120 },
+    viewport: { flex: 1 },
+    alphabetSection: { paddingHorizontal: 20, gap: 8, marginBottom: 8 },
+    alphabetHeading: { fontSize: 11, fontWeight: '700', letterSpacing: 1.2, color: t.textMute, paddingTop: 6, paddingBottom: 2 },
 
-    filterWrap: { marginTop: 12, marginBottom: 12 },
+    controlsClip: { overflow: 'hidden' },
+    filterWrap: { marginTop: 10, marginBottom: 12, gap: 8 },
+    searchWrap: { marginHorizontal: 16, height: 50, borderRadius: 18, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 13, gap: 8, backgroundColor: t.glass },
+    searchInput: { flex: 1, height: 50, paddingVertical: 0, fontSize: 15, fontWeight: '400', color: t.text },
 
     // Selección rápida: link a la derecha, arriba del filtro — mismo lugar
     // donde iOS pone "Seleccionar" en Fotos/Archivos (esquina superior).
-    selectRow: { paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'flex-end' },
-    selectToggle: { minHeight: 32, justifyContent: 'center' },
+    selectRow: { paddingHorizontal: 20, height: 68, flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center' },
+    selectToggle: { minHeight: 44, justifyContent: 'center' },
     selectToggleText: { fontSize: 14, fontWeight: '700' },
 
     // Lista: pila de tarjetas individuales, no tabla continua.
     list: { paddingHorizontal: 20, gap: 10 },
+    grid: { paddingHorizontal: 20, flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
     card: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: t.surface, borderRadius: Radius.card, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, paddingHorizontal: 14, paddingVertical: 7 },
+    gridCard: { backgroundColor: t.surface, borderRadius: Radius.card, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, padding: 10 },
+    gridThumb: { width: '100%', aspectRatio: 1, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: t.bg, position: 'relative', marginBottom: 9 },
+    gridSelection: { position: 'absolute', top: 8, left: 8, zIndex: 2 },
     thumb: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: t.bg, position: 'relative' },
     menuDot: { position: 'absolute', right: -2, top: -2, width: 9, height: 9, borderRadius: 5, borderWidth: 2, borderColor: t.surface, backgroundColor: OPEN_GREEN },
     // "Ya fui" — MISMO tamaño/borde que menuDot (9px, punto sólido, sin
@@ -103,7 +117,20 @@ export default function FavoritosScreen() {
   const { theme } = useTheme();
   const s = makeStyles(theme);
   const insets = useSafeAreaInsets();
+  const { width, fontScale } = useWindowDimensions();
+  const scrollRef = useRef<ScrollView>(null);
+  const sectionOffsets = useRef<Record<string, number>>({});
+  const [activeLetter, setActiveLetter] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const controlsVisibility = useRef(new Animated.Value(1)).current;
+  const controlsShown = useRef(true);
+  const lastScrollY = useRef(0);
   const { patios, metaById, removeLocally } = useFavoritePatiosController();
+  const setControlsShown = (shown: boolean) => {
+    if (controlsShown.current === shown) return;
+    controlsShown.current = shown;
+    Animated.timing(controlsVisibility, { toValue: shown ? 1 : 0, duration: 200, useNativeDriver: false }).start();
+  };
 
   // Filtros: pensados para cuando los guardados crecen (~70 items). 'hoy'
   // filtra por menú publicado; el resto son las categorías reales de lo
@@ -209,45 +236,75 @@ export default function FavoritosScreen() {
     () => [...new Set(patios.flatMap((patio) => patio.categories).filter(Boolean))].sort(),
     [patios]
   );
-  const filtered = useMemo(() => patios.filter((patio) => matchesFoodieFilters(filters, {
+  const normalizedQuery = searchQuery.trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('es');
+  const searched = useMemo(() => normalizedQuery ? patios.filter((patio) => [
+    patio.name, patio.area, ...patio.categories, ...(patio.menu ?? []).flatMap((section) => [section.section, ...section.items.map((item) => item.name)]),
+  ].join(' ').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('es').includes(normalizedQuery)) : patios, [normalizedQuery, patios]);
+  const filtered = useMemo(() => searched.filter((patio) => matchesFoodieFilters(filters, {
     patioId: patio.id,
     hasTodayMenu: todayDish(patio) !== null,
     isOpenNow: !!(patio.weeklyHours && estaAbiertoAhora(patio.weeklyHours)),
     categories: patio.categories,
     payments: patio.payments,
     collections,
-  })), [collections, patios, filters]);
+  })), [collections, searched, filters]);
 
   // `patios` ya viene más-reciente-primero desde el storage (ver
   // lib/favorites.ts) — "Más reciente" no necesita tocar nada, es la base.
-  // "Menú hoy" es un ordenamiento ESTABLE sobre esa base (los que tienen
-  // menú hoy suben, pero dentro de cada grupo se conserva el orden de
-  // guardado) — no una regla aparte. Con Array.prototype.sort estable
-  // (garantizado desde ES2019) alcanza con la comparación booleana.
   // Pedido de Alejandro 2026-08-30: para su propio uso (~40 guardados) el
   // orden por default sin decisiones no basta, así que además de un buen
   // default se expone el control.
-  const [sortMode, setSortMode] = useState<'today' | 'recent' | 'rating' | 'az'>('today');
-  const [sortSheetVisible, setSortSheetVisible] = useState(false);
-  const sortBtnRef = useRef<View>(null);
+  const [sortMode, setSortMode] = useState<'recent' | 'rating' | 'az'>('recent');
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+  const changedPreference = useRef({ view: false, sort: false });
+  const preferenceWrites = useRef(Promise.resolve());
+  const persistPreference = (key: string, value: string) => {
+    preferenceWrites.current = preferenceWrites.current.then(() => AsyncStorage.setItem(key, value)).catch(() => {});
+  };
+  useEffect(() => {
+    let mounted = true;
+    Promise.all([AsyncStorage.getItem(FAVORITES_VIEW_KEY), AsyncStorage.getItem(FAVORITES_SORT_KEY)]).then(([savedView, savedSort]) => {
+      if (!mounted) return;
+      if (!changedPreference.current.view && (savedView === 'list' || savedView === 'grid')) setViewMode(savedView);
+      if (!changedPreference.current.sort && (savedSort === 'recent' || savedSort === 'rating' || savedSort === 'az')) setSortMode(savedSort);
+    }).catch(() => {});
+    return () => { mounted = false; };
+  }, []);
+  const changeViewMode = (mode: 'list' | 'grid') => {
+    changedPreference.current.view = true;
+    setViewMode(mode);
+    persistPreference(FAVORITES_VIEW_KEY, mode);
+  };
+  const changeSortMode = (mode: typeof sortMode) => {
+    changedPreference.current.sort = true;
+    sectionOffsets.current = {};
+    setActiveLetter('');
+    setSortMode(mode);
+    persistPreference(FAVORITES_SORT_KEY, mode);
+    scrollRef.current?.scrollTo({ y: 0, animated: false });
+  };
   const sorted = useMemo(() => {
     switch (sortMode) {
-      case 'today':
-        return [...filtered].sort((a, b) => Number(todayDish(b) !== null) - Number(todayDish(a) !== null));
       case 'rating':
         return [...filtered].sort((a, b) => (metaById[b.id]?.rating ?? -1) - (metaById[a.id]?.rating ?? -1));
       case 'az':
-        return [...filtered].sort((a, b) => a.name.localeCompare(b.name, 'es'));
+        return alphabeticalSections(filtered).flatMap((section) => section.items);
       case 'recent':
       default:
         return filtered;
     }
   }, [filtered, sortMode, metaById]);
-  // "Menú primero" (no "Menú hoy") a propósito: el filtro de arriba YA se
-  // llama "Menú hoy" y OCULTA lo que no aplica — esto es otra cosa, ordena
-  // sin ocultar. Mismo nombre para dos mecanismos distintos habría sido la
-  // incoherencia real (auditoría pedida por Alejandro 2026-08-30).
-  const SORT_LABELS: Record<typeof sortMode, string> = { today: 'Menú primero', recent: 'Más reciente', rating: 'Tu calificación', az: 'Alfabético' };
+  const SORT_LABELS: Record<typeof sortMode, string> = { recent: 'Más reciente', rating: 'Tu calificación', az: 'Alfabético A–Z' };
+  const sections = useMemo(() => sortMode === 'az' ? alphabeticalSections(filtered) : [], [filtered, sortMode]);
+  const letters = sections.map((section) => section.letter);
+  const showAlphabet = viewMode === 'list' && sortMode === 'az' && !selecting && !normalizedQuery && filtered.length >= 12 && letters.length >= 3;
+  const gridWidth = fontScale > 1.4 ? width - 40 : (width - 52) / 2;
+  const jumpToLetter = (letter: string) => {
+    const offset = sectionOffsets.current[letter];
+    if (offset === undefined) return;
+    setActiveLetter(letter);
+    scrollRef.current?.scrollTo({ y: offset, animated: false });
+  };
 
   const renderPatio = (patio: (typeof patios)[number]) => {
     const today = todayDish(patio);
@@ -257,17 +314,19 @@ export default function FavoritosScreen() {
     return (
       <TouchableOpacity
         key={patio.id}
-        style={s.card}
+        style={viewMode === 'grid' ? [s.gridCard, { width: gridWidth }] : s.card}
         onPress={() => (selecting ? toggleSelect(patio.id) : router.push(`/patio/${patio.id}`))}
         onLongPress={() => { if (!selecting) { Haptics.selectionAsync().catch(() => {}); setSelecting(true); toggleSelect(patio.id); } }}
         activeOpacity={0.82}
         accessibilityRole="button"
+        accessibilityState={selecting ? { selected: isSelected } : undefined}
         accessibilityLabel={selecting ? `${isSelected ? 'Quitar de la selección' : 'Seleccionar'} ${patio.name}` : `Abrir ${patio.name}`}>
-        {selecting && (
+        {selecting && viewMode === 'list' && (
           <Ionicons name={isSelected ? 'checkmark-circle' : 'ellipse-outline'} size={22} color={isSelected ? theme.accent : theme.textMute} />
         )}
-        <View style={s.thumb}>
-          <Ionicons name="restaurant-outline" size={16} color={theme.textSecondary} />
+        <View style={viewMode === 'grid' ? s.gridThumb : s.thumb}>
+          {selecting && viewMode === 'grid' && <View style={s.gridSelection}><Ionicons name={isSelected ? 'checkmark-circle' : 'ellipse-outline'} size={24} color={isSelected ? theme.accent : theme.textMute} /></View>}
+          <Ionicons name="restaurant-outline" size={viewMode === 'grid' ? 34 : 16} color={theme.textSecondary} />
           {hasMenu && <View style={s.menuDot} />}
           {meta?.status === 'visited' && <View style={s.visitedDot} accessibilityLabel="Ya fuiste" />}
         </View>
@@ -296,7 +355,7 @@ export default function FavoritosScreen() {
             </View>
           </View>
         </View>
-        {!selecting && <Ionicons name="chevron-forward" size={16} color={theme.textMute} />}
+        {!selecting && viewMode === 'list' && !showAlphabet && <Ionicons name="chevron-forward" size={16} color={theme.textMute} />}
       </TouchableOpacity>
     );
   };
@@ -304,7 +363,6 @@ export default function FavoritosScreen() {
   return (
     <View style={[s.container, { paddingTop: insets.top }]}>
       <Stack.Screen options={{ headerShown: false }} />
-      <ScrollView contentContainerStyle={[s.content, { paddingBottom: insets.bottom + (selecting ? 96 : 40) }]} showsVerticalScrollIndicator={false}>
         {patios.length > 0 && (
           <>
             {/* Sin texto "Seleccionar" permanente — se entra al modo solo
@@ -322,7 +380,24 @@ export default function FavoritosScreen() {
                 </TouchableOpacity>
               </View>
             ) : (
+              <Animated.View style={[s.controlsClip, { height: controlsVisibility.interpolate({ inputRange: [0, 1], outputRange: [0, 124] }), opacity: controlsVisibility }]}>
               <View style={s.filterWrap}>
+                <View style={s.searchWrap}>
+                  <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
+                  <Ionicons name="search-outline" size={17} color={theme.textSecondary} />
+                  <TextInput
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
+                    placeholder="Buscar en Guardados"
+                    placeholderTextColor={theme.textSecondary}
+                    autoCorrect={false}
+                    returnKeyType="search"
+                    style={s.searchInput}
+                    accessibilityLabel="Buscar en Guardados"
+                    onFocus={() => setControlsShown(true)}
+                  />
+                  {!!searchQuery && <TouchableOpacity onPress={() => setSearchQuery('')} hitSlop={10} accessibilityLabel="Borrar búsqueda"><Ionicons name="close-circle" size={18} color={theme.textSecondary} /></TouchableOpacity>}
+                </View>
                 <FoodieFilterBar
                   filters={filters}
                   onChange={setFilters}
@@ -331,18 +406,42 @@ export default function FavoritosScreen() {
                   onCollectionCreated={(c) => setCollections((prev) => [c, ...prev])}
                   onCollectionUpdated={(c) => setCollections((prev) => prev.map((item) => item.id === c.id ? c : item))}
                   onCollectionRemoved={(id) => setCollections((prev) => prev.filter((item) => item.id !== id))}
-                  trailingAction={{
-                    icon: 'swap-vertical',
-                    label: `Orden: ${SORT_LABELS[sortMode]}`,
-                    onPress: () => { Haptics.selectionAsync().catch(() => {}); setSortSheetVisible(true); },
-                    anchorRef: sortBtnRef,
-                  }}
+                  viewMode={viewMode}
+                  onViewModeChange={changeViewMode}
+                  organizationOptions={(['recent', 'rating', 'az'] as const).map((mode) => ({
+                    label: SORT_LABELS[mode],
+                    sectionLabel: mode === 'recent' ? 'Orden' : undefined,
+                    icon: mode === 'recent' ? 'time-outline' : mode === 'rating' ? 'star-outline' : 'text-outline',
+                    selected: mode === sortMode,
+                    accessibilityHint: 'Ordenar Guardados',
+                    onPress: () => { Haptics.selectionAsync().catch(() => {}); changeSortMode(mode); },
+                  }))}
                 />
               </View>
+              </Animated.View>
             )}
           </>
         )}
-
+      <View style={s.viewport}>
+      <ScrollView ref={scrollRef} contentContainerStyle={[s.content, { paddingBottom: insets.bottom + 120 }]} showsVerticalScrollIndicator={false}
+        scrollEventThrottle={32}
+        onScroll={(event) => {
+          const nextY = Math.max(0, event.nativeEvent.contentOffset.y);
+          const delta = nextY - lastScrollY.current;
+          if (nextY <= 4 || searchQuery.trim()) setControlsShown(true);
+          else if (delta > 4) setControlsShown(false);
+          else if (delta < -4) setControlsShown(true);
+          lastScrollY.current = nextY;
+          if (!showAlphabet) return;
+          const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
+          const y = contentOffset.y;
+          if (y + layoutMeasurement.height >= contentSize.height - 4) {
+            setActiveLetter(letters[letters.length - 1]);
+            return;
+          }
+          const section = [...sections].reverse().find(({ letter }) => (sectionOffsets.current[letter] ?? Infinity) <= y + 8);
+          if (section) setActiveLetter(section.letter);
+        }}>
         {patios.length === 0 ? (
           <View style={s.empty}>
             <View style={s.emptyIcon}>
@@ -354,18 +453,26 @@ export default function FavoritosScreen() {
               <Text style={s.ctaText} allowFontScaling={true}>{noWidow('Buscar algo rico')}</Text>
             </TouchableOpacity>
           </View>
+        ) : viewMode === 'list' && sections.length > 0 ? (
+          sections.map((section) => <View key={section.letter} style={[s.alphabetSection, showAlphabet && { paddingRight: 44 }]}
+            onLayout={(event) => { sectionOffsets.current[section.letter] = event.nativeEvent.layout.y; }}>
+            <Text style={s.alphabetHeading} accessibilityRole="header">{section.letter}</Text>
+            {section.items.map(renderPatio)}
+          </View>)
         ) : (
-          <View style={s.list}>
+          <View style={viewMode === 'grid' ? s.grid : s.list}>
             {filtered.length === 0 && (
-              <View style={s.filterEmptyCard}>
+              <View style={[s.filterEmptyCard, viewMode === 'grid' && { width: '100%' }]}>
                 <Ionicons name="filter-outline" size={20} color={theme.textSecondary} />
-                <Text style={s.filterEmptyText} allowFontScaling={true}>{noWidow('Ninguno de tus guardados entra en ese filtro hoy.')}</Text>
+                <Text style={s.filterEmptyText} allowFontScaling={true}>{noWidow(normalizedQuery ? 'Sin resultados' : 'Ninguno de tus guardados entra en ese filtro hoy.')}</Text>
               </View>
             )}
             {sorted.map(renderPatio)}
           </View>
         )}
       </ScrollView>
+      {showAlphabet && <View pointerEvents="box-none" style={[StyleSheet.absoluteFillObject, { bottom: insets.bottom + 90 }]}><AlphabetIndex letters={letters} activeLetter={activeLetter || letters[0]} onSelect={jumpToLetter} /></View>}
+      </View>
       {selecting ? (
         <View style={[s.actionBar, { paddingBottom: insets.bottom + 10 }]}>
           <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
@@ -410,17 +517,6 @@ export default function FavoritosScreen() {
         patioIds={Array.from(selectedIds)}
         patioName=""
         onDismiss={() => { setSaveSheetVisible(false); exitSelecting(); }}
-      />
-      <ActionSheet
-        visible={sortSheetVisible}
-        anchorRef={sortBtnRef}
-        title="Ordenar por"
-        onDismiss={() => setSortSheetVisible(false)}
-        options={(['today', 'recent', 'rating', 'az'] as const).map((mode) => ({
-          label: SORT_LABELS[mode],
-          icon: mode === sortMode ? 'checkmark' : mode === 'today' ? 'flame-outline' : mode === 'recent' ? 'time-outline' : mode === 'rating' ? 'star-outline' : 'text-outline',
-          onPress: () => setSortMode(mode),
-        }))}
       />
     </View>
   );

@@ -15,11 +15,7 @@ export type MenuCollection = {
 
 const KEY = 'patio:menu-collections:v1';
 
-// A diferencia de normalizeCollectionTitle (Guardados, lib/collections.ts),
-// aquí SÍ se permiten espacios — esa versión los quita a propósito porque
-// esos títulos se renderizan como pill compacta en la barra de filtros; una
-// lista de menús se renderiza como fila normal de texto, sin esa
-// restricción (bug reportado 2026-08-24: forzaba palabras pegadas).
+// Los títulos de listas conservan espacios; las filas manejan su longitud.
 export function normalizeMenuListTitle(title: string) {
   return title.replace(/\s+/g, ' ').trim().slice(0, 32);
 }

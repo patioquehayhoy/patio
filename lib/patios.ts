@@ -1,4 +1,8 @@
 import { supabase } from './supabase';
+import { localMenuDate } from './menu-date';
+import { normalizeMenuData } from './menu-store';
+import { cleanMenuText } from './menu';
+import { publicCurrency } from './prices';
 import {
   deserialize,
   migrarStringLegacy,
@@ -40,6 +44,9 @@ export type Patio = {
   x: number;
   y: number;
   menu: PatioMenuSection[];
+  // Presence of a nonempty publication for today's business date, independent
+  // of the permanent menu used as a content fallback.
+  hasTodayMenu?: boolean;
   payments: string[];
   weeklyHours: HorarioSemanal | null;
   patioJoinedAt?: string;
@@ -282,10 +289,50 @@ async function withDevPatios(reales: Patio[]): Promise<Patio[]> {
   const published = await getDevPublishedPatio();
   const vistos = new Set(reales.map((p) => p.id));
   const extra = [...(published ? [published] : []), ...MOCK_PATIOS, ...DEMO_PATIOS, ...DENSITY_DEMO_PATIOS.slice(0, 40)].filter((p) => !vistos.has(p.id));
-  return [...reales, ...extra];
+  return [...reales, ...extra.map((patio) => ({
+    ...patio,
+    hasTodayMenu: patio.hasTodayMenu ?? patio.menu.some((section) => section.items.some((item) => item.name.trim())),
+  }))];
 }
 
 const FONDITAS_BASE_COLUMNS = 'id, nombre, descripcion, direccion, horario, horario_semanal, tipo_negocio, pagos_efectivo, pagos_transferencia, pagos_tarjeta, latitude, longitude';
+
+function publicMenuSections(value: unknown): PatioMenuSection[] {
+  const normalized = normalizeMenuData(value);
+  return (normalized?.secciones ?? []).flatMap((section) => {
+    const items = section.platillos.filter((item) => item.nombre.trim()).map((item) => ({
+      name: cleanMenuText(item.nombre) || item.nombre,
+      description: cleanMenuText(item.descripcion),
+      price: publicCurrency(item.precio) || undefined,
+    }));
+    return items.length ? [{ section: cleanMenuText(section.nombre) || section.nombre, price: publicCurrency(section.precio) || undefined, items }] : [];
+  });
+}
+
+// Two batched reads hydrate both Map and Saved consistently. A permanent menu
+// provides useful dishes but must never advertise a publication made today.
+async function fetchPublicMenus(ids: string[]): Promise<Map<string, { menu: PatioMenuSection[]; hasTodayMenu: boolean }>> {
+  const result = new Map<string, { menu: PatioMenuSection[]; hasTodayMenu: boolean }>();
+  if (!ids.length) return result;
+  const today = localMenuDate();
+  const [daily, permanent] = await Promise.allSettled([
+    supabase.from('menus').select('fondita_id, fecha, secciones').in('fondita_id', ids).eq('fecha', today),
+    supabase.from('cartas').select('fondita_id, secciones').in('fondita_id', ids),
+  ]);
+  if (permanent.status === 'fulfilled' && !permanent.value.error) {
+    for (const row of permanent.value.data ?? []) {
+      result.set(row.fondita_id, { menu: publicMenuSections(row.secciones), hasTodayMenu: false });
+    }
+  }
+  if (daily.status === 'fulfilled' && !daily.value.error) {
+    for (const row of daily.value.data ?? []) {
+      if (row.fecha !== today) continue;
+      const menu = publicMenuSections(row.secciones);
+      if (menu.length) result.set(row.fondita_id, { menu, hasTodayMenu: true });
+    }
+  }
+  return result;
+}
 
 export async function fetchPublicFonditas(): Promise<Patio[]> {
   // `categorias` es una columna nueva (migración 20260816). Si todavía no se
@@ -309,6 +356,7 @@ export async function fetchPublicFonditas(): Promise<Patio[]> {
   }
 
   if (!data) return withDevPatios([]);
+  const menus = await fetchPublicMenus(data.map((row) => row.id as string));
 
   return withDevPatios(data.map((row: any): Patio => {
     const weekly = weeklyFromRow(row.horario_semanal, row.horario);
@@ -326,7 +374,8 @@ export async function fetchPublicFonditas(): Promise<Patio[]> {
       longitude: row.longitude ?? 0,
       x: 0,
       y: 0,
-      menu: [],
+      menu: menus.get(row.id)?.menu ?? [],
+      hasTodayMenu: menus.get(row.id)?.hasTodayMenu ?? false,
       payments: [
         ...(row.pagos_efectivo ? ['Efectivo'] : []),
         ...(row.pagos_transferencia ? ['Transferencia'] : []),
@@ -363,6 +412,7 @@ export async function fetchFonditaById(id: string): Promise<Patio | null> {
   }
 
   const weekly = weeklyFromRow(row.horario_semanal, (row.horario as string | null) ?? null);
+  const menu = (await fetchPublicMenus([id])).get(id);
   return {
     id: row.id as string,
     name: (row.nombre as string | null) ?? 'Sin nombre',
@@ -376,7 +426,8 @@ export async function fetchFonditaById(id: string): Promise<Patio | null> {
     latitude: (row.latitude as number | null) ?? 0,
     longitude: (row.longitude as number | null) ?? 0,
     x: 0, y: 0,
-    menu: [],
+    menu: menu?.menu ?? [],
+    hasTodayMenu: menu?.hasTodayMenu ?? false,
     payments: [
       ...(row.pagos_efectivo ? ['Efectivo'] : []),
       ...(row.pagos_transferencia ? ['Transferencia'] : []),

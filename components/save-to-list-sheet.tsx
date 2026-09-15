@@ -19,8 +19,8 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { createCollection, getCollections, normalizeCollectionTitle, setPatiosInCollection, togglePatioInCollection, type PatioCollection } from '@/lib/collections';
-import { Fonts, useTheme, type Theme } from '@/lib/theme';
+import { createCollection, getCollections, setPatiosInCollection, togglePatioInCollection, type PatioCollection } from '@/lib/collections';
+import { useTheme, type Theme } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
 
 const SCREEN_HEIGHT = Dimensions.get('screen').height;
@@ -40,6 +40,7 @@ export function SaveToListSheet({ visible, patioIds, patioName, onDismiss }: Sav
   const [collections, setCollections] = useState<PatioCollection[]>([]);
   const [newTitle, setNewTitle] = useState('');
   const [creating, setCreating] = useState(false);
+  const [listContentHeight, setListContentHeight] = useState(0);
 
   const load = useCallback(() => {
     getCollections().then(setCollections).catch(() => {});
@@ -101,83 +102,93 @@ export function SaveToListSheet({ visible, patioIds, patioName, onDismiss }: Sav
   return (
     <Modal visible={visible} transparent animationType="none" statusBarTranslucent onRequestClose={dismiss}>
       <KeyboardAvoidingView style={s.overlay} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <TouchableWithoutFeedback onPress={dismiss}>
+        <TouchableWithoutFeedback onPress={dismiss} accessibilityRole="button" accessibilityLabel="Cerrar">
           <View style={StyleSheet.absoluteFillObject} />
         </TouchableWithoutFeedback>
-        <Animated.View style={[s.sheet, { paddingBottom: Math.max(insets.bottom, 16) + 12, transform: [{ translateY }] }]}>
-          <BlurView intensity={theme.isDark ? 34 : 54} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
+        <Animated.View accessibilityViewIsModal onAccessibilityEscape={dismiss} style={[s.sheet, { paddingBottom: Math.max(insets.bottom, 16), transform: [{ translateY }] }]}>
+          <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
           <View pointerEvents="none" style={[StyleSheet.absoluteFillObject, s.sheetTint]} />
           <View {...pan.panHandlers} style={s.handleArea}>
             <View style={s.handle} />
           </View>
 
           <View style={s.header}>
-            <View style={s.savedIcon}>
-              <Ionicons name="checkmark" size={16} color={theme.accent} />
-            </View>
-            <View style={s.headerCopy}>
-              <Text style={s.title}>{noWidow(patioIds.length > 1 ? 'Organizar' : 'Guardado')}</Text>
-              <Text style={s.subtitle} numberOfLines={2}>
-                {noWidow(patioIds.length > 1
-                  ? `${patioIds.length} lugares seleccionados. Elige una lista.`
-                  : `${patioName} ya está en Guardados. Elige una lista para organizarlo.`)}
-              </Text>
-            </View>
-            <TouchableOpacity accessibilityLabel="Terminar" accessibilityRole="button" hitSlop={8} onPress={dismiss} style={s.closeButton}>
+            <TouchableOpacity
+              accessibilityLabel="Nueva lista"
+              accessibilityRole="button"
+              accessibilityState={{ disabled: creating }}
+              disabled={creating}
+              onPress={() => setCreating(true)}
+              style={[s.headerIcon, creating && s.disabled]}>
+              <Ionicons name="add" size={20} color={theme.text} />
+            </TouchableOpacity>
+            <Text style={s.context} numberOfLines={1}>
+              {noWidow(patioIds.length > 1 ? `${patioIds.length} lugares` : patioName)}
+            </Text>
+            <TouchableOpacity accessibilityLabel="Terminar" accessibilityRole="button" onPress={dismiss} style={s.closeButton}>
               <Text style={s.closeText}>Listo</Text>
             </TouchableOpacity>
           </View>
 
-          <Text style={s.sectionLabel}>{noWidow('TUS LISTAS')}</Text>
-          <ScrollView style={s.list} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+          <ScrollView
+            style={[s.list, { height: Math.min(listContentHeight || Math.max(1, collections.length + Number(creating)) * 52, 310) }]}
+            onContentSizeChange={(_width, height) => setListContentHeight(height)}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled">
+            {creating && (
+              <View style={s.row}>
+                <View style={s.iconSlot}><Ionicons name="list-outline" size={20} color={theme.textSecondary} /></View>
+                <TextInput
+                  autoFocus
+                  value={newTitle}
+                  onChangeText={setNewTitle}
+                  maxLength={60}
+                  accessibilityLabel="Nombre de la lista"
+                  onSubmitEditing={handleCreate}
+                  placeholder="Nombre de la lista"
+                  placeholderTextColor={theme.textMute}
+                  returnKeyType="done"
+                  autoCapitalize="words"
+                  style={s.input}
+                />
+                <TouchableOpacity
+                  disabled={!newTitle.trim()}
+                  onPress={handleCreate}
+                  style={[s.createButton, !newTitle.trim() && s.disabled]}
+                  accessibilityRole="button"
+                  accessibilityLabel="Crear lista"
+                  accessibilityState={{ disabled: !newTitle.trim() }}>
+                  <Text style={s.createText}>Crear</Text>
+                </TouchableOpacity>
+              </View>
+            )}
             {/* Esta hoja SOLO decide en qué listas vive el lugar — renombrar,
                 compartir y eliminar la lista viven en el panel "Listas" del
                 filtro (foodie-filter-bar.tsx), que es donde de verdad se
                 navegan/administran las listas como destino propio. */}
             {collections.map((collection, index) => {
               const selected = patioIds.every((id) => collection.patioIds.includes(id));
+              const partial = !selected && patioIds.some((id) => collection.patioIds.includes(id));
               return (
                 <TouchableOpacity
                   key={collection.id}
                   accessibilityRole="checkbox"
-                  accessibilityState={{ checked: selected }}
+                  accessibilityState={{ checked: partial ? 'mixed' : selected }}
+                  accessibilityLabel={`${collection.title}, ${collection.patioIds.length} ${collection.patioIds.length === 1 ? 'lugar' : 'lugares'}`}
                   onPress={() => toggleCollection(collection)}
-                  style={[s.row, index > 0 && s.divider]}>
-                  <View style={[s.listIcon, selected && s.listIconSelected]}>
-                    <Ionicons name="bookmark-outline" size={17} color={selected ? theme.accent : theme.textSecondary} />
-                  </View>
+                  style={[s.row, (creating || index > 0) && s.divider]}>
+                  <Ionicons name={selected ? 'checkmark-circle' : partial ? 'remove-circle-outline' : 'ellipse-outline'} size={22} color={selected || partial ? theme.accent : theme.textMute} />
                   <View style={s.rowCopy}>
-                    <Text style={s.rowTitle} numberOfLines={1}>{collection.title}</Text>
-                    <Text style={s.rowMeta}>{collection.patioIds.length} {collection.patioIds.length === 1 ? 'lugar' : 'lugares'}</Text>
+                    <Text style={s.rowTitle} numberOfLines={2}>{noWidow(collection.title)}</Text>
                   </View>
-                  <Ionicons name={selected ? 'checkmark-circle' : 'ellipse-outline'} size={23} color={selected ? theme.accent : theme.textMute} />
+                  <Text style={s.rowMeta}>{collection.patioIds.length}</Text>
                 </TouchableOpacity>
               );
             })}
-
-            {creating ? (
-              <View style={[s.row, collections.length > 0 && s.divider]}>
-                <View style={s.listIcon}><Ionicons name="add" size={19} color={theme.textSecondary} /></View>
-                <TextInput
-                  autoFocus
-                  value={newTitle}
-                  onChangeText={(value) => setNewTitle(normalizeCollectionTitle(value))}
-                  onSubmitEditing={handleCreate}
-                  placeholder="Una palabra, ej. Tacos"
-                  placeholderTextColor={theme.textMute}
-                  returnKeyType="done"
-                  autoCapitalize="words"
-                  style={s.input}
-                />
-                <TouchableOpacity disabled={!newTitle.trim()} onPress={handleCreate} style={s.createButton} accessibilityRole="button" accessibilityLabel="Crear lista">
-                  <Text style={[s.createText, !newTitle.trim() && s.createTextDisabled]}>Crear</Text>
-                </TouchableOpacity>
+            {!creating && collections.length === 0 && (
+              <View style={s.empty}>
+                <Text style={s.rowMeta}>{noWidow('Sin listas')}</Text>
               </View>
-            ) : (
-              <TouchableOpacity onPress={() => setCreating(true)} style={[s.row, collections.length > 0 && s.divider]} accessibilityRole="button" accessibilityLabel="Nueva lista">
-                <View style={s.listIcon}><Ionicons name="add" size={19} color={theme.textSecondary} /></View>
-                <View style={s.rowCopy}><Text style={s.rowTitle}>{noWidow('Nueva lista')}</Text></View>
-              </TouchableOpacity>
             )}
           </ScrollView>
         </Animated.View>
@@ -189,29 +200,26 @@ export function SaveToListSheet({ visible, patioIds, patioName, onDismiss }: Sav
 function makeStyles(t: Theme) {
   return StyleSheet.create({
     overlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.26)' },
-    sheet: { maxHeight: '68%', paddingHorizontal: 20, paddingTop: 4, overflow: 'hidden', backgroundColor: 'transparent', borderTopLeftRadius: 30, borderTopRightRadius: 30, borderWidth: StyleSheet.hairlineWidth, borderBottomWidth: 0, borderColor: t.isDark ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.72)', shadowColor: '#000', shadowOffset: { width: 0, height: -8 }, shadowOpacity: t.isDark ? 0.24 : 0.10, shadowRadius: 24, elevation: 12 },
+    sheet: { maxHeight: '68%', paddingHorizontal: 16, paddingTop: 4, overflow: 'hidden', backgroundColor: 'transparent', borderTopLeftRadius: 28, borderTopRightRadius: 28, borderTopWidth: StyleSheet.hairlineWidth, borderColor: t.isDark ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.72)', shadowColor: '#000', shadowOffset: { width: 0, height: -8 }, shadowOpacity: t.isDark ? 0.24 : 0.10, shadowRadius: 24, elevation: 12 },
     sheetTint: { backgroundColor: t.isDark ? 'rgba(24,25,27,0.72)' : 'rgba(255,255,255,0.66)' },
-    handleArea: { height: 28, alignItems: 'center', justifyContent: 'center' },
+    handleArea: { height: 16, alignItems: 'center', justifyContent: 'center' },
     handle: { width: 36, height: 4, borderRadius: 2, backgroundColor: t.border },
-    header: { minHeight: 64, flexDirection: 'row', alignItems: 'center', gap: 8, paddingBottom: 14 },
-    savedIcon: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', backgroundColor: t.accentSoft },
-    headerCopy: { flex: 1, minWidth: 0 },
-    title: { fontSize: 19, lineHeight: 23, fontWeight: '900', fontFamily: Fonts.brand, color: t.text },
-    subtitle: { marginTop: 2, fontSize: 12.5, lineHeight: 17, color: t.textSecondary },
-    closeButton: { minWidth: 44, height: 44, paddingLeft: 8, alignItems: 'flex-end', justifyContent: 'center' },
-    closeText: { fontSize: 14, fontWeight: '700', color: t.accent },
-    sectionLabel: { marginBottom: 8, paddingLeft: 4, fontSize: 10.5, fontWeight: '700', letterSpacing: 1.4, color: t.textMute },
-    list: { maxHeight: 310, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, backgroundColor: t.surface },
-    row: { minHeight: 60, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', gap: 8 },
+    header: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 8 },
+    headerIcon: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+    context: { flex: 1, minWidth: 0, fontSize: 15, lineHeight: 20, fontWeight: '500', color: t.text },
+    closeButton: { minWidth: 44, height: 44, paddingHorizontal: 4, alignItems: 'center', justifyContent: 'center' },
+    closeText: { fontSize: 15, fontWeight: '500', color: t.accent },
+    list: { flexGrow: 0, flexShrink: 1, maxHeight: 310, marginTop: 8, borderRadius: 14, backgroundColor: t.surface },
+    row: { minHeight: 52, paddingVertical: 6, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 12 },
     divider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border },
-    listIcon: { width: 36, height: 36, borderRadius: 11, alignItems: 'center', justifyContent: 'center', backgroundColor: t.surface },
-    listIconSelected: { backgroundColor: t.accentSoft },
+    iconSlot: { width: 22, alignItems: 'center', justifyContent: 'center' },
     rowCopy: { flex: 1, minWidth: 0, justifyContent: 'center' },
-    rowTitle: { fontSize: 14.5, lineHeight: 18, fontWeight: '700', color: t.text },
-    rowMeta: { marginTop: 2, fontSize: 11.5, lineHeight: 15, color: t.textSecondary },
-    input: { flex: 1, height: 48, paddingVertical: 0, fontSize: 14.5, color: t.text },
+    rowTitle: { fontSize: 15, lineHeight: 20, fontWeight: '500', color: t.text },
+    rowMeta: { fontSize: 13, lineHeight: 18, color: t.textSecondary, fontVariant: ['tabular-nums'] },
+    input: { flex: 1, minWidth: 0, height: 44, paddingVertical: 0, fontSize: 15, fontWeight: '500', color: t.text },
     createButton: { minWidth: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-    createText: { fontSize: 13.5, fontWeight: '700', color: t.accent },
-    createTextDisabled: { opacity: 0.35 },
+    createText: { fontSize: 15, fontWeight: '500', color: t.accent },
+    disabled: { opacity: 0.35 },
+    empty: { minHeight: 52, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16, paddingVertical: 12 },
   });
 }

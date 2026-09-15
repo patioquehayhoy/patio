@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import { useEffect, useRef, useState } from 'react';
-import { Alert, Animated, Dimensions, Keyboard, KeyboardAvoidingView, Modal, PanResponder, Platform, ScrollView, Share, StyleSheet, Text, TextInput, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { Alert, Animated, Dimensions, Keyboard, KeyboardAvoidingView, Modal, PanResponder, Platform, ScrollView, Share, StyleSheet, Switch, Text, TextInput, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ACTION_SHEET_MENU_WIDTH, ActionSheet, type ActionSheetOption } from '@/components/action-sheet';
@@ -69,31 +69,30 @@ function toggleValue(list: string[], value: string) {
 }
 
 type OpenPanel = 'filters' | 'lists' | null;
+type FilterDetail = 'categories' | 'payments' | null;
 
 function styles(t: Theme) {
   const border = t.isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.06)';
   return StyleSheet.create({
-    root: { height: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, paddingHorizontal: 16 },
-    scopeGroup: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-    organizer: { height: 36, paddingHorizontal: 12, borderRadius: 18, flexDirection: 'row', alignItems: 'center', gap: 7, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, backgroundColor: t.glass, overflow: 'hidden' },
-    organizerCompact: { width: 36, paddingHorizontal: 0, justifyContent: 'center' },
+    root: { minHeight: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingHorizontal: 16 },
+    scopeControl: { justifyContent: 'center' },
+    scopeGroup: { flex: 1, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 8, paddingVertical: 6 },
+    organizer: { minHeight: 32, paddingHorizontal: 12, paddingVertical: 4, borderRadius: 16, flexDirection: 'row', alignItems: 'center', gap: 8, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, backgroundColor: t.glass, overflow: 'hidden' },
+    organizerCompact: { width: 32, paddingHorizontal: 0, justifyContent: 'center' },
     organizerText: { fontSize: 14, fontWeight: '600', color: t.text },
     controlIcon: { width: 20, height: 20, alignItems: 'center', justifyContent: 'center' },
-    activeDot: { position: 'absolute', top: -1, right: -1, width: 7, height: 7, borderRadius: 4, backgroundColor: t.accent, borderWidth: 1.5, borderColor: t.glass },
-    availabilityRow: { minHeight: 48, paddingHorizontal: 16, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', gap: 12 },
+    activeCount: { fontSize: 12, fontWeight: '600', color: t.textSecondary, fontVariant: ['tabular-nums'] },
+    choiceRow: { minHeight: 48 },
+    disclosureLabel: { fontSize: 15, fontWeight: '500', color: t.text, flexShrink: 1 },
+    disclosureValue: { flex: 1, minWidth: 0, fontSize: 14, color: t.textSecondary, textAlign: 'right' },
+    availabilityRow: { minHeight: 52, paddingHorizontal: 16, paddingVertical: 6, flexDirection: 'row', alignItems: 'center', gap: 12 },
     checkSlot: { width: 22, alignItems: 'center' },
     backButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', marginLeft: -12 },
     // Recorta el BlurView a la cápsula sin recortar también el badge — el
     // badge vive fuera de los bordes del pill (top/right negativos) y con
     // `overflow: hidden` en el propio TouchableOpacity se cercenaba a una
     // astilla en vez de mostrarse como círculo completo.
-    pillBlurClip: { ...StyleSheet.absoluteFillObject, borderRadius: 18, overflow: 'hidden' },
-    // El badge (el número) es la ÚNICA señal de "hay filtros activos" — el
-    // botón que abre el sheet se queda siempre en tono neutro. Llenarlo de
-    // color se leía como "este botón está prendido", cuando en realidad es
-    // un disparador, no una selección en sí mismo.
-    badge: { position: 'absolute', top: -4, right: -4, minWidth: 16, height: 16, borderRadius: 8, paddingHorizontal: 4, alignItems: 'center', justifyContent: 'center' },
-    badgeText: { fontSize: 10, fontWeight: '700' },
+    pillBlurClip: { ...StyleSheet.absoluteFillObject, borderRadius: 16, overflow: 'hidden' },
     // Sheet real (no popover) — en iPhone Apple usa sheets para esto, los
     // popovers son de iPad/Mac. Edge-to-edge (sin margen lateral ni inferior,
     // solo esquinas superiores redondeadas) — el tratamiento flotante con
@@ -107,32 +106,36 @@ function styles(t: Theme) {
     // auditoría 2026-08-23. intensity 20/16 y tinte según la tabla.
     sheet: { position: 'absolute', left: 0, right: 0, bottom: 0, borderTopLeftRadius: 28, borderTopRightRadius: 28, overflow: 'hidden', borderTopWidth: StyleSheet.hairlineWidth, borderColor: border, shadowColor: '#000', shadowOffset: { width: 0, height: -4 }, shadowOpacity: t.isDark ? 0.30 : 0.14, shadowRadius: 24, elevation: 12 },
     sheetTint: { ...StyleSheet.absoluteFillObject, backgroundColor: t.isDark ? 'rgba(20,21,24,0.72)' : 'rgba(255,255,255,0.70)' },
-    grabberTouch: { alignItems: 'center' },
-    grabber: { width: 36, height: 4, borderRadius: 2, marginTop: 8, marginBottom: 4, backgroundColor: t.isDark ? 'rgba(255,255,255,0.16)' : 'rgba(0,0,0,0.10)' },
-    panelHeader: { width: '100%', minHeight: 44, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.border },
-    panelTitle: { fontSize: 17, fontWeight: '700', color: t.text },
-    panelClear: { fontSize: 14, fontWeight: '600', color: t.accent },
-    section: { paddingTop: 8 },
-    sectionLabel: { paddingHorizontal: 16, paddingBottom: 4, fontSize: 10, fontWeight: '700', letterSpacing: 1.4, textTransform: 'uppercase', color: t.textMute },
-    chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: 16, paddingBottom: 8 },
-    chip: { height: 32, paddingHorizontal: 12, borderRadius: 16, justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, backgroundColor: 'transparent' },
-    chipActive: { backgroundColor: t.accentSoft, borderColor: t.accent },
-    chipText: { fontSize: 13, fontWeight: '500', color: t.text },
-    chipTextActive: { color: t.accent, fontWeight: '700' },
-    option: { minHeight: 48, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 8, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border },
+    grabberTouch: { alignItems: 'center', flexShrink: 0 },
+    grabber: { width: 36, height: 4, borderRadius: 2, marginTop: 8, marginBottom: 12, backgroundColor: t.isDark ? 'rgba(255,255,255,0.16)' : 'rgba(0,0,0,0.10)' },
+    headerIcon: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+    panelHeader: { width: '100%', minHeight: 44, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+    panelTitle: { flexShrink: 1, fontSize: 17, fontWeight: '700', color: t.text },
+    panelClear: { fontSize: 14, fontWeight: '600', color: t.text },
+    section: { paddingTop: 12 },
+    group: { marginHorizontal: 16, borderRadius: 14, backgroundColor: t.surface, overflow: 'hidden' },
+    rowDivider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border },
+    rowCopy: { flex: 1, minWidth: 0 },
+    rowDetail: { fontSize: 13, lineHeight: 18, color: t.textSecondary, marginTop: 2 },
+    emptyLists: { paddingHorizontal: 24, paddingVertical: 24, gap: 8, alignItems: 'center' },
+    emptyTitle: { fontSize: 17, fontWeight: '700', color: t.text },
+    emptyDetail: { fontSize: 14, lineHeight: 20, color: t.textSecondary, textAlign: 'center' },
+    sectionLabel: { paddingHorizontal: 20, paddingBottom: 8, fontSize: 11, fontWeight: '700', letterSpacing: 1.4, textTransform: 'uppercase', color: t.textMute },
+    option: { minHeight: 52, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 12 },
     optionText: { flex: 1, fontSize: 15, fontWeight: '500', color: t.text },
     // Fila de una lista real (a diferencia de "Nueva lista"): el toggle
     // ocupa la mayoría de la fila, "···" vive aparte para no competir con
     // el gesto principal (unir/quitar del mapa).
-    listRowMain: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: 8 },
+    listRowMain: { flex: 1, minWidth: 0, minHeight: 52, paddingVertical: 6, flexDirection: 'row', alignItems: 'center', gap: 12 },
+    listCount: { fontSize: 13, lineHeight: 18, color: t.textSecondary, fontVariant: ['tabular-nums'] },
     // Homologado con navButton de coleccion/[id].tsx: ícono suelto, sin
     // caja de fondo — corregido 2026-08-24, había ido en la dirección
     // contraria (le había puesto caja en vez de quitársela a los otros).
     listRowMore: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
     createInput: { flex: 1, fontSize: 15, fontWeight: '500', color: t.text, padding: 0 },
-    createBtn: { minHeight: 34, paddingHorizontal: 14, borderRadius: 100, alignItems: 'center', justifyContent: 'center', backgroundColor: t.text },
+    createBtn: { minWidth: 44, minHeight: 44, paddingHorizontal: 8, alignItems: 'center', justifyContent: 'center' },
     createBtnDisabled: { opacity: 0.35 },
-    createBtnText: { fontSize: 13, fontWeight: '700', color: t.bg },
+    createBtnText: { fontSize: 15, fontWeight: '500', color: t.accent },
     // Menú de acciones por lista — anclado junto al botón "···" (mismo
     // componente visual que components/action-sheet.tsx), dentro del MISMO
     // Modal del panel (ver comentario en FilterSheet), no un Modal propio.
@@ -142,7 +145,7 @@ function styles(t: Theme) {
     inlineTitleText: { fontSize: 12, fontWeight: '700', color: t.textSecondary, textAlign: 'center' },
     inlineRow: { minHeight: 46, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
     divider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border },
-    inlineRowText: { fontSize: 15.5, fontWeight: '500' },
+    inlineRowText: { flex: 1, fontSize: 15, fontWeight: '500', paddingVertical: 8 },
     // Diálogo de renombrar en Android (Alert.prompt no existe ahí) — mismo
     // lenguaje visual de tarjeta flotante glass que el resto del archivo,
     // pero centrado y de tamaño fijo (patrón alert de Archivos/Recordatorios/
@@ -162,16 +165,14 @@ function styles(t: Theme) {
   });
 }
 
-// Los chips de categoría/pago (36pt de alto) y el botón "Crear" de lista
-// (34pt) solo necesitan reforzar el eje vertical — llevarlos a 44 en
-// horizontal invadiría el gap de 8pt entre chips vecinos en la misma fila.
-const CONTROL_HIT_SLOP = { top: 4, bottom: 4, left: 4, right: 4 };
-const CHIP_HIT_SLOP = { top: 6, bottom: 6, left: 0, right: 0 };
+// Compact toolbar capsules keep a 44 pt effective touch target.
+// Content options have full-height rows and need no expanded hit regions.
+const CONTROL_HIT_SLOP = { top: 6, bottom: 6, left: 6, right: 6 };
+const SCOPE_HIT_SLOP = { top: 6, bottom: 6, left: 0, right: 0 };
 const CREATE_BTN_HIT_SLOP = { top: 5, bottom: 5, left: 0, right: 0 };
 // "Limpiar" (texto ~14pt) y "Cerrar" (ícono 20×20) son los más chicos del
 // header — sin vecino a la derecha, "Cerrar" puede crecer más ahí.
 const CLEAR_HIT_SLOP = { top: 13, bottom: 13, left: 8, right: 4 };
-const CLOSE_HIT_SLOP = { top: 12, bottom: 12, left: 10, right: 16 };
 
 // Sheet real, no popover: en iPhone la HIG es explícita — "popovers are used
 // on iPad/Mac for transient controls, but not on iPhone; sheets should be
@@ -179,19 +180,26 @@ const CLOSE_HIT_SLOP = { top: 12, bottom: 12, left: 10, right: 16 };
 // donde viva <FoodieFilterBar> (a veces dentro de un ScrollView), con el
 // mismo spring/drag-to-dismiss que ya vive en el sheet de resultados de
 // Explorar — un solo lenguaje de movimiento para los tres sheets de la
-// pantalla, no tres inventados por separado. Detent único (no medium/large
-// arrastrable): el contenido cabe cómodo en una sola altura generosa con
-// scroll propio — replicar el resize de dos alturas de UIKit es la única
-// pieza de la HIG que no se copió 1:1 aquí, a propósito, por costo/beneficio.
-function FilterSheet({ visible, onClose, title, onClear, onBack, compact, children, overlay, s, theme }: {
+// pantalla. El resumen cabe sin scroll y cada grupo ocupa una subvista
+// de la misma hoja. La altura se adapta al contenido y al tamaño de texto.
+function FilterSheet({ visible, onClose, title, onClear, onBack, hideTitle, onCreate, headerActions, footer, selectionMode, preferredHeight, children, overlay, s, theme }: {
   visible: boolean; onClose: () => void; title: string; onClear?: () => void; onBack?: () => void;
-  compact?: boolean;
+  preferredHeight: number; hideTitle?: boolean; onCreate?: () => void; headerActions?: React.ReactNode; footer?: React.ReactNode; selectionMode?: boolean;
   children: React.ReactNode; overlay?: React.ReactNode; s: ReturnType<typeof styles>; theme: ReturnType<typeof useTheme>['theme'];
 }) {
   const insets = useSafeAreaInsets();
-  const { height: screenHeight } = useWindowDimensions();
-  const sheetHeight = compact ? Math.min(screenHeight * 0.48, 440) : Math.min(screenHeight * 0.62, 560);
+  const { height: screenHeight, fontScale } = useWindowDimensions();
+  const [contentSize, setContentSize] = useState({ title: '', height: 0 });
+  const [headerHeight, setHeaderHeight] = useState(24);
+  const [footerHeight, setFooterHeight] = useState(44);
+  const bottomPadding = insets.bottom || 8;
+  const naturalHeight = contentSize.title === title && contentSize.height > 0
+    ? headerHeight + contentSize.height + (footer ? footerHeight : 0) + bottomPadding
+    : preferredHeight + bottomPadding;
+  const sheetHeight = Math.min(screenHeight - insets.top - 16, preferredHeight + bottomPadding + Math.max(0, fontScale - 1) * 180, naturalHeight);
   const translateY = useRef(new Animated.Value(sheetHeight)).current;
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
   const [rendered, setRendered] = useState(visible);
   // Alto REAL del sheet cuando el teclado está arriba — sin esto, un alto
   // fijo empujado hacia arriba por el teclado se sale de la pantalla por
@@ -221,7 +229,7 @@ function FilterSheet({ visible, onClose, title, onClear, onBack, compact, childr
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [visible, sheetHeight]);
+  }, [visible]);
 
   const pan = useRef(
     PanResponder.create({
@@ -230,7 +238,8 @@ function FilterSheet({ visible, onClose, title, onClear, onBack, compact, childr
       onPanResponderRelease: (_event, gesture) => {
         if (gesture.dy > 54 || gesture.vy > 0.8) {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-          onClose();
+          onCloseRef.current();
+          Animated.spring(translateY, { toValue: 0, ...SHEET_SPRING }).start();
         } else {
           Animated.spring(translateY, { toValue: 0, ...SHEET_SPRING }).start();
         }
@@ -242,33 +251,38 @@ function FilterSheet({ visible, onClose, title, onClear, onBack, compact, childr
   if (!rendered) return null;
 
   return (
-    <Modal transparent visible animationType="none" onRequestClose={onClose} statusBarTranslucent>
+    <Modal transparent visible animationType="none" onRequestClose={onBack ?? onClose} statusBarTranslucent>
       {/* KeyboardAvoidingView real — antes el input de renombrar (dentro de
           "children") quedaba tapado por completo por el teclado, sin forma
           de verlo ni confirmarlo (bug real reportado 2026-08-24, capturas).
           save-to-list-sheet.tsx ya lo tenía bien; a este sheet le faltaba. */}
       <KeyboardAvoidingView style={s.kav} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <TouchableOpacity activeOpacity={1} style={s.backdrop} onPress={onClose} accessibilityLabel="Cerrar" />
-        <Animated.View style={[s.sheet, { height: visibleSheetHeight, paddingBottom: insets.bottom || 8, transform: [{ translateY }] }]}>
+        <Animated.View accessibilityViewIsModal onAccessibilityEscape={onClose} style={[s.sheet, { height: visibleSheetHeight, paddingBottom: insets.bottom || 8, transform: [{ translateY }] }]}>
           <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
           <View pointerEvents="none" style={s.sheetTint} />
           {/* Zona de arrastre ampliada (antes 22pt, muy angosta para agarrar
               con precisión — reportado como "no funciona el swipe" 2026-08-24):
               ahora cubre el grabber Y el header completo. */}
-          <View {...pan.panHandlers} style={s.grabberTouch}>
+          <View {...pan.panHandlers} style={s.grabberTouch} onLayout={(event) => setHeaderHeight(event.nativeEvent.layout.height)}>
             <View style={s.grabber} />
-            <View style={s.panelHeader}>
+            {(onBack || !hideTitle || onCreate || headerActions || onClear) && <View style={s.panelHeader}>
               <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
                 {onBack && <TouchableOpacity onPress={onBack} style={s.backButton} accessibilityRole="button" accessibilityLabel="Volver a filtros"><Ionicons name="chevron-back" size={20} color={theme.text} /></TouchableOpacity>}
-                <Text style={s.panelTitle}>{noWidow(title)}</Text>
+                {!hideTitle && <Text style={s.panelTitle}>{noWidow(title)}</Text>}
+                {onCreate && <TouchableOpacity style={s.headerIcon} onPress={onCreate} accessibilityRole="button" accessibilityLabel="Nueva lista"><Ionicons name="add" size={22} color={theme.text} /></TouchableOpacity>}
+                {selectionMode && headerActions}
               </View>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                {!!onClear && <TouchableOpacity hitSlop={CLEAR_HIT_SLOP} onPress={onClear}><Text style={s.panelClear}>Limpiar</Text></TouchableOpacity>}
-                <TouchableOpacity hitSlop={CLOSE_HIT_SLOP} onPress={onClose} accessibilityLabel="Cerrar"><Ionicons name="close" size={20} color={theme.textSecondary} /></TouchableOpacity>
+                {!!onClear && <TouchableOpacity hitSlop={CLEAR_HIT_SLOP} accessibilityRole="button" accessibilityLabel={`Limpiar ${title.toLowerCase()}`} onPress={onClear}><Text style={s.panelClear}>Limpiar</Text></TouchableOpacity>}
+                {!selectionMode && headerActions}
               </View>
-            </View>
+            </View>}
           </View>
-          <ScrollView key={title} keyboardShouldPersistTaps="handled">{children}</ScrollView>
+          <ScrollView key={title} style={{ flex: 1 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}
+            onContentSizeChange={(_width, height) => setContentSize((current) => current.title === title && current.height === height ? current : { title, height })}
+            contentContainerStyle={{ paddingBottom: 16 }}>{children}</ScrollView>
+          {footer && <View style={{ flexShrink: 0 }} onLayout={(event) => setFooterHeight(event.nativeEvent.layout.height)}>{footer}</View>}
         </Animated.View>
         {/* El menú de acciones por lista vive AQUÍ — dentro del mismo Modal
             (evita el bug real de dos <Modal> de RN anidados en iOS, ver
@@ -285,22 +299,32 @@ function FilterSheet({ visible, onClose, title, onClear, onBack, compact, childr
   );
 }
 
-export function FoodieFilterBar({ filters, onChange, collections, categories, onCollectionCreated, onCollectionUpdated, onCollectionRemoved, organizationOptions, viewMode, onViewModeChange, additionalFilter }: {
+export function FoodieFilterBar({ filters, onChange, collections, categories, onCollectionCreated, onCollectionUpdated, onCollectionRemoved, organizationOptions, libraryActions, viewMode, onViewModeChange, additionalFilter }: {
   filters: FoodieFilters; onChange: (next: FoodieFilters) => void; collections: PatioCollection[]; categories: string[];
   onCollectionCreated?: (collection: PatioCollection) => void;
   onCollectionUpdated?: (collection: PatioCollection) => void;
   onCollectionRemoved?: (collectionId: string) => void;
   additionalFilter?: { label: string; onClear: () => void };
   organizationOptions?: ActionSheetOption[];
+  libraryActions?: ActionSheetOption[];
   viewMode?: 'list' | 'grid';
   onViewModeChange?: (mode: 'list' | 'grid') => void;
 }) {
   const { theme } = useTheme();
   const s = styles(theme);
   const [openPanel, setOpenPanel] = useState<OpenPanel>(null);
+  const [filterDetail, setFilterDetail] = useState<FilterDetail>(null);
   const [organizerVisible, setOrganizerVisible] = useState(false);
   const organizerRef = useRef<View>(null);
+  const listsMenuRef = useRef<View>(null);
+  const [listsMenuVisible, setListsMenuVisible] = useState(false);
   const [creatingList, setCreatingList] = useState(false);
+  const [selectingLists, setSelectingLists] = useState(false);
+  const [selectedListIds, setSelectedListIds] = useState<string[]>([]);
+  const [deletingLists, setDeletingLists] = useState(false);
+  const deleteListsPending = useRef(false);
+  const latestFilters = useRef(filters);
+  latestFilters.current = filters;
   const [newListTitle, setNewListTitle] = useState('');
   // Acciones por lista detrás de "···" — ley de CLAUDE.md 13-jul: todo
   // accionable vive tras ···, un solo gesto para descubrir acciones en toda
@@ -328,22 +352,35 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
   const filterCount = attributeCount + Number(filters.today) + Number(filters.open) + Number(!!additionalFilter);
   const listCount = filters.collectionIds.length;
   const isLibrary = !!onViewModeChange;
+  const categoryOptions = [...new Set([...categories, ...filters.categories])].sort((a, b) => a.localeCompare(b, 'es'));
+  const [creatingPending, setCreatingPending] = useState(false);
 
   const togglePanel = (panel: OpenPanel) => {
     Haptics.selectionAsync().catch(() => {});
     setActionsTarget(null);
+    setListsMenuVisible(false);
+    setFilterDetail(null);
+    setSelectingLists(false);
+    setSelectedListIds([]);
     setOpenPanel(panel);
   };
 
   const handleCreateList = async () => {
     const title = newListTitle.trim();
-    if (!title) return;
-    const collection = await createCollection(title);
-    onCollectionCreated?.(collection);
-    onChange({ ...filters, collectionIds: [...filters.collectionIds, collection.id] });
-    setNewListTitle('');
-    setCreatingList(false);
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    if (!title || creatingPending) return;
+    setCreatingPending(true);
+    try {
+      const collection = await createCollection(title);
+      onCollectionCreated?.(collection);
+      // An empty new list must not silently hide every place on the map.
+      setNewListTitle('');
+      setCreatingList(false);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+    } catch {
+      Alert.alert(noWidow('No pudimos crear la lista'), noWidow('Inténtalo de nuevo.'));
+    } finally {
+      setCreatingPending(false);
+    }
   };
 
   const commitRename = async (collectionId: string, rawTitle: string) => {
@@ -406,27 +443,87 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
     );
   };
 
-  const openListActions = (collection: PatioCollection) => {
+  const removeSelectedLists = () => {
+    const ids = selectedListIds.filter((id) => collections.some((item) => item.id === id));
+    if (!ids.length || deleteListsPending.current) return;
+    Alert.alert(
+      noWidow(ids.length === 1 ? 'Eliminar lista' : `Eliminar ${ids.length} listas`),
+      noWidow('Los lugares seguirán en Guardados. Las listas se eliminarán definitivamente.'),
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Eliminar', style: 'destructive', onPress: async () => {
+          if (deleteListsPending.current) return;
+          deleteListsPending.current = true;
+          setDeletingLists(true);
+          const removed: string[] = [];
+          const failed: string[] = [];
+          try {
+            for (const id of ids) {
+              try {
+                await deleteCollection(id);
+                removed.push(id);
+              } catch {
+                failed.push(id);
+              }
+            }
+            removed.forEach((id) => onCollectionRemoved?.(id));
+            const current = latestFilters.current;
+            if (current.collectionIds.some((id) => removed.includes(id))) {
+              onChange({ ...current, collectionIds: current.collectionIds.filter((id) => !removed.includes(id)) });
+            }
+            setSelectedListIds(failed);
+            if (!failed.length) {
+              setSelectingLists(false);
+              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+            } else {
+              Alert.alert(noWidow('Quedaron listas sin eliminar'), noWidow('Siguen seleccionadas para que puedas volver a intentarlo.'));
+            }
+          } finally {
+            deleteListsPending.current = false;
+            setDeletingLists(false);
+          }
+        } },
+      ],
+    );
+  };
+
+  const openListActions = (collection?: PatioCollection) => {
     Haptics.selectionAsync().catch(() => {});
-    const anchor = moreRefs.current.get(collection.id);
+    const anchor = collection ? moreRefs.current.get(collection.id) : listsMenuRef.current;
     if (!anchor) return;
     anchor.measureInWindow((x, y, width, height) => {
       const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
       const spaceBelow = screenHeight - (y + height);
       const left = Math.min(Math.max(8, x + width - ACTION_SHEET_MENU_WIDTH), screenWidth - ACTION_SHEET_MENU_WIDTH - 8);
       setActionsLayout(spaceBelow > 220 ? { top: y + height + 8, left } : { bottom: screenHeight - y + 8, left });
-      setActionsTarget(collection);
+      setActionsTarget(collection ?? null);
+      setListsMenuVisible(!collection);
     });
   };
+
+  const beginListSelection = (id?: string) => {
+    setSelectingLists(true);
+    setSelectedListIds(id ? [id] : []);
+    setActionsTarget(null);
+    setListsMenuVisible(false);
+  };
+  const closeListMenu = () => { setActionsTarget(null); setListsMenuVisible(false); };
+  const listMenuOptions: ActionSheetOption[] = actionsTarget ? [
+    { label: 'Compartir', icon: 'share-outline', onPress: () => shareCollection(actionsTarget) },
+    { label: 'Renombrar', icon: 'text-outline', onPress: () => startRename(actionsTarget) },
+    { label: 'Eliminar', icon: 'trash-outline', destructive: true, onPress: () => removeCollection(actionsTarget) },
+  ] : [
+    { label: 'Seleccionar listas', icon: 'checkmark-circle-outline', onPress: () => beginListSelection() },
+  ];
 
   // The two scope controls are identical and permanent in Map and Saved.
   // Saved adds a separate compact control for presentation (view/order).
   return <View style={s.root} pointerEvents="box-none">
     <View style={s.scopeGroup}>
       <TouchableOpacity
-        hitSlop={CONTROL_HIT_SLOP}
+        hitSlop={SCOPE_HIT_SLOP}
         onPress={() => { Keyboard.dismiss(); togglePanel('filters'); }}
-        style={s.organizer}
+        style={[s.organizer, s.scopeControl]}
         activeOpacity={0.7}
         accessibilityRole="button"
         accessibilityLabel={`Filtros${filterCount ? `, ${filterCount} activos` : ''}`}
@@ -435,16 +532,16 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
           <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
         </View>
         <View style={s.controlIcon}>
-          <Ionicons name="options-outline" size={18} color={theme.text} />
-          {filterCount > 0 && <View style={s.activeDot} />}
+          <Ionicons name="options-outline" size={20} color={theme.text} />
         </View>
         <Text style={s.organizerText}>Filtros</Text>
+        {filterCount > 0 && <Text style={s.activeCount}>{filterCount}</Text>}
       </TouchableOpacity>
 
       <TouchableOpacity
-        hitSlop={CONTROL_HIT_SLOP}
+        hitSlop={SCOPE_HIT_SLOP}
         onPress={() => { Keyboard.dismiss(); togglePanel('lists'); }}
-        style={s.organizer}
+        style={[s.organizer, s.scopeControl]}
         activeOpacity={0.7}
         accessibilityRole="button"
         accessibilityLabel={`Tus listas${listCount ? `, ${listCount} activas` : ''}`}
@@ -453,10 +550,10 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
           <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
         </View>
         <View style={s.controlIcon}>
-          <Ionicons name="bookmark-outline" size={18} color={theme.text} />
-          {listCount > 0 && <View style={s.activeDot} />}
+          <Ionicons name="folder-outline" size={20} color={theme.text} />
         </View>
-        <Text style={s.organizerText}>Tus listas</Text>
+        <Text style={s.organizerText}>Listas</Text>
+        {listCount > 0 && <Text style={s.activeCount}>{listCount}</Text>}
       </TouchableOpacity>
     </View>
 
@@ -470,17 +567,18 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
         accessibilityRole="button"
         accessibilityLabel="Organizar Guardados"
         accessibilityState={{ expanded: organizerVisible }}
-        accessibilityHint="Cambiar vista y orden">
+        accessibilityHint="Seleccionar lugares, cambiar vista y orden">
         <View style={s.pillBlurClip}>
           <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
         </View>
-        <Ionicons name={viewMode === 'grid' ? 'grid-outline' : 'list-outline'} size={19} color={theme.text} />
+        <Ionicons name="ellipsis-horizontal" size={20} color={theme.text} />
       </TouchableOpacity>
       <ActionSheet
         visible={organizerVisible}
         anchorRef={organizerRef}
         onDismiss={() => setOrganizerVisible(false)}
         options={[
+          ...(libraryActions ?? []),
           ...(onViewModeChange ? [
             { label: 'Cuadrícula', sectionLabel: 'Vista', icon: 'grid-outline' as const, selected: viewMode === 'grid', onPress: () => { Haptics.selectionAsync().catch(() => {}); onViewModeChange('grid'); } },
             { label: 'Lista', icon: 'list-outline' as const, selected: viewMode === 'list', onPress: () => { Haptics.selectionAsync().catch(() => {}); onViewModeChange('list'); } },
@@ -492,13 +590,38 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
 
     <FilterSheet
       visible={openPanel !== null}
-      onClose={() => setOpenPanel(null)}
-      title={openPanel === 'filters' ? 'Filtros' : 'Tus listas'}
-      compact={openPanel === 'filters'}
+      onClose={() => { if (!deleteListsPending.current) setOpenPanel(null); }}
+      title={openPanel === 'filters' ? filterDetail === 'categories' ? 'Tipo de lugar' : filterDetail === 'payments' ? 'Pago' : 'Filtros' : 'Tus listas'}
+      hideTitle={openPanel === 'lists' || !filterDetail}
+      onCreate={openPanel === 'lists' && !creatingList && !selectingLists ? () => setCreatingList(true) : undefined}
+      selectionMode={openPanel === 'lists' && (selectingLists || creatingList)}
+      headerActions={openPanel === 'lists' && creatingList ? <TouchableOpacity disabled={creatingPending} style={[s.headerIcon, { width: 'auto', paddingHorizontal: 8 }]} accessibilityRole="button" accessibilityLabel="Cancelar nueva lista" onPress={() => { setCreatingList(false); setNewListTitle(''); }}><Text style={s.organizerText}>Cancelar</Text></TouchableOpacity> : openPanel === 'lists' && collections.length > 0 ? (
+        selectingLists ? <TouchableOpacity disabled={deletingLists} style={[s.headerIcon, { width: 'auto', paddingHorizontal: 8 }]} accessibilityRole="button" accessibilityLabel="Cancelar selección"
+          onPress={() => { setSelectingLists(false); setSelectedListIds([]); }}>
+          <Text style={s.organizerText}>Cancelar</Text>
+        </TouchableOpacity> : <TouchableOpacity ref={listsMenuRef} style={s.headerIcon} accessibilityRole="button" accessibilityLabel="Acciones de listas"
+          onPress={() => openListActions()}>
+          <Ionicons name="ellipsis-horizontal" size={22} color={theme.text} />
+        </TouchableOpacity>
+      ) : undefined}
+      footer={openPanel === 'lists' && selectingLists ? <View style={{ borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.border, paddingHorizontal: 16 }}>
+        <TouchableOpacity disabled={!selectedListIds.length || deletingLists} onPress={removeSelectedLists}
+          style={{ minHeight: 44, justifyContent: 'center', alignItems: 'center', opacity: !selectedListIds.length || deletingLists ? 0.35 : 1 }}
+          accessibilityRole="button" accessibilityState={{ disabled: !selectedListIds.length || deletingLists, busy: deletingLists }}>
+          <Text style={s.organizerText}>{noWidow(deletingLists ? 'Eliminando…' : selectedListIds.length ? `Eliminar ${selectedListIds.length} ${selectedListIds.length === 1 ? 'lista' : 'listas'}` : 'Eliminar')}</Text>
+        </TouchableOpacity>
+      </View> : undefined}
+      preferredHeight={openPanel === 'filters'
+        ? filterDetail === 'categories' ? Math.min(560, 96 + categoryOptions.length * 48)
+          : filterDetail === 'payments' ? 244 : 324 + (additionalFilter ? 56 : 0)
+        : Math.min(514, 152 + Math.max(1, collections.length) * 56 + (creatingList ? 96 : 0) + (selectingLists ? 44 : 0))}
+      onBack={openPanel === 'filters' && filterDetail ? () => { Haptics.selectionAsync().catch(() => {}); setFilterDetail(null); } : undefined}
       onClear={openPanel === 'filters'
-        ? (filterCount ? () => { Haptics.selectionAsync().catch(() => {}); onChange({ ...filters, today: false, open: false, categories: [], payments: [] }); additionalFilter?.onClear(); } : undefined)
-        : (filters.collectionIds.length ? () => { Haptics.selectionAsync().catch(() => {}); onChange({ ...filters, collectionIds: [] }); } : undefined)}
-      overlay={openPanel === 'lists' && actionsTarget && actionsLayout && (
+        ? filterDetail
+          ? (filters[filterDetail].length ? () => { Haptics.selectionAsync().catch(() => {}); onChange({ ...filters, [filterDetail]: [] }); } : undefined)
+          : (filterCount ? () => { Haptics.selectionAsync().catch(() => {}); onChange({ ...filters, today: false, open: false, categories: [], payments: [] }); additionalFilter?.onClear(); } : undefined)
+        : undefined}
+      overlay={openPanel === 'lists' && (actionsTarget || listsMenuVisible) && actionsLayout && (
         <>
           {/* Menú anclado junto al botón "···" que tocaste — mismo
               componente visual que ActionSheet (vidrio, sin fila de
@@ -507,24 +630,20 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
               de Menús/coleccion. Vive aquí (no en el <Modal> de ActionSheet)
               por el mismo motivo que el resto del overlay: evitar dos
               Modal de RN anidados. */}
-          <TouchableOpacity activeOpacity={1} style={StyleSheet.absoluteFillObject} onPress={() => setActionsTarget(null)} accessibilityLabel="Cerrar acciones" />
+          <TouchableOpacity activeOpacity={1} style={StyleSheet.absoluteFillObject} onPress={closeListMenu} accessibilityLabel="Cerrar acciones" />
           <View style={[s.inlineMenu, { width: ACTION_SHEET_MENU_WIDTH, left: actionsLayout.left, top: actionsLayout.top, bottom: actionsLayout.bottom }]}>
             <BlurView intensity={theme.isDark ? 26 : 30} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
             <View pointerEvents="none" style={s.inlineMenuTint} />
-            <View style={s.inlineTitleRow}><Text style={s.inlineTitleText} numberOfLines={1}>{noWidow(actionsTarget.title)}</Text></View>
-            {[
-              { label: 'Compartir', icon: 'share-outline' as const, onPress: () => shareCollection(actionsTarget) },
-              { label: 'Renombrar', icon: 'text-outline' as const, onPress: () => startRename(actionsTarget) },
-              { label: 'Eliminar', icon: 'trash-outline' as const, onPress: () => removeCollection(actionsTarget) },
-            ].map((option, index) => (
+            {actionsTarget && <View style={s.inlineTitleRow}><Text style={s.inlineTitleText} numberOfLines={1}>{noWidow(actionsTarget.title)}</Text></View>}
+            {listMenuOptions.map((option, index) => (
               <TouchableOpacity
                 key={option.label}
-                onPress={() => { setActionsTarget(null); option.onPress(); }}
-                style={[s.inlineRow, (index > 0 || !!actionsTarget.title) && s.divider]}
+                onPress={() => { closeListMenu(); option.onPress(); }}
+                style={[s.inlineRow, (index > 0 || !!actionsTarget?.title) && s.divider]}
                 accessibilityRole="button"
                 accessibilityLabel={option.label}>
-                <Text style={[s.inlineRowText, { color: theme.text }]}>{option.label}</Text>
-                <Ionicons name={option.icon} size={17} color={theme.text} />
+                <Ionicons name={option.icon} size={20} color={option.destructive ? theme.accent : theme.text} />
+                <Text style={[s.inlineRowText, { color: theme.text }]}>{noWidow(option.label)}</Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -532,80 +651,83 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
       )}
       s={s} theme={theme}>
       {openPanel === 'filters' ? <>
-        <View style={s.section}>
-          <Text style={s.sectionLabel}>{noWidow('Disponibilidad')}</Text>
-          {([{ key: 'today', label: 'Menú hoy' }, { key: 'open', label: 'Abiertos ahora' }] as const).map(({ key, label }) => (
-            <TouchableOpacity key={key} style={s.availabilityRow} accessibilityRole="checkbox" accessibilityState={{ checked: filters[key] }} accessibilityLabel={label}
-              onPress={() => { Haptics.selectionAsync().catch(() => {}); onChange({ ...filters, [key]: !filters[key] }); }}>
-              <View style={s.checkSlot}><Ionicons name={filters[key] ? 'checkmark-circle' : 'ellipse-outline'} size={22} color={filters[key] ? theme.accent : theme.textMute} /></View>
-              <Text style={s.optionText}>{noWidow(label)}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-        {([{ title: 'Categoría', values: categories, field: 'categories' }, { title: 'Pagos', values: PAYMENT_METHODS, field: 'payments' }] as const).filter((group) => group.values.length).map((group) => (
-          <View key={group.field} style={s.section}>
-            <Text style={s.sectionLabel}>{group.title}</Text>
-            <View style={s.chipsWrap}>
-              {group.values.map((value) => {
-                const active = filters[group.field].includes(value);
-                return <TouchableOpacity key={value} hitSlop={CHIP_HIT_SLOP} onPress={() => { Haptics.selectionAsync().catch(() => {}); onChange({ ...filters, [group.field]: toggleValue(filters[group.field], value) }); }} style={[s.chip, active && s.chipActive]} accessibilityRole="button" accessibilityState={{ selected: active }}><Text style={[s.chipText, active && s.chipTextActive]}>{noWidow(value)}</Text></TouchableOpacity>;
-              })}
-            </View>
-          </View>
-        ))}
-        {additionalFilter && <TouchableOpacity style={s.option} onPress={additionalFilter.onClear} accessibilityRole="button" accessibilityLabel={`Quitar filtro ${additionalFilter.label}`}><Text style={s.optionText}>{noWidow(additionalFilter.label)}</Text><Ionicons name="close-circle" size={20} color={theme.textSecondary} /></TouchableOpacity>}
+        {filterDetail ? (
+          <View style={s.section}><View style={s.group}>
+            {(filterDetail === 'categories' ? categoryOptions : PAYMENT_METHODS).map((value, index) => {
+              const active = filters[filterDetail].includes(value);
+              return <TouchableOpacity key={value}
+                onPress={() => { Haptics.selectionAsync().catch(() => {}); onChange({ ...filters, [filterDetail]: toggleValue(filters[filterDetail], value) }); }}
+                style={[s.availabilityRow, s.choiceRow, index > 0 && s.rowDivider]}
+                accessibilityRole="checkbox" accessibilityLabel={value} accessibilityState={{ checked: active }}>
+                <Text style={s.optionText}>{noWidow(value)}</Text>
+                <View style={s.checkSlot}>{active && <Ionicons name="checkmark" size={20} color={theme.accent} />}</View>
+              </TouchableOpacity>;
+            })}
+          </View></View>
+        ) : <>
+          <View style={s.section}><View style={s.group}>
+            {([{ key: 'today', label: 'Menú de hoy' }, { key: 'open', label: 'Abiertos ahora' }] as const).map(({ key, label }, index) => (
+              <View key={key} style={[s.availabilityRow, index > 0 && s.rowDivider]}>
+                <Text style={s.optionText}>{noWidow(label)}</Text>
+                <Switch value={filters[key]} accessibilityLabel={label} trackColor={{ true: theme.accent }}
+                  onValueChange={(value) => { Haptics.selectionAsync().catch(() => {}); onChange({ ...filters, [key]: value }); }} />
+              </View>
+            ))}
+          </View></View>
+          <View style={s.section}><View style={s.group}>
+            {([{ title: 'Tipo de lugar', field: 'categories', icon: 'restaurant-outline' }, { title: 'Pago', field: 'payments', icon: 'card-outline' }] as const).map((group, index) => {
+              const selected = filters[group.field];
+              const summary = selected.length ? selected.join(' · ') : group.field === 'categories' ? 'Todos' : 'Cualquiera';
+              const disabled = group.field === 'categories' && !categoryOptions.length;
+              return <TouchableOpacity key={group.field} style={[s.availabilityRow, index > 0 && s.rowDivider]} disabled={disabled}
+                accessibilityRole="button" accessibilityLabel={group.title} accessibilityValue={{ text: summary }} accessibilityState={{ disabled }}
+                onPress={() => { Haptics.selectionAsync().catch(() => {}); setFilterDetail(group.field); }}>
+                <View style={s.checkSlot}><Ionicons name={group.icon} size={20} color={theme.textSecondary} /></View>
+                <Text style={s.disclosureLabel}>{noWidow(group.title)}</Text>
+                <Text style={s.disclosureValue} numberOfLines={1}>{noWidow(summary)}</Text>
+                <Ionicons name="chevron-forward" size={16} color={theme.textMute} />
+              </TouchableOpacity>;
+            })}
+          </View></View>
+          {additionalFilter && <TouchableOpacity style={s.option} onPress={additionalFilter.onClear} accessibilityRole="button" accessibilityLabel={`Quitar filtro ${additionalFilter.label}`}><Text style={s.optionText}>{noWidow(additionalFilter.label)}</Text><Ionicons name="close-circle" size={20} color={theme.textSecondary} /></TouchableOpacity>}
+        </>}
       </> : <>
-      {creatingList ? (
-        <View style={s.option}>
-          <Ionicons name="add" size={16} color={theme.textSecondary} />
-          <TextInput
-            autoFocus
-            value={newListTitle}
-            onChangeText={(value) => setNewListTitle(normalizeCollectionTitle(value))}
-            onSubmitEditing={handleCreateList}
-            placeholder="Una palabra, ej. Tacos"
-            placeholderTextColor={theme.textMute}
-            returnKeyType="done"
-            autoCapitalize="words"
-            style={s.createInput}
-          />
-          <TouchableOpacity disabled={!newListTitle.trim()} hitSlop={CREATE_BTN_HIT_SLOP} onPress={handleCreateList} style={[s.createBtn, !newListTitle.trim() && s.createBtnDisabled]}>
-            <Text style={s.createBtnText}>Crear</Text>
-          </TouchableOpacity>
-        </View>
-      ) : (
-        <TouchableOpacity onPress={() => setCreatingList(true)} style={s.option}>
-          <Ionicons name="add" size={16} color={theme.textSecondary} />
-          <Text style={s.optionText}>{noWidow('Nueva lista')}</Text>
-        </TouchableOpacity>
-      )}
-      {collections.map((collection) => {
-        const active = filters.collectionIds.includes(collection.id);
-        return (
-          <View key={collection.id} style={s.option}>
-            <TouchableOpacity
-              onPress={() => { Haptics.selectionAsync(); onChange({ ...filters, collectionIds: toggleValue(filters.collectionIds, collection.id) }); }}
-              accessibilityRole="checkbox"
-              accessibilityState={{ checked: active }}
-              accessibilityLabel={collection.title}
-              style={s.listRowMain}>
-              <Ionicons name="bookmark" size={16} color={theme.textSecondary} />
-              <Text style={s.optionText}>{collection.title}</Text>
-              {active && <Ionicons name="checkmark" size={18} color={theme.text} />}
-            </TouchableOpacity>
-            <TouchableOpacity
-              ref={(el) => { moreRefs.current.set(collection.id, el); }}
-              accessibilityRole="button"
-              accessibilityLabel="Acciones de la lista"
-              hitSlop={8}
-              style={s.listRowMore}
-              onPress={() => openListActions(collection)}>
-              <Ionicons name="ellipsis-horizontal" size={17} color={theme.textSecondary} />
-            </TouchableOpacity>
+        {creatingList && <View style={s.section}><View style={s.group}>
+          <View style={[s.option, { paddingVertical: 12 }]}>
+            <View style={s.rowCopy}>
+              <Text style={s.rowDetail}>{noWidow('Nombre de la lista')}</Text>
+              <TextInput autoFocus value={newListTitle} onChangeText={setNewListTitle} maxLength={60} onSubmitEditing={handleCreateList} placeholder="Ej. Tacos del barrio" accessibilityLabel="Nombre de la lista" placeholderTextColor={theme.textMute} returnKeyType="done" autoCapitalize="sentences" style={[s.createInput, { minHeight: 44 }]} />
+            </View>
+            <TouchableOpacity disabled={!newListTitle.trim() || creatingPending} hitSlop={CREATE_BTN_HIT_SLOP} onPress={handleCreateList} accessibilityRole="button" accessibilityLabel="Crear lista" style={[s.createBtn, (!newListTitle.trim() || creatingPending) && s.createBtnDisabled]}><Text style={s.createBtnText}>{creatingPending ? 'Creando…' : 'Crear'}</Text></TouchableOpacity>
           </View>
-        );
-      })}
+        </View></View>}
+        <View style={s.section}><View style={s.group}>
+          {selectingLists ? <TouchableOpacity disabled={deletingLists} style={s.option} accessibilityRole="checkbox" accessibilityLabel="Seleccionar todas las listas" accessibilityState={{ checked: selectedListIds.length === collections.length, disabled: deletingLists }}
+            onPress={() => { Haptics.selectionAsync().catch(() => {}); setSelectedListIds(selectedListIds.length === collections.length ? [] : collections.map((item) => item.id)); }}>
+            <View style={s.checkSlot}><Ionicons name={selectedListIds.length === collections.length ? 'checkmark-circle' : 'ellipse-outline'} size={22} color={selectedListIds.length === collections.length ? theme.accent : theme.textMute} /></View>
+            <Text style={s.optionText}>{noWidow('Seleccionar todas')}</Text>
+          </TouchableOpacity> : <TouchableOpacity onPress={() => { Haptics.selectionAsync().catch(() => {}); onChange({ ...filters, collectionIds: [] }); }} style={s.option} accessibilityRole="checkbox" accessibilityState={{ checked: !listCount }} accessibilityLabel="Todos los lugares">
+            <View style={s.checkSlot}><Ionicons name="bookmark-outline" size={20} color={theme.textSecondary} /></View>
+            <Text style={s.optionText}>{noWidow('Todos los lugares')}</Text>
+            <View style={s.checkSlot}>{!listCount && <Ionicons name="checkmark" size={20} color={theme.accent} />}</View>
+          </TouchableOpacity>}
+          {collections.map((collection) => {
+            const active = selectingLists ? selectedListIds.includes(collection.id) : filters.collectionIds.includes(collection.id);
+            return <View key={collection.id} style={[s.option, s.rowDivider, { paddingRight: selectingLists ? 16 : 4 }]}>
+              <TouchableOpacity disabled={deletingLists} onPress={() => { Haptics.selectionAsync().catch(() => {}); if (selectingLists) setSelectedListIds((current) => toggleValue(current, collection.id)); else onChange({ ...filters, collectionIds: toggleValue(filters.collectionIds, collection.id) }); }} accessibilityRole="checkbox" accessibilityState={{ checked: active, disabled: deletingLists }} accessibilityLabel={`${collection.title}, ${collection.patioIds.length} ${collection.patioIds.length === 1 ? 'lugar' : 'lugares'}`} onLongPress={() => { if (!selectingLists) { Haptics.selectionAsync().catch(() => {}); beginListSelection(collection.id); } }} style={s.listRowMain}>
+                <View style={s.checkSlot}><Ionicons name={selectingLists ? active ? 'checkmark-circle' : 'ellipse-outline' : 'folder-outline'} size={selectingLists ? 22 : 20} color={selectingLists && active ? theme.accent : theme.textSecondary} /></View>
+                <Text style={s.optionText} numberOfLines={2}>{noWidow(collection.title)}</Text>
+                <Text style={s.listCount}>{collection.patioIds.length}</Text>
+                {!selectingLists && active && <Ionicons name="checkmark" size={20} color={theme.accent} />}
+              </TouchableOpacity>
+              {!selectingLists && <TouchableOpacity ref={(el) => { moreRefs.current.set(collection.id, el); }} accessibilityRole="button" accessibilityLabel={`Acciones de ${collection.title}`} style={s.listRowMore} onPress={() => openListActions(collection)}><Ionicons name="ellipsis-horizontal" size={20} color={theme.textSecondary} /></TouchableOpacity>}
+            </View>;
+          })}
+        </View></View>
+        {!collections.length && <View style={s.emptyLists}><Ionicons name="list-outline" size={28} color={theme.textSecondary} /><Text style={s.emptyTitle}>{noWidow('Sin listas')}</Text></View>}
+
       </>}
+
     </FilterSheet>
 
     {/* Respaldo Android — Alert.prompt no existe en esa plataforma. Modal
@@ -625,9 +747,11 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
               <TextInput
                 autoFocus
                 value={renameValue}
-                onChangeText={(value) => setRenameValue(normalizeCollectionTitle(value))}
+                accessibilityLabel="Nombre de la lista"
+                onChangeText={setRenameValue}
+                maxLength={60}
                 onSubmitEditing={() => { if (renameTarget) commitRename(renameTarget.id, renameValue); setRenameTarget(null); }}
-                placeholder="Una palabra, ej. Tacos"
+                placeholder="Ej. Tacos del barrio"
                 placeholderTextColor={theme.textMute}
                 returnKeyType="done"
                 autoCapitalize="words"

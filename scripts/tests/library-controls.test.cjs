@@ -51,6 +51,7 @@ function fixture(file, overrides = {}) {
     '@/lib/collections': {},
     '@/lib/theme': { Radius: { card: 18 }, useTheme: () => ({ theme: { isDark: false, text: '#111', bg: '#fff', border: '#eee', accent: '#f60' } }) },
     '@/lib/typography': { noWidow: (value) => value },
+    '@/components/search-field': { SearchField: 'SearchField' },
     '@/components/action-sheet': { ACTION_SHEET_MENU_WIDTH: 240, ActionSheet: 'ActionSheet' },
     ...overrides,
   };
@@ -99,7 +100,7 @@ test('map and library expose Filters and Your lists directly and clear each scop
   const panelType = panelOf(tree).type;
   assert.equal(panelOf(tree).props.visible, true);
   assert.equal(panelOf(tree).props.title, 'Filtros');
-  for (const label of ['Menú hoy', 'Abiertos ahora']) {
+  for (const label of ['Menú de hoy', 'Abiertos ahora']) {
     nodes(tree).find((node) => node.props?.accessibilityLabel === label).props.onPress();
     tree = f.render(FoodieFilterBar, props);
     assert.equal(nodes(tree).find((node) => node.props?.accessibilityLabel === label).props.accessibilityState.checked, true);
@@ -242,4 +243,179 @@ test('Guardados index scrolls without filtering and disappears in grid and selec
   assert.equal(nodes(tree).some((node) => node.type === 'AlphabetIndex'), false);
   await new Promise(setImmediate);
   assert.equal(persisted.find(([key]) => key === '@patio_favorites_sort')[1], 'az');
+});
+
+test('selected categories remain removable across screens and combine alternatives within each filter group', () => {
+  const f = fixture('components/foodie-filter-bar.tsx');
+  const { FoodieFilterBar, EMPTY_FOODIE_FILTERS, matchesFoodieFilters } = f.exports;
+  const props = {
+    filters: { ...EMPTY_FOODIE_FILTERS, today: true, open: true, categories: ['Guisados'], collectionIds: ['a'] },
+    categories: ['Tacos'],
+    collections: [{ id: 'a', title: 'Cerca', patioIds: ['one'] }],
+    onChange: (next) => { props.filters = next; },
+  };
+  let tree = f.render(FoodieFilterBar, props);
+  nodes(tree).find((node) => node.props?.accessibilityLabel?.startsWith('Filtros')).props.onPress();
+  tree = f.render(FoodieFilterBar, props);
+  const checkbox = (label) => nodes(tree).find((node) => node.props?.accessibilityRole === 'checkbox' && node.props.accessibilityLabel === label);
+  const openGroup = (label) => {
+    nodes(tree).find((node) => node.props?.accessibilityLabel === label).props.onPress();
+    tree = f.render(FoodieFilterBar, props);
+  };
+  const goBack = () => {
+    nodes(tree).find((node) => typeof node.type === 'function' && node.type.name === 'FilterSheet').props.onBack();
+    tree = f.render(FoodieFilterBar, props);
+  };
+  assert.equal(checkbox('Guisados'), undefined);
+  openGroup('Tipo de lugar');
+  assert.equal(checkbox('Guisados').props.accessibilityState.checked, true);
+  checkbox('Tacos').props.onPress();
+  tree = f.render(FoodieFilterBar, props);
+  assert.equal(checkbox('Tacos').props.accessibilityState.checked, true);
+  goBack();
+  openGroup('Pago');
+  for (const label of ['Efectivo', 'Tarjeta']) {
+    checkbox(label).props.onPress();
+    tree = f.render(FoodieFilterBar, props);
+    assert.equal(checkbox(label).props.accessibilityState.checked, true);
+  }
+  const place = { patioId: 'one', hasTodayMenu: true, isOpenNow: true, categories: ['Tacos'], payments: ['Tarjeta'], collections: props.collections };
+  for (const category of ['Guisados', 'Tacos']) {
+    for (const payment of ['Efectivo', 'Tarjeta']) {
+      assert.equal(matchesFoodieFilters(props.filters, { ...place, categories: [category], payments: [payment] }), true);
+    }
+  }
+  for (const mismatch of [
+    { categories: ['Panadería'] }, { payments: ['Transferencia'] },
+    { hasTodayMenu: false }, { isOpenNow: false }, { patioId: 'outside-list' },
+  ]) {
+    assert.equal(matchesFoodieFilters(props.filters, { ...place, ...mismatch }), false);
+  }
+  goBack();
+  openGroup('Tipo de lugar');
+  checkbox('Guisados').props.onPress();
+  tree = f.render(FoodieFilterBar, props);
+  assert.deepEqual(props.filters.categories, ['Tacos']);
+  assert.equal(checkbox('Guisados'), undefined);
+  assert.equal(matchesFoodieFilters(props.filters, { ...place, categories: ['Guisados'] }), false);
+  assert.equal(matchesFoodieFilters(props.filters, place), true);
+});
+
+test('compact filter overview summarizes selections and returns from each group without losing other criteria', () => {
+  const f = fixture('components/foodie-filter-bar.tsx');
+  const { FoodieFilterBar, EMPTY_FOODIE_FILTERS } = f.exports;
+  let legacyCleared = 0;
+  const props = {
+    filters: { ...EMPTY_FOODIE_FILTERS, today: true, open: true, categories: ['Guisados'], payments: ['Tarjeta'], collectionIds: ['a'] },
+    categories: ['Tacos'],
+    collections: [{ id: 'a', title: 'Cerca', patioIds: ['one'] }],
+    onChange: (next) => { props.filters = next; },
+    additionalFilter: { label: 'Favoritos del mapa', onClear: () => { legacyCleared++; } },
+  };
+  let tree;
+  const render = () => { tree = f.render(FoodieFilterBar, props); };
+  const control = (label) => nodes(tree).find((node) => node.props?.accessibilityLabel === label);
+  const panel = () => nodes(tree).find((node) => typeof node.type === 'function' && node.type.name === 'FilterSheet');
+  const press = (label) => { control(label).props.onPress(); render(); };
+  const back = () => { panel().props.onBack(); render(); };
+  render();
+  nodes(tree).find((node) => node.props?.accessibilityLabel?.startsWith('Filtros')).props.onPress();
+  render();
+  const sheetType = panel().type;
+  const assertSameSheet = () => {
+    assert.equal(nodes(tree).filter((node) => typeof node.type === 'function' && node.type.name === 'FilterSheet').length, 1);
+    assert.equal(panel().type, sheetType);
+    assert.equal(panel().props.visible, true);
+  };
+  assert.deepEqual(nodes(panel().props.children).filter((node) => node.props?.accessibilityRole === 'checkbox').map((node) => node.props.accessibilityLabel), ['Menú de hoy', 'Abiertos ahora']);
+  assert.equal(control('Tipo de lugar').props.accessibilityRole, 'button');
+  assert.equal(control('Pago').props.accessibilityRole, 'button');
+  assert.match(control('Tipo de lugar').props.accessibilityValue.text, /Guisados/);
+  assert.match(control('Pago').props.accessibilityValue.text, /Tarjeta/);
+
+  press('Tipo de lugar');
+  assertSameSheet();
+  assert.equal(control('Menú de hoy'), undefined);
+  assert.equal(control('Tarjeta'), undefined);
+  assert.equal(control('Guisados').props.accessibilityState.checked, true);
+  panel().props.onClear();
+  render();
+  assert.deepEqual(props.filters, { ...EMPTY_FOODIE_FILTERS, today: true, open: true, payments: ['Tarjeta'], collectionIds: ['a'] });
+  assert.equal(legacyCleared, 0);
+  assert.equal(panel().props.onClear, undefined);
+  press('Tacos');
+  const selected = props.filters;
+  back();
+  assertSameSheet();
+  assert.equal(panel().props.title, 'Filtros');
+  assert.equal(props.filters, selected, 'Back changes navigation only');
+  assert.match(control('Tipo de lugar').props.accessibilityValue.text, /Tacos/);
+  assert.match(control('Pago').props.accessibilityValue.text, /Tarjeta/);
+
+  press('Pago');
+  assertSameSheet();
+  assert.equal(control('Tacos'), undefined);
+  assert.equal(control('Tarjeta').props.accessibilityState.checked, true);
+  panel().props.onClear();
+  render();
+  assert.deepEqual(props.filters, { ...EMPTY_FOODIE_FILTERS, today: true, open: true, categories: ['Tacos'], collectionIds: ['a'] });
+  assert.equal(legacyCleared, 0);
+  back();
+  assert.doesNotMatch(control('Pago').props.accessibilityValue.text, /Tarjeta/);
+  assert.match(control('Tipo de lugar').props.accessibilityValue.text, /Tacos/);
+
+  panel().props.onClose();
+  render();
+  assert.equal(panel().props.visible, false);
+  nodes(tree).find((node) => node.props?.accessibilityLabel?.startsWith('Filtros')).props.onPress();
+  render();
+  assert.equal(panel().props.title, 'Filtros');
+  assert.match(control('Tipo de lugar').props.accessibilityValue.text, /Tacos/);
+  panel().props.onClear();
+  render();
+  assert.deepEqual(props.filters, { ...EMPTY_FOODIE_FILTERS, collectionIds: ['a'] });
+  assert.equal(legacyCleared, 1);
+});
+
+test('creating an empty list preserves the current results until that list is explicitly selected', async () => {
+  for (const activeListIds of [[], ['a']]) {
+    const created = { id: 'new', title: 'Fin de semana', patioIds: [] };
+    const calls = [];
+    const f = fixture('components/foodie-filter-bar.tsx', {
+      '@/lib/collections': { createCollection: async (title) => { calls.push(title); return created; } },
+      'expo-haptics': { selectionAsync: async () => {}, notificationAsync: async () => {}, NotificationFeedbackType: { Success: 'success' } },
+    });
+    const { FoodieFilterBar, EMPTY_FOODIE_FILTERS, matchesFoodieFilters } = f.exports;
+    const originalFilters = { ...EMPTY_FOODIE_FILTERS, today: true, collectionIds: activeListIds };
+    const props = {
+      filters: originalFilters, categories: [],
+      collections: [{ id: 'a', title: 'Cerca', patioIds: ['one'] }],
+      onChange: (next) => { props.filters = next; },
+      onCollectionCreated: (collection) => { props.collections = [...props.collections, collection]; },
+    };
+    let tree = f.render(FoodieFilterBar, props);
+    const control = (label) => nodes(tree).find((node) => node.props?.accessibilityLabel === label);
+    nodes(tree).find((node) => node.props?.accessibilityLabel?.startsWith('Tus listas')).props.onPress();
+    tree = f.render(FoodieFilterBar, props);
+    const listPanel = nodes(tree).find((node) => typeof node.type === 'function' && node.type.name === 'FilterSheet');
+    assert.equal(listPanel.props.hideTitle, true);
+    assert.equal(control('Nueva lista'), undefined);
+    listPanel.props.onCreate();
+    tree = f.render(FoodieFilterBar, props);
+    control('Nombre de la lista').props.onChangeText('  Fin de semana  ');
+    tree = f.render(FoodieFilterBar, props);
+    await control('Crear lista').props.onPress();
+    tree = f.render(FoodieFilterBar, props);
+    assert.deepEqual(calls, ['Fin de semana']);
+    assert.equal(props.filters, originalFilters);
+    assert.equal(control('Fin de semana').props.accessibilityState.checked, false);
+    assert.equal(control(activeListIds.length ? 'Cerca' : 'Todos los lugares').props.accessibilityState.checked, true);
+    const place = { patioId: 'one', hasTodayMenu: true, isOpenNow: true, categories: [], payments: [], collections: props.collections };
+    assert.equal(matchesFoodieFilters(props.filters, place), true);
+    // A subsequent explicit selection is still available and uses list union.
+    control('Fin de semana').props.onPress();
+    tree = f.render(FoodieFilterBar, props);
+    assert.equal(control('Fin de semana').props.accessibilityState.checked, true);
+    assert.equal(matchesFoodieFilters(props.filters, place), activeListIds.length > 0);
+  }
 });

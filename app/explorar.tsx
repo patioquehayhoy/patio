@@ -4,7 +4,7 @@ import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, Easing, Keyboard, PanResponder, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { Animated, Easing, Keyboard, PanResponder, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import MapView, { Marker, type Region } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -12,6 +12,7 @@ import { MAP_STYLE_DARK, MAP_STYLE_LIGHT } from '@/lib/map-style';
 import { publicPrice } from '@/lib/prices';
 import { FoodieLoading } from '@/components/foodie-loading';
 import { BottomTabBar } from '@/components/bottom-tab-bar';
+import { SearchField } from '@/components/search-field';
 import { FoodieFilterBar, matchesFoodieFilters } from '@/components/foodie-filter-bar';
 import { FOODIE_INITIAL_REGION, useFoodieExploreController } from '@/lib/controllers/useFoodieExploreController';
 import { useFoodieFilters } from '@/lib/foodie-filters-context';
@@ -65,8 +66,8 @@ function accentToTransparentRgba(hex: string): string {
 //   padding inferior del contenedor — termina en insets.top+72.
 // El estado inactivo termina en top+60; sumamos 8pt de separación real.
 // El activo ya incorpora 12pt debajo del campo. Cada estado usa su medida.
-const IDLE_FILTER_BAR_TOP_OFFSET = 68;
-const FILTER_BAR_TOP_OFFSET = 72;
+const IDLE_FILTER_BAR_TOP_OFFSET = 64;
+const FILTER_BAR_TOP_OFFSET = IDLE_FILTER_BAR_TOP_OFFSET;
 // `FILTER_BAR_TOP_OFFSET` (borde inferior del buscador) + 44 (barra de
 // filtros) + 8 (aire entre la barra y el sheet) — es el `top` real del
 // sheet de resultados en modo filtrado y también define el marco del que
@@ -144,11 +145,9 @@ function makeStyles(t: Theme) {
     // simple para cuando hay muchos agrupados lejos; a propósito distinto
     // de la gota delicada de los pines individuales de cerca.
     clusterPin: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: t.isDark ? 'rgba(18,19,22,0.94)' : 'rgba(255,255,255,0.96)', borderWidth: StyleSheet.hairlineWidth, borderColor: t.isDark ? 'rgba(255,255,255,0.22)' : 'rgba(0,0,0,0.12)', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: t.isDark ? 0.28 : 0.15, shadowRadius: 7, elevation: 4 },
-    searchPill: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, paddingVertical: 15, borderRadius: 18, overflow: 'hidden', backgroundColor: t.isDark ? 'rgba(20,21,24,0.55)' : 'rgba(255,255,255,0.78)', borderWidth: StyleSheet.hairlineWidth, borderColor: btnBorder, shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: btnShadowOpacity + 0.04, shadowRadius: 22, elevation: 4 },
+    searchPill: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, height: 50, borderRadius: 18, overflow: 'hidden', backgroundColor: t.isDark ? 'rgba(20,21,24,0.55)' : 'rgba(255,255,255,0.78)', borderWidth: StyleSheet.hairlineWidth, borderColor: btnBorder, shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: btnShadowOpacity + 0.04, shadowRadius: 22, elevation: 4 },
     bottomControls: { flexDirection: 'row', alignItems: 'stretch', gap: 8 },
-    searchRow: { flex: 1, height: 50, borderRadius: 18, overflow: 'hidden', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, gap: 8, borderWidth: StyleSheet.hairlineWidth, borderColor: btnBorder, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: btnShadowOpacity, shadowRadius: 16, elevation: 2 },
-    searchInput: { flex: 1, fontSize: 15, fontWeight: '400', color: t.text, height: 50, paddingVertical: 0 },
-    aiProButton: { minHeight: 30, paddingHorizontal: 8, borderRadius: 15, flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: t.accentSoft },
+    aiProButton: { minHeight: 44, minWidth: 44, paddingHorizontal: 8, borderRadius: 16, flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: t.accentSoft },
     aiProText: { fontSize: 10.5, fontWeight: '800', color: t.accent, letterSpacing: 0.3 },
     // Edge-to-edge (sin margen lateral): mismo criterio que el sheet de
     // Filtros/Listas de FoodieFilterBar — ancho completo, borde solo arriba
@@ -339,6 +338,7 @@ export default function ExplorarScreen() {
     isFiltering,
     openSearch,
     query,
+    savedIds,
     mapFilteredPatios,
     searchActive,
     searchInputRef,
@@ -385,7 +385,7 @@ export default function ExplorarScreen() {
   // en las dos a la vez.
   const filteredPins = useMemo(() => visiblePatios.filter((patio) => matchesFoodieFilters(filters, {
     patioId: patio.id,
-    hasTodayMenu: patio.menu.some((section) => section.items.length > 0),
+    hasTodayMenu: patio.hasTodayMenu === true,
     isOpenNow: !!(patio.weeklyHours && estaAbiertoAhora(patio.weeklyHours)),
     categories: patio.categories,
     payments: patio.payments,
@@ -395,14 +395,15 @@ export default function ExplorarScreen() {
   // (no solo en el mapa idle) — así lo hace Apple Maps: los chips de filtro
   // siguen vivos y afectan los resultados de la búsqueda, no desaparecen en
   // cuanto escribes.
-  const filteredMatches = useMemo(() => topMatchPerPatio.filter((match) => matchesFoodieFilters(filters, {
+  const filteredMatches = useMemo(() => topMatchPerPatio.filter((match) =>
+    (!activeSavedCategories.length || (savedIds.includes(match.patio.id) && match.patio.categories.some((category) => activeSavedCategories.includes(category)))) && matchesFoodieFilters(filters, {
     patioId: match.patio.id,
-    hasTodayMenu: match.patio.menu.some((section) => section.items.length > 0),
+    hasTodayMenu: match.patio.hasTodayMenu === true,
     isOpenNow: !!(match.patio.weeklyHours && estaAbiertoAhora(match.patio.weeklyHours)),
     categories: match.patio.categories,
     payments: match.patio.payments,
     collections,
-  })), [topMatchPerPatio, filters, collections]);
+  })), [topMatchPerPatio, filters, collections, activeSavedCategories, savedIds]);
   const matchingPatioIds = useMemo(() => new Set(filteredMatches.map((match) => match.patio.id)), [filteredMatches]);
   const filteredPinIds = useMemo(() => new Set(filteredPins.map((patio) => patio.id)), [filteredPins]);
   // Los pines de match/muted cambian de CONTENIDO nativo (se agrega/quita la
@@ -756,7 +757,7 @@ export default function ExplorarScreen() {
   }, [mediumGap, isEmptySearchResults]);
   const listPatios = (activeSavedCategories.length ? mapFilteredPatios : allPatios).filter((patio) => matchesFoodieFilters(filters, {
     patioId: patio.id,
-    hasTodayMenu: patio.menu.some((section) => section.items.length > 0),
+    hasTodayMenu: patio.hasTodayMenu === true,
     isOpenNow: !!(patio.weeklyHours && estaAbiertoAhora(patio.weeklyHours)),
     categories: patio.categories,
     payments: patio.payments,
@@ -1061,8 +1062,8 @@ export default function ExplorarScreen() {
           ]}>
           <View style={s.bottomControls}>
             <TouchableOpacity accessibilityRole="button" accessibilityLabel="Buscar comida o un lugar" activeOpacity={0.82} onPress={openSearch} style={[s.searchPill, { flex: 1 }]}>
-              <BlurView intensity={theme.isDark ? 28 : 36} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
-              <Ionicons name="search-outline" size={18} color={theme.textSecondary} />
+              <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
+              <Ionicons name="search-outline" size={21} color={theme.textSecondary} />
               <Text style={{ fontSize: 16, fontWeight: '400', color: theme.textSecondary }}>
                 {noWidow('¿Qué se te antoja?')}
               </Text>
@@ -1077,34 +1078,19 @@ export default function ExplorarScreen() {
         <View
           style={{ position: 'absolute', left: 0, right: 0, top: insets.top + 10 }}
           pointerEvents="box-none">
-          <View style={{ paddingHorizontal: 16, paddingBottom: 12 }}>
-            <View style={s.searchRow}>
-              <BlurView intensity={theme.isDark ? 30 : 36} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
-              <TouchableOpacity onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); closeSearch(); }} activeOpacity={0.76} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }} accessibilityRole="button" accessibilityLabel="Cerrar búsqueda">
-                <Ionicons name="chevron-back" size={20} color={theme.text} />
-              </TouchableOpacity>
-              <TextInput
-                accessibilityLabel="Buscar comida o un lugar"
-                ref={searchInputRef}
-                style={s.searchInput}
-                value={query}
-                onChangeText={handleQueryChange}
-                placeholder="¿Qué se te antoja?"
-                placeholderTextColor={theme.textSecondary}
-                autoCorrect={false}
-                autoCapitalize="none"
-                autoFocus
-                returnKeyType="search"
-                blurOnSubmit={false}
-                onSubmitEditing={handleSubmitSearch}
-                onFocus={() => setSheetHiddenByDrag(false)}
-                selectionColor={theme.accent}
-              />
-              {query.length > 0 && (
-                <TouchableOpacity onPress={() => { Haptics.selectionAsync(); handleQueryChange(''); }} activeOpacity={0.76} hitSlop={{ top: 13, bottom: 13, left: 13, right: 13 }} accessibilityRole="button" accessibilityLabel="Borrar búsqueda">
-                  <Ionicons name="close-circle" size={18} color={theme.textSecondary} />
-                </TouchableOpacity>
-              )}
+          <View style={{ paddingHorizontal: 16, paddingBottom: 4 }}>
+            <SearchField
+              inputRef={searchInputRef}
+              accessibilityLabel="Buscar comida o un lugar"
+              value={query}
+              onChangeText={handleQueryChange}
+              placeholder="¿Qué se te antoja?"
+              autoFocus
+              blurOnSubmit={false}
+              onSubmitEditing={handleSubmitSearch}
+              onFocus={() => setSheetHiddenByDrag(false)}
+              onCancel={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {}); closeSearch(); }}
+              trailingAction={
               <TouchableOpacity
                 style={[s.aiProButton, aiMode && { backgroundColor: theme.accent }]}
                 onPress={() => {
@@ -1123,7 +1109,8 @@ export default function ExplorarScreen() {
                 <Ionicons name="sparkles" size={13} color={aiMode ? theme.bg : theme.accent} />
                 <Text style={[s.aiProText, aiMode && { color: theme.bg }]}>IA</Text>
               </TouchableOpacity>
-            </View>
+              }
+            />
           </View>
         </View>
       )}

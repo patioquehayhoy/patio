@@ -132,10 +132,10 @@ export function ActionSheet({ visible, anchorRef, title, options, onDismiss }: A
               accessibilityLabel={option.label}
               accessibilityHint={option.accessibilityHint}
               accessibilityState={option.selected === undefined ? undefined : { selected: option.selected }}>
-              {grouped && <View style={s.selectionMark}>{option.selected && <Ionicons name="checkmark" size={17} color={theme.text} />}</View>}
-              <Ionicons name={option.icon} size={17} color={option.destructive ? theme.accent : theme.text} />
+              {grouped && <View style={s.selectionMark}>{option.selected && <Ionicons name="checkmark" size={20} color={theme.text} />}</View>}
+              <Ionicons name={option.icon} size={20} color={option.destructive ? theme.accent : theme.text} />
               <Text style={s.rowText}>{noWidow(option.label)}</Text>
-              {!grouped && option.selected && <Ionicons name="checkmark" size={17} color={theme.text} />}
+              {!grouped && option.selected && <Ionicons name="checkmark" size={20} color={theme.text} />}
             </TouchableOpacity>
           </View>
         ))}
@@ -155,7 +155,7 @@ function makeStyles(t: Theme) {
     sectionLabelText: { fontSize: 10.5, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase', color: t.textSecondary },
     row: { minHeight: 46, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 10 },
     divider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border },
-    rowText: { flex: 1, fontSize: 15.5, fontWeight: '500', color: t.text, paddingVertical: 8 },
-    selectionMark: { width: 18, alignItems: 'center' },
+    rowText: { flex: 1, fontSize: 15, fontWeight: '500', color: t.text, paddingVertical: 8 },
+    selectionMark: { width: 20, alignItems: 'center' },
   });
 }

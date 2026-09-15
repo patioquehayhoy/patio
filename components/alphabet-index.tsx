@@ -12,7 +12,7 @@ export function AlphabetIndex({ letters, activeLetter, onSelect }: {
   const { theme } = useTheme();
   const [availableHeight, setAvailableHeight] = useState(0);
   const lastTouched = useRef<string | null>(null);
-  const railHeight = Math.min(letters.length * 24, Math.max(44, availableHeight - 16));
+  const railHeight = Math.min(letters.length * 18, Math.max(44, availableHeight - 16));
   const choose = (index: number) => {
     const letter = letters[index];
     if (!letter) return;

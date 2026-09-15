@@ -25,11 +25,9 @@ export type SavedPatioMeta = {
 const KEY = 'patio:collections:v1';
 const META_KEY = 'patio:saved-meta:v1';
 
-// Una palabra, sin espacios — así la pill de la barra de filtros nunca se
-// desborda. Aplica tanto a listas nuevas como a la normalización de las
-// que ya existían con nombres largos (ver getCollections).
+// Lists have readable names; their rows handle wrapping and truncation.
 export function normalizeCollectionTitle(title: string) {
-  return title.replace(/\s+/g, '').slice(0, 18);
+  return title.replace(/\s+/g, ' ').trim().slice(0, 60);
 }
 
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;

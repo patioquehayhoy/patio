@@ -4,11 +4,11 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Animated, Keyboard, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { hasUnseenActivity, hasUnseenReviewLikes } from '@/lib/activity-feed';
 import { getFonditaId } from '@/lib/menu-store';
-import { useTheme } from '@/lib/theme';
+import { useTheme, type Theme } from '@/lib/theme';
 import { useTabBarTranslate } from '@/lib/tab-bar-visibility';
 
 // Destinos raíz por tarea. Crear un menú es una acción dentro de Menús,
@@ -18,41 +18,26 @@ type Tab = {
   path: string;
   label: string;
   icon: keyof typeof Ionicons.glyphMap;
+  selectedIcon: keyof typeof Ionicons.glyphMap;
 };
 
 const FOODIE_TABS: Tab[] = [
-  { path: '/explorar',  label: 'Mapa',      icon: 'map-outline' },
-  { path: '/favoritos', label: 'Guardados', icon: 'bookmark-outline' },
-  { path: '/cuenta',    label: 'Perfil',    icon: 'person-outline' },
+  { path: '/explorar',  label: 'Mapa',      icon: 'map-outline',      selectedIcon: 'map' },
+  { path: '/favoritos', label: 'Guardados', icon: 'bookmark-outline', selectedIcon: 'bookmark' },
+  { path: '/cuenta',    label: 'Perfil',    icon: 'person-outline',   selectedIcon: 'person' },
 ];
 
 const FONDERO_TABS: Tab[] = [
-  { path: '/historial', label: 'Menús',     icon: 'restaurant-outline' },
-  { path: '/resenas',   label: 'Actividad', icon: 'heart-outline' },
-  { path: '/perfil',    label: 'Perfil',    icon: 'person-outline' },
+  { path: '/historial', label: 'Menús',     icon: 'restaurant-outline', selectedIcon: 'restaurant' },
+  { path: '/resenas',   label: 'Actividad', icon: 'heart-outline',      selectedIcon: 'heart' },
+  { path: '/perfil',    label: 'Perfil',    icon: 'person-outline',     selectedIcon: 'person' },
 ];
-
-const DARK = {
-  pill: 'rgba(20,21,24,0.78)',
-  border: 'rgba(255,255,255,0.08)',
-  accent: '#FF6A3D',
-  accentBg: 'rgba(255,106,61,0.14)',
-  ink: '#F8F8F5',
-  mute: 'rgba(248,248,245,0.55)',
-};
-const LIGHT = {
-  pill: 'rgba(248,248,245,0.92)',
-  border: 'rgba(255,255,255,0.85)',
-  accent: '#F2612F',
-  accentBg: 'rgba(242,97,47,0.10)',
-  ink: '#111214',
-  mute: '#8A8A85',
-};
 
 export function BottomTabBar({ variant = 'fondero' }: { variant?: 'foodie' | 'fondero' } = {}) {
   const pathname = usePathname();
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const { translateY, reveal } = useTabBarTranslate();
   useEffect(() => {
     reveal();
@@ -74,10 +59,9 @@ export function BottomTabBar({ variant = 'fondero' }: { variant?: 'foodie' | 'fo
   // Antes usaba `variant === 'fondero'` → en modo oscuro + pantalla Foodie la barra
   // salía blanca. `variant` ahora SOLO decide qué tabs se muestran.
   const isDark = theme.isDark;
-  const c = isDark ? DARK : LIGHT;
   const tabs = variant === 'foodie' ? FOODIE_TABS : FONDERO_TABS;
   return (
-    <Animated.View style={[styles.wrap, { bottom: (insets.bottom || 10) + 4 }, translateY ? { transform: [{ translateY }] } : null]}>
+    <Animated.View pointerEvents="box-none" style={[styles.wrap, { bottom: (insets.bottom || 10) + 4 }, translateY ? { transform: [{ translateY }] } : null]}>
       <LinearGradient
         colors={isDark
           ? ['rgba(17,18,20,0)', 'rgba(17,18,20,0.58)']
@@ -86,16 +70,19 @@ export function BottomTabBar({ variant = 'fondero' }: { variant?: 'foodie' | 'fo
         pointerEvents="none"
         style={[styles.readabilityGradient, { bottom: -(insets.bottom + 14) }]}
       />
-      {__DEV__ && <Text style={[styles.version, { color: c.mute }]}>DEV</Text>}
-      <View style={[styles.pill, { backgroundColor: c.pill, borderColor: c.border }]}>
+      <View style={styles.pill} accessibilityRole="tablist">
         <BlurView
-          intensity={isDark ? 40 : 36}
+          intensity={isDark ? 16 : 20}
           tint={isDark ? 'dark' : 'light'}
           style={StyleSheet.absoluteFill}
           pointerEvents="none"
         />
-        {tabs.map(({ path, label, icon }) => {
+        {tabs.map(({ path, label, icon, selectedIcon }) => {
           const active = pathname === path;
+          const hasNews = hasUnseen && !active && (
+            (variant === 'fondero' && path === '/resenas') ||
+            (variant === 'foodie' && path === '/cuenta')
+          );
           const onTabPress = () => {
             Keyboard.dismiss();
             reveal();
@@ -108,17 +95,18 @@ export function BottomTabBar({ variant = 'fondero' }: { variant?: 'foodie' | 'fo
           return (
             <TouchableOpacity
               key={path}
-              accessibilityRole="button"
+              accessibilityRole="tab"
               accessibilityLabel={label}
               accessibilityState={{ selected: active }}
-              style={[styles.tab, active && { backgroundColor: c.accentBg }]}
+              accessibilityValue={hasNews ? { text: 'Novedades' } : undefined}
+              style={[styles.tab, active && styles.tabSelected]}
               activeOpacity={0.7}
-              hitSlop={{ top: 10, bottom: 10, left: 6, right: 6 }}
               onPress={onTabPress}>
-              <Ionicons name={icon} size={22} color={active ? c.accent : c.mute} />
-              {((variant === 'fondero' && path === '/resenas') || (variant === 'foodie' && path === '/cuenta')) && hasUnseen && !active && (
-                <View style={[styles.dot, { backgroundColor: c.accent, borderColor: c.pill }]} />
-              )}
+              <View style={styles.icon} pointerEvents="none">
+                <Ionicons name={active ? selectedIcon : icon} size={23} color={active ? theme.text : theme.textSecondary} />
+                {hasNews && <View style={styles.dot} />}
+              </View>
+              <Text numberOfLines={1} maxFontSizeMultiplier={1.3} style={[styles.label, active && styles.labelSelected]}>{label}</Text>
             </TouchableOpacity>
           );
         })}
@@ -127,24 +115,40 @@ export function BottomTabBar({ variant = 'fondero' }: { variant?: 'foodie' | 'fo
   );
 }
 
-const styles = StyleSheet.create({
-  wrap: { position: 'absolute', left: 0, right: 0, alignItems: 'center', zIndex: 100, elevation: 100 },
-  readabilityGradient: { position: 'absolute', left: 0, right: 0, height: 112 },
-  version: { marginBottom: 5, textAlign: 'center', fontSize: 9, fontWeight: '700', letterSpacing: 0.6 },
+const makeStyles = (t: Theme) => StyleSheet.create({
+  wrap: { position: 'absolute', left: 16, right: 16, alignItems: 'center', zIndex: 100, elevation: 100 },
+  readabilityGradient: { position: 'absolute', left: -16, right: -16, height: 112 },
   pill: {
+    width: 320,
+    maxWidth: '100%',
     flexDirection: 'row',
     gap: 4,
-    paddingVertical: 4.5,
-    paddingHorizontal: 6,
-    borderRadius: 25,
+    padding: 4,
+    borderRadius: 32,
+    backgroundColor: t.glass,
+    borderColor: t.isDark ? t.border : 'rgba(255,255,255,0.18)',
     borderWidth: StyleSheet.hairlineWidth,
     overflow: 'hidden',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.2,
-    shadowRadius: 30,
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: t.isDark ? 0.2 : 0.08,
+    shadowRadius: 32,
     elevation: 8,
   },
-  tab: { width: 49, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
-  dot: { position: 'absolute', top: 6, right: 11, width: 8, height: 8, borderRadius: 4, borderWidth: 1.5 },
+  tab: {
+    flex: 1,
+    minWidth: 48,
+    minHeight: 52,
+    paddingVertical: 6,
+    paddingHorizontal: 4,
+    gap: 2,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tabSelected: { backgroundColor: t.accentSoft },
+  icon: { width: 28, height: 24, alignItems: 'center', justifyContent: 'center' },
+  label: { fontSize: 11, lineHeight: 14, fontWeight: '700', color: t.textSecondary, textAlign: 'center' },
+  labelSelected: { color: t.text },
+  dot: { position: 'absolute', top: -1, right: -2, width: 8, height: 8, borderRadius: 4, backgroundColor: t.accent, borderColor: t.surface, borderWidth: StyleSheet.hairlineWidth },
 });

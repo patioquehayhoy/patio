@@ -1,5 +1,87 @@
 # HANDOFF
 
+## 2026-09-14 — Cierre de consistencia en Guardados y paneles
+
+Esta entrada sustituye las decisiones visuales previas de esta fecha.
+
+- Filtros/Listas son cápsulas compactas de contenido, con iconos de 20 y conteo
+  inline; no se estiran. Guardados concentra selección, vista y orden en un
+  solo ···. Márgenes de 16 y separación del buscador iguales en ambas pantallas.
+- Paneles ajustados a altura medida del contenido, con scroll cuando rebasa
+  el máximo. Cabecera sin títulos raíz ni ×; + a la izquierda y ··· a la
+  derecha. Crear y seleccionar tienen Cancelar contextual.
+- Gestión general y acciones individuales de listas usan el mismo menú
+  anclado, sin alternar menús nativos distintos. Filas de 52, carpeta de 20, nombre y
+  recuento de 13 alineados; check de filtro activo. Círculos de 22 sólo en selección
+  explícita para borrado. Pulsación larga también inicia selección.
+- Guardados: filas continuas, cuadrícula radio 14 más compacta, tipografía e
+  iconos homogéneos; contador sin otra fila de acciones. Índice sólo en A–Z
+  con al menos 20 resultados y 4 letras, fuera de búsqueda y selección.
+- Guardar en listas comparte geometría, + y altura según contenido.
+- Colecciones se refrescan al volver a Guardados para reflejar eliminaciones
+  hechas desde Explorar. Sin cambios de servidor ni publicación.
+- Sin pruebas, lint, typecheck, build ni comprobación visual, por instrucción
+  explícita de Alejandro. No afirmar validación de esta iteración.
+- Último túnel iniciado en la conversación: puerto 8085; no se reinició ni
+  se comprobó durante este ajuste visual.
+
+## 2026-09-14 — Eliminar varias listas
+
+Tus listas ofrece Seleccionar, selección individual/todas y papelera con
+conteo. La selección de borrado es independiente de los filtros. Se pide
+confirmación antes de borrar y se conservan los lugares en Guardados.
+Si falla alguna eliminación, las listas fallidas siguen seleccionadas;
+las eliminadas se retiran del estado y de los filtros activos.
+Sin pruebas ni revisión visual por petición explícita de Alejandro.
+
+## 2026-09-14 — Acciones iconográficas y fila de controles alineada
+
+- Retirados títulos visibles Filtros/Tus listas de las hojas raíz; se conservan
+  Tipo de lugar/Pago al entrar al detalle y etiquetas accesibles.
+- Nueva lista vive como + en la cabecera. El campo sólo aparece al activarlo;
+  se conservan crear, conteos y selección independiente.
+- Cápsulas de 32 pt visibles, toque efectivo de 44 pt. Filtros y Tus listas
+  reparten el ancho disponible hasta el mismo borde del buscador; Guardados
+  reserva la última celda a Vista/Orden, con 8 pt entre controles.
+- Buscador activo e inactivo comparten separación vertical (offset 68).
+- Hueco interpretado como espacio lateral bajo el buscador; se preguntó
+  para distinguirlo de la separación vertical, sin respuesta al implementar.
+
+
+## 2026-09-14 — Filtros compactos y copy declarativo
+
+Corrección de Alejandro: la lista completa de criterios resultaba demasiado
+larga y el encabezado Guardados repetía el contexto de navegación.
+
+- Filtros abre un resumen de cuatro filas: Menú de hoy, Abiertos ahora,
+  Tipo de lugar y Pago. Categoría y pago muestran su selección y abren una
+  subvista dentro de la misma hoja; volver conserva el estado. Limpiar dentro
+  del grupo sólo cambia ese grupo; limpiar el resumen conserva las listas.
+- Altura adaptada al contenido y tamaño de texto; el resumen cabe sin scroll
+  con tamaño normal. Cambiar de grupo no reinicia la entrada del modal.
+- Quitados subtítulos, cabeceras de sección y ayudas redundantes. Tus listas
+  ofrece Nueva lista al principio, seguido por la selección y sus conteos.
+- Retirado el encabezado Guardados. Conteo y Seleccionar quedan en una fila
+  compacta de 44 pt; buscador, filtros y etiqueta de navegación permanecen.
+- TypeScript, lint y **118/118 pruebas** aprobadas. Release check conserva
+  29 correctas y los dos pendientes Android externos conocidos.
+- El túnel de desarrollo en 8084 sigue activo y verificado por /status.
+  La comprobación visual de esta iteración sigue pendiente: el simulador
+  retuvo una conexión anterior y se quedó en splash durante la recarga.
+
+
+## 2026-09-14 — Navegación, búsqueda y selectores coherentes
+
+- Navegación con etiquetas visibles, icono sólido al seleccionar, celdas de 52 pt y roles de pestaña. Conserva rutas y reselección estable.
+- `SearchField` comparte búsqueda, borrado, geometría y tema entre Mapa y Guardados. Se conservan Filtros y Tus listas directos, en la misma posición.
+- Filtros usa grupos de filas con checks: disponibilidad, tipo de lugar y formas de pago. Categorías seleccionadas siguen visibles aunque no existan en la vista actual. Limpiar atributos y limpiar listas permanecen separados.
+- Tus listas muestra conteos y selección por fila. Crear una lista vacía no la activa ni oculta los lugares. Nombres admiten espacios hasta 60 caracteres; no se pueden recuperar espacios eliminados por versiones anteriores.
+- Guardados incorpora título/conteo/Seleccionar dentro del contenido, tarjetas compactas, estados propios explícitos y cuadrícula sin icono gigante vacío. Añadir a listas comparte la gramática de selección y anuncia selección parcial.
+- Menú de hoy ahora depende de una publicación no vacía del día CDMX. Mapa carga menús por lote y Guardados usa el mismo criterio; carta permanente no cuenta como publicación de hoy. La búsqueda respeta también el filtro heredado de categorías guardadas.
+- Verificación: TypeScript, lint y **117/117 pruebas** aprobadas; export JavaScript iOS aprobado. Release check: 29 correctas, 0 errores, dos configuraciones Android externas pendientes ya conocidas.
+- Revisión visual en simulador iPhone 17 Pro completada para Mapa, filtros (selección y limpieza), navegación, tarjetas Guardados y Tus listas. Metro local en 8083 resolvió el túnel antiguo inactivo. No equivale a aprobación en iPhone físico ni a QA exhaustivo de Android/VoiceOver. Sin commit ni publicación.
+
+
 ## ESTADO VIGENTE Y APRENDIZAJES — leer antes de tocar esta barra
 
 Estado actual: Mapa y Guardados comparten **Filtros** y **Tus listas** como

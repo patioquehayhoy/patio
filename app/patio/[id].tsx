@@ -19,6 +19,7 @@ import { getLikedReviewIds, getReviewLikeCounts, toggleReviewLike } from '@/lib/
 import { formatHHMM12 } from '@/lib/horario';
 import { MAP_STYLE_DARK, MAP_STYLE_LIGHT } from '@/lib/map-style';
 import { Fonts, Radius, Spacing, useTheme, type Theme } from '@/lib/theme';
+import { recordRecentPatio } from '@/lib/recent-patios';
 import { noWidow } from '@/lib/typography';
 
 type ReviewThreadReply = {
@@ -253,6 +254,12 @@ export default function PatioDetailScreen() {
     status,
     userReview,
   } = usePatioDetailController(id);
+  const recentRecordedId = useRef<string | null>(null);
+  useEffect(() => {
+    if (!patio || recentRecordedId.current === patio.id) return;
+    recentRecordedId.current = patio.id;
+    void recordRecentPatio(patio, 'opened').catch(() => {});
+  }, [patio]);
   const [hiddenAuthors, setHiddenAuthors] = useState<string[]>([]);
   const reviews = useMemo(() => fetchedReviews.filter((review) => !hiddenAuthors.includes(review.userId)), [fetchedReviews, hiddenAuthors]);
   useEffect(() => { setHiddenAuthors([]); }, [patioId]);

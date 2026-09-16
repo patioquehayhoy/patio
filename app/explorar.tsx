@@ -16,6 +16,7 @@ import { SearchField } from '@/components/search-field';
 import { FoodieFilterBar, matchesFoodieFilters } from '@/components/foodie-filter-bar';
 import { FOODIE_INITIAL_REGION, useFoodieExploreController } from '@/lib/controllers/useFoodieExploreController';
 import { useFoodieFilters } from '@/lib/foodie-filters-context';
+import { recordRecentPatio } from '@/lib/recent-patios';
 import { noWidow } from '@/lib/typography';
 import { Fonts, Radius, useTheme, type Theme } from '@/lib/theme';
 import { createCollection, getCollections, type PatioCollection } from '@/lib/collections';
@@ -1219,6 +1220,7 @@ export default function ExplorarScreen() {
                       style={s.patioRow}
                       onPress={() => {
                         Keyboard.dismiss();
+                        void recordRecentPatio(match.patio, 'searched').catch(() => {});
                         router.push(`/patio/${match.patio.id}`);
                       }}
                       onPressIn={() => {

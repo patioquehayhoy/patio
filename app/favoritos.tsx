@@ -1,20 +1,21 @@
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import { router, Stack, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Animated, ScrollView, Share, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { Alert, ScrollView, Share, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { AlphabetIndex } from '@/components/alphabet-index';
 import { EMPTY_FOODIE_FILTERS, FoodieFilterBar, matchesFoodieFilters } from '@/components/foodie-filter-bar';
+import { SelectionActions } from '@/components/selection-actions';
 import { SaveToListSheet } from '@/components/save-to-list-sheet';
 import { SearchField } from '@/components/search-field';
 import { todayDish, useFavoritePatiosController } from '@/lib/controllers/useFavoritePatiosController';
 import { useFoodieFilters } from '@/lib/foodie-filters-context';
 import { Fonts, Radius, useTheme, type Theme } from '@/lib/theme';
+import { recordRecentPatio } from '@/lib/recent-patios';
 import { noWidow } from '@/lib/typography';
 import { estaAbiertoAhora } from '@/lib/horario';
 import { createCollection, getCollections, publishCollection, setPatiosInCollection, type PatioCollection } from '@/lib/collections';
@@ -36,7 +37,7 @@ function makeStyles(t: Theme) {
     controlsClip: { overflow: 'hidden' },
     filterWrap: { paddingTop: 10, paddingBottom: 4, gap: 4 },
     searchWrap: { marginHorizontal: 16 },
-    libraryHeader: { paddingHorizontal: 16, minHeight: 28, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
+    libraryHeader: { paddingHorizontal: 16, minHeight: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
     libraryCount: { flex: 1, fontSize: 13, lineHeight: 17, color: t.textSecondary },
 
     // Selección rápida: link a la derecha, arriba del filtro — mismo lugar
@@ -106,16 +107,8 @@ export default function FavoritosScreen() {
   const sectionOffsets = useRef<Record<string, number>>({});
   const [activeLetter, setActiveLetter] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const controlsVisibility = useRef(new Animated.Value(1)).current;
-  const [controlsHeight, setControlsHeight] = useState(112);
-  const controlsShown = useRef(true);
-  const lastScrollY = useRef(0);
   const { patios, metaById, removeLocally } = useFavoritePatiosController();
-  const setControlsShown = (shown: boolean) => {
-    if (controlsShown.current === shown) return;
-    controlsShown.current = shown;
-    Animated.timing(controlsVisibility, { toValue: shown ? 1 : 0, duration: 200, useNativeDriver: false }).start();
-  };
+
 
   // Filtros: pensados para cuando los guardados crecen (~70 items). 'hoy'
   // filtra por menú publicado; el resto son las categorías reales de lo
@@ -134,6 +127,7 @@ export default function FavoritosScreen() {
   const [selecting, setSelecting] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [saveSheetVisible, setSaveSheetVisible] = useState(false);
+  const [saveMode, setSaveMode] = useState<'add' | 'move'>('add');
   const selectedActionPending = useRef(false);
   const shareDraft = useRef<PatioCollection | null>(null);
 
@@ -284,7 +278,8 @@ export default function FavoritosScreen() {
   const SORT_LABELS: Record<typeof sortMode, string> = { recent: 'Más reciente', rating: 'Tu calificación', az: 'Alfabético A–Z' };
   const sections = useMemo(() => sortMode === 'az' ? alphabeticalSections(filtered) : [], [filtered, sortMode]);
   const letters = sections.map((section) => section.letter);
-  const showAlphabet = viewMode === 'list' && sortMode === 'az' && !selecting && !normalizedQuery && filtered.length >= 20 && letters.length >= 4;
+  const showAlphabet = viewMode === 'list' && sortMode === 'az' && !normalizedQuery && filtered.length >= 20 && letters.length >= 4;
+  const moveIds = [...new Set(collections.filter((item) => filters.collectionIds.includes(item.id)).flatMap((item) => item.patioIds.filter((id) => selectedIds.has(id))))];
   const gridWidth = fontScale > 1.4 ? width - 32 : (width - 44) / 2;
   const jumpToLetter = (letter: string) => {
     const offset = sectionOffsets.current[letter];
@@ -305,22 +300,19 @@ export default function FavoritosScreen() {
       <TouchableOpacity
         key={patio.id}
         style={[viewMode === 'grid' ? [s.gridCard, { width: gridWidth }] : s.card, selecting && isSelected && s.cardSelected]}
-        onPress={() => (selecting ? toggleSelect(patio.id) : router.push(`/patio/${patio.id}`))}
+        onPress={() => { if (selecting) toggleSelect(patio.id); else { if (normalizedQuery) void recordRecentPatio(patio, 'searched').catch(() => {}); router.push(`/patio/${patio.id}`); } }}
         onLongPress={() => { if (!selecting) { Haptics.selectionAsync().catch(() => {}); setSelecting(true); toggleSelect(patio.id); } }}
         activeOpacity={0.82}
         accessibilityRole="button"
         accessibilityState={selecting ? { selected: isSelected } : undefined}
         accessibilityLabel={selecting ? `${isSelected ? 'Quitar de la selección' : 'Seleccionar'} ${patio.name}` : `Abrir ${patio.name}`}>
-        {selecting && viewMode === 'list' && (
-          <Ionicons name={isSelected ? 'checkmark-circle' : 'ellipse-outline'} size={22} color={isSelected ? theme.accent : theme.textMute} />
-        )}
         {viewMode === 'grid' ? (
           <View style={s.gridTop}>
             <View style={s.thumb}><Ionicons name="restaurant-outline" size={18} color={theme.textSecondary} /></View>
             {selecting && <Ionicons name={isSelected ? 'checkmark-circle' : 'ellipse-outline'} size={22} color={isSelected ? theme.accent : theme.textMute} />}
           </View>
         ) : (
-          <View style={s.thumb}><Ionicons name="restaurant-outline" size={18} color={theme.textSecondary} /></View>
+          <View style={s.thumb}><Ionicons name={selecting ? isSelected ? 'checkmark-circle' : 'ellipse-outline' : 'restaurant-outline'} size={selecting ? 22 : 18} color={selecting && isSelected ? theme.accent : theme.textSecondary} /></View>
         )}
         <View style={s.body}>
           <View style={s.nameRow}>
@@ -353,25 +345,12 @@ export default function FavoritosScreen() {
       <Stack.Screen options={{ headerShown: false }} />
         {patios.length > 0 && (
           <>
-            {/* Seleccionar junto al conteo o mantener presionado un lugar
-                abre el mismo modo. Durante la selección, Cancelar reemplaza
-                los controles de búsqueda/filtros y aparecen las acciones en lote. */}
-            {selecting ? (
-              <View style={s.selectRow}>
-                <Text style={s.selectTitle}>{noWidow(`${selectedIds.size} ${selectedIds.size === 1 ? 'seleccionado' : 'seleccionados'}`)}</Text>
-                <TouchableOpacity onPress={exitSelecting} accessibilityRole="button" accessibilityLabel="Cancelar selección" hitSlop={8} style={s.selectToggle}>
-                  <Text style={[s.selectToggleText, { color: theme.text }]}>Cancelar</Text>
-                </TouchableOpacity>
-              </View>
-            ) : (
-              <Animated.View style={[s.controlsClip, { height: controlsVisibility.interpolate({ inputRange: [0, 1], outputRange: [0, controlsHeight] }), opacity: controlsVisibility }]}>
-              <View style={s.filterWrap} onLayout={(event) => setControlsHeight(event.nativeEvent.layout.height)}>
+              <View style={s.filterWrap}>
                 <SearchField
                   value={searchQuery}
                   onChangeText={setSearchQuery}
                   placeholder="Buscar en Guardados"
                   accessibilityLabel="Buscar en Guardados"
-                  onFocus={() => setControlsShown(true)}
                   style={s.searchWrap}
                 />
                 <FoodieFilterBar
@@ -384,7 +363,7 @@ export default function FavoritosScreen() {
                   onCollectionRemoved={(id) => setCollections((prev) => prev.filter((item) => item.id !== id))}
                   viewMode={viewMode}
                   onViewModeChange={changeViewMode}
-                  libraryActions={[{ label: 'Seleccionar lugares', icon: 'checkmark-circle-outline', afterDismiss: true, onPress: () => { Haptics.selectionAsync().catch(() => {}); setSelecting(true); } }]}
+                  libraryActions={[{ label: selecting ? 'Terminar selección' : 'Seleccionar lugares', icon: 'checkmark-circle-outline', afterDismiss: true, onPress: () => { Haptics.selectionAsync().catch(() => {}); if (selecting) exitSelecting(); else setSelecting(true); } }]}
                   organizationOptions={(['recent', 'rating', 'az'] as const).map((mode) => ({
                     label: SORT_LABELS[mode],
                     sectionLabel: mode === 'recent' ? 'Orden' : undefined,
@@ -395,8 +374,6 @@ export default function FavoritosScreen() {
                   }))}
                 />
               </View>
-              </Animated.View>
-            )}
           </>
         )}
       <View style={s.viewport}>
@@ -405,12 +382,6 @@ export default function FavoritosScreen() {
         keyboardDismissMode="on-drag"
         scrollEventThrottle={32}
         onScroll={(event) => {
-          const nextY = Math.max(0, event.nativeEvent.contentOffset.y);
-          const delta = nextY - lastScrollY.current;
-          if (nextY <= 4 || searchQuery.trim()) setControlsShown(true);
-          else if (delta > 4) setControlsShown(false);
-          else if (delta < -4) setControlsShown(true);
-          lastScrollY.current = nextY;
           if (!showAlphabet) return;
           const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
           const y = contentOffset.y;
@@ -421,10 +392,17 @@ export default function FavoritosScreen() {
           const section = [...sections].reverse().find(({ letter }) => (sectionOffsets.current[letter] ?? Infinity) <= y + 8);
           if (section) setActiveLetter(section.letter);
         }}>
-        {!selecting && patios.length > 0 && <View style={s.libraryHeader}>
-          <Text style={s.libraryCount}>{noWidow(filtered.length === patios.length
-            ? `${patios.length} ${patios.length === 1 ? 'lugar' : 'lugares'}`
-            : `${filtered.length} de ${patios.length} lugares`)}</Text>
+        {patios.length > 0 && <View style={s.libraryHeader}>
+          <Text style={s.libraryCount}>{noWidow(selecting
+            ? `${selectedIds.size} ${selectedIds.size === 1 ? 'seleccionado' : 'seleccionados'}`
+            : filtered.length === patios.length ? `${patios.length} ${patios.length === 1 ? 'lugar' : 'lugares'}` : `${filtered.length} de ${patios.length} lugares`)}</Text>
+          {selecting && <>
+            <TouchableOpacity disabled={!filtered.length} accessibilityRole="checkbox" accessibilityLabel="Seleccionar todos los resultados" accessibilityState={{ checked: filtered.length > 0 && filtered.every((item) => selectedIds.has(item.id)) }} style={s.selectToggle}
+              onPress={() => setSelectedIds((current) => { const next = new Set(current); const all = filtered.every((item) => current.has(item.id)); filtered.forEach((item) => all ? next.delete(item.id) : next.add(item.id)); return next; })}>
+              <Text style={s.selectToggleText}>{filtered.length > 0 && filtered.every((item) => selectedIds.has(item.id)) ? 'Ninguno' : 'Todos'}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={exitSelecting} style={s.selectToggle} accessibilityRole="button" accessibilityLabel="Cancelar selección"><Text style={s.selectToggleText}>Cancelar</Text></TouchableOpacity>
+          </>}
         </View>}
         {patios.length === 0 ? (
           <View style={s.empty}>
@@ -459,47 +437,22 @@ export default function FavoritosScreen() {
       </ScrollView>
       {showAlphabet && <View pointerEvents="box-none" style={[StyleSheet.absoluteFillObject, { bottom: insets.bottom + 90 }]}><AlphabetIndex letters={letters} activeLetter={activeLetter || letters[0]} onSelect={jumpToLetter} /></View>}
       </View>
-      {selecting ? (
-        <View style={[s.actionBar, { paddingBottom: insets.bottom + 10 }]}>
-          <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
-          <View style={s.actionButtons}>
-            <TouchableOpacity
-              disabled={selectedIds.size === 0}
-              onPress={() => setSaveSheetVisible(true)}
-              accessibilityRole="button"
-              accessibilityLabel="Agregar a una lista"
-              style={[s.actionBtn, selectedIds.size === 0 && s.actionBtnDisabled]}>
-              <Ionicons name="folder-outline" size={20} color={theme.text} />
-              <Text style={[s.actionBtnText, { color: theme.text }]}>{noWidow("Añadir a lista")}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              disabled={selectedIds.size === 0}
-              onPress={shareSelected}
-              accessibilityRole="button"
-              accessibilityLabel="Compartir selección"
-              style={[s.actionBtn, selectedIds.size === 0 && s.actionBtnDisabled]}>
-              <Ionicons name="share-outline" size={20} color={theme.text} />
-              <Text style={[s.actionBtnText, { color: theme.text }]}>Compartir</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              disabled={selectedIds.size === 0}
-              onPress={removeSelected}
-              accessibilityRole="button"
-              accessibilityLabel="Quitar de Guardados"
-              style={[s.actionBtn, selectedIds.size === 0 && s.actionBtnDisabled]}>
-              <Ionicons name="trash-outline" size={20} color={theme.text} />
-              <Text style={[s.actionBtnText, { color: theme.text }]}>Quitar</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      ) : (
-        <BottomTabBar variant="foodie" />
-      )}
+      {selecting ? <View style={{ position: 'absolute', left: 16, right: 16, bottom: insets.bottom + 8 }}>
+        <SelectionActions actions={[
+          { label: 'Añadir', icon: 'folder-outline', disabled: !selectedIds.size, onPress: () => { setSaveMode('add'); setSaveSheetVisible(true); } },
+          { label: 'Mover', icon: 'folder-open-outline', disabled: !moveIds.length, onPress: () => { setSaveMode('move'); setSaveSheetVisible(true); } },
+          { label: 'Compartir', icon: 'share-outline', disabled: !selectedIds.size, onPress: shareSelected },
+          { label: 'Quitar', icon: 'trash-outline', disabled: !selectedIds.size, onPress: removeSelected },
+        ]} />
+      </View> : <BottomTabBar variant="foodie" />}
       <SaveToListSheet
         visible={saveSheetVisible}
-        patioIds={Array.from(selectedIds)}
+        patioIds={saveMode === 'move' ? moveIds : Array.from(selectedIds)}
         patioName=""
-        onDismiss={() => { setSaveSheetVisible(false); exitSelecting(); }}
+        mode={saveMode}
+        sourceCollectionIds={filters.collectionIds}
+        onChanged={() => { getCollections().then(setCollections).catch(() => {}); }}
+        onDismiss={() => setSaveSheetVisible(false)}
       />
     </View>
   );

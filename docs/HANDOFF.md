@@ -1,5 +1,28 @@
 # HANDOFF
 
+## 2026-09-16 — Edición estable, teclado y actividad reciente
+
+- Guardados mantiene buscador/filtros montados y visibles durante edición;
+  contador/Todos/Cancelar usan la misma fila y los checks sustituyen la
+  miniatura sin desplazar el texto. Se retira el colapso del buscador al scroll.
+- SelectionActions comparte barra inferior compacta. En las listas del mapa
+  y Guardados: fijar, compartir, renombrar una, mover contenido y eliminar
+  varias. Mover pide destino y confirmación; favoritos y otras listas se
+  conservan. En Guardados, mover opera desde las listas usadas como filtro.
+- FilterSheet mantiene su altura al seleccionar; el editor queda fuera del
+  scroll. useSheetKeyboard posiciona el panel sobre el teclado por screenY,
+  evitando contar dos veces el resize de Android. SaveToListSheet usa el mismo
+  cálculo y permite añadir o mover; errores/busy impiden escrituras duplicadas.
+- «Con menú de hoy» y «Abiertos ahora» son filas de selección discretas,
+  desactivadas de origen, sin switches con gran peso visual.
+- Recientes guarda hasta 40 lugares consultados, abiertos desde búsqueda o
+  marcados Ya fui desde esta iteración. No inventa visitas ni fechas antiguas.
+  Historial local por cuenta, borrable; vuelve al detalle tras cerrar el modal.
+- Guardados/Mapa comparten la entrada Recientes; en anchuras pequeñas queda
+  su icono de reloj con etiqueta accesible para que la fila siga compacta.
+- Sin pruebas, lint, typecheck, build ni comprobación visual, por instrucción
+  explícita de Alejandro. Cambios de esta tanda sin commit/push.
+
 ## 2026-09-14 — Cierre de consistencia en Guardados y paneles
 
 Esta entrada sustituye las decisiones visuales previas de esta fecha.

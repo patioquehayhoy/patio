@@ -2,199 +2,132 @@ import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  Animated,
-  Dimensions,
-  KeyboardAvoidingView,
-  Modal,
-  PanResponder,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  View,
-} from 'react-native';
+import { Alert, Animated, Dimensions, Keyboard, Modal, PanResponder, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-import { createCollection, getCollections, setPatiosInCollection, togglePatioInCollection, type PatioCollection } from '@/lib/collections';
+import { createCollection, getCollections, movePatiosToCollection, setPatiosInCollection, type PatioCollection } from '@/lib/collections';
+import { useSheetKeyboard } from '@/lib/use-sheet-keyboard';
 import { useTheme, type Theme } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
 
 const SCREEN_HEIGHT = Dimensions.get('screen').height;
-
 type SaveToListSheetProps = {
-  visible: boolean;
-  patioIds: string[];
-  patioName: string;
-  onDismiss: () => void;
+  visible: boolean; patioIds: string[]; patioName: string; onDismiss: () => void;
+  mode?: 'add' | 'move'; sourceCollectionIds?: string[]; onChanged?: () => void;
 };
 
-export function SaveToListSheet({ visible, patioIds, patioName, onDismiss }: SaveToListSheetProps) {
+export function SaveToListSheet({ visible, patioIds, patioName, onDismiss, mode = 'add', sourceCollectionIds = [], onChanged }: SaveToListSheetProps) {
   const { theme } = useTheme();
   const s = makeStyles(theme);
   const insets = useSafeAreaInsets();
+  const { viewportHeight, keyboardInset, keyboardVisible } = useSheetKeyboard();
   const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const [collections, setCollections] = useState<PatioCollection[]>([]);
   const [newTitle, setNewTitle] = useState('');
   const [creating, setCreating] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const pending = useRef(false);
+  const [destinationId, setDestinationId] = useState<string | null>(null);
   const [listContentHeight, setListContentHeight] = useState(0);
-
-  const load = useCallback(() => {
-    getCollections().then(setCollections).catch(() => {});
-  }, []);
-
+  const createdDraft = useRef<PatioCollection | null>(null);
+  const load = useCallback(() => getCollections().then(setCollections), []);
   useEffect(() => {
     if (!visible) return;
-    load();
-    setNewTitle('');
-    setCreating(false);
+    load().catch(() => Alert.alert(noWidow('No pudimos cargar las listas')));
+    setNewTitle(''); setCreating(false); setDestinationId(null); createdDraft.current = null;
     translateY.setValue(SCREEN_HEIGHT);
     Animated.spring(translateY, { toValue: 0, stiffness: 380, damping: 34, mass: 0.9, useNativeDriver: true }).start();
   }, [load, translateY, visible]);
-
-  const dismiss = useCallback(() => {
-    Animated.timing(translateY, { toValue: SCREEN_HEIGHT, duration: 220, useNativeDriver: true }).start(() => {
-      onDismiss();
-    });
-  }, [onDismiss, translateY]);
-
+  const dismiss = () => {
+    if (pending.current) return;
+    Keyboard.dismiss();
+    Animated.timing(translateY, { toValue: SCREEN_HEIGHT, duration: 220, useNativeDriver: true }).start(({ finished }) => { if (finished) onDismiss(); });
+  };
+  const dismissRef = useRef(dismiss); dismissRef.current = dismiss;
   const pan = useRef(PanResponder.create({
-    onMoveShouldSetPanResponder: (_event, gesture) => gesture.dy > 8 && Math.abs(gesture.dy) > Math.abs(gesture.dx),
+    onMoveShouldSetPanResponder: (_event, gesture) => !pending.current && gesture.dy > 8 && Math.abs(gesture.dy) > Math.abs(gesture.dx),
     onPanResponderMove: (_event, gesture) => translateY.setValue(Math.max(0, gesture.dy)),
     onPanResponderRelease: (_event, gesture) => {
-      if (gesture.dy > 70 || gesture.vy > 0.9) {
-        dismiss();
-        return;
-      }
-      Animated.spring(translateY, { toValue: 0, stiffness: 380, damping: 34, useNativeDriver: true }).start();
+      if (gesture.dy > 70 || gesture.vy > 0.9) dismissRef.current();
+      else Animated.spring(translateY, { toValue: 0, stiffness: 380, damping: 34, useNativeDriver: true }).start();
     },
-    onPanResponderTerminate: () => {
-      Animated.spring(translateY, { toValue: 0, stiffness: 380, damping: 34, useNativeDriver: true }).start();
-    },
+    onPanResponderTerminate: () => Animated.spring(translateY, { toValue: 0, stiffness: 380, damping: 34, useNativeDriver: true }).start(),
   })).current;
-
-  const toggleCollection = async (collection: PatioCollection) => {
-    const allIn = patioIds.every((id) => collection.patioIds.includes(id));
-    const next = patioIds.length > 1
-      ? await setPatiosInCollection(collection.id, patioIds, !allIn)
-      : await togglePatioInCollection(collection.id, patioIds[0]);
-    if (!next) return;
-    setCollections((current) => current.map((item) => item.id === next.id ? next : item));
-    Haptics.selectionAsync().catch(() => {});
+  const run = async (operation: () => Promise<void>) => {
+    if (pending.current || !patioIds.length) return;
+    pending.current = true; setBusy(true);
+    try { await operation(); }
+    catch (error) { Alert.alert(noWidow('No pudimos guardar el cambio'), noWidow(error instanceof Error ? error.message : 'Inténtalo de nuevo.')); }
+    finally { pending.current = false; setBusy(false); }
   };
-
-  const handleCreate = async () => {
-    const title = newTitle.trim();
-    if (!title) return;
-    const collection = await createCollection(title);
-    const selected = patioIds.length > 1
-      ? await setPatiosInCollection(collection.id, patioIds, true)
-      : await togglePatioInCollection(collection.id, patioIds[0]);
-    if (selected) setCollections((current) => [selected, ...current]);
-    setNewTitle('');
-    setCreating(false);
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+  const choose = (collection: PatioCollection) => {
+    if (mode === 'move') { setDestinationId(collection.id); return; }
+    void run(async () => {
+      const next = await setPatiosInCollection(collection.id, patioIds, !patioIds.every((id) => collection.patioIds.includes(id)));
+      if (!next) throw new Error('La lista ya no existe.');
+      setCollections((current) => current.map((item) => item.id === next.id ? next : item));
+      onChanged?.(); Haptics.selectionAsync().catch(() => {});
+    });
   };
-
-  return (
-    <Modal visible={visible} transparent animationType="none" statusBarTranslucent onRequestClose={dismiss}>
-      <KeyboardAvoidingView style={s.overlay} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <TouchableWithoutFeedback onPress={dismiss} accessibilityRole="button" accessibilityLabel="Cerrar">
-          <View style={StyleSheet.absoluteFillObject} />
-        </TouchableWithoutFeedback>
-        <Animated.View accessibilityViewIsModal onAccessibilityEscape={dismiss} style={[s.sheet, { paddingBottom: Math.max(insets.bottom, 16), transform: [{ translateY }] }]}>
-          <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
-          <View pointerEvents="none" style={[StyleSheet.absoluteFillObject, s.sheetTint]} />
-          <View {...pan.panHandlers} style={s.handleArea}>
-            <View style={s.handle} />
-          </View>
-
-          <View style={s.header}>
-            <TouchableOpacity
-              accessibilityLabel="Nueva lista"
-              accessibilityRole="button"
-              accessibilityState={{ disabled: creating }}
-              disabled={creating}
-              onPress={() => setCreating(true)}
-              style={[s.headerIcon, creating && s.disabled]}>
-              <Ionicons name="add" size={20} color={theme.text} />
-            </TouchableOpacity>
-            <Text style={s.context} numberOfLines={1}>
-              {noWidow(patioIds.length > 1 ? `${patioIds.length} lugares` : patioName)}
-            </Text>
-            <TouchableOpacity accessibilityLabel="Terminar" accessibilityRole="button" onPress={dismiss} style={s.closeButton}>
-              <Text style={s.closeText}>Listo</Text>
-            </TouchableOpacity>
-          </View>
-
-          <ScrollView
-            style={[s.list, { height: Math.min(listContentHeight || Math.max(1, collections.length + Number(creating)) * 52, 310) }]}
-            onContentSizeChange={(_width, height) => setListContentHeight(height)}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled">
-            {creating && (
-              <View style={s.row}>
-                <View style={s.iconSlot}><Ionicons name="list-outline" size={20} color={theme.textSecondary} /></View>
-                <TextInput
-                  autoFocus
-                  value={newTitle}
-                  onChangeText={setNewTitle}
-                  maxLength={60}
-                  accessibilityLabel="Nombre de la lista"
-                  onSubmitEditing={handleCreate}
-                  placeholder="Nombre de la lista"
-                  placeholderTextColor={theme.textMute}
-                  returnKeyType="done"
-                  autoCapitalize="words"
-                  style={s.input}
-                />
-                <TouchableOpacity
-                  disabled={!newTitle.trim()}
-                  onPress={handleCreate}
-                  style={[s.createButton, !newTitle.trim() && s.disabled]}
-                  accessibilityRole="button"
-                  accessibilityLabel="Crear lista"
-                  accessibilityState={{ disabled: !newTitle.trim() }}>
-                  <Text style={s.createText}>Crear</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-            {/* Esta hoja SOLO decide en qué listas vive el lugar — renombrar,
-                compartir y eliminar la lista viven en el panel "Listas" del
-                filtro (foodie-filter-bar.tsx), que es donde de verdad se
-                navegan/administran las listas como destino propio. */}
-            {collections.map((collection, index) => {
-              const selected = patioIds.every((id) => collection.patioIds.includes(id));
-              const partial = !selected && patioIds.some((id) => collection.patioIds.includes(id));
-              return (
-                <TouchableOpacity
-                  key={collection.id}
-                  accessibilityRole="checkbox"
-                  accessibilityState={{ checked: partial ? 'mixed' : selected }}
-                  accessibilityLabel={`${collection.title}, ${collection.patioIds.length} ${collection.patioIds.length === 1 ? 'lugar' : 'lugares'}`}
-                  onPress={() => toggleCollection(collection)}
-                  style={[s.row, (creating || index > 0) && s.divider]}>
-                  <Ionicons name={selected ? 'checkmark-circle' : partial ? 'remove-circle-outline' : 'ellipse-outline'} size={22} color={selected || partial ? theme.accent : theme.textMute} />
-                  <View style={s.rowCopy}>
-                    <Text style={s.rowTitle} numberOfLines={2}>{noWidow(collection.title)}</Text>
-                  </View>
-                  <Text style={s.rowMeta}>{collection.patioIds.length}</Text>
-                </TouchableOpacity>
-              );
-            })}
-            {!creating && collections.length === 0 && (
-              <View style={s.empty}>
-                <Text style={s.rowMeta}>{noWidow('Sin listas')}</Text>
-              </View>
-            )}
-          </ScrollView>
-        </Animated.View>
-      </KeyboardAvoidingView>
-    </Modal>
-  );
+  const handleCreate = () => {
+    if (!newTitle.trim()) return;
+    void run(async () => {
+      const draft = createdDraft.current ?? await createCollection(newTitle.trim());
+      createdDraft.current = draft;
+      if (mode === 'add') {
+        const next = await setPatiosInCollection(draft.id, patioIds, true);
+        if (!next) throw new Error('La lista ya no existe.');
+      } else setDestinationId(draft.id);
+      await load(); onChanged?.();
+      setNewTitle(''); setCreating(false); createdDraft.current = null; Keyboard.dismiss();
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+    });
+  };
+  const move = () => {
+    if (!destinationId) return;
+    void run(async () => {
+      await movePatiosToCollection(patioIds, sourceCollectionIds, destinationId);
+      onChanged?.(); Keyboard.dismiss(); onDismiss();
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+    });
+  };
+  const choices = mode === 'move' ? collections.filter((item) => !sourceCollectionIds.includes(item.id)) : collections;
+  const bottomPadding = keyboardVisible ? 8 : Math.max(insets.bottom, 16);
+  const maxListHeight = Math.max(44, Math.min(310, viewportHeight - insets.top - 12 - 20 - 44 - (creating ? 64 : 0) - (mode === 'move' ? 56 : 0) - bottomPadding - 8));
+  return <Modal visible={visible} transparent animationType="none" statusBarTranslucent onRequestClose={dismiss}>
+    <View style={[s.overlay, { paddingBottom: keyboardInset }]}>
+      <TouchableWithoutFeedback onPress={dismiss} accessibilityRole="button" accessibilityLabel="Cerrar"><View style={StyleSheet.absoluteFillObject} /></TouchableWithoutFeedback>
+      <Animated.View accessibilityViewIsModal onAccessibilityEscape={dismiss} style={[s.sheet, { maxHeight: Math.max(120, viewportHeight - insets.top - 12), paddingBottom: bottomPadding, transform: [{ translateY }] }]}>
+        <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
+        <View pointerEvents="none" style={[StyleSheet.absoluteFillObject, s.sheetTint]} />
+        <View {...pan.panHandlers} style={s.handleArea}><View style={s.handle} /></View>
+        <View style={s.header}>
+          <TouchableOpacity accessibilityLabel={creating ? 'Cancelar nueva lista' : 'Nueva lista'} accessibilityRole="button" disabled={busy} onPress={() => { setCreating(!creating); if (creating) Keyboard.dismiss(); }} style={s.headerIcon}>
+            <Ionicons name={creating ? 'chevron-back' : 'add'} size={20} color={theme.text} />
+          </TouchableOpacity>
+          <Text style={s.context} numberOfLines={1}>{noWidow(mode === 'move' ? `Mover ${patioIds.length} ${patioIds.length === 1 ? 'lugar' : 'lugares'}` : patioIds.length > 1 ? `${patioIds.length} lugares` : patioName)}</Text>
+          <TouchableOpacity accessibilityRole="button" onPress={dismiss} disabled={busy} style={s.closeButton}><Text style={s.closeText}>{mode === 'move' ? 'Cancelar' : 'Listo'}</Text></TouchableOpacity>
+        </View>
+        {creating && <View style={[s.row, { backgroundColor: theme.surface, borderRadius: 14, marginTop: 8 }]}>
+          <TextInput autoFocus value={newTitle} editable={!busy} onChangeText={setNewTitle} maxLength={60} accessibilityLabel="Nombre de la lista" onSubmitEditing={handleCreate} placeholder="Nombre de la lista" placeholderTextColor={theme.textMute} returnKeyType="done" autoCapitalize="words" style={s.input} />
+          <TouchableOpacity disabled={!newTitle.trim() || busy} onPress={handleCreate} style={[s.createButton, (!newTitle.trim() || busy) && s.disabled]} accessibilityRole="button" accessibilityLabel="Crear lista"><Text style={s.createText}>{busy ? 'Creando…' : 'Crear'}</Text></TouchableOpacity>
+        </View>}
+        <ScrollView style={[s.list, { height: Math.min(listContentHeight || Math.max(1, choices.length) * 52, maxListHeight), maxHeight: maxListHeight }]}
+          onContentSizeChange={(_width, height) => setListContentHeight(height)} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+          {choices.map((collection, index) => {
+            const selected = mode === 'move' ? collection.id === destinationId : patioIds.length > 0 && patioIds.every((id) => collection.patioIds.includes(id));
+            const partial = mode === 'add' && !selected && patioIds.some((id) => collection.patioIds.includes(id));
+            return <TouchableOpacity key={collection.id} disabled={busy} accessibilityRole={mode === 'move' ? 'radio' : 'checkbox'} accessibilityState={{ checked: partial ? 'mixed' : selected, disabled: busy }}
+              accessibilityLabel={`${collection.title}, ${collection.patioIds.length} lugares`} onPress={() => choose(collection)} style={[s.row, index > 0 && s.divider]}>
+              <Ionicons name={selected ? 'checkmark-circle' : partial ? 'remove-circle-outline' : 'ellipse-outline'} size={22} color={selected || partial ? theme.accent : theme.textMute} />
+              <View style={s.rowCopy}><Text style={s.rowTitle} numberOfLines={2}>{noWidow(collection.title)}</Text></View><Text style={s.rowMeta}>{collection.patioIds.length}</Text>
+            </TouchableOpacity>;
+          })}
+          {!choices.length && <View style={s.empty}><Text style={s.rowMeta}>{noWidow(mode === 'move' ? 'Crea una lista de destino con +' : 'Sin listas')}</Text></View>}
+        </ScrollView>
+        {mode === 'move' && <TouchableOpacity disabled={!destinationId || busy} onPress={move} accessibilityRole="button" style={[s.createButton, { marginTop: 8 }, (!destinationId || busy) && s.disabled]}><Text style={s.createText}>{busy ? 'Moviendo…' : 'Mover'}</Text></TouchableOpacity>}
+      </Animated.View>
+    </View>
+  </Modal>;
 }
 
 function makeStyles(t: Theme) {

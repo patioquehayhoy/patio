@@ -2,13 +2,16 @@ import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import { useEffect, useRef, useState } from 'react';
-import { Alert, Animated, Dimensions, Keyboard, KeyboardAvoidingView, Modal, PanResponder, Platform, ScrollView, Share, StyleSheet, Switch, Text, TextInput, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { Alert, Animated, Dimensions, Keyboard, KeyboardAvoidingView, Modal, PanResponder, Platform, ScrollView, Share, StyleSheet, Text, TextInput, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ACTION_SHEET_MENU_WIDTH, ActionSheet, type ActionSheetOption } from '@/components/action-sheet';
-import { createCollection, deleteCollection, normalizeCollectionTitle, publishCollection, renameCollection, type PatioCollection } from '@/lib/collections';
+import { createCollection, deleteCollection, movePatiosToCollection, normalizeCollectionTitle, publishCollection, renameCollection, setCollectionsPinned, type PatioCollection } from '@/lib/collections';
 import { useTheme, type Theme } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
+import { useSheetKeyboard } from '@/lib/use-sheet-keyboard';
+import { RecentPatiosButton } from '@/components/recent-patios-sheet';
+import { SelectionActions } from '@/components/selection-actions';
 
 // "Filtros" combina ATRIBUTOS del lugar (categoría, pagos) — se suman entre
 // sí, como Google Maps. "Listas" cambia a qué colecciones te asomas — varias
@@ -182,41 +185,31 @@ const CLEAR_HIT_SLOP = { top: 13, bottom: 13, left: 8, right: 4 };
 // Explorar — un solo lenguaje de movimiento para los tres sheets de la
 // pantalla. El resumen cabe sin scroll y cada grupo ocupa una subvista
 // de la misma hoja. La altura se adapta al contenido y al tamaño de texto.
-function FilterSheet({ visible, onClose, title, onClear, onBack, hideTitle, onCreate, headerActions, footer, selectionMode, preferredHeight, children, overlay, s, theme }: {
+function FilterSheet({ visible, onClose, title, onClear, onBack, hideTitle, onCreate, headerActions, footer, selectionMode, editing, editor, preferredHeight, children, overlay, s, theme }: {
   visible: boolean; onClose: () => void; title: string; onClear?: () => void; onBack?: () => void;
-  preferredHeight: number; hideTitle?: boolean; onCreate?: () => void; headerActions?: React.ReactNode; footer?: React.ReactNode; selectionMode?: boolean;
+  preferredHeight: number; hideTitle?: boolean; onCreate?: () => void; headerActions?: React.ReactNode; footer?: React.ReactNode; selectionMode?: boolean; editing?: boolean; editor?: React.ReactNode;
   children: React.ReactNode; overlay?: React.ReactNode; s: ReturnType<typeof styles>; theme: ReturnType<typeof useTheme>['theme'];
 }) {
   const insets = useSafeAreaInsets();
   const { height: screenHeight, fontScale } = useWindowDimensions();
+  const { keyboardInset, keyboardVisible, viewportHeight } = useSheetKeyboard();
+  const [editorHeight, setEditorHeight] = useState(88);
   const [contentSize, setContentSize] = useState({ title: '', height: 0 });
   const [headerHeight, setHeaderHeight] = useState(24);
   const [footerHeight, setFooterHeight] = useState(44);
-  const bottomPadding = insets.bottom || 8;
+  const bottomPadding = keyboardVisible ? 8 : insets.bottom || 8;
   const naturalHeight = contentSize.title === title && contentSize.height > 0
-    ? headerHeight + contentSize.height + (footer ? footerHeight : 0) + bottomPadding
+    ? headerHeight + (editor ? editorHeight : 0) + contentSize.height + (footer ? footerHeight : 0) + bottomPadding
     : preferredHeight + bottomPadding;
-  const sheetHeight = Math.min(screenHeight - insets.top - 16, preferredHeight + bottomPadding + Math.max(0, fontScale - 1) * 180, naturalHeight);
+  const measuredHeight = Math.min(screenHeight - insets.top - 16, preferredHeight + bottomPadding + Math.max(0, fontScale - 1) * 180, naturalHeight);
+  const browsingHeight = useRef(measuredHeight);
+  if (!editing) browsingHeight.current = measuredHeight;
+  const sheetHeight = editing ? browsingHeight.current : measuredHeight;
   const translateY = useRef(new Animated.Value(sheetHeight)).current;
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
   const [rendered, setRendered] = useState(visible);
-  // Alto REAL del sheet cuando el teclado está arriba — sin esto, un alto
-  // fijo empujado hacia arriba por el teclado se sale de la pantalla por
-  // ARRIBA (el header queda fuera de vista). Bug real diagnosticado
-  // 2026-08-24 a mano (no se pudo probar en device): con sheetHeight≈523pt
-  // y teclado≈336pt, el sheet ya no cabía en los ≈508pt libres.
-  const [keyboardHeight, setKeyboardHeight] = useState(0);
-  useEffect(() => {
-    const showEvt = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
-    const hideEvt = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
-    const showSub = Keyboard.addListener(showEvt, (e) => setKeyboardHeight(e.endCoordinates.height));
-    const hideSub = Keyboard.addListener(hideEvt, () => setKeyboardHeight(0));
-    return () => { showSub.remove(); hideSub.remove(); };
-  }, []);
-  const visibleSheetHeight = keyboardHeight > 0
-    ? Math.min(sheetHeight, screenHeight - keyboardHeight - insets.top - 16)
-    : sheetHeight;
+  const visibleSheetHeight = Math.max(120, Math.min(sheetHeight, viewportHeight - insets.top - 16));
 
   useEffect(() => {
     if (visible) {
@@ -252,13 +245,11 @@ function FilterSheet({ visible, onClose, title, onClear, onBack, hideTitle, onCr
 
   return (
     <Modal transparent visible animationType="none" onRequestClose={onBack ?? onClose} statusBarTranslucent>
-      {/* KeyboardAvoidingView real — antes el input de renombrar (dentro de
-          "children") quedaba tapado por completo por el teclado, sin forma
-          de verlo ni confirmarlo (bug real reportado 2026-08-24, capturas).
-          save-to-list-sheet.tsx ya lo tenía bien; a este sheet le faltaba. */}
-      <KeyboardAvoidingView style={s.kav} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      {/* The absolute sheet follows the keyboard frame; adding padding to a
+          KeyboardAvoidingView cannot reposition an absolute bottom child. */}
+      <View style={s.kav}>
         <TouchableOpacity activeOpacity={1} style={s.backdrop} onPress={onClose} accessibilityLabel="Cerrar" />
-        <Animated.View accessibilityViewIsModal onAccessibilityEscape={onClose} style={[s.sheet, { height: visibleSheetHeight, paddingBottom: insets.bottom || 8, transform: [{ translateY }] }]}>
+        <Animated.View accessibilityViewIsModal onAccessibilityEscape={onClose} style={[s.sheet, { height: visibleSheetHeight, bottom: keyboardInset, paddingBottom: bottomPadding, transform: [{ translateY }] }]}>
           <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
           <View pointerEvents="none" style={s.sheetTint} />
           {/* Zona de arrastre ampliada (antes 22pt, muy angosta para agarrar
@@ -268,7 +259,7 @@ function FilterSheet({ visible, onClose, title, onClear, onBack, hideTitle, onCr
             <View style={s.grabber} />
             {(onBack || !hideTitle || onCreate || headerActions || onClear) && <View style={s.panelHeader}>
               <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-                {onBack && <TouchableOpacity onPress={onBack} style={s.backButton} accessibilityRole="button" accessibilityLabel="Volver a filtros"><Ionicons name="chevron-back" size={20} color={theme.text} /></TouchableOpacity>}
+                {onBack && <TouchableOpacity onPress={onBack} style={s.backButton} accessibilityRole="button" accessibilityLabel="Volver"><Ionicons name="chevron-back" size={20} color={theme.text} /></TouchableOpacity>}
                 {!hideTitle && <Text style={s.panelTitle}>{noWidow(title)}</Text>}
                 {onCreate && <TouchableOpacity style={s.headerIcon} onPress={onCreate} accessibilityRole="button" accessibilityLabel="Nueva lista"><Ionicons name="add" size={22} color={theme.text} /></TouchableOpacity>}
                 {selectionMode && headerActions}
@@ -279,6 +270,7 @@ function FilterSheet({ visible, onClose, title, onClear, onBack, hideTitle, onCr
               </View>
             </View>}
           </View>
+          {editor && <View style={{ flexShrink: 0 }} onLayout={(event) => setEditorHeight(event.nativeEvent.layout.height)}>{editor}</View>}
           <ScrollView key={title} style={{ flex: 1 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}
             onContentSizeChange={(_width, height) => setContentSize((current) => current.title === title && current.height === height ? current : { title, height })}
             contentContainerStyle={{ paddingBottom: 16 }}>{children}</ScrollView>
@@ -294,7 +286,7 @@ function FilterSheet({ visible, onClose, title, onClear, onBack, hideTitle, onCr
             el panel de abajo). Como hermano del sheet, cubre toda la pantalla
             igual que el ActionSheet real. */}
         {overlay}
-      </KeyboardAvoidingView>
+      </View>
     </Modal>
   );
 }
@@ -312,6 +304,9 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
 }) {
   const { theme } = useTheme();
   const s = styles(theme);
+  const { width, fontScale } = useWindowDimensions();
+  const [movingLists, setMovingLists] = useState(false);
+  const [listActionBusy, setListActionBusy] = useState(false);
   const [openPanel, setOpenPanel] = useState<OpenPanel>(null);
   const [filterDetail, setFilterDetail] = useState<FilterDetail>(null);
   const [organizerVisible, setOrganizerVisible] = useState(false);
@@ -359,6 +354,7 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
     Haptics.selectionAsync().catch(() => {});
     setActionsTarget(null);
     setListsMenuVisible(false);
+    setMovingLists(false);
     setFilterDetail(null);
     setSelectingLists(false);
     setSelectedListIds([]);
@@ -509,12 +505,48 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
   };
   const closeListMenu = () => { setActionsTarget(null); setListsMenuVisible(false); };
   const listMenuOptions: ActionSheetOption[] = actionsTarget ? [
-    { label: 'Compartir', icon: 'share-outline', onPress: () => shareCollection(actionsTarget) },
+    { label: 'Compartir', icon: 'share-outline', onPress: () => { void runListAction(() => shareCollection(actionsTarget)); } },
     { label: 'Renombrar', icon: 'text-outline', onPress: () => startRename(actionsTarget) },
     { label: 'Eliminar', icon: 'trash-outline', destructive: true, onPress: () => removeCollection(actionsTarget) },
   ] : [
     { label: 'Seleccionar listas', icon: 'checkmark-circle-outline', onPress: () => beginListSelection() },
   ];
+
+  const selectedLists = collections.filter((item) => selectedListIds.includes(item.id));
+  const selectedPatioIds = [...new Set(selectedLists.flatMap((item) => item.patioIds))];
+  const allPinned = selectedLists.length > 0 && selectedLists.every((item) => item.pinned);
+  const visibleCollections = [...collections].sort((a, b) => Number(!!b.pinned) - Number(!!a.pinned));
+  const runListAction = async (operation: () => Promise<void>) => {
+    if (deleteListsPending.current) return;
+    deleteListsPending.current = true; setListActionBusy(true);
+    try { await operation(); }
+    catch (error) { Alert.alert(noWidow('No pudimos completar el cambio'), noWidow(error instanceof Error ? error.message : 'Inténtalo de nuevo.')); }
+    finally { deleteListsPending.current = false; setListActionBusy(false); }
+  };
+  const pinSelectedLists = () => void runListAction(async () => {
+    const updated = await setCollectionsPinned(selectedListIds, !allPinned);
+    updated.forEach((item) => onCollectionUpdated?.(item));
+    Haptics.selectionAsync().catch(() => {});
+  });
+  const shareSelectedLists = () => void runListAction(async () => {
+    const messages: string[] = [];
+    for (const item of selectedLists) {
+      const published = await publishCollection(item.visibility === 'private' ? { ...item, visibility: 'unlisted' } : item);
+      onCollectionUpdated?.(published);
+      messages.push(`${published.title}\npatio://coleccion-publica/${published.remoteId}`);
+    }
+    await Share.share({ message: messages.join('\n\n') });
+  });
+  const moveSelectedTo = (destination: PatioCollection) => Alert.alert(
+    noWidow('Mover lugares'),
+    noWidow(`Se moverán ${selectedPatioIds.length} lugares de las listas seleccionadas a “${destination.title}”. Seguirán en Guardados.`),
+    [{ text: 'Cancelar', style: 'cancel' }, { text: 'Mover', onPress: () => void runListAction(async () => {
+      const updated = await movePatiosToCollection(selectedPatioIds, selectedListIds, destination.id);
+      updated.forEach((item) => onCollectionUpdated?.(item));
+      setMovingLists(false); setSelectingLists(false); setSelectedListIds([]);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+    }) }],
+  );
 
   // The two scope controls are identical and permanent in Map and Saved.
   // Saved adds a separate compact control for presentation (view/order).
@@ -555,6 +587,7 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
         <Text style={s.organizerText}>Listas</Text>
         {listCount > 0 && <Text style={s.activeCount}>{listCount}</Text>}
       </TouchableOpacity>
+      <RecentPatiosButton compact={width < (isLibrary ? 410 : 360) || fontScale > 1.15} />
     </View>
 
     {isLibrary && <>
@@ -591,12 +624,13 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
     <FilterSheet
       visible={openPanel !== null}
       onClose={() => { if (!deleteListsPending.current) setOpenPanel(null); }}
-      title={openPanel === 'filters' ? filterDetail === 'categories' ? 'Tipo de lugar' : filterDetail === 'payments' ? 'Pago' : 'Filtros' : 'Tus listas'}
-      hideTitle={openPanel === 'lists' || !filterDetail}
-      onCreate={openPanel === 'lists' && !creatingList && !selectingLists ? () => setCreatingList(true) : undefined}
+      title={openPanel === 'filters' ? filterDetail === 'categories' ? 'Tipo de lugar' : filterDetail === 'payments' ? 'Pago' : 'Filtros' : movingLists ? 'Mover lugares' : 'Tus listas'}
+      hideTitle={openPanel === 'lists' ? !movingLists : !filterDetail}
+      onCreate={openPanel === 'lists' && !creatingList && (!selectingLists || movingLists) ? () => setCreatingList(true) : undefined}
+      editing={selectingLists && !movingLists}
       selectionMode={openPanel === 'lists' && (selectingLists || creatingList)}
-      headerActions={openPanel === 'lists' && creatingList ? <TouchableOpacity disabled={creatingPending} style={[s.headerIcon, { width: 'auto', paddingHorizontal: 8 }]} accessibilityRole="button" accessibilityLabel="Cancelar nueva lista" onPress={() => { setCreatingList(false); setNewListTitle(''); }}><Text style={s.organizerText}>Cancelar</Text></TouchableOpacity> : openPanel === 'lists' && collections.length > 0 ? (
-        selectingLists ? <TouchableOpacity disabled={deletingLists} style={[s.headerIcon, { width: 'auto', paddingHorizontal: 8 }]} accessibilityRole="button" accessibilityLabel="Cancelar selección"
+      headerActions={movingLists && !creatingList ? undefined : openPanel === 'lists' && creatingList ? <TouchableOpacity disabled={creatingPending} style={[s.headerIcon, { width: 'auto', paddingHorizontal: 8 }]} accessibilityRole="button" accessibilityLabel="Cancelar nueva lista" onPress={() => { setCreatingList(false); setNewListTitle(''); }}><Text style={s.organizerText}>Cancelar</Text></TouchableOpacity> : openPanel === 'lists' && collections.length > 0 ? (
+        selectingLists ? <TouchableOpacity disabled={deletingLists || listActionBusy} style={[s.headerIcon, { width: 'auto', paddingHorizontal: 8 }]} accessibilityRole="button" accessibilityLabel="Cancelar selección"
           onPress={() => { setSelectingLists(false); setSelectedListIds([]); }}>
           <Text style={s.organizerText}>Cancelar</Text>
         </TouchableOpacity> : <TouchableOpacity ref={listsMenuRef} style={s.headerIcon} accessibilityRole="button" accessibilityLabel="Acciones de listas"
@@ -604,18 +638,29 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
           <Ionicons name="ellipsis-horizontal" size={22} color={theme.text} />
         </TouchableOpacity>
       ) : undefined}
-      footer={openPanel === 'lists' && selectingLists ? <View style={{ borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.border, paddingHorizontal: 16 }}>
-        <TouchableOpacity disabled={!selectedListIds.length || deletingLists} onPress={removeSelectedLists}
-          style={{ minHeight: 44, justifyContent: 'center', alignItems: 'center', opacity: !selectedListIds.length || deletingLists ? 0.35 : 1 }}
-          accessibilityRole="button" accessibilityState={{ disabled: !selectedListIds.length || deletingLists, busy: deletingLists }}>
-          <Text style={s.organizerText}>{noWidow(deletingLists ? 'Eliminando…' : selectedListIds.length ? `Eliminar ${selectedListIds.length} ${selectedListIds.length === 1 ? 'lista' : 'listas'}` : 'Eliminar')}</Text>
-        </TouchableOpacity>
+      editor={creatingList ? <View style={s.section}><View style={s.group}>
+          <View style={[s.option, { paddingVertical: 12 }]}>
+            <View style={s.rowCopy}>
+              <Text style={s.rowDetail}>{noWidow('Nombre de la lista')}</Text>
+              <TextInput autoFocus value={newListTitle} onChangeText={setNewListTitle} maxLength={60} onSubmitEditing={handleCreateList} placeholder="Ej. Tacos del barrio" accessibilityLabel="Nombre de la lista" placeholderTextColor={theme.textMute} returnKeyType="done" autoCapitalize="sentences" style={[s.createInput, { minHeight: 44 }]} />
+            </View>
+            <TouchableOpacity disabled={!newListTitle.trim() || creatingPending} hitSlop={CREATE_BTN_HIT_SLOP} onPress={handleCreateList} accessibilityRole="button" accessibilityLabel="Crear lista" style={[s.createBtn, (!newListTitle.trim() || creatingPending) && s.createBtnDisabled]}><Text style={s.createBtnText}>{creatingPending ? 'Creando…' : 'Crear'}</Text></TouchableOpacity>
+          </View>
+        </View></View> : undefined}
+      footer={openPanel === 'lists' && selectingLists && !movingLists ? <View style={{ paddingHorizontal: 16, paddingTop: 8 }}>
+        <SelectionActions busy={deletingLists || listActionBusy} actions={[
+          { label: allPinned ? 'Desfijar' : 'Fijar', icon: 'pin-outline', disabled: !selectedLists.length, onPress: pinSelectedLists },
+          { label: 'Compartir', icon: 'share-outline', disabled: !selectedLists.length, onPress: shareSelectedLists },
+          { label: 'Renombrar', icon: 'pencil-outline', disabled: selectedLists.length !== 1, onPress: () => startRename(selectedLists[0]) },
+          { label: 'Mover', icon: 'folder-open-outline', disabled: !selectedPatioIds.length, onPress: () => setMovingLists(true) },
+          { label: 'Eliminar', icon: 'trash-outline', disabled: !selectedLists.length, onPress: removeSelectedLists },
+        ]} />
       </View> : undefined}
       preferredHeight={openPanel === 'filters'
         ? filterDetail === 'categories' ? Math.min(560, 96 + categoryOptions.length * 48)
           : filterDetail === 'payments' ? 244 : 324 + (additionalFilter ? 56 : 0)
         : Math.min(514, 152 + Math.max(1, collections.length) * 56 + (creatingList ? 96 : 0) + (selectingLists ? 44 : 0))}
-      onBack={openPanel === 'filters' && filterDetail ? () => { Haptics.selectionAsync().catch(() => {}); setFilterDetail(null); } : undefined}
+      onBack={movingLists ? () => { if (!listActionBusy) setMovingLists(false); } : openPanel === 'filters' && filterDetail ? () => { Haptics.selectionAsync().catch(() => {}); setFilterDetail(null); } : undefined}
       onClear={openPanel === 'filters'
         ? filterDetail
           ? (filters[filterDetail].length ? () => { Haptics.selectionAsync().catch(() => {}); onChange({ ...filters, [filterDetail]: [] }); } : undefined)
@@ -666,12 +711,12 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
           </View></View>
         ) : <>
           <View style={s.section}><View style={s.group}>
-            {([{ key: 'today', label: 'Menú de hoy' }, { key: 'open', label: 'Abiertos ahora' }] as const).map(({ key, label }, index) => (
-              <View key={key} style={[s.availabilityRow, index > 0 && s.rowDivider]}>
-                <Text style={s.optionText}>{noWidow(label)}</Text>
-                <Switch value={filters[key]} accessibilityLabel={label} trackColor={{ true: theme.accent }}
-                  onValueChange={(value) => { Haptics.selectionAsync().catch(() => {}); onChange({ ...filters, [key]: value }); }} />
-              </View>
+            {([{ key: 'today', label: 'Con menú de hoy' }, { key: 'open', label: 'Abiertos ahora' }] as const).map(({ key, label }, index) => (
+              <TouchableOpacity key={key} style={[s.availabilityRow, s.choiceRow, index > 0 && s.rowDivider]} accessibilityRole="checkbox" accessibilityState={{ checked: filters[key] }} accessibilityLabel={label}
+                onPress={() => { Haptics.selectionAsync().catch(() => {}); onChange({ ...filters, [key]: !filters[key] }); }}>
+                <Text style={[s.optionText, { fontWeight: '400', color: filters[key] ? theme.text : theme.textSecondary }]}>{noWidow(label)}</Text>
+                <View style={s.checkSlot}><Ionicons name={filters[key] ? 'checkmark' : 'add'} size={18} color={filters[key] ? theme.accent : theme.textMute} /></View>
+              </TouchableOpacity>
             ))}
           </View></View>
           <View style={s.section}><View style={s.group}>
@@ -691,36 +736,33 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
           </View></View>
           {additionalFilter && <TouchableOpacity style={s.option} onPress={additionalFilter.onClear} accessibilityRole="button" accessibilityLabel={`Quitar filtro ${additionalFilter.label}`}><Text style={s.optionText}>{noWidow(additionalFilter.label)}</Text><Ionicons name="close-circle" size={20} color={theme.textSecondary} /></TouchableOpacity>}
         </>}
-      </> : <>
-        {creatingList && <View style={s.section}><View style={s.group}>
-          <View style={[s.option, { paddingVertical: 12 }]}>
-            <View style={s.rowCopy}>
-              <Text style={s.rowDetail}>{noWidow('Nombre de la lista')}</Text>
-              <TextInput autoFocus value={newListTitle} onChangeText={setNewListTitle} maxLength={60} onSubmitEditing={handleCreateList} placeholder="Ej. Tacos del barrio" accessibilityLabel="Nombre de la lista" placeholderTextColor={theme.textMute} returnKeyType="done" autoCapitalize="sentences" style={[s.createInput, { minHeight: 44 }]} />
-            </View>
-            <TouchableOpacity disabled={!newListTitle.trim() || creatingPending} hitSlop={CREATE_BTN_HIT_SLOP} onPress={handleCreateList} accessibilityRole="button" accessibilityLabel="Crear lista" style={[s.createBtn, (!newListTitle.trim() || creatingPending) && s.createBtnDisabled]}><Text style={s.createBtnText}>{creatingPending ? 'Creando…' : 'Crear'}</Text></TouchableOpacity>
-          </View>
-        </View></View>}
+      </> : movingLists ? <View style={s.section}><View style={s.group}>
+        {visibleCollections.filter((item) => !selectedListIds.includes(item.id)).map((item, index) => <TouchableOpacity key={item.id} disabled={listActionBusy} style={[s.option, index > 0 && s.rowDivider]} accessibilityRole="button" accessibilityLabel={`Mover lugares a ${item.title}`} onPress={() => moveSelectedTo(item)}>
+          <Ionicons name="folder-outline" size={20} color={theme.textSecondary} /><Text style={s.optionText}>{noWidow(item.title)}</Text><Text style={s.listCount}>{item.patioIds.length}</Text>
+        </TouchableOpacity>)}
+        {!visibleCollections.some((item) => !selectedListIds.includes(item.id)) && <View style={s.emptyLists}><Text style={s.emptyDetail}>{noWidow('Crea una lista de destino con +')}</Text></View>}
+      </View></View> : <>
         <View style={s.section}><View style={s.group}>
-          {selectingLists ? <TouchableOpacity disabled={deletingLists} style={s.option} accessibilityRole="checkbox" accessibilityLabel="Seleccionar todas las listas" accessibilityState={{ checked: selectedListIds.length === collections.length, disabled: deletingLists }}
+          {selectingLists ? <TouchableOpacity disabled={deletingLists || listActionBusy} style={s.option} accessibilityRole="checkbox" accessibilityLabel="Seleccionar todas las listas" accessibilityState={{ checked: selectedListIds.length === collections.length, disabled: deletingLists || listActionBusy }}
             onPress={() => { Haptics.selectionAsync().catch(() => {}); setSelectedListIds(selectedListIds.length === collections.length ? [] : collections.map((item) => item.id)); }}>
             <View style={s.checkSlot}><Ionicons name={selectedListIds.length === collections.length ? 'checkmark-circle' : 'ellipse-outline'} size={22} color={selectedListIds.length === collections.length ? theme.accent : theme.textMute} /></View>
-            <Text style={s.optionText}>{noWidow('Seleccionar todas')}</Text>
+            <Text style={s.optionText}>{noWidow(selectedListIds.length ? `${selectedListIds.length} seleccionadas` : 'Seleccionar todas')}</Text>
           </TouchableOpacity> : <TouchableOpacity onPress={() => { Haptics.selectionAsync().catch(() => {}); onChange({ ...filters, collectionIds: [] }); }} style={s.option} accessibilityRole="checkbox" accessibilityState={{ checked: !listCount }} accessibilityLabel="Todos los lugares">
             <View style={s.checkSlot}><Ionicons name="bookmark-outline" size={20} color={theme.textSecondary} /></View>
             <Text style={s.optionText}>{noWidow('Todos los lugares')}</Text>
             <View style={s.checkSlot}>{!listCount && <Ionicons name="checkmark" size={20} color={theme.accent} />}</View>
           </TouchableOpacity>}
-          {collections.map((collection) => {
+          {visibleCollections.map((collection) => {
             const active = selectingLists ? selectedListIds.includes(collection.id) : filters.collectionIds.includes(collection.id);
-            return <View key={collection.id} style={[s.option, s.rowDivider, { paddingRight: selectingLists ? 16 : 4 }]}>
-              <TouchableOpacity disabled={deletingLists} onPress={() => { Haptics.selectionAsync().catch(() => {}); if (selectingLists) setSelectedListIds((current) => toggleValue(current, collection.id)); else onChange({ ...filters, collectionIds: toggleValue(filters.collectionIds, collection.id) }); }} accessibilityRole="checkbox" accessibilityState={{ checked: active, disabled: deletingLists }} accessibilityLabel={`${collection.title}, ${collection.patioIds.length} ${collection.patioIds.length === 1 ? 'lugar' : 'lugares'}`} onLongPress={() => { if (!selectingLists) { Haptics.selectionAsync().catch(() => {}); beginListSelection(collection.id); } }} style={s.listRowMain}>
+            return <View key={collection.id} style={[s.option, s.rowDivider, { paddingRight: 4 }]}>
+              <TouchableOpacity disabled={deletingLists || listActionBusy} onPress={() => { Haptics.selectionAsync().catch(() => {}); if (selectingLists) setSelectedListIds((current) => toggleValue(current, collection.id)); else onChange({ ...filters, collectionIds: toggleValue(filters.collectionIds, collection.id) }); }} accessibilityRole="checkbox" accessibilityState={{ checked: active, disabled: deletingLists || listActionBusy }} accessibilityLabel={`${collection.title}, ${collection.patioIds.length} ${collection.patioIds.length === 1 ? 'lugar' : 'lugares'}`} onLongPress={() => { if (!selectingLists) { Haptics.selectionAsync().catch(() => {}); beginListSelection(collection.id); } }} style={s.listRowMain}>
                 <View style={s.checkSlot}><Ionicons name={selectingLists ? active ? 'checkmark-circle' : 'ellipse-outline' : 'folder-outline'} size={selectingLists ? 22 : 20} color={selectingLists && active ? theme.accent : theme.textSecondary} /></View>
                 <Text style={s.optionText} numberOfLines={2}>{noWidow(collection.title)}</Text>
+                {collection.pinned && <Ionicons name="pin" size={13} color={theme.textSecondary} />}
                 <Text style={s.listCount}>{collection.patioIds.length}</Text>
-                {!selectingLists && active && <Ionicons name="checkmark" size={20} color={theme.accent} />}
+                <View style={s.checkSlot}>{!selectingLists && active && <Ionicons name="checkmark" size={20} color={theme.accent} />}</View>
               </TouchableOpacity>
-              {!selectingLists && <TouchableOpacity ref={(el) => { moreRefs.current.set(collection.id, el); }} accessibilityRole="button" accessibilityLabel={`Acciones de ${collection.title}`} style={s.listRowMore} onPress={() => openListActions(collection)}><Ionicons name="ellipsis-horizontal" size={20} color={theme.textSecondary} /></TouchableOpacity>}
+              {selectingLists ? <View style={s.listRowMore} /> : <TouchableOpacity ref={(el) => { moreRefs.current.set(collection.id, el); }} accessibilityRole="button" accessibilityLabel={`Acciones de ${collection.title}`} style={s.listRowMore} onPress={() => openListActions(collection)}><Ionicons name="ellipsis-horizontal" size={20} color={theme.textSecondary} /></TouchableOpacity>}
             </View>;
           })}
         </View></View>

@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '@/lib/supabase';
 import { withStorageLock } from '@/lib/storage-queue';
 import { getFavoritePatioIds } from '@/lib/favorites';
+import { recordRecentPatio } from '@/lib/recent-patios';
 
 export type CollectionVisibility = 'private' | 'unlisted' | 'public';
 
@@ -13,6 +14,7 @@ export type PatioCollection = {
   patioIds: string[];
   createdAt: string;
   remoteId?: string;
+  pinned?: boolean;
 };
 
 export type SavedPatioMeta = {
@@ -20,6 +22,7 @@ export type SavedPatioMeta = {
   note?: string;
   status?: 'want_to_go' | 'visited';
   rating?: number;
+  visitedAt?: string;
 };
 
 const KEY = 'patio:collections:v1';
@@ -63,7 +66,7 @@ async function writeCollections(collections: PatioCollection[]): Promise<void> {
 }
 
 export async function getCollections(): Promise<PatioCollection[]> {
-  try { return await readCollections(); } catch { return []; }
+  try { return (await readCollections()).sort((a, b) => Number(!!b.pinned) - Number(!!a.pinned)); } catch { return []; }
 }
 
 export async function getCollection(id: string) {
@@ -133,6 +136,34 @@ export async function setPatiosInCollection(collectionId: string, patioIds: stri
   }));
 }
 
+export async function setCollectionsPinned(ids: string[], pinned: boolean) {
+  return withStorageLock(KEY, async () => {
+    const current = await readCollections();
+    const next = current.map((item) => ids.includes(item.id) ? { ...item, pinned } : item);
+    await writeCollections(next);
+    return next.sort((a, b) => Number(!!b.pinned) - Number(!!a.pinned));
+  });
+}
+
+// One local write adds the destination and removes only the selected sources.
+// Favorites and membership in unrelated lists are unchanged.
+export async function movePatiosToCollection(patioIds: string[], sourceIds: string[], destinationId: string) {
+  return withStorageLock(KEY, async () => {
+    const current = await readCollections();
+    if (!current.some((item) => item.id === destinationId)) throw new Error('La lista de destino ya no existe.');
+    if (!sourceIds.length || sourceIds.includes(destinationId)) throw new Error('Elige otra lista de destino.');
+    if (sourceIds.some((id) => !current.some((item) => item.id === id))) throw new Error('Una lista de origen ya no existe.');
+    const selected = new Set(patioIds);
+    const moving = [...new Set(current.filter((item) => sourceIds.includes(item.id)).flatMap((item) => item.patioIds.filter((id) => selected.has(id))))];
+    if (!moving.length) throw new Error('No hay lugares de la selección en las listas de origen.');
+    const next = current.map((item) => item.id === destinationId
+      ? { ...item, patioIds: [...new Set([...item.patioIds, ...moving])] }
+      : sourceIds.includes(item.id) ? { ...item, patioIds: item.patioIds.filter((id) => !selected.has(id)) } : item);
+    await writeCollections(next);
+    return next;
+  });
+}
+
 async function readSavedMeta(): Promise<SavedPatioMeta[]> {
   const raw = await AsyncStorage.getItem(META_KEY);
   if (!raw) return [];
@@ -152,7 +183,11 @@ export async function getAllSavedPatioMeta(): Promise<Record<string, SavedPatioM
 export async function saveSavedPatioMeta(meta: SavedPatioMeta) {
   return withStorageLock(META_KEY, async () => {
     const all = await readSavedMeta();
-    await AsyncStorage.setItem(META_KEY, JSON.stringify([...all.filter((item) => item.patioId !== meta.patioId), meta]));
+    const previous = all.find((item) => item.patioId === meta.patioId);
+    const newlyVisited = meta.status === 'visited' && previous?.status !== 'visited';
+    const next = { ...meta, visitedAt: newlyVisited ? new Date().toISOString() : previous?.visitedAt };
+    await AsyncStorage.setItem(META_KEY, JSON.stringify([...all.filter((item) => item.patioId !== meta.patioId), next]));
+    if (newlyVisited) await recordRecentPatio(meta.patioId, 'visited').catch(() => {});
     if (!uuidPattern.test(meta.patioId)) return;
     const { data: auth } = await supabase.auth.getUser();
     if (!auth.user || auth.user.is_anonymous) return;

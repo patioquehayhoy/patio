@@ -19,7 +19,7 @@ export const ACCOUNT_DATA_KEYS = [
   '@lafondita_fondita_id', '@patio_menu_history', '@patio_menu_corrections_v1',
   '@patio_viewed_ids', '@patio_ratings', '@patio_review_likes', '@patio_dish_likes',
   '@patio_activity_seen_at', '@patio_review_likes_seen_at',
-  'patio:favorites', 'patio:collections:v1', 'patio:saved-meta:v1',
+  'patio:favorites', 'patio:collections:v1', 'patio:saved-meta:v1', 'patio:recent-patios:v1',
   'patio:menu-collections:v1', 'patio:saved-map-categories',
 ] as const;
 

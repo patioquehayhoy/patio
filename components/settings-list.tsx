@@ -85,6 +85,6 @@ const styles = StyleSheet.create({
   row: { minHeight: 56, flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 10, paddingHorizontal: 16 },
   iconBox: { width: 32, height: 32, borderRadius: 10, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   body: { flex: 1, minWidth: 0 },
-  title: { fontSize: 16, fontWeight: '500', letterSpacing: -0.1, lineHeight: 20 },
-  sub: { marginTop: 2, fontSize: 13, fontWeight: '400', lineHeight: 17 },
+  title: { fontSize: 16, fontWeight: '300', lineHeight: 21 },
+  sub: { marginTop: 2, fontSize: 13, fontWeight: '300', lineHeight: 17 },
 });

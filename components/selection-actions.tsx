@@ -12,9 +12,9 @@ export function SelectionActions({ actions, busy = false }: { actions: Selection
     <BlurView pointerEvents="none" intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
     {actions.map((action) => <TouchableOpacity key={action.label} onPress={action.onPress} disabled={busy || action.disabled}
       accessibilityRole="button" accessibilityLabel={action.label} accessibilityState={{ disabled: busy || !!action.disabled, busy }}
-      style={[s.action, (busy || action.disabled) && { opacity: 0.35 }]}>
-      <Ionicons name={action.icon} size={22} color={theme.text} />
-      <Text style={[s.label, { color: theme.text }]}>{noWidow(action.label)}</Text>
+      style={s.action}>
+      <Ionicons name={action.icon} size={22} color={busy || action.disabled ? theme.textMute : theme.text} />
+      <Text style={[s.label, { color: busy || action.disabled ? theme.textMute : theme.text }]}>{noWidow(action.label)}</Text>
     </TouchableOpacity>)}
   </View>;
 }

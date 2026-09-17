@@ -19,7 +19,7 @@ import {
 import { localMenuDate } from '@/lib/menu-date';
 import { getFonditaId } from '@/lib/user-store';
 import { supabase } from '@/lib/supabase';
-import { Fonts, useTheme } from '@/lib/theme';
+import { Fonts, Layout, Spacing, useTheme } from '@/lib/theme';
 import { useTabBarScroll } from '@/lib/tab-bar-visibility';
 import { noWidow } from '@/lib/typography';
 
@@ -85,7 +85,7 @@ export default function PerfilScreen() {
   return (
     <View style={[s.root, { backgroundColor: c.bg, paddingTop: insets.top }]}>
       <Stack.Screen options={{ headerShown: false }} />
-      <ScrollView onScroll={onScroll} scrollEventThrottle={16} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 24, paddingBottom: insets.bottom + 110 }} showsVerticalScrollIndicator={false}>
+      <ScrollView onScroll={onScroll} scrollEventThrottle={16} contentContainerStyle={{ paddingHorizontal: Layout.screen, paddingTop: Spacing.lg, paddingBottom: insets.bottom + 110 }} showsVerticalScrollIndicator={false}>
         {/* Identidad primero: el nombre de la fondita es el héroe de la
             pantalla (patrón de tarjeta de cuenta de Apple — Settings/App
             Store ponen la identidad antes del grouped list, nunca después).
@@ -159,9 +159,9 @@ export default function PerfilScreen() {
 
 const s = StyleSheet.create({
   root: { flex: 1 },
-  identity: { marginBottom: 4 },
-  fonditaName: { fontSize: 30, fontWeight: '900', fontFamily: Fonts.brand, letterSpacing: -0.8 },
-  statusRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6 },
+  identity: { marginBottom: 8 },
+  fonditaName: { fontSize: 32, lineHeight: 36, fontWeight: '900', fontFamily: Fonts.brand, letterSpacing: -0.8 },
+  statusRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8, minHeight: 20 },
   statusDot: { width: 7, height: 7, borderRadius: 4 },
-  statusText: { fontSize: 13, fontWeight: '600' },
+  statusText: { flexShrink: 1, fontSize: 13, lineHeight: 18, fontWeight: '300' },
 });

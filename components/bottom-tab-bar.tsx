@@ -1,7 +1,7 @@
 import { router, usePathname } from 'expo-router';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Animated, Keyboard, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Animated, Keyboard, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useMemo, useState } from 'react';
@@ -78,18 +78,18 @@ export function BottomTabBar({ variant = 'fondero' }: { variant?: 'foodie' | 'fo
           pointerEvents="none"
         />
         {tabs.map(({ path, label, icon, selectedIcon }) => {
-          const active = pathname === path;
+          const active = pathname === path || (variant === 'foodie' && path === '/cuenta' && pathname === '/notificaciones');
           const hasNews = hasUnseen && !active && (
             (variant === 'fondero' && path === '/resenas') ||
             (variant === 'foodie' && path === '/cuenta')
           );
           const onTabPress = () => {
             Keyboard.dismiss();
-            reveal();
             // Reemplazar la ruta activa puede remontar la pantalla en Expo Router
             // y reiniciar scroll, búsqueda y controles locales. Un segundo toque
             // sobre el tab seleccionado conserva exactamente el estado visible.
             if (active) return;
+            reveal();
             router.replace(path as any);
           };
           return (
@@ -99,14 +99,14 @@ export function BottomTabBar({ variant = 'fondero' }: { variant?: 'foodie' | 'fo
               accessibilityLabel={label}
               accessibilityState={{ selected: active }}
               accessibilityValue={hasNews ? { text: 'Novedades' } : undefined}
-              style={[styles.tab, active && styles.tabSelected]}
+              style={styles.tab}
               activeOpacity={0.7}
+              hitSlop={{ top: 4, bottom: 4, left: 0, right: 0 }}
               onPress={onTabPress}>
               <View style={styles.icon} pointerEvents="none">
-                <Ionicons name={active ? selectedIcon : icon} size={23} color={active ? theme.text : theme.textSecondary} />
+                <Ionicons name={active ? selectedIcon : icon} size={22} color={active ? theme.accent : theme.textSecondary} />
                 {hasNews && <View style={styles.dot} />}
               </View>
-              <Text numberOfLines={1} maxFontSizeMultiplier={1.3} style={[styles.label, active && styles.labelSelected]}>{label}</Text>
             </TouchableOpacity>
           );
         })}
@@ -116,15 +116,14 @@ export function BottomTabBar({ variant = 'fondero' }: { variant?: 'foodie' | 'fo
 }
 
 const makeStyles = (t: Theme) => StyleSheet.create({
-  wrap: { position: 'absolute', left: 16, right: 16, alignItems: 'center', zIndex: 100, elevation: 100 },
-  readabilityGradient: { position: 'absolute', left: -16, right: -16, height: 112 },
+  wrap: { position: 'absolute', left: 0, right: 0, alignItems: 'center', zIndex: 100, elevation: 100 },
+  readabilityGradient: { position: 'absolute', left: 0, right: 0, height: 96 },
   pill: {
-    width: 320,
-    maxWidth: '100%',
     flexDirection: 'row',
     gap: 4,
-    padding: 4,
-    borderRadius: 32,
+    paddingVertical: 4,
+    paddingHorizontal: 6,
+    borderRadius: 25,
     backgroundColor: t.glass,
     borderColor: t.isDark ? t.border : 'rgba(255,255,255,0.18)',
     borderWidth: StyleSheet.hairlineWidth,
@@ -136,19 +135,12 @@ const makeStyles = (t: Theme) => StyleSheet.create({
     elevation: 8,
   },
   tab: {
-    flex: 1,
-    minWidth: 48,
-    minHeight: 52,
-    paddingVertical: 6,
-    paddingHorizontal: 4,
-    gap: 2,
-    borderRadius: 28,
+    width: 49,
+    height: 40,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  tabSelected: { backgroundColor: t.accentSoft },
   icon: { width: 28, height: 24, alignItems: 'center', justifyContent: 'center' },
-  label: { fontSize: 11, lineHeight: 14, fontWeight: '700', color: t.textSecondary, textAlign: 'center' },
-  labelSelected: { color: t.text },
-  dot: { position: 'absolute', top: -1, right: -2, width: 8, height: 8, borderRadius: 4, backgroundColor: t.accent, borderColor: t.surface, borderWidth: StyleSheet.hairlineWidth },
+  dot: { position: 'absolute', top: -1, right: -2, width: 7, height: 7, borderRadius: 4, backgroundColor: t.accent, borderColor: t.surface, borderWidth: StyleSheet.hairlineWidth },
 });

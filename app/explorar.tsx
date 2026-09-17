@@ -17,13 +17,14 @@ import { FoodieFilterBar, matchesFoodieFilters } from '@/components/foodie-filte
 import { FOODIE_INITIAL_REGION, useFoodieExploreController } from '@/lib/controllers/useFoodieExploreController';
 import { useFoodieFilters } from '@/lib/foodie-filters-context';
 import { recordRecentPatio } from '@/lib/recent-patios';
+import { SHEET_DISMISS_MS, SHEET_SPRING, shouldDismissSheet } from '@/lib/sheet-motion';
+import { useTabBarScroll } from '@/lib/tab-bar-visibility';
 import { noWidow } from '@/lib/typography';
 import { Fonts, Radius, useTheme, type Theme } from '@/lib/theme';
 import { createCollection, getCollections, type PatioCollection } from '@/lib/collections';
 import { estaAbiertoAhora } from '@/lib/horario';
 import type { Patio } from '@/lib/patios';
 
-const OPEN_GREEN = '#1F9D55';
 // Degradado del contorno de acento (pin seleccionado y match de búsqueda):
 // sólido arriba, se desvanece hacia la punta. 0.55 = sigue 100% opaco hasta
 // más de la mitad; 0.72 = transparente del todo ya cerca de la punta — corte
@@ -83,13 +84,10 @@ const SHEET_MEDIUM_ROWS = 3;
 // expanded height"). Mismo spring en las tres transiciones (entrada, salida,
 // cambio de detent) para que el movimiento se sienta como una sola mano, no
 // varias animaciones distintas peleando entre sí.
-const SHEET_SPRING = { stiffness: 320, damping: 30, mass: 0.75, useNativeDriver: true } as const;
 // Redimensionar el alto real del sheet (no un transform) no puede usar el
 // driver nativo — solo transform/opacity corren ahí. Mismo spring, distinto
 // driver.
 const SHEET_SPRING_JS = { stiffness: 320, damping: 30, mass: 0.75, useNativeDriver: false } as const;
-const SHEET_DISMISS_TRANSLATE = 900;
-
 function openState(patio: Patio): boolean | null {
   return patio.weeklyHours ? estaAbiertoAhora(patio.weeklyHours) : null;
 }
@@ -175,16 +173,17 @@ function makeStyles(t: Theme) {
     // auto-alto hasta `maxHeight: 48%` — y forzar `flex: 1` ahí colapsaría
     // el ScrollView a 0 por no tener un alto de referencia.
     listFiltering: { flex: 1 },
-    patioRow: { minHeight: 78, marginHorizontal: 8, marginBottom: 7, borderRadius: 18, paddingHorizontal: 12, paddingVertical: 11, flexDirection: 'row', alignItems: 'center', backgroundColor: t.isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.56)' },
-    addBox: { width: 32, height: 32, borderRadius: 9, backgroundColor: t.text, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
-    addBoxMuted: { backgroundColor: 'transparent', borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
+    // El sheet ya es la superficie que agrupa los resultados. Cada resultado
+    // es una fila continua (patrón Maps/Music), no otra card dentro del panel.
+    patioRow: { minHeight: 60, marginHorizontal: 16, paddingVertical: 6, flexDirection: 'row', alignItems: 'center', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.border },
+    resultIcon: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
     patioInfo: { flex: 1, minWidth: 0, paddingRight: 8 },
-    patioName: { fontSize: 15, lineHeight: 19, fontWeight: '900', fontFamily: Fonts.brand, color: t.text },
-    patioMeta: { marginTop: 4, fontSize: 12, lineHeight: 16, fontWeight: '400', color: t.textSecondary },
-    patioContext: { marginTop: 3, flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 4 },
-    patioContextText: { fontSize: 11.5, fontWeight: '500', color: t.textSecondary },
-    patioRight: { width: 82, flexShrink: 0, alignItems: 'flex-end', gap: 4 },
-    patioPrice: { fontSize: 14, fontWeight: '400', color: t.textSecondary, letterSpacing: -0.1 },
+    patioName: { fontSize: 16, lineHeight: 21, fontWeight: '700', color: t.text },
+    patioMetaLine: { marginTop: 2, minWidth: 0, flexDirection: 'row', alignItems: 'center' },
+    patioMeta: { flex: 1, minWidth: 0, fontSize: 13, lineHeight: 18, fontWeight: '300', color: t.text },
+    patioDistance: { marginLeft: 6, flexShrink: 0, fontSize: 13, lineHeight: 18, fontWeight: '300', color: t.textSecondary, fontVariant: ['tabular-nums'] },
+    patioRight: { width: 76, flexShrink: 0, alignItems: 'flex-end', gap: 4 },
+    patioPrice: { fontSize: 14, fontWeight: '300', color: t.textSecondary, letterSpacing: -0.1 },
     patioOpen: { fontSize: 11.5, fontWeight: '700', color: t.textSecondary },
     emptyResults: { paddingHorizontal: 28, paddingVertical: 36, alignItems: 'center' },
     emptyIconCircle: { width: 88, height: 88, borderRadius: 44, backgroundColor: t.accentSoft, alignItems: 'center', justifyContent: 'center', marginBottom: 24 },
@@ -221,11 +220,13 @@ export default function ExplorarScreen() {
   const accentTransparent = useMemo(() => accentToTransparentRgba(theme.accent), [theme.accent]);
   const pinGlowColors = useMemo(() => [theme.accent, theme.accent, accentTransparent] as const, [theme.accent, accentTransparent]);
   const insets = useSafeAreaInsets();
+  const { onScroll: onTabBarScroll } = useTabBarScroll();
   const { height: windowHeight } = useWindowDimensions();
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const shimmerAnim = useRef(new Animated.Value(0)).current;
   const idleLayerOpacity = useRef(new Animated.Value(1)).current;
   const sheetTranslateY = useRef(new Animated.Value(0)).current;
+  const sheetVisibleHeightRef = useRef(windowHeight);
   // `sheetTranslateY` mueve el sheet completo (entrada/salida/overshoot de
   // cierre) vía transform, nativo y fluido. `sheetTopExtra` cambia el
   // ALTO real del sheet (su `top`) para el detent medio, con el `bottom`
@@ -246,10 +247,9 @@ export default function ExplorarScreen() {
   // reservar exactamente el espacio que el sheet ocupa de verdad.
   const filteringSheetBottom = keyboardHeight > 0 ? keyboardHeight : insets.bottom;
   const largeFrameHeight = Math.max(windowHeight - (insets.top + FILTERING_SHEET_TOP_OFFSET) - filteringSheetBottom, 0);
-  // grabberTouch (20) + listHeader (paddingTop 4 + paddingBottom 6 + línea
-  // de texto ~15 = 25) + N × patioRow (minHeight 78 + marginBottom 7 = 85)
-  // + paddingBottom del sheet (4).
-  const mediumContentHeight = 20 + 25 + SHEET_MEDIUM_ROWS * 85 + 4;
+  // grabberTouch (20) + listHeader (25) + N filas continuas de 60 pt +
+  // paddingBottom del sheet (4).
+  const mediumContentHeight = 20 + 25 + SHEET_MEDIUM_ROWS * 60 + 4;
   const mediumSheetHeight = Math.min(largeFrameHeight, Math.max(mediumContentHeight, 220));
   const mediumGap = largeFrameHeight - mediumSheetHeight;
   const mediumGapRef = useRef(mediumGap);
@@ -386,7 +386,6 @@ export default function ExplorarScreen() {
   // en las dos a la vez.
   const filteredPins = useMemo(() => visiblePatios.filter((patio) => matchesFoodieFilters(filters, {
     patioId: patio.id,
-    hasTodayMenu: patio.hasTodayMenu === true,
     weeklyHours: patio.weeklyHours ?? null,
     categories: patio.categories,
     payments: patio.payments,
@@ -399,7 +398,6 @@ export default function ExplorarScreen() {
   const filteredMatches = useMemo(() => topMatchPerPatio.filter((match) =>
     (!activeSavedCategories.length || (savedIds.includes(match.patio.id) && match.patio.categories.some((category) => activeSavedCategories.includes(category)))) && matchesFoodieFilters(filters, {
     patioId: match.patio.id,
-    hasTodayMenu: match.patio.hasTodayMenu === true,
     weeklyHours: match.patio.weeklyHours ?? null,
     categories: match.patio.categories,
     payments: match.patio.payments,
@@ -603,7 +601,7 @@ export default function ExplorarScreen() {
   }, [isFiltering]);
   const dismissSheet = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-    Animated.spring(sheetTranslateY, { toValue: SHEET_DISMISS_TRANSLATE, ...SHEET_SPRING }).start(({ finished }) => {
+    Animated.timing(sheetTranslateY, { toValue: Math.max(120, sheetVisibleHeightRef.current), duration: SHEET_DISMISS_MS, useNativeDriver: true }).start(({ finished }) => {
       if (!finished) return;
       if (isFilteringRef.current) setSheetHiddenByDrag(true);
       else closeSheet();
@@ -669,7 +667,7 @@ export default function ExplorarScreen() {
         if (!isFilteringRef.current) {
           // Guardados/Cerca de ti no tienen detents — mismo comportamiento
           // de siempre, un solo arrastre hacia abajo cierra.
-          if (gesture.dy > 54 || gesture.vy > 0.8) { dismissSheet(); return; }
+          if (shouldDismissSheet(gesture.dy, gesture.vy)) { dismissSheet(); return; }
           Animated.spring(sheetTranslateY, { toValue: 0, ...SHEET_SPRING }).start();
           return;
         }
@@ -717,16 +715,17 @@ export default function ExplorarScreen() {
         sheetRestYRef.current = mediumGapRef.current;
         setSheetDetent('medium');
         sheetTopExtra.setValue(mediumGapRef.current);
-        sheetTranslateY.setValue(SHEET_DISMISS_TRANSLATE);
+        sheetTranslateY.setValue(windowHeight);
         Animated.spring(sheetTranslateY, { toValue: 0, ...SHEET_SPRING }).start();
       } else {
         sheetRestYRef.current = 0;
         sheetTopExtra.setValue(0);
-        sheetTranslateY.setValue(0);
+        sheetTranslateY.setValue(windowHeight);
+        Animated.spring(sheetTranslateY, { toValue: 0, ...SHEET_SPRING }).start();
       }
       setSheetView({ mounted: true, filtering: isFiltering });
     } else if (sheetView.mounted) {
-      Animated.spring(sheetTranslateY, { toValue: SHEET_DISMISS_TRANSLATE, ...SHEET_SPRING }).start(({ finished }) => {
+      Animated.timing(sheetTranslateY, { toValue: Math.max(120, sheetVisibleHeightRef.current), duration: SHEET_DISMISS_MS, useNativeDriver: true }).start(({ finished }) => {
         if (finished) setSheetView((v) => ({ ...v, mounted: false }));
       });
     }
@@ -758,7 +757,6 @@ export default function ExplorarScreen() {
   }, [mediumGap, isEmptySearchResults]);
   const listPatios = (activeSavedCategories.length ? mapFilteredPatios : allPatios).filter((patio) => matchesFoodieFilters(filters, {
     patioId: patio.id,
-    hasTodayMenu: patio.hasTodayMenu === true,
     weeklyHours: patio.weeklyHours ?? null,
     categories: patio.categories,
     payments: patio.payments,
@@ -1128,6 +1126,7 @@ export default function ExplorarScreen() {
           pointerEvents="box-none"
           style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, transform: [{ translateY: sheetTranslateY }] }}>
         <Animated.View
+          onLayout={(event) => { sheetVisibleHeightRef.current = event.nativeEvent.layout.height; }}
           style={[s.sheet, sheetView.filtering ? {
             // `FILTERING_SHEET_TOP_OFFSET` es el borde real donde termina
             // la barra de filtros — antes el sheet empezaba justo ahí y la
@@ -1184,6 +1183,8 @@ export default function ExplorarScreen() {
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode="on-drag"
+            scrollEventThrottle={16}
+            onScroll={sheetView.filtering ? undefined : onTabBarScroll}
             onScrollBeginDrag={Keyboard.dismiss}>
             {isFiltering ? (
               filteredMatches.length === 0 ? (
@@ -1212,6 +1213,14 @@ export default function ExplorarScreen() {
               ) : (
                 filteredMatches.map((match) => {
                   const state = openState(match.patio);
+                  const distance = distanceLabelForPatio(match.patio);
+                  const details = [
+                    match.section !== 'LUGAR' ? match.item.name : null,
+                    match.patio.area || null,
+                    match.patio.rating && match.patio.rating !== 'Nuevo'
+                      ? `★ ${match.patio.rating}${match.patio.ratingCount != null ? ` (${match.patio.ratingCount})` : ''}`
+                      : null,
+                  ].filter(Boolean).join(' · ');
                   return (
                     <TouchableOpacity
                       accessibilityRole="button"
@@ -1242,26 +1251,21 @@ export default function ExplorarScreen() {
                       }}
                       onPressOut={() => setPressedPinId((id) => (id === match.patio.id ? null : id))}
                       activeOpacity={0.76}>
-                      <View style={[s.addBox, s.addBoxMuted]}>
+                      <View style={s.resultIcon}>
                         <Ionicons name={match.section === 'LUGAR' ? 'location-outline' : 'restaurant-outline'} size={15} color={theme.textSecondary} />
                       </View>
                       <View style={s.patioInfo}>
-                        <Text style={s.patioName} numberOfLines={2} allowFontScaling={true}>{match.item.name}</Text>
-                        <Text style={s.patioMeta} numberOfLines={1} allowFontScaling={true}>
-                          {match.section === 'LUGAR' ? match.patio.area : match.patio.name}
-                        </Text>
-                        {(match.patio.rating && match.patio.rating !== 'Nuevo' || distanceLabelForPatio(match.patio)) && (
-                          <View style={s.patioContext}>
-                            {!!match.patio.rating && match.patio.rating !== 'Nuevo' && <><Ionicons name="star" size={11} color={theme.textSecondary} /><Text style={s.patioContextText}>{match.patio.rating}{match.patio.ratingCount != null ? ` (${match.patio.ratingCount})` : ''}</Text></>}
-                            {!!distanceLabelForPatio(match.patio) && <Text style={s.patioContextText}>{match.patio.rating && match.patio.rating !== 'Nuevo' ? '· ' : ''}{distanceLabelForPatio(match.patio)}</Text>}
-                          </View>
-                        )}
+                        <Text style={s.patioName} numberOfLines={1} allowFontScaling={true}>{match.patio.name}</Text>
+                        {(!!details || !!distance) && <View style={s.patioMetaLine}>
+                          {!!details && <Text style={s.patioMeta} numberOfLines={1} allowFontScaling={true}>{details}</Text>}
+                          {!!distance && <Text style={[s.patioDistance, !details && { marginLeft: 0 }]} numberOfLines={1} allowFontScaling={true}>{distance}</Text>}
+                        </View>}
                       </View>
                       <View style={s.patioRight}>
                         {match.section !== 'LUGAR' && !!publicPrice(match.item.price ?? match.patio.price) && (
                           <Text style={s.patioPrice} numberOfLines={1} allowFontScaling={true}>{publicPrice(match.item.price ?? match.patio.price)}</Text>
                         )}
-                        <Text style={[s.patioOpen, state === true && { color: OPEN_GREEN }]} numberOfLines={1} allowFontScaling={true}>
+                        <Text style={[s.patioOpen, state === true && { color: theme.accent }]} numberOfLines={1} allowFontScaling={true}>
                           {state === false ? 'Cerrado' : state === true ? 'Abierto' : 'Sin horario'}
                         </Text>
                       </View>
@@ -1281,6 +1285,13 @@ export default function ExplorarScreen() {
             ) : (
               listPatios.map((patio) => {
                 const state = openState(patio);
+                const distance = distanceLabelForPatio(patio);
+                const details = [
+                  patio.area || null,
+                  patio.rating && patio.rating !== 'Nuevo'
+                    ? `★ ${patio.rating}${patio.ratingCount != null ? ` (${patio.ratingCount})` : ''}`
+                    : null,
+                ].filter(Boolean).join(' · ');
                 return (
                   <TouchableOpacity
                     accessibilityRole="button"
@@ -1289,24 +1300,21 @@ export default function ExplorarScreen() {
                     style={s.patioRow}
                     onPress={() => router.push(`/patio/${patio.id}`)}
                     activeOpacity={0.76}>
-                    <View style={[s.addBox, s.addBoxMuted]}>
+                    <View style={s.resultIcon}>
                       <Ionicons name="location-outline" size={16} color={theme.textSecondary} />
                     </View>
                     <View style={s.patioInfo}>
-                      <Text style={s.patioName} numberOfLines={2} allowFontScaling={true}>{patio.name}</Text>
-                      <Text style={s.patioMeta} numberOfLines={1} allowFontScaling={true}>{patio.area}</Text>
-                      {(patio.rating && patio.rating !== 'Nuevo' || distanceLabelForPatio(patio)) && (
-                        <View style={s.patioContext}>
-                          {!!patio.rating && patio.rating !== 'Nuevo' && <><Ionicons name="star" size={11} color={theme.textSecondary} /><Text style={s.patioContextText}>{patio.rating}{patio.ratingCount != null ? ` (${patio.ratingCount})` : ''}</Text></>}
-                          {!!distanceLabelForPatio(patio) && <Text style={s.patioContextText}>{patio.rating && patio.rating !== 'Nuevo' ? '· ' : ''}{distanceLabelForPatio(patio)}</Text>}
-                        </View>
-                      )}
+                      <Text style={s.patioName} numberOfLines={1} allowFontScaling={true}>{patio.name}</Text>
+                      {(!!details || !!distance) && <View style={s.patioMetaLine}>
+                        {!!details && <Text style={s.patioMeta} numberOfLines={1} allowFontScaling={true}>{details}</Text>}
+                        {!!distance && <Text style={[s.patioDistance, !details && { marginLeft: 0 }]} numberOfLines={1} allowFontScaling={true}>{distance}</Text>}
+                      </View>}
                     </View>
                     <View style={s.patioRight}>
                       {!!publicPrice(patio.price) && (
                         <Text style={s.patioPrice} numberOfLines={1} allowFontScaling={true}>{publicPrice(patio.price)}</Text>
                       )}
-                      <Text style={[s.patioOpen, state === true && { color: OPEN_GREEN }]} numberOfLines={1} allowFontScaling={true}>
+                      <Text style={[s.patioOpen, state === true && { color: theme.accent }]} numberOfLines={1} allowFontScaling={true}>
                         {state === false ? 'Cerrado' : state === true ? 'Abierto' : 'Sin horario'}
                       </Text>
                     </View>

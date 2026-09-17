@@ -6,9 +6,7 @@ import { Animated, type NativeScrollEvent, type NativeSyntheticEvent } from 'rea
 // pantalla alimente su scroll y el BottomTabBar se traslade en consecuencia.
 
 const HIDE_DISTANCE = 120;      // qué tan abajo viaja el pill al ocultarse
-const THRESHOLD = 24;           // px de scroll para considerar un gesto (anti-jitter)
-                                // Más alto = la barra es menos sensible y no
-                                // reaparece/desaparece con micro-movimientos.
+const THRESHOLD = 18;           // recorrido acumulado antes de cambiar estado
 const TOP_ZONE = 24;           // px desde el tope donde la barra siempre se ve
 
 type TabBarCtx = {
@@ -22,6 +20,7 @@ const Ctx = createContext<TabBarCtx | null>(null);
 export function TabBarVisibilityProvider({ children }: { children: React.ReactNode }) {
   const translateY = useRef(new Animated.Value(0)).current;
   const lastY = useRef(0);
+  const travel = useRef(0);
   const shown = useRef(true);
 
   const animateTo = useCallback((to: number) => {
@@ -40,6 +39,7 @@ export function TabBarVisibilityProvider({ children }: { children: React.ReactNo
     // (heredarlo producía un dy negativo enorme en el primer scroll y
     // desincronizaba la lógica).
     lastY.current = 0;
+    travel.current = 0;
     if (!shown.current) { shown.current = true; animateTo(0); }
   }, [animateTo]);
 
@@ -48,20 +48,32 @@ export function TabBarVisibilityProvider({ children }: { children: React.ReactNo
     const dy = y - lastY.current;
     lastY.current = y;
 
-    // Cerca del tope: siempre visible.
-    if (y <= TOP_ZONE) { reveal(); return; }
-    // Ignoramos rebotes (bounce) por arriba del tope en iOS.
-    if (y < 0) return;
-    if (Math.abs(dy) < THRESHOLD) return;
+    // Cerca del tope (incluido el rebote negativo de iOS) siempre visible,
+    // sin resetear la referencia a cero en cada frame; ese reset hacía que
+    // el primer evento fuera de la zona pareciera un salto grande aunque el
+    // gesto hubiera sido suave.
+    if (y <= TOP_ZONE) {
+      travel.current = 0;
+      if (!shown.current) { shown.current = true; animateTo(0); }
+      return;
+    }
+    // Los eventos llegan cada ~16 ms y rara vez avanzan 24 pt en un solo
+    // frame. Acumulamos el recorrido en la misma dirección para distinguir
+    // un gesto real de los micro rebotes sin volver inerte la barra.
+    if ((travel.current > 0 && dy < 0) || (travel.current < 0 && dy > 0)) travel.current = 0;
+    travel.current += dy;
+    if (Math.abs(travel.current) < THRESHOLD) return;
 
-    if (dy > 0 && shown.current) {            // scroll hacia abajo → ocultar
+    if (travel.current > 0 && shown.current) { // scroll hacia abajo → ocultar
       shown.current = false;
+      travel.current = 0;
       animateTo(HIDE_DISTANCE);
-    } else if (dy < 0 && !shown.current) {    // jala hacia arriba → mostrar
+    } else if (travel.current < 0 && !shown.current) { // jala hacia arriba → mostrar
       shown.current = true;
+      travel.current = 0;
       animateTo(0);
     }
-  }, [animateTo, reveal]);
+  }, [animateTo]);
 
   const value = useMemo(() => ({ translateY, onScroll, reveal }), [translateY, onScroll, reveal]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

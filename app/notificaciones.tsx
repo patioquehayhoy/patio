@@ -8,6 +8,7 @@ import { AvatarCircle } from '@/components/avatar-circle';
 import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { formatLikeAuthors, markReviewLikesSeen } from '@/lib/activity-feed';
 import { getDemoReviewLikeEvents, getMyReviewLikeEvents, type MyReviewLikeEvent } from '@/lib/review-likes';
+import { useTabBarScroll } from '@/lib/tab-bar-visibility';
 import { useTheme, type Theme } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
 
@@ -19,6 +20,7 @@ export default function NotificacionesScreen() {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
   const s = makeStyles(theme);
+  const { onScroll } = useTabBarScroll();
   const [events, setEvents] = useState<MyReviewLikeEvent[]>([]);
   const load = useCallback(() => {
     markReviewLikesSeen().catch(() => {});
@@ -49,7 +51,11 @@ export default function NotificacionesScreen() {
   return (
     <View style={[s.root, { paddingTop: insets.top }]}>
       <Stack.Screen options={{ headerShown: false }} />
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: insets.bottom + 130 }} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: insets.bottom + 130 }}
+        showsVerticalScrollIndicator={false}
+        scrollEventThrottle={16}
+        onScroll={onScroll}>
         {groups.length ? (
           groups.map((group, groupIndex) => (
             <View key={group.key} style={{ marginTop: groupIndex === 0 ? 0 : 24 }}>

@@ -16,6 +16,7 @@ import { todayDish, useFavoritePatiosController } from '@/lib/controllers/useFav
 import { useFoodieFilters } from '@/lib/foodie-filters-context';
 import { Fonts, Radius, useTheme, type Theme } from '@/lib/theme';
 import { recordRecentPatio } from '@/lib/recent-patios';
+import { useTabBarScroll } from '@/lib/tab-bar-visibility';
 import { noWidow } from '@/lib/typography';
 import { createCollection, getCollections, publishCollection, setPatiosInCollection, type PatioCollection } from '@/lib/collections';
 import { removeFavoritePatios } from '@/lib/favorites';
@@ -53,19 +54,19 @@ function makeStyles(t: Theme) {
     gridCard: { minHeight: 156, backgroundColor: t.surface, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, padding: 12 },
     cardSelected: { borderColor: t.accent, backgroundColor: t.accentSoft },
     gridTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
-    thumb: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: t.surface2 },
-    personalContext: { marginTop: 2, fontSize: 12, lineHeight: 17, color: t.textSecondary },
+    thumb: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
+    personalContext: { marginTop: 2, fontSize: 12, lineHeight: 17, fontWeight: '300', color: t.textSecondary },
     body: { flex: 1, minWidth: 0, justifyContent: 'center' },
     // Nombre + platillo de hoy son una sola unidad óptica (identidad +
     // "descripción" del lugar, igual que título/artista en Apple Music —
     // ver CLAUDE.md "Campos de texto agrupados"): 2px máximo entre ellos.
     nameRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 2 },
-    name: { flexShrink: 1, fontSize: 16, fontWeight: '600', color: t.text, lineHeight: 21 },
-    today: { fontSize: 13, lineHeight: 18, color: t.text, marginBottom: 2 },
+    name: { flexShrink: 1, fontSize: 16, fontWeight: '700', color: t.text, lineHeight: 21 },
+    today: { fontSize: 13, lineHeight: 18, fontWeight: '300', color: t.text, marginBottom: 2 },
     metaRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', columnGap: 8, rowGap: 2 },
     metaArea: { flexDirection: 'row', alignItems: 'center', gap: 3, minWidth: 0, flexShrink: 1 },
-    metaAreaText: { fontSize: 12, lineHeight: 17, color: t.textSecondary, flexShrink: 1 },
-    contextText: { fontSize: 12, lineHeight: 17, color: t.textSecondary },
+    metaAreaText: { fontSize: 12, lineHeight: 17, fontWeight: '300', color: t.textSecondary, flexShrink: 1 },
+    contextText: { fontSize: 12, lineHeight: 17, fontWeight: '300', color: t.textSecondary },
 
     // Sin resultados de filtro: misma tarjeta que una fila, para no
     // introducir un cuarto tratamiento visual solo para este estado.
@@ -103,6 +104,7 @@ export default function FavoritosScreen() {
   const insets = useSafeAreaInsets();
   const { width, fontScale } = useWindowDimensions();
   const scrollRef = useRef<ScrollView>(null);
+  const { onScroll: onTabBarScroll } = useTabBarScroll();
   const sectionOffsets = useRef<Record<string, number>>({});
   const [activeLetter, setActiveLetter] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -222,7 +224,6 @@ export default function FavoritosScreen() {
   ].join(' ').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('es').includes(normalizedQuery)) : patios, [normalizedQuery, patios]);
   const filtered = useMemo(() => searched.filter((patio) => matchesFoodieFilters(filters, {
     patioId: patio.id,
-    hasTodayMenu: patio.hasTodayMenu === true,
     weeklyHours: patio.weeklyHours ?? null,
     categories: patio.categories,
     payments: patio.payments,
@@ -278,7 +279,13 @@ export default function FavoritosScreen() {
   const sections = useMemo(() => sortMode === 'az' ? alphabeticalSections(filtered) : [], [filtered, sortMode]);
   const letters = sections.map((section) => section.letter);
   const showAlphabet = viewMode === 'list' && sortMode === 'az' && !normalizedQuery && filtered.length >= 20 && letters.length >= 4;
-  const moveIds = [...new Set(collections.filter((item) => filters.collectionIds.includes(item.id)).flatMap((item) => item.patioIds.filter((id) => selectedIds.has(id))))];
+  // Mover es una operación sobre membresía real, no sobre el filtro visual
+  // activo. En "Todos" también debe reconocer de qué listas vienen los
+  // lugares seleccionados.
+  const moveSourceCollectionIds = collections
+    .filter((item) => item.patioIds.some((id) => selectedIds.has(id)))
+    .map((item) => item.id);
+  const moveIds = [...selectedIds].filter((id) => collections.some((item) => item.patioIds.includes(id)));
   const gridWidth = fontScale > 1.4 ? width - 32 : (width - 44) / 2;
   const jumpToLetter = (letter: string) => {
     const offset = sectionOffsets.current[letter];
@@ -295,12 +302,25 @@ export default function FavoritosScreen() {
       meta?.status === 'visited' ? 'Ya fui' : meta?.status === 'want_to_go' ? 'Quiero ir' : null,
       meta?.rating ? `Tu calificación ${meta.rating}/5` : null,
     ].filter(Boolean).join(' · ');
+    const normalized = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('es');
+    const queryMatch = normalizedQuery ? (
+      (patio.menu ?? []).flatMap((section) => section.items).find((item) => normalized(item.name).includes(normalizedQuery))?.name
+      ?? (patio.menu ?? []).find((section) => normalized(section.section).includes(normalizedQuery))?.section
+      ?? patio.categories.find((category) => normalized(category).includes(normalizedQuery))
+      ?? (normalized(patio.area).includes(normalizedQuery) ? patio.area : null)
+    ) : null;
+    const listDetails = [
+      queryMatch || (today ? `${patio.hasTodayMenu ? 'Hoy' : 'Menú'}: ${today}` : patio.categories.join(' · ')),
+      personalContext || null,
+      patio.area || null,
+      patio.rating && patio.rating !== 'Nuevo' ? `★ ${patio.rating}${patio.ratingCount != null ? ` (${patio.ratingCount})` : ''}` : null,
+    ].filter(Boolean).join(' · ');
     return (
       <TouchableOpacity
         key={patio.id}
-        style={[viewMode === 'grid' ? [s.gridCard, { width: gridWidth }] : s.card, selecting && isSelected && s.cardSelected]}
+        style={[viewMode === 'grid' ? [s.gridCard, { width: gridWidth }] : s.card, viewMode === 'grid' && selecting && isSelected && s.cardSelected]}
         onPress={() => { if (selecting) toggleSelect(patio.id); else { if (normalizedQuery) void recordRecentPatio(patio, 'searched').catch(() => {}); router.push(`/patio/${patio.id}`); } }}
-        onLongPress={() => { if (!selecting) { Haptics.selectionAsync().catch(() => {}); setSelecting(true); toggleSelect(patio.id); } }}
+        onLongPress={() => { if (!selecting) { setSelecting(true); toggleSelect(patio.id); } }}
         activeOpacity={0.82}
         accessibilityRole="button"
         accessibilityState={selecting ? { selected: isSelected } : undefined}
@@ -318,22 +338,26 @@ export default function FavoritosScreen() {
             <Text style={s.name} numberOfLines={viewMode === 'grid' || fontScale > 1.4 ? 2 : 1} allowFontScaling={true}>{noWidow(patio.name)}</Text>
             {patio.isVerifiedBusiness && <Ionicons name="checkmark-circle" size={14} color={theme.accent} accessibilityLabel="Negocio verificado" />}
           </View>
-          {today ? (
-            <Text style={s.today} numberOfLines={viewMode === 'grid' ? 2 : 1} allowFontScaling={true}>{noWidow(`${patio.hasTodayMenu ? 'Hoy' : 'Menú'}: ${today}`)}</Text>
-          ) : patio.categories.length > 0 ? <Text style={s.today} numberOfLines={1}>{noWidow(patio.categories.join(' · '))}</Text> : null}
-          <View style={s.metaRow}>
-            {!!patio.area && <View style={s.metaArea}>
-              <Ionicons name="location-outline" size={12} color={theme.textSecondary} />
-              <Text style={s.metaAreaText} numberOfLines={1} allowFontScaling={true}>{patio.area}</Text>
-            </View>}
-            {!!patio.rating && patio.rating !== 'Nuevo' && (
-              <View style={s.metaArea} accessibilityLabel={`Calificación del lugar: ${patio.rating} de 5${patio.ratingCount != null ? `, ${patio.ratingCount} reseñas` : ''}`}>
-                <Ionicons name="star" size={11} color={theme.textSecondary} />
-                <Text style={s.contextText}>{patio.rating}{patio.ratingCount != null ? ` (${patio.ratingCount})` : ''}</Text>
-              </View>
-            )}
-          </View>
-          {!!personalContext && <Text style={s.personalContext} numberOfLines={2}>{noWidow(personalContext)}</Text>}
+          {viewMode === 'list' ? (
+            !!listDetails && <Text style={s.today} numberOfLines={1} allowFontScaling={true}>{listDetails}</Text>
+          ) : <>
+            {today ? (
+              <Text style={s.today} numberOfLines={2} allowFontScaling={true}>{noWidow(`${patio.hasTodayMenu ? 'Hoy' : 'Menú'}: ${today}`)}</Text>
+            ) : patio.categories.length > 0 ? <Text style={s.today} numberOfLines={1}>{noWidow(patio.categories.join(' · '))}</Text> : null}
+            <View style={s.metaRow}>
+              {!!patio.area && <View style={s.metaArea}>
+                <Ionicons name="location-outline" size={12} color={theme.textSecondary} />
+                <Text style={s.metaAreaText} numberOfLines={1} allowFontScaling={true}>{patio.area}</Text>
+              </View>}
+              {!!patio.rating && patio.rating !== 'Nuevo' && (
+                <View style={s.metaArea} accessibilityLabel={`Calificación del lugar: ${patio.rating} de 5${patio.ratingCount != null ? `, ${patio.ratingCount} reseñas` : ''}`}>
+                  <Ionicons name="star" size={11} color={theme.textSecondary} />
+                  <Text style={s.contextText}>{patio.rating}{patio.ratingCount != null ? ` (${patio.ratingCount})` : ''}</Text>
+                </View>
+              )}
+            </View>
+            {!!personalContext && <Text style={s.personalContext} numberOfLines={2}>{noWidow(personalContext)}</Text>}
+          </>}
         </View>
       </TouchableOpacity>
     );
@@ -384,8 +408,9 @@ export default function FavoritosScreen() {
       <ScrollView ref={scrollRef} contentContainerStyle={[s.content, { paddingBottom: insets.bottom + 120 }]} showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
-        scrollEventThrottle={32}
+        scrollEventThrottle={16}
         onScroll={(event) => {
+          onTabBarScroll?.(event);
           if (!showAlphabet) return;
           const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
           const y = contentOffset.y;
@@ -444,7 +469,14 @@ export default function FavoritosScreen() {
       {selecting ? <View style={{ position: 'absolute', left: 16, right: 16, bottom: insets.bottom + 8 }}>
         <SelectionActions actions={[
           { label: 'Añadir', icon: 'folder-outline', disabled: !selectedIds.size, onPress: () => { setSaveMode('add'); setSaveSheetVisible(true); } },
-          { label: 'Mover', icon: 'folder-open-outline', disabled: !moveIds.length, onPress: () => { setSaveMode('move'); setSaveSheetVisible(true); } },
+          { label: 'Mover', icon: 'folder-open-outline', disabled: !moveIds.length, onPress: () => {
+            if (moveIds.length !== selectedIds.size) {
+              Alert.alert(noWidow('Hay lugares sin lista'), noWidow('Para moverlos, selecciona solo lugares que ya pertenezcan a alguna lista. Puedes usar Añadir con los demás.'));
+              return;
+            }
+            setSaveMode('move');
+            setSaveSheetVisible(true);
+          } },
           { label: 'Compartir', icon: 'share-outline', disabled: !selectedIds.size, onPress: shareSelected },
           { label: 'Quitar', icon: 'trash-outline', disabled: !selectedIds.size, onPress: removeSelected },
         ]} />
@@ -454,7 +486,7 @@ export default function FavoritosScreen() {
         patioIds={saveMode === 'move' ? moveIds : Array.from(selectedIds)}
         patioName=""
         mode={saveMode}
-        sourceCollectionIds={filters.collectionIds}
+        sourceCollectionIds={moveSourceCollectionIds}
         onChanged={() => { getCollections().then(setCollections).catch(() => {}); }}
         onDismiss={() => setSaveSheetVisible(false)}
       />

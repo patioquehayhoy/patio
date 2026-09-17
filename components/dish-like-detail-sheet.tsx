@@ -1,15 +1,14 @@
 import { BlurView } from 'expo-blur';
+import * as Haptics from 'expo-haptics';
 import { useEffect, useRef, useState } from 'react';
 import { Animated, Modal, PanResponder, StyleSheet, Text, TouchableWithoutFeedback, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AvatarCircle } from '@/components/avatar-circle';
 import { fonderoPalette } from '@/lib/fondero-palette';
+import { isVerticalSheetDrag, SHEET_DISMISS_MS, SHEET_SPRING, shouldDismissSheet } from '@/lib/sheet-motion';
 import { useTheme } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
-
-const SHEET_DISMISS_MS = 190;
-const SHEET_SPRING = { stiffness: 320, damping: 30, mass: 0.75, useNativeDriver: true } as const;
 
 export type DishLikeAuthor = { name: string; avatarUrl?: string; label: string };
 
@@ -50,10 +49,11 @@ export function DishLikeDetailSheet({ visible, onClose, dishName, authors }: {
   // velocidad>0.9) cierra desde donde iba el dedo, si no regresa con
   // resorte (pedido Alejandro 2026-08-30, fundamentos de gesto Apple).
   const pan = useRef(PanResponder.create({
-    onMoveShouldSetPanResponder: (_event, gesture) => gesture.dy > 8 && Math.abs(gesture.dy) > Math.abs(gesture.dx),
+    onMoveShouldSetPanResponder: (_event, gesture) => isVerticalSheetDrag(gesture.dx, gesture.dy),
     onPanResponderMove: (_event, gesture) => translateY.setValue(Math.max(0, gesture.dy)),
     onPanResponderRelease: (_event, gesture) => {
-      if (gesture.dy > 70 || gesture.vy > 0.9) {
+      if (shouldDismissSheet(gesture.dy, gesture.vy)) {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
         onClose();
         return;
       }

@@ -236,6 +236,7 @@ export default function PatioDetailScreen() {
   const pulse = useRef(new Animated.Value(1)).current;
 
   const {
+    cierraProntoMin,
     cleanId,
     handleBack,
     handleComoLlegar,
@@ -516,12 +517,12 @@ export default function PatioDetailScreen() {
               {status !== null ? (
                 <View style={s.statusLeft}>
                   <Animated.View style={[s.statusDot, {
-                    backgroundColor: status ? OPEN_GREEN : theme.textMute,
+                    backgroundColor: cierraProntoMin != null ? theme.accent : status ? OPEN_GREEN : theme.textMute,
                     opacity: status ? pulse.interpolate({ inputRange: [0, 1], outputRange: [0.72, 1] }) : 1,
                     transform: [{ scale: status ? pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.12] }) : 1 }],
                   }]} />
-                  <Text style={[s.statusText, { color: status ? OPEN_GREEN : theme.textMute }]} allowFontScaling={true}>
-                    {status ? 'Abierto' : 'Cerrado'}
+                  <Text style={[s.statusText, { color: cierraProntoMin != null ? theme.accent : status ? OPEN_GREEN : theme.textMute }]} allowFontScaling={true}>
+                    {cierraProntoMin != null ? `Cierra en ${cierraProntoMin} min` : status ? 'Abierto' : 'Cerrado'}
                   </Text>
                 </View>
               ) : <View />}

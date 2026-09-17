@@ -1,16 +1,17 @@
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import * as Haptics from 'expo-haptics';
 import { useEffect, useRef, useState } from 'react';
-import { Alert, Animated, Dimensions, Keyboard, KeyboardAvoidingView, Modal, PanResponder, Platform, ScrollView, Share, StyleSheet, Text, TextInput, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { Alert, Animated, Dimensions, Keyboard, KeyboardAvoidingView, Modal, PanResponder, Platform, Pressable, ScrollView, Share, StyleSheet, Text, TextInput, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ACTION_SHEET_MENU_WIDTH, ActionSheet, type ActionSheetOption } from '@/components/action-sheet';
 import { createCollection, deleteCollection, movePatiosToCollection, normalizeCollectionTitle, publishCollection, renameCollection, setCollectionsPinned, type PatioCollection } from '@/lib/collections';
+import { ahoraCDMX, DIA_CORTO, DIAS_ORDEN_LUNES, estaAbiertoAhora, formatHHMM12Fixed, hhmmToDate, minutosAHHMM, type HorarioSemanal } from '@/lib/horario';
 import { useTheme, type Theme } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
 import { useSheetKeyboard } from '@/lib/use-sheet-keyboard';
-import { RecentPatiosButton } from '@/components/recent-patios-sheet';
 import { SelectionActions } from '@/components/selection-actions';
 
 // "Filtros" combina ATRIBUTOS del lugar (categoría, pagos) — se suman entre
@@ -19,15 +20,25 @@ import { SelectionActions } from '@/components/selection-actions';
 // otro tipo de combinación (unión de conjuntos, no intersección de
 // atributos). Una sola entrada reúne estos criterios; su estado se resume
 // junto al botón, sin añadir una barra de acciones paralela a la búsqueda.
+//
+// openAt generaliza "abierto ahora" a cualquier momento: null = sin filtro de
+// horario, {dia,minutos} = abierto en ese momento concreto (hoy más tarde o
+// mañana) — casos reales (2026-09-16): "es la 1am, quiero taquerías que
+// sigan abiertas a las 2" (hoy, con la ruleta arrancando en la hora actual) y
+// "a qué hora abre la barbacoa mañana" (mañana). Sin variante especial para
+// "ahora": es simplemente hoy con la ruleta sin mover. Reusa
+// estaAbiertoAhora, que ya acepta cualquier {dia,minutos} como "ahora".
+export type OpenAt = { dia: number; minutos: number } | null;
+
 export type FoodieFilters = {
   today: boolean;
-  open: boolean;
+  openAt: OpenAt;
   categories: string[];
   payments: string[];
   collectionIds: string[];
 };
 
-export const EMPTY_FOODIE_FILTERS: FoodieFilters = { today: false, open: false, categories: [], payments: [], collectionIds: [] };
+export const EMPTY_FOODIE_FILTERS: FoodieFilters = { today: false, openAt: null, categories: [], payments: [], collectionIds: [] };
 
 // Attribute count; the toolbar adds availability, lists and legacy criteria
 // so its badge represents every active constraint in the shared panel.
@@ -44,13 +55,13 @@ export function foodieFilterCount(f: FoodieFilters) {
 export function matchesFoodieFilters(filters: FoodieFilters, input: {
   patioId: string;
   hasTodayMenu: boolean;
-  isOpenNow: boolean;
+  weeklyHours: HorarioSemanal | null;
   categories: string[];
   payments: string[];
   collections: PatioCollection[];
 }): boolean {
   if (filters.today && !input.hasTodayMenu) return false;
-  if (filters.open && !input.isOpenNow) return false;
+  if (filters.openAt && !estaAbiertoAhora(input.weeklyHours, filters.openAt)) return false;
   if (filters.categories.length && !input.categories.some((category) => filters.categories.includes(category))) return false;
   if (filters.payments.length && !input.payments.some((method) => filters.payments.includes(method))) return false;
   if (filters.collectionIds.length) {
@@ -79,7 +90,18 @@ function styles(t: Theme) {
   return StyleSheet.create({
     root: { minHeight: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingHorizontal: 16 },
     scopeControl: { justifyContent: 'center' },
-    scopeGroup: { flex: 1, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 8, paddingVertical: 6 },
+    // Ancho fijo al peor caso ("07:00 pm" + ícono), no auto por contenido —
+    // así ninguna hora que se elija puede mover a Filtros/Listas ni un
+    // pixel, sin importar la diferencia real de kerning entre "Abierto" y
+    // una hora con dígitos (reportado 2026-09-16: seguía inestable aunque
+    // el conteo de caracteres ya fuera parejo).
+    openChip: { width: 118 },
+    // Antes envolvía a una segunda línea (flexWrap) cuando Abierto+Filtros+
+    // Listas no cabían junto al botón "···" de Guardados — ahora se
+    // desliza horizontal, como la tira de chips de Google Maps: una sola
+    // fila siempre, nunca dos (reportado 2026-09-16).
+    scopeScroll: { flex: 1 },
+    scopeGroup: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 6 },
     organizer: { minHeight: 32, paddingHorizontal: 12, paddingVertical: 4, borderRadius: 16, flexDirection: 'row', alignItems: 'center', gap: 8, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, backgroundColor: t.glass, overflow: 'hidden' },
     organizerCompact: { width: 32, paddingHorizontal: 0, justifyContent: 'center' },
     organizerText: { fontSize: 14, fontWeight: '600', color: t.text },
@@ -165,6 +187,20 @@ function styles(t: Theme) {
     renameActionDivider: { borderLeftWidth: StyleSheet.hairlineWidth, borderLeftColor: t.border },
     renameActionText: { fontSize: 15.5, fontWeight: '600', color: t.text },
     renameActionTextPrimary: { fontWeight: '700', color: t.accent },
+
+    // Ruleta de hora del filtro "Abierto" — misma receta visual que el
+    // picker compacto de components/business-schedule-editor.tsx.
+    pickerOverlay: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+    pickerSurface: { width: 320, minHeight: 300, borderRadius: 32, borderWidth: StyleSheet.hairlineWidth, borderColor: border, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOpacity: t.isDark ? 0.30 : 0.16, shadowRadius: 26, shadowOffset: { width: 0, height: 12 }, elevation: 14 },
+    pickerTitle: { position: 'absolute', top: 18, left: 20, right: 20, zIndex: 1, fontSize: 10.5, lineHeight: 13, fontWeight: '700', letterSpacing: 1.1, textAlign: 'center', color: t.textSecondary },
+    // Fila de 7 días, orden fijo Lun–Dom (mismo que el editor de horario del
+    // Fondero) — las 7 abreviaturas miden casi lo mismo entre sí, así que
+    // caben parejas en una sola línea sin recortarse ni descuadrarse.
+    pickerDayRow: { flexDirection: 'row', gap: 4, marginTop: 38, paddingHorizontal: 12, justifyContent: 'center' },
+    pickerDayChip: { width: 36, height: 40, borderRadius: 18, alignItems: 'center', justifyContent: 'center', gap: 3, borderWidth: StyleSheet.hairlineWidth, borderColor: border },
+    pickerDayChipText: { fontSize: 11, fontWeight: '700' },
+    pickerDayDot: { width: 4, height: 4, borderRadius: 2 },
+    pickerWheel: { width: 270, height: 180, marginTop: 8, alignSelf: 'center' },
   });
 }
 
@@ -291,7 +327,7 @@ function FilterSheet({ visible, onClose, title, onClear, onBack, hideTitle, onCr
   );
 }
 
-export function FoodieFilterBar({ filters, onChange, collections, categories, onCollectionCreated, onCollectionUpdated, onCollectionRemoved, organizationOptions, libraryActions, viewMode, onViewModeChange, additionalFilter }: {
+export function FoodieFilterBar({ filters, onChange, collections, categories, onCollectionCreated, onCollectionUpdated, onCollectionRemoved, organizationOptions, libraryActions, viewMode, onViewModeChange, additionalFilter, floating = true }: {
   filters: FoodieFilters; onChange: (next: FoodieFilters) => void; collections: PatioCollection[]; categories: string[];
   onCollectionCreated?: (collection: PatioCollection) => void;
   onCollectionUpdated?: (collection: PatioCollection) => void;
@@ -301,10 +337,23 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
   libraryActions?: ActionSheetOption[];
   viewMode?: 'list' | 'grid';
   onViewModeChange?: (mode: 'list' | 'grid') => void;
+  // Vidrio solo cuando la barra flota sobre contenido real (el mapa de
+  // Explorar) — regla de Materials (CLAUDE.md): "no uses Liquid Glass en la
+  // capa de contenido". Guardados vive inline sobre su propia lista, así que
+  // pasa floating=false y las mismas cápsulas se pintan planas (t.surface).
+  floating?: boolean;
 }) {
   const { theme } = useTheme();
   const s = styles(theme);
-  const { width, fontScale } = useWindowDimensions();
+  const [openPickerVisible, setOpenPickerVisible] = useState(false);
+  // Borrador del picker de "Abierto": día y hora se acumulan aquí en cada
+  // toque/tick y solo se confirman a filters.openAt al cerrar — ley de
+  // CLAUDE.md/memoria: nunca setState costoso en cada tick de un gesto
+  // continuo, solo al soltar (reportado 2026-09-16: las pills "bailaban"
+  // porque antes cada tick sí escribía en filters). null = todavía no se
+  // tocó esa parte; se resuelve con el fallback al momento de mostrar/cerrar.
+  const [openPickerDia, setOpenPickerDia] = useState<number | null>(null);
+  const [openPickerDraftMin, setOpenPickerDraftMin] = useState<number | null>(null);
   const [movingLists, setMovingLists] = useState(false);
   const [listActionBusy, setListActionBusy] = useState(false);
   const [openPanel, setOpenPanel] = useState<OpenPanel>(null);
@@ -344,11 +393,56 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
   const [renameTarget, setRenameTarget] = useState<PatioCollection | null>(null);
   const [renameValue, setRenameValue] = useState('');
   const attributeCount = foodieFilterCount(filters);
-  const filterCount = attributeCount + Number(filters.today) + Number(filters.open) + Number(!!additionalFilter);
+  // "Abierto" y "Menú hoy" ya son chips visibles con su propio estado
+  // encendido/apagado (ver scopeGroup) — contarlos aquí duplicaría la señal
+  // dentro del badge de "Filtros", que ahora solo resume lo que sigue oculto
+  // tras el sheet (categorías, pagos, el filtro adicional del mapa).
+  const filterCount = attributeCount + Number(!!additionalFilter);
   const listCount = filters.collectionIds.length;
   const isLibrary = !!onViewModeChange;
   const categoryOptions = [...new Set([...categories, ...filters.categories])].sort((a, b) => a.localeCompare(b, 'es'));
   const [creatingPending, setCreatingPending] = useState(false);
+  const pillBg = floating ? theme.glass : theme.surface;
+
+  // Etiqueta del chip "Abierto": solo la hora, nunca el nombre del día —
+  // "Hasta las X"/"El viernes X" alargaban el chip lo suficiente para
+  // empujar a Filtros/Listas a una segunda línea al elegir (reportado
+  // 2026-09-16). El ícono distingue hoy vs. cualquier otro día (reloj vs.
+  // calendario), así el texto mide casi lo mismo que "Abierto" siempre y la
+  // fila nunca se reacomoda.
+  const hoyDia = ahoraCDMX().dia;
+  const otroDiaActivo = filters.openAt !== null && filters.openAt.dia !== hoyDia;
+  const openLabel = !filters.openAt ? 'Abierto' : formatHHMM12Fixed(minutosAHHMM(filters.openAt.minutos));
+  // Orden fijo Lun–Dom (el mismo que ya usa el editor de horario del
+  // Fondero) — no "hoy, mañana, ..." rotando: ese orden cambiaba de largo
+  // cada día ("Mañana" es una palabra larga entre abreviaturas de 3 letras)
+  // y descuadraba la fila. Un orden fijo y etiquetas parejas es más legible
+  // y predecible (corregido 2026-09-16 tras auditoría). Elegir cualquier día
+  // de la semana (ej. "¿a qué hora abre la barbacoa el viernes?") sin fingir
+  // precisión de FECHA que el dato no tiene — el horario es semanal, un
+  // lugar cerrado los viernes ya sale así sin importar cuál viernes.
+  const openPickerDias = DIAS_ORDEN_LUNES;
+  // Día/hora efectivos del picker: el borrador si ya se tocó, si no la hora
+  // actual — SIEMPRE, sin importar qué día esté marcado. Antes el default
+  // cambiaba según el día (hoy = ahora, otro día = 9am), lo que obligaba a
+  // remontar la ruleta (key={dia}) para reposicionarla al cambiar de día —
+  // ese remount nativo era el "rebote" reportado 2026-09-16. Con un default
+  // constante, tocar un chip de día nunca mueve la ruleta: no hace falta
+  // remontarla, no hay glitch.
+  const effectivePickerDia = openPickerDia ?? hoyDia;
+  const effectivePickerMin = openPickerDraftMin ?? ahoraCDMX().minutos;
+  const openPickerDate = hhmmToDate(minutosAHHMM(effectivePickerMin));
+  // Cerrar el picker (tocar fuera o back de Android) confirma el borrador —
+  // si no se tocó ni el día ni la ruleta, no se activa nada solo por haber
+  // abierto y cerrado.
+  const closeOpenPicker = () => {
+    if (openPickerDia != null || openPickerDraftMin != null) {
+      onChange({ ...filters, openAt: { dia: effectivePickerDia, minutos: effectivePickerMin } });
+    }
+    setOpenPickerVisible(false);
+    setOpenPickerDia(null);
+    setOpenPickerDraftMin(null);
+  };
 
   const togglePanel = (panel: OpenPanel) => {
     Haptics.selectionAsync().catch(() => {});
@@ -548,21 +642,42 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
     }) }],
   );
 
-  // The two scope controls are identical and permanent in Map and Saved.
-  // Saved adds a separate compact control for presentation (view/order).
+  // "Abierto" despliega su propio menú (Abierto hasta… / Mañana a las…) en
+  // vez de ser un simple on-off — pedido real 2026-09-16: son las 10pm y
+  // quiero lugares que sigan abiertos a las 11, o planear uno abierto
+  // mañana 9am. "Filtros" y "Listas" quedan como los dos únicos overflow, y
+  // en Guardados se suma "Ordenar" (antes enterrado en "⋯") — auditoría
+  // contra Google Maps/Uber/Airbnb. Ya activo, tocarlo lo apaga directo (sin
+  // pasar por el menú) — es la forma más corta de quitar el filtro.
   return <View style={s.root} pointerEvents="box-none">
-    <View style={s.scopeGroup}>
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.scopeScroll} contentContainerStyle={s.scopeGroup}>
+      <TouchableOpacity
+        hitSlop={SCOPE_HIT_SLOP}
+        onPress={() => { Haptics.selectionAsync().catch(() => {}); if (filters.openAt) onChange({ ...filters, openAt: null }); else setOpenPickerVisible(true); }}
+        style={[s.organizer, s.scopeControl, s.openChip, { backgroundColor: filters.openAt ? theme.accent : pillBg, borderColor: filters.openAt ? theme.accent : theme.border }]}
+        activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityLabel={`Abierto${!filters.openAt ? '' : otroDiaActivo ? ` el ${DIA_CORTO[filters.openAt.dia]}, ${openLabel}` : `, hasta ${openLabel}`}`}
+        accessibilityHint={filters.openAt ? 'Toca para quitar el filtro de horario' : undefined}
+        accessibilityState={{ expanded: openPickerVisible }}>
+        {!filters.openAt && floating && <View style={s.pillBlurClip}>
+          <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
+        </View>}
+        <Ionicons name={otroDiaActivo ? 'calendar-outline' : 'time-outline'} size={16} color={filters.openAt ? '#FFFFFF' : theme.text} />
+        <Text style={[s.organizerText, filters.openAt && { color: '#FFFFFF' }]} numberOfLines={1}>{openLabel}</Text>
+      </TouchableOpacity>
+
       <TouchableOpacity
         hitSlop={SCOPE_HIT_SLOP}
         onPress={() => { Keyboard.dismiss(); togglePanel('filters'); }}
-        style={[s.organizer, s.scopeControl]}
+        style={[s.organizer, s.scopeControl, { backgroundColor: pillBg }]}
         activeOpacity={0.7}
         accessibilityRole="button"
         accessibilityLabel={`Filtros${filterCount ? `, ${filterCount} activos` : ''}`}
         accessibilityState={{ expanded: openPanel === 'filters' }}>
-        <View style={s.pillBlurClip}>
+        {floating && <View style={s.pillBlurClip}>
           <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
-        </View>
+        </View>}
         <View style={s.controlIcon}>
           <Ionicons name="options-outline" size={20} color={theme.text} />
         </View>
@@ -573,37 +688,43 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
       <TouchableOpacity
         hitSlop={SCOPE_HIT_SLOP}
         onPress={() => { Keyboard.dismiss(); togglePanel('lists'); }}
-        style={[s.organizer, s.scopeControl]}
+        style={[s.organizer, s.scopeControl, { backgroundColor: pillBg }]}
         activeOpacity={0.7}
         accessibilityRole="button"
         accessibilityLabel={`Tus listas${listCount ? `, ${listCount} activas` : ''}`}
         accessibilityState={{ expanded: openPanel === 'lists' }}>
-        <View style={s.pillBlurClip}>
+        {floating && <View style={s.pillBlurClip}>
           <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
-        </View>
+        </View>}
         <View style={s.controlIcon}>
           <Ionicons name="folder-outline" size={20} color={theme.text} />
         </View>
         <Text style={s.organizerText}>Listas</Text>
         {listCount > 0 && <Text style={s.activeCount}>{listCount}</Text>}
       </TouchableOpacity>
-      <RecentPatiosButton compact={width < (isLibrary ? 410 : 360) || fontScale > 1.15} />
-    </View>
 
+    </ScrollView>
+
+    {/* "⋯" vive fuera de scopeGroup a propósito: es el único control cuyo
+        ancho es fijo (organizerCompact, 32pt) en vez de crecer con su
+        texto — por eso queda a la misma altura que Filtros/Listas/Abierto
+        (mismo organizer base, minHeight 32) pero no compite por el mismo
+        espacio elástico que ellos. Ordenar regresa aquí adentro (pedido
+        2026-09-16: no merece chip propio) junto a vista y selección. */}
     {isLibrary && <>
       <TouchableOpacity
         hitSlop={CONTROL_HIT_SLOP}
         ref={organizerRef}
         onPress={() => { Keyboard.dismiss(); Haptics.selectionAsync().catch(() => {}); setOrganizerVisible(true); }}
-        style={[s.organizer, s.organizerCompact]}
+        style={[s.organizer, s.organizerCompact, { backgroundColor: pillBg }]}
         activeOpacity={0.7}
         accessibilityRole="button"
         accessibilityLabel="Organizar Guardados"
         accessibilityState={{ expanded: organizerVisible }}
-        accessibilityHint="Seleccionar lugares, cambiar vista y orden">
-        <View style={s.pillBlurClip}>
+        accessibilityHint="Ordenar, cambiar vista y seleccionar lugares">
+        {floating && <View style={s.pillBlurClip}>
           <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
-        </View>
+        </View>}
         <Ionicons name="ellipsis-horizontal" size={20} color={theme.text} />
       </TouchableOpacity>
       <ActionSheet
@@ -611,12 +732,12 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
         anchorRef={organizerRef}
         onDismiss={() => setOrganizerVisible(false)}
         options={[
-          ...(libraryActions ?? []),
+          ...(organizationOptions ?? []),
           ...(onViewModeChange ? [
             { label: 'Cuadrícula', sectionLabel: 'Vista', icon: 'grid-outline' as const, selected: viewMode === 'grid', onPress: () => { Haptics.selectionAsync().catch(() => {}); onViewModeChange('grid'); } },
             { label: 'Lista', icon: 'list-outline' as const, selected: viewMode === 'list', onPress: () => { Haptics.selectionAsync().catch(() => {}); onViewModeChange('list'); } },
           ] : []),
-          ...(organizationOptions ?? []),
+          ...(libraryActions ?? []),
         ]}
       />
     </>}
@@ -658,13 +779,13 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
       </View> : undefined}
       preferredHeight={openPanel === 'filters'
         ? filterDetail === 'categories' ? Math.min(560, 96 + categoryOptions.length * 48)
-          : filterDetail === 'payments' ? 244 : 324 + (additionalFilter ? 56 : 0)
+          : filterDetail === 'payments' ? 244 : 280 + (additionalFilter ? 56 : 0)
         : Math.min(514, 152 + Math.max(1, collections.length) * 56 + (creatingList ? 96 : 0) + (selectingLists ? 44 : 0))}
       onBack={movingLists ? () => { if (!listActionBusy) setMovingLists(false); } : openPanel === 'filters' && filterDetail ? () => { Haptics.selectionAsync().catch(() => {}); setFilterDetail(null); } : undefined}
       onClear={openPanel === 'filters'
         ? filterDetail
           ? (filters[filterDetail].length ? () => { Haptics.selectionAsync().catch(() => {}); onChange({ ...filters, [filterDetail]: [] }); } : undefined)
-          : (filterCount ? () => { Haptics.selectionAsync().catch(() => {}); onChange({ ...filters, today: false, open: false, categories: [], payments: [] }); additionalFilter?.onClear(); } : undefined)
+          : (filterCount ? () => { Haptics.selectionAsync().catch(() => {}); onChange({ ...filters, today: false, categories: [], payments: [] }); additionalFilter?.onClear(); } : undefined)
         : undefined}
       overlay={openPanel === 'lists' && (actionsTarget || listsMenuVisible) && actionsLayout && (
         <>
@@ -710,14 +831,16 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
             })}
           </View></View>
         ) : <>
+          {/* "Abierto" salió de aquí — tiene su propio chip con menú y
+              ruleta de hora en la fila superior (ver auditoría 2026-09-16).
+              "Con menú de hoy" se queda: es un atributo del lugar, no un
+              momento en el tiempo, no compite por el mismo control. */}
           <View style={s.section}><View style={s.group}>
-            {([{ key: 'today', label: 'Con menú de hoy' }, { key: 'open', label: 'Abiertos ahora' }] as const).map(({ key, label }, index) => (
-              <TouchableOpacity key={key} style={[s.availabilityRow, s.choiceRow, index > 0 && s.rowDivider]} accessibilityRole="checkbox" accessibilityState={{ checked: filters[key] }} accessibilityLabel={label}
-                onPress={() => { Haptics.selectionAsync().catch(() => {}); onChange({ ...filters, [key]: !filters[key] }); }}>
-                <Text style={[s.optionText, { fontWeight: '400', color: filters[key] ? theme.text : theme.textSecondary }]}>{noWidow(label)}</Text>
-                <View style={s.checkSlot}><Ionicons name={filters[key] ? 'checkmark' : 'add'} size={18} color={filters[key] ? theme.accent : theme.textMute} /></View>
-              </TouchableOpacity>
-            ))}
+            <TouchableOpacity style={[s.availabilityRow, s.choiceRow]} accessibilityRole="checkbox" accessibilityState={{ checked: filters.today }} accessibilityLabel="Con menú de hoy"
+              onPress={() => { Haptics.selectionAsync().catch(() => {}); onChange({ ...filters, today: !filters.today }); }}>
+              <Text style={[s.optionText, { fontWeight: '400', color: filters.today ? theme.text : theme.textSecondary }]}>{noWidow('Con menú de hoy')}</Text>
+              <View style={s.checkSlot}><Ionicons name={filters.today ? 'checkmark' : 'add'} size={18} color={filters.today ? theme.accent : theme.textMute} /></View>
+            </TouchableOpacity>
           </View></View>
           <View style={s.section}><View style={s.group}>
             {([{ title: 'Tipo de lugar', field: 'categories', icon: 'restaurant-outline' }, { title: 'Pago', field: 'payments', icon: 'card-outline' }] as const).map((group, index) => {
@@ -771,6 +894,52 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
       </>}
 
     </FilterSheet>
+
+    {/* Ruleta compacta de hora, calcada del editor de horario del Fondero
+        (components/business-schedule-editor.tsx): tarjeta de vidrio
+        centrada, sin envolver la edición en otro sheet inferior — ley de
+        CLAUDE.md "Horas en iOS usan picker compacto anclado". A diferencia
+        de ese editor, aquí CADA TICK no toca filters.openAt (eso repintaba
+        el chip con cada grado de la ruleta, "bailando" la fila mientras se
+        arrastraba — bug real 2026-09-16). Cada tick solo mueve el borrador
+        local; se confirma una sola vez al cerrar. */}
+    {openPickerVisible && (
+      <Modal transparent visible animationType="fade" statusBarTranslucent onRequestClose={closeOpenPicker}>
+        <View style={s.pickerOverlay}>
+          <Pressable accessibilityLabel="Cerrar selector de horario" style={StyleSheet.absoluteFillObject} onPress={closeOpenPicker} />
+          <View style={s.pickerSurface}>
+            <BlurView intensity={theme.isDark ? 30 : 40} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
+            <Text style={s.pickerTitle}>ABIERTO</Text>
+            <View style={s.pickerDayRow}>
+              {openPickerDias.map((dia) => {
+                const active = effectivePickerDia === dia;
+                const esHoy = dia === hoyDia;
+                return <TouchableOpacity key={dia} onPress={() => { Haptics.selectionAsync().catch(() => {}); setOpenPickerDia(dia); }}
+                  style={[s.pickerDayChip, active && { backgroundColor: theme.accent, borderColor: theme.accent }]}
+                  accessibilityRole="button" accessibilityLabel={`${DIA_CORTO[dia]}${esHoy ? ', hoy' : ''}`} accessibilityState={{ selected: active }}>
+                  <Text style={[s.pickerDayChipText, { color: active ? '#FFFFFF' : theme.text }]}>{DIA_CORTO[dia]}</Text>
+                  {/* Punto bajo "hoy" — referencia fija aunque no sea el día
+                      seleccionado, mismo lenguaje que el calendario de Apple. */}
+                  <View style={[s.pickerDayDot, { backgroundColor: esHoy ? (active ? '#FFFFFF' : theme.accent) : 'transparent' }]} />
+                </TouchableOpacity>;
+              })}
+            </View>
+            <DateTimePicker
+              accessibilityLabel="Ruleta de hora"
+              value={openPickerDate}
+              mode="time"
+              display="spinner"
+              minuteInterval={15}
+              locale="es-MX"
+              themeVariant={theme.isDark ? 'dark' : 'light'}
+              accentColor={theme.accent}
+              style={s.pickerWheel}
+              onChange={(_, next) => { if (next) setOpenPickerDraftMin(next.getHours() * 60 + next.getMinutes()); }}
+            />
+          </View>
+        </View>
+      </Modal>
+    )}
 
     {/* Respaldo Android — Alert.prompt no existe en esa plataforma. Modal
         propio, centrado y de tamaño fijo (no vive dentro de un ScrollView),

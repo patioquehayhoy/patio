@@ -27,7 +27,3 @@ export async function recordRecentPatio(patio: string | { id: string; name: stri
     await AsyncStorage.setItem(KEY, JSON.stringify([next, ...entries.filter((entry) => entry.patioId !== patioId)].slice(0, 40)));
   });
 }
-
-export function clearRecentPatios() {
-  return withStorageLock(KEY, () => AsyncStorage.removeItem(KEY));
-}

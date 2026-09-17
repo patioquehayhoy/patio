@@ -10,6 +10,7 @@ import {
   estaAbiertoAhora,
   formatHHMM12,
   horarioDeHoy,
+  minutosParaCerrar,
   proximaApertura,
   resumenHorario,
 } from '@/lib/horario';
@@ -157,6 +158,13 @@ export function usePatioDetailController(id: PatioParam) {
 
   const status = useMemo(() => (patio ? patioStatus(patio) : null), [patio]);
   const isClosed = status === false;
+  // Aviso "cierra pronto" — solo cuando de verdad está abierto ahora mismo.
+  // Ventana de 15 min: suficiente para decidir ir, no tan corta que no dé tiempo.
+  const cierraProntoMin = useMemo(() => {
+    if (!patio || status !== true) return null;
+    const min = minutosParaCerrar(patio.weeklyHours);
+    return min != null && min <= 15 ? min : null;
+  }, [patio, status]);
   const soldOut = patio?.soldOut === true;
   const sections = useMemo(
     () => (liveMenu ?? patio?.menu ?? []).map((section) => ({
@@ -242,6 +250,7 @@ export function usePatioDetailController(id: PatioParam) {
   }, [patio]);
 
   return {
+    cierraProntoMin,
     cleanId,
     handleBack,
     handleComoLlegar,

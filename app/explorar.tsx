@@ -387,7 +387,7 @@ export default function ExplorarScreen() {
   const filteredPins = useMemo(() => visiblePatios.filter((patio) => matchesFoodieFilters(filters, {
     patioId: patio.id,
     hasTodayMenu: patio.hasTodayMenu === true,
-    isOpenNow: !!(patio.weeklyHours && estaAbiertoAhora(patio.weeklyHours)),
+    weeklyHours: patio.weeklyHours ?? null,
     categories: patio.categories,
     payments: patio.payments,
     collections,
@@ -400,7 +400,7 @@ export default function ExplorarScreen() {
     (!activeSavedCategories.length || (savedIds.includes(match.patio.id) && match.patio.categories.some((category) => activeSavedCategories.includes(category)))) && matchesFoodieFilters(filters, {
     patioId: match.patio.id,
     hasTodayMenu: match.patio.hasTodayMenu === true,
-    isOpenNow: !!(match.patio.weeklyHours && estaAbiertoAhora(match.patio.weeklyHours)),
+    weeklyHours: match.patio.weeklyHours ?? null,
     categories: match.patio.categories,
     payments: match.patio.payments,
     collections,
@@ -759,7 +759,7 @@ export default function ExplorarScreen() {
   const listPatios = (activeSavedCategories.length ? mapFilteredPatios : allPatios).filter((patio) => matchesFoodieFilters(filters, {
     patioId: patio.id,
     hasTodayMenu: patio.hasTodayMenu === true,
-    isOpenNow: !!(patio.weeklyHours && estaAbiertoAhora(patio.weeklyHours)),
+    weeklyHours: patio.weeklyHours ?? null,
     categories: patio.categories,
     payments: patio.payments,
     collections,

@@ -17,7 +17,6 @@ import { useFoodieFilters } from '@/lib/foodie-filters-context';
 import { Fonts, Radius, useTheme, type Theme } from '@/lib/theme';
 import { recordRecentPatio } from '@/lib/recent-patios';
 import { noWidow } from '@/lib/typography';
-import { estaAbiertoAhora } from '@/lib/horario';
 import { createCollection, getCollections, publishCollection, setPatiosInCollection, type PatioCollection } from '@/lib/collections';
 import { removeFavoritePatios } from '@/lib/favorites';
 import { alphabeticalSections } from '@/lib/library-index';
@@ -224,7 +223,7 @@ export default function FavoritosScreen() {
   const filtered = useMemo(() => searched.filter((patio) => matchesFoodieFilters(filters, {
     patioId: patio.id,
     hasTodayMenu: patio.hasTodayMenu === true,
-    isOpenNow: !!(patio.weeklyHours && estaAbiertoAhora(patio.weeklyHours)),
+    weeklyHours: patio.weeklyHours ?? null,
     categories: patio.categories,
     payments: patio.payments,
     collections,
@@ -356,6 +355,7 @@ export default function FavoritosScreen() {
                 <FoodieFilterBar
                   filters={filters}
                   onChange={setFilters}
+                  floating={false}
                   collections={collections}
                   categories={categories}
                   onCollectionCreated={(c) => setCollections((prev) => [c, ...prev])}
@@ -364,13 +364,17 @@ export default function FavoritosScreen() {
                   viewMode={viewMode}
                   onViewModeChange={changeViewMode}
                   libraryActions={[{ label: selecting ? 'Terminar selección' : 'Seleccionar lugares', icon: 'checkmark-circle-outline', afterDismiss: true, onPress: () => { Haptics.selectionAsync().catch(() => {}); if (selecting) exitSelecting(); else setSelecting(true); } }]}
-                  organizationOptions={(['recent', 'rating', 'az'] as const).map((mode) => ({
+                  organizationOptions={(['rating', 'az'] as const).map((mode, index) => ({
                     label: SORT_LABELS[mode],
-                    sectionLabel: mode === 'recent' ? 'Orden' : undefined,
-                    icon: mode === 'recent' ? 'time-outline' : mode === 'rating' ? 'star-outline' : 'text-outline',
+                    sectionLabel: index === 0 ? 'Orden' : undefined,
+                    icon: mode === 'rating' ? 'star-outline' : 'text-outline',
                     selected: mode === sortMode,
                     accessibilityHint: 'Ordenar Guardados',
-                    onPress: () => { Haptics.selectionAsync().catch(() => {}); changeSortMode(mode); },
+                    // Tocar el criterio ya activo lo apaga y regresa al orden
+                    // base (más reciente primero) — mismo patrón que el chip
+                    // "Abierto": no hace falta una opción "Más reciente"
+                    // aparte, ya es el estado de fábrica sin tocar nada.
+                    onPress: () => { Haptics.selectionAsync().catch(() => {}); changeSortMode(mode === sortMode ? 'recent' : mode); },
                   }))}
                 />
               </View>

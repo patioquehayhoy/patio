@@ -40,6 +40,12 @@ export function hhmmToMin(s: string | null): number | null {
   return h * 60 + min;
 }
 
+/** Minutos desde medianoche → "HH:MM" 24h. Inverso de hhmmToMin. */
+export function minutosAHHMM(minutos: number): string {
+  const clamped = Math.max(0, Math.min(1439, Math.round(minutos)));
+  return `${Math.floor(clamped / 60).toString().padStart(2, '0')}:${(clamped % 60).toString().padStart(2, '0')}`;
+}
+
 /** Date → "HH:MM" 24h. */
 export function dateToHHMM(d: Date): string {
   return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
@@ -52,6 +58,23 @@ export function hhmmToDate(s: string | null): Date {
   if (min == null) { d.setHours(8, 0, 0, 0); return d; }
   d.setHours(Math.floor(min / 60), min % 60, 0, 0);
   return d;
+}
+
+/**
+ * "19:00" → "07:00 pm" · "08:30" → "08:30 am". Ancho SIEMPRE constante (8
+ * caracteres) — a diferencia de formatHHMM12, que omite ":00" y no rellena
+ * la hora (bueno para lectura de horario, pero un chip cuyo texto cambia de
+ * 3 a 7 caracteres según el minuto elegido se reacomoda visualmente; ver
+ * chip "Abierto" en foodie-filter-bar.tsx).
+ */
+export function formatHHMM12Fixed(s: string | null): string {
+  const min = hhmmToMin(s);
+  if (min == null) return '';
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  const ampm = h >= 12 ? 'pm' : 'am';
+  const h12 = h % 12 || 12;
+  return `${h12.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')} ${ampm}`;
 }
 
 /** "19:00" → "7pm" · "08:30" → "8:30am". Para display. */
@@ -164,6 +187,34 @@ export function estaAbiertoAhora(h: HorarioSemanal | null, ahora = ahoraCDMX()):
 export function horarioDeHoy(h: HorarioSemanal | null, ahora = ahoraCDMX()): DiaHorario | null {
   if (!h) return null;
   return h.find(d => d.dia === ahora.dia) ?? null;
+}
+
+/**
+ * Minutos que faltan para cerrar, solo si está abierto ahora mismo. Mismo
+ * soporte de cruce de medianoche que estaAbiertoAhora — null si está
+ * cerrado o no hay datos suficientes.
+ */
+export function minutosParaCerrar(h: HorarioSemanal | null, ahora = ahoraCDMX()): number | null {
+  if (!h) return null;
+  const { dia, minutos } = ahora;
+  const hoy = h.find(d => d.dia === dia);
+  const ayer = h.find(d => d.dia === (dia + 6) % 7);
+
+  if (hoy && !hoy.cerrado) {
+    const a = hhmmToMin(hoy.abre);
+    const c = hhmmToMin(hoy.cierra);
+    if (a != null && c != null) {
+      if (c > a) { if (minutos >= a && minutos < c) return c - minutos; }        // normal
+      else { if (minutos >= a) return (1440 - minutos) + c; }                    // cruza medianoche: parte de hoy
+    }
+  }
+  // Madrugada que pertenece al turno de ayer (ayer cruzó medianoche).
+  if (ayer && !ayer.cerrado) {
+    const a = hhmmToMin(ayer.abre);
+    const c = hhmmToMin(ayer.cierra);
+    if (a != null && c != null && c <= a && minutos < c) return c - minutos;
+  }
+  return null;
 }
 
 /** Próxima apertura a partir de ahora: { dia, abre } o null si nunca abre. */

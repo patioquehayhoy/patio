@@ -191,16 +191,36 @@ function styles(t: Theme) {
     // Ruleta de hora del filtro "Abierto" — misma receta visual que el
     // picker compacto de components/business-schedule-editor.tsx.
     pickerOverlay: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-    pickerSurface: { width: 320, minHeight: 300, borderRadius: 32, borderWidth: StyleSheet.hairlineWidth, borderColor: border, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOpacity: t.isDark ? 0.30 : 0.16, shadowRadius: 26, shadowOffset: { width: 0, height: 12 }, elevation: 14 },
-    pickerTitle: { position: 'absolute', top: 18, left: 20, right: 20, zIndex: 1, fontSize: 10.5, lineHeight: 13, fontWeight: '700', letterSpacing: 1.1, textAlign: 'center', color: t.textSecondary },
+    // Recortado 2026-09-16 (pedido: ganar espacio a lo alto) — de 300 a
+    // ~230: la ruleta nativa baja de 180 a 150pt (sigue mostrando sus 5
+    // filas, solo más compacta) y los márgenes de aire se ajustan parejo.
+    // 190 (antes 300→230): el odómetro de una línea mide una fracción de lo
+    // que medía la ruleta nativa de varias filas — recortado 2026-09-16.
+    pickerSurface: { width: 320, minHeight: 228, borderRadius: 32, borderWidth: StyleSheet.hairlineWidth, borderColor: border, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOpacity: t.isDark ? 0.30 : 0.16, shadowRadius: 26, shadowOffset: { width: 0, height: 12 }, elevation: 14 },
+    // Antes vivía "position: absolute" mientras el resto del contenido se
+    // centraba con justifyContent:'center' — dos sistemas de coordenadas
+    // distintos que casi nunca coinciden, así que subir el `top` a mano no
+    // separaba nada de verdad (bug real reportado 2026-09-16, se veía
+    // pegado a los chips de día sin importar cuánto se subiera). Ahora es
+    // un hijo normal del flujo, con su propio marginBottom real.
+    pickerTitle: { fontSize: 10.5, lineHeight: 13, fontWeight: '700', letterSpacing: 1.1, textAlign: 'center', color: t.textSecondary, marginBottom: 20 },
     // Fila de 7 días, orden fijo Lun–Dom (mismo que el editor de horario del
     // Fondero) — las 7 abreviaturas miden casi lo mismo entre sí, así que
     // caben parejas en una sola línea sin recortarse ni descuadrarse.
-    pickerDayRow: { flexDirection: 'row', gap: 4, marginTop: 38, paddingHorizontal: 12, justifyContent: 'center' },
-    pickerDayChip: { width: 36, height: 40, borderRadius: 18, alignItems: 'center', justifyContent: 'center', gap: 3, borderWidth: StyleSheet.hairlineWidth, borderColor: border },
+    pickerDayRow: { flexDirection: 'row', gap: 4, paddingHorizontal: 12, justifyContent: 'center' },
+    // 36×36 queda bajo el mínimo táctil de 44pt — se compensa con hitSlop
+    // en el JSX (mismo truco que ya usan las demás cápsulas de 32pt de este
+    // archivo), no agrandando el chip de nuevo.
+    pickerDayChip: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', gap: 3, borderWidth: StyleSheet.hairlineWidth, borderColor: border },
     pickerDayChipText: { fontSize: 11, fontWeight: '700' },
     pickerDayDot: { width: 4, height: 4, borderRadius: 2 },
-    pickerWheel: { width: 270, height: 180, marginTop: 8, alignSelf: 'center' },
+    // Odómetro de una línea: fondo sólido (nunca BlurView) — memoria real:
+    // el blur produjo artefactos (puntos negros) en dispositivo sobre
+    // paneles que muestran listas de opciones flotando sobre el mapa.
+    // "compact" (una fila) exige un popover aparte — Alejandro prefirió
+    // quedarse embebido en el mismo panel, así que es "spinner" (nativo,
+    // inline), lo más bajo posible sin que la ruleta se recorte mal.
+    pickerScrubber: { width: 260, height: 140, marginTop: 6, alignSelf: 'center' },
   });
 }
 
@@ -346,6 +366,30 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
   const { theme } = useTheme();
   const s = styles(theme);
   const [openPickerVisible, setOpenPickerVisible] = useState(false);
+  // Entrada/salida animada (mismo resorte que ActionSheet: escala+opacidad,
+  // no el fade plano por defecto del Modal) y feedback háptico simétrico —
+  // abrir ya lo daba el tap del chip, cerrar no tenía nada (pedido
+  // 2026-09-16: cuidar el feedback de abrir/cerrar).
+  const [openPickerRendered, setOpenPickerRendered] = useState(false);
+  const openPickerScale = useRef(new Animated.Value(0.92)).current;
+  const openPickerOpacity = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    if (openPickerVisible) {
+      setOpenPickerRendered(true);
+      openPickerScale.setValue(0.92);
+      openPickerOpacity.setValue(0);
+      Animated.parallel([
+        Animated.spring(openPickerScale, { toValue: 1, stiffness: 420, damping: 28, mass: 0.7, useNativeDriver: true }),
+        Animated.timing(openPickerOpacity, { toValue: 1, duration: 130, useNativeDriver: true }),
+      ]).start();
+    } else if (openPickerRendered) {
+      Animated.parallel([
+        Animated.timing(openPickerScale, { toValue: 0.94, duration: 140, useNativeDriver: true }),
+        Animated.timing(openPickerOpacity, { toValue: 0, duration: 140, useNativeDriver: true }),
+      ]).start(({ finished }) => { if (finished) setOpenPickerRendered(false); });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openPickerVisible]);
   // Borrador del picker de "Abierto": día y hora se acumulan aquí en cada
   // toque/tick y solo se confirman a filters.openAt al cerrar — ley de
   // CLAUDE.md/memoria: nunca setState costoso en cada tick de un gesto
@@ -436,6 +480,7 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
   // si no se tocó ni el día ni la ruleta, no se activa nada solo por haber
   // abierto y cerrado.
   const closeOpenPicker = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     if (openPickerDia != null || openPickerDraftMin != null) {
       onChange({ ...filters, openAt: { dia: effectivePickerDia, minutos: effectivePickerMin } });
     }
@@ -895,26 +940,28 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
 
     </FilterSheet>
 
-    {/* Ruleta compacta de hora, calcada del editor de horario del Fondero
-        (components/business-schedule-editor.tsx): tarjeta de vidrio
-        centrada, sin envolver la edición en otro sheet inferior — ley de
-        CLAUDE.md "Horas en iOS usan picker compacto anclado". A diferencia
-        de ese editor, aquí CADA TICK no toca filters.openAt (eso repintaba
-        el chip con cada grado de la ruleta, "bailando" la fila mientras se
-        arrastraba — bug real 2026-09-16). Cada tick solo mueve el borrador
-        local; se confirma una sola vez al cerrar. */}
-    {openPickerVisible && (
-      <Modal transparent visible animationType="fade" statusBarTranslucent onRequestClose={closeOpenPicker}>
+    {/* Panel de horario: tarjeta centrada, sin envolver la edición en otro
+        sheet inferior — ley de CLAUDE.md "Horas en iOS usan picker
+        compacto anclado". La hora usa <DateTimePicker display="spinner">:
+        el wheel nativo real de Apple, embebido aquí mismo (no un popover
+        aparte — se probaron un odómetro propio y el modo "compact", pero
+        Alejandro prefirió el nativo inline, 2026-09-16). Cada cambio solo
+        mueve el borrador local, nunca filters.openAt directo (eso repintaba
+        el chip con cada tick y "bailaba" la fila — bug real 2026-09-16); se
+        confirma una sola vez al cerrar. Entrada/salida con el mismo resorte
+        de ActionSheet y háptico simétrico al abrir/cerrar. */}
+    {openPickerRendered && (
+      <Modal transparent visible animationType="none" statusBarTranslucent onRequestClose={closeOpenPicker}>
         <View style={s.pickerOverlay}>
           <Pressable accessibilityLabel="Cerrar selector de horario" style={StyleSheet.absoluteFillObject} onPress={closeOpenPicker} />
-          <View style={s.pickerSurface}>
+          <Animated.View style={[s.pickerSurface, { opacity: openPickerOpacity, transform: [{ scale: openPickerScale }] }]}>
             <BlurView intensity={theme.isDark ? 30 : 40} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
             <Text style={s.pickerTitle}>ABIERTO</Text>
             <View style={s.pickerDayRow}>
               {openPickerDias.map((dia) => {
                 const active = effectivePickerDia === dia;
                 const esHoy = dia === hoyDia;
-                return <TouchableOpacity key={dia} onPress={() => { Haptics.selectionAsync().catch(() => {}); setOpenPickerDia(dia); }}
+                return <TouchableOpacity key={dia} hitSlop={{ top: 4, bottom: 4, left: 2, right: 2 }} onPress={() => { Haptics.selectionAsync().catch(() => {}); setOpenPickerDia(dia); }}
                   style={[s.pickerDayChip, active && { backgroundColor: theme.accent, borderColor: theme.accent }]}
                   accessibilityRole="button" accessibilityLabel={`${DIA_CORTO[dia]}${esHoy ? ', hoy' : ''}`} accessibilityState={{ selected: active }}>
                   <Text style={[s.pickerDayChipText, { color: active ? '#FFFFFF' : theme.text }]}>{DIA_CORTO[dia]}</Text>
@@ -925,7 +972,7 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
               })}
             </View>
             <DateTimePicker
-              accessibilityLabel="Ruleta de hora"
+              accessibilityLabel="Hora"
               value={openPickerDate}
               mode="time"
               display="spinner"
@@ -933,10 +980,10 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
               locale="es-MX"
               themeVariant={theme.isDark ? 'dark' : 'light'}
               accentColor={theme.accent}
-              style={s.pickerWheel}
+              style={s.pickerScrubber}
               onChange={(_, next) => { if (next) setOpenPickerDraftMin(next.getHours() * 60 + next.getMinutes()); }}
             />
-          </View>
+          </Animated.View>
         </View>
       </Modal>
     )}

@@ -1215,7 +1215,6 @@ export default function ExplorarScreen() {
                   const state = openState(match.patio);
                   const distance = distanceLabelForPatio(match.patio);
                   const details = [
-                    match.section !== 'LUGAR' ? match.item.name : null,
                     match.patio.area || null,
                     match.patio.rating && match.patio.rating !== 'Nuevo'
                       ? `★ ${match.patio.rating}${match.patio.ratingCount != null ? ` (${match.patio.ratingCount})` : ''}`
@@ -1262,8 +1261,8 @@ export default function ExplorarScreen() {
                         </View>}
                       </View>
                       <View style={s.patioRight}>
-                        {match.section !== 'LUGAR' && !!publicPrice(match.item.price ?? match.patio.price) && (
-                          <Text style={s.patioPrice} numberOfLines={1} allowFontScaling={true}>{publicPrice(match.item.price ?? match.patio.price)}</Text>
+                        {!!publicPrice(match.patio.price) && (
+                          <Text style={s.patioPrice} numberOfLines={1} allowFontScaling={true}>{publicPrice(match.patio.price)}</Text>
                         )}
                         <Text style={[s.patioOpen, state === true && { color: theme.accent }]} numberOfLines={1} allowFontScaling={true}>
                           {state === false ? 'Cerrado' : state === true ? 'Abierto' : 'Sin horario'}

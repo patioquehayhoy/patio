@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Haptics from 'expo-haptics';
+import * as Location from 'expo-location';
 import { router, Stack, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, ScrollView, Share, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
@@ -12,8 +13,10 @@ import { EMPTY_FOODIE_FILTERS, FoodieFilterBar, matchesFoodieFilters } from '@/c
 import { SelectionActions } from '@/components/selection-actions';
 import { SaveToListSheet } from '@/components/save-to-list-sheet';
 import { SearchField } from '@/components/search-field';
-import { todayDish, useFavoritePatiosController } from '@/lib/controllers/useFavoritePatiosController';
+import { useFavoritePatiosController } from '@/lib/controllers/useFavoritePatiosController';
 import { useFoodieFilters } from '@/lib/foodie-filters-context';
+import { distanceKm, formatDistance } from '@/lib/geo';
+import { publicPrice } from '@/lib/prices';
 import { Fonts, Radius, useTheme, type Theme } from '@/lib/theme';
 import { recordRecentPatio } from '@/lib/recent-patios';
 import { useTabBarScroll } from '@/lib/tab-bar-visibility';
@@ -55,7 +58,6 @@ function makeStyles(t: Theme) {
     cardSelected: { borderColor: t.accent, backgroundColor: t.accentSoft },
     gridTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
     thumb: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
-    personalContext: { marginTop: 2, fontSize: 12, lineHeight: 17, fontWeight: '300', color: t.textSecondary },
     body: { flex: 1, minWidth: 0, justifyContent: 'center' },
     // Nombre + platillo de hoy son una sola unidad óptica (identidad +
     // "descripción" del lugar, igual que título/artista en Apple Music —
@@ -63,10 +65,12 @@ function makeStyles(t: Theme) {
     nameRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 2 },
     name: { flexShrink: 1, fontSize: 16, fontWeight: '700', color: t.text, lineHeight: 21 },
     today: { fontSize: 13, lineHeight: 18, fontWeight: '300', color: t.text, marginBottom: 2 },
+    metaLine: { minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: 6 },
+    distance: { flexShrink: 0, fontSize: 13, lineHeight: 18, fontWeight: '300', color: t.textSecondary, fontVariant: ['tabular-nums'] },
+    price: { flexShrink: 0, fontSize: 14, fontWeight: '300', color: t.textSecondary, letterSpacing: -0.1 },
     metaRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', columnGap: 8, rowGap: 2 },
     metaArea: { flexDirection: 'row', alignItems: 'center', gap: 3, minWidth: 0, flexShrink: 1 },
     metaAreaText: { fontSize: 12, lineHeight: 17, fontWeight: '300', color: t.textSecondary, flexShrink: 1 },
-    contextText: { fontSize: 12, lineHeight: 17, fontWeight: '300', color: t.textSecondary },
 
     // Sin resultados de filtro: misma tarjeta que una fila, para no
     // introducir un cuarto tratamiento visual solo para este estado.
@@ -109,6 +113,21 @@ export default function FavoritosScreen() {
   const [activeLetter, setActiveLetter] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const { patios, metaById, removeLocally } = useFavoritePatiosController();
+  // Distancia desde donde estás: solo si el permiso ya fue concedido (aquí
+  // nunca se pide) — sin ubicación, la tarjeta simplemente omite la distancia.
+  const [here, setHere] = useState<{ latitude: number; longitude: number } | null>(null);
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const permission = await Location.getForegroundPermissionsAsync();
+        if (!permission.granted) return;
+        const position = (await Location.getLastKnownPositionAsync()) ?? (await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced }));
+        if (alive && position) setHere({ latitude: position.coords.latitude, longitude: position.coords.longitude });
+      } catch { /* sin ubicación: sin distancia */ }
+    })();
+    return () => { alive = false; };
+  }, []);
 
 
   // Filtros: pensados para cuando los guardados crecen (~70 items). 'hoy'
@@ -295,26 +314,13 @@ export default function FavoritosScreen() {
   };
 
   const renderPatio = (patio: (typeof patios)[number]) => {
-    const today = todayDish(patio);
     const isSelected = selectedIds.has(patio.id);
-    const meta = metaById[patio.id];
-    const personalContext = [
-      meta?.status === 'visited' ? 'Ya fui' : meta?.status === 'want_to_go' ? 'Quiero ir' : null,
-      meta?.rating ? `Tu calificación ${meta.rating}/5` : null,
-    ].filter(Boolean).join(' · ');
-    const normalized = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('es');
-    const queryMatch = normalizedQuery ? (
-      (patio.menu ?? []).flatMap((section) => section.items).find((item) => normalized(item.name).includes(normalizedQuery))?.name
-      ?? (patio.menu ?? []).find((section) => normalized(section.section).includes(normalizedQuery))?.section
-      ?? patio.categories.find((category) => normalized(category).includes(normalizedQuery))
-      ?? (normalized(patio.area).includes(normalizedQuery) ? patio.area : null)
-    ) : null;
-    const listDetails = [
-      queryMatch || (today ? `${patio.hasTodayMenu ? 'Hoy' : 'Menú'}: ${today}` : patio.categories.join(' · ')),
-      personalContext || null,
-      patio.area || null,
-      patio.rating && patio.rating !== 'Nuevo' ? `★ ${patio.rating}${patio.ratingCount != null ? ` (${patio.ratingCount})` : ''}` : null,
-    ].filter(Boolean).join(' · ');
+    // Lo que decide: dónde está, qué tan bien le va, qué tan lejos y cuánto
+    // cuesta. El platillo del día no entra aquí.
+    const rating = patio.rating && patio.rating !== 'Nuevo' ? `★ ${patio.rating}${patio.ratingCount != null ? ` (${patio.ratingCount})` : ''}` : null;
+    const distance = here && patio.latitude > 0 ? formatDistance(distanceKm(here, patio)) : null;
+    const price = publicPrice(patio.price);
+    const listDetails = [patio.area || null, rating].filter(Boolean).join(' · ');
     return (
       <TouchableOpacity
         key={patio.id}
@@ -339,26 +345,21 @@ export default function FavoritosScreen() {
             {patio.isVerifiedBusiness && <Ionicons name="checkmark-circle" size={14} color={theme.accent} accessibilityLabel="Negocio verificado" />}
           </View>
           {viewMode === 'list' ? (
-            !!listDetails && <Text style={s.today} numberOfLines={1} allowFontScaling={true}>{listDetails}</Text>
+            (!!listDetails || !!distance) && <View style={s.metaLine}>
+              {!!listDetails && <Text style={[s.today, { flex: 1, minWidth: 0 }]} numberOfLines={1} allowFontScaling={true}>{listDetails}</Text>}
+              {!!distance && <Text style={s.distance} numberOfLines={1} allowFontScaling={true}>{distance}</Text>}
+            </View>
           ) : <>
-            {today ? (
-              <Text style={s.today} numberOfLines={2} allowFontScaling={true}>{noWidow(`${patio.hasTodayMenu ? 'Hoy' : 'Menú'}: ${today}`)}</Text>
-            ) : patio.categories.length > 0 ? <Text style={s.today} numberOfLines={1}>{noWidow(patio.categories.join(' · '))}</Text> : null}
-            <View style={s.metaRow}>
-              {!!patio.area && <View style={s.metaArea}>
+            {!!patio.area && <View style={s.metaRow}>
+              <View style={s.metaArea}>
                 <Ionicons name="location-outline" size={12} color={theme.textSecondary} />
                 <Text style={s.metaAreaText} numberOfLines={1} allowFontScaling={true}>{patio.area}</Text>
-              </View>}
-              {!!patio.rating && patio.rating !== 'Nuevo' && (
-                <View style={s.metaArea} accessibilityLabel={`Calificación del lugar: ${patio.rating} de 5${patio.ratingCount != null ? `, ${patio.ratingCount} reseñas` : ''}`}>
-                  <Ionicons name="star" size={11} color={theme.textSecondary} />
-                  <Text style={s.contextText}>{patio.rating}{patio.ratingCount != null ? ` (${patio.ratingCount})` : ''}</Text>
-                </View>
-              )}
-            </View>
-            {!!personalContext && <Text style={s.personalContext} numberOfLines={2}>{noWidow(personalContext)}</Text>}
+              </View>
+            </View>}
+            {(!!rating || !!distance || !!price) && <Text style={s.metaAreaText} numberOfLines={1} allowFontScaling={true}>{[rating, distance, price].filter(Boolean).join(' · ')}</Text>}
           </>}
         </View>
+        {viewMode === 'list' && !!price && <Text style={s.price} numberOfLines={1} allowFontScaling={true}>{price}</Text>}
       </TouchableOpacity>
     );
   };

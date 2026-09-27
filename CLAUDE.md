@@ -76,6 +76,17 @@ En cualquier lista de contenido (menú, póster, historial, resultados):
 - Separación entre secciones: `10-14` — el doble que entre filas, nunca más
 - El aire vive ENTRE grupos, no dentro de ellos (ley dictada 2026-07-13)
 
+**Excepción documentada (2026-09-27):** `patioRow` en `app/explorar.tsx` y
+`card` en `app/favoritos.tsx` usan `paddingVertical: 12`, no 5-7. Motivo: con
+la tarjeta compartida `PatioCardInfo` cada fila pasó de 2 líneas a hasta 5
+(identidad, área, precio, abierto/menú, rating/distancia, y calificación
+propia en Guardados) — el 5-7 original asumía contenido de 1-2 líneas y con
+la densidad nueva se ve apretado. El principio "el aire vive ENTRE grupos, no
+dentro" se mantiene: el padding de 12 actúa como el separador ENTRE una
+tarjeta de lugar y la siguiente, no como aire dentro de una misma tarjeta
+(eso lo siguen dando los `gap: 2` internos de `PatioCardInfo`). No generalizar
+este valor a listas de 1-2 líneas — ahí sigue aplicando 5-7.
+
 ## Paleta
 
 | Token   | Hex       | Uso                                      |

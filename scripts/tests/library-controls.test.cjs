@@ -53,6 +53,8 @@ function fixture(file, overrides = {}) {
     '@react-native-community/datetimepicker': { __esModule: true, default: 'DateTimePicker' },
     '@expo/vector-icons': { Ionicons: 'Icon' },
     'expo-blur': { BlurView: 'BlurView' },
+    'expo-linear-gradient': { LinearGradient: 'LinearGradient' },
+    'expo-location': { getForegroundPermissionsAsync: async () => ({ granted: false }) },
     'expo-haptics': {
       selectionAsync: async () => {}, impactAsync: async () => {}, notificationAsync: async () => {},
       ImpactFeedbackStyle: { Light: 'light', Medium: 'medium' }, NotificationFeedbackType: { Success: 'success' },
@@ -77,10 +79,12 @@ function fixture(file, overrides = {}) {
     '@/lib/theme': { Radius: { card: 18 }, useTheme: () => ({ theme: { isDark: false, text: '#111', bg: '#fff', border: '#eee', accent: '#f60' } }) },
     '@/lib/tab-bar-visibility': { useTabBarScroll: () => ({ onScroll() {}, reveal() {} }) },
     '@/lib/recent-patios': { recordRecentPatio: async () => {} },
+    '@/lib/geo': { distanceKm: () => 0, formatDistance: () => '0 m' },
     '@/lib/typography': { noWidow: (value) => value },
     '@/components/search-field': { SearchField: 'SearchField' },
     '@/components/action-sheet': { ACTION_SHEET_MENU_WIDTH: 240, ActionSheet: 'ActionSheet' },
     '@/components/selection-actions': { SelectionActions: 'SelectionActions' },
+    '@/components/patio-card-info': { PatioCardInfo: 'PatioCardInfo' },
     ...overrides,
   };
   const output = ts.transpileModule(fs.readFileSync(path.resolve(__dirname, '../..', file), 'utf8'), {
@@ -93,6 +97,7 @@ function fixture(file, overrides = {}) {
   }, module, module.exports);
   return {
     exports: module.exports,
+    native: mocks['react-native'],
     render(component, props) {
       cursor = 0;
       const result = component(props);
@@ -134,6 +139,13 @@ test('map and library expose Filters and Your lists directly and clear each scop
   // Availability is an independent time picker, not a checkbox inside Filters.
   const openControl = () => nodes(tree).find((node) => node.type === 'TouchableOpacity' && node.props?.accessibilityLabel?.startsWith('Abierto'));
   openControl().props.onPress();
+  tree = f.render(FoodieFilterBar, props);
+  assert.deepEqual(props.filters.openAt, { ahora: true });
+  assert.equal(openControl().props.accessibilityState.expanded, false);
+  openControl().props.onPress();
+  tree = f.render(FoodieFilterBar, props);
+  assert.equal(props.filters.openAt, null);
+  openControl().props.onLongPress();
   tree = f.render(FoodieFilterBar, props);
   tree = f.render(FoodieFilterBar, props);
   assert.equal(openControl().props.accessibilityState.expanded, true);
@@ -236,7 +248,7 @@ test('index dragging clamps to real sections even beyond rail edges', () => {
   assert.equal(indexAtPosition(0, 0, 0), 0);
 });
 
-test('Guardados index scrolls without filtering, hides for search and grid, and remains usable while selecting', async () => {
+test('Guardados index scrolls without filtering and hides for search, grid and selection', async () => {
   const indexing = fixture('lib/library-index.ts').exports;
   const places = Array.from({ length: 24 }, (_, i) => ({ id: String(i), name: `${['Árbol', 'Ñoño', 'Tacos', 'Órale'][i % 4]} ${i}`, categories: [], payments: [], weeklyHours: null, area: 'Centro', rating: 'Nuevo' }));
   const delayedReads = [];
@@ -251,9 +263,10 @@ test('Guardados index scrolls without filtering, hides for search and grid, and 
     '@/components/selection-actions': { SelectionActions: 'SelectionActions' },
     '@/components/foodie-filter-bar': { FoodieFilterBar: 'FoodieFilterBar', matchesFoodieFilters: () => true },
     '@/lib/controllers/useFavoritePatiosController': { useFavoritePatiosController: () => ({ patios: places, metaById: {}, removeLocally() {} }), todayDish: () => null },
-    '@/lib/foodie-filters-context': { useFoodieFilters: () => ({ filters: {}, setFilters() { throw new Error('Index must never change filters'); } }) },
+    '@/lib/foodie-filters-context': { useFoodieFilters: () => ({ filters: { collectionIds: [] }, setFilters() { throw new Error('Index must never change filters'); } }) },
     '@/lib/collections': { getCollections: async () => [] },
     '@/lib/favorites': {}, '@/lib/horario': {}, '@/lib/library-index': indexing,
+    '@/lib/library-selection': fixture('lib/library-selection.ts').exports,
     '@/lib/theme': { Radius: { card: 18 }, Fonts: { brand: 'brand' }, useTheme: () => ({ theme: {} }) },
   });
   let tree = f.render(f.exports.default);
@@ -288,7 +301,7 @@ test('Guardados index scrolls without filtering, hides for search and grid, and 
   assert.ok(nodes(tree).some((node) => node.type === 'AlphabetIndex'));
   nodes(tree).find((node) => node.props?.onLongPress).props.onLongPress();
   tree = f.render(f.exports.default);
-  assert.ok(nodes(tree).some((node) => node.type === 'AlphabetIndex'));
+  assert.equal(nodes(tree).some((node) => node.type === 'AlphabetIndex'), false);
   assert.ok(nodes(tree).some((node) => node.type === 'SelectionActions'));
   await new Promise(setImmediate);
   assert.equal(persisted.find(([key]) => key === '@patio_favorites_sort')[1], 'az');
@@ -439,7 +452,7 @@ test('creating an empty list preserves the current results until that list is ex
     const created = { id: 'new', title: 'Fin de semana', patioIds: [] };
     const calls = [];
     const f = fixture('components/foodie-filter-bar.tsx', {
-      '@/lib/collections': { createCollection: async (title) => { calls.push(title); return created; } },
+      '@/lib/collections': { normalizeCollectionTitle: (title) => title.replace(/\s+/g, ' ').trim().slice(0, 60), createCollection: async (title) => { calls.push(title); return created; } },
       'expo-haptics': { selectionAsync: async () => {}, notificationAsync: async () => {}, NotificationFeedbackType: { Success: 'success' } },
     });
     const { FoodieFilterBar, EMPTY_FOODIE_FILTERS, matchesFoodieFilters } = f.exports;
@@ -454,7 +467,8 @@ test('creating an empty list preserves the current results until that list is ex
     const control = (label) => nodes(tree).find((node) => node.props?.accessibilityLabel === label);
     const collectionControl = (label) => nodes(tree).find((node) => node.props?.accessibilityRole === 'checkbox' && node.props?.accessibilityLabel?.startsWith(`${label},`));
     const panel = () => nodes(tree).find((node) => typeof node.type === 'function' && node.type.name === 'FilterSheet');
-    const editorControl = (label) => nodes(panel().props.editor).find((node) => node.props?.accessibilityLabel === label);
+    let promptActions;
+    f.native.Alert.prompt = (_title, _message, actions) => { promptActions = actions; };
     nodes(tree).find((node) => node.props?.accessibilityLabel?.startsWith('Tus listas')).props.onPress();
     tree = f.render(FoodieFilterBar, props);
     const listPanel = panel();
@@ -462,10 +476,9 @@ test('creating an empty list preserves the current results until that list is ex
     assert.equal(listPanel.props.hideTitle, undefined);
     assert.equal(typeof listPanel.props.onCreate, 'function');
     listPanel.props.onCreate();
-    tree = f.render(FoodieFilterBar, props);
-    editorControl('Nombre de la lista').props.onChangeText('  Fin de semana  ');
-    tree = f.render(FoodieFilterBar, props);
-    await editorControl('Crear lista').props.onPress();
+    assert.ok(promptActions, 'iOS opens the native naming prompt');
+    promptActions.find((action) => action.text === 'Crear').onPress('  Fin de semana  ');
+    await new Promise(setImmediate);
     tree = f.render(FoodieFilterBar, props);
     assert.deepEqual(calls, ['Fin de semana']);
     assert.equal(props.filters, originalFilters);
@@ -479,4 +492,102 @@ test('creating an empty list preserves the current results until that list is ex
     assert.equal(collectionControl('Fin de semana').props.accessibilityState.checked, true);
     assert.equal(matchesFoodieFilters(props.filters, place), activeListIds.length > 0);
   }
+});
+
+test('list selection keeps five action slots and moving waits for explicit destination confirmation', async () => {
+  const moves = [];
+  const overlays = [];
+  let completeMove;
+  const f = fixture('components/foodie-filter-bar.tsx', {
+    '@/lib/collections': {
+      movePatiosToCollection: (patioIds, sourceIds, destinationId) => {
+        moves.push({ patioIds, sourceIds, destinationId });
+        return new Promise((resolve) => { completeMove = resolve; });
+      },
+    },
+  });
+  const { FoodieFilterBar, EMPTY_FOODIE_FILTERS } = f.exports;
+  const props = {
+    filters: { ...EMPTY_FOODIE_FILTERS }, categories: [],
+    collections: [
+      { id: 'a', title: 'Cerca', patioIds: ['one'] },
+      { id: 'b', title: 'Comida', patioIds: ['one', 'two'] },
+      { id: 'empty', title: 'Fin de semana', patioIds: [] },
+    ],
+    onChange: (next) => { props.filters = next; },
+    onCollectionUpdated: (updated) => { props.collections = props.collections.map((item) => item.id === updated.id ? updated : item); },
+    onOverlayVisibilityChange: (visible) => overlays.push(visible),
+  };
+  let tree;
+  const render = () => { tree = f.render(FoodieFilterBar, props); };
+  const panel = () => nodes(tree).find((node) => typeof node.type === 'function' && node.type.name === 'FilterSheet');
+  const row = (title) => nodes(panel().props.children).find((node) => node.props?.accessibilityRole === 'checkbox' && node.props.accessibilityLabel.startsWith(`${title},`));
+  const actions = () => nodes(panel().props.footer).find((node) => node.type === 'SelectionActions').props.actions;
+  const confirm = () => nodes(panel().props.footer).find((node) => node.props?.accessibilityLabel === 'Mover lugares');
+  const destination = () => nodes(panel().props.children).find((node) => node.props?.accessibilityLabel === 'Destino Comida');
+  const expectedActions = ['Fijar', 'Compartir', 'Mover', 'Renombrar', 'Eliminar'];
+  const assertSlots = () => assert.deepEqual(actions().map((action) => action.label), expectedActions);
+
+  render();
+  assert.equal(overlays.at(-1), false);
+  nodes(tree).find((node) => node.props?.accessibilityLabel === 'Tus listas').props.onPress();
+  render();
+  assert.equal(overlays.at(-1), true);
+  row('Cerca').props.onLongPress();
+  render();
+  assertSlots();
+  assert.equal(actions().find((action) => action.label === 'Renombrar').disabled, false);
+  assert.deepEqual(props.filters.collectionIds, [], 'Selecting sources never changes active filters');
+
+  row('Cerca').props.onPress();
+  render();
+  assertSlots();
+  assert.ok(actions().every((action) => action.disabled), 'Zero selected keeps every slot disabled');
+  row('Fin de semana').props.onPress();
+  render();
+  assertSlots();
+  assert.equal(actions().find((action) => action.label === 'Mover').disabled, true, 'An empty source has no places to move');
+  row('Cerca').props.onPress();
+  render();
+  assertSlots();
+  assert.equal(actions().find((action) => action.label === 'Renombrar').disabled, true, 'Multiple selections retain the rename slot');
+  row('Fin de semana').props.onPress();
+  render();
+
+  actions().find((action) => action.label === 'Mover').onPress();
+  render();
+  assert.equal(panel().props.title, 'Destino');
+  assert.equal(nodes(panel().props.footer).some((node) => node.type === 'SelectionActions'), false);
+  assert.equal(confirm().props.disabled, true);
+  assert.equal(destination().props.accessibilityRole, 'radio');
+  assert.equal(nodes(panel().props.children).some((node) => node.props?.accessibilityLabel === 'Destino Cerca'), false);
+  destination().props.onPress();
+  render();
+  assert.equal(destination().props.accessibilityState.checked, true);
+  assert.equal(confirm().props.disabled, false);
+  assert.deepEqual(moves, [], 'Choosing a destination does not write membership');
+
+  panel().props.onBack();
+  render();
+  assert.equal(row('Cerca').props.accessibilityState.checked, true);
+  assertSlots();
+  actions().find((action) => action.label === 'Mover').onPress();
+  render();
+  assert.equal(confirm().props.disabled, true, 'Returning starts with no stale destination');
+  destination().props.onPress();
+  render();
+  const submit = confirm().props.onPress;
+  submit();
+  submit();
+  render();
+  assert.deepEqual(moves, [{ patioIds: ['one'], sourceIds: ['a'], destinationId: 'b' }]);
+  assert.equal(confirm().props.accessibilityState.busy, true);
+  completeMove(props.collections.map((item) => item.id === 'a' ? { ...item, patioIds: [] } : item));
+  await new Promise(setImmediate);
+  render();
+  assert.equal(panel().props.title, 'Tus listas');
+  assert.equal(panel().props.footer, undefined);
+  panel().props.onClose();
+  render();
+  assert.equal(overlays.at(-1), false);
 });

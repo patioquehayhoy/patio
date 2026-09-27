@@ -1,5 +1,43 @@
 # HANDOFF
 
+## 2026-09-27 — Etapa 1 (cards + mover) implementada, sin validar en device
+
+- `PatioCardInfo` (`components/patio-card-info.tsx` + `lib/patio-card-info.ts`)
+  es ahora la tarjeta compartida de lugar en `explorar.tsx` y `favoritos.tsx`:
+  nombre, área, precio, abierto/menú, rating público, distancia y (solo
+  Guardados) calificación propia — mismo contrato en los dos flujos.
+- Flujo "Mover" entre listas rehecho: cuando el origen es ambiguo (vista
+  "Todos") ahora se elige explícitamente qué listas de origen antes de elegir
+  destino (`lib/library-selection.ts` centraliza esa validación; la usan
+  `favoritos.tsx`, `foodie-filter-bar.tsx` y `save-to-list-sheet.tsx`).
+- Verify de este corte: `tsc`, `lint` y los 133 tests (incluidas 3 suites
+  nuevas que cargan el TS real, no reimplementan la lógica) pasan limpio.
+  **No se validó en dispositivo** — sigue pendiente que Alejandro lo pruebe
+  en su iPhone (gestos del sheet de Explorar, VoiceOver del header colapsado,
+  el picker de dos pasos origen→destino).
+- Excepción documentada en `CLAUDE.md`: `paddingVertical` de las filas de
+  lugar subió de 6 a 12 porque `PatioCardInfo` empaqueta hasta 5 líneas por
+  fila; no generalizar ese valor a listas de 1-2 líneas.
+- Quedaron dos archivos sin conectar de la Etapa 1 punto 5 (degradado de
+  scroll): `lib/use-scroll-edges.ts` y `components/scroll-edge-fade.tsx`.
+  Nunca se comitearon así que no se pudieron borrar de forma segura en esta
+  sesión (acción irreversible bloqueada) — decidir si se terminan de integrar
+  o se borran a mano.
+- Plan y continuidad: [UI_CONSISTENCY_PLAN_2026-09-19.md](UI_CONSISTENCY_PLAN_2026-09-19.md).
+
+## 2026-09-19 — Consistencia panorámica en tres etapas
+
+- Alejandro pide revisar toda la app, incluido Perfil Fondero, y ejecutar en
+  **tres etapas** para conservar contexto: (1) reglas comunes/cards/Guardados,
+  (2) paneles/listas/Fondero, (3) consistencia global y cierre visual.
+- La ficha pública de negocio se conserva; se comprueban posibles regresiones
+  por componentes compartidos. Precio, disponibilidad, distancia y
+  calificaciones deben tener presentación consistente en cards de lugares.
+- Plan y continuidad: [UI_CONSISTENCY_PLAN_2026-09-19.md](UI_CONSISTENCY_PLAN_2026-09-19.md).
+- Este corte (09-19) contenía solo revisión inicial de código/documentación y
+  planificación. La implementación real de la etapa 1 llegó después — ver la
+  entrada 2026-09-27 arriba.
+
 ## 2026-09-16 — Edición estable, teclado y actividad reciente
 
 - Guardados mantiene buscador/filtros montados y visibles durante edición;

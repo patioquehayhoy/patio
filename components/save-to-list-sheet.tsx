@@ -5,6 +5,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 import { Alert, Animated, Dimensions, Keyboard, Modal, PanResponder, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { createCollection, getCollections, movePatiosToCollection, setPatiosInCollection, type PatioCollection } from '@/lib/collections';
+import { resolveLibraryMoveSelection } from '@/lib/library-selection';
 import { isVerticalSheetDrag, SHEET_DISMISS_MS, SHEET_SPRING, shouldDismissSheet } from '@/lib/sheet-motion';
 import { useSheetKeyboard } from '@/lib/use-sheet-keyboard';
 import { useTheme, type Theme } from '@/lib/theme';
@@ -12,10 +13,10 @@ import { noWidow } from '@/lib/typography';
 
 type SaveToListSheetProps = {
   visible: boolean; patioIds: string[]; patioName: string; onDismiss: () => void;
-  mode?: 'add' | 'move'; sourceCollectionIds?: string[]; onChanged?: () => void;
+  mode?: 'add' | 'move'; sourceCollectionIds?: string[]; onChanged?: () => void; onMoved?: () => void;
 };
 
-export function SaveToListSheet({ visible, patioIds, patioName, onDismiss, mode = 'add', sourceCollectionIds = [], onChanged }: SaveToListSheetProps) {
+export function SaveToListSheet({ visible, patioIds, patioName, onDismiss, mode = 'add', sourceCollectionIds = [], onChanged, onMoved }: SaveToListSheetProps) {
   const { theme } = useTheme();
   const s = makeStyles(theme);
   const insets = useSafeAreaInsets();
@@ -30,7 +31,11 @@ export function SaveToListSheet({ visible, patioIds, patioName, onDismiss, mode 
   const [creating, setCreating] = useState(false);
   const [busy, setBusy] = useState(false);
   const pending = useRef(false);
+  const moved = useRef(false);
   const [destinationId, setDestinationId] = useState<string | null>(null);
+  const [chosenSourceIds, setChosenSourceIds] = useState<string[]>([]);
+  const [choosingSource, setChoosingSource] = useState(false);
+  const sourceKey = sourceCollectionIds.join('\u0000');
   const [listContentHeight, setListContentHeight] = useState(0);
   const [sheetHeight, setSheetHeight] = useState(0);
   const createdDraft = useRef<PatioCollection | null>(null);
@@ -43,12 +48,15 @@ export function SaveToListSheet({ visible, patioIds, patioName, onDismiss, mode 
   useLayoutEffect(() => {
     if (!visible) return;
     setNewTitle(''); setCreating(false); setDestinationId(null); createdDraft.current = null;
+    moved.current = false;
+    setChosenSourceIds(sourceKey ? sourceKey.split('\u0000') : []);
+    setChoosingSource(mode === 'move' && !sourceKey);
     setListContentHeight(0);
     opening.current = true;
     closing.current = false;
     translateY.stopAnimation();
     translateY.setValue(screenHeight);
-  }, [screenHeight, translateY, visible]);
+  }, [mode, screenHeight, sourceKey, translateY, visible]);
   useEffect(() => {
     if (!visible) return;
     let active = true;
@@ -79,6 +87,7 @@ export function SaveToListSheet({ visible, patioIds, patioName, onDismiss, mode 
       }
       Keyboard.dismiss();
       onDismiss();
+      if (moved.current) onMoved?.();
     });
   };
   const dismissRef = useRef(dismiss); dismissRef.current = dismiss;
@@ -102,6 +111,12 @@ export function SaveToListSheet({ visible, patioIds, patioName, onDismiss, mode 
     finally { pending.current = false; setBusy(false); }
   };
   const choose = (collection: PatioCollection) => {
+    if (choosingSource) {
+      setChosenSourceIds((current) => current.includes(collection.id) ? current.filter((id) => id !== collection.id) : [...current, collection.id]);
+      setDestinationId(null);
+      Haptics.selectionAsync().catch(() => {});
+      return;
+    }
     if (mode === 'move') { setDestinationId(collection.id); return; }
     void run(async () => {
       const next = await setPatiosInCollection(collection.id, patioIds, !patioIds.every((id) => collection.patioIds.includes(id)));
@@ -125,14 +140,22 @@ export function SaveToListSheet({ visible, patioIds, patioName, onDismiss, mode 
     });
   };
   const move = () => {
-    if (!destinationId) return;
+    if (!destinationId || !chosenSourceIds.length || !moveSelection.canMove) return;
     void run(async () => {
-      await movePatiosToCollection(patioIds, sourceCollectionIds, destinationId);
+      await movePatiosToCollection(patioIds, chosenSourceIds, destinationId);
+      moved.current = true;
       onChanged?.();
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-    }).then((moved) => { if (moved) dismissRef.current(); });
+    }).then((succeeded) => { if (succeeded) dismissRef.current(); });
   };
-  const choices = mode === 'move' ? collections.filter((item) => !sourceCollectionIds.includes(item.id)) : collections;
+  const moveSelection = resolveLibraryMoveSelection({ collections, activeCollectionIds: chosenSourceIds, selectedPatioIds: patioIds });
+  const sourceNames = collections.filter((item) => chosenSourceIds.includes(item.id)).map((item) => item.title).join(', ');
+  const choices = mode !== 'move' ? collections : choosingSource
+    ? collections.filter((item) => moveSelection.candidateSourceCollectionIds.includes(item.id))
+    : collections.filter((item) => !chosenSourceIds.includes(item.id));
+  const canContinue = chosenSourceIds.length > 0 && moveSelection.canMove && !moveSelection.requiresSourceChoice;
+  const canConfirm = canContinue && !!destinationId;
+  const canReturnToSource = mode === 'move' && !sourceCollectionIds.length && !choosingSource;
   const bottomPadding = keyboardVisible ? 8 : Math.max(insets.bottom, 16);
   const maxListHeight = Math.max(44, Math.min(310, viewportHeight - insets.top - 12 - 20 - 44 - (creating ? 64 : 0) - (mode === 'move' ? 96 : 0) - bottomPadding - 8));
   const backdropOpacity = translateY.interpolate({ inputRange: [0, Math.max(1, sheetHeight)], outputRange: [1, 0], extrapolate: 'clamp' });
@@ -151,10 +174,15 @@ export function SaveToListSheet({ visible, patioIds, patioName, onDismiss, mode 
         <View {...pan.panHandlers}>
           <View style={s.handleArea}><View style={s.handle} /></View>
           <View style={s.header}>
-            <TouchableOpacity accessibilityLabel={creating ? 'Cancelar nueva lista' : 'Nueva lista'} accessibilityRole="button" accessibilityState={{ disabled: busy }} disabled={busy} onPress={() => { setCreating(!creating); if (creating) Keyboard.dismiss(); }} style={s.headerIcon}>
-              <Ionicons name={creating ? 'chevron-back' : 'add'} size={20} color={theme.text} />
-            </TouchableOpacity>
-            <Text accessibilityRole="header" style={s.context} numberOfLines={1}>{noWidow(mode === 'move' ? `Mover ${patioIds.length} ${patioIds.length === 1 ? 'lugar' : 'lugares'}` : patioIds.length > 1 ? `${patioIds.length} lugares` : patioName)}</Text>
+            {choosingSource ? <View style={s.headerIcon} /> : <TouchableOpacity accessibilityLabel={creating ? 'Cancelar nueva lista' : canReturnToSource ? 'Volver a origen' : 'Nueva lista'} accessibilityRole="button" accessibilityState={{ disabled: busy }} disabled={busy} onPress={() => {
+              if (creating) { setCreating(false); Keyboard.dismiss(); }
+              else if (canReturnToSource) { setChoosingSource(true); setDestinationId(null); }
+              else setCreating(true);
+            }} style={s.headerIcon}>
+              <Ionicons name={creating || canReturnToSource ? 'chevron-back' : 'add'} size={20} color={theme.text} />
+            </TouchableOpacity>}
+            <Text accessibilityRole="header" style={s.context} numberOfLines={1}>{noWidow(mode === 'move' ? choosingSource ? 'Origen' : 'Destino' : patioIds.length > 1 ? `${patioIds.length} lugares` : patioName || 'Guardar en lista')}</Text>
+            {canReturnToSource && !creating && <TouchableOpacity disabled={busy} accessibilityRole="button" accessibilityLabel="Nueva lista" onPress={() => setCreating(true)} style={s.headerIcon}><Ionicons name="add" size={20} color={theme.text} /></TouchableOpacity>}
             <TouchableOpacity accessibilityRole="button" accessibilityState={{ disabled: busy }} onPress={dismiss} disabled={busy} style={s.closeButton}><Text style={s.closeText}>{mode === 'move' ? 'Cancelar' : 'Listo'}</Text></TouchableOpacity>
           </View>
         </View>
@@ -162,25 +190,25 @@ export function SaveToListSheet({ visible, patioIds, patioName, onDismiss, mode 
           <TextInput autoFocus value={newTitle} editable={!busy} onChangeText={setNewTitle} maxLength={60} accessibilityLabel="Nombre de la lista" onSubmitEditing={handleCreate} placeholder="Nombre de la lista" placeholderTextColor={theme.textMute} returnKeyType="done" autoCapitalize="words" style={s.input} />
           <TouchableOpacity disabled={!newTitle.trim() || busy} onPress={handleCreate} style={[s.createButton, (!newTitle.trim() || busy) && s.disabled]} accessibilityRole="button" accessibilityLabel="Crear lista"><Text style={s.createText}>{busy ? 'Creando…' : 'Crear'}</Text></TouchableOpacity>
         </View>}
-        {mode === 'move' && sourceCollectionIds.length > 0 && (
-          <Text style={s.moveHint}>
-            {noWidow(`Se quitarán de ${sourceCollectionIds.length} ${sourceCollectionIds.length === 1 ? 'lista de origen' : 'listas de origen'} y se agregarán a la que elijas.`)}
+        {mode === 'move' && (
+          <Text style={s.moveHint} numberOfLines={2}>
+            {noWidow(choosingSource ? `${patioIds.length} ${patioIds.length === 1 ? 'lugar seleccionado' : 'lugares seleccionados'}` : `Origen: ${sourceNames}`)}
           </Text>
         )}
         <ScrollView style={[s.list, { height: Math.min(listContentHeight || Math.max(1, choices.length) * 52, maxListHeight), maxHeight: maxListHeight }]}
           onContentSizeChange={(_width, height) => setListContentHeight(height)} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
           {choices.map((collection, index) => {
-            const selected = mode === 'move' ? collection.id === destinationId : patioIds.length > 0 && patioIds.every((id) => collection.patioIds.includes(id));
+            const selected = choosingSource ? chosenSourceIds.includes(collection.id) : mode === 'move' ? collection.id === destinationId : patioIds.length > 0 && patioIds.every((id) => collection.patioIds.includes(id));
             const partial = mode === 'add' && !selected && patioIds.some((id) => collection.patioIds.includes(id));
-            return <TouchableOpacity key={collection.id} disabled={busy} accessibilityRole={mode === 'move' ? 'radio' : 'checkbox'} accessibilityState={{ checked: partial ? 'mixed' : selected, disabled: busy }}
+            return <TouchableOpacity key={collection.id} disabled={busy} accessibilityRole={mode === 'move' && !choosingSource ? 'radio' : 'checkbox'} accessibilityState={{ checked: partial ? 'mixed' : selected, disabled: busy }}
               accessibilityLabel={`${collection.title}, ${collection.patioIds.length} ${collection.patioIds.length === 1 ? 'lugar' : 'lugares'}`} onPress={() => choose(collection)} style={[s.row, index > 0 && s.divider]}>
               <Ionicons name={selected ? 'checkmark-circle' : partial ? 'remove-circle-outline' : 'ellipse-outline'} size={22} color={selected || partial ? theme.accent : theme.textMute} />
               <View style={s.rowCopy}><Text style={s.rowTitle} numberOfLines={2}>{noWidow(collection.title)}</Text></View><Text style={s.rowMeta} numberOfLines={1}>{collection.patioIds.length} {collection.patioIds.length === 1 ? 'lugar' : 'lugares'}</Text>
             </TouchableOpacity>;
           })}
-          {!choices.length && <View style={s.empty}><Text style={s.rowMeta}>{noWidow(mode === 'move' ? 'Crea una lista de destino con +' : 'Sin listas')}</Text></View>}
+          {!choices.length && <View style={s.empty}><Text style={s.rowMeta}>{noWidow(mode === 'move' && !choosingSource ? 'Sin listas de destino' : 'Sin listas')}</Text></View>}
         </ScrollView>
-        {mode === 'move' && <TouchableOpacity disabled={!destinationId || busy} onPress={move} accessibilityRole="button" accessibilityState={{ disabled: !destinationId || busy, busy }} style={[s.createButton, { marginTop: 8 }, (!destinationId || busy) && s.disabled]}><Text style={[s.createText, (!destinationId || busy) && { color: theme.textMute }]}>{busy ? 'Moviendo…' : 'Mover'}</Text></TouchableOpacity>}
+        {mode === 'move' && <TouchableOpacity disabled={busy || !(choosingSource ? canContinue : canConfirm)} onPress={choosingSource ? () => setChoosingSource(false) : move} accessibilityRole="button" accessibilityLabel={choosingSource ? 'Continuar al destino' : 'Mover lugares'} accessibilityState={{ disabled: busy || !(choosingSource ? canContinue : canConfirm), busy }} style={[s.confirmButton, (busy || !(choosingSource ? canContinue : canConfirm)) && s.disabled]}><Text style={s.confirmText}>{noWidow(choosingSource ? 'Continuar' : busy ? 'Moviendo…' : `Mover ${patioIds.length} ${patioIds.length === 1 ? 'lugar' : 'lugares'}`)}</Text></TouchableOpacity>}
       </Animated.View>
     </View>
   </Modal>;
@@ -209,6 +237,8 @@ function makeStyles(t: Theme) {
     input: { flex: 1, minWidth: 0, height: 44, paddingVertical: 0, fontSize: 15, fontWeight: '500', color: t.text },
     createButton: { minWidth: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
     createText: { fontSize: 15, fontWeight: '500', color: t.accent },
+    confirmButton: { minHeight: 50, borderRadius: 25, marginTop: 8, paddingHorizontal: 20, paddingVertical: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: t.accent },
+    confirmText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF', textAlign: 'center' },
     disabled: { opacity: 0.35 },
     moveHint: { paddingHorizontal: 8, paddingTop: 6, fontSize: 12.5, lineHeight: 17, fontWeight: '400', color: t.textSecondary },
     empty: { minHeight: 52, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16, paddingVertical: 12 },

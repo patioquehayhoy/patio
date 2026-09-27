@@ -161,6 +161,8 @@ function styles(t: Theme) {
     createBtn: { minWidth: 44, minHeight: 44, paddingHorizontal: 8, alignItems: 'center', justifyContent: 'center' },
     createBtnDisabled: { opacity: 0.35 },
     createBtnText: { fontSize: 15, fontWeight: '500', color: t.accent },
+    confirmMoveButton: { minHeight: 50, borderRadius: 25, backgroundColor: t.accent, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 20, paddingVertical: 12 },
+    confirmMoveText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF', textAlign: 'center' },
     // Menú de acciones por lista — anclado junto al botón "···" (mismo
     // componente visual que components/action-sheet.tsx), dentro del MISMO
     // Modal del panel (ver comentario en FilterSheet), no un Modal propio.
@@ -393,7 +395,7 @@ function FilterSheet({ visible, onClose, title, viewKey: viewKeyProp, onClear, o
   );
 }
 
-export function FoodieFilterBar({ filters, onChange, collections, categories, onCollectionCreated, onCollectionUpdated, onCollectionRemoved, organizationOptions, libraryActions, viewMode, onViewModeChange, additionalFilter, floating = true }: {
+export function FoodieFilterBar({ filters, onChange, collections, categories, onCollectionCreated, onCollectionUpdated, onCollectionRemoved, organizationOptions, libraryActions, viewMode, onViewModeChange, additionalFilter, onOverlayVisibilityChange, floating = true }: {
   filters: FoodieFilters; onChange: (next: FoodieFilters) => void; collections: PatioCollection[]; categories: string[];
   onCollectionCreated?: (collection: PatioCollection) => void;
   onCollectionUpdated?: (collection: PatioCollection) => void;
@@ -403,6 +405,7 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
   libraryActions?: ActionSheetOption[];
   viewMode?: 'list' | 'grid';
   onViewModeChange?: (mode: 'list' | 'grid') => void;
+  onOverlayVisibilityChange?: (visible: boolean) => void;
   // Vidrio solo cuando la barra flota sobre contenido real (el mapa de
   // Explorar) — regla de Materials (CLAUDE.md): "no uses Liquid Glass en la
   // capa de contenido". Guardados vive inline sobre su propia lista, así que
@@ -445,6 +448,7 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
   const [openPickerDia, setOpenPickerDia] = useState<number | null>(null);
   const [openPickerDraftMin, setOpenPickerDraftMin] = useState<number | null>(null);
   const [movingLists, setMovingLists] = useState(false);
+  const [moveDestinationId, setMoveDestinationId] = useState<string | null>(null);
   const [listActionBusy, setListActionBusy] = useState(false);
   const [openPanel, setOpenPanel] = useState<OpenPanel>(null);
   const [filterDetail, setFilterDetail] = useState<FilterDetail>(null);
@@ -482,6 +486,9 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
   // Alert.prompt es solo iOS; Android usa el diálogo propio de abajo.
   const [renameTarget, setRenameTarget] = useState<PatioCollection | null>(null);
   const [renameValue, setRenameValue] = useState('');
+  useEffect(() => {
+    onOverlayVisibilityChange?.(openPanel !== null || openPickerRendered || organizerVisible || renameTarget !== null);
+  }, [onOverlayVisibilityChange, openPanel, openPickerRendered, organizerVisible, renameTarget]);
   const attributeCount = foodieFilterCount(filters);
   // "Abierto" ya es un chip visible con su propio estado; contarlo aquí
   // duplicaría la señal dentro del badge de "Filtros", que solo resume lo
@@ -540,6 +547,10 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
     setActionsTarget(null);
     setListsMenuVisible(false);
     setMovingLists(false);
+    setMoveDestinationId(null);
+    setCreatingList(false);
+    setNewListTitle('');
+    Keyboard.dismiss();
     setFilterDetail(null);
     setSelectingLists(false);
     setSelectedListIds([]);
@@ -742,13 +753,12 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
     }
     await Share.share({ message: messages.join('\n\n') });
   });
-  // Mover es un paso propio: elegir el destino ES la confirmación (como
-  // Outlook/Correo). Nada se borra — los lugares siguen en Guardados y se
-  // pueden devolver moviéndolos de nuevo.
+  // Elegir un destino no escribe datos. Mover confirma el cambio, igual
+  // que SaveToListSheet; la selección de origen permanece al volver.
   const moveSelectedTo = (destination: PatioCollection) => void runListAction(async () => {
     const updated = await movePatiosToCollection(selectedPatioIds, selectedListIds, destination.id);
     updated.forEach((item) => onCollectionUpdated?.(item));
-    setMovingLists(false); setSelectingLists(false); setSelectedListIds([]);
+    setMovingLists(false); setMoveDestinationId(null); setSelectingLists(false); setSelectedListIds([]);
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
   });
 
@@ -862,7 +872,7 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
         setOpenPanel(null);
         return true;
       }}
-      title={openPanel === 'filters' ? filterDetail === 'categories' ? 'Tipo de lugar' : filterDetail === 'payments' ? 'Pago' : 'Filtros' : movingLists ? `Mover ${selectedPatioIds.length} ${selectedPatioIds.length === 1 ? 'lugar' : 'lugares'} a…` : selectingLists ? (selectedListIds.length ? `${selectedListIds.length} ${selectedListIds.length === 1 ? 'seleccionada' : 'seleccionadas'}` : 'Elige listas') : 'Tus listas'}
+      title={openPanel === 'filters' ? filterDetail === 'categories' ? 'Tipo de lugar' : filterDetail === 'payments' ? 'Pago' : 'Filtros' : movingLists ? 'Destino' : selectingLists ? `${selectedListIds.length} ${selectedListIds.length === 1 ? 'seleccionada' : 'seleccionadas'}` : 'Tus listas'}
       viewKey={openPanel === 'filters' ? (filterDetail ?? 'filters') : movingLists ? 'lists-move' : selectingLists ? 'lists-select' : 'lists'}
       onCreate={openPanel === 'lists' && !creatingList && (!selectingLists || movingLists) ? startCreate : undefined}
       editing={selectingLists && !movingLists}
@@ -876,7 +886,7 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
           <Ionicons name="ellipsis-horizontal" size={22} color={theme.text} />
         </TouchableOpacity>
       ) : undefined}
-      editor={creatingList ? <View style={s.section}><View style={s.group}>
+      editor={openPanel === 'lists' && creatingList ? <View style={s.section}><View style={s.group}>
           <View style={[s.option, { paddingVertical: 12 }]}>
             <View style={s.rowCopy}>
               <Text style={s.rowDetail}>{noWidow('Nombre de la lista')}</Text>
@@ -885,16 +895,18 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
             <TouchableOpacity disabled={!newListTitle.trim() || creatingPending} hitSlop={CREATE_BTN_HIT_SLOP} onPress={() => { void handleCreateList(); }} accessibilityRole="button" accessibilityLabel="Crear lista" style={[s.createBtn, (!newListTitle.trim() || creatingPending) && s.createBtnDisabled]}><Text style={s.createBtnText}>{creatingPending ? 'Creando…' : 'Crear'}</Text></TouchableOpacity>
           </View>
         </View></View> : undefined}
-      footer={openPanel === 'lists' && selectingLists && !movingLists ? <View style={{ paddingHorizontal: 16, paddingTop: 8 }}>
+      footer={openPanel === 'lists' && movingLists ? <View style={{ paddingHorizontal: 16, paddingTop: 8 }}>
+        <TouchableOpacity style={[s.confirmMoveButton, (!moveDestinationId || listActionBusy) && s.createBtnDisabled]}
+          accessibilityRole="button" accessibilityLabel="Mover lugares" accessibilityState={{ disabled: !moveDestinationId || listActionBusy, busy: listActionBusy }}
+          disabled={!moveDestinationId || listActionBusy} onPress={() => { const destination = collections.find((item) => item.id === moveDestinationId); if (destination) moveSelectedTo(destination); }}>
+          <Text style={s.confirmMoveText}>{noWidow(listActionBusy ? 'Moviendo…' : `Mover ${selectedPatioIds.length} ${selectedPatioIds.length === 1 ? 'lugar' : 'lugares'}`)}</Text>
+        </TouchableOpacity>
+      </View> : openPanel === 'lists' && selectingLists ? <View style={{ paddingHorizontal: 16, paddingTop: 8 }}>
         <SelectionActions busy={deletingLists || listActionBusy} actions={[
           { label: allPinned ? 'Desfijar' : 'Fijar', icon: 'pin-outline', disabled: !selectedLists.length, onPress: pinSelectedLists },
           { label: 'Compartir', icon: 'share-outline', disabled: !selectedLists.length, onPress: shareSelectedLists },
-          // Mover mueve LUGARES: si las listas elegidas están vacías no hay
-          // nada que mover, así que no se ofrece (mismo criterio que Renombrar).
-          ...(!selectedLists.length || selectedPatioIds.length ? [{ label: 'Mover', icon: 'folder-open-outline' as const, disabled: !selectedLists.length, onPress: () => setMovingLists(true) }] : []),
-          // Solo existe cuando aplica (una lista): un botón apagado se lee
-          // como roto; la barra se reacomoda a lo seleccionado.
-          ...(selectedLists.length === 1 ? [{ label: 'Renombrar', icon: 'pencil-outline' as const, onPress: () => startRename(selectedLists[0]) }] : []),
+          { label: 'Mover', icon: 'folder-open-outline', disabled: !selectedPatioIds.length, onPress: () => { setMoveDestinationId(null); setMovingLists(true); } },
+          { label: 'Renombrar', icon: 'pencil-outline', disabled: selectedLists.length !== 1, onPress: () => { if (selectedLists.length === 1) startRename(selectedLists[0]); } },
           { label: 'Eliminar', icon: 'trash-outline', disabled: !selectedLists.length, onPress: removeSelectedLists },
         ]} />
       </View> : undefined}
@@ -902,7 +914,7 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
         ? filterDetail === 'categories' ? Math.min(560, 96 + categoryOptions.length * 48)
           : filterDetail === 'payments' ? 244 : 216 + (additionalFilter ? 56 : 0)
         : Math.min(514, 152 + Math.max(1, collections.length) * 56 + (creatingList ? 96 : 0) + (selectingLists ? 44 : 0))}
-      onBack={movingLists ? () => { if (!listActionBusy) setMovingLists(false); } : openPanel === 'filters' && filterDetail ? () => { Haptics.selectionAsync().catch(() => {}); setFilterDetail(null); } : undefined}
+      onBack={movingLists ? () => { if (!listActionBusy) { setMovingLists(false); setMoveDestinationId(null); } } : openPanel === 'filters' && filterDetail ? () => { Haptics.selectionAsync().catch(() => {}); setFilterDetail(null); } : undefined}
       onClear={openPanel === 'filters'
         ? filterDetail
           ? (filters[filterDetail].length ? () => { Haptics.selectionAsync().catch(() => {}); onChange({ ...filters, [filterDetail]: [] }); } : undefined)
@@ -970,10 +982,10 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
           {additionalFilter && <TouchableOpacity style={s.option} onPress={additionalFilter.onClear} accessibilityRole="button" accessibilityLabel={`Quitar filtro ${additionalFilter.label}`}><Text style={s.optionText}>{noWidow(additionalFilter.label)}</Text><Ionicons name="close-circle" size={20} color={theme.textSecondary} /></TouchableOpacity>}
         </>}
       </> : movingLists ? <View style={s.section}><View style={s.group}>
-        {visibleCollections.filter((item) => !selectedListIds.includes(item.id)).map((item, index) => <TouchableOpacity key={item.id} disabled={listActionBusy} style={[s.option, index > 0 && s.rowDivider]} accessibilityRole="button" accessibilityLabel={`Mover lugares a ${item.title}`} onPress={() => moveSelectedTo(item)}>
-          <Ionicons name="folder-outline" size={20} color={theme.textSecondary} /><Text style={s.optionText}>{noWidow(item.title)}</Text><Text style={s.listCount}>{item.patioIds.length} {item.patioIds.length === 1 ? 'lugar' : 'lugares'}</Text>
+        {visibleCollections.filter((item) => !selectedListIds.includes(item.id)).map((item, index) => <TouchableOpacity key={item.id} disabled={listActionBusy} style={[s.option, index > 0 && s.rowDivider]} accessibilityRole="radio" accessibilityState={{ checked: item.id === moveDestinationId, disabled: listActionBusy }} accessibilityLabel={`Destino ${item.title}`} onPress={() => { setMoveDestinationId(item.id); Haptics.selectionAsync().catch(() => {}); }}>
+          <View style={s.checkSlot}><Ionicons name={item.id === moveDestinationId ? 'checkmark-circle' : 'ellipse-outline'} size={22} color={item.id === moveDestinationId ? theme.accent : theme.textMute} /></View><Text style={s.optionText} numberOfLines={2}>{noWidow(item.title)}</Text><Text style={s.listCount}>{item.patioIds.length} {item.patioIds.length === 1 ? 'lugar' : 'lugares'}</Text>
         </TouchableOpacity>)}
-        {!visibleCollections.some((item) => !selectedListIds.includes(item.id)) && <View style={s.emptyLists}><Text style={s.emptyDetail}>{noWidow('Crea una lista de destino con +')}</Text></View>}
+        {!visibleCollections.some((item) => !selectedListIds.includes(item.id)) && <View style={s.emptyLists}><Text style={s.emptyDetail}>{noWidow('Sin listas de destino')}</Text></View>}
       </View></View> : <>
         <View style={s.section}><View style={s.group}>
           {selectingLists ? <TouchableOpacity disabled={deletingLists || listActionBusy} style={s.option} accessibilityRole="checkbox" accessibilityLabel="Seleccionar todas las listas" accessibilityState={{ checked: selectedListIds.length === collections.length, disabled: deletingLists || listActionBusy }}

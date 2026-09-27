@@ -13,10 +13,10 @@ import { EMPTY_FOODIE_FILTERS, FoodieFilterBar, matchesFoodieFilters } from '@/c
 import { SelectionActions } from '@/components/selection-actions';
 import { SaveToListSheet } from '@/components/save-to-list-sheet';
 import { SearchField } from '@/components/search-field';
+import { PatioCardInfo } from '@/components/patio-card-info';
 import { useFavoritePatiosController } from '@/lib/controllers/useFavoritePatiosController';
 import { useFoodieFilters } from '@/lib/foodie-filters-context';
 import { distanceKm, formatDistance } from '@/lib/geo';
-import { publicPrice } from '@/lib/prices';
 import { Fonts, Radius, useTheme, type Theme } from '@/lib/theme';
 import { recordRecentPatio } from '@/lib/recent-patios';
 import { useTabBarScroll } from '@/lib/tab-bar-visibility';
@@ -24,6 +24,7 @@ import { noWidow } from '@/lib/typography';
 import { createCollection, getCollections, publishCollection, setPatiosInCollection, type PatioCollection } from '@/lib/collections';
 import { removeFavoritePatios } from '@/lib/favorites';
 import { alphabeticalSections } from '@/lib/library-index';
+import { resolveLibraryMoveSelection } from '@/lib/library-selection';
 
 const FAVORITES_VIEW_KEY = '@patio_favorites_view';
 const FAVORITES_SORT_KEY = '@patio_favorites_sort';
@@ -53,11 +54,11 @@ function makeStyles(t: Theme) {
     // Lista continua y compacta; el índice lateral sustituye los encabezados por letra.
     list: { paddingHorizontal: 16 },
     grid: { paddingHorizontal: 16, flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-    card: { minHeight: 76, flexDirection: 'row', alignItems: 'center', gap: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderColor: t.border, paddingVertical: 6 },
-    gridCard: { minHeight: 156, backgroundColor: t.surface, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, padding: 12 },
+    card: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderColor: t.border, paddingVertical: 12 },
+    gridCard: { backgroundColor: t.surface, borderRadius: Radius.card, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, padding: 12 },
     cardSelected: { borderColor: t.accent, backgroundColor: t.accentSoft },
     gridTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
-    thumb: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
+    thumb: { width: 36, height: 36, flexShrink: 0, alignItems: 'center', justifyContent: 'center' },
     body: { flex: 1, minWidth: 0, justifyContent: 'center' },
     // Nombre + platillo de hoy son una sola unidad óptica (identidad +
     // "descripción" del lugar, igual que título/artista en Apple Music —
@@ -147,6 +148,7 @@ export default function FavoritosScreen() {
   const [selecting, setSelecting] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [saveSheetVisible, setSaveSheetVisible] = useState(false);
+  const [organizerOverlayVisible, setOrganizerOverlayVisible] = useState(false);
   const [saveMode, setSaveMode] = useState<'add' | 'move'>('add');
   const selectedActionPending = useRef(false);
   const shareDraft = useRef<PatioCollection | null>(null);
@@ -297,14 +299,10 @@ export default function FavoritosScreen() {
   const SORT_LABELS: Record<typeof sortMode, string> = { recent: 'Más reciente', rating: 'Tu calificación', az: 'Alfabético A–Z' };
   const sections = useMemo(() => sortMode === 'az' ? alphabeticalSections(filtered) : [], [filtered, sortMode]);
   const letters = sections.map((section) => section.letter);
-  const showAlphabet = viewMode === 'list' && sortMode === 'az' && !normalizedQuery && filtered.length >= 20 && letters.length >= 4;
-  // Mover es una operación sobre membresía real, no sobre el filtro visual
-  // activo. En "Todos" también debe reconocer de qué listas vienen los
-  // lugares seleccionados.
-  const moveSourceCollectionIds = collections
-    .filter((item) => item.patioIds.some((id) => selectedIds.has(id)))
-    .map((item) => item.id);
-  const moveIds = [...selectedIds].filter((id) => collections.some((item) => item.patioIds.includes(id)));
+  const showAlphabet = !selecting && viewMode === 'list' && sortMode === 'az' && !normalizedQuery && filtered.length >= 20 && letters.length >= 4;
+  const moveSelection = resolveLibraryMoveSelection({
+    collections, activeCollectionIds: filters.collectionIds, selectedPatioIds: [...selectedIds],
+  });
   const gridWidth = fontScale > 1.4 ? width - 32 : (width - 44) / 2;
   const jumpToLetter = (letter: string) => {
     const offset = sectionOffsets.current[letter];
@@ -315,12 +313,8 @@ export default function FavoritosScreen() {
 
   const renderPatio = (patio: (typeof patios)[number]) => {
     const isSelected = selectedIds.has(patio.id);
-    // Lo que decide: dónde está, qué tan bien le va, qué tan lejos y cuánto
-    // cuesta. El platillo del día no entra aquí.
-    const rating = patio.rating && patio.rating !== 'Nuevo' ? `★ ${patio.rating}${patio.ratingCount != null ? ` (${patio.ratingCount})` : ''}` : null;
-    const distance = here && patio.latitude > 0 ? formatDistance(distanceKm(here, patio)) : null;
-    const price = publicPrice(patio.price);
-    const listDetails = [patio.area || null, rating].filter(Boolean).join(' · ');
+    const distance = here && Number.isFinite(patio.latitude) && Number.isFinite(patio.longitude) && (patio.latitude !== 0 || patio.longitude !== 0)
+      ? formatDistance(distanceKm(here, patio)) : null;
     return (
       <TouchableOpacity
         key={patio.id}
@@ -328,8 +322,8 @@ export default function FavoritosScreen() {
         onPress={() => { if (selecting) toggleSelect(patio.id); else { if (normalizedQuery) void recordRecentPatio(patio, 'searched').catch(() => {}); router.push(`/patio/${patio.id}`); } }}
         onLongPress={() => { if (!selecting) { setSelecting(true); toggleSelect(patio.id); } }}
         activeOpacity={0.82}
-        accessibilityRole="button"
-        accessibilityState={selecting ? { selected: isSelected } : undefined}
+        accessibilityRole={selecting ? 'checkbox' : 'button'}
+        accessibilityState={selecting ? { checked: isSelected } : undefined}
         accessibilityLabel={selecting ? `${isSelected ? 'Quitar de la selección' : 'Seleccionar'} ${patio.name}` : `Abrir ${patio.name}`}>
         {viewMode === 'grid' ? (
           <View style={s.gridTop}>
@@ -340,26 +334,8 @@ export default function FavoritosScreen() {
           <View style={s.thumb}><Ionicons name={selecting ? isSelected ? 'checkmark-circle' : 'ellipse-outline' : 'restaurant-outline'} size={selecting ? 22 : 18} color={selecting && isSelected ? theme.accent : theme.textSecondary} /></View>
         )}
         <View style={s.body}>
-          <View style={s.nameRow}>
-            <Text style={s.name} numberOfLines={viewMode === 'grid' || fontScale > 1.4 ? 2 : 1} allowFontScaling={true}>{noWidow(patio.name)}</Text>
-            {patio.isVerifiedBusiness && <Ionicons name="checkmark-circle" size={14} color={theme.accent} accessibilityLabel="Negocio verificado" />}
-          </View>
-          {viewMode === 'list' ? (
-            (!!listDetails || !!distance) && <View style={s.metaLine}>
-              {!!listDetails && <Text style={[s.today, { flex: 1, minWidth: 0 }]} numberOfLines={1} allowFontScaling={true}>{listDetails}</Text>}
-              {!!distance && <Text style={s.distance} numberOfLines={1} allowFontScaling={true}>{distance}</Text>}
-            </View>
-          ) : <>
-            {!!patio.area && <View style={s.metaRow}>
-              <View style={s.metaArea}>
-                <Ionicons name="location-outline" size={12} color={theme.textSecondary} />
-                <Text style={s.metaAreaText} numberOfLines={1} allowFontScaling={true}>{patio.area}</Text>
-              </View>
-            </View>}
-            {(!!rating || !!distance || !!price) && <Text style={s.metaAreaText} numberOfLines={1} allowFontScaling={true}>{[rating, distance, price].filter(Boolean).join(' · ')}</Text>}
-          </>}
+          <PatioCardInfo patio={patio} variant={viewMode} distanceLabel={distance} personalRating={metaById[patio.id]?.rating} showPersonalRating />
         </View>
-        {viewMode === 'list' && !!price && <Text style={s.price} numberOfLines={1} allowFontScaling={true}>{price}</Text>}
       </TouchableOpacity>
     );
   };
@@ -381,6 +357,7 @@ export default function FavoritosScreen() {
                   filters={filters}
                   onChange={setFilters}
                   floating={false}
+                  onOverlayVisibilityChange={setOrganizerOverlayVisible}
                   collections={collections}
                   categories={categories}
                   onCollectionCreated={(c) => setCollections((prev) => [c, ...prev])}
@@ -439,8 +416,7 @@ export default function FavoritosScreen() {
             <View style={s.emptyIcon}>
               <Ionicons name="bookmark-outline" size={32} color={theme.textSecondary} />
             </View>
-            <Text style={s.emptyTitle} allowFontScaling={true}>{noWidow('Guarda tus lugares de confianza')}</Text>
-            <Text style={s.emptyText} allowFontScaling={true}>{noWidow('Cuando encuentres un lugar que te late, usa el marcador para volver rápido.')}</Text>
+            <Text style={s.emptyTitle} allowFontScaling={true}>{noWidow('Sin guardados')}</Text>
             <TouchableOpacity style={s.cta} onPress={() => router.replace('/explorar')} activeOpacity={0.82} accessibilityRole="button" accessibilityLabel="Buscar algo rico">
               <Text style={s.ctaText} allowFontScaling={true}>{noWidow('Buscar algo rico')}</Text>
             </TouchableOpacity>
@@ -467,14 +443,10 @@ export default function FavoritosScreen() {
       </ScrollView>
       {showAlphabet && <View pointerEvents="box-none" style={[StyleSheet.absoluteFillObject, { bottom: insets.bottom + 90 }]}><AlphabetIndex letters={letters} activeLetter={activeLetter || letters[0]} onSelect={jumpToLetter} /></View>}
       </View>
-      {selecting ? <View style={{ position: 'absolute', left: 16, right: 16, bottom: insets.bottom + 8 }}>
+      {selecting ? !saveSheetVisible && !organizerOverlayVisible && <View style={{ position: 'absolute', left: 16, right: 16, bottom: insets.bottom + 8 }}>
         <SelectionActions actions={[
           { label: 'Añadir', icon: 'folder-outline', disabled: !selectedIds.size, onPress: () => { setSaveMode('add'); setSaveSheetVisible(true); } },
-          { label: 'Mover', icon: 'folder-open-outline', disabled: !moveIds.length, onPress: () => {
-            if (moveIds.length !== selectedIds.size) {
-              Alert.alert(noWidow('Hay lugares sin lista'), noWidow('Para moverlos, selecciona solo lugares que ya pertenezcan a alguna lista. Puedes usar Añadir con los demás.'));
-              return;
-            }
+          { label: 'Mover', icon: 'folder-open-outline', disabled: !moveSelection.canMove, onPress: () => {
             setSaveMode('move');
             setSaveSheetVisible(true);
           } },
@@ -484,12 +456,13 @@ export default function FavoritosScreen() {
       </View> : <BottomTabBar variant="foodie" />}
       <SaveToListSheet
         visible={saveSheetVisible}
-        patioIds={saveMode === 'move' ? moveIds : Array.from(selectedIds)}
+        patioIds={Array.from(selectedIds)}
         patioName=""
         mode={saveMode}
-        sourceCollectionIds={moveSourceCollectionIds}
+        sourceCollectionIds={moveSelection.sourceCollectionIds}
         onChanged={() => { getCollections().then(setCollections).catch(() => {}); }}
         onDismiss={() => setSaveSheetVisible(false)}
+        onMoved={exitSelecting}
       />
     </View>
   );

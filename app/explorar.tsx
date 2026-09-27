@@ -9,7 +9,7 @@ import MapView, { Marker, type Region } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { MAP_STYLE_DARK, MAP_STYLE_LIGHT } from '@/lib/map-style';
-import { publicPrice } from '@/lib/prices';
+import { PatioCardInfo } from '@/components/patio-card-info';
 import { FoodieLoading } from '@/components/foodie-loading';
 import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { SearchField } from '@/components/search-field';
@@ -17,12 +17,11 @@ import { FoodieFilterBar, matchesFoodieFilters } from '@/components/foodie-filte
 import { FOODIE_INITIAL_REGION, useFoodieExploreController } from '@/lib/controllers/useFoodieExploreController';
 import { useFoodieFilters } from '@/lib/foodie-filters-context';
 import { recordRecentPatio } from '@/lib/recent-patios';
-import { SHEET_DISMISS_MS, SHEET_SPRING, shouldDismissSheet } from '@/lib/sheet-motion';
+import { SHEET_DISMISS_MS, SHEET_DRAG_ACTIVATION, SHEET_SPRING, shouldDismissSheet } from '@/lib/sheet-motion';
 import { useTabBarScroll } from '@/lib/tab-bar-visibility';
 import { noWidow } from '@/lib/typography';
 import { Fonts, Radius, useTheme, type Theme } from '@/lib/theme';
 import { createCollection, getCollections, type PatioCollection } from '@/lib/collections';
-import { estaAbiertoAhora } from '@/lib/horario';
 import type { Patio } from '@/lib/patios';
 
 // Degradado del contorno de acento (pin seleccionado y match de búsqueda):
@@ -79,6 +78,7 @@ const FILTERING_SHEET_TOP_OFFSET = FILTER_BAR_TOP_OFFSET + 44 + 8;
 // Cuántas filas de resultado completas caben en el detent medio del sheet
 // de búsqueda — ver `mediumContentHeight` más abajo, junto al PanResponder.
 const SHEET_MEDIUM_ROWS = 3;
+const SHEET_LIST_BOTTOM_PADDING = 12;
 // Apple (HIG "Sheets"): un sheet redimensionable descansa en "detents" — el
 // sistema define large (altura completa) y medium ("about half of the fully
 // expanded height"). Mismo spring en las tres transiciones (entrada, salida,
@@ -87,10 +87,7 @@ const SHEET_MEDIUM_ROWS = 3;
 // Redimensionar el alto real del sheet (no un transform) no puede usar el
 // driver nativo — solo transform/opacity corren ahí. Mismo spring, distinto
 // driver.
-const SHEET_SPRING_JS = { stiffness: 320, damping: 30, mass: 0.75, useNativeDriver: false } as const;
-function openState(patio: Patio): boolean | null {
-  return patio.weeklyHours ? estaAbiertoAhora(patio.weeklyHours) : null;
-}
+const SHEET_SPRING_JS = { ...SHEET_SPRING, useNativeDriver: false } as const;
 
 function makeStyles(t: Theme) {
   const btnBorder = t.isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.06)';
@@ -155,6 +152,7 @@ function makeStyles(t: Theme) {
     // modo filtrado (llega hasta abajo del todo) — eso ya lo maneja el JSX.
     sheet: { position: 'absolute', left: 0, right: 0, maxHeight: '48%', borderRadius: Radius.sheet, overflow: 'hidden', borderTopWidth: StyleSheet.hairlineWidth, borderColor: t.isDark ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.18)', shadowColor: '#000', shadowOffset: { width: 0, height: 12 }, shadowOpacity: t.isDark ? 0.20 : 0.08, shadowRadius: 32, elevation: 8 },
     grabber: { alignSelf: 'center', width: 36, height: 4, borderRadius: 2, backgroundColor: t.isDark ? 'rgba(255,255,255,0.16)' : 'rgba(0,0,0,0.10)', marginTop: 7 },
+    sheetHeader: { minHeight: 44 },
     grabberTouch: { height: 20, alignItems: 'center', justifyContent: 'flex-start' },
     price: { fontSize: 24, lineHeight: 28, fontWeight: '400', color: t.text },
     listHeader: { paddingHorizontal: 20, paddingTop: 4, paddingBottom: 6, flexDirection: 'row', alignItems: 'center' },
@@ -163,7 +161,7 @@ function makeStyles(t: Theme) {
     aiNoteText: { fontSize: 12.5, fontWeight: '300', color: t.textSecondary, flexShrink: 1 },
     listFilter: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, minHeight: 30, borderRadius: 15, backgroundColor: t.accentLight },
     listFilterText: { fontSize: 12, fontWeight: '900', color: t.accent },
-    list: { paddingBottom: 12 },
+    listContent: { paddingBottom: SHEET_LIST_BOTTOM_PADDING },
     // Solo en modo filtrado el sheet tiene una altura acotada de verdad
     // (`top`/`bottom` explícitos, ver JSX) — ahí SÍ hace falta `flex: 1`
     // para que este ScrollView haga scroll en vez de cortarse contra el
@@ -175,9 +173,9 @@ function makeStyles(t: Theme) {
     listFiltering: { flex: 1 },
     // El sheet ya es la superficie que agrupa los resultados. Cada resultado
     // es una fila continua (patrón Maps/Music), no otra card dentro del panel.
-    patioRow: { minHeight: 60, marginHorizontal: 16, paddingVertical: 6, flexDirection: 'row', alignItems: 'center', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.border },
+    patioRow: { minHeight: 60, marginHorizontal: 16, paddingVertical: 12, flexDirection: 'row', alignItems: 'flex-start', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.border },
     resultIcon: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
-    patioInfo: { flex: 1, minWidth: 0, paddingRight: 8 },
+    patioInfo: { flex: 1, minWidth: 0 },
     patioName: { fontSize: 16, lineHeight: 21, fontWeight: '700', color: t.text },
     patioMetaLine: { marginTop: 2, minWidth: 0, flexDirection: 'row', alignItems: 'center' },
     patioMeta: { flex: 1, minWidth: 0, fontSize: 13, lineHeight: 18, fontWeight: '300', color: t.text },
@@ -223,6 +221,8 @@ export default function ExplorarScreen() {
   const { onScroll: onTabBarScroll } = useTabBarScroll();
   const { height: windowHeight } = useWindowDimensions();
   const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const [sheetHeaderHeight, setSheetHeaderHeight] = useState(45);
+  const [sheetRowHeight, setSheetRowHeight] = useState(60);
   const shimmerAnim = useRef(new Animated.Value(0)).current;
   const idleLayerOpacity = useRef(new Animated.Value(1)).current;
   const sheetTranslateY = useRef(new Animated.Value(0)).current;
@@ -240,16 +240,16 @@ export default function ExplorarScreen() {
   // porcentaje, el detent medio ahora se dimensiona por CONTENIDO: que
   // quepan 3 filas de resultado completas (`SHEET_MEDIUM_ROWS`), ni más ni
   // menos — un tamaño que se explica solo con lo que muestra, no con una
-  // fracción de pantalla arbitraria. Los números (grabber, header, alto de
-  // fila) son los mismos valores reales de `makeStyles` más abajo, no
-  // inventados aparte. Calculado aquí arriba (no solo junto al
+  // fracción de pantalla arbitraria. La cabecera y la primera fila se
+  // miden para incluir el tamaño de texto de la persona. Calculado aquí
+  // arriba (no solo junto al
   // PanResponder) porque el encuadre del mapa también lo necesita, para
   // reservar exactamente el espacio que el sheet ocupa de verdad.
   const filteringSheetBottom = keyboardHeight > 0 ? keyboardHeight : insets.bottom;
   const largeFrameHeight = Math.max(windowHeight - (insets.top + FILTERING_SHEET_TOP_OFFSET) - filteringSheetBottom, 0);
-  // grabberTouch (20) + listHeader (25) + N filas continuas de 60 pt +
-  // paddingBottom del sheet (4).
-  const mediumContentHeight = 20 + 25 + SHEET_MEDIUM_ROWS * 60 + 4;
+  // Las medidas reales conservan las filas completas al aumentar el texto
+  // o cambiar la información. El espacio final pertenece al contenido.
+  const mediumContentHeight = sheetHeaderHeight + SHEET_MEDIUM_ROWS * sheetRowHeight + SHEET_LIST_BOTTOM_PADDING + 4;
   const mediumSheetHeight = Math.min(largeFrameHeight, Math.max(mediumContentHeight, 220));
   const mediumGap = largeFrameHeight - mediumSheetHeight;
   const mediumGapRef = useRef(mediumGap);
@@ -623,6 +623,15 @@ export default function ExplorarScreen() {
     Animated.spring(sheetTranslateY, { toValue: 0, ...SHEET_SPRING }).start();
   };
   const sheetDraggingRef = useRef(false);
+  const sheetDragAxisRef = useRef<'vertical' | 'horizontal' | null>(null);
+  const activateSheetHandle = () => {
+    if (isFilteringRef.current) {
+      Haptics.selectionAsync().catch(() => {});
+      settleSheetToDetent(sheetDetentRef.current === 'medium' ? 'large' : 'medium');
+    } else {
+      dismissSheet();
+    }
+  };
   const sheetPanResponder = useRef(
     PanResponder.create({
       // El grabber reclama el toque desde que baja el dedo (no solo tras un
@@ -632,11 +641,17 @@ export default function ExplorarScreen() {
       onStartShouldSetPanResponder: () => true,
       onPanResponderGrant: () => {
         sheetDraggingRef.current = true;
+        sheetDragAxisRef.current = null;
         sheetTopExtra.stopAnimation();
         sheetTranslateY.stopAnimation();
         sheetDragStartRef.current = sheetRestYRef.current;
       },
       onPanResponderMove: (_event, gesture) => {
+        if (!sheetDragAxisRef.current) {
+          if (Math.max(Math.abs(gesture.dx), Math.abs(gesture.dy)) < SHEET_DRAG_ACTIVATION) return;
+          sheetDragAxisRef.current = Math.abs(gesture.dy) > Math.abs(gesture.dx) ? 'vertical' : 'horizontal';
+        }
+        if (sheetDragAxisRef.current !== 'vertical') return;
         if (!isFilteringRef.current) {
           sheetTranslateY.setValue(Math.max(0, gesture.dy));
           return;
@@ -654,14 +669,15 @@ export default function ExplorarScreen() {
       },
       onPanResponderRelease: (_event, gesture) => {
         sheetDraggingRef.current = false;
-        const isTap = Math.abs(gesture.dy) < 6 && Math.abs(gesture.dx) < 6;
+        const isTap = sheetDragAxisRef.current === null
+          && Math.max(Math.abs(gesture.dx), Math.abs(gesture.dy)) < SHEET_DRAG_ACTIVATION;
         if (isTap) {
-          // Apple (HIG Sheets): "people can also tap [the grabber] to cycle
-          // through the detents" — hoy solo se podía arrastrar.
-          if (isFilteringRef.current) {
-            Haptics.selectionAsync().catch(() => {});
-            settleSheetToDetent(sheetDetentRef.current === 'medium' ? 'large' : 'medium');
-          }
+          activateSheetHandle();
+          return;
+        }
+        if (sheetDragAxisRef.current !== 'vertical') {
+          Animated.spring(sheetTopExtra, { toValue: sheetRestYRef.current, ...SHEET_SPRING_JS }).start();
+          Animated.spring(sheetTranslateY, { toValue: 0, ...SHEET_SPRING }).start();
           return;
         }
         if (!isFilteringRef.current) {
@@ -673,13 +689,12 @@ export default function ExplorarScreen() {
         }
         const total = Math.max(0, sheetDragStartRef.current + gesture.dy);
         const medium = mediumGapRef.current;
-        const dismissThreshold = medium + 70;
-        if (total > dismissThreshold || (gesture.vy > 0.8 && total > medium * 0.6)) {
+        if (shouldDismissSheet(total - medium, gesture.vy) && total >= medium) {
           dismissSheet();
           return;
         }
-        if (gesture.vy < -0.8) { settleSheetToDetent('large'); return; }
-        if (gesture.vy > 0.8) { settleSheetToDetent('medium'); return; }
+        if (shouldDismissSheet(0, -gesture.vy)) { settleSheetToDetent('large'); return; }
+        if (shouldDismissSheet(0, gesture.vy)) { settleSheetToDetent('medium'); return; }
         settleSheetToDetent(total > medium / 2 ? 'medium' : 'large');
       },
       onPanResponderTerminate: () => {
@@ -1152,40 +1167,57 @@ export default function ExplorarScreen() {
           <BlurView intensity={theme.isDark ? 16 : 22} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
           <View
             {...sheetPanResponder.panHandlers}
-            style={s.grabberTouch}
+            style={s.sheetHeader}
+            onLayout={(event) => setSheetHeaderHeight(Math.max(44, Math.ceil(event.nativeEvent.layout.height)))}
+            accessible
             accessibilityRole="button"
-            accessibilityLabel={isFiltering ? 'Cambiar tamaño de la lista de resultados' : undefined}>
-            <View style={s.grabber} />
-          </View>
+            accessibilityLabel={isFiltering ? (sheetDetent === 'medium' ? 'Expandir resultados' : 'Reducir resultados') : 'Ocultar lugares'}
+            accessibilityValue={{ text: isFiltering
+              ? `${filteredMatches.length} resultado${filteredMatches.length !== 1 ? 's' : ''}${aiMode && aiNote ? `. ${aiNote}` : ''}`
+              : sheetMode === 'saved' ? 'Guardados' : 'Cerca de ti' }}
+            accessibilityState={isFiltering ? { expanded: sheetDetent === 'large' } : undefined}
+            onAccessibilityTap={activateSheetHandle}
+            accessibilityActions={[{ name: 'activate' }]}
+            onAccessibilityAction={(event) => {
+              if (event.nativeEvent.actionName === 'activate') activateSheetHandle();
+            }}
+            onAccessibilityEscape={dismissSheet}>
+            <View style={s.grabberTouch}>
+              <View style={s.grabber} />
+            </View>
 
-          {/* List */}
-          <View style={s.listHeader}>
-            {isFiltering ? (
-              <Text style={s.listTitle} allowFontScaling={true}>
-                {filteredMatches.length > 0
-                  ? `${filteredMatches.length} resultado${filteredMatches.length !== 1 ? 's' : ''}`
-                  : 'Sin resultados'}
-              </Text>
-            ) : (
-              <Text style={s.listTitle} allowFontScaling={true}>{sheetMode === 'saved' ? 'GUARDADOS' : 'CERCA DE TI'}</Text>
+            <View style={s.listHeader}>
+              {isFiltering ? (
+                <Text style={s.listTitle} allowFontScaling={true}>
+                  {filteredMatches.length > 0
+                    ? `${filteredMatches.length} resultado${filteredMatches.length !== 1 ? 's' : ''}`
+                    : 'Sin resultados'}
+                </Text>
+              ) : (
+                <Text style={s.listTitle} allowFontScaling={true}>{sheetMode === 'saved' ? 'GUARDADOS' : 'CERCA DE TI'}</Text>
+              )}
+            </View>
+
+            {aiMode && isFiltering && !!aiNote && (
+              <View style={s.aiNoteRow}>
+                <Ionicons name="sparkles" size={12} color={theme.accent} />
+                <Text style={s.aiNoteText} numberOfLines={1} allowFontScaling={true}>{aiNote}</Text>
+              </View>
             )}
           </View>
 
-          {aiMode && isFiltering && !!aiNote && (
-            <View style={s.aiNoteRow}>
-              <Ionicons name="sparkles" size={12} color={theme.accent} />
-              <Text style={s.aiNoteText} numberOfLines={1} allowFontScaling={true}>{aiNote}</Text>
-            </View>
-          )}
-
           <ScrollView
-            style={[s.list, sheetView.filtering && s.listFiltering]}
+            style={sheetView.filtering ? s.listFiltering : undefined}
+            contentContainerStyle={s.listContent}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode="on-drag"
             scrollEventThrottle={16}
             onScroll={sheetView.filtering ? undefined : onTabBarScroll}
-            onScrollBeginDrag={Keyboard.dismiss}>
+            onScrollBeginDrag={() => {
+              Keyboard.dismiss();
+              setPressedPinId(null);
+            }}>
             {isFiltering ? (
               filteredMatches.length === 0 ? (
                 searchPending ? null : (
@@ -1211,42 +1243,25 @@ export default function ExplorarScreen() {
                 </View>
                 )
               ) : (
-                filteredMatches.map((match) => {
-                  const state = openState(match.patio);
+                filteredMatches.map((match, index) => {
                   const distance = distanceLabelForPatio(match.patio);
-                  const details = [
-                    match.patio.area || null,
-                    match.patio.rating && match.patio.rating !== 'Nuevo'
-                      ? `★ ${match.patio.rating}${match.patio.ratingCount != null ? ` (${match.patio.ratingCount})` : ''}`
-                      : null,
-                  ].filter(Boolean).join(' · ');
                   return (
                     <TouchableOpacity
                       accessibilityRole="button"
                       accessibilityLabel={`Abrir resultado ${match.item.name} en ${match.patio.name}`}
                       key={`${match.patio.id}-${match.item.name}`}
                       style={s.patioRow}
+                      onLayout={index === 0 ? (event) => setSheetRowHeight(Math.max(60, Math.ceil(event.nativeEvent.layout.height))) : undefined}
                       onPress={() => {
                         Keyboard.dismiss();
                         void recordRecentPatio(match.patio, 'searched').catch(() => {});
                         router.push(`/patio/${match.patio.id}`);
                       }}
                       onPressIn={() => {
-                        // Airbnb: tocar una tarjeta resalta y centra su pin
-                        // en el mapa sin abrir la ficha — aquí se reusa el
-                        // mismo mecanismo de selección que ya usan los pines
-                        // al tocarlos (`pressedPinId`/`pinCategorySelected`),
-                        // en vez de un segundo lenguaje visual. Dispara
-                        // desde que el dedo baja, no hasta soltar, para que
-                        // la respuesta se sienta inmediata.
+                        // El toque resalta el pin; desplazar la lista no
+                        // debe cambiar la posición ni los resultados del mapa.
                         if (match.patio.latitude <= 0) return;
                         setPressedPinId(match.patio.id);
-                        mapRef.current?.animateToRegion({
-                          latitude: match.patio.latitude,
-                          longitude: match.patio.longitude,
-                          latitudeDelta: mapRegion.latitudeDelta,
-                          longitudeDelta: mapRegion.longitudeDelta,
-                        }, 260);
                       }}
                       onPressOut={() => setPressedPinId((id) => (id === match.patio.id ? null : id))}
                       activeOpacity={0.76}>
@@ -1254,19 +1269,7 @@ export default function ExplorarScreen() {
                         <Ionicons name={match.section === 'LUGAR' ? 'location-outline' : 'restaurant-outline'} size={15} color={theme.textSecondary} />
                       </View>
                       <View style={s.patioInfo}>
-                        <Text style={s.patioName} numberOfLines={1} allowFontScaling={true}>{match.patio.name}</Text>
-                        {(!!details || !!distance) && <View style={s.patioMetaLine}>
-                          {!!details && <Text style={s.patioMeta} numberOfLines={1} allowFontScaling={true}>{details}</Text>}
-                          {!!distance && <Text style={[s.patioDistance, !details && { marginLeft: 0 }]} numberOfLines={1} allowFontScaling={true}>{distance}</Text>}
-                        </View>}
-                      </View>
-                      <View style={s.patioRight}>
-                        {!!publicPrice(match.patio.price) && (
-                          <Text style={s.patioPrice} numberOfLines={1} allowFontScaling={true}>{publicPrice(match.patio.price)}</Text>
-                        )}
-                        <Text style={[s.patioOpen, state === true && { color: theme.accent }]} numberOfLines={1} allowFontScaling={true}>
-                          {state === false ? 'Cerrado' : state === true ? 'Abierto' : 'Sin horario'}
-                        </Text>
+                        <PatioCardInfo patio={match.patio} distanceLabel={distance} />
                       </View>
                     </TouchableOpacity>
                   );
@@ -1283,14 +1286,7 @@ export default function ExplorarScreen() {
               </View>
             ) : (
               listPatios.map((patio) => {
-                const state = openState(patio);
                 const distance = distanceLabelForPatio(patio);
-                const details = [
-                  patio.area || null,
-                  patio.rating && patio.rating !== 'Nuevo'
-                    ? `★ ${patio.rating}${patio.ratingCount != null ? ` (${patio.ratingCount})` : ''}`
-                    : null,
-                ].filter(Boolean).join(' · ');
                 return (
                   <TouchableOpacity
                     accessibilityRole="button"
@@ -1303,19 +1299,7 @@ export default function ExplorarScreen() {
                       <Ionicons name="location-outline" size={16} color={theme.textSecondary} />
                     </View>
                     <View style={s.patioInfo}>
-                      <Text style={s.patioName} numberOfLines={1} allowFontScaling={true}>{patio.name}</Text>
-                      {(!!details || !!distance) && <View style={s.patioMetaLine}>
-                        {!!details && <Text style={s.patioMeta} numberOfLines={1} allowFontScaling={true}>{details}</Text>}
-                        {!!distance && <Text style={[s.patioDistance, !details && { marginLeft: 0 }]} numberOfLines={1} allowFontScaling={true}>{distance}</Text>}
-                      </View>}
-                    </View>
-                    <View style={s.patioRight}>
-                      {!!publicPrice(patio.price) && (
-                        <Text style={s.patioPrice} numberOfLines={1} allowFontScaling={true}>{publicPrice(patio.price)}</Text>
-                      )}
-                      <Text style={[s.patioOpen, state === true && { color: theme.accent }]} numberOfLines={1} allowFontScaling={true}>
-                        {state === false ? 'Cerrado' : state === true ? 'Abierto' : 'Sin horario'}
-                      </Text>
+                      <PatioCardInfo patio={patio} distanceLabel={distance} />
                     </View>
                   </TouchableOpacity>
                 );

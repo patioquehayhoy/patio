@@ -3,6 +3,9 @@
 Primero leer [HEADS_UP](HEADS_UP_2026-10-12.md) y ejecutar pendientes en
 [PENDING_LAUNCH](PENDING_LAUNCH_2026-10-12.md). El usuario hará QA física;
 continuar con sus hallazgos concretos y conservar los cambios ya concluidos.
+Primero terminar el push autorizado: la cuenta Git actual es `T1Alejandro`
+y GitHub devuelve 403. Commit local `b21c898`; autenticar Patio y subir
+`rebuild/patio-final` sin volver a crear el checkpoint ni forzar el remoto.
 
 > **Estado vigente — 2026-10-12:** auditoría de diseño aplicada a tarjetas,
 > iconos, pills, listas, formularios, tipografía, feedback y copy. Contrato:

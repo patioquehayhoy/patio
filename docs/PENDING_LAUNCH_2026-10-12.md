@@ -20,6 +20,10 @@ asignación de dueños ni borrado de datos sintéticos para cerrar esta lista.
 
 ## 1. QA del usuario y estabilidad móvil
 
+- [ ] Terminar el push del checkpoint: commit local `b21c898`, cuenta activa
+  `T1Alejandro` sin escritura en Patio. Hace falta autenticar `patioquehayhoy`;
+  conservar la rama y los commits locales, sin force-push ni cambio de propietario.
+
 - [ ] Alejandro: buscar «mole», cerrar resultados con swipe, tocar Guardados/
   Cuenta y reabrir la misma búsqueda. Confirmar que vuelve la navegación y
   no se cierra Patio al inicio del iPhone; el cierre anterior sigue sin confirmar.

@@ -74,8 +74,8 @@ function makeStyles(c: FonderoColors) {
     eyebrow: { marginBottom: 8, fontSize: 11, fontWeight: '700', letterSpacing: 1.6, color: c.accent },
     title: { fontSize: 38, lineHeight: 41, fontWeight: '900', letterSpacing: -1.2, color: c.text, fontFamily: Fonts.brand },
     actions: { paddingBottom: 18 },
-    primary: { height: 54, borderRadius: 27, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: c.accent },
-    primaryText: { fontSize: 15, fontWeight: '700', color: '#FFFFFF' },
+    primary: { minHeight: 54, paddingVertical: 12, paddingHorizontal: 16, borderRadius: 27, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: c.accent },
+    primaryText: { flexShrink: 1, fontSize: 15, fontWeight: '700', color: '#FFFFFF' },
     secondary: { minHeight: 48, alignItems: 'center', justifyContent: 'center' },
     secondaryText: { fontSize: 15, fontWeight: '600', color: c.textSecondary },
   });

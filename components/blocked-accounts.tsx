@@ -42,13 +42,14 @@ export function BlockedAccounts() {
   if (!signedIn) return null;
   return <View style={{ marginTop: 24, gap: 8 }}>
     <Text style={{ fontSize: 16, fontWeight: '700', color: theme.text }}>{noWidow('Cuentas bloqueadas')}</Text>
-    {loading ? <ActivityIndicator color={theme.textSecondary} /> : error ?
+    {loading ? <ActivityIndicator color={theme.textSecondary} accessibilityLabel="Cargando cuentas bloqueadas" /> : error ?
       <TouchableOpacity onPress={() => setRetry((value) => value + 1)} accessibilityRole="button" style={{ minHeight: 44, justifyContent: 'center' }}>
         <Text style={{ color: theme.accent }}>{noWidow('No pudimos cargar las cuentas. Reintentar.')}</Text>
       </TouchableOpacity> : profiles.length ? profiles.map((profile) =>
         <View key={profile.user_id} style={{ flexDirection: 'row', alignItems: 'center', minHeight: 52, gap: 16 }}>
           <Text style={{ flex: 1, color: theme.text }} numberOfLines={1}>{profile.display_name || noWidow('Cuenta bloqueada')}</Text>
           <TouchableOpacity disabled={busy !== null} onPress={() => void unblock(profile.user_id)} accessibilityRole="button"
+            accessibilityState={{ disabled: busy !== null, busy: busy === profile.user_id }}
             accessibilityLabel={`Desbloquear ${profile.display_name || 'cuenta'}`} style={{ minHeight: 44, justifyContent: 'center' }}>
             {busy === profile.user_id ? <ActivityIndicator color={theme.accent} /> : <Text style={{ color: theme.accent }}>Desbloquear</Text>}
           </TouchableOpacity>

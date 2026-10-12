@@ -194,7 +194,7 @@ function publicationAdmin({ menuExists = true, ownsPatio = true, targetCount = 0
           single() { return query; }, maybeSingle() { return query; },
           then(resolve) {
             const values = {
-              fonditas: { id: userId, nombre: 'Patio prueba', telefono: ownsPatio ? 'owner@example.test' : 'someone@example.test' },
+              fonditas: { id: userId, nombre: 'Patio prueba', owner_id: ownsPatio ? userId : 'someone-else' },
               menus: menuExists ? { secciones: { secciones: [] } } : null,
               publication_events: inserted ? { id: 'event-1' } : null,
               patio_follows: targets.map(({ user_id }) => ({ user_id })),
@@ -249,3 +249,21 @@ test('publication: a failed Expo batch records errors without shifting later dev
   assert.equal(deliveries[100].push_device_id, 'device-100');
   assert.equal(deliveries[100].expo_ticket_id, 'last-ticket');
 });
+
+for (const [feature, body] of [['read-menu', { imageBase64: 'A'.repeat(120), mediaType: 'image/jpeg' }], ['smart-setup', { relato: 'Vendemos comida casera en Polanco.' }], ['search-intent', { query: 'Sopa cerca de aquí' }]]) {
+  test(`${feature}: exhausted quota returns 429 before provider work`, async () => {
+    const { admin } = makeAdmin();
+    let quota;
+    admin.rpc = async (name, params) => { quota = { name, params }; return { data: false, error: null }; };
+    let paid = 0;
+    const response = await loadEdge(feature, admin, async () => { paid++; throw new Error('Must not call provider'); })(request(body));
+    assert.equal(response.status, 429); assert.equal(paid, 0);
+    assert.equal(quota.name, 'consume_ai_request');
+    assert.equal(quota.params.p_user_id, userId); assert.equal(quota.params.p_feature, feature);
+  });
+  test(`${feature}: unavailable quota fails closed with 503`, async () => {
+    const { admin } = makeAdmin();
+    admin.rpc = async () => ({ data: null, error: new Error('Missing migration') });
+    assert.equal((await loadEdge(feature, admin)(request(body))).status, 503);
+  });
+}

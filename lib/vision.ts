@@ -1,3 +1,4 @@
+import { aiFunctionError } from '@/lib/edge-function-error';
 import * as FileSystem from 'expo-file-system/legacy';
 
 import { getTipoNegocio } from '@/lib/menu-store';
@@ -50,7 +51,7 @@ export async function leerMenuDeFoto(imageUri: string): Promise<MenuVisualResult
     },
   });
 
-  if (error) throw new Error(error.message || 'No se pudo leer el menú');
+  if (error) throw await aiFunctionError(error, 'No se pudo leer el menú. Inténtalo de nuevo.');
   if (!isMenuVisualResult(data)) throw new Error('La lectura devolvió un formato inválido');
   return { ...data, precio: data.precio ?? '' };
 }

@@ -1,0 +1,18 @@
+{
+  "description": "Estado antes de estrella única, ubicación con separador y comparación de nombres en cuadrícula. Conserva centrado de ubicación y swipe.",
+  "files": [
+    "components/patio-card-info.tsx",
+    "lib/patio-card-info.ts",
+    "app/favoritos.tsx",
+    "app/patio/[id].tsx",
+    "scripts/design/card-preview.cjs",
+    "docs/DESIGN_SYSTEM.md",
+    "scripts/tests/patio-card-info.test.cjs",
+    "lib/layout-metrics.ts",
+    "scripts/tests/library-controls.test.cjs",
+    "scripts/tests/map-location.test.cjs"
+  ],
+  "newFiles": [
+    "lib/use-known-location.ts"
+  ]
+}

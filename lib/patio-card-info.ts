@@ -1,4 +1,4 @@
-import { ahoraCDMX, estaAbiertoAhora, hhmmToMin, type DiaHorario } from './horario';
+import { ahoraCDMX, estaAbiertoAhora, hhmmToMin, minutosAHHMM, minutosParaCerrar, type DiaHorario } from './horario';
 import type { Patio } from './patios';
 
 export type PatioCardPrice = {
@@ -13,11 +13,16 @@ export type PatioCardInfoData = {
   verified: boolean;
   open: boolean | null;
   openLabel: string;
+  closingSoon: boolean;
+  closingLabel: string | null;
+  closingAccessibilityLabel: string | null;
   menuLabel: string;
   price: PatioCardPrice;
   publicRating: string;
+  publicRatingValue: number | null;
   publicRatingAccessibilityLabel: string;
   personalRating: string;
+  personalRatingValue: number | null;
   personalRatingAccessibilityLabel: string;
   distance: string;
   distanceAccessibilityLabel: string;
@@ -26,6 +31,7 @@ export type PatioCardInfoData = {
 export type PatioCardInfoOptions = {
   distanceLabel?: string | null;
   personalRating?: number | null;
+  includePersonalRating?: boolean;
   now?: Date;
 };
 
@@ -89,8 +95,31 @@ function validRating(value: string | number | undefined | null): number | null {
   return Number.isFinite(rating) && rating >= 1 && rating <= 5 ? rating : null;
 }
 
+function compactReviewCount(count: number): string {
+  if (count >= 1_000_000) return `${(count / 1_000_000).toFixed(1).replace(/\.0$/, '')}M`;
+  if (count >= 1_000) return `${(count / 1_000).toFixed(1).replace(/\.0$/, '')}k`;
+  return String(count);
+}
+
 export function getPatioCardInfo(patio: Patio, options: PatioCardInfoOptions = {}): PatioCardInfoData {
-  const open = patioCardOpenState(patio, options.now);
+  const now = options.now ?? new Date();
+  const current = ahoraCDMX(now);
+  const open = patioCardOpenState(patio, now);
+  const remaining = open ? minutosParaCerrar(patio.weeklyHours, current) : null;
+  const closingSoon = remaining !== null && remaining <= 30;
+  const today = patio.weeklyHours?.find((day) => day.dia === current.dia);
+  const yesterday = patio.weeklyHours?.find((day) => day.dia === (current.dia + 6) % 7);
+  const activeDay = [today, yesterday].find((day) => {
+    const start = hhmmToMin(day?.abre ?? null);
+    const end = hhmmToMin(day?.cierra ?? null);
+    if (!day || day.cerrado || start === null || end === null) return false;
+    return day === today
+      ? current.minutos >= start && (end <= start || current.minutos < end)
+      : end <= start && current.minutos < end;
+  });
+  const allDay = remaining !== null && !!activeDay && hhmmToMin(activeDay.abre) === hhmmToMin(activeDay.cierra);
+  const closingTime = remaining === null ? null : minutosAHHMM((current.minutos + remaining) % 1440);
+  const closingLabel = closingTime === null ? null : allDay ? 'Abierto 24 h' : `Cierra ${closingTime}`;
   const rating = validRating(patio.rating);
   const ownRating = validRating(options.personalRating);
   const count = patio.ratingCount != null && Number.isInteger(patio.ratingCount) && patio.ratingCount > 0
@@ -98,18 +127,36 @@ export function getPatioCardInfo(patio: Patio, options: PatioCardInfoOptions = {
   const distance = options.distanceLabel?.trim() || null;
   return {
     name: patio.name,
-    area: patio.area.trim() || patio.categories[0] || 'Sin ubicación',
+    area: patio.area.trim(),
     verified: patio.isVerifiedBusiness === true,
     open,
-    openLabel: open === true ? 'Abierto' : open === false ? 'Cerrado' : 'Sin horario',
+    closingSoon,
+    closingLabel,
+    closingAccessibilityLabel: closingTime === null ? null : allDay ? 'Horario publicado, abierto 24 horas' : `Horario publicado, cierra a las ${closingTime}`,
+    openLabel: open === true ? (closingSoon ? 'Cierra pronto' : 'Abierto') : open === false ? 'Cerrado' : 'Sin horario',
     menuLabel: patio.hasTodayMenu === true ? 'Menú de hoy' : patio.hasTodayMenu === false ? 'Sin menú hoy' : 'Menú sin datos',
     price: patioCardPrice(patio),
-    publicRating: rating === null ? '—' : `${rating.toFixed(1)}${count === null ? '' : ` (${count})`}`,
+    publicRating: rating === null ? '—' : `${rating.toFixed(1)}${count === null ? '' : ` (${compactReviewCount(count)})`}`,
+    publicRatingValue: rating,
     publicRatingAccessibilityLabel: rating === null ? 'Sin calificaciones públicas'
       : `Calificación pública, ${rating.toFixed(1)} de 5${count === null ? '' : `, ${count} ${count === 1 ? 'reseña' : 'reseñas'}`}`,
     personalRating: ownRating === null ? 'Tu calificación: —' : `Tu calificación: ${ownRating.toFixed(1)}`,
+    personalRatingValue: ownRating,
     personalRatingAccessibilityLabel: ownRating === null ? 'Sin calificación propia' : `Tu calificación, ${ownRating.toFixed(1)} de 5`,
     distance: distance ?? '—',
     distanceAccessibilityLabel: distance ? `Distancia, ${distance}` : 'Distancia no disponible',
   };
+}
+
+/** A navigable card groups its children for VoiceOver/TalkBack. Include the
+ * meaning of the color dot and the full text hidden by the compact layout. */
+export function patioCardAccessibilityLabel(patio: Patio, options: PatioCardInfoOptions = {}): string {
+  const info = getPatioCardInfo(patio, options);
+  return [
+    `Abrir ${info.name}`, info.area,
+    info.verified ? 'Negocio verificado' : '', info.openLabel, info.closingAccessibilityLabel,
+    info.price.accessibilityLabel, info.publicRatingAccessibilityLabel,
+    options.distanceLabel?.trim() ? info.distanceAccessibilityLabel : '',
+    options.includePersonalRating || validRating(options.personalRating) !== null ? info.personalRatingAccessibilityLabel : '',
+  ].filter(Boolean).join('. ');
 }

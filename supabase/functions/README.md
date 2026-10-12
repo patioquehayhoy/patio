@@ -51,3 +51,13 @@ supabase functions deploy smart-setup
 Usa el mismo secreto `ANTHROPIC_API_KEY`. Nunca publica directamente — días,
 dirección, pagos y otros datos no mencionados quedan pendientes, no se
 completan por inferencia.
+
+## Corte 2026-10-09: cuotas IA
+
+Aplicar `20261009100000_ai_request_limits.sql` antes de desplegar read-menu,
+smart-setup y search-intent. El RPC es exclusivo de service_role y limita por
+usuario/función antes de llamar al proveedor. RPC ausente/error devuelve 503;
+cuota agotada devuelve 429. No promete saldo de suscripción. Aplicar también
+`20261009110000_review_server_dates.sql` para fechar reseñas en servidor.
+Estos cambios solo se ensayaron localmente. Inventario y secuencia de staging:
+`scripts/backend/README.md`; cierre: `docs/LAUNCH_CLOSEOUT_2026-10-09.md`.

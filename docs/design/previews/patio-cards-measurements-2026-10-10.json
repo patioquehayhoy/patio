@@ -1,0 +1,110 @@
+[
+  {
+    "badgePositions": [
+      246.01,
+      246.01,
+      246.01
+    ],
+    "clippedRatings": 0,
+    "ownStarPositions": [
+      317.01,
+      317.01,
+      317.01,
+      317.01,
+      317.01,
+      317.01
+    ],
+    "ratingsOnOneLine": true,
+    "view": "Lista · claro"
+  },
+  {
+    "badgePositions": [
+      246.01,
+      246.01,
+      246.01
+    ],
+    "clippedRatings": 0,
+    "ownStarPositions": [
+      317.01,
+      317.01,
+      317.01,
+      317.01,
+      317.01,
+      317.01
+    ],
+    "ratingsOnOneLine": true,
+    "view": "Lista · oscuro"
+  },
+  {
+    "badgePositions": [
+      146.94,
+      146.94,
+      146.94
+    ],
+    "clippedRatings": 0,
+    "ownStarPositions": [
+      117.95,
+      117.95,
+      117.95,
+      117.95,
+      117.95,
+      117.95
+    ],
+    "ratingsOnOneLine": true,
+    "view": "Cuadrícula · claro"
+  },
+  {
+    "badgePositions": [
+      146.94,
+      146.94,
+      146.94
+    ],
+    "clippedRatings": 0,
+    "ownStarPositions": [
+      117.95,
+      117.95,
+      117.95,
+      117.95,
+      117.95,
+      117.95
+    ],
+    "ratingsOnOneLine": true,
+    "view": "Cuadrícula · oscuro"
+  },
+  {
+    "badgePositions": [
+      173.01,
+      173.01,
+      173.01
+    ],
+    "clippedRatings": 0,
+    "ownStarPositions": [
+      244.01,
+      244.01,
+      244.01,
+      244.01,
+      244.01,
+      244.01
+    ],
+    "ratingsOnOneLine": true,
+    "view": "Pantalla pequeña · 320 pt"
+  },
+  {
+    "badgePositions": [
+      346,
+      346,
+      346
+    ],
+    "clippedRatings": 0,
+    "ownStarPositions": [
+      290.6,
+      290.6,
+      290.6,
+      290.6,
+      290.6,
+      290.6
+    ],
+    "ratingsOnOneLine": true,
+    "view": "Letra grande · 160%"
+  }
+]

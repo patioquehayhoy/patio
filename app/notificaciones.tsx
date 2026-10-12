@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AvatarCircle } from '@/components/avatar-circle';
 import { BottomTabBar } from '@/components/bottom-tab-bar';
+import { bottomTabClearance } from '@/lib/layout-metrics';
 import { formatLikeAuthors, markReviewLikesSeen } from '@/lib/activity-feed';
 import { getDemoReviewLikeEvents, getMyReviewLikeEvents, type MyReviewLikeEvent } from '@/lib/review-likes';
 import { useTabBarScroll } from '@/lib/tab-bar-visibility';
@@ -52,7 +53,7 @@ export default function NotificacionesScreen() {
     <View style={[s.root, { paddingTop: insets.top }]}>
       <Stack.Screen options={{ headerShown: false }} />
       <ScrollView
-        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: insets.bottom + 130 }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: bottomTabClearance(insets.bottom) }}
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={16}
         onScroll={onScroll}>

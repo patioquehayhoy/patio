@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AvatarCircle } from '@/components/avatar-circle';
 import { BottomTabBar } from '@/components/bottom-tab-bar';
+import { bottomTabClearance } from '@/lib/layout-metrics';
 import { DishLikeDetailSheet, type DishLikeAuthor } from '@/components/dish-like-detail-sheet';
 import { LikeAvatarStack } from '@/components/like-avatar-stack';
 import { formatLikeAuthors, markActivitySeen } from '@/lib/activity-feed';
@@ -232,7 +233,7 @@ export default function ResenasScreen() {
         {item.canReply && (
           !!item.businessReply ? (
             <View style={[s.replyBox, { borderLeftColor: c.accent }]}>
-              <Text style={[s.replyLabel, { color: c.accent }]}>TU RESPUESTA</Text>
+              <Text style={[s.replyLabel, { color: c.accent }]}>{noWidow('TU RESPUESTA')}</Text>
               <Text style={[s.reviewNote, { color: c.textSecondary }]}>{item.businessReply}</Text>
             </View>
           ) : replyingTo === item.userId ? (
@@ -254,7 +255,7 @@ export default function ResenasScreen() {
   return (
     <View style={[s.root, { backgroundColor: c.bg, paddingTop: insets.top }]}>
       <Stack.Screen options={{ headerShown: false }} />
-      <ScrollView onScroll={onScroll} scrollEventThrottle={16} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 24, paddingBottom: insets.bottom + 130 }} showsVerticalScrollIndicator={false}>
+      <ScrollView onScroll={onScroll} scrollEventThrottle={16} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 24, paddingBottom: bottomTabClearance(insets.bottom) }} showsVerticalScrollIndicator={false}>
         {groups.length ? (
           groups.map((group, groupIndex) => (
             <View key={group.key} style={{ marginTop: groupIndex === 0 ? 0 : 24 }}>

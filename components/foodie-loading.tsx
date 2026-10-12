@@ -1,3 +1,4 @@
+import { noWidow } from '@/lib/typography';
 import { useEffect, useRef } from 'react';
 import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
 
@@ -21,9 +22,9 @@ export function FoodieLoading({ label = 'Buscando alrededor' }: { label?: string
   const rotate = spin.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
 
   return (
-    <View style={s.root} pointerEvents="none">
+    <View style={s.root} pointerEvents="none" accessibilityRole="progressbar" accessibilityLabel={label} accessibilityState={{ busy: true }}>
       <Animated.View style={[s.arc, { transform: [{ rotate }] }]} />
-      <Text style={s.label} allowFontScaling={true}>{label}</Text>
+      <Text style={s.label} allowFontScaling={true}>{noWidow(label)}</Text>
     </View>
   );
 }

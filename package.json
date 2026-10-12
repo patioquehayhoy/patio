@@ -15,7 +15,7 @@
     "check": "npm run typecheck && npm run lint && npm test && npm run check:release",
     "check:release": "node scripts/check-release.mjs",
     "check:release:strict": "node scripts/check-release.mjs --strict",
-    "marks": "tsc --noEmit && git add -A && git commit -m 'marks: session checkpoint' && git push origin v2-menu-vivo"
+    "marks": "npm run check && git add -A && git commit -m 'chore: checkpoint Patio' && git push origin HEAD"
   },
   "dependencies": {
     "@expo-google-fonts/plus-jakarta-sans": "^0.4.2",
@@ -79,6 +79,12 @@
     },
     "xcode": {
       "uuid": "11.1.1"
+    },
+    "metro": {
+      "image-size": "2.0.4"
+    },
+    "minimatch@3": {
+      "brace-expansion": "1.1.21"
     }
   }
 }

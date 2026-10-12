@@ -17,11 +17,14 @@ function isUuid(value: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 }
 
-export async function upsertFondita(email: string): Promise<string | null> {
+export async function upsertFondita(_email: string): Promise<string | null> {
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError) throw authError;
+  if (!user || user.is_anonymous) throw new Error('Inicia sesión para crear tu Patio.');
   const { data: existing, error: readError } = await supabase
     .from('fonditas')
     .select('id')
-    .eq('telefono', email)
+    .eq('owner_id', user.id)
     .maybeSingle();
   // A failed read is not evidence that the business does not exist.
   if (readError) throw readError;
@@ -33,7 +36,7 @@ export async function upsertFondita(email: string): Promise<string | null> {
 
   const { data, error } = await supabase
     .from('fonditas')
-    .insert({ telefono: email, nombre: '' })
+    .insert({ owner_id: user.id, nombre: '' })
     .select('id')
     .single();
 

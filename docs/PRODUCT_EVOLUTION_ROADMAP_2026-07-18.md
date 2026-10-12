@@ -1,5 +1,12 @@
 # Evolución de Patio — memoria de producto
 
+> **Secuencia vigente — 2026-10-12:** cerrar QA iPhone/Android, dependencias,
+> configuración e integraciones y distribución según
+> [PENDING_LAUNCH](PENDING_LAUNCH_2026-10-12.md). La cuadrícula conserva tres
+> líneas y columnas estables; miniatura real del local queda como mejora
+> posterior al candidato. Las ideas de discovery siguientes no autorizan
+> nuevas implementaciones ni desplazan estos gates de lanzamiento.
+
 > Captura durable de las notas de Alejandro · 2026-07-18.
 > Estado: discovery priorizado. No todo lo listado está autorizado para producción.
 >

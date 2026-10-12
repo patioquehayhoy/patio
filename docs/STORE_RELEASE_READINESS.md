@@ -1,5 +1,28 @@
 # Preparación de lanzamiento — Patio
 
+> **Corte vigente — 2026-10-12:** código de homologación, tarjetas y navegación
+> cerrado localmente: TypeScript/lint y **177 pruebas** aprobados, 54 ejemplos web.
+> Backend ensayado/promovido el 2026-10-09. Lanzamiento todavía pendiente de
+> QA móvil, auditoría npm, Maps/Firebase Android, integraciones y distribución.
+> [Heads-up](HEADS_UP_2026-10-12.md) · [Checklist/roadmap](PENDING_LAUNCH_2026-10-12.md).
+> Los cortes anteriores son históricos y no sustituyen este estado.
+
+> **Producción actualizada (2026-10-09):** siete migraciones aplicadas y registradas; cinco funciones ACTIVE con JWT. Datos existentes conservados; correos protegidos. Evidencia: [PRODUCTION_PROMOTION_2026-10-09.md](PRODUCTION_PROMOTION_2026-10-09.md). Lanzamiento aún pendiente de QA móvil y requisitos de distribución.
+
+> **Staging preparado (2026-10-09):** patio-staging creado; siete migraciones
+> y cinco funciones instaladas. **15 pruebas reales Auth/RLS/Storage/Edge**
+> aprobadas; posteriormente promovidas a producción con autorización explícita. Ver
+> [STAGING_REHEARSAL_2026-10-09.md](STAGING_REHEARSAL_2026-10-09.md).
+
+
+> **Corte histórico — 2026-10-09:** lanzamiento solicitado para iPhone y Android.
+> Homologación de bibliotecas implementada; 149 pruebas y 19 comprobaciones SQL
+> aisladas aprobadas; exportaciones de ambas plataformas completas. Backend real,
+> seguridad restante, configuración Android, QA visual y tiendas siguen abiertos.
+> Checklist y contrato: [LAUNCH_CLOSEOUT_2026-10-09.md](LAUNCH_CLOSEOUT_2026-10-09.md).
+> Los cortes anteriores se conservan como historial, no como estado de lanzamiento.
+
+
 Auditoría de configuración: 9–10 de septiembre de 2026. **La configuración mejoró, pero el lanzamiento público sigue bloqueado por configuración externa, validación de backend, políticas públicas, moderación y QA en dispositivos.** No se creó ni envió un build EAS durante esta auditoría.
 
 ## Configuración corregida
@@ -36,11 +59,11 @@ Los mínimos soportados por el código instalado son iOS 15.1 y Android API 24. 
 
 1. **Maps Android:** habilitar Maps SDK for Android en Google Cloud, proporcionar `GOOGLE_MAPS_ANDROID_API_KEY` en el entorno EAS correspondiente y restringirla a `com.parcomx.patio` con las huellas SHA-1 de las firmas que se usarán. La firma de Play App Signing puede diferir de la firma de desarrollo/carga. Verificar mapa desde una instalación de Google Play. [Configuración oficial de Expo para react-native-maps](https://docs.expo.dev/versions/v54.0.0/sdk/map-view/).
 2. **Push Android:** registrar el cliente Firebase con el package correcto; cargar su `google-services.json` como variable EAS de tipo archivo `GOOGLE_SERVICES_JSON`. La cuenta de servicio FCM V1 se configura en EAS Credentials: **no** se coloca en esa variable ni dentro de la app. Configurar las credenciales APNs de iOS y comprobar entrega real en ambas plataformas. [Credenciales FCM V1](https://docs.expo.dev/push-notifications/fcm-credentials/).
-3. **Backend:** desplegar y comprobar migraciones, reglas RLS, funciones de IA, publicación, push y eliminación de cuenta de esta auditoría. Verificar eliminación de filas, archivos de Storage, tokens y sesión con una cuenta de prueba. Configuración en Git no acredita despliegue.
+3. **Backend:** las migraciones y cinco funciones se ensayaron/promovieron el 2026-10-09. Continuar con integración móvil, resultados reales de IA y entrega push; no repetir el despliegue para cerrar este checklist. Verificar eliminación de filas, archivos de Storage, tokens y sesión con una cuenta de prueba. Configuración en Git no acredita despliegue.
 4. **Acceso:** probar magic link con la app cerrada, en segundo plano y abierta, enlace expirado/reutilizado y regreso desde otro dispositivo. Confirmar las URLs de retorno permitidas y templates en Supabase. Preparar acceso real para el equipo de revisión sin introducir un bypass público de autenticación.
 5. **Privacidad y soporte:** definir responsable, correo de soporte y URLs HTTPS públicas de privacidad y eliminación. Completar App Privacy y Data Safety desde los datos que realmente se envían: cuenta, perfiles, contenido, ubicación del negocio, identificadores push y procesamiento de fotos por IA. No declarar “no se recopilan datos” por tener `NSPrivacyTracking: false`. Revisar retención, terceros y política de eliminación.
 6. **Moderación:** completar reporte y bloqueo de personas/contenido, términos aceptados al publicar, revisión de reportes y un contacto atendido. Probar con dos cuentas. El borrado propio no reemplaza la moderación del contenido público.
-7. **Propiedad:** resolver el P0 de identidad e infraestructura registrado en `docs/STATE.md` y `docs/TASKS.md`: administradores, propiedad neutral y recuperación de cuentas. No se migraron ni eliminaron proyectos en esta auditoría.
+7. **Propiedad:** Supabase quedó bajo Patio como único Owner el 2026-10-09. Confirmar acceso/recuperación de GitHub, Expo/EAS y Apple/Google para distribuir; no volver a invitar al contacto personal.
 8. **Fichas y firma:** confirmar cuentas, contratos, firma, clasificación de edad/contenido, regiones, descripción, soporte, privacidad y capturas actuales. Las capturas históricas de `assets/screenshots/` no acreditan el comportamiento de este corte.
 
 `.env.example` documenta únicamente nombres y propósito. Las llaves Maps y la configuración cliente Firebase viajan en el binario; las credenciales de servidor se mantienen fuera. El control local verifica presencia y rutas, no habilitación, restricciones, facturación ni validez remota de credenciales.
@@ -77,7 +100,7 @@ Registrar dispositivo, SO, versión/build, resultado y evidencia para cada caso.
 
 ## Secuencia de cierre
 
-1. Resolver configuración externa, desplegar backend y completar privacidad/moderación.
+1. Resolver configuración externa y dependencias, validar integraciones del backend ya promovido y completar privacidad/moderación.
 2. Ejecutar tests, typecheck, lint y `node scripts/check-release.mjs --strict` con el entorno destinado a producción.
 3. Generar un único build candidato por plataforma, comprobar firma, permisos, privacy manifest y bibliotecas nativas.
 4. Ejecutar los recorridos anteriores desde TestFlight y el canal de pruebas de Google Play; corregir fallos y conservar evidencia.

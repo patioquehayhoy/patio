@@ -1,3 +1,4 @@
+import { useScrollEdges } from '@/lib/use-scroll-edges';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
@@ -10,6 +11,8 @@ import { isVerticalSheetDrag, SHEET_DISMISS_MS, SHEET_SPRING, shouldDismissSheet
 import { useSheetKeyboard } from '@/lib/use-sheet-keyboard';
 import { useTheme, type Theme } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
+import { libraryFooterMaxHeight } from '@/lib/layout-metrics';
+import { sheetSurfaceTint } from '@/lib/surface-styles';
 
 type SaveToListSheetProps = {
   visible: boolean; patioIds: string[]; patioName: string; onDismiss: () => void;
@@ -35,9 +38,12 @@ export function SaveToListSheet({ visible, patioIds, patioName, onDismiss, mode 
   const [destinationId, setDestinationId] = useState<string | null>(null);
   const [chosenSourceIds, setChosenSourceIds] = useState<string[]>([]);
   const [choosingSource, setChoosingSource] = useState(false);
+  const edges = useScrollEdges(`${visible}:${mode}:${choosingSource ? 'source' : 'destination'}`);
   const sourceKey = sourceCollectionIds.join('\u0000');
   const [listContentHeight, setListContentHeight] = useState(0);
   const [sheetHeight, setSheetHeight] = useState(0);
+  const [headerHeight, setHeaderHeight] = useState(60);
+  const [footerHeight, setFooterHeight] = useState(58);
   const createdDraft = useRef<PatioCollection | null>(null);
   const opening = useRef(false);
   const closing = useRef(false);
@@ -157,7 +163,11 @@ export function SaveToListSheet({ visible, patioIds, patioName, onDismiss, mode 
   const canConfirm = canContinue && !!destinationId;
   const canReturnToSource = mode === 'move' && !sourceCollectionIds.length && !choosingSource;
   const bottomPadding = keyboardVisible ? 8 : Math.max(insets.bottom, 16);
-  const maxListHeight = Math.max(44, Math.min(310, viewportHeight - insets.top - 12 - 20 - 44 - (creating ? 64 : 0) - (mode === 'move' ? 96 : 0) - bottomPadding - 8));
+  const availableHeight = Math.max(0, viewportHeight - insets.top - 12);
+  const footerMaxHeight = libraryFooterMaxHeight(Math.max(0, availableHeight - 4), headerHeight, bottomPadding, window.fontScale);
+  const visibleFooterHeight = mode === 'move' ? Math.min(footerHeight, footerMaxHeight) : 0;
+  const maxListHeight = Math.max(0, Math.min(310 * window.fontScale,
+    availableHeight - headerHeight - visibleFooterHeight - bottomPadding - 12));
   const backdropOpacity = translateY.interpolate({ inputRange: [0, Math.max(1, sheetHeight)], outputRange: [1, 0], extrapolate: 'clamp' });
   return <Modal visible={visible} transparent animationType="none" statusBarTranslucent onRequestClose={dismiss}>
     <View style={[s.overlay, { paddingBottom: keyboardInset }]}>
@@ -168,10 +178,10 @@ export function SaveToListSheet({ visible, patioIds, patioName, onDismiss, mode 
         accessibilityViewIsModal
         onAccessibilityEscape={dismiss}
         onLayout={(event) => handleSheetLayout(event.nativeEvent.layout.height)}
-        style={[s.sheet, { maxHeight: Math.max(120, viewportHeight - insets.top - 12), paddingBottom: bottomPadding, transform: [{ translateY }] }]}>
+        style={[s.sheet, { maxHeight: availableHeight, paddingBottom: bottomPadding, transform: [{ translateY }] }]}>
         <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
         <View pointerEvents="none" style={[StyleSheet.absoluteFillObject, s.sheetTint]} />
-        <View {...pan.panHandlers}>
+        <View {...pan.panHandlers} onLayout={(event) => setHeaderHeight(event.nativeEvent.layout.height)}>
           <View style={s.handleArea}><View style={s.handle} /></View>
           <View style={s.header}>
             {choosingSource ? <View style={s.headerIcon} /> : <TouchableOpacity accessibilityLabel={creating ? 'Cancelar nueva lista' : canReturnToSource ? 'Volver a origen' : 'Nueva lista'} accessibilityRole="button" accessibilityState={{ disabled: busy }} disabled={busy} onPress={() => {
@@ -186,6 +196,9 @@ export function SaveToListSheet({ visible, patioIds, patioName, onDismiss, mode 
             <TouchableOpacity accessibilityRole="button" accessibilityState={{ disabled: busy }} onPress={dismiss} disabled={busy} style={s.closeButton}><Text style={s.closeText}>{mode === 'move' ? 'Cancelar' : 'Listo'}</Text></TouchableOpacity>
           </View>
         </View>
+        <View style={{ flexShrink: 1, minHeight: 0 }}>
+        <ScrollView key={`${visible}:${mode}:${choosingSource ? 'source' : 'destination'}`} onLayout={edges.onLayout} onScroll={edges.onScroll} scrollEventThrottle={16} style={[s.list, { height: Math.min(listContentHeight || Math.max(1, choices.length) * 52, maxListHeight), maxHeight: maxListHeight }]}
+          onContentSizeChange={(width, height) => { edges.onContentSizeChange(width, height); setListContentHeight(height); }} showsVerticalScrollIndicator indicatorStyle={theme.isDark ? 'white' : 'black'} keyboardShouldPersistTaps="handled">
         {creating && <View style={[s.row, { backgroundColor: theme.surface, borderRadius: 14, marginTop: 8 }]}>
           <TextInput autoFocus value={newTitle} editable={!busy} onChangeText={setNewTitle} maxLength={60} accessibilityLabel="Nombre de la lista" onSubmitEditing={handleCreate} placeholder="Nombre de la lista" placeholderTextColor={theme.textMute} returnKeyType="done" autoCapitalize="words" style={s.input} />
           <TouchableOpacity disabled={!newTitle.trim() || busy} onPress={handleCreate} style={[s.createButton, (!newTitle.trim() || busy) && s.disabled]} accessibilityRole="button" accessibilityLabel="Crear lista"><Text style={s.createText}>{busy ? 'Creando…' : 'Crear'}</Text></TouchableOpacity>
@@ -195,8 +208,6 @@ export function SaveToListSheet({ visible, patioIds, patioName, onDismiss, mode 
             {noWidow(choosingSource ? `${patioIds.length} ${patioIds.length === 1 ? 'lugar seleccionado' : 'lugares seleccionados'}` : `Origen: ${sourceNames}`)}
           </Text>
         )}
-        <ScrollView style={[s.list, { height: Math.min(listContentHeight || Math.max(1, choices.length) * 52, maxListHeight), maxHeight: maxListHeight }]}
-          onContentSizeChange={(_width, height) => setListContentHeight(height)} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
           {choices.map((collection, index) => {
             const selected = choosingSource ? chosenSourceIds.includes(collection.id) : mode === 'move' ? collection.id === destinationId : patioIds.length > 0 && patioIds.every((id) => collection.patioIds.includes(id));
             const partial = mode === 'add' && !selected && patioIds.some((id) => collection.patioIds.includes(id));
@@ -208,7 +219,11 @@ export function SaveToListSheet({ visible, patioIds, patioName, onDismiss, mode 
           })}
           {!choices.length && <View style={s.empty}><Text style={s.rowMeta}>{noWidow(mode === 'move' && !choosingSource ? 'Sin listas de destino' : 'Sin listas')}</Text></View>}
         </ScrollView>
-        {mode === 'move' && <TouchableOpacity disabled={busy || !(choosingSource ? canContinue : canConfirm)} onPress={choosingSource ? () => setChoosingSource(false) : move} accessibilityRole="button" accessibilityLabel={choosingSource ? 'Continuar al destino' : 'Mover lugares'} accessibilityState={{ disabled: busy || !(choosingSource ? canContinue : canConfirm), busy }} style={[s.confirmButton, (busy || !(choosingSource ? canContinue : canConfirm)) && s.disabled]}><Text style={s.confirmText}>{noWidow(choosingSource ? 'Continuar' : busy ? 'Moviendo…' : `Mover ${patioIds.length} ${patioIds.length === 1 ? 'lugar' : 'lugares'}`)}</Text></TouchableOpacity>}
+        </View>
+        {mode === 'move' && <ScrollView style={{ flexGrow: 0, flexShrink: 0, height: visibleFooterHeight, maxHeight: footerMaxHeight }}
+          onContentSizeChange={(_width, height) => setFooterHeight(height)} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator indicatorStyle={theme.isDark ? 'white' : 'black'}>
+          <TouchableOpacity disabled={busy || !(choosingSource ? canContinue : canConfirm)} onPress={choosingSource ? () => setChoosingSource(false) : move} accessibilityRole="button" accessibilityLabel={choosingSource ? 'Continuar al destino' : 'Mover lugares'} accessibilityState={{ disabled: busy || !(choosingSource ? canContinue : canConfirm), busy }} style={[s.confirmButton, (busy || !(choosingSource ? canContinue : canConfirm)) && s.disabled]}><Text style={s.confirmText}>{noWidow(choosingSource ? 'Continuar' : busy ? 'Moviendo…' : `Mover ${patioIds.length} ${patioIds.length === 1 ? 'lugar' : 'lugares'}`)}</Text></TouchableOpacity>
+        </ScrollView>}
       </Animated.View>
     </View>
   </Modal>;
@@ -218,8 +233,8 @@ function makeStyles(t: Theme) {
   return StyleSheet.create({
     overlay: { flex: 1, justifyContent: 'flex-end' },
     backdrop: { backgroundColor: 'rgba(0,0,0,0.26)' },
-    sheet: { maxHeight: '68%', paddingHorizontal: 16, paddingTop: 4, overflow: 'hidden', backgroundColor: 'transparent', borderTopLeftRadius: 28, borderTopRightRadius: 28, borderTopWidth: StyleSheet.hairlineWidth, borderColor: t.isDark ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.72)', shadowColor: '#000', shadowOffset: { width: 0, height: -8 }, shadowOpacity: t.isDark ? 0.24 : 0.10, shadowRadius: 24, elevation: 12 },
-    sheetTint: { backgroundColor: t.isDark ? 'rgba(24,25,27,0.72)' : 'rgba(255,255,255,0.66)' },
+    sheet: { maxHeight: '68%', paddingHorizontal: 16, paddingTop: 4, overflow: 'hidden', backgroundColor: 'transparent', borderTopLeftRadius: 28, borderTopRightRadius: 28, borderTopWidth: StyleSheet.hairlineWidth, borderColor: t.isDark ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.72)' },
+    sheetTint: { backgroundColor: sheetSurfaceTint(t.isDark) },
     handleArea: { height: 16, alignItems: 'center', justifyContent: 'center' },
     handle: { width: 36, height: 4, borderRadius: 2, backgroundColor: t.border },
     header: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 8 },

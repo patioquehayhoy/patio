@@ -1,4 +1,8 @@
-# La Fondita — Reglas de diseño
+# Patio — Reglas de diseño
+
+> Contrato vigente de UI: `docs/DESIGN_SYSTEM.md`, revisado 2026-10-12.
+> Las medidas son decisiones de Patio, no mandatos numéricos de Apple.
+> La auditoría y sus límites están en `docs/DESIGN_AUDIT_2026-10-10.md`.
 
 ## Contexto de producto — LEER PRIMERO
 
@@ -48,28 +52,30 @@ Antes de cualquier cambio de UI, copy o flujo, leer los siguientes documentos en
 - **`Fonts.brand`** (Plus Jakarta Sans 800 ExtraBold, `lib/theme.tsx`) para
   identidad ≥ 20pt: títulos de pantalla, nombre de fondita, hero text, precios
   destacados. Es el sistema real — no SF Pro Display.
-- **SF Pro Text** (default del sistema iOS, sin `fontFamily` explícito) para
+- **Fuente del sistema** (SF Pro en iOS y la fuente nativa en Android, sin `fontFamily` explícito) para
   textos ≤ 19pt: labels, inputs, botones, descripciones, metadata.
-- **fontWeight real**: `'900'` (títulos grandes con `Fonts.brand`) · `'700'`
-  (eyebrows/labels UPPERCASE, texto de botón primario, tags) · `'300'` (cuerpo,
-  secundario). `'600'` aparece de forma puntual en subtítulos de opción — no
-  generalizar sin revisión. Excepción documentada: `'500'` en nombres de
-  platillo en preview.
+- **Pesos por rol**: `'900'` en títulos de marca; `'700'` en nombres de
+  tarjetas, etiquetas y botones; `'400'` en cuerpo y metadata legibles;
+  `'500'` en controles compactos y precios. `'300'` se conserva en patrones
+  existentes de voz ligera; no imponerlo a todo el cuerpo pequeño. Evitar
+  usar peso, tamaño, color e interletraje como cuatro énfasis simultáneos.
 
 ## Espaciado
 
 - Múltiplos de 8px: `8 | 16 | 24 | 32 | 40 | 48`
 - `gap` entre elementos: `4` (compacto) o `8` (normal)
-- `borderRadius` estándar: `14` para botones y cápsulas
+- Radio según rol: `18` en cards, `28–32` en sheets, cápsula redonda en
+  confirmaciones. `14` se conserva en controles compactos existentes.
 
 ## Campos de texto agrupados
-Cuando varios campos de texto forman un bloque semántico
-(nombre + descripción + ubicación), tratarlos como unidad:
-- marginBottom entre ellos: 2 máximo
+Cuando nombre y descripción se presentan como una identidad editorial,
+tratarlos como unidad. En formularios, cada etiqueta pertenece a su campo:
+- Identidad editorial: separación interna de 2–4 pt; formulario: etiqueta
+  a 6 pt de su campo y 16 pt entre campos independientes.
 - Sin separadores visuales dentro del bloque
 - Referencia: densidad tipográfica de Apple Music (título/artista)
 
-## Densidad de listas y menús (regla HIG)
+## Densidad de listas y menús
 En cualquier lista de contenido (menú, póster, historial, resultados):
 - Nombre + descripción de un item son UNA unidad óptica: 1-2px de separación
 - Filas de items: `paddingVertical 5-7` máximo
@@ -78,9 +84,10 @@ En cualquier lista de contenido (menú, póster, historial, resultados):
 
 **Excepción documentada (2026-09-27):** `patioRow` en `app/explorar.tsx` y
 `card` en `app/favoritos.tsx` usan `paddingVertical: 12`, no 5-7. Motivo: con
-la tarjeta compartida `PatioCardInfo` cada fila pasó de 2 líneas a hasta 5
-(identidad, área, precio, abierto/menú, rating/distancia, y calificación
-propia en Guardados) — el 5-7 original asumía contenido de 1-2 líneas y con
+la tarjeta compartida `PatioCardInfo` agrupa nombre/precio, colonia/distancia
+  y calificaciones; el precio se compara a la derecha (contrato 2026-10-10).
+  Abierto usa un punto en la caja del icono; no hay fila de menú de hoy.
+  El 5-7 original asumía contenido de 1-2 líneas y con
 la densidad nueva se ve apretado. El principio "el aire vive ENTRE grupos, no
 dentro" se mantiene: el padding de 12 actúa como el separador ENTRE una
 tarjeta de lugar y la siguiente, no como aire dentro de una misma tarjeta
@@ -91,10 +98,13 @@ este valor a listas de 1-2 líneas — ahí sigue aplicando 5-7.
 
 | Token   | Hex       | Uso                                      |
 |---------|-----------|------------------------------------------|
-| BG      | `#EFEFEF` | Fondo principal de la app                |
-| BLACK   | `#292929` | Texto principal, botones primarios       |
+| BG      | `#F8F8F5` | Fondo principal claro                    |
+| BLACK   | `#111214` | Texto principal claro, botones neutros   |
 | WHITE   | `#FFFFFF` | Superficie, cards, inputs                |
-| BLACK60 | `rgba(41,41,41,0.5)` | Texto secundario, placeholders, iconos |
+| Secundario | `#4A4A47` | Texto secundario claro                 |
+| Discreto | `#8A8A85` | Placeholder y metadata discreta clara    |
+
+En oscuro usar los tokens del tema. Fuente completa: `lib/colors.ts`.
 
 ## Componentes
 
@@ -205,7 +215,9 @@ Panels flotantes (sheets, bottom bars, overlays, controles sobre mapa) deben usa
 - `intensity`: `20` (claro) / `16` (oscuro)
 - `tint`: `"light"` o `"dark"` según tema
 - Borde encima del blur: `borderWidth StyleSheet.hairlineWidth`, `borderColor rgba(255,255,255,0.18)` en claro — `rgba(255,255,255,0.10)` en oscuro
-- Sombra: `shadowOpacity 0.08` claro / `0.20` oscuro, `shadowRadius 32`, `shadowOffset { width:0, height:12 }`
+- Sombra vigente (2026-10-10): solo controles/menús separados del fondo usan
+  `floatingSurfaceShadow` (opacidad 0.08 claro / 0.14 oscuro, radio 12,
+  offset 0/4, elevación 4). Sheets apoyados abajo y cards de contenido sin sombra.
 - Cards de contenido (menú, lista) NO usan blur — fondo `t.surface` normal
 
 ## Gradientes
@@ -226,8 +238,10 @@ Usar `LinearGradient` de `expo-linear-gradient` para:
 
 - Títulos de pantalla: `fontSize 32-38`, `fontWeight '900'`, `fontFamily Fonts.brand`, `letterSpacing -0.5` a `-1.3`
 - Labels de sección: `fontSize 11`, `fontWeight '700'`, `letterSpacing 1.6-1.8`, `UPPERCASE` (no `'900'` — corregido 2026-07-22, así es como corre en producción)
-- Metadata/subtítulo: `fontSize 13`, `fontWeight '300'`, `opacity 0.6`
-- El contraste 900 (identidad) / 700 (labels y CTA primario) / 300 (cuerpo) es el mecanismo de jerarquía — evitar pesos intermedios fuera de estos tres
+- Metadata/subtítulo: `fontSize 12–14`, peso `'400'` y token secundario;
+  mantener `'300'` solo en patrones de voz ligera existentes.
+- La jerarquía combina posición, proximidad, tamaño y peso por rol. No
+  imponer tres pesos únicos ni agregar opacidad a un texto ya atenuado.
 
 ## Radios y geometría
 

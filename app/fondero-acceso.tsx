@@ -53,7 +53,7 @@ function showAuthError(err: { message?: string; code?: string } | null) {
   } else {
     texto = 'Algo salió mal. Inténtalo de nuevo.';
   }
-  Alert.alert('Oops', noWidow(texto), [{ text: 'Entendido' }]);
+  Alert.alert(noWidow('No pudimos continuar'), noWidow(texto), [{ text: 'Entendido' }]);
 }
 
 export default function FonderoAccesoScreen() {

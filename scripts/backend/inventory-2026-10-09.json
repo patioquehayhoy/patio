@@ -1,0 +1,1145 @@
+{
+  "tables": [
+    {
+      "rls": true,
+      "name": "cartas"
+    },
+    {
+      "rls": true,
+      "name": "fonditas"
+    },
+    {
+      "rls": true,
+      "name": "menus"
+    },
+    {
+      "rls": true,
+      "name": "publication_events"
+    },
+    {
+      "rls": true,
+      "name": "notification_deliveries"
+    },
+    {
+      "rls": true,
+      "name": "notification_preferences"
+    },
+    {
+      "rls": true,
+      "name": "patio_follows"
+    },
+    {
+      "rls": true,
+      "name": "push_devices"
+    },
+    {
+      "rls": true,
+      "name": "menu_sections"
+    },
+    {
+      "rls": true,
+      "name": "menu_items"
+    },
+    {
+      "rls": true,
+      "name": "user_profiles"
+    },
+    {
+      "rls": true,
+      "name": "collections"
+    },
+    {
+      "rls": true,
+      "name": "collection_places"
+    },
+    {
+      "rls": true,
+      "name": "profile_follows"
+    },
+    {
+      "rls": true,
+      "name": "saved_collections"
+    },
+    {
+      "rls": true,
+      "name": "dish_likes"
+    },
+    {
+      "rls": true,
+      "name": "saved_patios"
+    },
+    {
+      "rls": true,
+      "name": "profile_name_history"
+    },
+    {
+      "rls": true,
+      "name": "reviews"
+    },
+    {
+      "rls": true,
+      "name": "review_likes"
+    }
+  ],
+  "buckets": [
+    {
+      "name": "Patio ID",
+      "public": true,
+      "mime_types": null,
+      "size_limit": null
+    },
+    {
+      "name": "avatars",
+      "public": true,
+      "mime_types": null,
+      "size_limit": null
+    },
+    {
+      "name": "business-logos",
+      "public": true,
+      "mime_types": null,
+      "size_limit": null
+    }
+  ],
+  "columns": [
+    {
+      "type": "uuid",
+      "table": "cartas",
+      "column": "id"
+    },
+    {
+      "type": "uuid",
+      "table": "cartas",
+      "column": "fondita_id"
+    },
+    {
+      "type": "jsonb",
+      "table": "cartas",
+      "column": "secciones"
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "cartas",
+      "column": "updated_at"
+    },
+    {
+      "type": "uuid",
+      "table": "fonditas",
+      "column": "id"
+    },
+    {
+      "type": "uuid",
+      "table": "collections",
+      "column": "id"
+    },
+    {
+      "type": "uuid",
+      "table": "collections",
+      "column": "owner_id"
+    },
+    {
+      "type": "uuid",
+      "table": "collections",
+      "column": "share_token"
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "collections",
+      "column": "created_at"
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "collections",
+      "column": "updated_at"
+    },
+    {
+      "type": "uuid",
+      "table": "collection_places",
+      "column": "collection_id"
+    },
+    {
+      "type": "uuid",
+      "table": "collection_places",
+      "column": "fondita_id"
+    },
+    {
+      "type": "integer",
+      "table": "collection_places",
+      "column": "sort_order"
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "collection_places",
+      "column": "created_at"
+    },
+    {
+      "type": "uuid",
+      "table": "profile_follows",
+      "column": "follower_id"
+    },
+    {
+      "type": "uuid",
+      "table": "profile_follows",
+      "column": "followed_id"
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "profile_follows",
+      "column": "created_at"
+    },
+    {
+      "type": "uuid",
+      "table": "saved_collections",
+      "column": "user_id"
+    },
+    {
+      "type": "uuid",
+      "table": "saved_collections",
+      "column": "collection_id"
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "saved_collections",
+      "column": "created_at"
+    },
+    {
+      "type": "uuid",
+      "table": "dish_likes",
+      "column": "user_id"
+    },
+    {
+      "type": "uuid",
+      "table": "dish_likes",
+      "column": "fondita_id"
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "dish_likes",
+      "column": "created_at"
+    },
+    {
+      "type": "uuid",
+      "table": "saved_patios",
+      "column": "user_id"
+    },
+    {
+      "type": "uuid",
+      "table": "saved_patios",
+      "column": "fondita_id"
+    },
+    {
+      "type": "smallint",
+      "table": "saved_patios",
+      "column": "personal_rating"
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "saved_patios",
+      "column": "created_at"
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "saved_patios",
+      "column": "updated_at"
+    },
+    {
+      "type": "bigint",
+      "table": "profile_name_history",
+      "column": "id"
+    },
+    {
+      "type": "uuid",
+      "table": "profile_name_history",
+      "column": "user_id"
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "profile_name_history",
+      "column": "changed_at"
+    },
+    {
+      "type": "uuid",
+      "table": "reviews",
+      "column": "user_id"
+    },
+    {
+      "type": "uuid",
+      "table": "reviews",
+      "column": "fondita_id"
+    },
+    {
+      "type": "smallint",
+      "table": "reviews",
+      "column": "stars"
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "reviews",
+      "column": "created_at"
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "reviews",
+      "column": "updated_at"
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "reviews",
+      "column": "business_replied_at"
+    },
+    {
+      "type": "uuid",
+      "table": "reviews",
+      "column": "id"
+    },
+    {
+      "type": "date",
+      "table": "reviews",
+      "column": "visit_date"
+    },
+    {
+      "type": "uuid",
+      "table": "review_likes",
+      "column": "user_id"
+    },
+    {
+      "type": "uuid",
+      "table": "review_likes",
+      "column": "review_id"
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "review_likes",
+      "column": "created_at"
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "fonditas",
+      "column": "created_at"
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "fonditas",
+      "column": "nombre_updated_at"
+    },
+    {
+      "type": "double precision",
+      "table": "fonditas",
+      "column": "latitude"
+    },
+    {
+      "type": "double precision",
+      "table": "fonditas",
+      "column": "longitude"
+    },
+    {
+      "type": "jsonb",
+      "table": "fonditas",
+      "column": "horario_semanal"
+    },
+    {
+      "type": "uuid",
+      "table": "menus",
+      "column": "id"
+    },
+    {
+      "type": "uuid",
+      "table": "menus",
+      "column": "fondita_id"
+    },
+    {
+      "type": "jsonb",
+      "table": "menus",
+      "column": "secciones"
+    },
+    {
+      "type": "date",
+      "table": "menus",
+      "column": "fecha"
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "menus",
+      "column": "created_at"
+    },
+    {
+      "type": "uuid",
+      "table": "publication_events",
+      "column": "id"
+    },
+    {
+      "type": "uuid",
+      "table": "publication_events",
+      "column": "fondita_id"
+    },
+    {
+      "type": "date",
+      "table": "publication_events",
+      "column": "menu_date"
+    },
+    {
+      "type": "integer",
+      "table": "publication_events",
+      "column": "version"
+    },
+    {
+      "type": "uuid",
+      "table": "publication_events",
+      "column": "created_by"
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "publication_events",
+      "column": "created_at"
+    },
+    {
+      "type": "uuid",
+      "table": "notification_deliveries",
+      "column": "id"
+    },
+    {
+      "type": "uuid",
+      "table": "notification_deliveries",
+      "column": "event_id"
+    },
+    {
+      "type": "uuid",
+      "table": "notification_deliveries",
+      "column": "user_id"
+    },
+    {
+      "type": "uuid",
+      "table": "notification_deliveries",
+      "column": "push_device_id"
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "notification_deliveries",
+      "column": "created_at"
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "notification_deliveries",
+      "column": "updated_at"
+    },
+    {
+      "type": "uuid",
+      "table": "notification_preferences",
+      "column": "user_id"
+    },
+    {
+      "type": "boolean",
+      "table": "notification_preferences",
+      "column": "patio_publications"
+    },
+    {
+      "type": "boolean",
+      "table": "notification_preferences",
+      "column": "business_activity"
+    },
+    {
+      "type": "boolean",
+      "table": "notification_preferences",
+      "column": "product_updates"
+    },
+    {
+      "type": "time without time zone",
+      "table": "notification_preferences",
+      "column": "quiet_start"
+    },
+    {
+      "type": "time without time zone",
+      "table": "notification_preferences",
+      "column": "quiet_end"
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "notification_preferences",
+      "column": "created_at"
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "notification_preferences",
+      "column": "updated_at"
+    },
+    {
+      "type": "uuid",
+      "table": "patio_follows",
+      "column": "user_id"
+    },
+    {
+      "type": "uuid",
+      "table": "patio_follows",
+      "column": "fondita_id"
+    },
+    {
+      "type": "boolean",
+      "table": "patio_follows",
+      "column": "notifications_enabled"
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "patio_follows",
+      "column": "created_at"
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "patio_follows",
+      "column": "updated_at"
+    },
+    {
+      "type": "uuid",
+      "table": "push_devices",
+      "column": "id"
+    },
+    {
+      "type": "uuid",
+      "table": "push_devices",
+      "column": "user_id"
+    },
+    {
+      "type": "boolean",
+      "table": "push_devices",
+      "column": "active"
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "push_devices",
+      "column": "last_seen_at"
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "push_devices",
+      "column": "created_at"
+    },
+    {
+      "type": "uuid",
+      "table": "menu_sections",
+      "column": "id"
+    },
+    {
+      "type": "uuid",
+      "table": "menu_sections",
+      "column": "fondita_id"
+    },
+    {
+      "type": "integer",
+      "table": "menu_sections",
+      "column": "sort_order"
+    },
+    {
+      "type": "uuid",
+      "table": "menu_items",
+      "column": "id"
+    },
+    {
+      "type": "uuid",
+      "table": "menu_items",
+      "column": "section_id"
+    },
+    {
+      "type": "integer",
+      "table": "menu_items",
+      "column": "sort_order"
+    },
+    {
+      "type": "uuid",
+      "table": "user_profiles",
+      "column": "user_id"
+    },
+    {
+      "type": "boolean",
+      "table": "user_profiles",
+      "column": "setup_completed"
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "user_profiles",
+      "column": "created_at"
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "user_profiles",
+      "column": "updated_at"
+    },
+    {
+      "type": "text",
+      "table": "fonditas",
+      "column": "telefono"
+    },
+    {
+      "type": "text",
+      "table": "fonditas",
+      "column": "nombre"
+    },
+    {
+      "type": "text",
+      "table": "notification_preferences",
+      "column": "timezone"
+    },
+    {
+      "type": "text",
+      "table": "fonditas",
+      "column": "descripcion"
+    },
+    {
+      "type": "text",
+      "table": "user_profiles",
+      "column": "display_name"
+    },
+    {
+      "type": "text",
+      "table": "user_profiles",
+      "column": "handle"
+    },
+    {
+      "type": "text",
+      "table": "user_profiles",
+      "column": "avatar_url"
+    },
+    {
+      "type": "text",
+      "table": "user_profiles",
+      "column": "bio"
+    },
+    {
+      "type": "text",
+      "table": "fonditas",
+      "column": "logo_url"
+    },
+    {
+      "type": "text",
+      "table": "user_profiles",
+      "column": "visibility"
+    },
+    {
+      "type": "text",
+      "table": "dish_likes",
+      "column": "dish_name"
+    },
+    {
+      "type": "text",
+      "table": "dish_likes",
+      "column": "dish_name_display"
+    },
+    {
+      "type": "text",
+      "table": "reviews",
+      "column": "status"
+    },
+    {
+      "type": "text",
+      "table": "reviews",
+      "column": "business_reply"
+    },
+    {
+      "type": "text",
+      "table": "push_devices",
+      "column": "expo_push_token"
+    },
+    {
+      "type": "text",
+      "table": "push_devices",
+      "column": "platform"
+    },
+    {
+      "type": "text",
+      "table": "profile_name_history",
+      "column": "first_name"
+    },
+    {
+      "type": "text",
+      "table": "collections",
+      "column": "title"
+    },
+    {
+      "type": "text",
+      "table": "publication_events",
+      "column": "kind"
+    },
+    {
+      "type": "text",
+      "table": "collections",
+      "column": "description"
+    },
+    {
+      "type": "text",
+      "table": "collections",
+      "column": "visibility"
+    },
+    {
+      "type": "text",
+      "table": "saved_patios",
+      "column": "note"
+    },
+    {
+      "type": "text",
+      "table": "menu_sections",
+      "column": "name"
+    },
+    {
+      "type": "text",
+      "table": "saved_patios",
+      "column": "status"
+    },
+    {
+      "type": "text",
+      "table": "profile_name_history",
+      "column": "last_name"
+    },
+    {
+      "type": "text",
+      "table": "notification_deliveries",
+      "column": "expo_ticket_id"
+    },
+    {
+      "type": "text",
+      "table": "notification_deliveries",
+      "column": "status"
+    },
+    {
+      "type": "text",
+      "table": "notification_deliveries",
+      "column": "error_code"
+    },
+    {
+      "type": "text",
+      "table": "notification_deliveries",
+      "column": "error_detail"
+    },
+    {
+      "type": "ARRAY",
+      "table": "reviews",
+      "column": "reasons"
+    },
+    {
+      "type": "text",
+      "table": "menu_items",
+      "column": "name"
+    },
+    {
+      "type": "text",
+      "table": "menu_items",
+      "column": "price"
+    },
+    {
+      "type": "text",
+      "table": "menu_items",
+      "column": "description"
+    },
+    {
+      "type": "text",
+      "table": "reviews",
+      "column": "note"
+    },
+    {
+      "type": "text",
+      "table": "collection_places",
+      "column": "note"
+    },
+    {
+      "type": "text",
+      "table": "user_profiles",
+      "column": "first_name"
+    },
+    {
+      "type": "text",
+      "table": "user_profiles",
+      "column": "last_name"
+    }
+  ],
+  "policies": [
+    {
+      "cmd": "ALL",
+      "qual": "(fondita_id IN ( SELECT fonditas.id\n FROM fonditas\n WHERE (auth.uid() = fonditas.id)))",
+      "roles": [
+        "public"
+      ],
+      "tablename": "cartas",
+      "permissive": "PERMISSIVE",
+      "policyname": "Usuario ve su carta",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "qual": "(auth.uid() = id)",
+      "roles": [
+        "public"
+      ],
+      "tablename": "fonditas",
+      "permissive": "PERMISSIVE",
+      "policyname": "Usuario ve su fondita",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "qual": "(fondita_id IN ( SELECT fonditas.id\n FROM fonditas\n WHERE (auth.uid() = fonditas.id)))",
+      "roles": [
+        "public"
+      ],
+      "tablename": "menus",
+      "permissive": "PERMISSIVE",
+      "policyname": "Usuario ve sus menus",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "(bucket_id = 'avatars'::text)",
+      "roles": [
+        "public"
+      ],
+      "tablename": "objects",
+      "permissive": "PERMISSIVE",
+      "policyname": "avatar images public",
+      "schemaname": "storage",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "(bucket_id = 'business-logos'::text)",
+      "roles": [
+        "public"
+      ],
+      "tablename": "objects",
+      "permissive": "PERMISSIVE",
+      "policyname": "business logos public",
+      "schemaname": "storage",
+      "with_check": null
+    },
+    {
+      "cmd": "UPDATE",
+      "qual": "((bucket_id = 'business-logos'::text) AND ((storage.foldername(name))[1] = (auth.uid())::text))",
+      "roles": [
+        "public"
+      ],
+      "tablename": "objects",
+      "permissive": "PERMISSIVE",
+      "policyname": "business owners update logo",
+      "schemaname": "storage",
+      "with_check": null
+    },
+    {
+      "cmd": "INSERT",
+      "qual": null,
+      "roles": [
+        "public"
+      ],
+      "tablename": "objects",
+      "permissive": "PERMISSIVE",
+      "policyname": "business owners upload logo",
+      "schemaname": "storage",
+      "with_check": "((bucket_id = 'business-logos'::text) AND ((storage.foldername(name))[1] = (auth.uid())::text))"
+    },
+    {
+      "cmd": "UPDATE",
+      "qual": "((bucket_id = 'avatars'::text) AND ((storage.foldername(name))[1] = (auth.uid())::text))",
+      "roles": [
+        "public"
+      ],
+      "tablename": "objects",
+      "permissive": "PERMISSIVE",
+      "policyname": "users update own avatar",
+      "schemaname": "storage",
+      "with_check": null
+    },
+    {
+      "cmd": "INSERT",
+      "qual": null,
+      "roles": [
+        "public"
+      ],
+      "tablename": "objects",
+      "permissive": "PERMISSIVE",
+      "policyname": "users upload own avatar",
+      "schemaname": "storage",
+      "with_check": "((bucket_id = 'avatars'::text) AND ((storage.foldername(name))[1] = (auth.uid())::text))"
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "(auth.uid() = user_id)",
+      "roles": [
+        "public"
+      ],
+      "tablename": "notification_deliveries",
+      "permissive": "PERMISSIVE",
+      "policyname": "Users read their notification deliveries",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "qual": "(auth.uid() = user_id)",
+      "roles": [
+        "public"
+      ],
+      "tablename": "notification_preferences",
+      "permissive": "PERMISSIVE",
+      "policyname": "Users manage their notification preferences",
+      "schemaname": "public",
+      "with_check": "(auth.uid() = user_id)"
+    },
+    {
+      "cmd": "ALL",
+      "qual": "(auth.uid() = user_id)",
+      "roles": [
+        "public"
+      ],
+      "tablename": "patio_follows",
+      "permissive": "PERMISSIVE",
+      "policyname": "Users manage their Patio follows",
+      "schemaname": "public",
+      "with_check": "(auth.uid() = user_id)"
+    },
+    {
+      "cmd": "ALL",
+      "qual": "(auth.uid() = user_id)",
+      "roles": [
+        "public"
+      ],
+      "tablename": "push_devices",
+      "permissive": "PERMISSIVE",
+      "policyname": "Users manage their push devices",
+      "schemaname": "public",
+      "with_check": "(auth.uid() = user_id)"
+    },
+    {
+      "cmd": "ALL",
+      "qual": "(auth.uid() = user_id)",
+      "roles": [
+        "public"
+      ],
+      "tablename": "user_profiles",
+      "permissive": "PERMISSIVE",
+      "policyname": "profiles owned",
+      "schemaname": "public",
+      "with_check": "(auth.uid() = user_id)"
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "((visibility = 'public'::text) OR (auth.uid() = user_id))",
+      "roles": [
+        "public"
+      ],
+      "tablename": "user_profiles",
+      "permissive": "PERMISSIVE",
+      "policyname": "profiles readable when public or own",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "qual": "(auth.uid() = owner_id)",
+      "roles": [
+        "public"
+      ],
+      "tablename": "collections",
+      "permissive": "PERMISSIVE",
+      "policyname": "collections owned",
+      "schemaname": "public",
+      "with_check": "(auth.uid() = owner_id)"
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "((visibility = ANY (ARRAY['public'::text, 'unlisted'::text])) OR (auth.uid() = owner_id))",
+      "roles": [
+        "public"
+      ],
+      "tablename": "collections",
+      "permissive": "PERMISSIVE",
+      "policyname": "collections readable when shared or own",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "qual": "(EXISTS ( SELECT 1\n FROM collections c\n WHERE ((c.id = collection_places.collection_id) AND (c.owner_id = auth.uid()))))",
+      "roles": [
+        "public"
+      ],
+      "tablename": "collection_places",
+      "permissive": "PERMISSIVE",
+      "policyname": "collection places owned",
+      "schemaname": "public",
+      "with_check": "(EXISTS ( SELECT 1\n FROM collections c\n WHERE ((c.id = collection_places.collection_id) AND (c.owner_id = auth.uid()))))"
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "(EXISTS ( SELECT 1\n FROM collections c\n WHERE ((c.id = collection_places.collection_id) AND ((c.visibility = ANY (ARRAY['public'::text, 'unlisted'::text])) OR (c.owner_id = auth.uid())))))",
+      "roles": [
+        "public"
+      ],
+      "tablename": "collection_places",
+      "permissive": "PERMISSIVE",
+      "policyname": "collection places readable with collection",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "qual": "(auth.uid() = follower_id)",
+      "roles": [
+        "public"
+      ],
+      "tablename": "profile_follows",
+      "permissive": "PERMISSIVE",
+      "policyname": "follows owned",
+      "schemaname": "public",
+      "with_check": "(auth.uid() = follower_id)"
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "tablename": "profile_follows",
+      "permissive": "PERMISSIVE",
+      "policyname": "follows readable",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "qual": "(auth.uid() = user_id)",
+      "roles": [
+        "public"
+      ],
+      "tablename": "saved_collections",
+      "permissive": "PERMISSIVE",
+      "policyname": "saved collections owned",
+      "schemaname": "public",
+      "with_check": "(auth.uid() = user_id)"
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "tablename": "dish_likes",
+      "permissive": "PERMISSIVE",
+      "policyname": "dish likes readable",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "qual": "(auth.uid() = user_id)",
+      "roles": [
+        "public"
+      ],
+      "tablename": "dish_likes",
+      "permissive": "PERMISSIVE",
+      "policyname": "own dish likes",
+      "schemaname": "public",
+      "with_check": "(auth.uid() = user_id)"
+    },
+    {
+      "cmd": "ALL",
+      "qual": "(auth.uid() = user_id)",
+      "roles": [
+        "public"
+      ],
+      "tablename": "saved_patios",
+      "permissive": "PERMISSIVE",
+      "policyname": "saved patios owned",
+      "schemaname": "public",
+      "with_check": "(auth.uid() = user_id)"
+    },
+    {
+      "cmd": "INSERT",
+      "qual": null,
+      "roles": [
+        "public"
+      ],
+      "tablename": "profile_name_history",
+      "permissive": "PERMISSIVE",
+      "policyname": "name history own insert",
+      "schemaname": "public",
+      "with_check": "(auth.uid() = user_id)"
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "(auth.uid() = user_id)",
+      "roles": [
+        "public"
+      ],
+      "tablename": "profile_name_history",
+      "permissive": "PERMISSIVE",
+      "policyname": "name history own read",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "((status = 'published'::text) OR (auth.uid() = user_id))",
+      "roles": [
+        "public"
+      ],
+      "tablename": "reviews",
+      "permissive": "PERMISSIVE",
+      "policyname": "published reviews readable",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "INSERT",
+      "qual": null,
+      "roles": [
+        "public"
+      ],
+      "tablename": "reviews",
+      "permissive": "PERMISSIVE",
+      "policyname": "verified users create reviews",
+      "schemaname": "public",
+      "with_check": "((auth.uid() = user_id) AND (EXISTS ( SELECT 1\n FROM user_profiles p\n WHERE ((p.user_id = auth.uid()) AND p.setup_completed))))"
+    },
+    {
+      "cmd": "ALL",
+      "qual": "(auth.uid() = user_id)",
+      "roles": [
+        "public"
+      ],
+      "tablename": "review_likes",
+      "permissive": "PERMISSIVE",
+      "policyname": "own review likes",
+      "schemaname": "public",
+      "with_check": "(auth.uid() = user_id)"
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "tablename": "review_likes",
+      "permissive": "PERMISSIVE",
+      "policyname": "review likes readable",
+      "schemaname": "public",
+      "with_check": null
+    }
+  ],
+  "functions": [
+    {
+      "anon": true,
+      "name": "create_notification_preferences",
+      "definer": true,
+      "authenticated": true
+    },
+    {
+      "anon": true,
+      "name": "update_updated_at",
+      "definer": false,
+      "authenticated": true
+    },
+    {
+      "anon": true,
+      "name": "reply_to_review",
+      "definer": true,
+      "authenticated": true
+    }
+  ]
+}

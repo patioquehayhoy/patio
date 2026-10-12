@@ -1,0 +1,140 @@
+/* global __dirname */
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const { test } = require('node:test');
+const ts = require('typescript');
+
+function deferred() { let resolve; const promise = new Promise((done) => { resolve = done; }); return { promise, resolve }; }
+const tick = () => new Promise(setImmediate);
+const point = { latitude: 19.4326, longitude: -99.1332 };
+
+function fixture(file = 'lib/use-map-location.ts') {
+  const slots = []; const effects = []; const timers = new Map();
+  let cursor = 0; let unmounted = false; let lateWrites = 0; let id = 0;
+  const controls = { permission: { granted: true, canAskAgain: true }, cache: { coords: point }, current: { coords: point } };
+  const calls = { permission: 0, ask: 0, cache: [], current: [], centers: [], alerts: [] };
+  const react = {
+    useState(initial) { const i = cursor++; slots[i] ??= { value: initial }; return [slots[i].value, (update) => {
+      if (unmounted) { lateWrites++; return; }
+      slots[i].value = typeof update === 'function' ? update(slots[i].value) : update;
+    }]; },
+    useRef(initial) { const i = cursor++; slots[i] ??= { current: initial }; return slots[i]; },
+    useCallback(fn, deps) { const i = cursor++; if (!slots[i] || deps.some((d, j) => !Object.is(d, slots[i].deps[j]))) slots[i] = { fn, deps }; return slots[i].fn; },
+    useEffect(fn, deps) { const i = cursor++; if (!slots[i] || deps.some((d, j) => !Object.is(d, slots[i].deps[j]))) {
+      const prev = slots[i]; slots[i] = { deps }; effects.push(() => { prev?.cleanup?.(); slots[i].cleanup = fn(); });
+    } },
+  };
+  const mocks = {
+    react,
+    'react-native': { Keyboard: { dismiss() {} }, Linking: { openSettings: async () => {} }, Alert: { alert: (...args) => calls.alerts.push(args) } },
+    'expo-location': {
+      Accuracy: { Balanced: 3 },
+      getForegroundPermissionsAsync: async () => { calls.permission++; return controls.permission; },
+      requestForegroundPermissionsAsync: async () => { calls.ask++; return controls.requested ?? controls.permission; },
+      getLastKnownPositionAsync: async (options) => { calls.cache.push(options); if (controls.cacheError) throw new Error('Cache failed'); return controls.cache; },
+      getCurrentPositionAsync: async (options) => { calls.current.push(options); return controls.current; },
+    },
+    '@/lib/typography': { noWidow: (v) => v },
+  };
+  const module = { exports: {} };
+  const code = ts.transpileModule(fs.readFileSync(path.resolve(__dirname, '../..', file), 'utf8'), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, esModuleInterop: true },
+  }).outputText;
+  new Function('require', 'module', 'exports', 'setTimeout', 'clearTimeout', code)(
+    (name) => { assert.ok(Object.hasOwn(mocks, name), name); return mocks[name]; }, module, module.exports,
+    (callback) => { const token = ++id; timers.set(token, callback); return token; }, (token) => timers.delete(token),
+  );
+  return {
+    controls, calls,
+    render(callback = (v) => calls.centers.push(v)) { cursor = 0; const value = module.exports.useMapLocation ? module.exports.useMapLocation(callback) : module.exports.useKnownLocation(); effects.splice(0).forEach((fn) => fn()); return value; },
+    fireTimeouts() { [...timers.values()].forEach((fn) => fn()); },
+    unmount() { unmounted = true; slots.forEach((slot) => slot?.cleanup?.()); },
+    get lateWrites() { return lateWrites; },
+  };
+}
+
+test('map location is contextual, deduplicates taps and uses only a recent accurate cache', async () => {
+  const f = fixture(); let hook = f.render();
+  assert.equal(f.calls.permission, 0, 'No prompt or GPS work on mount');
+  const pending = hook.centerOnLocation(); hook.centerOnLocation();
+  assert.equal(f.render().locating, true);
+  await pending; hook = f.render();
+  assert.equal(f.calls.permission, 1); assert.equal(f.calls.ask, 0);
+  assert.deepEqual(f.calls.cache, [{ maxAge: 60000, requiredAccuracy: 100 }]);
+  assert.equal(f.calls.current.length, 0);
+  assert.deepEqual(f.calls.centers, [point]);
+  assert.deepEqual(hook.location, point); assert.equal(hook.locating, false);
+});
+
+test('denied location keeps the map unchanged and offers settings without a repeated blocked prompt', async () => {
+  const f = fixture(); f.controls.permission = { granted: false, canAskAgain: false };
+  await f.render().centerOnLocation();
+  assert.equal(f.calls.ask, 0); assert.equal(f.calls.cache.length, 0);
+  assert.equal(f.calls.centers.length, 0); assert.equal(f.render().locating, false);
+  assert.equal(f.calls.alerts[0][0], 'Ubicación desactivada');
+  assert.equal(f.calls.alerts[0][2][1].text, 'Abrir ajustes');
+});
+
+test('requesting permission in context falls back to a single balanced GPS lookup if the cache fails', async () => {
+  const f = fixture(); f.controls.permission = { granted: false, canAskAgain: true };
+  f.controls.requested = { granted: true }; f.controls.cacheError = true;
+  await f.render().centerOnLocation();
+  assert.equal(f.calls.ask, 1); assert.deepEqual(f.calls.current, [{ accuracy: 3 }]);
+  assert.deepEqual(f.calls.centers, [point]);
+});
+
+test('a new search cancels a pending lookup so an old GPS response cannot recenter its results', async () => {
+  const f = fixture(); const gps = deferred(); f.controls.cache = null; f.controls.current = gps.promise;
+  const pending = f.render().centerOnLocation(); await tick();
+  f.render().cancelLocation(); assert.equal(f.render().locating, false);
+  gps.resolve({ coords: point }); await pending;
+  assert.equal(f.calls.centers.length, 0); assert.equal(f.calls.alerts.length, 0);
+});
+
+test('invalid coordinates and GPS timeout cannot reach the native map or leave the button busy', async () => {
+  const f = fixture(); f.controls.cache = { coords: { latitude: NaN, longitude: 300 } };
+  await f.render().centerOnLocation();
+  assert.equal(f.calls.centers.length, 0); assert.equal(f.calls.alerts.length, 1);
+  const gps = deferred(); f.controls.cache = null; f.controls.current = gps.promise;
+  const pending = f.render().centerOnLocation(); await tick(); f.fireTimeouts(); await pending;
+  assert.equal(f.render().locating, false); assert.equal(f.calls.alerts.length, 2);
+  gps.resolve({ coords: point }); await tick(); assert.equal(f.calls.centers.length, 0);
+  const cache = deferred(); f.controls.cache = cache.promise;
+  const cachedPending = f.render().centerOnLocation(); await tick(); f.fireTimeouts(); await cachedPending;
+  const currentCalls = f.calls.current.length;
+  cache.resolve(null); await tick();
+  assert.equal(f.calls.current.length, currentCalls, 'An expired cache request cannot start GPS later');
+  assert.equal(f.render().locating, false);
+});
+
+test('unmounting while permission is pending suppresses subsequent GPS, alerts and state writes', async () => {
+  const f = fixture(); const permission = deferred(); f.controls.permission = permission.promise;
+  const pending = f.render().centerOnLocation(); f.unmount();
+  permission.resolve({ granted: true, canAskAgain: true }); await pending;
+  assert.equal(f.calls.cache.length, 0); assert.equal(f.calls.centers.length, 0);
+  assert.equal(f.calls.alerts.length, 0); assert.equal(f.lateWrites, 0);
+});
+
+test('known location for cards and detail never prompts and uses a recent granted position', async () => {
+  const denied = fixture('lib/use-known-location.ts');
+  denied.controls.permission = { granted: false, canAskAgain: true };
+  denied.render(); await tick();
+  assert.equal(denied.calls.ask, 0); assert.equal(denied.calls.cache.length, 0);
+  assert.equal(denied.render()[0], null);
+  const granted = fixture('lib/use-known-location.ts');
+  granted.render(); await tick();
+  assert.deepEqual(granted.render()[0], point);
+  assert.equal(granted.calls.ask, 0); assert.equal(granted.calls.current.length, 0);
+  assert.deepEqual(granted.calls.cache, [{ maxAge: 60000, requiredAccuracy: 100 }]);
+});
+
+test('known location ignores invalid coordinates and a late cache after unmount', async () => {
+  const invalid = fixture('lib/use-known-location.ts');
+  invalid.controls.cache = { coords: { latitude: 100, longitude: 300 } };
+  invalid.render(); await tick(); assert.equal(invalid.render()[0], null);
+  const f = fixture('lib/use-known-location.ts'); const cache = deferred();
+  f.controls.cache = cache.promise; f.render(); await tick(); f.unmount();
+  cache.resolve(null); await tick();
+  assert.equal(f.calls.current.length, 0); assert.equal(f.lateWrites, 0);
+});

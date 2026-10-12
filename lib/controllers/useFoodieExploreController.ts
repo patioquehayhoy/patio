@@ -147,7 +147,7 @@ export function useFoodieExploreController() {
     let cancelled = false;
     const minDelay = new Promise((resolve) => setTimeout(resolve, 900));
     const prepare = __DEV__
-      ? import('@/lib/demo').then((demo) => demo.seedDemoFoodie()).then(fetchPublicFonditas)
+      ? import('@/lib/demo').then((demo) => demo.seedDemoFoodie()).then(() => fetchPublicFonditas())
       : fetchPublicFonditas();
 
     Promise.all([prepare, minDelay])
@@ -175,7 +175,7 @@ export function useFoodieExploreController() {
       }).catch(() => {});
       {
         const refresh = __DEV__
-          ? import('@/lib/demo').then((demo) => demo.seedDemoFoodie()).then(fetchPublicFonditas)
+          ? import('@/lib/demo').then((demo) => demo.seedDemoFoodie()).then(() => fetchPublicFonditas())
           : fetchPublicFonditas();
         refresh
           .then((patios) => {

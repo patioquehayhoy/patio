@@ -1,3 +1,5 @@
+import { Colors } from './colors';
+
 // Paleta del lado Fondero, sensible al tema (claro/oscuro).
 //
 // Antes cada pantalla Fondero tenía una constante `DARK` hardcodeada y SIEMPRE
@@ -24,28 +26,28 @@ export type FonderoColors = {
 };
 
 const DARK: FonderoColors = {
-  bg: '#111214',
-  surface: 'rgba(255,255,255,0.04)',
-  surface2: '#24262C',
-  border: 'rgba(255,255,255,0.08)',
-  text: '#F8F8F5',
-  textSecondary: 'rgba(248,248,245,0.55)',
-  textMute: 'rgba(248,248,245,0.4)',
-  accent: '#FF6A3D',
+  bg: Colors.bgDark,
+  surface: Colors.surfaceDark,
+  surface2: Colors.surface2Dark,
+  border: Colors.borderDark,
+  text: Colors.textDark,
+  textSecondary: Colors.textSecondaryDark,
+  textMute: Colors.textMuteDark,
+  accent: Colors.accentDark,
   iconBg: 'rgba(255,255,255,0.06)',
   green: '#5BCB8B',
   danger: '#FF453A',
 };
 
 const LIGHT: FonderoColors = {
-  bg: '#F8F8F5',
-  surface: '#FFFFFF',
-  surface2: '#F6F4EE',
-  border: 'rgba(17,18,20,0.08)',
-  text: '#111214',
-  textSecondary: '#4A4A47',
-  textMute: '#8A8A85',
-  accent: '#F2612F',
+  bg: Colors.bg,
+  surface: Colors.surface,
+  surface2: Colors.surface2,
+  border: Colors.border,
+  text: Colors.text,
+  textSecondary: Colors.textSecondary,
+  textMute: Colors.textMute,
+  accent: Colors.accent,
   iconBg: '#F1EFE9',
   green: '#2E9E63',
   danger: '#FF3B30',

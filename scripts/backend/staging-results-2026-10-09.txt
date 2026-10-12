@@ -1,0 +1,16 @@
+PASS real Auth passwords issue distinct user JWTs
+PASS authenticated owner creates Patio by UUID
+PASS other account cannot update owner business
+PASS ownership spoofing is rejected
+PASS legacy email is unavailable to app clients
+PASS anonymous discovery reads actual public fields
+PASS menu and carta upserts use their real unique keys
+PASS publication notifications validate owner and deduplicate without followers
+PASS paid-provider quota is service-only and enforces minute cap
+PASS collection publication is atomic and rejects foreign replacement
+PASS reviews enforce server date and reject reply/moderation spoofing
+PASS reports and blocks respect the requesting account
+PASS Storage allows own folder and rejects foreign folder
+PASS Edge gateway rejects requests without user JWT
+PASS account deletion clears Auth, owned SQL and Storage
+RESULT 15 live staging integration checks passed; no production accessed; no provider secrets or paid AI requests.

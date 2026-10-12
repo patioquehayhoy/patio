@@ -2,10 +2,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { noWidow } from '@/lib/typography';
+import { LibraryListRow } from '@/components/library-list-row';
+import { FoodieLoading } from '@/components/foodie-loading';
 
 import {
   createCollection,
@@ -17,7 +19,7 @@ import {
   type SavedPatioMeta,
 } from '@/lib/collections';
 import { getFavoritePatioIds, setFavoritePatioIds } from '@/lib/favorites';
-import { Fonts, useTheme } from '@/lib/theme';
+import { useTheme } from '@/lib/theme';
 
 export default function SavePlaceScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -27,8 +29,14 @@ export default function SavePlaceScreen() {
   const [collections, setCollections] = useState<PatioCollection[]>([]);
   const [meta, setMeta] = useState<SavedPatioMeta>({ patioId });
   const [newTitle, setNewTitle] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const [writeError, setWriteError] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const pending = useRef(false);
+  const created = useRef<{ title: string; id: string } | null>(null);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (includeMeta = true) => {
     const [items, savedMeta, favoriteIds] = await Promise.all([
       getCollections(),
       getSavedPatioMeta(patioId),
@@ -36,28 +44,52 @@ export default function SavePlaceScreen() {
     ]);
     if (!favoriteIds.includes(patioId)) await setFavoritePatioIds([...favoriteIds, patioId]);
     setCollections(items);
-    setMeta(savedMeta);
+    if (includeMeta) setMeta(savedMeta);
   }, [patioId]);
 
-  useEffect(() => { load().catch(() => {}); }, [load]);
+  const reload = useCallback(async () => {
+    setLoading(true);
+    setLoadError(false);
+    try { await load(); } catch { setLoadError(true); } finally { setLoading(false); }
+  }, [load]);
+  useEffect(() => { void reload(); }, [reload]);
+
+  const mutate = async (operation: () => Promise<void>) => {
+    if (pending.current) return;
+    pending.current = true;
+    setBusy(true);
+    try {
+      await operation();
+      await load(false);
+      void Haptics.selectionAsync().catch(() => {});
+    } catch {
+      Alert.alert(noWidow('No pudimos guardar el cambio'), noWidow('Inténtalo otra vez. Tu selección se conserva.'));
+    } finally { pending.current = false; setBusy(false); }
+  };
 
   const updateMeta = async (patch: Partial<SavedPatioMeta>) => {
     const next = { ...meta, ...patch };
     setMeta(next);
-    await saveSavedPatioMeta(next);
+    try { await saveSavedPatioMeta(next); setWriteError(false); } catch { setWriteError(true); }
   };
 
   const create = async () => {
-    if (!newTitle.trim()) return;
-    const collection = await createCollection(newTitle);
-    await togglePatioInCollection(collection.id, patioId);
-    setNewTitle('');
-    await load();
-    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    const title = newTitle.trim();
+    if (!title) return;
+    await mutate(async () => {
+      if (created.current?.title !== title) {
+        const collection = await createCollection(title);
+        created.current = { title, id: collection.id };
+      }
+      const target = (await getCollections()).find((collection) => collection.id === created.current!.id);
+      if (!target?.patioIds.includes(patioId)) await togglePatioInCollection(created.current!.id, patioId);
+      created.current = null;
+      setNewTitle('');
+    });
   };
 
   return (
-    <View style={[s.root, { backgroundColor: theme.bg, paddingTop: insets.top }]}>
+    <KeyboardAvoidingView style={[s.root, { backgroundColor: theme.bg, paddingTop: insets.top }]} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <Stack.Screen options={{ headerShown: false }} />
       <View style={s.nav}>
         <TouchableOpacity style={s.navButton} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Cerrar">
@@ -69,34 +101,15 @@ export default function SavePlaceScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: insets.bottom + 36 }}>
-        <Text style={[s.heroTitle, { color: theme.text }]}>{noWidow('Tus listas')}</Text>
+      <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: insets.bottom + 36 }}>
         <Text style={[s.heroBody, { color: theme.textSecondary }]}>{noWidow('Elige una o varias. El lugar queda guardado aunque no elijas ninguna.')}</Text>
 
-        <View style={[s.listCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        {loading ? <FoodieLoading label="Cargando listas" /> : loadError ? <TouchableOpacity accessibilityRole="button" accessibilityLabel="Reintentar carga de listas" style={s.retry} onPress={reload}><Text style={{ color: theme.text }}>{noWidow('No pudimos cargar tus listas. Reintentar.')}</Text></TouchableOpacity> : <View style={[s.listCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           {collections.map((collection, index) => {
             const selected = collection.patioIds.includes(patioId);
             return (
-              <TouchableOpacity
-                key={collection.id}
-                style={[s.listRow, index > 0 && { borderTopColor: theme.border, borderTopWidth: StyleSheet.hairlineWidth }]}
-                accessibilityRole="checkbox"
-                accessibilityState={{ checked: selected }}
-                accessibilityLabel={collection.title}
-                onPress={async () => {
-                  await togglePatioInCollection(collection.id, patioId);
-                  await load();
-                  await Haptics.selectionAsync();
-                }}>
-                <View style={[s.listGlyph, { backgroundColor: selected ? theme.accentSoft : theme.bg }]}>
-                  <Ionicons name="bookmark-outline" size={18} color={selected ? theme.accent : theme.textSecondary} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={[s.listTitle, { color: theme.text }]}>{collection.title}</Text>
-                  <Text style={[s.listMeta, { color: theme.textSecondary }]}>{collection.patioIds.length} {collection.patioIds.length === 1 ? 'lugar' : 'lugares'}</Text>
-                </View>
-                <Ionicons name={selected ? 'checkmark-circle' : 'ellipse-outline'} size={23} color={selected ? theme.accent : theme.textMute} />
-              </TouchableOpacity>
+              <LibraryListRow key={collection.id} title={collection.title} count={collection.patioIds.length} unit="lugar" checked={selected} disabled={busy} divider={index > 0}
+                onPress={() => { void mutate(async () => { await togglePatioInCollection(collection.id, patioId); }); }} />
             );
           })}
           <View style={[s.newRow, collections.length > 0 && { borderTopColor: theme.border, borderTopWidth: StyleSheet.hairlineWidth }]}>
@@ -105,6 +118,9 @@ export default function SavePlaceScreen() {
             </View>
             <TextInput
               value={newTitle}
+              maxLength={60}
+              editable={!busy}
+              accessibilityLabel="Nombre de nueva lista"
               onChangeText={setNewTitle}
               placeholder="Nueva lista"
               placeholderTextColor={theme.textMute}
@@ -112,9 +128,9 @@ export default function SavePlaceScreen() {
               returnKeyType="done"
               onSubmitEditing={create}
             />
-            {!!newTitle.trim() && <TouchableOpacity onPress={create} hitSlop={{ top: 12, bottom: 12, left: 8, right: 8 }} accessibilityRole="button" accessibilityLabel="Crear lista"><Text style={[s.create, { color: theme.accent }]}>Crear</Text></TouchableOpacity>}
+            {!!newTitle.trim() && <TouchableOpacity disabled={busy} accessibilityState={{ disabled: busy, busy }} style={s.createButton} onPress={create} accessibilityRole="button" accessibilityLabel="Crear lista"><Text style={[s.create, { color: theme.accent }]}>{busy ? 'Guardando…' : 'Crear'}</Text></TouchableOpacity>}
           </View>
-        </View>
+        </View>}
 
         <Text style={[s.sectionLabel, { color: theme.textMute }]}>{noWidow('SOLO PARA TI')}</Text>
         <View style={[s.privateCard, { borderColor: theme.border }]}>
@@ -143,11 +159,13 @@ export default function SavePlaceScreen() {
             multiline
             maxLength={300}
             value={meta.note ?? ''}
+            accessibilityLabel="Nota privada sobre este lugar"
             onChangeText={(note) => updateMeta({ note })}
             placeholder="Qué pedir, quién te lo recomendó, cuándo volver…"
             placeholderTextColor={theme.textMute}
             style={[s.note, { color: theme.text, borderColor: theme.border }]}
           />
+          {writeError && <TouchableOpacity style={s.retry} accessibilityRole="button" accessibilityLabel="Reintentar guardado de tus datos privados" onPress={() => { void updateMeta({}); }}><Text style={{ color: theme.textSecondary }}>{noWidow('No pudimos guardar tus cambios. Reintentar.')}</Text></TouchableOpacity>}
           <View style={s.ratingRow}>
             <Text style={[s.ratingLabel, { color: theme.textSecondary }]}>{noWidow('Tu calificación')}</Text>
             <View style={{ flexDirection: 'row', gap: 8 }}>
@@ -182,7 +200,7 @@ export default function SavePlaceScreen() {
           <Ionicons name="chevron-forward" size={16} color={theme.textMute} />
         </TouchableOpacity>
       </ScrollView>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -192,23 +210,23 @@ const s = StyleSheet.create({
   navButton: { minWidth: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   navTitle: { fontSize: 17, fontWeight: '700' },
   done: { fontSize: 16, fontWeight: '700' },
-  heroTitle: { marginTop: 14, fontFamily: Fonts.brand, fontSize: 34, lineHeight: 38, fontWeight: '900', letterSpacing: -1 },
   heroBody: { marginTop: 7, maxWidth: 340, fontSize: 14, lineHeight: 20 },
   listCard: { marginTop: 22, borderRadius: 22, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
-  listRow: { minHeight: 64, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 8 },
   listGlyph: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   listTitle: { fontSize: 15, lineHeight: 19, fontWeight: '700' },
   listMeta: { marginTop: 2, fontSize: 12.5, lineHeight: 16 },
   newRow: { minHeight: 60, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 8 },
-  newInput: { flex: 1, height: 52, fontSize: 15 },
+  newInput: { flex: 1, minWidth: 0, minHeight: 52, paddingVertical: 12, fontSize: 15 },
+  createButton: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 4 },
+  retry: { minHeight: 44, paddingVertical: 12, justifyContent: 'center' },
   create: { fontSize: 14, fontWeight: '700' },
   sectionLabel: { marginTop: 28, marginBottom: 9, paddingHorizontal: 5, fontSize: 10.5, fontWeight: '700', letterSpacing: 1.4 },
   privateCard: { borderRadius: 24, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden', padding: 15 },
-  statusRow: { flexDirection: 'row', gap: 8 },
-  statusChip: { minHeight: 38, paddingHorizontal: 13, borderRadius: 19, flexDirection: 'row', alignItems: 'center', gap: 4 },
+  statusRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  statusChip: { minHeight: 44, paddingVertical: 10, paddingHorizontal: 13, borderRadius: 22, flexDirection: 'row', alignItems: 'center', gap: 4 },
   statusText: { fontSize: 13, fontWeight: '600' },
   note: { minHeight: 88, marginTop: 13, padding: 13, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, fontSize: 14, lineHeight: 20, textAlignVertical: 'top' },
-  ratingRow: { minHeight: 48, marginTop: 6, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  ratingRow: { minHeight: 48, marginTop: 6, flexDirection: 'row', flexWrap: 'wrap', gap: 12, alignItems: 'center', justifyContent: 'space-between' },
   ratingLabel: { fontSize: 13.5 },
   publicRow: { minHeight: 68, paddingHorizontal: 14, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 8 },
 });

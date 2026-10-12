@@ -334,7 +334,7 @@ async function fetchPublicMenus(ids: string[]): Promise<Map<string, { menu: Pati
   return result;
 }
 
-export async function fetchPublicFonditas(): Promise<Patio[]> {
+export async function fetchPublicFonditas(options: { throwOnError?: boolean } = {}): Promise<Patio[]> {
   // `categorias` es una columna nueva (migración 20260816). Si todavía no se
   // aplicó en el proyecto de Supabase, el select con ella falla; reintenta
   // sin la columna para no tumbar el mapa de Foodie mientras se aplica.
@@ -353,6 +353,7 @@ export async function fetchPublicFonditas(): Promise<Patio[]> {
       .not('nombre', 'is', null)
       .neq('nombre', 'Mi Fondita');
     if (!withoutCategorias.error && withoutCategorias.data) data = withoutCategorias.data as Record<string, unknown>[];
+    else if (withoutCategorias.error && options.throwOnError) throw withoutCategorias.error;
   }
 
   if (!data) return withDevPatios([]);
@@ -364,7 +365,7 @@ export async function fetchPublicFonditas(): Promise<Patio[]> {
       id: row.id,
       name: row.nombre ?? 'Sin nombre',
       categories: categoriasFromRow(row.categorias, row.tipo_negocio),
-      area: 'CDMX',
+      area: '',
       price: '$',
       address: row.direccion ?? '',
       open: openLabel(weekly, row.horario),
@@ -386,7 +387,7 @@ export async function fetchPublicFonditas(): Promise<Patio[]> {
   }));
 }
 
-export async function fetchFonditaById(id: string): Promise<Patio | null> {
+export async function fetchFonditaById(id: string, options: { throwOnError?: boolean } = {}): Promise<Patio | null> {
   // Mocks y demo (DEV) se resuelven local: sus ids no existen en Supabase.
   const local = (await withDevPatios([])).find((p) => p.id === id);
   if (local) return local;
@@ -406,7 +407,8 @@ export async function fetchFonditaById(id: string): Promise<Patio | null> {
       row = withLoc.data as Record<string, unknown>;
     } else {
       const noLoc = await supabase.from('fonditas').select(base).eq('id', id).maybeSingle();
-      if (noLoc.error || !noLoc.data) return null;
+      if (noLoc.error) { if (options.throwOnError) throw noLoc.error; return null; }
+      if (!noLoc.data) return null;
       row = noLoc.data as Record<string, unknown>;
     }
   }
@@ -417,7 +419,7 @@ export async function fetchFonditaById(id: string): Promise<Patio | null> {
     id: row.id as string,
     name: (row.nombre as string | null) ?? 'Sin nombre',
     categories: categoriasFromRow(row.categorias, row.tipo_negocio as string | null),
-    area: 'CDMX',
+    area: '',
     price: '$',
     address: (row.direccion as string | null) ?? '',
     open: openLabel(weekly, (row.horario as string | null) ?? null),

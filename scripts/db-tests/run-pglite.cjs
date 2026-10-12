@@ -57,6 +57,8 @@ const PATIO_A = id(11), PATIO_B = id(12), COLLECTION_A = id(21), COLLECTION_B = 
       '20260909_account_deletion.sql',
       '20260910_content_safety.sql',
       '20260910120000_publish_collection.sql',
+      '20261009100000_ai_request_limits.sql',
+      '20261009110000_review_server_dates.sql',
     ]) await pg.exec(sql(`supabase/migrations/${file}`));
 
     for (const [user, name, visibility] of [[A, 'Ana', 'public'], [B, 'Beto', 'public'], [C, 'Caro', 'public'], [PRIVATE, 'Privado', 'private']]) {
@@ -67,6 +69,37 @@ const PATIO_A = id(11), PATIO_B = id(12), COLLECTION_A = id(21), COLLECTION_B = 
     await query('insert into public.fonditas(id,telefono,nombre) values ($1,$2,$3),($4,$5,$6)', [PATIO_A, 'ana@example.test', 'Patio A', PATIO_B, 'beto@example.test', 'Patio B']);
     await query('insert into public.collections(id,owner_id,title,visibility) values ($1,$2,$3,$4)', [COLLECTION_B, B, 'Colección B', 'public']);
     await query('insert into public.reviews(id,user_id,fondita_id,stars) values ($1,$2,$3,5),($4,$5,$3,4)', [REVIEW_A, A, PATIO_B, REVIEW_B, B]);
+
+    await check('AI usage is inaccessible and uncallable from client roles', () => asUser(A, async () => {
+      await rejectsCode(() => query('select * from public.ai_request_usage'), '42501');
+      await rejectsCode(() => query('select public.consume_ai_request($1,$2)', [A, 'read-menu']), '42501');
+    }));
+    await check('AI rate limits accept two reads, reject a third without charging the day', () => asRole('service_role', null, async () => {
+      const consume = async () => (await query('select public.consume_ai_request($1,$2) as allowed', [A, 'read-menu']))[0].allowed;
+      assert.equal(await consume(), true);
+      assert.equal(await consume(), true);
+      assert.equal(await consume(), false);
+      const daily = await query("select requests from public.ai_request_usage where user_id=$1 and window_kind='day'", [A]);
+      assert.equal(daily[0].requests, 2);
+    }));
+    await check('AI limits isolate users and features and reject anonymous/nonexistent identities', () => asRole('service_role', null, async () => {
+      assert.equal((await query('select public.consume_ai_request($1,$2) as allowed', [B, 'read-menu']))[0].allowed, true);
+      assert.equal((await query('select public.consume_ai_request($1,$2) as allowed', [A, 'smart-setup']))[0].allowed, true);
+      await rejectsCode(() => query('select public.consume_ai_request($1,$2)', [ANONYMOUS, 'read-menu']), '42501');
+      await rejectsCode(() => query('select public.consume_ai_request($1,$2)', [id(999), 'read-menu']), '42501');
+      await rejectsCode(() => query('select public.consume_ai_request($1,$2)', [A, 'fake']), '22023');
+    }));
+    await check('AI daily cap rolls back the minute increment too', () => asRole('service_role', null, async () => {
+      await query("update public.ai_request_usage set requests=20 where user_id=$1 and feature='read-menu' and window_kind='day'", [B]);
+      assert.equal((await query('select public.consume_ai_request($1,$2) as allowed', [B, 'read-menu']))[0].allowed, false);
+      assert.equal((await query("select requests from public.ai_request_usage where user_id=$1 and feature='read-menu' and window_kind='minute'", [B]))[0].requests, 1);
+    }));
+    await check('review dates and timestamps are server-owned; forged visit dates cannot bypass daily uniqueness', () => asUser(C, async () => {
+      await query("insert into public.reviews(user_id,fondita_id,stars,visit_date,created_at,updated_at) values($1,$2,5,'2099-01-01','2099-01-01','2099-01-01')", [C, PATIO_A]);
+      const rows = await query("select visit_date=(now() at time zone 'America/Mexico_City')::date as current_day, created_at < '2099-01-01'::timestamptz as server_time from public.reviews where user_id=$1 and fondita_id=$2", [C, PATIO_A]);
+      assert.equal(rows[0].current_day, true); assert.equal(rows[0].server_time, true);
+      await rejectsCode(() => query("insert into public.reviews(user_id,fondita_id,stars,visit_date) values($1,$2,4,'2000-01-01')", [C, PATIO_A]), '23505');
+    }));
 
     await check('RLS baseline hides a private profile from another account', () => asUser(A, async () => {
       assert.equal((await query('select user_id from public.user_profiles where user_id=$1', [PRIVATE])).length, 0);

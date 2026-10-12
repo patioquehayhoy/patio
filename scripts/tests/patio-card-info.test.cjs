@@ -17,7 +17,7 @@ function load(relative) {
   );
   return module.exports;
 }
-const { getPatioCardInfo, patioCardPrice, patioCardOpenState } = load('lib/patio-card-info.ts');
+const { getPatioCardInfo, patioCardPrice, patioCardOpenState, patioCardAccessibilityLabel } = load('lib/patio-card-info.ts');
 const { crearHorarioBase } = load('lib/horario.ts');
 
 function patio(overrides = {}) {
@@ -26,6 +26,18 @@ function patio(overrides = {}) {
     price: '$', menu: [], weeklyHours: null, rating: 'Nuevo', ...overrides,
   };
 }
+
+test('a grouped card speaks the full identity, availability and independent ratings without missing-data clutter', () => {
+  const name = 'Un lugar con un nombre que supera ampliamente las dos líneas de una tarjeta';
+  const label = patioCardAccessibilityLabel(patio({ name, rating: '4.7', ratingCount: 12 }), { personalRating: 3, distanceLabel: '450 m' });
+  assert.match(label, new RegExp(name));
+  assert.match(label, /Sin horario/);
+  assert.match(label, /Calificación pública, 4.7 de 5, 12 reseñas/);
+  assert.match(label, /Tu calificación, 3.0 de 5/);
+  assert.match(label, /Distancia, 450 m/);
+  const unknown = patioCardAccessibilityLabel(patio({ area: '', categories: ['Elotes'] }));
+  assert.doesNotMatch(unknown, /Elotes|CDMX|Distancia|calificación propia|Menú/);
+});
 
 test('every card has a price slot; incomplete and textual amounts do not invent a range', () => {
   for (const price of ['', '$', '$$', 'Consultar', 'Desde $80', '$0']) {
@@ -64,6 +76,20 @@ test('public and personal ratings are independent, with honest placeholders for 
   assert.equal(getPatioCardInfo(patio()).distanceAccessibilityLabel, 'Distancia no disponible');
 });
 
+test('a personal star never replaces the aggregate; large counts remain exact in accessibility', () => {
+  const place = patio({ rating: '4.5', ratingCount: 12543 });
+  const rated = getPatioCardInfo(place, { personalRating: 2 });
+  assert.equal(rated.publicRating, '4.5 (12.5k)');
+  assert.equal(rated.personalRatingValue, 2);
+  assert.match(rated.publicRatingAccessibilityLabel, /12543 reseñas/);
+  for (const personalRating of [undefined, null, 0, 6, NaN]) {
+    const unrated = getPatioCardInfo(place, { personalRating });
+    assert.equal(unrated.publicRating, rated.publicRating);
+    assert.equal(unrated.personalRatingValue, null);
+    assert.match(patioCardAccessibilityLabel(place, { personalRating, includePersonalRating: true }), /Sin calificación propia/);
+  }
+});
+
 test('missing and incomplete schedules stay unknown; overnight and closed schedules stay distinct', () => {
   const early = new Date('2026-09-19T08:00:00Z'); // Saturday, 02:00 CDMX.
   assert.equal(patioCardOpenState(patio(), early), null);
@@ -74,4 +100,53 @@ test('missing and incomplete schedules stay unknown; overnight and closed schedu
   const incomplete = crearHorarioBase('08:00', '16:00');
   incomplete[6].abre = null;
   assert.equal(patioCardOpenState(patio({ weeklyHours: incomplete }), early), null);
+});
+
+test('closing-soon status follows the actual closing time, including overnight hours', () => {
+  const overnight = patio({ weeklyHours: crearHorarioBase('20:00', '03:00') });
+  assert.equal(getPatioCardInfo(overnight, { now: new Date('2026-09-19T08:29:00Z') }).closingSoon, false);
+  const soon = getPatioCardInfo(overnight, { now: new Date('2026-09-19T08:30:00Z') });
+  assert.equal(soon.closingSoon, true);
+  assert.equal(soon.openLabel, 'Cierra pronto');
+  assert.equal(getPatioCardInfo(overnight, { now: new Date('2026-09-19T09:00:00Z') }).closingSoon, false);
+  assert.equal(getPatioCardInfo(patio()).closingSoon, false);
+});
+
+test('closing labels use published hours, including midnight, and omit unknown or closed places', () => {
+  const day = patio({ weeklyHours: crearHorarioBase('08:00', '18:00') });
+  const afternoon = new Date('2026-10-10T21:00:00Z'); // 15:00 CDMX.
+  assert.equal(getPatioCardInfo(day, { now: afternoon }).closingLabel, 'Cierra 18:00');
+  assert.match(patioCardAccessibilityLabel(day, { now: afternoon }), /Horario publicado, cierra a las 18:00/);
+  assert.equal(getPatioCardInfo(day, { now: new Date('2026-10-11T01:00:00Z') }).closingLabel, null);
+  assert.equal(getPatioCardInfo(patio(), { now: afternoon }).closingLabel, null);
+  const overnight = patio({ weeklyHours: crearHorarioBase('20:00', '03:00') });
+  assert.equal(getPatioCardInfo(overnight, { now: new Date('2026-10-11T08:00:00Z') }).closingLabel, 'Cierra 03:00');
+  const allDay = patio({ weeklyHours: crearHorarioBase('00:00', '00:00') });
+  assert.equal(getPatioCardInfo(allDay, { now: afternoon }).closingLabel, 'Abierto 24 h');
+  const overlapping = crearHorarioBase('08:00', '18:00');
+  overlapping[5] = { dia: 5, cerrado: false, abre: '12:00', cierra: '12:00' };
+  assert.equal(getPatioCardInfo(patio({ weeklyHours: overlapping }), { now: new Date('2026-10-10T16:00:00Z') }).closingLabel, 'Cierra 18:00');
+});
+
+
+test('price and distance ordering keep missing data last and ties stable', () => {
+  const { patioMinimumPrice, patioDistance, sortPatiosByMetric } = load('lib/patio-sort.ts');
+  const expensive = patio({ id: 'expensive', price: '$120–180' });
+  const cheap = patio({ id: 'cheap', price: '$45–120' });
+  const same = patio({ id: 'same', price: '$45' });
+  const unknown = patio({ id: 'unknown' });
+  const entries = [unknown, expensive, cheap, same];
+  assert.equal(patioMinimumPrice(expensive), 120);
+  assert.equal(patioMinimumPrice(unknown), null);
+  assert.deepEqual(sortPatiosByMetric(entries, patioMinimumPrice).map(x => x.id), ['cheap', 'same', 'expensive', 'unknown']);
+  assert.deepEqual(entries.map(x => x.id), ['unknown', 'expensive', 'cheap', 'same']);
+  const origin = { latitude: 19.4, longitude: -99.1 };
+  assert.equal(patioDistance(null, origin), null);
+  assert.equal(patioDistance(origin, { latitude: 0, longitude: 0 }), null);
+  assert.equal(patioDistance(origin, { latitude: 91, longitude: -99 }), null);
+  assert.equal(patioDistance(origin, origin), 0);
+  const nearby = patio({ id: 'nearby', ...origin });
+  const farther = patio({ id: 'farther', latitude: 19.5, longitude: -99.1 });
+  const absent = patio({ id: 'absent', latitude: 0, longitude: 0 });
+  assert.deepEqual(sortPatiosByMetric([absent, farther, nearby], x => patioDistance(origin, x)).map(x => x.id), ['nearby', 'farther', 'absent']);
 });

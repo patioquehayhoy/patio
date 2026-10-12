@@ -10,6 +10,8 @@ import { hasUnseenActivity, hasUnseenReviewLikes } from '@/lib/activity-feed';
 import { getFonditaId } from '@/lib/menu-store';
 import { useTheme, type Theme } from '@/lib/theme';
 import { useTabBarTranslate } from '@/lib/tab-bar-visibility';
+import { BOTTOM_TAB_HEIGHT, bottomTabOffset } from '@/lib/layout-metrics';
+import { floatingSurfaceShadow } from '@/lib/surface-styles';
 
 // Destinos raíz por tarea. Crear un menú es una acción dentro de Menús,
 // no una sección que compita permanentemente con el resto de la app.
@@ -61,11 +63,11 @@ export function BottomTabBar({ variant = 'fondero' }: { variant?: 'foodie' | 'fo
   const isDark = theme.isDark;
   const tabs = variant === 'foodie' ? FOODIE_TABS : FONDERO_TABS;
   return (
-    <Animated.View pointerEvents="box-none" style={[styles.wrap, { bottom: (insets.bottom || 10) + 4 }, translateY ? { transform: [{ translateY }] } : null]}>
+    <Animated.View pointerEvents="box-none" style={[styles.wrap, { bottom: bottomTabOffset(insets.bottom) }, translateY ? { transform: [{ translateY }] } : null]}>
       <LinearGradient
         colors={isDark
-          ? ['rgba(17,18,20,0)', 'rgba(17,18,20,0.58)']
-          : ['rgba(248,248,245,0)', 'rgba(248,248,245,0.78)']}
+          ? ['rgba(10,11,13,0)', 'rgba(10,11,13,0.32)']
+          : ['rgba(248,248,245,0)', 'rgba(248,248,245,0.45)']}
         locations={[0, 1]}
         pointerEvents="none"
         style={[styles.readabilityGradient, { bottom: -(insets.bottom + 14) }]}
@@ -116,23 +118,20 @@ export function BottomTabBar({ variant = 'fondero' }: { variant?: 'foodie' | 'fo
 }
 
 const makeStyles = (t: Theme) => StyleSheet.create({
-  wrap: { position: 'absolute', left: 0, right: 0, alignItems: 'center', zIndex: 100, elevation: 100 },
-  readabilityGradient: { position: 'absolute', left: 0, right: 0, height: 96 },
+  wrap: { position: 'absolute', left: 0, right: 0, alignItems: 'center', zIndex: 100 },
+  readabilityGradient: { position: 'absolute', left: 0, right: 0, height: 72 },
   pill: {
     flexDirection: 'row',
     gap: 4,
     paddingVertical: 4,
     paddingHorizontal: 6,
     borderRadius: 25,
+    height: BOTTOM_TAB_HEIGHT,
     backgroundColor: t.glass,
     borderColor: t.isDark ? t.border : 'rgba(255,255,255,0.18)',
     borderWidth: StyleSheet.hairlineWidth,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: t.isDark ? 0.2 : 0.08,
-    shadowRadius: 32,
-    elevation: 8,
+    ...floatingSurfaceShadow(t.isDark),
   },
   tab: {
     width: 49,

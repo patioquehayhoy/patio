@@ -310,6 +310,59 @@ function hookRuntime() {
   };
 }
 
+test('viewed places show a retryable failure and retain loaded places when refreshing fails', async () => {
+  const runtime = hookRuntime();
+  let fail = true;
+  const f = fixture({ overrides: {
+    react: runtime.react,
+    '@react-navigation/native': { useFocusEffect: runtime.react.useEffect },
+    '@/lib/stats': { getViewedPatioIds: async () => ['one'] },
+    '@/lib/patios': { fetchFonditaById: async (_id, options) => {
+      assert.equal(options.throwOnError, true);
+      if (fail) throw new Error('Offline');
+      return patio;
+    } },
+  } });
+  const { useViewedPatiosController } = f.load('lib/controllers/useViewedPatiosController.ts');
+  const render = () => runtime.render(useViewedPatiosController);
+  assert.equal(render().loading, true);
+  await new Promise(setImmediate);
+  assert.equal(render().loadError, true);
+  assert.equal(render().loading, false);
+  fail = false;
+  await render().reload();
+  assert.deepEqual(render().patios, [patio]);
+  assert.equal(render().loadError, false);
+  fail = true;
+  await render().reload();
+  assert.deepEqual(render().patios, [patio]);
+  assert.equal(render().loadError, true);
+  runtime.unmount();
+});
+
+test('a late viewed-places request cannot replace a newer refresh', async () => {
+  const runtime = hookRuntime();
+  let finishOld;
+  let calls = 0;
+  const newest = { ...patio, id: 'newest' };
+  const f = fixture({ overrides: {
+    react: runtime.react,
+    '@react-navigation/native': { useFocusEffect: runtime.react.useEffect },
+    '@/lib/stats': { getViewedPatioIds: async () => ['one'] },
+    '@/lib/patios': { fetchFonditaById: async () => ++calls === 1 ? new Promise((resolve) => { finishOld = resolve; }) : newest },
+  } });
+  const { useViewedPatiosController } = f.load('lib/controllers/useViewedPatiosController.ts');
+  const render = () => runtime.render(useViewedPatiosController);
+  render();
+  await new Promise(setImmediate);
+  await render().reload();
+  finishOld(patio);
+  await new Promise(setImmediate);
+  assert.deepEqual(render().patios, [newest]);
+  assert.equal(render().loading, false);
+  runtime.unmount();
+});
+
 test('a late title blur cannot overwrite newly saved dishes or erase publication confirmation', async () => {
   const runtime = hookRuntime();
   const f = fixture({ overrides: { react: runtime.react, '@/lib/db': {} } });
@@ -383,4 +436,14 @@ test('cancelled photo reading cannot restore a private extraction snapshot', asy
   await pending;
   assert.equal(f.load('lib/menu-store.ts').getMenuExtractionSnapshot(), null);
   assert.equal(f.render().state, 'idle');
+});
+
+test('AI response errors expose quota/auth messages and keep internal errors private', async () => {
+  const { aiFunctionError, AIServiceError } = fixture().load('lib/edge-function-error.ts');
+  const quota = await aiFunctionError({ context: Response.json({ error: 'Límite de lecturas alcanzado.' }, { status: 429 }) }, 'Fallback');
+  assert.equal(quota instanceof AIServiceError, true); assert.equal(quota.status, 429); assert.equal(quota.message, 'Límite de lecturas alcanzado.');
+  const internal = await aiFunctionError({ context: Response.json({ error: 'Provider secret detail' }, { status: 500 }) }, 'Inténtalo de nuevo.');
+  assert.equal(internal.message, 'Inténtalo de nuevo.');
+  const malformed = await aiFunctionError({ context: new Response('not json', { status: 429 }) }, 'Fallback');
+  assert.match(malformed.message, /límite/);
 });

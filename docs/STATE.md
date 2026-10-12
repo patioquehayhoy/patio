@@ -1,5 +1,57 @@
 # STATE
 
+> **Estado vigente — 2026-10-12:** auditoría de diseño aplicada a tarjetas,
+> iconos, pills, listas, formularios, tipografía, feedback y copy. Contrato:
+> [DESIGN_SYSTEM](DESIGN_SYSTEM.md). Evidencia y checklist físico:
+> [DESIGN_AUDIT_2026-10-10](DESIGN_AUDIT_2026-10-10.md).
+> Ajuste de distribución con referencia Uber: precio a la derecha, tarjetas
+> compactas, paneles sin sombra y margen inferior medido. Ver
+> [UBER_LAYOUT_REFINEMENT](UBER_LAYOUT_REFINEMENT_2026-10-10.md).
+> Tarjetas compactas concluidas (2026-10-12): nombre de una línea en lista
+> y grid, columna fija para el sello, precio y metadata sin saltos por texto.
+> Estrella única y «colonia · distancia» conservadas. Fuentes Uber Base/Material,
+> ejemplos y medidas en [columnas estables](CARD_COLUMNS_AUDIT_2026-10-12.md).
+> Búsqueda: swipe devuelve la navegación y conserva término/pines; una
+> sola salida, reapertura y callbacks de cierre protegidos. Ver
+> [SEARCH_SWIPE_FIX](SEARCH_SWIPE_FIX_2026-10-10.md). Cierre nativo reportado
+> en iPhone aún sin confirmar. El usuario hará QA física; diagnóstico de
+> dispositivo y auditoría amplia/EAS detenidos por su petición.
+> TypeScript y lint limpios; **177/177 tests**. Exportaciones nativas del
+> corte previo completas; este ajuste se verificó localmente sin EAS.
+> El backend ya fue promovido tras staging: no repetir migraciones ni pedir login.
+> Pendientes vigentes: [checklist/roadmap](PENDING_LAUNCH_2026-10-12.md).
+> Auditoría npm actualizada: 32 paquetes afectados (24 altos, 8 moderados,
+> 0 críticos). Heads-up: [continuidad](HEADS_UP_2026-10-12.md).
+> Los cortes anteriores siguientes son históricos; sus pendientes no sustituyen
+> este estado. Checkpoint en rebuild/patio-final; no implica envío a tiendas.
+
+> **Producción actualizada (2026-10-09):** siete migraciones aplicadas y registradas; cinco funciones ACTIVE con JWT. Datos existentes conservados; correos protegidos. Evidencia: [PRODUCTION_PROMOTION_2026-10-09.md](PRODUCTION_PROMOTION_2026-10-09.md). Lanzamiento aún pendiente de QA móvil y requisitos de distribución.
+
+> **Staging preparado (2026-10-09):** patio-staging creado; siete migraciones
+> y cinco funciones instaladas. **15 pruebas reales Auth/RLS/Storage/Edge**
+> aprobadas; posteriormente promovidas a producción con autorización explícita. Ver
+> [STAGING_REHEARSAL_2026-10-09.md](STAGING_REHEARSAL_2026-10-09.md).
+
+
+> **Corte histórico — 2026-10-09:** lanzamiento solicitado para iPhone y Android.
+> Homologación de bibliotecas implementada; 149 pruebas y 19 comprobaciones SQL
+> aisladas aprobadas; exportaciones de ambas plataformas completas. Backend real,
+> seguridad restante, configuración Android, QA visual y tiendas siguen abiertos.
+> Checklist y contrato: [LAUNCH_CLOSEOUT_2026-10-09.md](LAUNCH_CLOSEOUT_2026-10-09.md).
+> Los cortes anteriores se conservan como historial, no como estado de lanzamiento.
+
+
+## Corte histórico — auditoría 2026-10-01
+
+Trabajo parcial: cards y mover implementados; etapa 1 pendiente de inventario,
+contrato, degradado de scroll y QA en iPhone físico. Etapas 2 y 3 sin cierre.
+TypeScript, lint y 133 tests aprobados hoy. Release estricto falla por Maps y
+Firebase Android; Supabase real y bloqueos de lanzamiento siguen sin certificar.
+Siguiente: cerrar pendientes de etapa 1 y después continuar etapa 2.
+Evidencia y límites: [PENDING_AUDIT_2026-10-01.md](PENDING_AUDIT_2026-10-01.md).
+Los cortes históricos siguientes no sustituyen este estado.
+
+
 > Fuente de verdad operativa. Última actualización: 2026-09-14.
 
 ## Prioridad actual — refinamiento de navegación y filtros

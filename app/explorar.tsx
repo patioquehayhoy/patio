@@ -1,14 +1,17 @@
+import { useScrollEdges } from '@/lib/use-scroll-edges';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, Easing, Keyboard, PanResponder, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { Animated, Easing, Keyboard, ScrollView, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import MapView, { Marker, type Region } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { MAP_STYLE_DARK, MAP_STYLE_LIGHT } from '@/lib/map-style';
+import { PatioIdentityIcon } from '@/components/patio-identity-icon';
+import { patioCardAccessibilityLabel } from '@/lib/patio-card-info';
 import { PatioCardInfo } from '@/components/patio-card-info';
 import { FoodieLoading } from '@/components/foodie-loading';
 import { BottomTabBar } from '@/components/bottom-tab-bar';
@@ -17,12 +20,16 @@ import { FoodieFilterBar, matchesFoodieFilters } from '@/components/foodie-filte
 import { FOODIE_INITIAL_REGION, useFoodieExploreController } from '@/lib/controllers/useFoodieExploreController';
 import { useFoodieFilters } from '@/lib/foodie-filters-context';
 import { recordRecentPatio } from '@/lib/recent-patios';
-import { SHEET_DISMISS_MS, SHEET_DRAG_ACTIVATION, SHEET_SPRING, shouldDismissSheet } from '@/lib/sheet-motion';
+import { useExploreSheet } from '@/lib/use-explore-sheet';
 import { useTabBarScroll } from '@/lib/tab-bar-visibility';
 import { noWidow } from '@/lib/typography';
 import { Fonts, Radius, useTheme, type Theme } from '@/lib/theme';
 import { createCollection, getCollections, type PatioCollection } from '@/lib/collections';
 import type { Patio } from '@/lib/patios';
+import { bottomTabClearance } from '@/lib/layout-metrics';
+import { floatingSurfaceShadow, sheetSurfaceTint } from '@/lib/surface-styles';
+import { useSheetKeyboard } from '@/lib/use-sheet-keyboard';
+import { useMapLocation } from '@/lib/use-map-location';
 
 // Degradado del contorno de acento (pin seleccionado y match de búsqueda):
 // sólido arriba, se desvanece hacia la punta. 0.55 = sigue 100% opaco hasta
@@ -87,11 +94,9 @@ const SHEET_LIST_BOTTOM_PADDING = 12;
 // Redimensionar el alto real del sheet (no un transform) no puede usar el
 // driver nativo — solo transform/opacity corren ahí. Mismo spring, distinto
 // driver.
-const SHEET_SPRING_JS = { ...SHEET_SPRING, useNativeDriver: false } as const;
 
 function makeStyles(t: Theme) {
   const btnBorder = t.isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.06)';
-  const btnShadowOpacity = t.isDark ? 0.20 : 0.06;
 
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: t.bg },
@@ -141,7 +146,7 @@ function makeStyles(t: Theme) {
     // simple para cuando hay muchos agrupados lejos; a propósito distinto
     // de la gota delicada de los pines individuales de cerca.
     clusterPin: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: t.isDark ? 'rgba(18,19,22,0.94)' : 'rgba(255,255,255,0.96)', borderWidth: StyleSheet.hairlineWidth, borderColor: t.isDark ? 'rgba(255,255,255,0.22)' : 'rgba(0,0,0,0.12)', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: t.isDark ? 0.28 : 0.15, shadowRadius: 7, elevation: 4 },
-    searchPill: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, height: 50, borderRadius: 18, overflow: 'hidden', backgroundColor: t.isDark ? 'rgba(20,21,24,0.55)' : 'rgba(255,255,255,0.78)', borderWidth: StyleSheet.hairlineWidth, borderColor: btnBorder, shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: btnShadowOpacity + 0.04, shadowRadius: 22, elevation: 4 },
+    searchPill: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, height: 50, borderRadius: 18, overflow: 'hidden', backgroundColor: t.isDark ? 'rgba(20,21,24,0.55)' : 'rgba(255,255,255,0.78)', borderWidth: StyleSheet.hairlineWidth, borderColor: btnBorder, ...floatingSurfaceShadow(t.isDark) },
     bottomControls: { flexDirection: 'row', alignItems: 'stretch', gap: 8 },
     aiProButton: { minHeight: 44, minWidth: 44, paddingHorizontal: 8, borderRadius: 16, flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: t.accentSoft },
     aiProText: { fontSize: 10.5, fontWeight: '800', color: t.accent, letterSpacing: 0.3 },
@@ -150,7 +155,8 @@ function makeStyles(t: Theme) {
     // (decisión 2026-08-20). Las esquinas inferiores siguen redondeándose en
     // modo idle (flota sobre la tab bar, con aire debajo) y se aplanan en
     // modo filtrado (llega hasta abajo del todo) — eso ya lo maneja el JSX.
-    sheet: { position: 'absolute', left: 0, right: 0, maxHeight: '48%', borderRadius: Radius.sheet, overflow: 'hidden', borderTopWidth: StyleSheet.hairlineWidth, borderColor: t.isDark ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.18)', shadowColor: '#000', shadowOffset: { width: 0, height: 12 }, shadowOpacity: t.isDark ? 0.20 : 0.08, shadowRadius: 32, elevation: 8 },
+    sheet: { position: 'absolute', left: 0, right: 0, maxHeight: '48%', borderRadius: Radius.sheet, overflow: 'hidden', borderTopWidth: StyleSheet.hairlineWidth, borderColor: t.isDark ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.18)' },
+    sheetTint: { ...StyleSheet.absoluteFillObject, backgroundColor: sheetSurfaceTint(t.isDark) },
     grabber: { alignSelf: 'center', width: 36, height: 4, borderRadius: 2, backgroundColor: t.isDark ? 'rgba(255,255,255,0.16)' : 'rgba(0,0,0,0.10)', marginTop: 7 },
     sheetHeader: { minHeight: 44 },
     grabberTouch: { height: 20, alignItems: 'center', justifyContent: 'flex-start' },
@@ -174,7 +180,7 @@ function makeStyles(t: Theme) {
     // El sheet ya es la superficie que agrupa los resultados. Cada resultado
     // es una fila continua (patrón Maps/Music), no otra card dentro del panel.
     patioRow: { minHeight: 60, marginHorizontal: 16, paddingVertical: 12, flexDirection: 'row', alignItems: 'flex-start', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.border },
-    resultIcon: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+    resultIcon: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
     patioInfo: { flex: 1, minWidth: 0 },
     patioName: { fontSize: 16, lineHeight: 21, fontWeight: '700', color: t.text },
     patioMetaLine: { marginTop: 2, minWidth: 0, flexDirection: 'row', alignItems: 'center' },
@@ -218,43 +224,34 @@ export default function ExplorarScreen() {
   const accentTransparent = useMemo(() => accentToTransparentRgba(theme.accent), [theme.accent]);
   const pinGlowColors = useMemo(() => [theme.accent, theme.accent, accentTransparent] as const, [theme.accent, accentTransparent]);
   const insets = useSafeAreaInsets();
-  const { onScroll: onTabBarScroll } = useTabBarScroll();
+  const { onScroll: onTabBarScroll, reveal: revealNavigation } = useTabBarScroll();
   const { height: windowHeight } = useWindowDimensions();
-  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const { keyboardInset: keyboardHeight, keyboardVisible } = useSheetKeyboard();
   const [sheetHeaderHeight, setSheetHeaderHeight] = useState(45);
-  const [sheetRowHeight, setSheetRowHeight] = useState(60);
+  const [sheetRowHeights, setSheetRowHeights] = useState([60, 60, 60]);
   const shimmerAnim = useRef(new Animated.Value(0)).current;
   const idleLayerOpacity = useRef(new Animated.Value(1)).current;
-  const sheetTranslateY = useRef(new Animated.Value(0)).current;
-  const sheetVisibleHeightRef = useRef(windowHeight);
-  // `sheetTranslateY` mueve el sheet completo (entrada/salida/overshoot de
-  // cierre) vía transform, nativo y fluido. `sheetTopExtra` cambia el
-  // ALTO real del sheet (su `top`) para el detent medio, con el `bottom`
-  // siempre anclado al teclado/inset — nunca lo tapa, porque nunca lo
-  // desplaza, solo lo encoge desde arriba.
-  const sheetTopExtra = useRef(new Animated.Value(0)).current;
-  const keyboardHeightAnim = useRef(new Animated.Value(insets.bottom)).current;
+  const keyboardHeightAnim = useRef(new Animated.Value(0)).current;
   // Apple define medium como "about half of the fully expanded height" (HIG
   // Sheets) — probamos esa proporción y también un 38% fijo, y ambas
   // seguían sin sentirse bien en dispositivo. En vez de perseguir un
   // porcentaje, el detent medio ahora se dimensiona por CONTENIDO: que
   // quepan 3 filas de resultado completas (`SHEET_MEDIUM_ROWS`), ni más ni
   // menos — un tamaño que se explica solo con lo que muestra, no con una
-  // fracción de pantalla arbitraria. La cabecera y la primera fila se
+  // fracción de pantalla arbitraria. La cabecera y las primeras tres filas se
   // miden para incluir el tamaño de texto de la persona. Calculado aquí
   // arriba (no solo junto al
   // PanResponder) porque el encuadre del mapa también lo necesita, para
   // reservar exactamente el espacio que el sheet ocupa de verdad.
-  const filteringSheetBottom = keyboardHeight > 0 ? keyboardHeight : insets.bottom;
+  const filteringSheetBottom = keyboardHeight;
   const largeFrameHeight = Math.max(windowHeight - (insets.top + FILTERING_SHEET_TOP_OFFSET) - filteringSheetBottom, 0);
   // Las medidas reales conservan las filas completas al aumentar el texto
   // o cambiar la información. El espacio final pertenece al contenido.
-  const mediumContentHeight = sheetHeaderHeight + SHEET_MEDIUM_ROWS * sheetRowHeight + SHEET_LIST_BOTTOM_PADDING + 4;
+  const mediumContentHeight = sheetHeaderHeight + sheetRowHeights.reduce((total, height) => total + height, 0) + SHEET_LIST_BOTTOM_PADDING + (keyboardVisible ? 0 : insets.bottom) + 4;
   const mediumSheetHeight = Math.min(largeFrameHeight, Math.max(mediumContentHeight, 220));
   const mediumGap = largeFrameHeight - mediumSheetHeight;
-  const mediumGapRef = useRef(mediumGap);
-  mediumGapRef.current = mediumGap;
   const mapRef = useRef<MapView>(null);
+  const manualMapPosition = useRef(false);
   const [mapRegion, setMapRegion] = useState<Region>(FOODIE_INITIAL_REGION);
   const [pressedPinId, setPressedPinId] = useState<string | null>(null);
   const pinNavigationPending = useRef(false);
@@ -472,7 +469,7 @@ export default function ExplorarScreen() {
     // No dispara en cada tecla: `searchPending` viene del debounce de 300ms
     // ya existente en useFoodieExploreController — solo se lee aquí, no se
     // agrega un segundo debounce.
-    if (!isFiltering || searchPending) return;
+    if (!isFiltering || searchPending || manualMapPosition.current) return;
     const found = filteredMatches
       .map((match) => match.patio)
       .filter((patio) => patio.latitude > 0 && patio.longitude !== 0);
@@ -579,197 +576,22 @@ export default function ExplorarScreen() {
     }
     return keys;
   }, []);
-  // Antes: soltar el dedo llamaba a closeSheet() y esperaba a que el estado
-  // (showSheet) diera la vuelta por React para que el useEffect de abajo
-  // arrancara la animación de salida. Ese viaje de ida y vuelta por el
-  // render deja la card congelada un instante justo al soltar — se ve como
-  // que se detiene antes de irse. Ahora la animación arranca en el mismo
-  // frame en que sueltas, continuando desde donde iba el dedo; closeSheet()
-  // se llama hasta que la animación ya terminó.
-  const isFilteringRef = useRef(isFiltering);
-  isFilteringRef.current = isFiltering;
-  // Deslizar la card hacia abajo NO debe borrar la búsqueda — Apple Maps y
-  // Google Maps ocultan la lista pero conservan el término y los pines
-  // resaltados; solo se pierde al tocar la "x" o volver atrás. Antes
-  // `dismissSheet()` llamaba siempre a `closeSheet()` del controller, que
-  // limpia `submittedQuery` — cada vez que querías reposicionarte tenías
-  // que volver a escribir y buscar. Ahora, en modo búsqueda, solo se oculta
-  // la card localmente; el estado real (mapa, pines, término) sigue vivo.
-  const [sheetHiddenByDrag, setSheetHiddenByDrag] = useState(false);
-  useEffect(() => {
-    if (!isFiltering) setSheetHiddenByDrag(false);
-  }, [isFiltering]);
-  const dismissSheet = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-    Animated.timing(sheetTranslateY, { toValue: Math.max(120, sheetVisibleHeightRef.current), duration: SHEET_DISMISS_MS, useNativeDriver: true }).start(({ finished }) => {
-      if (!finished) return;
-      if (isFilteringRef.current) setSheetHiddenByDrag(true);
-      else closeSheet();
-    });
-  };
-  const [sheetDetent, setSheetDetent] = useState<'medium' | 'large'>('medium');
-  const sheetDetentRef = useRef(sheetDetent);
-  sheetDetentRef.current = sheetDetent;
-  // Posición de descanso actual del sheet, en `sheetTopExtra`: 0 = detent
-  // grande, mediumGap = detent medio. El arrastre parte de aquí, no siempre
-  // de 0, porque ahora hay dos lugares donde el sheet puede estar en reposo.
-  const sheetRestYRef = useRef(0);
-  const sheetDragStartRef = useRef(0);
-  const settleSheetToDetent = (detent: 'medium' | 'large') => {
-    const target = detent === 'medium' ? mediumGapRef.current : 0;
-    sheetRestYRef.current = target;
-    setSheetDetent(detent);
-    Animated.spring(sheetTopExtra, { toValue: target, ...SHEET_SPRING_JS }).start();
-    Animated.spring(sheetTranslateY, { toValue: 0, ...SHEET_SPRING }).start();
-  };
-  const sheetDraggingRef = useRef(false);
-  const sheetDragAxisRef = useRef<'vertical' | 'horizontal' | null>(null);
-  const activateSheetHandle = () => {
-    if (isFilteringRef.current) {
-      Haptics.selectionAsync().catch(() => {});
-      settleSheetToDetent(sheetDetentRef.current === 'medium' ? 'large' : 'medium');
-    } else {
-      dismissSheet();
-    }
-  };
-  const sheetPanResponder = useRef(
-    PanResponder.create({
-      // El grabber reclama el toque desde que baja el dedo (no solo tras un
-      // umbral de arrastre) para poder distinguir tap (cicla detent) de
-      // arrastre (redimensiona/cierra) dentro del mismo responder, sin
-      // mezclar PanResponder con un Touchable sobre la misma vista.
-      onStartShouldSetPanResponder: () => true,
-      onPanResponderGrant: () => {
-        sheetDraggingRef.current = true;
-        sheetDragAxisRef.current = null;
-        sheetTopExtra.stopAnimation();
-        sheetTranslateY.stopAnimation();
-        sheetDragStartRef.current = sheetRestYRef.current;
-      },
-      onPanResponderMove: (_event, gesture) => {
-        if (!sheetDragAxisRef.current) {
-          if (Math.max(Math.abs(gesture.dx), Math.abs(gesture.dy)) < SHEET_DRAG_ACTIVATION) return;
-          sheetDragAxisRef.current = Math.abs(gesture.dy) > Math.abs(gesture.dx) ? 'vertical' : 'horizontal';
-        }
-        if (sheetDragAxisRef.current !== 'vertical') return;
-        if (!isFilteringRef.current) {
-          sheetTranslateY.setValue(Math.max(0, gesture.dy));
-          return;
-        }
-        // El recorrido total del dedo primero encoge el sheet (sube
-        // `sheetTopExtra` hasta mediumGap, el detent más chico) y, solo una
-        // vez ahí, lo que sobra empuja el sheet completo hacia abajo
-        // (`sheetTranslateY`) para el gesto de cierre — igual que un sheet
-        // real de Apple: no hay un tercer detent más chico, así que pasado
-        // el medio ya no encoge más, se va.
-        const total = Math.max(0, sheetDragStartRef.current + gesture.dy);
-        const medium = mediumGapRef.current;
-        sheetTopExtra.setValue(Math.min(total, medium));
-        sheetTranslateY.setValue(Math.max(0, total - medium));
-      },
-      onPanResponderRelease: (_event, gesture) => {
-        sheetDraggingRef.current = false;
-        const isTap = sheetDragAxisRef.current === null
-          && Math.max(Math.abs(gesture.dx), Math.abs(gesture.dy)) < SHEET_DRAG_ACTIVATION;
-        if (isTap) {
-          activateSheetHandle();
-          return;
-        }
-        if (sheetDragAxisRef.current !== 'vertical') {
-          Animated.spring(sheetTopExtra, { toValue: sheetRestYRef.current, ...SHEET_SPRING_JS }).start();
-          Animated.spring(sheetTranslateY, { toValue: 0, ...SHEET_SPRING }).start();
-          return;
-        }
-        if (!isFilteringRef.current) {
-          // Guardados/Cerca de ti no tienen detents — mismo comportamiento
-          // de siempre, un solo arrastre hacia abajo cierra.
-          if (shouldDismissSheet(gesture.dy, gesture.vy)) { dismissSheet(); return; }
-          Animated.spring(sheetTranslateY, { toValue: 0, ...SHEET_SPRING }).start();
-          return;
-        }
-        const total = Math.max(0, sheetDragStartRef.current + gesture.dy);
-        const medium = mediumGapRef.current;
-        if (shouldDismissSheet(total - medium, gesture.vy) && total >= medium) {
-          dismissSheet();
-          return;
-        }
-        if (shouldDismissSheet(0, -gesture.vy)) { settleSheetToDetent('large'); return; }
-        if (shouldDismissSheet(0, gesture.vy)) { settleSheetToDetent('medium'); return; }
-        settleSheetToDetent(total > medium / 2 ? 'medium' : 'large');
-      },
-      onPanResponderTerminate: () => {
-        sheetDraggingRef.current = false;
-        Animated.spring(sheetTopExtra, { toValue: sheetRestYRef.current, ...SHEET_SPRING_JS }).start();
-        Animated.spring(sheetTranslateY, { toValue: 0, ...SHEET_SPRING }).start();
-      },
-    })
-  ).current;
-  const showSheet = (isFiltering && !sheetHiddenByDrag) || sheetMode !== null;
-  // Montaje separado del estado lógico: antes, cualquier cierre que no fuera
-  // arrastrar con el dedo (borrar la búsqueda, tocar la "x", cambiar de tab)
-  // desmontaba el sheet de golpe sin animación — solo el arrastre manual
-  // tenía transición. Ahora TODO cierre anima hacia abajo antes de
-  // desmontar. `filtering` se congela en su último valor mientras se anima
-  // la salida, para que el alto/radio del contenedor no cambien de golpe a
-  // media transición (esa era la fuente del "brinco").
-  const [sheetView, setSheetView] = useState({ mounted: showSheet, filtering: isFiltering });
-  useEffect(() => {
-    if (showSheet) {
-      if (isFiltering) {
-        // Apple (HIG Motion): "strive for realistic feedback motion that
-        // follows people's gestures" — si el sheet se puede descartar
-        // deslizando hacia abajo, también debe ENTRAR deslizando desde
-        // abajo, no aparecer ya puesto (antes no había animación de
-        // entrada). Arranca siempre en el detent medio: Apple documenta que
-        // el share sheet abre en medium por "progressive disclosure", y
-        // Google nunca reabre su bottom sheet recordando un alto expandido
-        // anterior. El alto (`sheetTopExtra`) se fija a medium de una vez —
-        // solo la posición (`sheetTranslateY`) se anima, para que la
-        // entrada se vea como "una tarjeta ya del tamaño correcto sube",
-        // no como una tarjeta que cambia de tamaño mientras sube.
-        sheetRestYRef.current = mediumGapRef.current;
-        setSheetDetent('medium');
-        sheetTopExtra.setValue(mediumGapRef.current);
-        sheetTranslateY.setValue(windowHeight);
-        Animated.spring(sheetTranslateY, { toValue: 0, ...SHEET_SPRING }).start();
-      } else {
-        sheetRestYRef.current = 0;
-        sheetTopExtra.setValue(0);
-        sheetTranslateY.setValue(windowHeight);
-        Animated.spring(sheetTranslateY, { toValue: 0, ...SHEET_SPRING }).start();
-      }
-      setSheetView({ mounted: true, filtering: isFiltering });
-    } else if (sheetView.mounted) {
-      Animated.timing(sheetTranslateY, { toValue: Math.max(120, sheetVisibleHeightRef.current), duration: SHEET_DISMISS_MS, useNativeDriver: true }).start(({ finished }) => {
-        if (finished) setSheetView((v) => ({ ...v, mounted: false }));
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showSheet, isFiltering]);
-  // Red de seguridad: la entrada de arriba fija `sheetTopExtra` al
-  // `mediumGap` que existía EN ESE INSTANTE — pero `handleSubmitSearch`
-  // llama `Keyboard.dismiss()` en el mismo gesto que confirma la búsqueda,
-  // y el teclado tarda ~250ms en cerrarse de verdad. Si la entrada corre
-  // antes de que `keyboardHeight` se actualice a 0, el sheet se queda
-  // encogido usando el marco chico (con teclado) para siempre — se ve como
-  // "ocupa toda la pantalla" porque nunca se vuelve a corregir. Este efecto
-  // re-sincroniza el alto real cada vez que `mediumGap` cambia (ej. cuando
-  // el teclado termina de cerrar), mientras el sheet esté en reposo en el
-  // detent medio y nadie lo esté arrastrando.
-  // El estado "sin resultados" (icono grande + texto + pills de sugerencia)
-  // es mucho más alto que las N filas de resultado que asume `mediumGap` —
-  // sin este ajuste el contenido se corta contra el borde del sheet en vez
-  // de mostrarse completo. Reusa el mismo mecanismo de arriba: en reposo en
-  // el detent medio, empuja el sheet a top=0 (todo el marco disponible)
-  // mientras la búsqueda no tenga coincidencias.
-  const isEmptySearchResults = isFiltering && !searchPending && filteredMatches.length === 0;
-  useEffect(() => {
-    if (sheetDetent !== 'medium' || sheetDraggingRef.current || !sheetView.mounted || !sheetView.filtering) return;
-    const targetGap = isEmptySearchResults ? 0 : mediumGap;
-    sheetRestYRef.current = targetGap;
-    Animated.spring(sheetTopExtra, { toValue: targetGap, ...SHEET_SPRING_JS }).start();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mediumGap, isEmptySearchResults]);
+  const {
+    activateSheetHandle, dismissSheet, reopenSheet, sheetDetent, sheetPanResponder,
+    sheetTopExtra, sheetTranslateY, sheetView, sheetVisibleHeightRef, showNavigation, showSheet,
+  } = useExploreSheet({
+    isFiltering, sheetMode, searchActive, keyboardVisible, windowHeight, mediumGap,
+    emptyResults: isFiltering && !searchPending && filteredMatches.length === 0,
+    closeSheet, revealNavigation,
+  });
+  const scrollViewKey = `${sheetView.mounted}:${sheetView.filtering}`;
+  const edges = useScrollEdges(scrollViewKey);
+  const { centerOnLocation, locating, location, cancelLocation } = useMapLocation((point) => {
+    manualMapPosition.current = true;
+    // Revealing the map keeps the searched term, filters and highlighted pins.
+    dismissSheet();
+    mapRef.current?.animateToRegion({ ...point, latitudeDelta: 0.009, longitudeDelta: 0.009 }, 420);
+  });
   const listPatios = (activeSavedCategories.length ? mapFilteredPatios : allPatios).filter((patio) => matchesFoodieFilters(filters, {
     patioId: patio.id,
     weeklyHours: patio.weeklyHours ?? null,
@@ -778,21 +600,12 @@ export default function ExplorarScreen() {
     collections,
   }));
   useEffect(() => {
-    const show = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow', (e) => {
-      setKeyboardHeight(e.endCoordinates.height);
-      // Sincronizado con la duración real que iOS reporta para su propia
-      // animación del teclado — antes el `bottom` del sheet saltaba de golpe
-      // mientras el teclado todavía se deslizaba, dando el efecto de que no
-      // "se centraba bien" al abrir/cerrar.
-      Animated.timing(keyboardHeightAnim, { toValue: e.endCoordinates.height, duration: e.duration || 250, useNativeDriver: false }).start();
-    });
-    const hide = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide', (e) => {
-      setKeyboardHeight(0);
-      Animated.timing(keyboardHeightAnim, { toValue: insets.bottom, duration: e?.duration || 250, useNativeDriver: false }).start();
-    });
-    return () => { show.remove(); hide.remove(); };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    // Frame relativo al viewport: Android puede haber descontado el teclado
+    // con adjustResize. Descontar su alto otra vez cortaba el panel.
+    const animation = Animated.timing(keyboardHeightAnim, { toValue: keyboardHeight, duration: 250, useNativeDriver: false });
+    animation.start();
+    return () => animation.stop();
+  }, [keyboardHeight, keyboardHeightAnim]);
 
   // Shimmer sobre mapa
   useEffect(() => {
@@ -949,6 +762,8 @@ export default function ExplorarScreen() {
           showsBuildings={false}
           showsCompass={false}
           showsMyLocationButton={false}
+          showsUserLocation={location !== null}
+          followsUserLocation={false}
           showsPointsOfInterest={false}
           showsTraffic={false}
           style={s.mapView}
@@ -1060,6 +875,7 @@ export default function ExplorarScreen() {
             onCollectionCreated={(c) => setCollections((prev) => [c, ...prev])}
             onCollectionUpdated={(c) => setCollections((prev) => prev.map((item) => item.id === c.id ? c : item))}
             onCollectionRemoved={(id) => setCollections((prev) => prev.filter((item) => item.id !== id))}
+            locationAction={{ onPress: () => { Haptics.selectionAsync().catch(() => {}); void centerOnLocation(); }, busy: locating }}
           />
         </View>
       )}
@@ -1101,8 +917,8 @@ export default function ExplorarScreen() {
               placeholder="¿Qué se te antoja?"
               autoFocus
               blurOnSubmit={false}
-              onSubmitEditing={handleSubmitSearch}
-              onFocus={() => setSheetHiddenByDrag(false)}
+              onSubmitEditing={() => { cancelLocation(); manualMapPosition.current = false; reopenSheet(); handleSubmitSearch(); }}
+              onFocus={reopenSheet}
               onCancel={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {}); closeSearch(); }}
               trailingAction={
               <TouchableOpacity
@@ -1138,7 +954,9 @@ export default function ExplorarScreen() {
         // externa solo se mueve (entrada/salida/arrastre); la interna solo
         // cambia de tamaño (detent medio/grande, alto real del teclado).
         <Animated.View
-          pointerEvents="box-none"
+          pointerEvents={showSheet ? "box-none" : "none"}
+          accessibilityElementsHidden={!showSheet}
+          importantForAccessibility={showSheet ? 'auto' : 'no-hide-descendants'}
           style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, transform: [{ translateY: sheetTranslateY }] }}>
         <Animated.View
           onLayout={(event) => { sheetVisibleHeightRef.current = event.nativeEvent.layout.height; }}
@@ -1161,10 +979,11 @@ export default function ExplorarScreen() {
             borderBottomLeftRadius: 0,
             borderBottomRightRadius: 0,
           } : {
-            bottom: keyboardHeight > 0 ? keyboardHeight + 70 : insets.bottom + 82,
+            bottom: keyboardVisible ? keyboardHeight + 16 : bottomTabClearance(insets.bottom),
             paddingBottom: insets.bottom ? 4 : 8,
           }]}>
           <BlurView intensity={theme.isDark ? 16 : 22} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
+          <View pointerEvents="none" style={s.sheetTint} />
           <View
             {...sheetPanResponder.panHandlers}
             style={s.sheetHeader}
@@ -1201,19 +1020,24 @@ export default function ExplorarScreen() {
             {aiMode && isFiltering && !!aiNote && (
               <View style={s.aiNoteRow}>
                 <Ionicons name="sparkles" size={12} color={theme.accent} />
-                <Text style={s.aiNoteText} numberOfLines={1} allowFontScaling={true}>{aiNote}</Text>
+                <Text style={s.aiNoteText} allowFontScaling={true}>{aiNote}</Text>
               </View>
             )}
           </View>
 
-          <ScrollView
-            style={sheetView.filtering ? s.listFiltering : undefined}
-            contentContainerStyle={s.listContent}
-            showsVerticalScrollIndicator={false}
+          <View style={sheetView.filtering ? s.listFiltering : { flexShrink: 1 }}>
+          <ScrollView key={scrollViewKey}
+            onLayout={edges.onLayout}
+            onContentSizeChange={edges.onContentSizeChange}
+            contentContainerStyle={[s.listContent, sheetView.filtering && {
+              paddingBottom: keyboardVisible ? SHEET_LIST_BOTTOM_PADDING : searchActive
+                ? insets.bottom + SHEET_LIST_BOTTOM_PADDING : bottomTabClearance(insets.bottom),
+            }]}
+            showsVerticalScrollIndicator indicatorStyle={theme.isDark ? 'white' : 'black'}
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode="on-drag"
             scrollEventThrottle={16}
-            onScroll={sheetView.filtering ? undefined : onTabBarScroll}
+            onScroll={(event) => { edges.onScroll(event); if (!sheetView.filtering) onTabBarScroll?.(event); }}
             onScrollBeginDrag={() => {
               Keyboard.dismiss();
               setPressedPinId(null);
@@ -1233,7 +1057,7 @@ export default function ExplorarScreen() {
                       <Text style={s.emptyPruebaLabel} allowFontScaling={true}>{noWidow('CERCA DE TI')}</Text>
                       <View style={s.emptyPills}>
                         {emptyResultsSuggestions.map((q) => (
-                          <TouchableOpacity key={q} onPress={() => searchFor(q)} activeOpacity={0.8} style={s.emptyPill} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }} accessibilityRole="button" accessibilityLabel={`Buscar ${q}`}>
+                          <TouchableOpacity key={q} onPress={() => { cancelLocation(); manualMapPosition.current = false; reopenSheet(); searchFor(q); }} activeOpacity={0.8} style={s.emptyPill} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }} accessibilityRole="button" accessibilityLabel={`Buscar ${q}`}>
                             <Text style={s.emptyPillText} allowFontScaling={true}>{q}</Text>
                           </TouchableOpacity>
                         ))}
@@ -1251,7 +1075,10 @@ export default function ExplorarScreen() {
                       accessibilityLabel={`Abrir resultado ${match.item.name} en ${match.patio.name}`}
                       key={`${match.patio.id}-${match.item.name}`}
                       style={s.patioRow}
-                      onLayout={index === 0 ? (event) => setSheetRowHeight(Math.max(60, Math.ceil(event.nativeEvent.layout.height))) : undefined}
+                      onLayout={index < SHEET_MEDIUM_ROWS ? (event) => {
+                        const height = Math.max(60, Math.ceil(event.nativeEvent.layout.height));
+                        setSheetRowHeights((current) => current[index] === height ? current : current.map((value, row) => row === index ? height : value));
+                      } : undefined}
                       onPress={() => {
                         Keyboard.dismiss();
                         void recordRecentPatio(match.patio, 'searched').catch(() => {});
@@ -1266,7 +1093,7 @@ export default function ExplorarScreen() {
                       onPressOut={() => setPressedPinId((id) => (id === match.patio.id ? null : id))}
                       activeOpacity={0.76}>
                       <View style={s.resultIcon}>
-                        <Ionicons name={match.section === 'LUGAR' ? 'location-outline' : 'restaurant-outline'} size={15} color={theme.textSecondary} />
+                        <PatioIdentityIcon patio={match.patio} />
                       </View>
                       <View style={s.patioInfo}>
                         <PatioCardInfo patio={match.patio} distanceLabel={distance} />
@@ -1290,13 +1117,13 @@ export default function ExplorarScreen() {
                 return (
                   <TouchableOpacity
                     accessibilityRole="button"
-                    accessibilityLabel={`Abrir ${patio.name}`}
+                    accessibilityLabel={patioCardAccessibilityLabel(patio, { distanceLabel: distance })}
                     key={patio.id}
                     style={s.patioRow}
                     onPress={() => router.push(`/patio/${patio.id}`)}
                     activeOpacity={0.76}>
                     <View style={s.resultIcon}>
-                      <Ionicons name="location-outline" size={16} color={theme.textSecondary} />
+                      <PatioIdentityIcon patio={patio} />
                     </View>
                     <View style={s.patioInfo}>
                       <PatioCardInfo patio={patio} distanceLabel={distance} />
@@ -1306,6 +1133,7 @@ export default function ExplorarScreen() {
               })
             )}
           </ScrollView>
+          </View>
         </Animated.View>
         </Animated.View>
       )}
@@ -1314,7 +1142,7 @@ export default function ExplorarScreen() {
           <FoodieLoading />
         </View>
       )}
-      {!searchActive && <BottomTabBar variant="foodie" />}
+      {showNavigation && <BottomTabBar variant="foodie" />}
     </View>
   );
 }

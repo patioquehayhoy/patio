@@ -9,6 +9,9 @@ import { fetchFonditaById, type Patio } from '@/lib/patios';
 export { todayDish };
 
 export function useFavoritePatiosController() {
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const [retry, setRetry] = useState(0);
   const [patios, setPatios] = useState<Patio[]>([]);
   // Estatus/nota/calificación propia por lugar (capturados en
   // app/guardar/[id].tsx al guardar) — antes se guardaban y nunca volvían a
@@ -19,19 +22,20 @@ export function useFavoritePatiosController() {
   useFocusEffect(
     useCallback(() => {
       let mounted = true;
+      setLoading(true); setLoadError(false);
       Promise.all([getFavoritePatioIds(), getAllSavedPatioMeta()]).then(async ([ids, metas]) => {
         if (!mounted) return;
-        const remote = await Promise.all(ids.map((id) => fetchFonditaById(id)));
+        const remote = await Promise.all(ids.map((id) => fetchFonditaById(id, { throwOnError: true })));
         const real = remote.filter((patio): patio is Patio => patio !== null);
         if (mounted) {
           setPatios(real);
           setMetaById(metas);
         }
-      });
+      }).catch(() => { if (mounted) setLoadError(true); }).finally(() => { if (mounted) setLoading(false); });
       return () => {
         mounted = false;
       };
-    }, [])
+    }, [retry])
   );
 
   const withMenu = useMemo(() => patios.filter((patio) => todayDish(patio) !== null).length, [patios]);
@@ -44,6 +48,9 @@ export function useFavoritePatiosController() {
   }, []);
 
   return {
+    loading,
+    loadError,
+    reload: () => setRetry((current) => current + 1),
     patios,
     metaById,
     withMenu,

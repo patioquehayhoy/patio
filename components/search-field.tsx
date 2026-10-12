@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import type { ReactNode, Ref } from 'react';
-import { StyleSheet, TextInput, TouchableOpacity, View, type StyleProp, type TextInputProps, type ViewStyle } from 'react-native';
+import { StyleSheet, TextInput, TouchableOpacity, View, useWindowDimensions, type StyleProp, type TextInputProps, type ViewStyle } from 'react-native';
 
 import { useTheme } from '@/lib/theme';
 
@@ -16,7 +16,9 @@ type Props = Omit<TextInputProps, 'style' | 'ref'> & {
 // Both discovery surfaces share geometry, focus, clear and text behavior.
 export function SearchField({ inputRef, style, onClear, onCancel, trailingAction, ...input }: Props) {
   const { theme } = useTheme();
-  return <View style={[s.field, { backgroundColor: theme.glass, borderColor: theme.border }, style]}>
+  const { fontScale } = useWindowDimensions();
+  const height = Math.max(50, Math.ceil(20 * fontScale + 20));
+  return <View style={[s.field, { height, backgroundColor: theme.glass, borderColor: theme.border }, style]}>
     <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
     {onCancel ? <TouchableOpacity style={s.control} onPress={onCancel} accessibilityRole="button" accessibilityLabel="Cerrar búsqueda">
       <Ionicons name="chevron-back" size={22} color={theme.text} />
@@ -29,7 +31,7 @@ export function SearchField({ inputRef, style, onClear, onCancel, trailingAction
       placeholderTextColor={theme.textSecondary}
       selectionColor={theme.accent}
       {...input}
-      style={[s.input, { color: theme.text }]}
+      style={[s.input, { height, color: theme.text }]}
     />
     {!!input.value?.length && <TouchableOpacity style={s.control} onPress={() => { if (onClear) onClear(); else input.onChangeText?.(''); }} accessibilityRole="button" accessibilityLabel="Borrar búsqueda">
       <Ionicons name="close-circle" size={20} color={theme.textSecondary} />

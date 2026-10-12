@@ -1,5 +1,52 @@
 # TASKS — Cola de trabajo para agentes
 
+> **Corte vigente — 2026-10-12:** código de homologación, tarjetas y navegación
+> cerrado localmente: TypeScript/lint y **177 pruebas** aprobados, 54 ejemplos web.
+> Backend ensayado/promovido el 2026-10-09. Lanzamiento todavía pendiente de
+> QA móvil, auditoría npm, Maps/Firebase Android, integraciones y distribución.
+> [Heads-up](HEADS_UP_2026-10-12.md) · [Checklist/roadmap](PENDING_LAUNCH_2026-10-12.md).
+> Los cortes anteriores son históricos y no sustituyen este estado.
+
+## Cola accionable vigente
+
+Usar [PENDING_LAUNCH_2026-10-12](PENDING_LAUNCH_2026-10-12.md) para marcar
+avances. Orden: QA móvil → dependencias/configuración → integraciones/privacidad
+→ candidatos/tiendas. Miniatura del local y crecimiento van después del candidato.
+La homologación de bibliotecas, centrar ubicación y columnas de cards están
+implementadas; falta aceptación física. No repetir backend ya promovido.
+
+## Registro histórico y backlog de producto
+
+Los pendientes siguientes conservan decisiones de su fecha. Cuando contradigan
+el checklist superior, prevalece el corte del 2026-10-12.
+
+> **Producción actualizada (2026-10-09):** siete migraciones aplicadas y registradas; cinco funciones ACTIVE con JWT. Datos existentes conservados; correos protegidos. Evidencia: [PRODUCTION_PROMOTION_2026-10-09.md](PRODUCTION_PROMOTION_2026-10-09.md). Lanzamiento aún pendiente de QA móvil y requisitos de distribución.
+
+> **Staging preparado (2026-10-09):** patio-staging creado; siete migraciones
+> y cinco funciones instaladas. **15 pruebas reales Auth/RLS/Storage/Edge**
+> aprobadas; posteriormente promovidas a producción con autorización explícita. Ver
+> [STAGING_REHEARSAL_2026-10-09.md](STAGING_REHEARSAL_2026-10-09.md).
+
+
+> **Corte histórico — 2026-10-09:** lanzamiento solicitado para iPhone y Android.
+> Homologación de bibliotecas implementada; 149 pruebas y 19 comprobaciones SQL
+> aisladas aprobadas; exportaciones de ambas plataformas completas. Backend real,
+> seguridad restante, configuración Android, QA visual y tiendas siguen abiertos.
+> Checklist y contrato: [LAUNCH_CLOSEOUT_2026-10-09.md](LAUNCH_CLOSEOUT_2026-10-09.md).
+> Los cortes anteriores se conservan como historial, no como estado de lanzamiento.
+
+
+## Corte histórico — auditoría 2026-10-01
+
+Trabajo parcial: cards y mover implementados; etapa 1 pendiente de inventario,
+contrato, degradado de scroll y QA en iPhone físico. Etapas 2 y 3 sin cierre.
+TypeScript, lint y 133 tests aprobados hoy. Release estricto falla por Maps y
+Firebase Android; Supabase real y bloqueos de lanzamiento siguen sin certificar.
+Siguiente: cerrar pendientes de etapa 1 y después continuar etapa 2.
+Evidencia y límites: [PENDING_AUDIT_2026-10-01.md](PENDING_AUDIT_2026-10-01.md).
+Los cortes históricos siguientes no sustituyen este estado.
+
+
 > Última actualización: 2026-09-13.
 
 ## Prioridad inmediata — mismo menú en Mapa y Guardados

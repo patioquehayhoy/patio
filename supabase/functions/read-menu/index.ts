@@ -1,3 +1,4 @@
+import { consumeAIRequest } from '../_shared/ai-quota.ts';
 import { requireUser } from '../_shared/auth.ts';
 import { corsHeaders, errorResponse, readJson } from '../_shared/http.ts';
 
@@ -190,7 +191,7 @@ Deno.serve(async (request) => {
   }
 
   try {
-    await requireUser(request);
+    const auth = await requireUser(request);
     const body = await readJson(request, 7_000_000);
     if (typeof body.imageBase64 !== 'string' || body.imageBase64.length < 100
       || !/^[A-Za-z0-9+/]+={0,2}$/.test(body.imageBase64)
@@ -200,6 +201,7 @@ Deno.serve(async (request) => {
     const apiKey = Deno.env.get('ANTHROPIC_API_KEY');
     if (!apiKey) throw new Error('ANTHROPIC_API_KEY no está configurada');
 
+    await consumeAIRequest(auth, 'read-menu');
     const anthropic = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       signal: AbortSignal.timeout(45_000),

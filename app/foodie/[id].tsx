@@ -148,7 +148,7 @@ const s = StyleSheet.create({
   name: { fontFamily: Fonts.brand, fontSize: 27, fontWeight: '900', marginTop: 12 },
   handle: { fontSize: 13, marginTop: 2 },
   bio: { fontSize: 14, lineHeight: 20, textAlign: 'center', marginTop: 10, maxWidth: 300 },
-  follow: { height: 40, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 24, justifyContent: 'center', marginTop: 16 },
+  follow: { minHeight: 44, borderRadius: 22, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 24, paddingVertical: 10, justifyContent: 'center', marginTop: 16 },
   label: { fontSize: 11, fontWeight: '700', letterSpacing: 1.2, marginTop: 18 },
   row: { minHeight: 70, borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center' },
   listName: { fontSize: 16, fontWeight: '700' },

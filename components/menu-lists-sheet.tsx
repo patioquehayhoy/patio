@@ -1,299 +1,135 @@
-import { Ionicons } from '@expo/vector-icons';
-import { BlurView } from 'expo-blur';
-import * as Haptics from 'expo-haptics';
+import { resolveLibraryMoveSelection } from '@/lib/library-selection';
 import { useEffect, useRef, useState } from 'react';
-import { Alert, Animated, KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, useWindowDimensions, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-import { createMenuCollection, deleteMenuCollection, normalizeMenuListTitle, renameMenuCollection, setMenusInCollection, type MenuCollection } from '@/lib/menu-collections';
-import { fonderoPalette } from '@/lib/fondero-palette';
+import { Alert, Keyboard, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import * as Haptics from 'expo-haptics';
+import { LibrarySheet } from '@/components/library-sheet';
+import { LibraryListRow } from '@/components/library-list-row';
+import { RenameDialog } from '@/components/rename-dialog';
+import { createMenuCollection, deleteMenuCollection, normalizeMenuListTitle, renameMenuCollection, moveMenusToCollection, setMenusInCollection, type MenuCollection } from '@/lib/menu-collections';
 import { useTheme } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
 
-// Listas para organizar menús publicados — mismo patrón de interacción que
-// "Tus listas" de Guardados (foodie-filter-bar.tsx), pero en su propio
-// componente: los dos usos difieren lo suficiente (aquí no hay mapa que
-// filtrar, y existe un segundo modo "asignar" para meter un menú puntual a
-// una lista) para justificar no forzar una abstracción compartida todavía.
-// Renombrar usa el mismo patrón nativo de Apple (Alert.prompt / diálogo
-// propio en Android) validado hoy en foodie-filter-bar.tsx — no repetir el
-// editor inline dentro de un ScrollView, que ahí costó 4 intentos fallidos.
-type Mode = 'filter' | 'assign';
-
-// Mismo timing que el sheet de referencia (foodie-filter-bar.tsx): spring al
-// entrar, timing corto al salir — un solo lenguaje de movimiento entre sheets.
-const SHEET_DISMISS_MS = 190;
-const SHEET_SPRING = { stiffness: 320, damping: 30, mass: 0.75, useNativeDriver: true } as const;
-
-export function MenuListsSheet({
-  visible, onClose, mode, collections, onCollectionCreated, onCollectionUpdated, onCollectionRemoved,
-  selectedIds = [], onToggleFilter, onClearFilter, targetFechas = [],
-}: {
-  visible: boolean;
-  onClose: () => void;
-  mode: Mode;
-  collections: MenuCollection[];
-  onCollectionCreated: (collection: MenuCollection) => void;
-  onCollectionUpdated: (collection: MenuCollection) => void;
-  onCollectionRemoved: (id: string) => void;
-  selectedIds?: string[];
-  onToggleFilter?: (id: string) => void;
-  onClearFilter?: () => void;
-  targetFechas?: string[];
+type Mode = 'filter' | 'assign' | 'move';
+export function MenuListsSheet({ visible, onClose, mode, collections, onCollectionCreated, onCollectionUpdated, onCollectionRemoved, selectedIds = [], onToggleFilter, onClearFilter, targetFechas = [], sourceCollectionIds = [], onMoved }: {
+  visible: boolean; onClose: () => void; mode: Mode; collections: MenuCollection[];
+  onCollectionCreated: (collection: MenuCollection) => void; onCollectionUpdated: (collection: MenuCollection) => void;
+  onCollectionRemoved: (id: string) => void; selectedIds?: string[]; onToggleFilter?: (id: string) => void;
+  onClearFilter?: () => void; targetFechas?: string[]; sourceCollectionIds?: string[]; onMoved?: () => void;
 }) {
   const { theme } = useTheme();
-  const c = fonderoPalette(theme.isDark);
-  const insets = useSafeAreaInsets();
-  const s = makeStyles(theme.isDark);
   const [creating, setCreating] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [renameTarget, setRenameTarget] = useState<MenuCollection | null>(null);
   const [renameValue, setRenameValue] = useState('');
-
-  // El Modal ya NO anima (animationType="none"): antes "slide" animaba TODO
-  // el árbol junto (velo negro + sheet) como un solo bloque, así que el velo
-  // — que solo cubre el área arriba del sheet — entraba deslizándose desde
-  // abajo en vez de aparecer fijo, y se veía como una franja oscura rara
-  // "flotando" al fondo mientras el sheet subía (bug real reportado
-  // 2026-08-28). Ahora solo el sheet se anima (spring), el velo aparece fijo.
-  const { height: screenHeight } = useWindowDimensions();
-  const translateY = useRef(new Animated.Value(screenHeight)).current;
-  const [rendered, setRendered] = useState(visible);
-  useEffect(() => {
-    if (visible) {
-      translateY.setValue(screenHeight);
-      setRendered(true);
-      Animated.spring(translateY, { toValue: 0, ...SHEET_SPRING }).start();
-    } else if (rendered) {
-      Animated.timing(translateY, { toValue: screenHeight, duration: SHEET_DISMISS_MS, useNativeDriver: true }).start(({ finished }) => {
-        if (finished) setRendered(false);
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [visible, screenHeight]);
-
-  const isChecked = (collection: MenuCollection) => mode === 'filter'
-    ? selectedIds.includes(collection.id)
-    : targetFechas.length > 0 && targetFechas.every((fecha) => collection.fechas.includes(fecha));
-
-  const toggle = async (collection: MenuCollection) => {
-    Haptics.selectionAsync().catch(() => {});
-    if (mode === 'filter') {
-      onToggleFilter?.(collection.id);
+  const [busy, setBusy] = useState(false);
+  const [sourceIds, setSourceIds] = useState<string[]>([]);
+  const [choosingSource, setChoosingSource] = useState(false);
+  const [destinationId, setDestinationId] = useState<string | null>(null);
+  const sourceKey = sourceCollectionIds.join('\u0000');
+  const pending = useRef(false);
+  const createdDraft = useRef<MenuCollection | null>(null);
+  useEffect(() => { if (visible) { setCreating(false); setNewTitle(''); setRenameTarget(null); createdDraft.current = null; setSourceIds(sourceKey ? sourceKey.split("\u0000") : []); setChoosingSource(mode === "move" && !sourceKey); setDestinationId(null); } }, [visible, mode, sourceKey]);
+  const run = async (operation: () => Promise<void>): Promise<boolean> => {
+    if (pending.current) return false;
+    pending.current = true; setBusy(true);
+    try { await operation(); return true; }
+    catch { Alert.alert(noWidow('No pudimos guardar el cambio'), noWidow('Inténtalo de nuevo.')); return false; }
+    finally { pending.current = false; setBusy(false); }
+  };
+  const close = () => { if (pending.current) return false; Keyboard.dismiss(); onClose(); };
+  const membership = (collection: MenuCollection): boolean | 'mixed' => {
+    if (mode === 'move') return choosingSource ? sourceIds.includes(collection.id) : collection.id === destinationId;
+    if (mode === 'filter') return selectedIds.includes(collection.id);
+    if (!targetFechas.length) return false;
+    const matches = targetFechas.filter((id) => collection.fechas.includes(id)).length;
+    return matches === targetFechas.length ? true : matches > 0 ? 'mixed' : false;
+  };
+  const toggle = (collection: MenuCollection) => {
+    if (pending.current) return;
+    if (mode === 'move') {
+      if (choosingSource) setSourceIds((current) => current.includes(collection.id) ? current.filter((id) => id !== collection.id) : [...current, collection.id]);
+      else setDestinationId(collection.id);
       return;
     }
-    const next = await setMenusInCollection(collection.id, targetFechas, !isChecked(collection));
-    if (next) onCollectionUpdated(next);
+    if (mode === 'filter') { onToggleFilter?.(collection.id); return; }
+    if (!targetFechas.length) return;
+    void run(async () => {
+      const next = await setMenusInCollection(collection.id, targetFechas, membership(collection) !== true);
+      if (!next) throw new Error('Missing list');
+      onCollectionUpdated(next); Haptics.selectionAsync().catch(() => {});
+    });
   };
-
-  const handleCreate = async () => {
-    const title = newTitle.trim();
+  const create = (rawTitle = newTitle) => {
+    const title = normalizeMenuListTitle(rawTitle);
     if (!title) return;
-    const collection = await createMenuCollection(title);
-    onCollectionCreated(collection);
-    if (mode === 'assign' && targetFechas.length > 0) {
-      const next = await setMenusInCollection(collection.id, targetFechas, true);
-      if (next) onCollectionUpdated(next);
-    } else if (mode === 'filter') {
-      onToggleFilter?.(collection.id);
-    }
-    setNewTitle('');
-    setCreating(false);
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+    void run(async () => {
+      const collection = createdDraft.current ?? await createMenuCollection(title);
+      createdDraft.current = collection;
+      onCollectionCreated(collection);
+      if (mode === 'assign' && targetFechas.length) {
+        const next = await setMenusInCollection(collection.id, targetFechas, true);
+        if (!next) throw new Error('Missing list');
+        onCollectionUpdated(next);
+      } else if (mode === 'filter') onToggleFilter?.(collection.id);
+      else if (mode === 'move') setDestinationId(collection.id);
+      createdDraft.current = null; setNewTitle(''); setCreating(false); Keyboard.dismiss();
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+    });
   };
-
-  const commitRename = async (id: string, rawTitle: string) => {
-    const title = normalizeMenuListTitle(rawTitle.trim());
-    if (!title) return;
-    const renamed = await renameMenuCollection(id, title);
-    if (renamed) onCollectionUpdated(renamed);
+  const startCreate = () => {
+    if (busy) return;
+    if (Platform.OS === 'ios') Alert.prompt(noWidow('Nueva lista'), undefined, [
+      { text: 'Cancelar', style: 'cancel' }, { text: 'Crear', onPress: (value?: string) => create(value ?? '') },
+    ], 'plain-text', '');
+    else setCreating(true);
   };
-
+  const rename = (id: string, rawTitle: string) => {
+    const title = normalizeMenuListTitle(rawTitle);
+    if (!title) return Promise.resolve(false);
+    return run(async () => { const next = await renameMenuCollection(id, title); if (!next) throw new Error('Missing list'); onCollectionUpdated(next); });
+  };
   const startRename = (collection: MenuCollection) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
-    if (Platform.OS === 'ios') {
-      Alert.prompt(
-        'Renombrar lista',
-        undefined,
-        [
-          { text: 'Cancelar', style: 'cancel' },
-          { text: 'Guardar', onPress: (value?: string) => commitRename(collection.id, value ?? '') },
-        ],
-        'plain-text',
-        collection.title,
-      );
-    } else {
-      setRenameValue(collection.title);
-      setRenameTarget(collection);
-    }
+    if (Platform.OS === 'ios') Alert.prompt(noWidow('Renombrar lista'), undefined, [
+      { text: 'Cancelar', style: 'cancel' }, { text: 'Guardar', onPress: (value?: string) => { void rename(collection.id, value ?? ''); } },
+    ], 'plain-text', collection.title);
+    else { setRenameValue(collection.title); setRenameTarget(collection); }
   };
-
-  const removeCollection = (collection: MenuCollection) => {
-    Alert.alert(
-      noWidow('Eliminar lista'),
-      noWidow(`Se borrará "${collection.title}". Los menús no se borran, solo dejan de estar en esta lista.`),
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Eliminar',
-          style: 'destructive',
-          onPress: async () => {
-            await deleteMenuCollection(collection.id);
-            onCollectionRemoved(collection.id);
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-          },
-        },
-      ],
-    );
-  };
-
-  if (!rendered) return null;
-
-  return (
-    <Modal transparent visible animationType="none" onRequestClose={onClose} statusBarTranslucent>
-      <KeyboardAvoidingView style={s.kav} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <TouchableOpacity activeOpacity={1} style={s.backdrop} onPress={onClose} accessibilityLabel="Cerrar" />
-        <Animated.View style={[s.sheet, { paddingBottom: insets.bottom || 8, transform: [{ translateY }] }]}>
-          <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
-          <View pointerEvents="none" style={s.sheetTint} />
-          <View style={s.grabber} />
-          <View style={s.header}>
-            <Text style={s.headerTitle}>{noWidow(mode === 'assign' ? 'Añadir a lista' : 'Tus listas')}</Text>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              {mode === 'filter' && selectedIds.length > 0 && (
-                <TouchableOpacity hitSlop={10} onPress={onClearFilter}><Text style={s.headerClear}>Limpiar</Text></TouchableOpacity>
-              )}
-              <TouchableOpacity hitSlop={10} onPress={onClose} accessibilityLabel="Cerrar"><Ionicons name="close" size={20} color={c.textSecondary} /></TouchableOpacity>
-            </View>
-          </View>
-          <ScrollView style={s.scroll} keyboardShouldPersistTaps="handled">
-            {creating ? (
-              <View style={s.row}>
-                <Ionicons name="add" size={16} color={c.textMute} />
-                <TextInput
-                  autoFocus
-                  value={newTitle}
-                  onChangeText={(value) => setNewTitle(normalizeMenuListTitle(value))}
-                  onSubmitEditing={handleCreate}
-                  placeholder="Ej. Comida especial"
-                  placeholderTextColor={c.textMute}
-                  returnKeyType="done"
-                  autoCapitalize="words"
-                  style={s.createInput}
-                />
-                <TouchableOpacity disabled={!newTitle.trim()} hitSlop={8} onPress={handleCreate} style={[s.createBtn, !newTitle.trim() && s.createBtnDisabled]}>
-                  <Text style={s.createBtnText}>Crear</Text>
-                </TouchableOpacity>
-              </View>
-            ) : (
-              <TouchableOpacity onPress={() => setCreating(true)} style={s.row}>
-                <Ionicons name="add" size={16} color={c.textMute} />
-                <Text style={s.rowText}>{noWidow('Nueva lista')}</Text>
-              </TouchableOpacity>
-            )}
-            {collections.length === 0 && !creating && (
-              <Text style={s.emptyHint}>{noWidow('Todavía no tienes listas. Crea una para organizar tus menús.')}</Text>
-            )}
-            {collections.map((collection) => {
-              const checked = isChecked(collection);
-              return (
-                <View key={collection.id} style={s.row}>
-                  <TouchableOpacity onPress={() => toggle(collection)} style={s.rowMain}>
-                    <Ionicons name="bookmark" size={16} color={c.textSecondary} />
-                    <Text style={s.rowText} numberOfLines={1}>{collection.title}</Text>
-                    {checked && <Ionicons name="checkmark" size={18} color={c.text} />}
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    hitSlop={8}
-                    style={s.rowMore}
-                    accessibilityRole="button"
-                    accessibilityLabel="Acciones de la lista"
-                    onPress={() => Alert.alert(
-                      collection.title,
-                      undefined,
-                      [
-                        { text: 'Renombrar', onPress: () => startRename(collection) },
-                        { text: 'Eliminar', style: 'destructive', onPress: () => removeCollection(collection) },
-                        { text: 'Cancelar', style: 'cancel' },
-                      ],
-                    )}>
-                    <Ionicons name="ellipsis-horizontal" size={17} color={c.textSecondary} />
-                  </TouchableOpacity>
-                </View>
-              );
-            })}
-          </ScrollView>
-        </Animated.View>
-
-        {/* Respaldo Android para renombrar — Alert.prompt no existe ahí. */}
-        {Platform.OS !== 'ios' && (
-          <Modal transparent visible={!!renameTarget} animationType="fade" onRequestClose={() => setRenameTarget(null)}>
-            <KeyboardAvoidingView style={s.kav} behavior="padding">
-              <TouchableOpacity activeOpacity={1} style={s.renameBackdrop} onPress={() => setRenameTarget(null)}>
-                <TouchableOpacity activeOpacity={1} style={s.renameCard} onPress={() => {}}>
-                  <BlurView intensity={theme.isDark ? 30 : 40} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
-                  <View pointerEvents="none" style={s.renameCardTint} />
-                  <Text style={s.renameTitle}>{noWidow('Renombrar lista')}</Text>
-                  <TextInput
-                    autoFocus
-                    value={renameValue}
-                    onChangeText={(value) => setRenameValue(normalizeMenuListTitle(value))}
-                    onSubmitEditing={() => { if (renameTarget) commitRename(renameTarget.id, renameValue); setRenameTarget(null); }}
-                    placeholder="Ej. Comida especial"
-                    placeholderTextColor={c.textMute}
-                    returnKeyType="done"
-                    autoCapitalize="words"
-                    style={s.renameInput}
-                  />
-                  <View style={s.renameActions}>
-                    <TouchableOpacity style={s.renameActionBtn} onPress={() => setRenameTarget(null)}>
-                      <Text style={s.renameActionText}>Cancelar</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={[s.renameActionBtn, s.renameActionDivider]} onPress={() => { if (renameTarget) commitRename(renameTarget.id, renameValue); setRenameTarget(null); }}>
-                      <Text style={[s.renameActionText, s.renameActionTextPrimary]}>Guardar</Text>
-                    </TouchableOpacity>
-                  </View>
-                </TouchableOpacity>
-              </TouchableOpacity>
-            </KeyboardAvoidingView>
-          </Modal>
-        )}
-      </KeyboardAvoidingView>
-    </Modal>
-  );
+  const remove = (collection: MenuCollection) => Alert.alert(noWidow('Eliminar lista'), noWidow(`Se borrará "${collection.title}". Tus menús se conservan.`), [
+    { text: 'Cancelar', style: 'cancel' }, { text: 'Eliminar', style: 'destructive', onPress: () => { void run(async () => { await deleteMenuCollection(collection.id); onCollectionRemoved(collection.id); }); } },
+  ]);
+  const moveSelection = resolveLibraryMoveSelection({ collections: collections.map((item) => ({ ...item, patioIds: item.fechas })), activeCollectionIds: sourceIds, selectedPatioIds: targetFechas });
+  const choices = mode !== 'move' ? collections : choosingSource ? collections.filter((item) => moveSelection.candidateSourceCollectionIds.includes(item.id)) : collections.filter((item) => !sourceIds.includes(item.id));
+  const canContinue = sourceIds.length > 0 && moveSelection.canMove && !moveSelection.requiresSourceChoice;
+  const move = () => { if (!destinationId || !canContinue) return; void run(async () => {
+    const updated = await moveMenusToCollection(targetFechas, sourceIds, destinationId);
+    updated.forEach(onCollectionUpdated);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+  }).then((success) => { if (success) { onClose(); onMoved?.(); } }); };
+  const footer = mode === 'move' ? <View style={{ paddingHorizontal: 16, paddingTop: 8 }}>
+    <TouchableOpacity accessibilityRole="button" accessibilityLabel={choosingSource ? 'Continuar al destino' : 'Mover menús'} accessibilityState={{ disabled: busy || !canContinue || (!choosingSource && !destinationId), busy }} disabled={busy || !canContinue || (!choosingSource && !destinationId)} onPress={choosingSource ? () => setChoosingSource(false) : move} style={[s.confirm, { backgroundColor: theme.accent, opacity: busy || !canContinue || (!choosingSource && !destinationId) ? 0.35 : 1 }]}><Text style={s.confirmText}>{busy ? 'Moviendo…' : choosingSource ? 'Continuar' : 'Mover'}</Text></TouchableOpacity>
+  </View> : undefined;
+  const editor = creating ? <View style={[s.editor, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+    <TextInput autoFocus value={newTitle} onChangeText={setNewTitle} maxLength={32} editable={!busy} accessibilityLabel="Nombre de la lista" placeholder="Nombre de la lista" placeholderTextColor={theme.textMute} returnKeyType="done" onSubmitEditing={() => create()} style={[s.input, { color: theme.text }]} />
+    <TouchableOpacity disabled={busy || !newTitle.trim()} accessibilityRole="button" accessibilityLabel="Crear lista" accessibilityState={{ disabled: busy || !newTitle.trim(), busy }} onPress={() => create()} style={s.control}><Text style={{ color: theme.accent }}>{busy ? 'Creando…' : 'Crear'}</Text></TouchableOpacity>
+  </View> : undefined;
+  return <>
+    <LibrarySheet visible={visible} onClose={close} title={mode === 'filter' ? 'Tus listas' : mode === 'move' ? choosingSource ? 'Origen' : 'Destino' : 'Añadir a lista'} viewKey={`menus:${mode}:${choosingSource}`} footer={footer} theme={theme} preferredHeight={460} onCreate={creating || choosingSource ? undefined : startCreate} onBack={creating ? () => { if (!busy) { setCreating(false); Keyboard.dismiss(); } } : mode === 'move' && !choosingSource && !sourceKey ? () => { if (!busy) { setChoosingSource(true); setDestinationId(null); } } : undefined} onClear={mode === 'filter' && selectedIds.length ? onClearFilter : undefined} dismissDisabled={busy} editing={creating} editor={editor}>
+      <View style={[s.group, { backgroundColor: theme.surface }]}>
+        {choices.map((collection, index) => <LibraryListRow key={collection.id} title={collection.title} count={collection.fechas.length} unit="menú" role={mode === 'move' && !choosingSource ? 'radio' : 'checkbox'} checked={membership(collection)} disabled={busy} divider={index > 0} onPress={() => toggle(collection)} onMore={mode === 'move' ? undefined : () => Alert.alert(collection.title, undefined, [
+          { text: 'Renombrar', onPress: () => startRename(collection) }, { text: 'Eliminar', style: 'destructive', onPress: () => remove(collection) }, { text: 'Cancelar', style: 'cancel' },
+        ])} />)}
+        {!choices.length && <Text style={[s.empty, { color: theme.textSecondary }]}>{noWidow('Sin listas')}</Text>}
+      </View>
+    </LibrarySheet>
+    {Platform.OS !== 'ios' && <RenameDialog visible={!!renameTarget} title="Renombrar lista" value={renameValue} onChangeText={setRenameValue} maxLength={32} onClose={() => setRenameTarget(null)} onSave={() => renameTarget ? rename(renameTarget.id, renameValue) : Promise.resolve(false)} />}
+  </>;
 }
-
-function makeStyles(isDark: boolean) {
-  const c = fonderoPalette(isDark);
-  const border = isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.06)';
-  return StyleSheet.create({
-    kav: { flex: 1 },
-    backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.25)' },
-    sheet: { maxHeight: '72%', borderTopLeftRadius: 28, borderTopRightRadius: 28, overflow: 'hidden', borderTopWidth: StyleSheet.hairlineWidth, borderColor: border, shadowColor: '#000', shadowOffset: { width: 0, height: -4 }, shadowOpacity: isDark ? 0.30 : 0.14, shadowRadius: 24, elevation: 12 },
-    sheetTint: { ...StyleSheet.absoluteFillObject, backgroundColor: isDark ? 'rgba(20,21,24,0.72)' : 'rgba(255,255,255,0.70)' },
-    grabber: { alignSelf: 'center', width: 36, height: 4, borderRadius: 2, marginTop: 8, marginBottom: 4, backgroundColor: isDark ? 'rgba(255,255,255,0.16)' : 'rgba(0,0,0,0.10)' },
-    header: { minHeight: 44, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: c.border },
-    headerTitle: { fontSize: 17, fontWeight: '700', color: c.text },
-    headerClear: { fontSize: 14, fontWeight: '600', color: c.accent },
-    scroll: { paddingTop: 6 },
-    row: { minHeight: 48, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 8, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: c.border },
-    rowMain: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 48 },
-    rowMore: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
-    rowText: { flex: 1, fontSize: 15, fontWeight: '500', color: c.text },
-    createInput: { flex: 1, fontSize: 15, fontWeight: '500', color: c.text, padding: 0 },
-    createBtn: { minHeight: 34, paddingHorizontal: 14, borderRadius: 100, alignItems: 'center', justifyContent: 'center', backgroundColor: c.text },
-    createBtnDisabled: { opacity: 0.35 },
-    createBtnText: { fontSize: 13, fontWeight: '700', color: c.bg },
-    emptyHint: { paddingHorizontal: 16, paddingVertical: 16, fontSize: 13, lineHeight: 18, color: c.textSecondary },
-    renameBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40 },
-    renameCard: { width: '100%', maxWidth: 320, borderRadius: 18, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: border },
-    renameCardTint: { ...StyleSheet.absoluteFillObject, backgroundColor: isDark ? 'rgba(28,29,32,0.86)' : 'rgba(255,255,255,0.86)' },
-    renameTitle: { fontSize: 15, fontWeight: '700', color: c.text, textAlign: 'center', paddingTop: 18, paddingHorizontal: 16 },
-    renameInput: { marginTop: 14, marginHorizontal: 16, height: 40, borderRadius: 10, paddingHorizontal: 12, fontSize: 15, color: c.text, backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' },
-    renameActions: { flexDirection: 'row', marginTop: 16, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: c.border },
-    renameActionBtn: { flex: 1, height: 46, alignItems: 'center', justifyContent: 'center' },
-    renameActionDivider: { borderLeftWidth: StyleSheet.hairlineWidth, borderLeftColor: c.border },
-    renameActionText: { fontSize: 15.5, fontWeight: '600', color: c.text },
-    renameActionTextPrimary: { fontWeight: '700', color: c.accent },
-  });
-}
+const s = StyleSheet.create({
+  confirm: { minHeight: 50, padding: 12, borderRadius: 25, alignItems: 'center', justifyContent: 'center' },
+  confirmText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
+  group: { marginHorizontal: 16, marginTop: 12, borderRadius: 14, overflow: 'hidden' },
+  empty: { padding: 24, fontSize: 14, textAlign: 'center' },
+  editor: { marginHorizontal: 16, marginVertical: 8, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, gap: 8 },
+  input: { flex: 1, minWidth: 0, minHeight: 48, fontSize: 15 },
+  control: { minWidth: 44, minHeight: 44, justifyContent: 'center', alignItems: 'center' },
+});

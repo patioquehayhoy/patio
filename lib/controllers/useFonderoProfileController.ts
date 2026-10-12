@@ -181,7 +181,7 @@ export function useFonderoProfileController() {
         const selectResult = await supabase
           .from('fonditas')
           .select(FONDITA_SELECT)
-          .eq('telefono', user.email)
+          .eq('owner_id', user.id)
           .maybeSingle();
 
         if (selectResult.error) throw selectResult.error;
@@ -192,7 +192,7 @@ export function useFonderoProfileController() {
         if (!fondita) {
           const insertResult = await supabase
             .from('fonditas')
-            .insert({ telefono: user.email, nombre: '' })
+            .insert({ owner_id: user.id, nombre: '' })
             .select(FONDITA_SELECT)
             .single();
           fondita = insertResult.data;

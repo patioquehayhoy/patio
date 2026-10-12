@@ -1,0 +1,534 @@
+diff --git a/components/patio-card-info.tsx b/components/patio-card-info.tsx
+--- a/components/patio-card-info.tsx
++++ b/components/patio-card-info.tsx
+@@ -11,8 +11,10 @@
+   variant?: 'list' | 'grid';
+   distanceLabel?: string | null;
+   personalRating?: number | null;
+-  /** Include the personal rating alongside the other compact metrics. */
++  /** Accent the public-rating star when this person has rated the place. */
+   showPersonalRating?: boolean;
++  /** A comparison option; the compact grid defaults to a single line. */
++  nameLines?: 1 | 2;
+   /** Grid cards place the same price in their leading icon row. */
+   showPrice?: boolean;
+   style?: StyleProp<ViewStyle>;
+@@ -20,48 +22,62 @@
+ 
+ /** Shared content only: the parent owns navigation, selection and materials. */
+ export function PatioCardInfo({
+-  patio, variant = 'list', distanceLabel, personalRating, showPersonalRating = false, showPrice = true, style,
++  patio, variant = 'list', distanceLabel, personalRating, showPersonalRating = false, nameLines, showPrice = true, style,
+ }: PatioCardInfoProps) {
+   const { theme } = useTheme();
+   const s = makeStyles(theme);
+   const { fontScale, width } = useWindowDimensions();
+   const grid = variant === 'grid';
++  const lines = nameLines ?? (grid ? 1 : 2);
+   const stackPrice = fontScale > 1.4 && width < 600;
+   const info = getPatioCardInfo(patio, { distanceLabel, personalRating });
++  const ratedByMe = showPersonalRating && info.personalRatingValue !== null;
++  const ratingAccessibilityLabel = [info.publicRatingAccessibilityLabel,
++    ratedByMe ? info.personalRatingAccessibilityLabel : null].filter(Boolean).join('. ');
+ 
+   return (
+     <View style={[s.content, style]}>
+       <View style={[s.heading, stackPrice && s.stackedHeading]}>
+-        <View style={[s.identity, stackPrice && s.stackedIdentity, grid && { minHeight: 42 * fontScale }]}>
+-          <Text style={s.name} numberOfLines={2} ellipsizeMode="tail" accessibilityLabel={info.name} allowFontScaling>{noWidow(info.name)}</Text>
++        <View style={[s.identity, stackPrice && s.stackedIdentity, grid && { minHeight: 21 * lines * fontScale }]}>
++          <Text style={s.name} numberOfLines={lines} ellipsizeMode="tail" accessibilityLabel={info.name} allowFontScaling>{noWidow(info.name)}</Text>
+           {info.verified && <View style={[s.verification, { height: 21 * fontScale }]}>
+             <Ionicons name="checkmark-circle" size={14} color={theme.accent} accessibilityLabel="Negocio verificado" />
+           </View>}
+         </View>
+         {showPrice && <PatioCardPrice patio={patio} style={stackPrice ? s.stackedPrice : [s.trailingPrice, { width: 92 * fontScale }]} />}
+       </View>
+-      {(grid || info.area || distanceLabel?.trim()) && <View style={[s.location, grid && { minHeight: 18 * fontScale }]}>
+-        {!!info.area && <Text style={s.area} numberOfLines={1} ellipsizeMode="tail" accessibilityLabel={info.area} allowFontScaling>{noWidow(info.area)}</Text>}
+-        {distanceLabel?.trim() && <View style={s.cell} accessible accessibilityLabel={info.distanceAccessibilityLabel}>
+-          <View style={s.icon}><Ionicons name="navigate-outline" size={12} color={theme.textSecondary} /></View>
+-          <Text style={[s.meta, s.numeric]} allowFontScaling>{info.distance}</Text>
+-        </View>}
+-      </View>}
++      <PatioCardLocation area={info.area} distanceLabel={distanceLabel} reserveLine={grid} />
+       <View style={[s.facts, grid && { minHeight: 18 * fontScale }]}>
+-        <View style={s.ratings}>
+-          <View style={s.publicRating} accessible accessibilityLabel={info.publicRatingAccessibilityLabel}>
+-            <View style={s.icon}><Ionicons name="star" size={12} color={theme.textSecondary} /></View>
+-            <Text style={[s.meta, s.numeric]} numberOfLines={1} allowFontScaling>{info.publicRating}</Text>
+-          </View>
+-          {showPersonalRating && info.personalRatingValue !== null && <View style={s.ownRating} accessible accessibilityLabel={info.personalRatingAccessibilityLabel}>
+-            <View style={s.icon}><Ionicons name="star" size={12} color={theme.accent} /></View>
+-            <Text style={[s.meta, s.numeric]} numberOfLines={1} allowFontScaling>{info.personalRatingValue.toFixed(1)}</Text>
+-          </View>}
++        <View style={s.publicRating} accessible accessibilityLabel={ratingAccessibilityLabel}>
++          <View style={s.icon}><Ionicons name="star" size={12} color={ratedByMe ? theme.accent : theme.textSecondary} /></View>
++          <Text style={[s.meta, s.numeric]} numberOfLines={1} allowFontScaling>{grid ? info.publicRatingValue?.toFixed(1) ?? '—' : info.publicRating}</Text>
+         </View>
+         {!!info.closingLabel && <Text style={[s.meta, s.numeric, s.closing]} accessibilityLabel={info.closingAccessibilityLabel ?? undefined} allowFontScaling>{noWidow(info.closingLabel)}</Text>}
+       </View>
+     </View>
+   );
++}
++
++/** Location is one readable group; distance stays intact when the area is long. */
++export function PatioCardLocation({ area, distanceLabel, reserveLine = false, variant = 'card', style }: {
++  area: string;
++  distanceLabel?: string | null;
++  reserveLine?: boolean;
++  variant?: 'card' | 'detail';
++  style?: StyleProp<ViewStyle>;
++}) {
++  const { theme } = useTheme();
++  const { fontScale } = useWindowDimensions();
++  const s = makeStyles(theme);
++  const cleanArea = area.trim();
++  const distance = distanceLabel?.trim();
++  if (!cleanArea && !distance && !reserveLine) return null;
++  const accessibilityLabel = [cleanArea, distance ? `Distancia, ${distance}` : null].filter(Boolean).join('. ');
++  return <View style={[s.location, reserveLine && { minHeight: 18 * fontScale }, style]} accessible={!!accessibilityLabel} accessibilityLabel={accessibilityLabel || undefined}>
++    {!!cleanArea && <Text style={[s.area, variant === 'detail' && s.detailLocation]} numberOfLines={1} ellipsizeMode="tail" allowFontScaling>{noWidow(cleanArea)}</Text>}
++    {!!cleanArea && !!distance && <Text style={[s.area, s.locationSeparator, variant === 'detail' && s.detailLocation]} accessible={false}>·</Text>}
++    {!!distance && <Text style={[s.area, s.distance, s.numeric, variant === 'detail' && s.detailLocation]} numberOfLines={1} allowFontScaling>{noWidow(distance)}</Text>}
++  </View>;
+ }
+ 
+ /** Published price is a comparison anchor; never truncate or shrink the amount. */
+@@ -86,13 +102,13 @@
+     name: { flexShrink: 1, minWidth: 0, fontSize: 16, lineHeight: 21, fontWeight: '700', color: t.text },
+     verification: { width: 16, height: 21, flexShrink: 0, alignItems: 'center', justifyContent: 'center' },
+     area: { flexShrink: 1, minWidth: 0, fontSize: 13, lineHeight: 18, fontWeight: '400', color: t.textSecondary },
+-    location: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', columnGap: 8, rowGap: 2, marginTop: 2, minWidth: 0 },
++    location: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2, minWidth: 0 },
++    locationSeparator: { flexShrink: 0 },
++    distance: { flexShrink: 0 },
++    detailLocation: { fontSize: 14, lineHeight: 20 },
+     facts: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', columnGap: 8, rowGap: 2, marginTop: 2, minWidth: 0 },
+-    ratings: { flexDirection: 'row', alignItems: 'center', gap: 8, minWidth: 0, maxWidth: '100%' },
+     publicRating: { flexShrink: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: 4 },
+-    ownRating: { flexShrink: 0, flexDirection: 'row', alignItems: 'center', gap: 4 },
+     closing: { marginLeft: 'auto', maxWidth: '100%', textAlign: 'right' },
+-    cell: { flexShrink: 1, maxWidth: '100%', minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: 4 },
+     icon: { width: 16, height: 18, flexShrink: 0, alignItems: 'center', justifyContent: 'center' },
+     meta: { flexShrink: 1, fontSize: 12, lineHeight: 18, fontWeight: '400', color: t.textSecondary },
+     numeric: { fontVariant: ['tabular-nums'] },
+diff --git a/lib/patio-card-info.ts b/lib/patio-card-info.ts
+--- a/lib/patio-card-info.ts
++++ b/lib/patio-card-info.ts
+@@ -19,6 +19,7 @@
+   menuLabel: string;
+   price: PatioCardPrice;
+   publicRating: string;
++  publicRatingValue: number | null;
+   publicRatingAccessibilityLabel: string;
+   personalRating: string;
+   personalRatingValue: number | null;
+@@ -136,6 +137,7 @@
+     menuLabel: patio.hasTodayMenu === true ? 'Menú de hoy' : patio.hasTodayMenu === false ? 'Sin menú hoy' : 'Menú sin datos',
+     price: patioCardPrice(patio),
+     publicRating: rating === null ? '—' : `${rating.toFixed(1)}${count === null ? '' : ` (${compactReviewCount(count)})`}`,
++    publicRatingValue: rating,
+     publicRatingAccessibilityLabel: rating === null ? 'Sin calificaciones públicas'
+       : `Calificación pública, ${rating.toFixed(1)} de 5${count === null ? '' : `, ${count} ${count === 1 ? 'reseña' : 'reseñas'}`}`,
+     personalRating: ownRating === null ? 'Tu calificación: —' : `Tu calificación: ${ownRating.toFixed(1)}`,
+diff --git a/app/favoritos.tsx b/app/favoritos.tsx
+--- a/app/favoritos.tsx
++++ b/app/favoritos.tsx
+@@ -31,6 +31,7 @@
+ import { removeFavoritePatios } from '@/lib/favorites';
+ import { alphabeticalSections } from '@/lib/library-index';
+ import { resolveLibraryMoveSelection } from '@/lib/library-selection';
++import { useKnownLocation } from '@/lib/use-known-location';
+ 
+ const FAVORITES_VIEW_KEY = '@patio_favorites_view';
+ const FAVORITES_SORT_KEY = '@patio_favorites_sort';
+@@ -123,21 +124,7 @@
+   const [activeLetter, setActiveLetter] = useState('');
+   const [searchQuery, setSearchQuery] = useState('');
+   const { patios, metaById, removeLocally, loading, loadError, reload } = useFavoritePatiosController();
+-  // Distancia desde donde estás: solo si el permiso ya fue concedido (aquí
+-  // nunca se pide) — sin ubicación, la tarjeta simplemente omite la distancia.
+-  const [here, setHere] = useState<{ latitude: number; longitude: number } | null>(null);
+-  useEffect(() => {
+-    let alive = true;
+-    (async () => {
+-      try {
+-        const permission = await Location.getForegroundPermissionsAsync();
+-        if (!permission.granted) return;
+-        const position = (await Location.getLastKnownPositionAsync()) ?? (await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced }));
+-        if (alive && position) setHere({ latitude: position.coords.latitude, longitude: position.coords.longitude });
+-      } catch { /* sin ubicación: sin distancia */ }
+-    })();
+-    return () => { alive = false; };
+-  }, []);
++  const [here, setHere] = useKnownLocation();
+ 
+ 
+   // Filtros: pensados para cuando los guardados crecen (~70 items). 'hoy'
+diff --git a/app/patio/[id].tsx b/app/patio/[id].tsx
+--- a/app/patio/[id].tsx
++++ b/app/patio/[id].tsx
+@@ -12,7 +12,7 @@
+ import { AgentSpinner } from '@/components/agent-spinner';
+ import { ContentSafetyMenu } from '@/components/content-safety-menu';
+ import { SaveToListSheet } from '@/components/save-to-list-sheet';
+-import { PatioCardPrice } from '@/components/patio-card-info';
++import { PatioCardLocation, PatioCardPrice } from '@/components/patio-card-info';
+ import { usePatioDetailController } from '@/lib/controllers/usePatioDetailController';
+ import { getLikedDishNames, toggleDishLike } from '@/lib/dish-likes';
+ import { canonicalDishName } from '@/lib/menu-store';
+@@ -22,6 +22,9 @@
+ import { Fonts, Radius, Spacing, useTheme, type Theme } from '@/lib/theme';
+ import { recordRecentPatio } from '@/lib/recent-patios';
+ import { noWidow } from '@/lib/typography';
++import { useKnownLocation } from '@/lib/use-known-location';
++import { patioDistance } from '@/lib/patio-sort';
++import { formatDistance } from '@/lib/geo';
+ 
+ type ReviewThreadReply = {
+   id: string;
+@@ -124,7 +127,6 @@
+     title: { flex: 1, minWidth: 0, fontSize: 36, lineHeight: 38, fontWeight: '900', letterSpacing: -1, fontFamily: Fonts.brand, color: t.text },
+     verifiedMark: { width: 28, height: 28, alignItems: 'center', justifyContent: 'center' },
+     summaryRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 16 },
+-    subtitle: { flex: 1, minWidth: 0, fontSize: 14, lineHeight: 20, color: t.textSecondary },
+     summaryPrice: { maxWidth: '50%', marginLeft: 'auto' },
+     payments: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+     paymentIconBox: { width: 20, height: 20, alignItems: 'center', justifyContent: 'center' },
+@@ -218,6 +220,7 @@
+   const { theme } = useTheme();
+   const s = makeStyles(theme);
+   const insets = useSafeAreaInsets();
++  const [here] = useKnownLocation();
+   const [showSchedule, setShowSchedule] = useState(false);
+   const [ratingFilter, setRatingFilter] = useState<number | null>(null);
+   const [activeBadgeId, setActiveBadgeId] = useState<string | null>(null);
+@@ -428,6 +431,8 @@
+     );
+   }
+ 
++  const km = patioDistance(here, patio);
++  const distance = km === null ? null : formatDistance(km);
+   return (
+     <View style={s.container}>
+       <Stack.Screen options={{ headerShown: false }} />
+@@ -500,7 +505,7 @@
+             </View>}
+           </View>
+           <View style={s.summaryRow}>
+-            {!!patio.area.trim() && <Text style={s.subtitle} allowFontScaling={true}>{noWidow(patio.area.trim())}</Text>}
++            <PatioCardLocation area={patio.area} distanceLabel={distance} variant="detail" style={{ flex: 1 }} />
+             <PatioCardPrice patio={patio} style={s.summaryPrice} />
+           </View>
+           {/* Menú del día — agrupado por sección (atenuado si ya se acabó) */}
+diff --git a/scripts/design/card-preview.cjs b/scripts/design/card-preview.cjs
+--- a/scripts/design/card-preview.cjs
++++ b/scripts/design/card-preview.cjs
+@@ -52,17 +52,13 @@
+ const { PatioCardInfo, PatioCardPrice } = load('components/patio-card-info.tsx');
+ const { PatioIdentityIcon } = load('components/patio-identity-icon.tsx');
+ const e = React.createElement;
+-const sameName = 'Café Patio de Siempre y Cocina Tradicional del Barrio';
+ const cases = [
+-  { name: sameName, price: '$95', own: 3 },
+-  { name: sameName, price: '$75–165', own: 4 },
+-  { name: sameName, price: '$1,250–2,950', own: null },
+-  { name: 'La Cocina de Doña Esperanza y sus Hijas, Antojitos de Temporada y Sabores Tradicionales del Barrio de San Miguel desde 1987', price: '$35–105', own: 2 },
+-  { name: 'Comedor Comunitario de la Esquina con un Nombre Extraordinariamente Largo para Probar el Límite de Texto de Patio', price: '$', own: null },
+-  { name: 'Patio', price: '$150', own: 5 },
+-  { name: 'Cocina Lupita', price: '$90', own: null, verified: true },
+-  { name: 'Cocina Lupita', price: '$145–185', own: 3, verified: true },
+-  { name: 'Cocina Carmelita', price: '$90', own: null, verified: false, noHours: true },
++  { name: 'Patio', price: '$95', own: null, verified: true },
++  { name: 'Cocina Lupita', price: '$145–185', own: 2, verified: true },
++  { name: 'Café Patio de Siempre y Cocina Tradicional del Barrio', price: '$75–165', own: 5, verified: true },
++  { name: 'La Cocina de Doña Esperanza y sus Hijas, Antojitos de Temporada y Sabores Tradicionales del Barrio de San Miguel desde 1987', price: '$1,250–2,950', own: 3, area: 'San Miguel Chapultepec Primera Sección', distance: '12.5 km', count: 12543, verified: true },
++  { name: 'Lugar laboratorio con un nombre extraordinariamente largo 38', price: '$45–120', own: null, verified: false, distance: '50 m' },
++  { name: 'Cocina Carmelita', price: '$', own: null, verified: false, noHours: true, area: '', distance: null, rating: 'Nuevo' },
+ ];
+ function theme(dark) {
+   return { isDark: dark, bg: dark ? Colors.bgDark : Colors.bg, surface: dark ? Colors.surfaceDark : Colors.surface,
+@@ -70,14 +66,14 @@
+     textMute: dark ? Colors.textMuteDark : Colors.textMute, accent: dark ? Colors.accentDark : Colors.accent,
+     border: dark ? Colors.borderDark : Colors.border };
+ }
+-function section({ label, dark = false, width = 393, fontScale = 1, grid = false }) {
++function section({ label, dark = false, width = 393, fontScale = 1, grid = false, nameLines }) {
+   currentTheme = theme(dark); frame = { width, height: 852, fontScale };
+   const cols = grid ? patioGridColumns(width, fontScale) : 1;
+   const cards = cases.map((item, index) => {
+-    const patio = { id: String(index), ...item, categories: [], menu: [], area: 'Irrigación',
+-      weeklyHours: item.noHours ? null : crearHorarioBase('00:00', '23:59'), rating: '4.5', ratingCount: index === 3 ? 12543 : 70, isVerifiedBusiness: item.verified ?? true };
++    const patio = { id: String(index), ...item, categories: [], menu: [], area: item.area ?? 'Irrigación',
++      weeklyHours: item.noHours ? null : crearHorarioBase('00:00', '23:59'), rating: item.rating ?? '4.5', ratingCount: item.count ?? 70, isVerifiedBusiness: item.verified ?? true };
+     const info = e(PatioCardInfo, { patio, variant: grid ? 'grid' : 'list', showPrice: !grid,
+-      showPersonalRating: true, personalRating: item.own, distanceLabel: grid ? null : '750 m' });
++      nameLines, showPersonalRating: true, personalRating: item.own, distanceLabel: item.distance === undefined ? '750 m' : item.distance });
+     const card = grid ? e(web.View, { style: { width: cols === 2 ? (width - 44) / 2 : width - 32,
+       padding: 12, borderRadius: 18, backgroundColor: currentTheme.surface, borderWidth: 0.5, borderColor: currentTheme.border } },
+       e(web.View, { style: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 40 * fontScale, marginBottom: 4 } },
+@@ -92,9 +88,9 @@
+ }
+ function generate(destination) {
+   const samples = [
+-    { label: 'Lista · claro' }, { label: 'Lista · oscuro', dark: true },
+-    { label: 'Cuadrícula · claro', grid: true }, { label: 'Cuadrícula · oscuro', grid: true, dark: true },
+-    { label: 'Pantalla pequeña · 320 pt', width: 320 }, { label: 'Letra grande · 160%', fontScale: 1.6 },
++    { label: 'A · una línea · aplicada', grid: true }, { label: 'B · dos líneas · comparación', grid: true, nameLines: 2 },
++    { label: 'Lista · más detalle' }, { label: 'A · oscuro', grid: true, dark: true },
++    { label: 'A · pantalla pequeña · 320 pt', grid: true, width: 320 }, { label: 'A · letra grande · 160%', grid: true, fontScale: 1.6 },
+   ].map(section).join('');
+   const font = fs.readFileSync(path.join(root, 'node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/Ionicons.ttf')).toString('base64');
+   const html = `<!doctype html><html lang="es"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Patio · nombres largos y calificaciones</title>
+@@ -104,10 +100,10 @@
+     header{max-width:1100px;margin:28px auto;padding:0 24px}h1{font-size:24px;margin:0 0 8px}p{font-size:14px;line-height:1.5;margin:6px 0}
+     main{display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;justify-content:center;padding:0 20px 40px}
+     .sample{flex:none;overflow:hidden;border-radius:20px}.sample h2{font-size:14px;font-weight:600;padding:16px 16px 0;margin:0}
+-    </style><header><h1>Patio · agrupación compacta</h1><p>Verificación junto al nombre; precio a la derecha. Ejemplos con nombres cortos y largos, distintos precios y datos ausentes.</p><p>Estrella neutra: promedio público · estrella naranja: calificación propia cuando existe. Hora de cierre publicada a la derecha.</p><p>Vista de revisión del componente real en navegador. El mapa, vidrio y renderizado nativo se revisan en el celular.</p></header><main>${samples}</main></html>`;
++    </style><header><h1>Patio · una estrella y tres líneas</h1><p>A: nombre de una línea. B: nombre de dos líneas. Mismos lugares, precios, distancias y verificación para comparar.</p><p>Una estrella: el número es el promedio público; naranja indica que ya calificaste. Colonia · distancia. La cuadrícula omite el conteo visible de reseñas para conservar tres líneas de texto.</p><p>Precio e icono permanecen arriba; una futura foto del local puede ocupar esa zona. Ejemplos sintéticos del componente real. Mapas, vidrio y fuentes nativas se prueban en el celular.</p></header><main>${samples}</main></html>`;
+   fs.mkdirSync(path.dirname(destination), { recursive: true });
+   fs.writeFileSync(destination, html);
+   return destination;
+ }
+-if (require.main === module) console.log(generate(process.argv[2] || path.join(root, 'docs/design/previews/patio-cards-2026-10-10.html')));
++if (require.main === module) console.log(generate(process.argv[2] || path.join(root, 'docs/design/previews/patio-cards-single-star-2026-10-10.html')));
+ module.exports = { generate };
+diff --git a/docs/DESIGN_SYSTEM.md b/docs/DESIGN_SYSTEM.md
+--- a/docs/DESIGN_SYSTEM.md
++++ b/docs/DESIGN_SYSTEM.md
+@@ -1,6 +1,6 @@
+ # Patio — sistema de diseño vigente
+ 
+-Actualizado el 2026-10-10. Sustituye los valores y contratos anteriores de
++Actualizado el 2026-10-12. Sustituye los valores y contratos anteriores de
+ este archivo. Fundamentos: [ESSENTIAL_DESIGN_PRINCIPLES](design/foundations/ESSENTIAL_DESIGN_PRINCIPLES.md).
+ Alcance y verificación: [auditoría de diseño](DESIGN_AUDIT_2026-10-10.md) y
+ [ajuste de distribución con referencia Uber](UBER_LAYOUT_REFINEMENT_2026-10-10.md).
+@@ -8,6 +8,8 @@
+ [estabilidad de tarjetas](CARD_STABILITY_2026-10-10.md).
+ Agrupación compacta y botón de ubicación, con versión anterior guardada:
+ [ajuste reversible](COMPACT_CARDS_LOCATION_2026-10-10.md).
++Estrella única, colonia/distancia y comparación de nombres en cuadrícula:
++[ajuste final de tarjetas](SINGLE_STAR_CARDS_2026-10-12.md).
+ 
+ ## Identidad y agrupación
+ 
+@@ -68,7 +70,9 @@
+ jerarquía en Guardados, resultados de Mapa, Vistos y colección privada.
+ La colección pública no inventa métricas que su consulta no obtiene.
+ 
+-- Nombre: máximo dos líneas y elipsis. Completo en accesibilidad y ficha.
++- Nombre: una línea con elipsis en cuadrícula; hasta dos en lista.
++  Completo en accesibilidad y ficha. La alternativa de dos líneas en grid
++  queda en el artefacto de comparación, sin cambiar el ajuste aplicado.
+ - Colonia: una línea. Sin giro ni categoría. Si falta, no sustituirla con
+   «CDMX», una categoría o una colonia inferida.
+ - Lista: nombre a la izquierda y precio a la derecha en la cabecera. Con
+@@ -79,24 +83,28 @@
+   existe; se alinea a su primera línea. No reservar hueco para negocios sin
+   verificación ni anclar la palomita al importe.
+ - Grid: precio arriba a la derecha, junto a la caja del icono. Esa fila
+-  reserva 40 pt, el nombre dos líneas, colonia y métricas una fila cada una;
+-  las reservas escalan con la letra. Calificaciones permanecen en una línea.
+-- Ficha: nombre completo; debajo, colonia a la izquierda y precio a la derecha.
++  reserva 40 pt; debajo hay tres líneas de texto: nombre, ubicación y
++  calificación/cierre. Las reservas escalan con la letra. La zona superior
++  podrá incorporar una foto real del local en una iteración futura.
++- Ficha: nombre completo; debajo, colonia/distancia a la izquierda y precio a la derecha.
+ - Guardados pasa a una columna con fontScale > 1.4 o si las dos columnas no
+   dejan 140 pt × fontScale de contenido y 24 pt de padding por card.
+   No fijar una altura total.
+-- Distancia conocida junto a colonia; calificaciones en el siguiente grupo.
+-  Omitir guiones de distancia y calificación propia ausentes.
+-- Promedio/reseñas: estrella neutra. Calificación propia en Guardados:
+-  estrella naranja más número junto al promedio, separados por 8 pt, solo
+-  cuando existe. Sin casilla vacía, estrella hueca ni texto visible «Tu». No colorear ni
+-  reemplazar el promedio con la calificación propia. Accesibilidad nombra
+-  explícitamente ambos datos. Cuentas grandes compactas en pantalla, completas
+-  en accesibilidad. Las estrellas son información; la fila abre la ficha.
++- Ubicación: «colonia · distancia», sin flecha. Separador solo si ambos datos
++  existen. Colonia larga con elipsis; conservar legible la distancia. El
++  componente es compartido por cards y ficha. Sin permiso ya concedido o
++  coordenadas válidas, omitir distancia sin pedir ubicación al abrir la ficha.
++- Una estrella junto al promedio público. Si hay calificación propia conocida,
++  usar naranja para indicar participación; sin ella, estrella neutra. El número
++  sigue siendo el promedio público; no reemplazarlo por el voto propio.
++  Accesibilidad nombra ambos datos cuando existen. Sin segundo número ni estrella.
++  Lista muestra conteo de reseñas compacto; grid lo conserva en accesibilidad y
++  ficha para dejar espacio al cierre. La estrella es información; la fila abre la ficha.
+ - Cuando está abierto y tiene horario fiable: «Cierra HH:MM» a la derecha
+   del grupo de calificaciones; turno publicado de 24 h: «Abierto 24 h».
+-  Con poco ancho, la hora puede pasar debajo y sigue alineada a la derecha;
+-  ambas calificaciones permanecen juntas. Cerrado/sin horario: omitir la hora.
++  En grid, promedio sin conteo visible y cierre comparten la tercera línea.
++  Las medidas de la cuadrícula permiten reorganizar a una columna con letra
++  grande. Cerrado/sin horario: omitir la hora.
+ - Sin «Menú de hoy» ni «Sin horario» como líneas de metadata. Horario,
+   publicación e inventario son conceptos independientes.
+ - Icono neutral en caja **transparente de 36 pt**. Un punto sólido de 7 pt en
+diff --git a/lib/layout-metrics.ts b/lib/layout-metrics.ts
+--- a/lib/layout-metrics.ts
++++ b/lib/layout-metrics.ts
+@@ -3,7 +3,7 @@
+ export const BOTTOM_ACTION_OFFSET = 8;
+ export const CONTENT_CONTROL_GAP = 16;
+ 
+-/** One line for the two rating groups, with readable type and card padding. */
++/** Keep location and rating/closing rows readable with card padding. */
+ export function patioGridColumns(width: number, fontScale: number): 1 | 2 {
+   return fontScale > 1.4 || (width - 44) / 2 < 140 * fontScale + 24 ? 1 : 2;
+ }
+diff --git a/scripts/tests/library-controls.test.cjs b/scripts/tests/library-controls.test.cjs
+--- a/scripts/tests/library-controls.test.cjs
++++ b/scripts/tests/library-controls.test.cjs
+@@ -6,11 +6,12 @@
+ const ts = require('typescript');
+ 
+ function pureModule(file) {
+-  const output = ts.transpileModule(fs.readFileSync(path.resolve(__dirname, '../..', file), 'utf8'), {
++  const filename = path.resolve(__dirname, '../..', file);
++  const output = ts.transpileModule(fs.readFileSync(filename, 'utf8'), {
+     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+   }).outputText;
+   const module = { exports: {} };
+-  new Function('module', 'exports', output)(module, module.exports);
++  new Function('require', 'module', 'exports', output)((id) => pureModule(path.resolve(path.dirname(filename), `${id}.ts`)), module, module.exports);
+   return module.exports;
+ }
+ const layoutMetrics = pureModule('lib/layout-metrics.ts');
+@@ -106,6 +107,7 @@
+     '@/components/rename-dialog': { RenameDialog: 'RenameDialog' },
+     '@/components/scroll-edge-fade': { ScrollEdgeFade: 'ScrollEdgeFade' },
+     '@/lib/use-scroll-edges': { useScrollEdges: () => ({ top: false, bottom: false, onScroll() {}, onLayout() {}, onContentSizeChange() {} }) },
++    '@/lib/use-known-location': { useKnownLocation: () => [null, () => {}] },
+     '@/components/selection-actions': { SelectionActions: 'SelectionActions' },
+     '@/components/patio-card-info': { PatioCardInfo: 'PatioCardInfo', PatioCardPrice: 'PatioCardPrice' },
+     ...overrides,
+@@ -135,6 +137,39 @@
+   if (!node || typeof node !== 'object') return [];
+   return [node, ...nodes(node.props?.children)];
+ }
++
++test('one rating star acknowledges a valid personal vote while retaining the public average', () => {
++  const f = fixture('components/patio-card-info.tsx', { '@/lib/patio-card-info': pureModule('lib/patio-card-info.ts') });
++  const props = { patio: { name: 'Cocina con un nombre muy largo', area: 'Centro', menu: [], rating: '4.7', ratingCount: 213, isVerifiedBusiness: true }, personalRating: 2, showPersonalRating: true, variant: 'grid', showPrice: false };
++  let tree = f.render(f.exports.PatioCardInfo, props);
++  const star = (value) => nodes(value).filter((node) => node.type === 'Icon' && node.props.name === 'star');
++  assert.equal(star(tree).length, 1);
++  assert.equal(star(tree)[0].props.color, '#f60');
++  assert.ok(nodes(tree).some((node) => node.props?.children === '4.7'));
++  assert.ok(nodes(tree).some((node) => /Calificación pública, 4.7.*213 reseñas.*Tu calificación, 2.0/.test(node.props?.accessibilityLabel ?? '')));
++  assert.equal(nodes(tree).find((node) => node.props?.accessibilityLabel === props.patio.name).props.numberOfLines, 1);
++  for (const personalRating of [null, 0, 6, NaN]) {
++    tree = f.render(f.exports.PatioCardInfo, { ...props, personalRating, variant: 'list' });
++    assert.equal(star(tree).length, 1);
++    assert.notEqual(star(tree)[0].props.color, '#f60');
++    assert.ok(nodes(tree).some((node) => node.props?.children === '4.7 (213)'));
++  }
++});
++
++test('location uses a middle dot only between real area and distance and speaks the full values', () => {
++  const f = fixture('components/patio-card-info.tsx');
++  const area = 'San Miguel Chapultepec Primera Sección';
++  const render = (props) => f.render(f.exports.PatioCardLocation, props);
++  let tree = render({ area, distanceLabel: '12.5 km', variant: 'detail' });
++  assert.equal(tree.props.accessibilityLabel, `${area}. Distancia, 12.5 km`);
++  assert.equal(nodes(tree).filter((node) => node.props?.children === '·').length, 1);
++  assert.equal(nodes(tree).filter((node) => node.type === 'Icon').length, 0);
++  assert.equal(nodes(render({ area, distanceLabel: null })).filter((node) => node.props?.children === '·').length, 0);
++  tree = render({ area: ' ', distanceLabel: '750 m' });
++  assert.equal(tree.props.accessibilityLabel, 'Distancia, 750 m');
++  assert.equal(nodes(tree).filter((node) => node.props?.children === '·').length, 0);
++  assert.equal(render({ area: '', distanceLabel: null }), null);
++});
+ 
+ test('sheet geometry respects the available viewport instead of forcing a minimum behind the keyboard', () => {
+   const { librarySheetHeight, libraryFooterMaxHeight } = layoutMetrics;
+diff --git a/scripts/tests/map-location.test.cjs b/scripts/tests/map-location.test.cjs
+--- a/scripts/tests/map-location.test.cjs
++++ b/scripts/tests/map-location.test.cjs
+@@ -9,7 +9,7 @@
+ const tick = () => new Promise(setImmediate);
+ const point = { latitude: 19.4326, longitude: -99.1332 };
+ 
+-function fixture() {
++function fixture(file = 'lib/use-map-location.ts') {
+   const slots = []; const effects = []; const timers = new Map();
+   let cursor = 0; let unmounted = false; let lateWrites = 0; let id = 0;
+   const controls = { permission: { granted: true, canAskAgain: true }, cache: { coords: point }, current: { coords: point } };
+@@ -38,7 +38,7 @@
+     '@/lib/typography': { noWidow: (v) => v },
+   };
+   const module = { exports: {} };
+-  const code = ts.transpileModule(fs.readFileSync(path.resolve(__dirname, '../../lib/use-map-location.ts'), 'utf8'), {
++  const code = ts.transpileModule(fs.readFileSync(path.resolve(__dirname, '../..', file), 'utf8'), {
+     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, esModuleInterop: true },
+   }).outputText;
+   new Function('require', 'module', 'exports', 'setTimeout', 'clearTimeout', code)(
+@@ -47,7 +47,7 @@
+   );
+   return {
+     controls, calls,
+-    render(callback = (v) => calls.centers.push(v)) { cursor = 0; const value = module.exports.useMapLocation(callback); effects.splice(0).forEach((fn) => fn()); return value; },
++    render(callback = (v) => calls.centers.push(v)) { cursor = 0; const value = module.exports.useMapLocation ? module.exports.useMapLocation(callback) : module.exports.useKnownLocation(); effects.splice(0).forEach((fn) => fn()); return value; },
+     fireTimeouts() { [...timers.values()].forEach((fn) => fn()); },
+     unmount() { unmounted = true; slots.forEach((slot) => slot?.cleanup?.()); },
+     get lateWrites() { return lateWrites; },
+@@ -115,3 +115,26 @@
+   assert.equal(f.calls.cache.length, 0); assert.equal(f.calls.centers.length, 0);
+   assert.equal(f.calls.alerts.length, 0); assert.equal(f.lateWrites, 0);
+ });
++
++test('known location for cards and detail never prompts and uses a recent granted position', async () => {
++  const denied = fixture('lib/use-known-location.ts');
++  denied.controls.permission = { granted: false, canAskAgain: true };
++  denied.render(); await tick();
++  assert.equal(denied.calls.ask, 0); assert.equal(denied.calls.cache.length, 0);
++  assert.equal(denied.render()[0], null);
++  const granted = fixture('lib/use-known-location.ts');
++  granted.render(); await tick();
++  assert.deepEqual(granted.render()[0], point);
++  assert.equal(granted.calls.ask, 0); assert.equal(granted.calls.current.length, 0);
++  assert.deepEqual(granted.calls.cache, [{ maxAge: 60000, requiredAccuracy: 100 }]);
++});
++
++test('known location ignores invalid coordinates and a late cache after unmount', async () => {
++  const invalid = fixture('lib/use-known-location.ts');
++  invalid.controls.cache = { coords: { latitude: 100, longitude: 300 } };
++  invalid.render(); await tick(); assert.equal(invalid.render()[0], null);
++  const f = fixture('lib/use-known-location.ts'); const cache = deferred();
++  f.controls.cache = cache.promise; f.render(); await tick(); f.unmount();
++  cache.resolve(null); await tick();
++  assert.equal(f.calls.current.length, 0); assert.equal(f.lateWrites, 0);
++});
+diff --git a/lib/use-known-location.ts b/lib/use-known-location.ts
+new file mode 100644
+--- /dev/null
++++ b/lib/use-known-location.ts
+@@ -0,0 +1,25 @@
++import { useEffect, useState } from 'react';
++import * as Location from 'expo-location';
++
++import type { Coordinates } from './patio-sort';
++
++/** Display distance only after an existing foreground permission; never prompt. */
++export function useKnownLocation() {
++  const [here, setHere] = useState<Coordinates | null>(null);
++  useEffect(() => {
++    let active = true;
++    void (async () => {
++      const permission = await Location.getForegroundPermissionsAsync();
++      if (!active || !permission.granted) return;
++      const cached = await Location.getLastKnownPositionAsync({ maxAge: 60_000, requiredAccuracy: 100 }).catch(() => null);
++      if (!active) return;
++      const position = cached ?? await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
++      if (!active) return;
++      const { latitude, longitude } = position.coords;
++      if (!Number.isFinite(latitude) || !Number.isFinite(longitude) || Math.abs(latitude) > 90 || Math.abs(longitude) > 180) return;
++      setHere({ latitude, longitude });
++    })().catch(() => { /* The place remains usable without a location. */ });
++    return () => { active = false; };
++  }, []);
++  return [here, setHere] as const;
++}

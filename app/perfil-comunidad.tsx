@@ -5,7 +5,7 @@ import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 import { File } from 'expo-file-system';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Alert, Image, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { supabase } from '@/lib/supabase';
@@ -108,7 +108,7 @@ export default function CommunityProfileScreen() {
     <KeyboardAvoidingView style={[s.root, { backgroundColor: theme.bg, paddingTop: insets.top }]} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <Stack.Screen options={{ headerShown: false }} />
       <TouchableOpacity style={s.back} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Regresar"><Ionicons name="chevron-back" size={21} color={theme.text} /></TouchableOpacity>
-      <View style={s.content}>
+      <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={[s.content, { paddingBottom: insets.bottom + 24 }]}>
         <TouchableOpacity
           style={[s.avatar, { backgroundColor: theme.surface, borderColor: theme.border }]}
           accessibilityRole="button"
@@ -123,16 +123,20 @@ export default function CommunityProfileScreen() {
           }}>
           {avatarUri ? <Image source={{ uri: avatarUri }} style={s.avatarImage} /> : <Ionicons name="camera-outline" size={27} color={theme.textMute} />}
         </TouchableOpacity>
-        <Text style={[s.title, { color: theme.text }]}>{noWidow('Tu nombre, nada más.')}</Text>
+        <Text style={[s.title, { color: theme.text }]}>{noWidow('Tu perfil de Foodie.')}</Text>
         <Text style={[s.body, { color: theme.textSecondary }]}>{noWidow('Ayuda a que reseñas y recomendaciones tengan una persona real detrás. Tu correo nunca se muestra.')}</Text>
-        <TextInput value={firstName} onChangeText={setFirstName} autoCapitalize="words" placeholder="Nombre" placeholderTextColor={theme.textMute} style={[s.input, { color: theme.text, backgroundColor: theme.surface, borderColor: theme.border }]} />
-        <TextInput value={lastName} onChangeText={setLastName} autoCapitalize="words" placeholder="Primer apellido" placeholderTextColor={theme.textMute} style={[s.input, { color: theme.text, backgroundColor: theme.surface, borderColor: theme.border }]} />
-        <TextInput value={handle} onChangeText={setHandle} autoCapitalize="none" placeholder="@usuario opcional" placeholderTextColor={theme.textMute} style={[s.input, { color: theme.text, backgroundColor: theme.surface, borderColor: theme.border }]} />
-        <TextInput value={bio} onChangeText={setBio} maxLength={160} placeholder="Descripción editorial opcional" placeholderTextColor={theme.textMute} style={[s.input, { color: theme.text, backgroundColor: theme.surface, borderColor: theme.border }]} />
-        <TouchableOpacity style={[s.button, { backgroundColor: theme.accent, opacity: busy ? 0.55 : 1 }]} disabled={busy} onPress={save} accessibilityRole="button" accessibilityLabel={busy ? 'Guardando perfil' : 'Continuar'}>
+        <Text style={[s.label, { color: theme.textSecondary }]}>Nombre</Text>
+        <TextInput value={firstName} onChangeText={setFirstName} maxLength={40} accessibilityLabel="Nombre" autoComplete="given-name" autoCapitalize="words" placeholder="Tu nombre" placeholderTextColor={theme.textMute} style={[s.input, { color: theme.text, backgroundColor: theme.surface, borderColor: theme.border }]} />
+        <Text style={[s.label, { color: theme.textSecondary }]}>Primer apellido</Text>
+        <TextInput value={lastName} onChangeText={setLastName} maxLength={40} accessibilityLabel="Primer apellido" autoComplete="family-name" autoCapitalize="words" placeholder="Tu apellido" placeholderTextColor={theme.textMute} style={[s.input, { color: theme.text, backgroundColor: theme.surface, borderColor: theme.border }]} />
+        <Text style={[s.label, { color: theme.textSecondary }]}>Usuario · opcional</Text>
+        <TextInput value={handle} onChangeText={setHandle} maxLength={24} accessibilityLabel="Usuario, opcional" autoCorrect={false} autoCapitalize="none" placeholder="sin espacios ni arroba" placeholderTextColor={theme.textMute} style={[s.input, { color: theme.text, backgroundColor: theme.surface, borderColor: theme.border }]} />
+        <Text style={[s.label, { color: theme.textSecondary }]}>Sobre ti · opcional</Text>
+        <TextInput value={bio} onChangeText={setBio} multiline maxLength={160} accessibilityLabel="Sobre ti, opcional" placeholder="Algo sobre ti" placeholderTextColor={theme.textMute} style={[s.input, s.bio, { color: theme.text, backgroundColor: theme.surface, borderColor: theme.border }]} />
+        <TouchableOpacity style={[s.button, { backgroundColor: theme.accent, opacity: busy ? 0.55 : 1 }]} disabled={busy} onPress={save} accessibilityRole="button" accessibilityState={{ disabled: busy, busy }} accessibilityLabel={busy ? 'Guardando perfil' : 'Continuar'}>
           <Text style={[s.buttonText, { color: '#FFFFFF' }]}>{busy ? 'Guardando…' : 'Continuar'}</Text>
         </TouchableOpacity>
-      </View>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }
@@ -140,12 +144,14 @@ export default function CommunityProfileScreen() {
 const s = StyleSheet.create({
   root: { flex: 1 },
   back: { width: 44, height: 44, marginLeft: 12, alignItems: 'center', justifyContent: 'center' },
-  content: { flex: 1, justifyContent: 'center', paddingHorizontal: 24, paddingBottom: 80 },
+  content: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: 24, paddingTop: 16 },
   avatar: { width: 68, height: 68, borderRadius: 34, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center', marginBottom: 24 },
   avatarImage: { width: 68, height: 68, borderRadius: 34 },
   title: { maxWidth: 340, fontFamily: Fonts.brand, fontSize: 36, lineHeight: 39, fontWeight: '900', letterSpacing: -1.2 },
   body: { maxWidth: 350, marginTop: 12, marginBottom: 26, fontSize: 14, lineHeight: 21 },
-  input: { height: 54, borderRadius: 15, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 16, marginBottom: 10, fontSize: 16 },
-  button: { height: 54, borderRadius: 27, alignItems: 'center', justifyContent: 'center', marginTop: 6 },
+  label: { fontSize: 13, lineHeight: 18, fontWeight: '700', marginBottom: 6 },
+  input: { minHeight: 54, borderRadius: 15, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 16, paddingVertical: 14, marginBottom: 16, fontSize: 16 },
+  bio: { minHeight: 96, textAlignVertical: 'top' },
+  button: { minHeight: 54, paddingVertical: 12, paddingHorizontal: 20, borderRadius: 27, alignItems: 'center', justifyContent: 'center', marginTop: 6 },
   buttonText: { fontSize: 16, fontWeight: '700' },
 });

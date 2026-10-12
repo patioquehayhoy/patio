@@ -1,5 +1,13 @@
 # Consistencia de interfaz — tres etapas
 
+> **Corte vigente — 2026-10-09:** lanzamiento solicitado para iPhone y Android.
+> Homologación de bibliotecas implementada; 149 pruebas y 19 comprobaciones SQL
+> aisladas aprobadas; exportaciones de ambas plataformas completas. Backend real,
+> seguridad restante, configuración Android, QA visual y tiendas siguen abiertos.
+> Checklist y contrato: [LAUNCH_CLOSEOUT_2026-10-09.md](LAUNCH_CLOSEOUT_2026-10-09.md).
+> Los cortes anteriores se conservan como historial, no como estado de lanzamiento.
+
+
 Solicitud vigente de Alejandro, 2026-09-19: cerrar el diseño y la experiencia
 por bloques acotados. Revisar la app de forma panorámica, incluyendo Perfil
 Fondero; priorizar cards, Guardados, listas, iconos e interacción. Conservar la
@@ -7,7 +15,9 @@ ficha pública de negocio ya aprobada.
 
 ## Estado de este corte
 
-- Plan dividido en exactamente tres etapas. Implementación pendiente.
+- Plan dividido en exactamente tres etapas. Implementación parcial: puntos
+  3, 4 y 6 de etapa 1 implementados; restantes sin cierre. Auditoría vigente:
+  [PENDING_AUDIT_2026-10-01.md](PENDING_AUDIT_2026-10-01.md).
 - Revisión inicial de código y documentación; no acredita revisión visual en
   dispositivo, pruebas ni aceptación de las pantallas.
 - Hay componentes compartidos, pero también paneles y variantes locales.
@@ -30,10 +40,9 @@ ficha pública de negocio ya aprobada.
 4. ✅ (2026-09-27) `PatioCardInfo` mide su propio ancho/`fontScale` y apila
    verticalmente en vez de recortar cuando el texto crece o el ancho es
    chico — cubierto por `scripts/tests/patio-card-info.test.cjs`.
-5. ⏳ Pendiente. Se empezaron `lib/use-scroll-edges.ts` y
-   `components/scroll-edge-fade.tsx` (degradado de scroll) pero quedaron sin
-   conectar a ninguna pantalla — decidir si se completan o se retiran antes
-   de darlos por hechos.
+5. ✅ (2026-10-09, código) `useScrollEdges` y `ScrollEdgeFade` conectados a
+   Guardados, Menús, Explorar y paneles de listas. Dos pruebas de estado y
+   restablecimiento aprobadas; aceptación visual en dispositivo pendiente.
 6. ✅ (2026-09-27) Mover ahora es su propio paso: elegir origen (cuando es
    ambiguo, ej. vista "Todos") → elegir destino → confirmar. Centralizado en
    `lib/library-selection.ts`, consumido por `favoritos.tsx`,
@@ -79,8 +88,8 @@ Foodie y Fondero; registrar pendientes concretos antes de pasar a etapa 3.
 - Al cerrar cada bloque, actualizar este archivo y la primera entrada de
   HANDOFF con: cambios, evidencia, pendientes y siguiente acción exacta.
 - No repetir auditorías ya documentadas salvo que el código haya cambiado.
-- Punto de reanudación: consolidar hallazgos de la auditoría inicial y
-  comenzar el contrato común de cards/interacción de la etapa 1.
+- Punto de reanudación: consolidar inventario y contrato común, completar
+  degradado de scroll y QA físico de etapa 1; después continuar etapa 2.
 
 ## Referencias
 

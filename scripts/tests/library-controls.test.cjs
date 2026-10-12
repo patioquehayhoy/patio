@@ -5,6 +5,18 @@ const path = require('node:path');
 const { test } = require('node:test');
 const ts = require('typescript');
 
+function pureModule(file) {
+  const filename = path.resolve(__dirname, '../..', file);
+  const output = ts.transpileModule(fs.readFileSync(filename, 'utf8'), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+  }).outputText;
+  const module = { exports: {} };
+  new Function('require', 'module', 'exports', output)((id) => pureModule(path.resolve(path.dirname(filename), `${id}.ts`)), module, module.exports);
+  return module.exports;
+}
+const layoutMetrics = pureModule('lib/layout-metrics.ts');
+const surfaceStyles = pureModule('lib/surface-styles.ts');
+
 // Exercise the actual component handlers; native views and modal completion
 // are boundaries, not a claim of physical-device rendering coverage.
 function fixture(file, overrides = {}) {
@@ -31,9 +43,9 @@ function fixture(file, overrides = {}) {
       }
     },
   };
-  const jsx = (type, props) => ({ type, props: props ?? {} });
+  const jsx = (type, props) => type?.name === 'LibraryListRow' ? type(props) : ({ type, props: props ?? {} });
   const animate = () => ({ start: (callback) => callback?.({ finished: true }) });
-  const native = Object.fromEntries(['Modal', 'View', 'Text', 'TextInput', 'ScrollView', 'TouchableOpacity', 'TouchableWithoutFeedback', 'KeyboardAvoidingView', 'Pressable'].map((name) => [name, name]));
+  const native = Object.fromEntries(['ActivityIndicator', 'Modal', 'View', 'Text', 'TextInput', 'ScrollView', 'TouchableOpacity', 'TouchableWithoutFeedback', 'KeyboardAvoidingView', 'Pressable'].map((name) => [name, name]));
   const mockNow = { dia: 2, minutos: 600 };
   const mocks = {
     react,
@@ -76,15 +88,28 @@ function fixture(file, overrides = {}) {
       shouldDismissSheet: (dy, vy) => dy > 70 || vy > 0.9,
     },
     '@/lib/use-sheet-keyboard': { useSheetKeyboard: () => ({ keyboardInset: 0, keyboardVisible: false, viewportHeight: 568 }) },
+    '@/lib/layout-metrics': layoutMetrics,
+    '@/lib/surface-styles': surfaceStyles,
     '@/lib/theme': { Radius: { card: 18 }, useTheme: () => ({ theme: { isDark: false, text: '#111', bg: '#fff', border: '#eee', accent: '#f60' } }) },
     '@/lib/tab-bar-visibility': { useTabBarScroll: () => ({ onScroll() {}, reveal() {} }) },
     '@/lib/recent-patios': { recordRecentPatio: async () => {} },
+    '@/lib/patio-sort': { patioDistance: () => null, patioMinimumPrice: () => null, sortPatiosByMetric: (items) => [...items] },
+    '@/components/patio-status-indicator': { PatioStatusIndicator: 'PatioStatusIndicator' },
+    '@/components/patio-identity-icon': { PatioIdentityIcon: 'PatioIdentityIcon' },
+    '@/lib/patio-card-info': { patioCardAccessibilityLabel: (patio) => `Abrir ${patio.name}` },
     '@/lib/geo': { distanceKm: () => 0, formatDistance: () => '0 m' },
     '@/lib/typography': { noWidow: (value) => value },
+    '@/components/foodie-loading': { FoodieLoading: 'FoodieLoading' },
     '@/components/search-field': { SearchField: 'SearchField' },
     '@/components/action-sheet': { ACTION_SHEET_MENU_WIDTH: 240, ActionSheet: 'ActionSheet' },
+    '@/components/library-sheet': { LibrarySheet: function LibrarySheet() {} },
+    '@/components/library-list-row': { LibraryListRow: (props) => ({ type: 'TouchableOpacity', props: { ...props, accessibilityRole: 'checkbox', accessibilityLabel: `${props.title}, ${props.count} ${props.count === 1 ? props.unit : props.unit === 'lugar' ? 'lugares' : 'menús'}`, accessibilityState: { checked: props.checked }, children: [] } }) },
+    '@/components/rename-dialog': { RenameDialog: 'RenameDialog' },
+    '@/components/scroll-edge-fade': { ScrollEdgeFade: 'ScrollEdgeFade' },
+    '@/lib/use-scroll-edges': { useScrollEdges: () => ({ top: false, bottom: false, onScroll() {}, onLayout() {}, onContentSizeChange() {} }) },
+    '@/lib/use-known-location': { useKnownLocation: () => [null, () => {}] },
     '@/components/selection-actions': { SelectionActions: 'SelectionActions' },
-    '@/components/patio-card-info': { PatioCardInfo: 'PatioCardInfo' },
+    '@/components/patio-card-info': { PatioCardInfo: 'PatioCardInfo', PatioCardPrice: 'PatioCardPrice' },
     ...overrides,
   };
   const output = ts.transpileModule(fs.readFileSync(path.resolve(__dirname, '../..', file), 'utf8'), {
@@ -113,6 +138,91 @@ function nodes(node) {
   return [node, ...nodes(node.props?.children)];
 }
 
+test('one rating star acknowledges a valid personal vote while retaining the public average', () => {
+  const f = fixture('components/patio-card-info.tsx', { '@/lib/patio-card-info': pureModule('lib/patio-card-info.ts') });
+  const props = { patio: { name: 'Cocina con un nombre muy largo', area: 'Centro', menu: [], rating: '4.7', ratingCount: 213, isVerifiedBusiness: true }, personalRating: 2, showPersonalRating: true, variant: 'grid', showPrice: false };
+  let tree = f.render(f.exports.PatioCardInfo, props);
+  const star = (value) => nodes(value).filter((node) => node.type === 'Icon' && node.props.name === 'star');
+  assert.equal(star(tree).length, 1);
+  assert.equal(star(tree)[0].props.color, '#f60');
+  assert.ok(nodes(tree).some((node) => node.props?.children === '4.7'));
+  assert.ok(nodes(tree).some((node) => /Calificación pública, 4.7.*213 reseñas.*Tu calificación, 2.0/.test(node.props?.accessibilityLabel ?? '')));
+  assert.equal(nodes(tree).find((node) => node.props?.accessibilityLabel === props.patio.name).props.numberOfLines, 1);
+  for (const personalRating of [null, 0, 6, NaN]) {
+    tree = f.render(f.exports.PatioCardInfo, { ...props, personalRating, variant: 'list' });
+    assert.equal(star(tree).length, 1);
+    assert.notEqual(star(tree)[0].props.color, '#f60');
+    assert.ok(nodes(tree).some((node) => node.props?.children === '4.7 (213)'));
+  }
+});
+
+test('location uses a middle dot only between real area and distance and speaks the full values', () => {
+  const f = fixture('components/patio-card-info.tsx');
+  const area = 'San Miguel Chapultepec Primera Sección';
+  const render = (props) => f.render(f.exports.PatioCardLocation, props);
+  let tree = render({ area, distanceLabel: '12.5 km', variant: 'detail' });
+  assert.equal(tree.props.accessibilityLabel, `${area}. Distancia, 12.5 km`);
+  assert.equal(nodes(tree).filter((node) => node.props?.children === '·').length, 1);
+  assert.equal(nodes(tree).filter((node) => node.type === 'Icon').length, 0);
+  assert.equal(nodes(render({ area, distanceLabel: null })).filter((node) => node.props?.children === '·').length, 0);
+  tree = render({ area: ' ', distanceLabel: '750 m' });
+  assert.equal(tree.props.accessibilityLabel, 'Distancia, 750 m');
+  assert.equal(nodes(tree).filter((node) => node.props?.children === '·').length, 0);
+  assert.equal(render({ area: '', distanceLabel: null }), null);
+});
+
+test('compact prices never show an incomplete extraordinary amount and the expanded page keeps exact prices', () => {
+  const f = fixture('components/patio-card-info.tsx', { '@/lib/patio-card-info': pureModule('lib/patio-card-info.ts') });
+  const patio = { menu: [], price: '$12,500–25,000' };
+  let tree = f.render(f.exports.PatioCardPrice, { patio });
+  const text = nodes(tree).find((node) => node.type === 'Text');
+  assert.equal(text.props.children, 'Ver precios');
+  assert.equal(text.props.numberOfLines, 1);
+  assert.match(text.props.accessibilityLabel, /12,500.*25,000/);
+  tree = f.render(f.exports.PatioCardPrice, { patio, compact: false });
+  assert.equal(nodes(tree).find((node) => node.type === 'Text').props.children, '$12,500–25,000');
+  tree = f.render(f.exports.PatioCardPrice, { patio: { ...patio, price: '$1,250–2,950' } });
+  assert.equal(nodes(tree).find((node) => node.type === 'Text').props.children, '$1,250–2,950');
+});
+
+test('sheet geometry respects the available viewport instead of forcing a minimum behind the keyboard', () => {
+  const { librarySheetHeight, libraryFooterMaxHeight } = layoutMetrics;
+  const base = { preferred: 340, natural: 900, header: 68, footer: 150, safeBottom: 34, fontScale: 2 };
+  const roomy = librarySheetHeight({ ...base, available: 680 });
+  assert.ok(roomy >= base.header + base.footer + base.safeBottom + 52 * base.fontScale);
+  for (const available of [0, 88, 160, 300]) {
+    const height = librarySheetHeight({ ...base, available });
+    assert.ok(height >= 0 && height <= available);
+    const footer = libraryFooterMaxHeight(height, base.header, base.safeBottom, base.fontScale);
+    assert.ok(footer >= 0);
+    if (height > base.header + base.safeBottom) {
+      assert.ok(base.header + base.safeBottom + footer < height, 'Scrolling content retains visible space');
+    }
+  }
+});
+
+test('list editor and action footer remain scrollable as the keyboard reduces the available frame', () => {
+  let keyboard = { keyboardInset: 0, keyboardVisible: false, viewportHeight: 568 };
+  const f = fixture('components/library-sheet.tsx', {
+    '@/lib/use-sheet-keyboard': { useSheetKeyboard: () => keyboard },
+  });
+  const props = { visible: true, onClose() {}, title: 'Listas', hideTitle: true, preferredHeight: 340,
+    theme: {}, editing: true, editor: { type: 'TextInput', props: { accessibilityLabel: 'Nombre de la lista' } },
+    children: 'List choices', footer: { type: 'TouchableOpacity', props: { accessibilityLabel: 'Mover lugares' } } };
+  let tree = f.render(f.exports.LibrarySheet, props);
+  const scrolls = () => nodes(tree).filter((node) => node.type === 'ScrollView');
+  scrolls()[0].props.onContentSizeChange(320, 480);
+  scrolls()[1].props.onContentSizeChange(320, 152);
+  keyboard = { keyboardInset: 348, keyboardVisible: true, viewportHeight: 220 };
+  tree = f.render(f.exports.LibrarySheet, props);
+  assert.equal(scrolls().length, 2);
+  assert.ok(nodes(scrolls()[0]).some((node) => node.props?.accessibilityLabel === 'Nombre de la lista'));
+  assert.ok(nodes(scrolls()[1]).some((node) => node.props?.accessibilityLabel === 'Mover lugares'));
+  const frame = nodes(tree).find((node) => node.type === 'Animated.View' && node.props.accessibilityViewIsModal).props.style[1];
+  assert.ok(frame.height - keyboard.keyboardInset <= keyboard.viewportHeight - 44 - 16);
+  assert.ok(scrolls()[1].props.style.maxHeight > 0 && scrolls()[1].props.style.maxHeight < 152);
+});
+
 test('map and library expose Filters and Your lists directly and clear each scope independently', () => {
   const f = fixture('components/foodie-filter-bar.tsx');
   const { FoodieFilterBar, EMPTY_FOODIE_FILTERS, matchesFoodieFilters } = f.exports;
@@ -126,14 +236,14 @@ test('map and library expose Filters and Your lists directly and clear each scop
   let tree = f.render(FoodieFilterBar, props);
   const scopeButtons = () => nodes(tree).filter((node) => node.type === 'TouchableOpacity' && (/^Filtros/.test(node.props.accessibilityLabel ?? '') || /^Tus listas/.test(node.props.accessibilityLabel ?? '')));
   assert.deepEqual(scopeButtons().map((button) => button.props.accessibilityLabel), ['Filtros, 1 activos', 'Tus listas']);
-  const panelOf = (value) => nodes(value).find((node) => typeof node.type === 'function' && node.type.name === 'FilterSheet');
+  const panelOf = (value) => nodes(value).find((node) => typeof node.type === 'function' && node.type.name === 'LibrarySheet');
   assert.equal(panelOf(tree).props.visible, false);
   scopeButtons()[0].props.onPress();
   tree = f.render(FoodieFilterBar, props);
   const panelType = panelOf(tree).type;
   assert.equal(panelOf(tree).props.visible, true);
   assert.equal(panelOf(tree).props.title, 'Filtros');
-  assert.equal(panelOf(tree).props.hideTitle, undefined);
+  assert.equal(panelOf(tree).props.hideTitle, true);
   assert.equal(nodes(tree).find((node) => node.props?.accessibilityLabel === 'Menú de hoy'), undefined);
 
   // Availability is an independent time picker, not a checkbox inside Filters.
@@ -159,7 +269,7 @@ test('map and library expose Filters and Your lists directly and clear each scop
   tree = f.render(FoodieFilterBar, props);
   assert.equal(panelOf(tree).type, panelType);
   assert.equal(panelOf(tree).props.title, 'Tus listas');
-  assert.equal(panelOf(tree).props.hideTitle, undefined);
+  assert.equal(panelOf(tree).props.hideTitle, true);
   for (const label of ['Cerca', 'Comida']) {
     nodes(tree).find((node) => node.props?.accessibilityRole === 'checkbox' && node.props?.accessibilityLabel?.startsWith(`${label},`)).props.onPress();
     tree = f.render(FoodieFilterBar, props);
@@ -194,6 +304,32 @@ test('library keeps the two shared scope controls beside contextual view and ord
   const organizeMenu = nodes(tree).find((node) => node.type === 'ActionSheet');
   assert.deepEqual(organizeMenu.props.options.map((option) => option.label), ['Alfabético A–Z', 'Cuadrícula', 'Lista']);
   assert.deepEqual(organizeMenu.props.options.map((option) => option.sectionLabel).filter(Boolean), ['Orden', 'Vista']);
+});
+
+test('map location uses the shared trailing control slot and exposes pending feedback', () => {
+  const f = fixture('components/foodie-filter-bar.tsx');
+  let centered = 0;
+  const props = { filters: f.exports.EMPTY_FOODIE_FILTERS, onChange() {}, categories: [], collections: [],
+    locationAction: { onPress: () => { centered += 1; }, busy: false } };
+  const findLocation = (tree) => nodes(tree).find((node) => node.props?.accessibilityLabel === 'Centrar en mi ubicación');
+  let tree = f.render(f.exports.FoodieFilterBar, props);
+  const location = findLocation(tree);
+  assert.equal(location.type, 'TouchableOpacity');
+  assert.equal(Object.assign({}, ...location.props.style).width, 40);
+  assert.deepEqual(location.props.accessibilityState, { busy: false, disabled: false });
+  assert.ok(nodes(location).some((node) => node.props?.name === 'locate-outline'));
+  location.props.onPress();
+  assert.equal(centered, 1);
+  props.locationAction.busy = true;
+  tree = f.render(f.exports.FoodieFilterBar, props);
+  assert.equal(findLocation(tree).props.disabled, true);
+  assert.deepEqual(findLocation(tree).props.accessibilityState, { busy: true, disabled: true });
+  assert.ok(nodes(findLocation(tree)).some((node) => node.type === 'ActivityIndicator'));
+
+  tree = f.render(f.exports.FoodieFilterBar, { ...props, viewMode: 'list', onViewModeChange() {} });
+  assert.equal(findLocation(tree), undefined);
+  const organize = nodes(tree).find((node) => node.props?.accessibilityLabel === 'Organizar Guardados');
+  assert.equal(Object.assign({}, ...organize.props.style).width, 40);
 });
 
 test('menu symbols render before labels and selection marks keep a leading slot', () => {
@@ -303,6 +439,13 @@ test('Guardados index scrolls without filtering and hides for search, grid and s
   tree = f.render(f.exports.default);
   assert.equal(nodes(tree).some((node) => node.type === 'AlphabetIndex'), false);
   assert.ok(nodes(tree).some((node) => node.type === 'SelectionActions'));
+  // The last row must clear the measured action bar, including large text.
+  const actionContainer = nodes(tree).find((node) => node.type === 'View' && node.props.onLayout
+    && nodes(node.props.children).some((child) => child.type === 'SelectionActions'));
+  actionContainer.props.onLayout({ nativeEvent: { layout: { height: 152 } } });
+  tree = f.render(f.exports.default);
+  const contentPadding = nodes(tree).find((node) => node.type === 'ScrollView').props.contentContainerStyle.at(-1).paddingBottom;
+  assert.ok(contentPadding >= 34 + 8 + 152 + 16);
   await new Promise(setImmediate);
   assert.equal(persisted.find(([key]) => key === '@patio_favorites_sort')[1], 'az');
 });
@@ -325,7 +468,7 @@ test('selected categories remain removable across screens and combine alternativ
     tree = f.render(FoodieFilterBar, props);
   };
   const goBack = () => {
-    nodes(tree).find((node) => typeof node.type === 'function' && node.type.name === 'FilterSheet').props.onBack();
+    nodes(tree).find((node) => typeof node.type === 'function' && node.type.name === 'LibrarySheet').props.onBack();
     tree = f.render(FoodieFilterBar, props);
   };
   assert.equal(checkbox('Guisados'), undefined);
@@ -378,7 +521,7 @@ test('compact filter overview summarizes selections and returns from each group 
   let tree;
   const render = () => { tree = f.render(FoodieFilterBar, props); };
   const control = (label) => nodes(tree).find((node) => node.props?.accessibilityLabel === label);
-  const panel = () => nodes(tree).find((node) => typeof node.type === 'function' && node.type.name === 'FilterSheet');
+  const panel = () => nodes(tree).find((node) => typeof node.type === 'function' && node.type.name === 'LibrarySheet');
   const press = (label) => { control(label).props.onPress(); render(); };
   const back = () => { panel().props.onBack(); render(); };
   render();
@@ -386,12 +529,12 @@ test('compact filter overview summarizes selections and returns from each group 
   render();
   const sheetType = panel().type;
   const assertSameSheet = () => {
-    assert.equal(nodes(tree).filter((node) => typeof node.type === 'function' && node.type.name === 'FilterSheet').length, 1);
+    assert.equal(nodes(tree).filter((node) => typeof node.type === 'function' && node.type.name === 'LibrarySheet').length, 1);
     assert.equal(panel().type, sheetType);
     assert.equal(panel().props.visible, true);
   };
   assert.equal(panel().props.title, 'Filtros');
-  assert.equal(panel().props.hideTitle, undefined);
+  assert.equal(panel().props.hideTitle, true);
   assert.deepEqual(nodes(panel().props.children).filter((node) => node.props?.accessibilityRole === 'checkbox').map((node) => node.props.accessibilityLabel), []);
   assert.equal(control('Menú de hoy'), undefined);
   assert.match(nodes(tree).find((node) => node.props?.accessibilityLabel?.startsWith('Abierto')).props.accessibilityLabel, /^Abierto,/);
@@ -403,7 +546,7 @@ test('compact filter overview summarizes selections and returns from each group 
   press('Tipo de lugar');
   assertSameSheet();
   assert.equal(panel().props.title, 'Tipo de lugar');
-  assert.equal(panel().props.hideTitle, undefined);
+  assert.equal(panel().props.hideTitle, false);
   assert.equal(control('Menú de hoy'), undefined);
   assert.equal(control('Tarjeta'), undefined);
   assert.equal(control('Guisados').props.accessibilityState.checked, true);
@@ -417,7 +560,7 @@ test('compact filter overview summarizes selections and returns from each group 
   back();
   assertSameSheet();
   assert.equal(panel().props.title, 'Filtros');
-  assert.equal(panel().props.hideTitle, undefined);
+  assert.equal(panel().props.hideTitle, true);
   assert.equal(props.filters, selected, 'Back changes navigation only');
   assert.match(control('Tipo de lugar').props.accessibilityValue.text, /Tacos/);
   assert.match(control('Pago').props.accessibilityValue.text, /Tarjeta/);
@@ -466,14 +609,14 @@ test('creating an empty list preserves the current results until that list is ex
     let tree = f.render(FoodieFilterBar, props);
     const control = (label) => nodes(tree).find((node) => node.props?.accessibilityLabel === label);
     const collectionControl = (label) => nodes(tree).find((node) => node.props?.accessibilityRole === 'checkbox' && node.props?.accessibilityLabel?.startsWith(`${label},`));
-    const panel = () => nodes(tree).find((node) => typeof node.type === 'function' && node.type.name === 'FilterSheet');
+    const panel = () => nodes(tree).find((node) => typeof node.type === 'function' && node.type.name === 'LibrarySheet');
     let promptActions;
     f.native.Alert.prompt = (_title, _message, actions) => { promptActions = actions; };
     nodes(tree).find((node) => node.props?.accessibilityLabel?.startsWith('Tus listas')).props.onPress();
     tree = f.render(FoodieFilterBar, props);
     const listPanel = panel();
     assert.equal(listPanel.props.title, 'Tus listas');
-    assert.equal(listPanel.props.hideTitle, undefined);
+    assert.equal(listPanel.props.hideTitle, true);
     assert.equal(typeof listPanel.props.onCreate, 'function');
     listPanel.props.onCreate();
     assert.ok(promptActions, 'iOS opens the native naming prompt');
@@ -520,7 +663,7 @@ test('list selection keeps five action slots and moving waits for explicit desti
   };
   let tree;
   const render = () => { tree = f.render(FoodieFilterBar, props); };
-  const panel = () => nodes(tree).find((node) => typeof node.type === 'function' && node.type.name === 'FilterSheet');
+  const panel = () => nodes(tree).find((node) => typeof node.type === 'function' && node.type.name === 'LibrarySheet');
   const row = (title) => nodes(panel().props.children).find((node) => node.props?.accessibilityRole === 'checkbox' && node.props.accessibilityLabel.startsWith(`${title},`));
   const actions = () => nodes(panel().props.footer).find((node) => node.type === 'SelectionActions').props.actions;
   const confirm = () => nodes(panel().props.footer).find((node) => node.props?.accessibilityLabel === 'Mover lugares');
@@ -546,11 +689,15 @@ test('list selection keeps five action slots and moving waits for explicit desti
   row('Fin de semana').props.onPress();
   render();
   assertSlots();
-  assert.equal(actions().find((action) => action.label === 'Mover').disabled, true, 'An empty source has no places to move');
+  assert.equal(actions().find((action) => action.label === 'Mover').disabled, false, 'Empty selected lists explain why there is nothing to move');
+  actions().find((action) => action.label === 'Mover').onPress();
+  render();
+  assert.equal(moves.length, 0, 'Empty lists never issue a move');
+  assert.notEqual(panel().props.title, 'Destino');
   row('Cerca').props.onPress();
   render();
   assertSlots();
-  assert.equal(actions().find((action) => action.label === 'Renombrar').disabled, true, 'Multiple selections retain the rename slot');
+  assert.equal(actions().find((action) => action.label === 'Renombrar').disabled, false, 'Multiple selections can request guidance to select one list');
   row('Fin de semana').props.onPress();
   render();
 

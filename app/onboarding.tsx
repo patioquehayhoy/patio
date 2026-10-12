@@ -3,7 +3,7 @@ import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { Animated, Easing, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Animated, Easing, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { completeOnboarding, saveUserRole, type UserRole } from '@/lib/entry-flow';
@@ -52,15 +52,15 @@ function makeStyles(_t: Theme) {
     closeBtn: { position: 'absolute', right: 16, borderRadius: 100, overflow: 'hidden' },
     closeInner: { width: 34, height: 34, alignItems: 'center', justifyContent: 'center' },
     content: { position: 'absolute', left: 28, right: 28 },
-    eyebrow: { fontSize: 11, fontWeight: '900', letterSpacing: 1.8, textTransform: 'uppercase', color: 'rgba(255,255,255,0.55)', marginBottom: 10 },
+    eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.8, textTransform: 'uppercase', color: 'rgba(255,255,255,0.72)', marginBottom: 10 },
     title: { fontSize: 40, fontWeight: '900', letterSpacing: -1.2, lineHeight: 42, color: '#FFFFFF', marginBottom: 10, fontFamily: Fonts.brand },
     body: { fontSize: 15, fontWeight: '400', color: 'rgba(255,255,255,0.72)', lineHeight: 22 },
     ctaCol: { alignItems: 'stretch', gap: 4, marginTop: 28 },
     ctaGlass: { borderRadius: 14, overflow: 'hidden', alignSelf: 'center' },
-    ctaGlassInner: { paddingHorizontal: 26, height: 42, alignItems: 'center', justifyContent: 'center' },
+    ctaGlassInner: { paddingHorizontal: 26, paddingVertical: 12, minHeight: 44, alignItems: 'center', justifyContent: 'center' },
     ctaGlassText: { fontSize: 14, fontWeight: '900', color: '#FFFFFF', letterSpacing: -0.2 },
     roleButton: { minHeight: 66, borderRadius: 16, overflow: 'hidden', marginBottom: 9 },
-    roleButtonInner: { minHeight: 66, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 8 },
+    roleButtonInner: { minHeight: 66, paddingVertical: 12, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 8 },
     roleIcon: { width: 38, height: 38, borderRadius: 12, backgroundColor: 'rgba(255,106,61,0.16)', alignItems: 'center', justifyContent: 'center' },
     roleCopy: { flex: 1 },
     roleTitle: { fontSize: 15, lineHeight: 19, fontWeight: '700', color: '#FFFFFF' },
@@ -164,11 +164,11 @@ export default function OnboardingScreen() {
       </TouchableOpacity>
 
       {/* Texto editorial + acción, todo abajo */}
-      <View style={[s.content, { bottom: insets.bottom + 28 }]}>
+      <ScrollView style={[s.content, { top: insets.top + 58, bottom: insets.bottom + 28 }]} contentContainerStyle={{ flexGrow: 1, justifyContent: 'flex-end' }} showsVerticalScrollIndicator={false}>
         <Animated.View style={{ opacity: textFade }}>
-          <Text style={s.eyebrow} allowFontScaling={true} maxFontSizeMultiplier={1.3}>{slide.eyebrow}</Text>
-          <Text style={s.title} allowFontScaling={true} lineBreakStrategyIOS="push-out" maxFontSizeMultiplier={1.35}>{noWidow(slide.title)}</Text>
-          <Text style={s.body} allowFontScaling={true} lineBreakStrategyIOS="push-out" maxFontSizeMultiplier={1.7}>{noWidow(slide.body)}</Text>
+          <Text style={s.eyebrow} allowFontScaling={true}>{slide.eyebrow}</Text>
+          <Text style={s.title} allowFontScaling={true} lineBreakStrategyIOS="push-out">{noWidow(slide.title)}</Text>
+          <Text style={s.body} allowFontScaling={true} lineBreakStrategyIOS="push-out">{noWidow(slide.body)}</Text>
         </Animated.View>
 
         <View style={s.ctaCol}>
@@ -178,8 +178,8 @@ export default function OnboardingScreen() {
                 <BlurView intensity={24} tint="dark" style={s.roleButtonInner}>
                   <View style={s.roleIcon}><Ionicons name="map-outline" size={19} color="#FF6A3D" /></View>
                   <View style={s.roleCopy}>
-                    <Text style={s.roleTitle} numberOfLines={1} maxFontSizeMultiplier={1.3}>{noWidow('Ver qué hay hoy')}</Text>
-                    <Text style={s.roleHint} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.4}>{noWidow('Explorar lugares cerca de ti')}</Text>
+                    <Text style={s.roleTitle}>{noWidow('Ver qué hay hoy')}</Text>
+                    <Text style={s.roleHint}>{noWidow('Explorar lugares cerca de ti')}</Text>
                   </View>
                   <Ionicons name="chevron-forward" size={16} color="rgba(255,255,255,0.46)" />
                 </BlurView>
@@ -188,8 +188,8 @@ export default function OnboardingScreen() {
                 <BlurView intensity={24} tint="dark" style={s.roleButtonInner}>
                   <View style={s.roleIcon}><Ionicons name="storefront-outline" size={19} color="#FF6A3D" /></View>
                   <View style={s.roleCopy}>
-                    <Text style={s.roleTitle} numberOfLines={1} maxFontSizeMultiplier={1.3}>{noWidow('Publicar lo que preparo')}</Text>
-                    <Text style={s.roleHint} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.4}>{noWidow('Crear el perfil de tu negocio')}</Text>
+                    <Text style={s.roleTitle}>{noWidow('Publicar lo que preparo')}</Text>
+                    <Text style={s.roleHint}>{noWidow('Crear el perfil de tu negocio')}</Text>
                   </View>
                   <Ionicons name="chevron-forward" size={16} color="rgba(255,255,255,0.46)" />
                 </BlurView>
@@ -198,12 +198,12 @@ export default function OnboardingScreen() {
           ) : (
             <TouchableOpacity style={s.ctaGlass} onPress={() => goTo(index + 1)} activeOpacity={0.86} hitSlop={{ top: 5, bottom: 5, left: 5, right: 5 }} accessibilityRole="button" accessibilityLabel="Continuar">
               <BlurView intensity={16} tint="dark" style={s.ctaGlassInner}>
-                <Text style={s.ctaGlassText} allowFontScaling={true} numberOfLines={1} maxFontSizeMultiplier={1.3}>Continuar</Text>
+                <Text style={s.ctaGlassText} allowFontScaling={true}>Continuar</Text>
               </BlurView>
             </TouchableOpacity>
           )}
         </View>
-      </View>
+      </ScrollView>
     </View>
   );
 }

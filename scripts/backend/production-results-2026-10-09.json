@@ -1,0 +1,65 @@
+{
+  "project_ref": "gjfjsjlrgycrgmcbjrus",
+  "date": "2026-10-09",
+  "migration_versions": [
+    "20260909",
+    "20260910",
+    "20260910120000",
+    "20261009100000",
+    "20261009110000",
+    "20261009120000",
+    "20261009130000"
+  ],
+  "database": {
+    "anon_email_read": false,
+    "anon_name_read": true,
+    "auth_users": 5,
+    "authenticated_email_read": false,
+    "legacy_owner_policies": 0,
+    "menus": 2,
+    "patios": 1,
+    "public_tables": 23,
+    "reply_ready": true,
+    "rls_enabled": true,
+    "unassigned_patios": 1
+  },
+  "functions": [
+    {
+      "name": "read-menu",
+      "status": "ACTIVE",
+      "verify_jwt": true,
+      "version": 11
+    },
+    {
+      "name": "smart-setup",
+      "status": "ACTIVE",
+      "verify_jwt": true,
+      "version": 4
+    },
+    {
+      "name": "send-publication-notifications",
+      "status": "ACTIVE",
+      "verify_jwt": true,
+      "version": 3
+    },
+    {
+      "name": "delete-account",
+      "status": "ACTIVE",
+      "verify_jwt": true,
+      "version": 1
+    },
+    {
+      "name": "search-intent",
+      "status": "ACTIVE",
+      "verify_jwt": true,
+      "version": 1
+    }
+  ],
+  "unauthenticated_gateway": [
+    "send-publication-notifications 401",
+    "smart-setup 401",
+    "read-menu 401",
+    "delete-account 401",
+    "search-intent 401"
+  ]
+}

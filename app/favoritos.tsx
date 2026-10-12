@@ -1,3 +1,6 @@
+import { patioDistance, patioMinimumPrice, sortPatiosByMetric, type PatioSortMode } from '@/lib/patio-sort';
+import { FoodieLoading } from '@/components/foodie-loading';
+import { useScrollEdges } from '@/lib/use-scroll-edges';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Haptics from 'expo-haptics';
@@ -8,15 +11,18 @@ import { Alert, ScrollView, Share, StyleSheet, Text, TouchableOpacity, useWindow
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BottomTabBar } from '@/components/bottom-tab-bar';
+import { bottomActionClearance, bottomTabClearance, patioGridColumns } from '@/lib/layout-metrics';
 import { AlphabetIndex } from '@/components/alphabet-index';
 import { EMPTY_FOODIE_FILTERS, FoodieFilterBar, matchesFoodieFilters } from '@/components/foodie-filter-bar';
 import { SelectionActions } from '@/components/selection-actions';
 import { SaveToListSheet } from '@/components/save-to-list-sheet';
 import { SearchField } from '@/components/search-field';
-import { PatioCardInfo } from '@/components/patio-card-info';
+import { PatioIdentityIcon } from '@/components/patio-identity-icon';
+import { patioCardAccessibilityLabel } from '@/lib/patio-card-info';
+import { PatioCardInfo, PatioCardPrice } from '@/components/patio-card-info';
 import { useFavoritePatiosController } from '@/lib/controllers/useFavoritePatiosController';
 import { useFoodieFilters } from '@/lib/foodie-filters-context';
-import { distanceKm, formatDistance } from '@/lib/geo';
+import { formatDistance } from '@/lib/geo';
 import { Fonts, Radius, useTheme, type Theme } from '@/lib/theme';
 import { recordRecentPatio } from '@/lib/recent-patios';
 import { useTabBarScroll } from '@/lib/tab-bar-visibility';
@@ -25,6 +31,7 @@ import { createCollection, getCollections, publishCollection, setPatiosInCollect
 import { removeFavoritePatios } from '@/lib/favorites';
 import { alphabeticalSections } from '@/lib/library-index';
 import { resolveLibraryMoveSelection } from '@/lib/library-selection';
+import { useKnownLocation } from '@/lib/use-known-location';
 
 const FAVORITES_VIEW_KEY = '@patio_favorites_view';
 const FAVORITES_SORT_KEY = '@patio_favorites_sort';
@@ -57,9 +64,10 @@ function makeStyles(t: Theme) {
     card: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderColor: t.border, paddingVertical: 12 },
     gridCard: { backgroundColor: t.surface, borderRadius: Radius.card, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, padding: 12 },
     cardSelected: { borderColor: t.accent, backgroundColor: t.accentSoft },
-    gridTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
+    gridTop: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 },
+    gridPrice: { flex: 1, minWidth: 0 },
     thumb: { width: 36, height: 36, flexShrink: 0, alignItems: 'center', justifyContent: 'center' },
-    body: { flex: 1, minWidth: 0, justifyContent: 'center' },
+    body: { flex: 1, minWidth: 0, justifyContent: 'flex-start' },
     // Nombre + platillo de hoy son una sola unidad óptica (identidad +
     // "descripción" del lugar, igual que título/artista en Apple Music —
     // ver CLAUDE.md "Campos de texto agrupados"): 2px máximo entre ellos.
@@ -108,27 +116,15 @@ export default function FavoritosScreen() {
   const s = makeStyles(theme);
   const insets = useSafeAreaInsets();
   const { width, fontScale } = useWindowDimensions();
+  const [selectionBarHeight, setSelectionBarHeight] = useState(60);
+  const edges = useScrollEdges();
   const scrollRef = useRef<ScrollView>(null);
   const { onScroll: onTabBarScroll } = useTabBarScroll();
   const sectionOffsets = useRef<Record<string, number>>({});
   const [activeLetter, setActiveLetter] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const { patios, metaById, removeLocally } = useFavoritePatiosController();
-  // Distancia desde donde estás: solo si el permiso ya fue concedido (aquí
-  // nunca se pide) — sin ubicación, la tarjeta simplemente omite la distancia.
-  const [here, setHere] = useState<{ latitude: number; longitude: number } | null>(null);
-  useEffect(() => {
-    let alive = true;
-    (async () => {
-      try {
-        const permission = await Location.getForegroundPermissionsAsync();
-        if (!permission.granted) return;
-        const position = (await Location.getLastKnownPositionAsync()) ?? (await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced }));
-        if (alive && position) setHere({ latitude: position.coords.latitude, longitude: position.coords.longitude });
-      } catch { /* sin ubicación: sin distancia */ }
-    })();
-    return () => { alive = false; };
-  }, []);
+  const { patios, metaById, removeLocally, loading, loadError, reload } = useFavoritePatiosController();
+  const [here, setHere] = useKnownLocation();
 
 
   // Filtros: pensados para cuando los guardados crecen (~70 items). 'hoy'
@@ -256,7 +252,7 @@ export default function FavoritosScreen() {
   // Pedido de Alejandro 2026-08-30: para su propio uso (~40 guardados) el
   // orden por default sin decisiones no basta, así que además de un buen
   // default se expone el control.
-  const [sortMode, setSortMode] = useState<'recent' | 'rating' | 'az'>('recent');
+  const [sortMode, setSortMode] = useState<PatioSortMode>('recent');
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const changedPreference = useRef({ view: false, sort: false });
   const preferenceWrites = useRef(Promise.resolve());
@@ -265,10 +261,13 @@ export default function FavoritosScreen() {
   };
   useEffect(() => {
     let mounted = true;
-    Promise.all([AsyncStorage.getItem(FAVORITES_VIEW_KEY), AsyncStorage.getItem(FAVORITES_SORT_KEY)]).then(([savedView, savedSort]) => {
+    Promise.all([AsyncStorage.getItem(FAVORITES_VIEW_KEY), AsyncStorage.getItem(FAVORITES_SORT_KEY)]).then(async ([savedView, savedSort]) => {
       if (!mounted) return;
       if (!changedPreference.current.view && (savedView === 'list' || savedView === 'grid')) setViewMode(savedView);
-      if (!changedPreference.current.sort && (savedSort === 'recent' || savedSort === 'rating' || savedSort === 'az')) setSortMode(savedSort);
+      if (savedSort === 'distance') {
+        const permission = await Location.getForegroundPermissionsAsync();
+        if (mounted && !changedPreference.current.sort && permission.granted) setSortMode('distance');
+      } else if (!changedPreference.current.sort && (savedSort === 'recent' || savedSort === 'rating' || savedSort === 'az' || savedSort === 'price')) setSortMode(savedSort);
     }).catch(() => {});
     return () => { mounted = false; };
   }, []);
@@ -289,21 +288,25 @@ export default function FavoritosScreen() {
     switch (sortMode) {
       case 'rating':
         return [...filtered].sort((a, b) => (metaById[b.id]?.rating ?? -1) - (metaById[a.id]?.rating ?? -1));
+      case 'price':
+        return sortPatiosByMetric(filtered, patioMinimumPrice);
+      case 'distance':
+        return sortPatiosByMetric(filtered, (patio) => patioDistance(here, patio));
       case 'az':
         return alphabeticalSections(filtered).flatMap((section) => section.items);
       case 'recent':
       default:
         return filtered;
     }
-  }, [filtered, sortMode, metaById]);
-  const SORT_LABELS: Record<typeof sortMode, string> = { recent: 'Más reciente', rating: 'Tu calificación', az: 'Alfabético A–Z' };
+  }, [filtered, sortMode, metaById, here]);
+  const SORT_LABELS: Record<typeof sortMode, string> = { recent: 'Más reciente', distance: 'Más cerca', price: 'Precio: menor a mayor', rating: 'Tu calificación', az: 'Alfabético A–Z' };
   const sections = useMemo(() => sortMode === 'az' ? alphabeticalSections(filtered) : [], [filtered, sortMode]);
   const letters = sections.map((section) => section.letter);
   const showAlphabet = !selecting && viewMode === 'list' && sortMode === 'az' && !normalizedQuery && filtered.length >= 20 && letters.length >= 4;
   const moveSelection = resolveLibraryMoveSelection({
     collections, activeCollectionIds: filters.collectionIds, selectedPatioIds: [...selectedIds],
   });
-  const gridWidth = fontScale > 1.4 ? width - 32 : (width - 44) / 2;
+  const gridWidth = patioGridColumns(width, fontScale) === 1 ? width - 32 : (width - 44) / 2;
   const jumpToLetter = (letter: string) => {
     const offset = sectionOffsets.current[letter];
     if (offset === undefined) return;
@@ -313,8 +316,8 @@ export default function FavoritosScreen() {
 
   const renderPatio = (patio: (typeof patios)[number]) => {
     const isSelected = selectedIds.has(patio.id);
-    const distance = here && Number.isFinite(patio.latitude) && Number.isFinite(patio.longitude) && (patio.latitude !== 0 || patio.longitude !== 0)
-      ? formatDistance(distanceKm(here, patio)) : null;
+    const km = patioDistance(here, patio);
+    const distance = km === null ? null : formatDistance(km);
     return (
       <TouchableOpacity
         key={patio.id}
@@ -324,17 +327,17 @@ export default function FavoritosScreen() {
         activeOpacity={0.82}
         accessibilityRole={selecting ? 'checkbox' : 'button'}
         accessibilityState={selecting ? { checked: isSelected } : undefined}
-        accessibilityLabel={selecting ? `${isSelected ? 'Quitar de la selección' : 'Seleccionar'} ${patio.name}` : `Abrir ${patio.name}`}>
+        accessibilityLabel={selecting ? `${isSelected ? 'Quitar de la selección' : 'Seleccionar'} ${patio.name}` : patioCardAccessibilityLabel(patio, { distanceLabel: distance, personalRating: metaById[patio.id]?.rating, includePersonalRating: true })}>
         {viewMode === 'grid' ? (
-          <View style={s.gridTop}>
-            <View style={s.thumb}><Ionicons name="restaurant-outline" size={18} color={theme.textSecondary} /></View>
-            {selecting && <Ionicons name={isSelected ? 'checkmark-circle' : 'ellipse-outline'} size={22} color={isSelected ? theme.accent : theme.textMute} />}
+          <View style={[s.gridTop, { minHeight: 40 * fontScale }]}>
+            <View style={s.thumb}>{selecting ? <Ionicons name={isSelected ? 'checkmark-circle' : 'ellipse-outline'} size={22} color={isSelected ? theme.accent : theme.textMute} /> : <PatioIdentityIcon patio={patio} />}</View>
+            <PatioCardPrice patio={patio} style={s.gridPrice} />
           </View>
         ) : (
-          <View style={s.thumb}><Ionicons name={selecting ? isSelected ? 'checkmark-circle' : 'ellipse-outline' : 'restaurant-outline'} size={selecting ? 22 : 18} color={selecting && isSelected ? theme.accent : theme.textSecondary} /></View>
+          <View style={s.thumb}>{selecting ? <Ionicons name={isSelected ? 'checkmark-circle' : 'ellipse-outline'} size={22} color={isSelected ? theme.accent : theme.textSecondary} /> : <PatioIdentityIcon patio={patio} />}</View>
         )}
         <View style={s.body}>
-          <PatioCardInfo patio={patio} variant={viewMode} distanceLabel={distance} personalRating={metaById[patio.id]?.rating} showPersonalRating />
+          <PatioCardInfo patio={patio} variant={viewMode} showPrice={viewMode !== 'grid'} distanceLabel={distance} personalRating={metaById[patio.id]?.rating} showPersonalRating />
         </View>
       </TouchableOpacity>
     );
@@ -366,28 +369,38 @@ export default function FavoritosScreen() {
                   viewMode={viewMode}
                   onViewModeChange={changeViewMode}
                   libraryActions={[{ label: selecting ? 'Terminar selección' : 'Seleccionar lugares', icon: 'checkmark-circle-outline', afterDismiss: true, onPress: () => { Haptics.selectionAsync().catch(() => {}); if (selecting) exitSelecting(); else setSelecting(true); } }]}
-                  organizationOptions={(['rating', 'az'] as const).map((mode, index) => ({
+                  organizationOptions={(['recent', 'distance', 'price', 'rating', 'az'] as const).map((mode, index) => ({
                     label: SORT_LABELS[mode],
                     sectionLabel: index === 0 ? 'Orden' : undefined,
-                    icon: mode === 'rating' ? 'star-outline' : 'text-outline',
+                    icon: mode === 'distance' ? 'navigate-outline' : mode === 'price' ? 'cash-outline' : mode === 'rating' ? 'star-outline' : mode === 'recent' ? 'time-outline' : 'text-outline',
                     selected: mode === sortMode,
-                    accessibilityHint: 'Ordenar Guardados',
-                    // Tocar el criterio ya activo lo apaga y regresa al orden
-                    // base (más reciente primero) — mismo patrón que el chip
-                    // "Abierto": no hace falta una opción "Más reciente"
-                    // aparte, ya es el estado de fábrica sin tocar nada.
-                    onPress: () => { Haptics.selectionAsync().catch(() => {}); changeSortMode(mode === sortMode ? 'recent' : mode); },
+                    accessibilityHint: mode === 'price' ? 'Menor precio publicado primero. Sin precio al final.' : mode === 'distance' ? 'Distancia en línea recta desde tu ubicación. Sin coordenadas al final.' : 'Ordenar Guardados',
+                    afterDismiss: mode === 'distance',
+                    onPress: () => {
+                      Haptics.selectionAsync().catch(() => {});
+                      if (mode !== 'distance' || here) { changeSortMode(mode); return; }
+                      void (async () => {
+                        try {
+                          const permission = await Location.requestForegroundPermissionsAsync();
+                          if (!permission.granted) { Alert.alert(noWidow('Ubicación desactivada'), noWidow('Activa la ubicación de Patio en Ajustes para ordenar por cercanía.')); return; }
+                          const position = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+                          setHere({ latitude: position.coords.latitude, longitude: position.coords.longitude });
+                          changeSortMode('distance');
+                        } catch { Alert.alert(noWidow('No pudimos obtener tu ubicación'), noWidow('Inténtalo de nuevo para ordenar por cercanía.')); }
+                      })();
+                    },
                   }))}
                 />
               </View>
           </>
         )}
       <View style={s.viewport}>
-      <ScrollView ref={scrollRef} contentContainerStyle={[s.content, { paddingBottom: insets.bottom + 120 }]} showsVerticalScrollIndicator={false}
+      <ScrollView onLayout={edges.onLayout} onContentSizeChange={edges.onContentSizeChange} ref={scrollRef} contentContainerStyle={[s.content, { paddingBottom: selecting ? bottomActionClearance(insets.bottom, selectionBarHeight) : bottomTabClearance(insets.bottom) }]} showsVerticalScrollIndicator indicatorStyle={theme.isDark ? 'white' : 'black'}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
         scrollEventThrottle={16}
         onScroll={(event) => {
+          edges.onScroll(event);
           onTabBarScroll?.(event);
           if (!showAlphabet) return;
           const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
@@ -411,7 +424,11 @@ export default function FavoritosScreen() {
             <TouchableOpacity onPress={exitSelecting} style={s.selectToggle} accessibilityRole="button" accessibilityLabel="Cancelar selección"><Text style={s.selectToggleText}>Cancelar</Text></TouchableOpacity>
           </>}
         </View>}
-        {patios.length === 0 ? (
+        {loadError && patios.length > 0 && <TouchableOpacity style={s.resetButton} onPress={reload} accessibilityRole="button" accessibilityLabel="Reintentar actualización de Guardados"><Text style={s.resetText}>{noWidow('No pudimos actualizar. Reintentar')}</Text></TouchableOpacity>}
+        {loading && patios.length === 0 ? <View style={{ minHeight: 240 }}><FoodieLoading label="Cargando guardados" /></View> : loadError && patios.length === 0 ? <View style={s.empty}>
+          <Text style={s.emptyTitle}>{noWidow('No pudimos cargar Guardados')}</Text>
+          <TouchableOpacity style={s.cta} onPress={reload} accessibilityRole="button" accessibilityLabel="Reintentar"><Text style={s.ctaText}>Reintentar</Text></TouchableOpacity>
+        </View> : patios.length === 0 ? (
           <View style={s.empty}>
             <View style={s.emptyIcon}>
               <Ionicons name="bookmark-outline" size={32} color={theme.textSecondary} />
@@ -443,7 +460,7 @@ export default function FavoritosScreen() {
       </ScrollView>
       {showAlphabet && <View pointerEvents="box-none" style={[StyleSheet.absoluteFillObject, { bottom: insets.bottom + 90 }]}><AlphabetIndex letters={letters} activeLetter={activeLetter || letters[0]} onSelect={jumpToLetter} /></View>}
       </View>
-      {selecting ? !saveSheetVisible && !organizerOverlayVisible && <View style={{ position: 'absolute', left: 16, right: 16, bottom: insets.bottom + 8 }}>
+      {selecting ? !saveSheetVisible && !organizerOverlayVisible && <View onLayout={(event) => setSelectionBarHeight(event.nativeEvent.layout.height)} style={{ position: 'absolute', left: 16, right: 16, bottom: insets.bottom + 8 }}>
         <SelectionActions actions={[
           { label: 'Añadir', icon: 'folder-outline', disabled: !selectedIds.size, onPress: () => { setSaveMode('add'); setSaveSheetVisible(true); } },
           { label: 'Mover', icon: 'folder-open-outline', disabled: !moveSelection.canMove, onPress: () => {

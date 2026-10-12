@@ -1,13 +1,19 @@
+import { resolveLibraryMoveSelection } from '@/lib/library-selection';
+import { RenameDialog } from '@/components/rename-dialog';
+import { useScrollEdges } from '@/lib/use-scroll-edges';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import { router, Stack, useFocusEffect } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
-import { Alert, KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ActionSheet } from '@/components/action-sheet';
 import { BottomTabBar } from '@/components/bottom-tab-bar';
+import { bottomActionClearance, bottomTabClearance } from '@/lib/layout-metrics';
+import { SelectionActions } from '@/components/selection-actions';
+import { FoodieLoading } from '@/components/foodie-loading';
 import { MenuListsSheet } from '@/components/menu-lists-sheet';
 import { NewMenuSheet } from '@/components/new-menu-sheet';
 import { cleanMenu, publishMenuNow } from '@/lib/controllers/useFonderoMenuDraftController';
@@ -29,6 +35,7 @@ import { noWidow } from '@/lib/typography';
 // derogó para permitir justo esto; lo que sigue distinto es el CONTENIDO
 // (un Fondero no ve lugares, un Foodie no ve menús), no la forma.
 export default function HistorialScreen() {
+  const edges = useScrollEdges();
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
   const c = fonderoPalette(theme.isDark);
@@ -38,21 +45,24 @@ export default function HistorialScreen() {
   const [newMenuSheetVisible, setNewMenuSheetVisible] = useState(false);
   const moreRefs = useRef<Map<string, View | null>>(new Map());
   const [selecting, setSelecting] = useState(false);
+  const [selectionBarHeight, setSelectionBarHeight] = useState(60);
   const [selectedFechas, setSelectedFechas] = useState<Set<string>>(new Set());
   const [collections, setCollections] = useState<MenuCollection[]>([]);
   const [activeListIds, setActiveListIds] = useState<string[]>([]);
-  const [sheetMode, setSheetMode] = useState<'filter' | 'assign' | null>(null);
+  const [sheetMode, setSheetMode] = useState<'filter' | 'assign' | 'move' | null>(null);
   const [assignFechas, setAssignFechas] = useState<string[]>([]);
   const todayFecha = localMenuDate();
   const pendingToday = !menus.some((menu) => menu.published && menu.fecha === todayFecha);
 
   useFocusEffect(useCallback(() => {
-    getMenuCollections().then(setCollections);
+    getMenuCollections().then(setCollections).catch(() => Alert.alert(noWidow('No pudimos cargar las listas'), noWidow('Inténtalo de nuevo.')));
   }, []));
 
   const visibleMenus = activeListIds.length === 0 ? menus : menus.filter((menu) => (
     activeListIds.some((id) => collections.find((collection) => collection.id === id)?.fechas.includes(menu.id))
   ));
+
+  const moveSelection = resolveLibraryMoveSelection({ collections: collections.map((item) => ({ ...item, patioIds: item.fechas })), activeCollectionIds: activeListIds, selectedPatioIds: [...selectedFechas] });
 
   const exitSelecting = () => {
     setSelecting(false);
@@ -135,7 +145,7 @@ export default function HistorialScreen() {
           <Ionicons name={isSelected ? 'checkmark-circle' : 'ellipse-outline'} size={22} color={isSelected ? c.accent : c.textMute} />
         )}
         <View style={{ flex: 1, minWidth: 0 }}>
-          <Text style={[s.summary, { color: c.text }]} numberOfLines={2}>{menu.nombre || defaultHistoryTitle(menu)}</Text>
+          <Text style={[s.summary, { color: c.text }]}>{menu.nombre || defaultHistoryTitle(menu)}</Text>
           <Text style={[s.date, { color: c.textMute }]}>{noWidow(`${menu.published ? 'Publicado' : 'Guardado'} · ${dateLabel(menu.fecha)}`)}</Text>
         </View>
         {!selecting && (
@@ -163,6 +173,8 @@ export default function HistorialScreen() {
       {menus.length > 0 && (
         selecting ? (
           <View style={s.selectRow}>
+            <Text style={{ flex: 1, color: c.textSecondary }}>{noWidow(`${selectedFechas.size} ${selectedFechas.size === 1 ? 'seleccionado' : 'seleccionados'}`)}</Text>
+            <TouchableOpacity style={s.selectToggle} accessibilityRole="checkbox" accessibilityLabel="Seleccionar todos los menús" accessibilityState={{ checked: visibleMenus.length > 0 && visibleMenus.every((menu) => selectedFechas.has(menu.id)) }} onPress={() => setSelectedFechas((current) => { const next = new Set(current); const all = visibleMenus.every((menu) => current.has(menu.id)); visibleMenus.forEach((menu) => all ? next.delete(menu.id) : next.add(menu.id)); return next; })}><Text style={{ color: c.textSecondary }}>{visibleMenus.length > 0 && visibleMenus.every((menu) => selectedFechas.has(menu.id)) ? 'Ninguno' : 'Todos'}</Text></TouchableOpacity>
             <TouchableOpacity onPress={exitSelecting} accessibilityRole="button" accessibilityLabel="Cancelar selección" hitSlop={8} style={s.selectToggle}>
               <Text style={[s.selectToggleText, { color: c.accent }]}>Cancelar</Text>
             </TouchableOpacity>
@@ -200,6 +212,7 @@ export default function HistorialScreen() {
               )}
               <TouchableOpacity
                 style={[s.listsBtn, { borderColor: c.border, backgroundColor: c.surface }]}
+                hitSlop={5}
                 onPress={() => setSheetMode('filter')}
                 accessibilityRole="button"
                 accessibilityLabel={activeListIds.length ? `Listas, ${activeListIds.length} activas` : 'Listas'}
@@ -218,8 +231,9 @@ export default function HistorialScreen() {
           </View>
         )
       )}
-      <ScrollView onScroll={onScroll} scrollEventThrottle={16} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: insets.bottom + (selecting ? 100 : 120) }} showsVerticalScrollIndicator={false}>
-        {!loading && menus.length === 0 ? (
+      <View style={{ flex: 1 }}>
+      <ScrollView onLayout={edges.onLayout} onContentSizeChange={edges.onContentSizeChange} onScroll={(event) => { edges.onScroll?.(event); onScroll?.(event); }} scrollEventThrottle={16} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: selecting ? bottomActionClearance(insets.bottom, selectionBarHeight) : bottomTabClearance(insets.bottom) }} showsVerticalScrollIndicator indicatorStyle={theme.isDark ? 'white' : 'black'}>
+        {loading ? <View style={{ minHeight: 240 }}><FoodieLoading label="Cargando menús" /></View> : menus.length === 0 ? (
           <View style={s.empty}>
             <View style={[s.emptyIcon, { borderColor: c.border, backgroundColor: c.surface }]}>
               <Ionicons name="receipt-outline" size={32} color={c.textSecondary} />
@@ -250,65 +264,15 @@ export default function HistorialScreen() {
           </View>
         )}
       </ScrollView>
-      <Modal visible={!!editing} transparent animationType="fade" onRequestClose={closeRename}>
-        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-          <View style={s.modalBackdrop}>
-            <View style={[s.modalCard, { backgroundColor: c.surface2, borderColor: c.border }]}>
-              <Text style={[s.modalTitle, { color: c.text }]}>{noWidow('Renombrar menú')}</Text>
-              <TextInput
-                value={draftName}
-                onChangeText={(value) => setDraftName(value.slice(0, 48))}
-                style={[s.nameInput, { color: c.text, borderColor: c.border }]}
-                placeholder="Ej. Viernes de pozole"
-                placeholderTextColor={c.textMute}
-                selectionColor={c.accent}
-                autoFocus
-                returnKeyType="done"
-                onSubmitEditing={saveName}
-              />
-              <View style={s.modalActions}>
-                <TouchableOpacity accessibilityRole="button" accessibilityLabel="Cancelar" style={[s.modalBtn, { borderColor: c.border }]} onPress={closeRename} activeOpacity={0.75}>
-                  <Text style={[s.modalBtnText, { color: c.textSecondary }]}>Cancelar</Text>
-                </TouchableOpacity>
-                <TouchableOpacity accessibilityRole="button" accessibilityLabel="Guardar nombre" style={[s.modalBtn, s.modalPrimary, { backgroundColor: c.accent }]} onPress={saveName} activeOpacity={0.82}>
-                  <Text style={s.modalPrimaryText}>Guardar</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        </KeyboardAvoidingView>
-      </Modal>
+      </View>
+      <RenameDialog visible={!!editing} title="Renombrar menú" value={draftName} onChangeText={setDraftName} maxLength={48} onClose={closeRename} onSave={saveName} />
       {selecting ? (
-        <View style={[s.actionBar, {
-          paddingBottom: insets.bottom + 10,
-          borderTopColor: theme.isDark ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.18)',
-          backgroundColor: theme.isDark ? 'rgba(17,18,20,0.4)' : 'rgba(248,248,245,0.4)',
-          shadowOpacity: theme.isDark ? 0.20 : 0.08,
-        }]}>
-          <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
-          <Text style={[s.actionCount, { color: c.textSecondary }]}>
-            {selectedFechas.size} {selectedFechas.size === 1 ? 'seleccionado' : 'seleccionados'}
-          </Text>
-          <View style={s.actionButtons}>
-            <TouchableOpacity
-              disabled={selectedFechas.size === 0}
-              onPress={() => { setAssignFechas(Array.from(selectedFechas)); setSheetMode('assign'); }}
-              accessibilityRole="button"
-              accessibilityLabel="Añadir seleccionados a una lista"
-              style={[s.actionBtn, { borderColor: c.border }, selectedFechas.size === 0 && s.actionBtnDisabled]}>
-              <Ionicons name="bookmark-outline" size={18} color={c.text} />
-              <Text style={[s.actionBtnText, { color: c.text }]}>Lista</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              disabled={selectedFechas.size === 0}
-              onPress={() => { const fechas = Array.from(selectedFechas); deleteMenus(fechas); exitSelecting(); }}
-              accessibilityRole="button"
-              accessibilityLabel="Eliminar menús seleccionados"
-              style={[s.actionBtn, { borderColor: c.border }, selectedFechas.size === 0 && s.actionBtnDisabled]}>
-              <Ionicons name="trash-outline" size={18} color={c.text} />
-              <Text style={[s.actionBtnText, { color: c.text }]}>Eliminar</Text>
-            </TouchableOpacity>
-          </View>
+        sheetMode === null && <View onLayout={(event) => setSelectionBarHeight(event.nativeEvent.layout.height)} style={{ position: 'absolute', left: 16, right: 16, bottom: insets.bottom + 8 }}>
+          <SelectionActions actions={[
+            { label: 'Añadir', icon: 'folder-outline', disabled: !selectedFechas.size, onPress: () => { setAssignFechas(Array.from(selectedFechas)); setSheetMode('assign'); } },
+            { label: 'Mover', icon: 'folder-open-outline', disabled: !moveSelection.canMove, onPress: () => { setAssignFechas([...selectedFechas]); setSheetMode('move'); } },
+            { label: 'Eliminar', icon: 'trash-outline', disabled: !selectedFechas.size, onPress: () => deleteMenus(Array.from(selectedFechas), exitSelecting) },
+          ]} />
         </View>
       ) : (
         <BottomTabBar variant="fondero" />
@@ -321,7 +285,7 @@ export default function HistorialScreen() {
         options={actionsFor ? [
           { label: 'Publicar igual', icon: 'checkmark-done-outline', onPress: () => publishReused(actionsFor) },
           { label: 'Editar y usar', icon: 'create-outline', onPress: () => reuse(actionsFor) },
-          { label: 'Renombrar', icon: 'text-outline', onPress: () => openRename(actionsFor) },
+          { label: 'Renombrar', icon: 'pencil', onPress: () => openRename(actionsFor) },
           { label: 'Añadir a lista', icon: 'bookmark-outline', onPress: () => { setAssignFechas([actionsFor.id]); setSheetMode('assign'); } },
           { label: 'Eliminar', icon: 'trash-outline', destructive: true, onPress: () => deleteMenu(actionsFor) },
         ] : []}
@@ -338,6 +302,8 @@ export default function HistorialScreen() {
         onToggleFilter={(id) => setActiveListIds((prev) => (prev.includes(id) ? prev.filter((activeId) => activeId !== id) : [...prev, id]))}
         onClearFilter={() => setActiveListIds([])}
         targetFechas={assignFechas}
+        sourceCollectionIds={moveSelection.sourceCollectionIds}
+        onMoved={exitSelecting}
       />
       <NewMenuSheet visible={newMenuSheetVisible} onClose={() => setNewMenuSheetVisible(false)} />
     </View>

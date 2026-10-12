@@ -1,11 +1,45 @@
 # ROADCONTROLLER — Patio
 
-> Estado: v3 · 2026-07-25
+> **Corte vigente — 2026-10-12:** código de homologación, tarjetas y navegación
+> cerrado localmente: TypeScript/lint y **177 pruebas** aprobados, 54 ejemplos web.
+> Backend ensayado/promovido el 2026-10-09. Lanzamiento todavía pendiente de
+> QA móvil, auditoría npm, Maps/Firebase Android, integraciones y distribución.
+> [Heads-up](HEADS_UP_2026-10-12.md) · [Checklist/roadmap](PENDING_LAUNCH_2026-10-12.md).
+> Los cortes anteriores son históricos y no sustituyen este estado.
+
+> **Producción actualizada (2026-10-09):** siete migraciones aplicadas y registradas; cinco funciones ACTIVE con JWT. Datos existentes conservados; correos protegidos. Evidencia: [PRODUCTION_PROMOTION_2026-10-09.md](PRODUCTION_PROMOTION_2026-10-09.md). Lanzamiento aún pendiente de QA móvil y requisitos de distribución.
+
+> **Staging preparado (2026-10-09):** patio-staging creado; siete migraciones
+> y cinco funciones instaladas. **15 pruebas reales Auth/RLS/Storage/Edge**
+> aprobadas; posteriormente promovidas a producción con autorización explícita. Ver
+> [STAGING_REHEARSAL_2026-10-09.md](STAGING_REHEARSAL_2026-10-09.md).
+
+
+> **Corte histórico — 2026-10-09:** lanzamiento solicitado para iPhone y Android.
+> Homologación de bibliotecas implementada; 149 pruebas y 19 comprobaciones SQL
+> aisladas aprobadas; exportaciones de ambas plataformas completas. Backend real,
+> seguridad restante, configuración Android, QA visual y tiendas siguen abiertos.
+> Checklist y contrato: [LAUNCH_CLOSEOUT_2026-10-09.md](LAUNCH_CLOSEOUT_2026-10-09.md).
+> Los cortes anteriores se conservan como historial, no como estado de lanzamiento.
+
+
+## Corte histórico — auditoría 2026-10-01
+
+Trabajo parcial: cards y mover implementados; etapa 1 pendiente de inventario,
+contrato, degradado de scroll y QA en iPhone físico. Etapas 2 y 3 sin cierre.
+TypeScript, lint y 133 tests aprobados hoy. Release estricto falla por Maps y
+Firebase Android; Supabase real y bloqueos de lanzamiento siguen sin certificar.
+Siguiente: cerrar pendientes de etapa 1 y después continuar etapa 2.
+Evidencia y límites: [PENDING_AUDIT_2026-10-01.md](PENDING_AUDIT_2026-10-01.md).
+Los cortes históricos siguientes no sustituyen este estado.
+
+
+> Estado: v4 · 2026-10-12
 > Uso: mapa operativo superior de `/Users/parco/Patio`.
 > Función: decidir qué frente leer, qué carpeta tocar, qué está activo, qué está pausado y cómo no mezclar sistemas.
 > Inspirado en `~/T1all/ROADCONTROLLER.md` (solo el formato; los sistemas no se mezclan).
 
-> **Frente vigente, 2026-09-14:** navegación, búsqueda y filtros compartidos
+> **Frente histórico, 2026-09-14:** navegación, búsqueda y filtros compartidos
 > refinados en Mapa/Guardados; accesos directos Filtros y Tus listas, filas
 > agrupadas e información de menú de hoy verificada por fecha. Código y pruebas
 > completos; aprobación visual en iPhone físico pendiente. Leer el corte superior
@@ -57,15 +91,15 @@ Patio/
 
 | Frente | Dónde | Estado | Siguiente útil |
 |---|---|---|---|
-| Código RN (producto) | `app/` `components/` `lib/` | **Checkpoint panorámico 2026-07-25** — Buscar/Lugares/Perfil y Menús/Actividad/Perfil; aprobación visual parcial | Alejandro revisa en iPhone y reporta problemas concretos |
-| Rama de trabajo | `rebuild/patio-final` | Activa; checkpoint completo solicitado el 2026-07-25 | Continuar desde el commit del corte; GitHub autenticado como `patioquehayhoy` |
-| Edge functions `read-menu` + `smart-setup` | `supabase/functions/` | **Desplegadas** — `read-menu` v2 con JSON Schema y revisión dirigida, 2026-07-24 | Ampliar corpus real; al final desactivar llave vieja |
-| Figma Make | `design-source/figma-make/` | **Cerrado como herramienta** (decisión 2026-07-10) — v01/v02 quedan solo como referencia visual; v03 descartado | Nada — no retomar |
-| Docs de estado | `docs/HANDOFF.md` `docs/STATE.md` `docs/TASKS.md` | Vigentes al 2026-07-25 | Actualizar tras la revisión humana en iPhone |
-| QA dispositivo | iPhone 15 Pro "Parco" | Dev build instalada, itera por WiFi | Magic link, cámara/galería, GPS real, póster/share, push, mapas |
-| TestFlight | build 1.0.0 (45+) | Congelado en versión vieja | Build nuevo solo al cerrar el bloque de QA (economía EAS) |
-| Supabase | proyecto `lafondita` (org Parco Apps) | Funcional; plan Free se pausa solo → dar Resume | No migrar correo todavía |
-| EAS Update (OTA) | — | **No configurado** | Decisión pendiente: lo resolvería "última versión sin build" fuera de casa |
+| Código RN (producto) | `app/` `components/` `lib/` | Homologación y cards implementadas; 177 pruebas locales; QA móvil pendiente | Alejandro prueba y reporta fallos concretos |
+| Rama de trabajo | `rebuild/patio-final` | Checkpoint de este corte; push a la misma rama | No mezclar ni forzar main/v2-menu-vivo |
+| Backend | `supabase/` `scripts/backend/` | Siete migraciones y cinco funciones promovidas tras 15 ensayos reales, 2026-10-09 | Integraciones IA/SMTP/push y QA móvil pendientes |
+| Figma Make | `design-source/figma-make/` | Cerrado como herramienta; v01/v02 históricos | No retomar |
+| Docs de estado | `HANDOFF` `STATE` `TASKS` | Corte 2026-10-12 y checklist único | Actualizar resultados de QA y gates de release |
+| QA dispositivo | iPhone y Android | El usuario realizará la prueba; cierre iPhone previo sin confirmar | Búsqueda/swipe, GPS, ambas bibliotecas y ambos roles |
+| TestFlight/Google Play | Distribución | Candidato firmado actual pendiente; no se inició EAS | Resolver gates del checklist antes de construir/enviar |
+| Supabase | `patio`, org Parco Apps | Cuenta Patio como único Owner, verificado 2026-10-09 | No repetir login/promoción ni reasignar datos sintéticos |
+| EAS Update (OTA) | Radar posterior | Decisión pendiente; no bloquea este checkpoint Git | Evaluar después del candidato y QA |
 
 ## 5. Cómo abrir Patio en el iPhone (las 3 formas)
 
@@ -128,7 +162,7 @@ horario semanal por día · stats vivas + `vistos.tsx` · collapsing-header (Lar
 
 - `design-source/` **no se pega** en `app/` — es web (Vite/Tailwind), se traduce a RN.
 - Identidad verbal (`IDENTITY_VERBAL.md`) mata al copy de Figma, siempre.
-- El bloque de precio en `menu.tsx` no se toca (regla CLAUDE.md).
+- El precio del día en `components/menu-composer.tsx` se conserva (regla components/CLAUDE.md).
 - `"Saaaaaaabes."` no se modifica ni parafrasea.
 - Build EAS solo cuando el simulador no alcanza; agrupar cambios (economía de builds).
 - Naranja = marca, negro = interfaz; no introducir segundos acentos.
@@ -137,19 +171,25 @@ horario semanal por día · stats vivas + `vistos.tsx` · collapsing-header (Lar
 
 ## 9. Prioridades actuales
 
+1. QA del usuario: búsqueda → swipe → navegación, cards, ubicación y bibliotecas.
+2. Resolver auditoría npm y Maps/Firebase Android; validar SMTP, IA y push reales.
+3. Completar privacidad, eliminación web, moderación y operación de soporte.
+4. Candidatos firmados, QA iPhone/Android y fichas de tiendas.
+5. Después del candidato: miniatura real del local, piloto y radar de producto.
+
+Criterios y responsables: [PENDING_LAUNCH_2026-10-12](PENDING_LAUNCH_2026-10-12.md).
+No reabrir auditoría amplia, USB ni EAS automáticamente. El cierre nativo previo
+no está certificado como resuelto por tests/exportaciones.
+
+## 10. Callgraph raíz
+
 ```txt
-1. Validar en iPhone una foto real de una de las diez primeras fonditas:
-   extracción → corrección → publicación → póster → perfil.
-2. Construir backend social mínimo: follows, reseñas, vistas agregadas, versiones
-   de menú, preferencias y entregas de avisos con RLS.
-3. Instrumentar tiempo a primera publicación/interacción, densidad de la
-   microzona y retorno antes de implementar cobro.
-4. Mantener el barrido humano en iPhone: magic link, IA, póster/share, push y
-   apertura de mapas. Corregir solo hallazgos reproducibles.
-5. Al final: rotar la clave vieja `EXPO_PUBLIC_ANTHROPIC_API_KEY`/"Patio" en
-   console.anthropic.com — no urgente (decisión 2026-07-16).
-6. Decidir EAS Update (OTA) para "última versión sin build".
-7. Build/TestFlight nuevo solo al cerrar un bloque completo (economía EAS).
+Solicitud de Alejandro
+→ ROADCONTROLLER (este archivo: detectar frente)
+→ HANDOFF + STATE (estado vigente)
+→ doc/fuente del frente (§6)
+→ trabajo (simulador primero; tsc antes de cerrar)
+→ actualizar HANDOFF (+ STATE si cambió el panorama)
 ```
 
 ## 11. Agentes especializados
@@ -164,14 +204,3 @@ horario semanal por día · stats vivas + `vistos.tsx` · collapsing-header (Lar
 
 Auditoría de los 53 documentos del repo (vigente / revisar / archivo):
 `docs/DOCS_AUDIT_2026-07-22.md`.
-
-## 10. Callgraph raíz
-
-```txt
-Solicitud de Alejandro
-→ ROADCONTROLLER (este archivo: detectar frente)
-→ HANDOFF + STATE (estado vigente)
-→ doc/fuente del frente (§6)
-→ trabajo (simulador primero; tsc antes de cerrar)
-→ actualizar HANDOFF (+ STATE si cambió el panorama)
-```

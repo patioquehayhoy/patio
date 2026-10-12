@@ -1,3 +1,4 @@
+import { patioCardOpenState } from '@/lib/patio-card-info';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, Linking, Platform, Share } from 'react-native';
@@ -7,7 +8,6 @@ import { syncSavedPatioNotificationSubscriptions } from '@/lib/community-notific
 import { getFavoritePatioIds, toggleFavoritePatio } from '@/lib/favorites';
 import {
   DIA_CORTO,
-  estaAbiertoAhora,
   formatHHMM12,
   horarioDeHoy,
   minutosParaCerrar,
@@ -86,8 +86,7 @@ function cleanParam(id: PatioParam): string | undefined {
 }
 
 function patioStatus(patio: Patio): boolean | null {
-  if (patio.weeklyHours) return estaAbiertoAhora(patio.weeklyHours);
-  return null;
+  return patioCardOpenState(patio);
 }
 
 export function usePatioDetailController(id: PatioParam) {
@@ -159,11 +158,11 @@ export function usePatioDetailController(id: PatioParam) {
   const status = useMemo(() => (patio ? patioStatus(patio) : null), [patio]);
   const isClosed = status === false;
   // Aviso "cierra pronto" — solo cuando de verdad está abierto ahora mismo.
-  // Ventana de 15 min: suficiente para decidir ir, no tan corta que no dé tiempo.
+  // Ventana compartida de 30 min para tarjetas y detalle.
   const cierraProntoMin = useMemo(() => {
     if (!patio || status !== true) return null;
     const min = minutosParaCerrar(patio.weeklyHours);
-    return min != null && min <= 15 ? min : null;
+    return min != null && min <= 30 ? min : null;
   }, [patio, status]);
   const soldOut = patio?.soldOut === true;
   const sections = useMemo(

@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { noWidow } from '@/lib/typography';
 import type { ReactNode } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
@@ -40,12 +41,12 @@ export function SettingsRow({ c, icon, title, sub, accent, divider, onPress, tra
         <Ionicons name={icon} size={17} color={iconColor} />
       </View>
       <View style={styles.body}>
-        <Text style={[styles.title, { color: accent ? c.accent : c.text }]} numberOfLines={1} allowFontScaling={true}>
-          {title}
+        <Text style={[styles.title, { color: accent ? c.accent : c.text }]} allowFontScaling={true}>
+          {noWidow(title)}
         </Text>
         {sub ? (
-          <Text style={[styles.sub, { color: c.textSecondary }]} numberOfLines={1} allowFontScaling={true}>
-            {sub}
+          <Text style={[styles.sub, { color: c.textSecondary }]} allowFontScaling={true}>
+            {noWidow(sub)}
           </Text>
         ) : null}
       </View>
@@ -69,7 +70,7 @@ export function SettingsGroup({ c, label, children }: { c: SettingsColors; label
     <View style={styles.group}>
       {label ? (
         <Text style={[styles.groupLabel, { color: c.textMute }]} allowFontScaling={true}>
-          {label}
+          {noWidow(label)}
         </Text>
       ) : null}
       <View style={[styles.card, { backgroundColor: c.surface, borderColor: c.border }]}>{children}</View>

@@ -1,0 +1,249 @@
+diff --git a/components/patio-card-info.tsx b/components/patio-card-info.tsx
+--- a/components/patio-card-info.tsx
++++ b/components/patio-card-info.tsx
+@@ -13,8 +13,6 @@
+   personalRating?: number | null;
+   /** Accent the public-rating star when this person has rated the place. */
+   showPersonalRating?: boolean;
+-  /** A comparison option; the compact grid defaults to a single line. */
+-  nameLines?: 1 | 2;
+   /** Grid cards place the same price in their leading icon row. */
+   showPrice?: boolean;
+   style?: StyleProp<ViewStyle>;
+@@ -22,13 +20,12 @@
+ 
+ /** Shared content only: the parent owns navigation, selection and materials. */
+ export function PatioCardInfo({
+-  patio, variant = 'list', distanceLabel, personalRating, showPersonalRating = false, nameLines, showPrice = true, style,
++  patio, variant = 'list', distanceLabel, personalRating, showPersonalRating = false, showPrice = true, style,
+ }: PatioCardInfoProps) {
+   const { theme } = useTheme();
+   const s = makeStyles(theme);
+   const { fontScale, width } = useWindowDimensions();
+   const grid = variant === 'grid';
+-  const lines = nameLines ?? (grid ? 1 : 2);
+   const stackPrice = fontScale > 1.4 && width < 600;
+   const info = getPatioCardInfo(patio, { distanceLabel, personalRating });
+   const ratedByMe = showPersonalRating && info.personalRatingValue !== null;
+@@ -38,21 +35,21 @@
+   return (
+     <View style={[s.content, style]}>
+       <View style={[s.heading, stackPrice && s.stackedHeading]}>
+-        <View style={[s.identity, stackPrice && s.stackedIdentity, grid && { minHeight: 21 * lines * fontScale }]}>
+-          <Text style={s.name} numberOfLines={lines} ellipsizeMode="tail" accessibilityLabel={info.name} allowFontScaling>{noWidow(info.name)}</Text>
+-          {info.verified && <View style={[s.verification, { height: 21 * fontScale }]}>
+-            <Ionicons name="checkmark-circle" size={14} color={theme.accent} accessibilityLabel="Negocio verificado" />
+-          </View>}
++        <View style={[s.identity, stackPrice && s.stackedIdentity, { minHeight: 21 * fontScale }]}>
++          <Text style={s.name} numberOfLines={1} ellipsizeMode="tail" accessibilityLabel={info.name} allowFontScaling>{noWidow(info.name)}</Text>
++          <View style={[s.verification, { height: 21 * fontScale }]} accessible={false}>
++            {info.verified && <Ionicons name="checkmark-circle" size={14} color={theme.accent} accessibilityLabel="Negocio verificado" />}
++          </View>
+         </View>
+-        {showPrice && <PatioCardPrice patio={patio} style={stackPrice ? s.stackedPrice : [s.trailingPrice, { width: 92 * fontScale }]} />}
++        {showPrice && <PatioCardPrice patio={patio} style={stackPrice ? s.stackedPrice : [s.trailingPrice, { width: 112 * fontScale }]} />}
+       </View>
+-      <PatioCardLocation area={info.area} distanceLabel={distanceLabel} reserveLine={grid} />
+-      <View style={[s.facts, grid && { minHeight: 18 * fontScale }]}>
++      <PatioCardLocation area={info.area} distanceLabel={distanceLabel} reserveLine />
++      <View style={[s.facts, { minHeight: 18 * fontScale }]}>
+         <View style={s.publicRating} accessible accessibilityLabel={ratingAccessibilityLabel}>
+           <View style={s.icon}><Ionicons name="star" size={12} color={ratedByMe ? theme.accent : theme.textSecondary} /></View>
+           <Text style={[s.meta, s.numeric]} numberOfLines={1} allowFontScaling>{grid ? info.publicRatingValue?.toFixed(1) ?? '—' : info.publicRating}</Text>
+         </View>
+-        {!!info.closingLabel && <Text style={[s.meta, s.numeric, s.closing]} accessibilityLabel={info.closingAccessibilityLabel ?? undefined} allowFontScaling>{noWidow(info.closingLabel)}</Text>}
++        {!!info.closingLabel && <Text style={[s.meta, s.numeric, s.closing]} numberOfLines={1} ellipsizeMode="tail" accessibilityLabel={info.closingAccessibilityLabel ?? undefined} allowFontScaling>{noWidow(info.closingLabel)}</Text>}
+       </View>
+     </View>
+   );
+@@ -81,13 +78,18 @@
+ }
+ 
+ /** Published price is a comparison anchor; never truncate or shrink the amount. */
+-export function PatioCardPrice({ patio, style }: { patio: Patio; style?: StyleProp<ViewStyle> }) {
++export function PatioCardPrice({ patio, compact = true, style }: { patio: Patio; compact?: boolean; style?: StyleProp<ViewStyle> }) {
+   const { theme } = useTheme();
++  const { fontScale, width } = useWindowDimensions();
+   const s = makeStyles(theme);
+   const price = patioCardPrice(patio);
++  // A very large amount opens its full published prices instead of displaying
++  // an incomplete currency range. The expanded place page keeps the exact value.
++  const limit = fontScale > 2 && width < 400 ? 9 : 12;
++  const label = compact && price.source !== 'missing' && price.label.length > limit ? 'Ver precios' : price.label;
+   return <View style={[s.priceSlot, style]}>
+-    <Text style={[s.price, price.source === 'missing' && s.missingPrice]} allowFontScaling accessibilityLabel={price.accessibilityLabel}>
+-      {noWidow(price.label)}
++    <Text style={[s.price, (price.source === 'missing' || label === 'Ver precios') && s.missingPrice]} numberOfLines={compact ? 1 : undefined} ellipsizeMode="tail" allowFontScaling accessibilityLabel={price.accessibilityLabel}>
++      {noWidow(label)}
+     </Text>
+   </View>;
+ }
+@@ -99,16 +101,16 @@
+     stackedHeading: { flexDirection: 'column', gap: 3 },
+     stackedIdentity: { flex: 0, width: '100%' },
+     identity: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'flex-start', gap: 4 },
+-    name: { flexShrink: 1, minWidth: 0, fontSize: 16, lineHeight: 21, fontWeight: '700', color: t.text },
++    name: { flex: 1, minWidth: 0, fontSize: 16, lineHeight: 21, fontWeight: '700', color: t.text },
+     verification: { width: 16, height: 21, flexShrink: 0, alignItems: 'center', justifyContent: 'center' },
+     area: { flexShrink: 1, minWidth: 0, fontSize: 13, lineHeight: 18, fontWeight: '400', color: t.textSecondary },
+     location: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2, minWidth: 0 },
+     locationSeparator: { flexShrink: 0 },
+     distance: { flexShrink: 0 },
+     detailLocation: { fontSize: 14, lineHeight: 20 },
+-    facts: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', columnGap: 8, rowGap: 2, marginTop: 2, minWidth: 0 },
+-    publicRating: { flexShrink: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: 4 },
+-    closing: { marginLeft: 'auto', maxWidth: '100%', textAlign: 'right' },
++    facts: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 2, minWidth: 0 },
++    publicRating: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: 4 },
++    closing: { flexShrink: 0, marginLeft: 'auto', maxWidth: '60%', textAlign: 'right' },
+     icon: { width: 16, height: 18, flexShrink: 0, alignItems: 'center', justifyContent: 'center' },
+     meta: { flexShrink: 1, fontSize: 12, lineHeight: 18, fontWeight: '400', color: t.textSecondary },
+     numeric: { fontVariant: ['tabular-nums'] },
+diff --git a/app/patio/[id].tsx b/app/patio/[id].tsx
+--- a/app/patio/[id].tsx
++++ b/app/patio/[id].tsx
+@@ -506,7 +506,7 @@
+           </View>
+           <View style={s.summaryRow}>
+             <PatioCardLocation area={patio.area} distanceLabel={distance} variant="detail" style={{ flex: 1 }} />
+-            <PatioCardPrice patio={patio} style={s.summaryPrice} />
++            <PatioCardPrice patio={patio} compact={false} style={s.summaryPrice} />
+           </View>
+           {/* Menú del día — agrupado por sección (atenuado si ya se acabó) */}
+           <View style={soldOut && s.menuSoldWrap}>
+diff --git a/scripts/design/card-preview.cjs b/scripts/design/card-preview.cjs
+--- a/scripts/design/card-preview.cjs
++++ b/scripts/design/card-preview.cjs
+@@ -54,9 +54,12 @@
+ const e = React.createElement;
+ const cases = [
+   { name: 'Patio', price: '$95', own: null, verified: true },
++  { name: 'Patio', price: '$75–165', own: 5, verified: true },
++  { name: 'Patio', price: '$1,250–2,950', own: 3, verified: true },
+   { name: 'Cocina Lupita', price: '$145–185', own: 2, verified: true },
+   { name: 'Café Patio de Siempre y Cocina Tradicional del Barrio', price: '$75–165', own: 5, verified: true },
+-  { name: 'La Cocina de Doña Esperanza y sus Hijas, Antojitos de Temporada y Sabores Tradicionales del Barrio de San Miguel desde 1987', price: '$1,250–2,950', own: 3, area: 'San Miguel Chapultepec Primera Sección', distance: '12.5 km', count: 12543, verified: true },
++  { name: 'Café Patio de Siempre y Cocina Tradicional del Barrio', price: '$1,250–2,950', own: null, verified: true },
++  { name: 'La Cocina de Doña Esperanza y sus Hijas, Antojitos de Temporada y Sabores Tradicionales del Barrio de San Miguel desde 1987', price: '$12,500–25,000', own: 3, area: 'San Miguel Chapultepec Primera Sección', distance: '12.5 km', count: 12543, verified: true },
+   { name: 'Lugar laboratorio con un nombre extraordinariamente largo 38', price: '$45–120', own: null, verified: false, distance: '50 m' },
+   { name: 'Cocina Carmelita', price: '$', own: null, verified: false, noHours: true, area: '', distance: null, rating: 'Nuevo' },
+ ];
+@@ -66,14 +69,14 @@
+     textMute: dark ? Colors.textMuteDark : Colors.textMute, accent: dark ? Colors.accentDark : Colors.accent,
+     border: dark ? Colors.borderDark : Colors.border };
+ }
+-function section({ label, dark = false, width = 393, fontScale = 1, grid = false, nameLines }) {
++function section({ label, dark = false, width = 393, fontScale = 1, grid = false }) {
+   currentTheme = theme(dark); frame = { width, height: 852, fontScale };
+   const cols = grid ? patioGridColumns(width, fontScale) : 1;
+   const cards = cases.map((item, index) => {
+     const patio = { id: String(index), ...item, categories: [], menu: [], area: item.area ?? 'Irrigación',
+       weeklyHours: item.noHours ? null : crearHorarioBase('00:00', '23:59'), rating: item.rating ?? '4.5', ratingCount: item.count ?? 70, isVerifiedBusiness: item.verified ?? true };
+     const info = e(PatioCardInfo, { patio, variant: grid ? 'grid' : 'list', showPrice: !grid,
+-      nameLines, showPersonalRating: true, personalRating: item.own, distanceLabel: item.distance === undefined ? '750 m' : item.distance });
++      showPersonalRating: true, personalRating: item.own, distanceLabel: item.distance === undefined ? '750 m' : item.distance });
+     const card = grid ? e(web.View, { style: { width: cols === 2 ? (width - 44) / 2 : width - 32,
+       padding: 12, borderRadius: 18, backgroundColor: currentTheme.surface, borderWidth: 0.5, borderColor: currentTheme.border } },
+       e(web.View, { style: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 40 * fontScale, marginBottom: 4 } },
+@@ -88,9 +91,9 @@
+ }
+ function generate(destination) {
+   const samples = [
+-    { label: 'A · una línea · aplicada', grid: true }, { label: 'B · dos líneas · comparación', grid: true, nameLines: 2 },
+-    { label: 'Lista · más detalle' }, { label: 'A · oscuro', grid: true, dark: true },
+-    { label: 'A · pantalla pequeña · 320 pt', grid: true, width: 320 }, { label: 'A · letra grande · 160%', grid: true, fontScale: 1.6 },
++    { label: 'Lista · claro' }, { label: 'Cuadrícula · claro', grid: true },
++    { label: 'Lista · oscuro', dark: true }, { label: 'Cuadrícula · oscuro', grid: true, dark: true },
++    { label: 'Lista · 320 pt', width: 320 }, { label: 'Cuadrícula · letra al 160%', grid: true, fontScale: 1.6 },
+   ].map(section).join('');
+   const font = fs.readFileSync(path.join(root, 'node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/Ionicons.ttf')).toString('base64');
+   const html = `<!doctype html><html lang="es"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Patio · nombres largos y calificaciones</title>
+@@ -100,10 +103,10 @@
+     header{max-width:1100px;margin:28px auto;padding:0 24px}h1{font-size:24px;margin:0 0 8px}p{font-size:14px;line-height:1.5;margin:6px 0}
+     main{display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;justify-content:center;padding:0 20px 40px}
+     .sample{flex:none;overflow:hidden;border-radius:20px}.sample h2{font-size:14px;font-weight:600;padding:16px 16px 0;margin:0}
+-    </style><header><h1>Patio · una estrella y tres líneas</h1><p>A: nombre de una línea. B: nombre de dos líneas. Mismos lugares, precios, distancias y verificación para comparar.</p><p>Una estrella: el número es el promedio público; naranja indica que ya calificaste. Colonia · distancia. La cuadrícula omite el conteo visible de reseñas para conservar tres líneas de texto.</p><p>Precio e icono permanecen arriba; una futura foto del local puede ocupar esa zona. Ejemplos sintéticos del componente real. Mapas, vidrio y fuentes nativas se prueban en el celular.</p></header><main>${samples}</main></html>`;
++    </style><header><h1>Patio · columnas estables</h1><p>Nombre, colonia y calificación en una línea cada uno. El sello tiene su propia columna; el precio conserva el borde derecho.</p><p>Mismo nombre con distintos precios, nombres extensos, colonia larga, distancia, reseñas y datos ausentes. Los rangos extraordinarios abren sus precios completos.</p><p>Una estrella naranja indica calificación propia; el número conserva el promedio público. Ejemplos sintéticos del componente real. Mapas, vidrio y fuentes nativas se prueban en el celular.</p></header><main>${samples}</main></html>`;
+   fs.mkdirSync(path.dirname(destination), { recursive: true });
+   fs.writeFileSync(destination, html);
+   return destination;
+ }
+-if (require.main === module) console.log(generate(process.argv[2] || path.join(root, 'docs/design/previews/patio-cards-single-star-2026-10-10.html')));
++if (require.main === module) console.log(generate(process.argv[2] || path.join(root, 'docs/design/previews/patio-cards-stable-columns-2026-10-12.html')));
+ module.exports = { generate };
+diff --git a/scripts/tests/library-controls.test.cjs b/scripts/tests/library-controls.test.cjs
+--- a/scripts/tests/library-controls.test.cjs
++++ b/scripts/tests/library-controls.test.cjs
+@@ -169,6 +169,20 @@
+   assert.equal(tree.props.accessibilityLabel, 'Distancia, 750 m');
+   assert.equal(nodes(tree).filter((node) => node.props?.children === '·').length, 0);
+   assert.equal(render({ area: '', distanceLabel: null }), null);
++});
++
++test('compact prices never show an incomplete extraordinary amount and the expanded page keeps exact prices', () => {
++  const f = fixture('components/patio-card-info.tsx', { '@/lib/patio-card-info': pureModule('lib/patio-card-info.ts') });
++  const patio = { menu: [], price: '$12,500–25,000' };
++  let tree = f.render(f.exports.PatioCardPrice, { patio });
++  const text = nodes(tree).find((node) => node.type === 'Text');
++  assert.equal(text.props.children, 'Ver precios');
++  assert.equal(text.props.numberOfLines, 1);
++  assert.match(text.props.accessibilityLabel, /12,500.*25,000/);
++  tree = f.render(f.exports.PatioCardPrice, { patio, compact: false });
++  assert.equal(nodes(tree).find((node) => node.type === 'Text').props.children, '$12,500–25,000');
++  tree = f.render(f.exports.PatioCardPrice, { patio: { ...patio, price: '$1,250–2,950' } });
++  assert.equal(nodes(tree).find((node) => node.type === 'Text').props.children, '$1,250–2,950');
+ });
+ 
+ test('sheet geometry respects the available viewport instead of forcing a minimum behind the keyboard', () => {
+diff --git a/docs/DESIGN_SYSTEM.md b/docs/DESIGN_SYSTEM.md
+--- a/docs/DESIGN_SYSTEM.md
++++ b/docs/DESIGN_SYSTEM.md
+@@ -10,6 +10,8 @@
+ [ajuste reversible](COMPACT_CARDS_LOCATION_2026-10-10.md).
+ Estrella única, colonia/distancia y comparación de nombres en cuadrícula:
+ [ajuste final de tarjetas](SINGLE_STAR_CARDS_2026-10-12.md).
++Contrato posterior de columnas y elipsis, tras auditar Uber Base/Material:
++[columnas estables](CARD_COLUMNS_AUDIT_2026-10-12.md).
+ 
+ ## Identidad y agrupación
+ 
+@@ -70,18 +72,20 @@
+ jerarquía en Guardados, resultados de Mapa, Vistos y colección privada.
+ La colección pública no inventa métricas que su consulta no obtiene.
+ 
+-- Nombre: una línea con elipsis en cuadrícula; hasta dos en lista.
+-  Completo en accesibilidad y ficha. La alternativa de dos líneas en grid
+-  queda en el artefacto de comparación, sin cambiar el ajuste aplicado.
++- Nombre: una línea con elipsis tanto en lista como en cuadrícula.
++  Completo en accesibilidad y ficha. Eliminar la variante de dos líneas de
++  las tarjetas compactas; su longitud no modifica la altura de la fila.
+ - Colonia: una línea. Sin giro ni categoría. Si falta, no sustituirla con
+   «CDMX», una categoría o una colonia inferida.
+ - Lista: nombre a la izquierda y precio a la derecha en la cabecera. Con
+   letra grande en ancho menor de 600 pt, el precio pasa debajo y mantiene
+-  alineación derecha. Nunca reducir ni truncar el importe.
+-- El precio reserva 92 pt × fontScale en lista. La verificación aparece
+-  junto al nombre, con 4 pt de separación y una casilla de 16 pt solo cuando
+-  existe; se alinea a su primera línea. No reservar hueco para negocios sin
+-  verificación ni anclar la palomita al importe.
++  alineación derecha. Cada importe compacto ocupa una línea. Los rangos
++  extraordinarios muestran «Ver precios»; accesibilidad y ficha conservan
++  el valor publicado completo. No mostrar una cifra parcialmente recortada.
++- El precio reserva 112 pt × fontScale en lista. La verificación tiene una
++  columna independiente de 16 pt al final del bloque de nombre, reservada
++  también cuando no hay sello. El nombre ocupa el ancho restante; nombre
++  corto, largo o precio distinto no desplazan el sello.
+ - Grid: precio arriba a la derecha, junto a la caja del icono. Esa fila
+   reserva 40 pt; debajo hay tres líneas de texto: nombre, ubicación y
+   calificación/cierre. Las reservas escalan con la letra. La zona superior
+@@ -100,6 +104,10 @@
+   Accesibilidad nombra ambos datos cuando existen. Sin segundo número ni estrella.
+   Lista muestra conteo de reseñas compacto; grid lo conserva en accesibilidad y
+   ficha para dejar espacio al cierre. La estrella es información; la fila abre la ficha.
++- Nombre, ubicación y métricas son tres filas estables. Reservar ubicación
++  aunque falte el dato. Cada texto compacto ocupa una sola línea; los campos
++  secundarios usan elipsis si no caben, manteniendo la información completa
++  en accesibilidad. No usar flexWrap dentro de estas filas.
+ - Cuando está abierto y tiene horario fiable: «Cierra HH:MM» a la derecha
+   del grupo de calificaciones; turno publicado de 24 h: «Abierto 24 h».
+   En grid, promedio sin conteo visible y cierre comparten la tercera línea.

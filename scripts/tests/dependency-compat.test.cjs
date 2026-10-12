@@ -1,3 +1,4 @@
+/* global __dirname */
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const { createRequire } = require('node:module');
@@ -108,3 +109,14 @@ for (const consumer of ['xcode', '@expo/ngrok']) {
     assert.throws(() => uuid.v6({}, new Uint8Array(16), 1), RangeError);
   });
 }
+
+test('Metro reads byte buffers and asset file paths using the corrected image-size API', async () => {
+  const assets = require(path.join(path.dirname(require.resolve('metro/package.json')), 'src/Assets.js'));
+  const icon = path.resolve(__dirname, '../../assets/images/p-icon.png');
+  assert.deepEqual(assets.getAssetSize('png', fs.readFileSync(icon), icon), { width: 1024, height: 1024 });
+  assert.throws(() => assets.getAssetSize('png', Buffer.alloc(0), icon), /empty file/);
+  assert.equal(assets.getAssetSize('txt', Buffer.from('not an image'), 'text.txt'), null);
+  const data = await assets.getAssetData(icon, 'assets/images/p-icon.png', [], 'ios', '/assets');
+  assert.equal(data.width, 1024); assert.equal(data.height, 1024);
+  assert.deepEqual(data.files, [icon]);
+});

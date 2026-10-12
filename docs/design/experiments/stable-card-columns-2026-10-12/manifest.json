@@ -1,0 +1,11 @@
+{
+  "description": "Estado antes de columnas fijas y eliminación de saltos por contenido. Conserva estrella única y centrado de ubicación.",
+  "files": [
+    "components/patio-card-info.tsx",
+    "app/patio/[id].tsx",
+    "scripts/design/card-preview.cjs",
+    "scripts/tests/library-controls.test.cjs",
+    "docs/DESIGN_SYSTEM.md"
+  ],
+  "newFiles": []
+}

@@ -91,9 +91,9 @@ export default function AvisosScreen() {
   };
 
   const systemLabel = system === 'granted'
-    ? 'Permitidos en este iPhone'
+    ? 'Permitidos en este dispositivo'
     : system === 'denied'
-      ? 'Desactivados en Ajustes de iOS'
+      ? 'Desactivados en los ajustes del dispositivo'
       : system === 'unavailable'
         ? 'Disponibles en la app instalada'
         : 'Se pedirán cuando actives un aviso';
@@ -128,7 +128,7 @@ export default function AvisosScreen() {
           )}
         </SettingsGroup>
 
-        {system === 'denied' && <SettingsGroup c={sc} label="Este iPhone">
+        {system === 'denied' && <SettingsGroup c={sc} label="Este dispositivo">
           <SettingsRow
             c={sc}
             icon="settings-outline"

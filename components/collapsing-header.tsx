@@ -4,6 +4,7 @@ import { Animated, StyleSheet, Text, TouchableOpacity, View } from 'react-native
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Fonts } from '@/lib/theme';
+import { noWidow } from '@/lib/typography';
 
 // ── Sistema de header unificado de Patio ───────────────────────────────────────
 // Patrón Large Title estilo iOS/WhatsApp: el título grande vive en el scroll y,
@@ -89,7 +90,7 @@ export function CollapsingHeader({
             numberOfLines={1}
             style={[styles.compactTitle, { color: c.text, opacity: compactOpacity }]}
             allowFontScaling={true}>
-            {title}
+            {noWidow(title)}
           </Animated.Text>
 
           {/* Derecha: acciones */}
@@ -143,9 +144,9 @@ export function CollapsingTitle({
   });
   return (
     <Animated.View style={[styles.bigWrap, { opacity: bigOpacity, transform: [{ translateY: bigTranslate }] }]}>
-      {eyebrow ? <Text style={[styles.eyebrow, { color: c.accent }]} allowFontScaling={true}>{eyebrow}</Text> : null}
-      <Text style={[styles.bigTitle, { color: c.text }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} allowFontScaling={true}>{title}</Text>
-      {subtitle ? <Text style={[styles.subtitle, { color: c.textSecondary }]} allowFontScaling={true}>{subtitle}</Text> : null}
+      {eyebrow ? <Text style={[styles.eyebrow, { color: c.textSecondary }]} allowFontScaling={true}>{noWidow(eyebrow)}</Text> : null}
+      <Text accessibilityRole="header" style={[styles.bigTitle, { color: c.text }]} allowFontScaling={true}>{noWidow(title)}</Text>
+      {subtitle ? <Text style={[styles.subtitle, { color: c.textSecondary }]} allowFontScaling={true}>{noWidow(subtitle)}</Text> : null}
     </Animated.View>
   );
 }

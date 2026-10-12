@@ -46,17 +46,13 @@ Deno.serve(async (req) => {
     }
     const kind = body.kind ?? 'menu_published';
 
-    // The legacy ownership link is the verified auth email stored in telefono.
-    // It stays here until fonditas.owner_id is backfilled in a dedicated migration.
     const { data: fondita, error: fonditaError } = await admin
       .from('fonditas')
-      .select('id,nombre,telefono')
+      .select('id,nombre,owner_id')
       .eq('id', body.fonditaId)
       .maybeSingle();
     if (fonditaError) throw fonditaError;
-    if (!fondita || !user.email_confirmed_at || !user.email
-      || typeof fondita.telefono !== 'string'
-      || fondita.telefono.toLowerCase() !== user.email.toLowerCase()) {
+    if (!fondita || !user.email_confirmed_at || fondita.owner_id !== user.id) {
       return json({ error: 'This Patio does not belong to the current user' }, 403);
     }
 

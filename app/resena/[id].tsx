@@ -33,7 +33,7 @@ function makeStyles(t: Theme) {
 
     sectionLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase', color: t.textSecondary, marginBottom: 10 },
     tagsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 24 },
-    tag: { paddingHorizontal: 13, paddingVertical: 7, borderRadius: 100, borderWidth: StyleSheet.hairlineWidth },
+    tag: { minHeight: 44, maxWidth: '100%', justifyContent: 'center', paddingHorizontal: 13, paddingVertical: 9, borderRadius: 100, borderWidth: StyleSheet.hairlineWidth },
     tagOff: { backgroundColor: t.surface, borderColor: t.border },
     tagOn: { backgroundColor: t.text, borderColor: t.text },
     tagText: { fontSize: 13, fontWeight: '500', color: t.text },
@@ -48,7 +48,7 @@ function makeStyles(t: Theme) {
 
     ctaWrap: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 20, paddingTop: 14 },
     ctaFade: { position: 'absolute', left: 0, right: 0, top: -40, height: 40 },
-    cta: { height: 54, borderRadius: 27, backgroundColor: t.accent, alignItems: 'center', justifyContent: 'center', shadowColor: t.accent, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.4, shadowRadius: 18, elevation: 4 },
+    cta: { minHeight: 54, paddingVertical: 12, paddingHorizontal: 20, borderRadius: 27, backgroundColor: t.accent, alignItems: 'center', justifyContent: 'center' },
     ctaDisabled: { opacity: 0.4 },
     ctaText: { fontSize: 16, fontWeight: '700', color: '#fff' },
   });
@@ -97,8 +97,12 @@ export default function ResenaScreen() {
   };
 
   const pickPhoto = async () => {
-    const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.7 });
-    if (!res.canceled && res.assets[0]) setPhotoUri(res.assets[0].uri);
+    try {
+      const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.7 });
+      if (!res.canceled && res.assets[0]) setPhotoUri(res.assets[0].uri);
+    } catch {
+      Alert.alert(noWidow('No pudimos abrir tus fotos'), noWidow('Revisa los permisos de Patio en Ajustes e inténtalo otra vez.'));
+    }
   };
 
   const subtitle = (() => {
@@ -193,7 +197,7 @@ export default function ResenaScreen() {
 
       <View style={[s.ctaWrap, { paddingBottom: insets.bottom + 20 }]}>
         <LinearGradient colors={['rgba(248,248,245,0)', theme.bg]} style={s.ctaFade} pointerEvents="none" />
-        <TouchableOpacity style={[s.cta, stars === 0 && s.ctaDisabled]} onPress={submit} disabled={stars === 0 || saving} activeOpacity={0.86} accessibilityRole="button" accessibilityLabel={saving ? 'Publicando reseña' : 'Publicar reseña'}>
+        <TouchableOpacity style={[s.cta, (stars === 0 || saving) && s.ctaDisabled]} onPress={submit} disabled={stars === 0 || saving} activeOpacity={0.86} accessibilityRole="button" accessibilityState={{ disabled: stars === 0 || saving, busy: saving }} accessibilityLabel={saving ? 'Publicando reseña' : 'Publicar reseña'}>
           <Text style={s.ctaText} allowFontScaling={true}>{saving ? 'Publicando…' : 'Publicar reseña'}</Text>
         </TouchableOpacity>
       </View>

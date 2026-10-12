@@ -52,10 +52,10 @@ function makeStyles(theme: Theme) {
     fieldLabel:         { fontSize: 11, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', color: t.textMute, marginBottom: 4 },
     fieldValue:         { fontSize: 16, fontWeight: '400', color: t.text, paddingVertical: 0, paddingHorizontal: 0, backgroundColor: 'transparent' },
     fieldDivider:       { height: StyleSheet.hairlineWidth, backgroundColor: t.border, marginVertical: 12 },
-    typeRow:            { gap: 8, paddingTop: 8, paddingBottom: 2 },
-    typeChip:           { minHeight: 34, paddingHorizontal: 12, borderRadius: 17, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, alignItems: 'center', justifyContent: 'center' },
+    typeRow:            { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingTop: 8, paddingBottom: 2 },
+    typeChip:           { maxWidth: '100%', minHeight: 40, paddingVertical: 6, paddingHorizontal: 12, borderRadius: 17, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, alignItems: 'center', justifyContent: 'center' },
     typeChipSelected:   { backgroundColor: t.accent, borderColor: t.accent },
-    typeChipText:       { fontSize: 12, fontWeight: '600', color: t.textSecondary },
+    typeChipText:       { flexShrink: 1, fontSize: 12, fontWeight: '600', color: t.textSecondary },
     typeChipTextSelected:{ color: '#fff' },
     locationBtn:        { flexDirection: 'row', alignItems: 'center', gap: 4, paddingTop: 12, paddingBottom: 2, alignSelf: 'flex-start' },
     locationBtnText:    { fontSize: 13, fontWeight: '400', color: t.textSecondary },
@@ -144,7 +144,7 @@ export default function PerfilScreen() {
             />
             <View style={s.fieldDivider} />
             <Text style={s.fieldLabel} allowFontScaling={true}>{noWidow('Tipo de lugar')}</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.typeRow}>
+            <View style={s.typeRow}>
               {BUSINESS_TYPES.map(([id, label]) => {
                 const selected = tipoNegocio === id;
                 return (
@@ -160,7 +160,7 @@ export default function PerfilScreen() {
                   </TouchableOpacity>
                 );
               })}
-            </ScrollView>
+            </View>
             <View style={s.fieldDivider} />
             <Text style={s.fieldLabel} allowFontScaling={true}>Descripción</Text>
             <TextInput

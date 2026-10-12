@@ -1,3 +1,4 @@
+import { aiFunctionError } from '@/lib/edge-function-error';
 import { nombreDisponible } from '@/lib/fondita-name';
 import { deserialize, type HorarioSemanal } from '@/lib/horario';
 import { supabase } from '@/lib/supabase';
@@ -61,7 +62,7 @@ export async function prepareSmartSetup(relato: string): Promise<SmartSetupResul
   const { data, error } = await supabase.functions.invoke('smart-setup', {
     body: { relato: relato.trim() },
   });
-  if (error) throw new Error(error.message || 'No pudimos preparar tu Patio');
+  if (error) throw await aiFunctionError(error, 'No pudimos preparar tu Patio. Inténtalo de nuevo.');
   if (!data || typeof data !== 'object' || !Array.isArray(data.horario)) {
     throw new Error('Patio recibió una respuesta incompleta');
   }

@@ -130,18 +130,19 @@ export function useMenuHistoryController() {
   }, []);
 
   const saveName = useCallback(async () => {
-    if (!editing) return;
+    if (!editing) return false;
     const cleanName = draftName.trim();
     try {
       await renameLocalMenu(editing.id, cleanName, editing.secciones, editing.fecha, editing.published);
     } catch {
       Alert.alert(noWidow('No se pudo guardar el nombre'), noWidow('Inténtalo otra vez.'));
-      return;
+      return false;
     }
     setMenus((prev) => prev.map((menu) => (
       menu.id === editing.id ? { ...menu, nombre: cleanName || undefined } : menu
     )));
     closeRename();
+    return true;
   }, [closeRename, draftName, editing]);
 
   const removeMenus = useCallback(async (ids: string[]) => {
@@ -155,8 +156,10 @@ export function useMenuHistoryController() {
       await deleteLocalMenus(ids);
       await removeFechasFromAllCollections(ids);
       setMenus((prev) => prev.filter((menu) => !ids.includes(menu.id)));
+      return true;
     } catch {
       Alert.alert(noWidow('No se pudo completar la eliminación'), noWidow('Revisa tu conexión e inténtalo otra vez.'));
+      return false;
     }
   }, [menus]);
 
@@ -171,14 +174,14 @@ export function useMenuHistoryController() {
     );
   }, [removeMenus]);
 
-  const deleteMenus = useCallback((fechas: string[]) => {
+  const deleteMenus = useCallback((fechas: string[], onDeleted?: () => void) => {
     if (!fechas.length) return;
     Alert.alert(
       noWidow('Eliminar menús'),
       noWidow(`Se borrarán ${fechas.length} ${fechas.length === 1 ? 'menú' : 'menús'} del historial. No se puede deshacer.`),
       [
         { text: 'Cancelar', style: 'cancel' },
-        { text: 'Eliminar', style: 'destructive', onPress: () => { void removeMenus(fechas); } },
+        { text: 'Eliminar', style: 'destructive', onPress: () => { void removeMenus(fechas).then((deleted) => { if (deleted) onDeleted?.(); }); } },
       ],
     );
   }, [removeMenus]);

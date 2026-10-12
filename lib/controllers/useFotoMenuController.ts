@@ -155,7 +155,7 @@ export function useFotoMenuController(handlers?: FotoMenuHandlers) {
       console.warn('[foto-menu] lectura falló:', error);
       clearMenuExtractionSnapshot();
       setState('idle');
-      Alert.alert(noWidow('No pudimos leerlo'), noWidow('Prueba con otra foto o escríbelo a mano.'), [
+      Alert.alert(noWidow('No pudimos leerlo'), noWidow(error instanceof Error && error.name === 'AIServiceError' ? error.message : 'Prueba con otra foto o escríbelo a mano.'), [
         { text: 'Otra foto', onPress: () => { void prepareCameraRef.current(); } },
         { text: 'Escribirlo a mano', onPress: () => handlersRef.current?.onManual?.() },
         { text: 'Ahora no', style: 'cancel', onPress: () => handlersRef.current?.onExit?.() },

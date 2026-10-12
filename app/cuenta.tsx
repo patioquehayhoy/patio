@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BottomTabBar } from '@/components/bottom-tab-bar';
+import { bottomTabClearance } from '@/lib/layout-metrics';
 import { AccountDeletionRow } from '@/components/account-deletion-row';
 import Constants from 'expo-constants';
 import { SettingsGroup, SettingsRow, type SettingsColors } from '@/components/settings-list';
@@ -54,7 +55,7 @@ export default function CuentaScreen() {
   return (
     <View style={[s.root, { paddingTop: insets.top }]}>
       <Stack.Screen options={{ headerShown: false, presentation: 'card' }} />
-      <ScrollView contentContainerStyle={[s.content, { paddingBottom: insets.bottom + 130 }]} showsVerticalScrollIndicator={false} onScroll={onScroll} scrollEventThrottle={16}>
+      <ScrollView contentContainerStyle={[s.content, { paddingBottom: bottomTabClearance(insets.bottom) }]} showsVerticalScrollIndicator={false} onScroll={onScroll} scrollEventThrottle={16}>
         {/* Pestaña raíz: sin flecha 'atrás' — se navega con la tab bar (modelo
             Instagram). El back solo existe en pantallas hijas. La identidad
             de la pestaña ya la da la tab bar; no se repite aquí arriba. */}

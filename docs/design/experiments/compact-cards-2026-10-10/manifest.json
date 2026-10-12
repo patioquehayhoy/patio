@@ -1,0 +1,18 @@
+{
+  "description": "Estado previo al ajuste puntual de agrupación y botón de ubicación, preserva la corrección de swipe.",
+  "files": [
+    "components/patio-card-info.tsx",
+    "lib/patio-card-info.ts",
+    "components/foodie-filter-bar.tsx",
+    "app/explorar.tsx",
+    "scripts/design/card-preview.cjs",
+    "scripts/tests/patio-card-info.test.cjs",
+    "scripts/tests/library-controls.test.cjs",
+    "scripts/tests/explore-sheet.test.cjs",
+    "docs/DESIGN_SYSTEM.md"
+  ],
+  "newFiles": [
+    "lib/use-map-location.ts",
+    "scripts/tests/map-location.test.cjs"
+  ]
+}

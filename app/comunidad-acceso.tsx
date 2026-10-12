@@ -9,11 +9,11 @@ import {
   ImageBackground,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -75,9 +75,9 @@ export default function ComunidadAccesoScreen() {
         <Ionicons name="chevron-back" size={21} color="#fff" />
       </TouchableOpacity>
       <KeyboardAvoidingView style={s.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <View style={[s.content, { paddingBottom: insets.bottom + 30 }]}>
+        <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={[s.content, { paddingTop: insets.top + 64, paddingBottom: insets.bottom + 30 }]}>
           <Image source={MARK} style={s.mark} resizeMode="contain" />
-          <Text style={s.eyebrow}>TU COMUNIDAD</Text>
+          <Text style={s.eyebrow}>{noWidow('TU COMUNIDAD')}</Text>
           <Text style={s.title}>
             {noWidow(sent ? 'Revisa tu correo.' : 'Guarda lo bueno. Te avisamos cuando vuelva.')}
           </Text>
@@ -89,6 +89,7 @@ export default function ComunidadAccesoScreen() {
 
           {!sent ? (
             <>
+              <Text style={s.label}>Correo</Text>
               <TextInput
                 style={s.input}
                 value={email}
@@ -98,10 +99,11 @@ export default function ComunidadAccesoScreen() {
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoComplete="email"
+                accessibilityLabel="Correo"
                 returnKeyType="go"
                 onSubmitEditing={send}
               />
-              <TouchableOpacity style={s.button} onPress={send} disabled={busy} accessibilityRole="button" accessibilityLabel={busy ? 'Enviando enlace' : 'Enviar enlace'}>
+              <TouchableOpacity style={[s.button, busy && { opacity: 0.6 }]} onPress={send} disabled={busy} accessibilityRole="button" accessibilityState={{ disabled: busy, busy }} accessibilityLabel={busy ? 'Enviando enlace' : 'Enviar enlace'}>
                 {busy
                   ? <AgentSpinner variant="dots" size={18} color="#FFFFFF" />
                   : <Text style={s.buttonText}>{noWidow('Enviar enlace')}</Text>}
@@ -112,7 +114,7 @@ export default function ComunidadAccesoScreen() {
               <Text style={s.changeText}>{noWidow('Usar otro correo')}</Text>
             </TouchableOpacity>
           )}
-        </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </ImageBackground>
   );
@@ -122,15 +124,16 @@ const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#111214' },
   flex: { flex: 1, zIndex: 1 },
   back: { position: 'absolute', zIndex: 5, width: 44, height: 44, left: 12, borderRadius: 22, backgroundColor: 'rgba(0,0,0,0.22)', alignItems: 'center', justifyContent: 'center' },
-  content: { flex: 1, justifyContent: 'flex-end', paddingHorizontal: 24 },
+  content: { flexGrow: 1, justifyContent: 'flex-end', paddingHorizontal: 24 },
   mark: { width: 48, height: 48, marginBottom: 22 },
   eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.7, marginBottom: 10, color: '#FF8A5F' },
   title: { maxWidth: 350, fontSize: 38, lineHeight: 42, letterSpacing: -1.3, fontWeight: '900', fontFamily: Fonts.brand, color: '#fff' },
   body: { maxWidth: 350, marginTop: 12, fontSize: 15, lineHeight: 22, fontWeight: '400', color: 'rgba(255,255,255,0.76)' },
-  input: { height: 54, marginTop: 26, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.30)', backgroundColor: 'rgba(0,0,0,0.28)', borderRadius: 16, paddingHorizontal: 17, fontSize: 16, color: '#fff' },
+  label: { marginTop: 26, fontSize: 13, fontWeight: '700', color: 'rgba(255,255,255,0.76)' },
+  input: { minHeight: 54, marginTop: 8, paddingVertical: 14, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.30)', backgroundColor: 'rgba(0,0,0,0.28)', borderRadius: 16, paddingHorizontal: 17, fontSize: 16, color: '#fff' },
   // Única acción prominente de esta pantalla (regla homologada 2026-08-16
   // en CLAUDE.md: cualquier verbo cuenta si es la única acción destacada).
-  button: { height: 54, marginTop: 10, borderRadius: 27, backgroundColor: '#F2612F', alignItems: 'center', justifyContent: 'center' },
+  button: { minHeight: 54, paddingVertical: 12, marginTop: 10, borderRadius: 27, backgroundColor: '#F2612F', alignItems: 'center', justifyContent: 'center' },
   buttonText: { fontSize: 15, fontWeight: '700', color: '#FFFFFF' },
   change: { minHeight: 50, marginTop: 16, justifyContent: 'center', alignItems: 'center' },
   changeText: { fontSize: 14, textDecorationLine: 'underline', color: 'rgba(255,255,255,0.76)' },

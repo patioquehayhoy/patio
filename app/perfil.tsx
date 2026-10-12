@@ -5,6 +5,7 @@ import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BottomTabBar } from '@/components/bottom-tab-bar';
+import { bottomTabClearance } from '@/lib/layout-metrics';
 import { AccountDeletionRow } from '@/components/account-deletion-row';
 import { signOutAccount } from '@/lib/account-session';
 import { SettingsGroup, SettingsRow, type SettingsColors } from '@/components/settings-list';
@@ -85,7 +86,7 @@ export default function PerfilScreen() {
   return (
     <View style={[s.root, { backgroundColor: c.bg, paddingTop: insets.top }]}>
       <Stack.Screen options={{ headerShown: false }} />
-      <ScrollView onScroll={onScroll} scrollEventThrottle={16} contentContainerStyle={{ paddingHorizontal: Layout.screen, paddingTop: Spacing.lg, paddingBottom: insets.bottom + 110 }} showsVerticalScrollIndicator={false}>
+      <ScrollView onScroll={onScroll} scrollEventThrottle={16} contentContainerStyle={{ paddingHorizontal: Layout.screen, paddingTop: Spacing.lg, paddingBottom: bottomTabClearance(insets.bottom) }} showsVerticalScrollIndicator={false}>
         {/* Identidad primero: el nombre de la fondita es el héroe de la
             pantalla (patrón de tarjeta de cuenta de Apple — Settings/App
             Store ponen la identidad antes del grouped list, nunca después).
@@ -94,12 +95,12 @@ export default function PerfilScreen() {
             tipos de información distintos. La dirección vive en la fila
             "Editar mi negocio", que es donde realmente pertenece. */}
         <View style={s.identity}>
-          <Text style={[s.fonditaName, { color: c.text }]} numberOfLines={1}>
+          <Text style={[s.fonditaName, { color: c.text }]}>
             {fonditaName || 'Tu fondita'}
           </Text>
           <View style={s.statusRow}>
             <View style={[s.statusDot, { backgroundColor: hasMenu ? c.accent : c.textMute }]} />
-            <Text style={[s.statusText, { color: hasMenu ? c.accent : c.textSecondary }]} numberOfLines={1}>
+            <Text style={[s.statusText, { color: hasMenu ? c.accent : c.textSecondary }]}>
               {noWidow(hasMenu === null ? 'Estado del menú por confirmar' : hasMenu ? 'Menú publicado hoy' : 'Aún no publicas el menú de hoy')}
             </Text>
           </View>
@@ -136,7 +137,7 @@ export default function PerfilScreen() {
             icon="moon-outline"
             title="Modo oscuro"
             divider
-            trailing={<ToggleSwitch value={theme.isDark} onValueChange={toggleTheme} activeColor={c.accent} />}
+            trailing={<ToggleSwitch accessibilityLabel="Modo oscuro" value={theme.isDark} onValueChange={toggleTheme} activeColor={c.accent} />}
           />
         </SettingsGroup>
 

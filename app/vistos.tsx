@@ -1,35 +1,17 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, Stack } from 'expo-router';
 import { useRef } from 'react';
-import { Animated, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Animated, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { CollapsingHeader, CollapsingTitle } from '@/components/collapsing-header';
-import { todayDish } from '@/lib/controllers/patioListHelpers';
+import { PatioCardInfo } from '@/components/patio-card-info';
+import { PatioIdentityIcon } from '@/components/patio-identity-icon';
+import { patioCardAccessibilityLabel } from '@/lib/patio-card-info';
+import { FoodieLoading } from '@/components/foodie-loading';
 import { useViewedPatiosController } from '@/lib/controllers/useViewedPatiosController';
-import { publicPrice } from '@/lib/prices';
 import { Fonts, useTheme, type Theme } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
-
-const OPEN_GREEN = '#1F9D55';
-
-// Fotos botánicas, elegidas de forma determinística por id (igual que favoritos/ficha).
-const HERO_PHOTOS = [
-  require('../assets/hero/botanica-1.jpg'),
-  require('../assets/hero/botanica-2.jpg'),
-  require('../assets/hero/botanica-3.jpg'),
-  require('../assets/hero/botanica-4.jpg'),
-  require('../assets/hero/botanica-5.jpg'),
-  require('../assets/hero/botanica-6.jpg'),
-  require('../assets/hero/botanica-7.jpg'),
-  require('../assets/hero/botanica-8.jpg'),
-];
-
-function photoFor(id: string) {
-  let h = 0;
-  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
-  return HERO_PHOTOS[h % HERO_PHOTOS.length];
-}
 
 function makeStyles(t: Theme) {
   return StyleSheet.create({
@@ -40,24 +22,13 @@ function makeStyles(t: Theme) {
     // Lista
     list: { paddingHorizontal: 18, gap: 8, marginTop: 16 },
     card: { flexDirection: 'row', gap: 8, backgroundColor: t.surface, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, padding: 12 },
-    thumb: { width: 78, height: 78, borderRadius: 12, overflow: 'hidden', backgroundColor: '#111214' },
-    thumbImg: { width: '100%', height: '100%' },
     body: { flex: 1, minWidth: 0, justifyContent: 'center' },
-    statusRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 3 },
-    dot: { width: 6, height: 6, borderRadius: 3 },
-    statusText: { fontSize: 10.5, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase' },
-    name: { fontSize: 18, fontWeight: '900', letterSpacing: -0.3, color: t.text, lineHeight: 21, marginBottom: 4 },
-    today: { fontSize: 13, fontWeight: '400', color: t.text, marginBottom: 6 },
-    metaRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-    metaArea: { flexDirection: 'row', alignItems: 'center', gap: 4, flex: 1, minWidth: 0 },
-    metaAreaText: { fontSize: 12, fontWeight: '400', color: t.textSecondary, flexShrink: 1 },
-    price: { fontSize: 16, fontWeight: '900', letterSpacing: -0.3, color: t.accent },
     // Empty
     empty: { minHeight: 520, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 28 },
     emptyIcon: { width: 68, height: 68, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, backgroundColor: t.surface, alignItems: 'center', justifyContent: 'center', marginBottom: 18 },
     emptyTitle: { fontSize: 22, fontWeight: '900', letterSpacing: -0.5, color: t.text, textAlign: 'center', fontFamily: Fonts.brand },
     emptyText: { marginTop: 10, fontSize: 15, lineHeight: 21, fontWeight: '400', color: t.textSecondary, textAlign: 'center' },
-    cta: { marginTop: 26, height: 54, paddingHorizontal: 24, borderRadius: 27, backgroundColor: t.accent, alignItems: 'center', justifyContent: 'center' },
+    cta: { marginTop: 26, minHeight: 54, paddingVertical: 12, paddingHorizontal: 24, borderRadius: 27, backgroundColor: t.accent, alignItems: 'center', justifyContent: 'center' },
     ctaText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
   });
 }
@@ -66,7 +37,7 @@ export default function VistosScreen() {
   const { theme } = useTheme();
   const s = makeStyles(theme);
   const insets = useSafeAreaInsets();
-  const { patios } = useViewedPatiosController();
+  const { patios, loading, loadError, reload } = useViewedPatiosController();
   const scrollY = useRef(new Animated.Value(0)).current;
 
   return (
@@ -94,7 +65,10 @@ export default function VistosScreen() {
           subtitle={noWidow('Las cocinas que abriste, lo más reciente primero')}
         />
 
-        {patios.length === 0 ? (
+        {loading && !patios.length ? <FoodieLoading label="Cargando lugares" /> : loadError ? <View style={s.empty}>
+          <Text style={s.emptyTitle}>{noWidow('No pudimos cargar los lugares')}</Text>
+          <TouchableOpacity style={s.cta} accessibilityRole="button" accessibilityLabel="Reintentar" onPress={reload}><Text style={s.ctaText}>Reintentar</Text></TouchableOpacity>
+        </View> : patios.length === 0 ? (
           <View style={s.empty}>
             <View style={s.emptyIcon}>
               <Ionicons name="eye-outline" size={32} color={theme.textSecondary} />
@@ -107,44 +81,12 @@ export default function VistosScreen() {
           </View>
         ) : (
           <View style={s.list}>
-            {patios.map((patio) => {
-              const today = todayDish(patio);
-              const hasMenu = today !== null;
-              return (
-                <TouchableOpacity
-                  key={patio.id}
-                  style={[s.card, !hasMenu && { opacity: 0.62 }]}
-                  onPress={() => router.push(`/patio/${patio.id}`)}
-                  activeOpacity={0.82}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Abrir ${patio.name}`}>
-                  <View style={s.thumb}>
-                    <Image source={photoFor(patio.id)} style={s.thumbImg} resizeMode="cover" />
-                  </View>
-                  <View style={s.body}>
-                    <View style={s.statusRow}>
-                      <View style={[s.dot, { backgroundColor: hasMenu ? OPEN_GREEN : theme.textMute }]} />
-                      <Text style={[s.statusText, { color: hasMenu ? OPEN_GREEN : theme.textMute }]} allowFontScaling={true}>
-                        {hasMenu ? 'Hoy hay menú' : 'Sin menú hoy'}
-                      </Text>
-                    </View>
-                    <Text style={s.name} numberOfLines={1} allowFontScaling={true}>{patio.name}</Text>
-                    {today ? (
-                      <Text style={s.today} numberOfLines={1} allowFontScaling={true}>{today}</Text>
-                    ) : null}
-                    <View style={s.metaRow}>
-                      <View style={s.metaArea}>
-                        <Ionicons name="location-outline" size={11} color={theme.textSecondary} />
-                        <Text style={s.metaAreaText} numberOfLines={1} allowFontScaling={true}>{patio.area}</Text>
-                      </View>
-                      {hasMenu && publicPrice(patio.price) ? (
-                        <Text style={s.price} allowFontScaling={true}>{publicPrice(patio.price)}</Text>
-                      ) : null}
-                    </View>
-                  </View>
-                </TouchableOpacity>
-              );
-            })}
+            {patios.map((patio) => <TouchableOpacity key={patio.id} style={s.card}
+              onPress={() => router.push(`/patio/${patio.id}`)} activeOpacity={0.82}
+              accessibilityRole="button" accessibilityLabel={patioCardAccessibilityLabel(patio)}>
+              <PatioIdentityIcon patio={patio} />
+              <PatioCardInfo patio={patio} />
+            </TouchableOpacity>)}
           </View>
         )}
       </Animated.ScrollView>

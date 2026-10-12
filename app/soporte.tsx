@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, Stack } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Alert, Linking, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, Linking, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Fonts, Radius, useTheme } from '@/lib/theme';
@@ -30,7 +30,7 @@ export default function SoporteScreen() {
   }, [detail, topic]);
 
   return (
-    <View style={[s.root, { backgroundColor: theme.bg, paddingTop: insets.top }]}>
+    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={[s.root, { backgroundColor: theme.bg, paddingTop: insets.top }]}>
       <Stack.Screen options={{ headerShown: false }} />
       <View style={s.nav}>
         <TouchableOpacity style={s.back} onPress={() => topic ? setTopic(null) : router.back()} accessibilityRole="button" accessibilityLabel={topic ? 'Volver a temas' : 'Regresar'}>
@@ -62,6 +62,7 @@ export default function SoporteScreen() {
           <Text style={[s.subtitle, { color: theme.textSecondary }]}>{noWidow('Incluye lo necesario para reproducirlo. No escribas contraseñas ni códigos.')}</Text>
           <View style={[s.field, { backgroundColor: theme.surface, borderColor: theme.border }]}>
             <TextInput
+              accessibilityLabel="Detalle del problema"
               value={detail}
               onChangeText={(value) => setDetail(value.slice(0, 300))}
               multiline
@@ -83,7 +84,7 @@ export default function SoporteScreen() {
           </TouchableOpacity>
         </View>
       )}
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -103,6 +104,6 @@ const s = StyleSheet.create({
   field: { minHeight: 180, marginTop: 24, padding: 16, borderRadius: Radius.card, borderWidth: StyleSheet.hairlineWidth },
   input: { minHeight: 130, fontSize: 15, lineHeight: 21, textAlignVertical: 'top' },
   counter: { alignSelf: 'flex-end', fontSize: 11 },
-  send: { minHeight: 52, borderRadius: 26, alignItems: 'center', justifyContent: 'center' },
+  send: { minHeight: 52, paddingVertical: 12, paddingHorizontal: 16, borderRadius: 26, alignItems: 'center', justifyContent: 'center' },
   sendText: { fontSize: 15, fontWeight: '700' },
 });

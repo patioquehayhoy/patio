@@ -10,7 +10,7 @@ import { Fonts, useTheme } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
 
 type Collection = { id: string; title: string; description: string; owner_id: string };
-type Place = { id: string; nombre: string; categorias: string[] | null };
+type Place = { id: string; nombre: string };
 type LoadState = 'loading' | 'ready' | 'missing' | 'error';
 
 export default function PublicCollection() {
@@ -133,7 +133,11 @@ export default function PublicCollection() {
             <Text style={{ color: '#FFFFFF', fontWeight: '700' }}>{noWidow(saved ? 'Lista guardada' : 'Guardar lista')}</Text>
           </TouchableOpacity>
           <TouchableOpacity accessibilityRole="button" style={[s.row, { borderColor: theme.border }]} onPress={() => router.push({ pathname: '/foodie/[id]', params: { id: item.owner_id } })}><Text style={{ color: theme.textSecondary }}>{noWidow('Ver perfil del curador')}</Text><Ionicons name="chevron-forward" size={16} color={theme.textMute} /></TouchableOpacity>
-          {places.map((place) => <TouchableOpacity key={place.id} accessibilityRole="button" accessibilityLabel={`Abrir ${place.nombre}`} style={[s.row, { borderColor: theme.border }]} onPress={() => router.push(`/patio/${place.id}`)}><View style={{ flex: 1 }}><Text style={{ color: theme.text, fontWeight: '700' }}>{noWidow(place.nombre)}</Text><Text style={{ color: theme.textSecondary, fontSize: 12, marginTop: 3 }}>{place.categorias?.[0] ?? ''}</Text></View><Ionicons name="chevron-forward" size={16} color={theme.textMute} /></TouchableOpacity>)}
+          {places.map((place) => <TouchableOpacity key={place.id} accessibilityRole="button" accessibilityLabel={`Abrir ${place.nombre}`} style={[s.row, { borderColor: theme.border }]} onPress={() => router.push(`/patio/${place.id}`)}>
+            <View style={s.placeIcon}><Ionicons name="restaurant-outline" size={18} color={theme.textSecondary} /></View>
+            <Text numberOfLines={2} ellipsizeMode="tail" style={[s.placeName, { color: theme.text }]}>{noWidow(place.nombre)}</Text>
+            <Ionicons name="chevron-forward" size={16} color={theme.textMute} />
+          </TouchableOpacity>)}
           {!places.length && <Text style={[s.desc, { color: theme.textSecondary }]}>{noWidow('Esta lista todavía no tiene lugares disponibles.')}</Text>}
         </ScrollView>
       )}
@@ -150,6 +154,8 @@ const s = StyleSheet.create({
   retry: { minHeight: 44, justifyContent: 'center', marginTop: 16 },
   title: { fontFamily: Fonts.brand, fontSize: 38, fontWeight: '900', letterSpacing: -1.2, marginTop: 24 },
   desc: { fontSize: 15, lineHeight: 22, marginTop: 10 },
-  button: { height: 48, borderRadius: 24, alignSelf: 'flex-start', paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 26 },
-  row: { minHeight: 60, borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  button: { minHeight: 48, paddingVertical: 12, borderRadius: 24, alignSelf: 'flex-start', paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 26 },
+  placeIcon: { width: 36, height: 36, flexShrink: 0, alignItems: 'center', justifyContent: 'center' },
+  placeName: { flex: 1, minWidth: 0, fontSize: 16, lineHeight: 21, fontWeight: '700' },
+  row: { gap: 12, paddingVertical: 12, minHeight: 60, borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
 });

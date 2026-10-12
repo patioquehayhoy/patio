@@ -5,13 +5,14 @@ import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, Easing, Share, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Animated, Share, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AgentSpinner } from '@/components/agent-spinner';
 import { ContentSafetyMenu } from '@/components/content-safety-menu';
 import { SaveToListSheet } from '@/components/save-to-list-sheet';
+import { PatioCardLocation, PatioCardPrice } from '@/components/patio-card-info';
 import { usePatioDetailController } from '@/lib/controllers/usePatioDetailController';
 import { getLikedDishNames, toggleDishLike } from '@/lib/dish-likes';
 import { canonicalDishName } from '@/lib/menu-store';
@@ -21,6 +22,9 @@ import { MAP_STYLE_DARK, MAP_STYLE_LIGHT } from '@/lib/map-style';
 import { Fonts, Radius, Spacing, useTheme, type Theme } from '@/lib/theme';
 import { recordRecentPatio } from '@/lib/recent-patios';
 import { noWidow } from '@/lib/typography';
+import { useKnownLocation } from '@/lib/use-known-location';
+import { patioDistance } from '@/lib/patio-sort';
+import { formatDistance } from '@/lib/geo';
 
 type ReviewThreadReply = {
   id: string;
@@ -71,7 +75,6 @@ function syntheticThreadFor(userId: string, patioName: string, stars: number): R
 }
 
 const HERO_HEIGHT = 300;
-const OPEN_GREEN = '#1F9D55';
 const PULL_TO_DISMISS_THRESHOLD = 93;
 const DAYS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 const PAYMENT_ORDER = ['Efectivo', 'Tarjeta', 'Transferencia'];
@@ -115,19 +118,16 @@ function makeStyles(t: Theme) {
     glassIcon: { width: 44, height: 44, borderRadius: 22, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth, borderColor: t.isDark ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.85)', shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.2, shadowRadius: 16, elevation: 4 },
     // ── Card traslapada ──
     card: { marginTop: -28, backgroundColor: t.bg, borderTopLeftRadius: Radius.sheet, borderTopRightRadius: Radius.sheet, paddingHorizontal: 20, paddingTop: 22 },
-    statusRow: { minHeight: 28, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
-    statusLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-    statusDot: { width: 7, height: 7, borderRadius: 3.5 },
-    statusText: { fontSize: 12, fontWeight: '600', letterSpacing: 0.5, textTransform: 'uppercase' },
     schedule: { marginBottom: 16, borderRadius: 16, overflow: 'hidden', backgroundColor: t.surface },
     scheduleRow: { minHeight: 38, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
     scheduleDivider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border },
     scheduleDay: { fontSize: 12.5, fontWeight: '600', color: t.text },
     scheduleHours: { fontSize: 12.5, color: t.textSecondary },
-    titleRow: { marginBottom: 6 },
-    title: { fontSize: 36, lineHeight: 38, fontWeight: '900', letterSpacing: -1, fontFamily: Fonts.brand, color: t.text },
+    titleRow: { marginBottom: 6, flexDirection: 'row', alignItems: 'flex-start', gap: 6 },
+    title: { flex: 1, minWidth: 0, fontSize: 36, lineHeight: 38, fontWeight: '900', letterSpacing: -1, fontFamily: Fonts.brand, color: t.text },
     verifiedMark: { width: 28, height: 28, alignItems: 'center', justifyContent: 'center' },
-    subtitle: { fontSize: 14, color: t.textSecondary, marginBottom: 16 },
+    summaryRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 16 },
+    summaryPrice: { maxWidth: '50%', marginLeft: 'auto' },
     payments: { flexDirection: 'row', alignItems: 'center', gap: 8 },
     paymentIconBox: { width: 20, height: 20, alignItems: 'center', justifyContent: 'center' },
     // ── Menú agrupado ──
@@ -220,6 +220,7 @@ export default function PatioDetailScreen() {
   const { theme } = useTheme();
   const s = makeStyles(theme);
   const insets = useSafeAreaInsets();
+  const [here] = useKnownLocation();
   const [showSchedule, setShowSchedule] = useState(false);
   const [ratingFilter, setRatingFilter] = useState<number | null>(null);
   const [activeBadgeId, setActiveBadgeId] = useState<string | null>(null);
@@ -233,10 +234,8 @@ export default function PatioDetailScreen() {
   const [saveSheetVisible, setSaveSheetVisible] = useState(false);
   const pullDismissed = useRef(false);
   const heroPullY = useRef(new Animated.Value(0)).current;
-  const pulse = useRef(new Animated.Value(1)).current;
 
   const {
-    cierraProntoMin,
     cleanId,
     handleBack,
     handleComoLlegar,
@@ -252,7 +251,6 @@ export default function PatioDetailScreen() {
     reviews: fetchedReviews,
     sections,
     soldOut,
-    status,
     userReview,
   } = usePatioDetailController(id);
   const recentRecordedId = useRef<string | null>(null);
@@ -364,7 +362,9 @@ export default function PatioDetailScreen() {
             body: review.businessReply,
             likes: synthetic ? 4 : 0,
             patio: true,
-            timeLabel: '1 h',
+            timeLabel: synthetic ? '1 h' : review.businessRepliedAt && Number.isFinite(Date.parse(review.businessRepliedAt))
+              ? new Date(review.businessRepliedAt).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' })
+              : undefined,
           },
           ...(replies[key] ?? []),
         ];
@@ -392,22 +392,6 @@ export default function PatioDetailScreen() {
       });
     }).catch(() => {});
   }, [reviews]);
-
-  useEffect(() => {
-    if (!status) {
-      pulse.setValue(1);
-      return;
-    }
-    pulse.setValue(0);
-    const animation = Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulse, { toValue: 1, duration: 1400, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
-        Animated.timing(pulse, { toValue: 0, duration: 1400, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
-      ]),
-    );
-    animation.start();
-    return () => animation.stop();
-  }, [pulse, status]);
 
   const GlassIcon = ({ name, size = 17, onPress, color, label, selected }: { name: keyof typeof Ionicons.glyphMap; size?: number; onPress: () => void; color?: string; label: string; selected?: boolean }) => (
     <TouchableOpacity
@@ -441,12 +425,14 @@ export default function PatioDetailScreen() {
         <Stack.Screen options={{ headerShown: false }} />
         <View style={{ paddingHorizontal: 20 }}>
           <GlassIcon name="chevron-back" size={22} onPress={handleBack} label="Regresar" />
-          <Text style={[s.title, { marginTop: 24 }]}>No encontrado</Text>
+          <Text style={[s.title, { marginTop: 24 }]}>{noWidow('No encontrado')}</Text>
         </View>
       </View>
     );
   }
 
+  const km = patioDistance(here, patio);
+  const distance = km === null ? null : formatDistance(km);
   return (
     <View style={s.container}>
       <Stack.Screen options={{ headerShown: false }} />
@@ -512,31 +498,16 @@ export default function PatioDetailScreen() {
 
         {/* Card traslapada */}
         <View style={s.card}>
-          {(status !== null || patio.isVerifiedBusiness) && (
-            <View style={s.statusRow}>
-              {status !== null ? (
-                <View style={s.statusLeft}>
-                  <Animated.View style={[s.statusDot, {
-                    backgroundColor: cierraProntoMin != null ? theme.accent : status ? OPEN_GREEN : theme.textMute,
-                    opacity: status ? pulse.interpolate({ inputRange: [0, 1], outputRange: [0.72, 1] }) : 1,
-                    transform: [{ scale: status ? pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.12] }) : 1 }],
-                  }]} />
-                  <Text style={[s.statusText, { color: cierraProntoMin != null ? theme.accent : status ? OPEN_GREEN : theme.textMute }]} allowFontScaling={true}>
-                    {cierraProntoMin != null ? `Cierra en ${cierraProntoMin} min` : status ? 'Abierto' : 'Cerrado'}
-                  </Text>
-                </View>
-              ) : <View />}
-              {patio.isVerifiedBusiness && (
-                <View style={s.verifiedMark} accessible accessibilityLabel="Negocio verificado">
-                  <SymbolView name="checkmark.seal.fill" size={25} weight="medium" tintColor={theme.accent} fallback={<Ionicons name="checkmark-circle" size={25} color={theme.accent} />} />
-                </View>
-              )}
-            </View>
-          )}
           <View style={s.titleRow}>
             <Text style={s.title} allowFontScaling={true}>{noWidow(patio.name)}</Text>
+            {patio.isVerifiedBusiness && <View style={s.verifiedMark} accessible accessibilityLabel="Negocio verificado">
+              <SymbolView name="checkmark.seal.fill" size={25} weight="medium" tintColor={theme.accent} fallback={<Ionicons name="checkmark-circle" size={25} color={theme.accent} />} />
+            </View>}
           </View>
-          <Text style={s.subtitle} allowFontScaling={true}>{patio.categories.join(' · ')} · {patio.area}</Text>
+          <View style={s.summaryRow}>
+            <PatioCardLocation area={patio.area} distanceLabel={distance} variant="detail" style={{ flex: 1 }} />
+            <PatioCardPrice patio={patio} compact={false} style={s.summaryPrice} />
+          </View>
           {/* Menú del día — agrupado por sección (atenuado si ya se acabó) */}
           <View style={soldOut && s.menuSoldWrap}>
             <View style={soldOut ? { opacity: 0.42 } : undefined}>
@@ -651,7 +622,7 @@ export default function PatioDetailScreen() {
                   {patio.weeklyHours.map((day, index) => (
                     <View key={day.dia} style={[s.scheduleRow, index > 0 && s.scheduleDivider]}>
                       <Text style={s.scheduleDay}>{DAYS[day.dia]}</Text>
-                      <Text style={s.scheduleHours}>{day.cerrado || !day.abre || !day.cierra ? 'Cerrado' : `${formatHHMM12(day.abre)}–${formatHHMM12(day.cierra)}`}</Text>
+                      <Text style={s.scheduleHours}>{day.cerrado ? 'Cerrado' : !day.abre || !day.cierra ? 'Sin horario' : `${formatHHMM12(day.abre)}–${formatHHMM12(day.cierra)}`}</Text>
                     </View>
                   ))}
                 </View>
@@ -814,7 +785,7 @@ export default function PatioDetailScreen() {
                         const expanded = expandedThreads[reviewKey] ?? false;
                         const shownReplies = expanded ? thread : [];
                         const rootReplies = shownReplies.filter((reply) => !reply.parentId);
-                        const renderComment = (reply: ReviewThreadReply, replyIndex: number, parentId: string) => {
+                        const renderComment = (reply: ReviewThreadReply, parentId: string) => {
                           const reaction = replyLikes[reply.id] ?? { count: reply.likes, mine: false };
                           return (
                             <View key={reply.id} style={s.reviewThreadItem}>
@@ -830,7 +801,7 @@ export default function PatioDetailScreen() {
                                 <Text style={s.reviewThreadText}>{reply.body}</Text>
                               </View>
                               <View style={s.reviewThreadActions}>
-                                <Text style={s.reviewThreadTime}>{reply.timeLabel ?? `${replyIndex + 1} h`}</Text>
+                                {!!reply.timeLabel && <Text style={s.reviewThreadTime}>{reply.timeLabel}</Text>}
                                 <TouchableOpacity
                                   style={s.reviewThreadTextAction}
                                   hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
@@ -864,15 +835,15 @@ export default function PatioDetailScreen() {
                         };
                         return (
                           <View style={[s.reviewThread, !expanded && { borderLeftWidth: 0, paddingLeft: 0 }]}>
-                            {rootReplies.map((reply, rootIndex) => {
+                            {rootReplies.map((reply) => {
                               const children = shownReplies.filter((candidate) => candidate.parentId === reply.id);
                               const inlineReplying = replyingToComment?.reviewKey === reviewKey && replyingToComment.parentId === reply.id;
                               return (
                                 <View key={reply.id}>
-                                  {renderComment(reply, rootIndex, reply.id)}
+                                  {renderComment(reply, reply.id)}
                                   {!!children.length && (
                                     <View style={s.reviewThreadChildren}>
-                                      {children.map((child, childIndex) => renderComment(child, childIndex, reply.id))}
+                                      {children.map((child) => renderComment(child, reply.id))}
                                     </View>
                                   )}
                                   {inlineReplying && (

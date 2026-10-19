@@ -1,0 +1,11 @@
+Yoga de React Native con medición SF mediante AppKit/macOS.
+Verifica geometría; no es una captura de iPhone.
+
+screen320 scale100% Listo | oldgroup44.00 text28.00x36.00 -> loopgroup44.00 text28.00x36.00 | naturalgroup50.88 text34.88x18.00
+screen320 scale100% Organizar | oldgroup92.00 text28.00x54.00 -> loopgroup134.22 text70.22x18.00 | naturalgroup134.22 text70.22x18.00
+screen320 scale160% Listo | oldgroup44.00 text28.00x84.00 -> loopgroup44.00 text28.00x84.00 | naturalgroup68.93 text52.93x28.00
+screen320 scale160% Organizar | oldgroup92.00 text28.00x140.00 -> loopgroup140.00 text76.00x56.00 | naturalgroup170.64 text106.64x28.00
+screen393 scale100% Listo | oldgroup44.00 text28.00x36.00 -> loopgroup44.00 text28.00x36.00 | naturalgroup50.88 text34.88x18.00
+screen393 scale100% Organizar | oldgroup92.00 text28.00x54.00 -> loopgroup134.22 text70.22x18.00 | naturalgroup134.22 text70.22x18.00
+screen393 scale160% Listo | oldgroup44.00 text28.00x84.00 -> loopgroup44.00 text28.00x84.00 | naturalgroup68.93 text52.93x28.00
+screen393 scale160% Organizar | oldgroup92.00 text28.00x140.00 -> loopgroup140.00 text76.00x56.00 | naturalgroup170.64 text106.64x28.00

@@ -1,3 +1,4 @@
+import { BottomContentFade } from '@/components/bottom-content-fade';
 import { patioDistance, patioMinimumPrice, sortPatiosByMetric, type PatioSortMode } from '@/lib/patio-sort';
 import { FoodieLoading } from '@/components/foodie-loading';
 import { useScrollEdges } from '@/lib/use-scroll-edges';
@@ -414,7 +415,7 @@ export default function FavoritosScreen() {
         }}>
         {patios.length > 0 && <View style={s.libraryHeader}>
           <Text style={s.libraryCount}>{noWidow(selecting
-            ? `${selectedIds.size} ${selectedIds.size === 1 ? 'seleccionado' : 'seleccionados'}`
+            ? selectedIds.size ? `${selectedIds.size} ${selectedIds.size === 1 ? 'lugar seleccionado' : 'lugares seleccionados'}` : 'Seleccionar lugares'
             : filtered.length === patios.length ? `${patios.length} ${patios.length === 1 ? 'lugar' : 'lugares'}` : `${filtered.length} de ${patios.length} lugares`)}</Text>
           {selecting && <>
             <TouchableOpacity disabled={!filtered.length} accessibilityRole="checkbox" accessibilityLabel="Seleccionar todos los resultados" accessibilityState={{ checked: filtered.length > 0 && filtered.every((item) => selectedIds.has(item.id)) }} style={s.selectToggle}
@@ -449,7 +450,7 @@ export default function FavoritosScreen() {
               <View style={[s.filterEmptyCard, viewMode === 'grid' && { width: '100%' }]}>
                 <Ionicons name={normalizedQuery ? 'search-outline' : 'options-outline'} size={22} color={theme.textSecondary} />
                 <Text style={s.filterEmptyText} allowFontScaling={true}>{noWidow(normalizedQuery ? 'No encontramos lugares con esa búsqueda.' : 'Ningún lugar coincide con tu selección.')}</Text>
-                <TouchableOpacity style={s.resetButton} onPress={() => normalizedQuery ? setSearchQuery('') : setFilters(EMPTY_FOODIE_FILTERS)} accessibilityRole="button">
+                <TouchableOpacity style={s.resetButton} onPress={() => normalizedQuery ? setSearchQuery('') : setFilters(EMPTY_FOODIE_FILTERS)} accessibilityRole="button" accessibilityLabel={normalizedQuery ? 'Borrar búsqueda' : 'Ver todos los guardados'}>
                   <Text style={s.resetText}>{noWidow(normalizedQuery ? 'Borrar búsqueda' : 'Ver todos los guardados')}</Text>
                 </TouchableOpacity>
               </View>
@@ -461,6 +462,7 @@ export default function FavoritosScreen() {
       {showAlphabet && <View pointerEvents="box-none" style={[StyleSheet.absoluteFillObject, { bottom: insets.bottom + 90 }]}><AlphabetIndex letters={letters} activeLetter={activeLetter || letters[0]} onSelect={jumpToLetter} /></View>}
       </View>
       {selecting ? !saveSheetVisible && !organizerOverlayVisible && <View onLayout={(event) => setSelectionBarHeight(event.nativeEvent.layout.height)} style={{ position: 'absolute', left: 16, right: 16, bottom: insets.bottom + 8 }}>
+        <BottomContentFade height={Math.max(52, selectionBarHeight) + insets.bottom + 8 + 16} bottom={-(insets.bottom + 8)} inset={16} />
         <SelectionActions actions={[
           { label: 'Añadir', icon: 'folder-outline', disabled: !selectedIds.size, onPress: () => { setSaveMode('add'); setSaveSheetVisible(true); } },
           { label: 'Mover', icon: 'folder-open-outline', disabled: !moveSelection.canMove, onPress: () => {

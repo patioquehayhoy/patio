@@ -6,6 +6,7 @@ import { Colors } from './colors';
 // ─── Palettes ─────────────────────────────────────────────────────────────────
 export type Theme = {
   bg: string;
+  iconBg: string;         // controles neutros, compartidos entre roles
   surface: string;        // capa sobre bg (bottom bar, cards)
   surface2: string;       // capa elevada (segmented control, modales)
   text: string;
@@ -26,6 +27,7 @@ export type Theme = {
 
 export const lightTheme: Theme = {
   bg:            Colors.bg,
+  iconBg:        'rgba(17,18,20,0.04)',
   surface:       Colors.surface,
   surface2:      Colors.surface2,
   text:          Colors.text,
@@ -45,6 +47,7 @@ export const lightTheme: Theme = {
 
 export const darkTheme: Theme = {
   bg:            Colors.bgDark,
+  iconBg:        'rgba(255,255,255,0.06)',
   surface:       Colors.surfaceDark,
   surface2:      Colors.surface2Dark,
   text:          Colors.textDark,

@@ -1,0 +1,4228 @@
+{
+  "scope": "Static JSX declarations, not runtime instances or device acceptance",
+  "files": 69,
+  "controls": 241,
+  "iconSites": 206,
+  "invalidLiteralIonicons": [],
+  "inventory": [
+    {
+      "file": "app/avisos.tsx",
+      "line": 93,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.back}",
+        "onPress": "{() => router.back()}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Volver\""
+      }
+    },
+    {
+      "file": "app/avisos.tsx",
+      "line": 100,
+      "tag": "SettingsRow",
+      "props": {
+        "c": "{sc}",
+        "icon": "\"chatbubble-ellipses-outline\"",
+        "title": "\"Actividad importante\"",
+        "sub": "\"Reseñas y actividad de tu Patio\"",
+        "trailing": "{<ToggleSwitch value={signedIn && remote.businessActivity} disabled={updating === 'businessActivity'} accessibilityLabel=\"Actividad importante\" onValueChange={(value) => signedIn ? updateRemote({ businessActivity: value }) : router.push('/fondero-acceso')} />}"
+      }
+    },
+    {
+      "file": "app/avisos.tsx",
+      "line": 108,
+      "tag": "SettingsRow",
+      "props": {
+        "c": "{sc}",
+        "icon": "\"document-text-outline\"",
+        "title": "\"Menús nuevos\"",
+        "sub": "\"Cuando un lugar que guardaste publica\"",
+        "trailing": "{<ToggleSwitch value={signedIn && remote.patioPublications} disabled={updating === 'patioPublications'} accessibilityLabel=\"Menús nuevos\" onValueChange={(value) => signedIn ? updateRemote({ patioPublications: value }) : router.push({ pathname: '/comunidad-acceso', params: { returnTo: '/avisos' } })} />}"
+      }
+    },
+    {
+      "file": "app/avisos.tsx",
+      "line": 120,
+      "tag": "SettingsRow",
+      "props": {
+        "c": "{sc}",
+        "icon": "\"settings-outline\"",
+        "title": "\"Activar en Ajustes\"",
+        "sub": "{systemLabel}",
+        "onPress": "{() => Linking.openSettings()}"
+      }
+    },
+    {
+      "file": "app/comunidad-acceso.tsx",
+      "line": 74,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{[s.back, { top: insets.top + 8 }]}",
+        "onPress": "{() => router.canGoBack() ? router.back() : router.replace('/cuenta')}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Volver\""
+      }
+    },
+    {
+      "file": "app/comunidad-acceso.tsx",
+      "line": 106,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{[s.button, busy && { opacity: 0.6 }]}",
+        "onPress": "{send}",
+        "disabled": "{busy}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityState": "{{ disabled: busy, busy }}",
+        "accessibilityLabel": "{busy ? 'Enviando enlace' : 'Enviar enlace'}"
+      }
+    },
+    {
+      "file": "app/comunidad-acceso.tsx",
+      "line": 112,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.change}",
+        "onPress": "{() => setSent(false)}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Usar otro correo\""
+      }
+    },
+    {
+      "file": "app/cuenta.tsx",
+      "line": 52,
+      "tag": "SettingsRow",
+      "props": {
+        "c": "{sc}",
+        "icon": "\"person-outline\"",
+        "title": "{hasSession ? 'Editar perfil' : 'Iniciar sesión'}",
+        "sub": "{hasSession ? 'Nombre, foto y descripción' : 'Sincroniza listas y reseñas'}",
+        "onPress": "{() => router.push(hasSession ? '/perfil-comunidad' : '/comunidad-acceso')}"
+      }
+    },
+    {
+      "file": "app/cuenta.tsx",
+      "line": 53,
+      "tag": "SettingsRow",
+      "props": {
+        "c": "{sc}",
+        "icon": "\"at-outline\"",
+        "title": "\"Ver perfil público\"",
+        "divider": "true",
+        "onPress": "{() => router.push({ pathname: '/foodie/[id]', params: { id: userId } })}"
+      }
+    },
+    {
+      "file": "app/cuenta.tsx",
+      "line": 54,
+      "tag": "SettingsRow",
+      "props": {
+        "c": "{sc}",
+        "icon": "\"heart-outline\"",
+        "title": "\"Notificaciones\"",
+        "sub": "\"Cuando alguien le da like a tu reseña\"",
+        "divider": "true",
+        "onPress": "{() => router.push('/notificaciones')}"
+      }
+    },
+    {
+      "file": "app/cuenta.tsx",
+      "line": 58,
+      "tag": "SettingsRow",
+      "props": {
+        "c": "{sc}",
+        "icon": "\"notifications-outline\"",
+        "title": "\"Avisos\"",
+        "sub": "\"Menús nuevos\"",
+        "onPress": "{() => router.push({ pathname: '/avisos', params: { role: 'foodie' } })}"
+      }
+    },
+    {
+      "file": "app/cuenta.tsx",
+      "line": 65,
+      "tag": "SettingsRow",
+      "props": {
+        "c": "{sc}",
+        "icon": "\"lock-closed-outline\"",
+        "title": "\"Privacidad\"",
+        "divider": "true",
+        "onPress": "{() => router.push('/privacidad')}"
+      }
+    },
+    {
+      "file": "app/cuenta.tsx",
+      "line": 66,
+      "tag": "SettingsRow",
+      "props": {
+        "c": "{sc}",
+        "icon": "\"rocket-outline\"",
+        "title": "\"Plan\"",
+        "sub": "\"Patio Gratis\"",
+        "divider": "true",
+        "onPress": "{() => router.push({ pathname: '/plan', params: { role: 'foodie' } })}"
+      }
+    },
+    {
+      "file": "app/cuenta.tsx",
+      "line": 67,
+      "tag": "SettingsRow",
+      "props": {
+        "c": "{sc}",
+        "icon": "{theme.isDark ? 'moon' : 'sunny-outline'}",
+        "title": "\"Apariencia\"",
+        "sub": "{theme.isDark ? 'Oscura' : 'Clara'}",
+        "divider": "true",
+        "trailing": "{<ToggleSwitch value={theme.isDark} onValueChange={toggleTheme} accessibilityLabel=\"Modo oscuro\" />}"
+      }
+    },
+    {
+      "file": "app/cuenta.tsx",
+      "line": 71,
+      "tag": "SettingsRow",
+      "props": {
+        "c": "{sc}",
+        "icon": "\"sparkles-outline\"",
+        "title": "\"Nuestro manifiesto\"",
+        "onPress": "{() => router.push('/manifiesto')}"
+      }
+    },
+    {
+      "file": "app/cuenta.tsx",
+      "line": 72,
+      "tag": "SettingsRow",
+      "props": {
+        "c": "{sc}",
+        "icon": "\"chatbubble-outline\"",
+        "title": "\"Ayuda y soporte\"",
+        "divider": "true",
+        "onPress": "{() => router.push('/soporte')}"
+      }
+    },
+    {
+      "file": "app/cuenta.tsx",
+      "line": 76,
+      "tag": "SettingsRow",
+      "props": {
+        "c": "{sc}",
+        "icon": "\"create-outline\"",
+        "title": "\"Publicar mi menú · DEV\"",
+        "sub": "\"Entrar sin iniciar sesión\"",
+        "onPress": "{handleDevFondero}"
+      }
+    },
+    {
+      "file": "app/cuenta.tsx",
+      "line": 84,
+      "tag": "SettingsRow",
+      "props": {
+        "c": "{sc}",
+        "icon": "\"create-outline\"",
+        "title": "\"Publicar mi menú\"",
+        "sub": "\"Para cocinas y fonditas\"",
+        "onPress": "{handleFonderoAccess}"
+      }
+    },
+    {
+      "file": "app/cuenta.tsx",
+      "line": 93,
+      "tag": "SettingsRow",
+      "props": {
+        "c": "{sc}",
+        "icon": "\"log-out-outline\"",
+        "title": "\"Cerrar sesión\"",
+        "divider": "true",
+        "onPress": "{handleSignOut}"
+      }
+    },
+    {
+      "file": "app/entrada.tsx",
+      "line": 77,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.ctaGlass}",
+        "onPress": "{handleStart}",
+        "activeOpacity": "{0.86}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Entrar a Patio\""
+      }
+    },
+    {
+      "file": "app/entrada.tsx",
+      "line": 87,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.devBtn}",
+        "onPress": "{handleDevFoodie}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Abrir exploración de prueba\"",
+        "activeOpacity": "{0.7}"
+      }
+    },
+    {
+      "file": "app/entrada.tsx",
+      "line": 90,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.devBtn}",
+        "onPress": "{handleDevFondero}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Abrir negocio de prueba\"",
+        "activeOpacity": "{0.7}"
+      }
+    },
+    {
+      "file": "app/entrada.tsx",
+      "line": 93,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.devBtn}",
+        "onPress": "{handleDevOnboarding}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Abrir introducción de prueba\"",
+        "activeOpacity": "{0.7}"
+      }
+    },
+    {
+      "file": "app/explorar.tsx",
+      "line": 895,
+      "tag": "TouchableOpacity",
+      "props": {
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Buscar comida o un lugar\"",
+        "activeOpacity": "{0.82}",
+        "onPress": "{openSearch}",
+        "style": "{[s.searchPill, { flex: 1 }]}"
+      }
+    },
+    {
+      "file": "app/explorar.tsx",
+      "line": 924,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{[s.aiProButton, aiMode && { backgroundColor: theme.accent }]}",
+        "onPress": "{() => {\n                  if (__DEV__) {\n                    setAiMode((active) => !active);\n                    requestAnimationFrame(() => searchInputRef.current?.focus());\n                  } else {\n                    Keyboard.dismiss();\n                    router.push({ pathname: '/plan', params: { role: 'foodie' } });\n                  }\n                }}",
+        "hitSlop": "{{ top: 7, bottom: 7, left: 6, right: 6 }}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityState": "{{ selected: aiMode }}",
+        "accessibilityLabel": "\"Conocer búsqueda con inteligencia artificial de Patio Pro\""
+      }
+    },
+    {
+      "file": "app/explorar.tsx",
+      "line": 1060,
+      "tag": "TouchableOpacity",
+      "props": {
+        "key": "{q}",
+        "onPress": "{() => { cancelLocation(); manualMapPosition.current = false; reopenSheet(); searchFor(q); }}",
+        "activeOpacity": "{0.8}",
+        "style": "{s.emptyPill}",
+        "hitSlop": "{{ top: 6, bottom: 6, left: 6, right: 6 }}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{`Buscar ${q}`}"
+      }
+    },
+    {
+      "file": "app/explorar.tsx",
+      "line": 1073,
+      "tag": "TouchableOpacity",
+      "props": {
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{`Abrir resultado ${match.item.name} en ${match.patio.name}`}",
+        "key": "{`${match.patio.id}-${match.item.name}`}",
+        "style": "{s.patioRow}",
+        "onLayout": "{index < SHEET_MEDIUM_ROWS ? (event) => {\n                        const height = Math.max(60, Math.ceil(event.nativeEvent.layout.height));\n                        setSheetRowHeights((current) => current[index] === height ? current : current.map((value, row) => row === index ? height : value));\n                      } : undefined}",
+        "onPress": "{() => {\n                        Keyboard.dismiss();\n                        void recordRecentPatio(match.patio, 'searched').catch(() => {});\n                        router.push(`/patio/${match.patio.id}`);\n                      }}",
+        "onPressIn": "{() => {\n                        // El toque resalta el pin; desplazar la lista no\n                        // debe cambiar la posición ni los resultados del mapa.\n                        if (match.patio.latitude <= 0) return;\n                        setPressedPinId(match.patio.id);\n                      }}",
+        "onPressOut": "{() => setPressedPinId((id) => (id === match.patio.id ? null : id))}",
+        "activeOpacity": "{0.76}"
+      }
+    },
+    {
+      "file": "app/explorar.tsx",
+      "line": 1118,
+      "tag": "TouchableOpacity",
+      "props": {
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{patioCardAccessibilityLabel(patio, { distanceLabel: distance })}",
+        "key": "{patio.id}",
+        "style": "{s.patioRow}",
+        "onPress": "{() => router.push(`/patio/${patio.id}`)}",
+        "activeOpacity": "{0.76}"
+      }
+    },
+    {
+      "file": "app/favoritos.tsx",
+      "line": 321,
+      "tag": "TouchableOpacity",
+      "props": {
+        "key": "{patio.id}",
+        "style": "{[viewMode === 'grid' ? [s.gridCard, { width: gridWidth }] : s.card, viewMode === 'grid' && selecting && isSelected && s.cardSelected]}",
+        "onPress": "{() => { if (selecting) toggleSelect(patio.id); else { if (normalizedQuery) void recordRecentPatio(patio, 'searched').catch(() => {}); router.push(`/patio/${patio.id}`); } }}",
+        "onLongPress": "{() => { if (!selecting) { setSelecting(true); toggleSelect(patio.id); } }}",
+        "activeOpacity": "{0.82}",
+        "accessibilityRole": "{selecting ? 'checkbox' : 'button'}",
+        "accessibilityState": "{selecting ? { checked: isSelected } : undefined}",
+        "accessibilityLabel": "{selecting ? `${isSelected ? 'Quitar de la selección' : 'Seleccionar'} ${patio.name}` : patioCardAccessibilityLabel(patio, { distanceLabel: distance, personalRating: metaById[patio.id]?.rating, includePersonalRating: true })}"
+      }
+    },
+    {
+      "file": "app/favoritos.tsx",
+      "line": 420,
+      "tag": "TouchableOpacity",
+      "props": {
+        "disabled": "{!filtered.length}",
+        "accessibilityRole": "\"checkbox\"",
+        "accessibilityLabel": "\"Seleccionar todos los resultados\"",
+        "accessibilityState": "{{ checked: filtered.length > 0 && filtered.every((item) => selectedIds.has(item.id)) }}",
+        "style": "{s.selectToggle}",
+        "onPress": "{() => setSelectedIds((current) => { const next = new Set(current); const all = filtered.every((item) => current.has(item.id)); filtered.forEach((item) => all ? next.delete(item.id) : next.add(item.id)); return next; })}"
+      }
+    },
+    {
+      "file": "app/favoritos.tsx",
+      "line": 424,
+      "tag": "TouchableOpacity",
+      "props": {
+        "onPress": "{exitSelecting}",
+        "style": "{s.selectToggle}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Cancelar selección\""
+      }
+    },
+    {
+      "file": "app/favoritos.tsx",
+      "line": 427,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.resetButton}",
+        "onPress": "{reload}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Reintentar actualización de Guardados\""
+      }
+    },
+    {
+      "file": "app/favoritos.tsx",
+      "line": 430,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.cta}",
+        "onPress": "{reload}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Reintentar\""
+      }
+    },
+    {
+      "file": "app/favoritos.tsx",
+      "line": 437,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.cta}",
+        "onPress": "{() => router.replace('/explorar')}",
+        "activeOpacity": "{0.82}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Buscar algo rico\""
+      }
+    },
+    {
+      "file": "app/favoritos.tsx",
+      "line": 452,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.resetButton}",
+        "onPress": "{() => normalizedQuery ? setSearchQuery('') : setFilters(EMPTY_FOODIE_FILTERS)}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{normalizedQuery ? 'Borrar búsqueda' : 'Ver todos los guardados'}"
+      }
+    },
+    {
+      "file": "app/fondero-acceso.tsx",
+      "line": 135,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{[s.backBtn, { top: insets.top + 10 }]}",
+        "onPress": "{handleBack}",
+        "activeOpacity": "{0.7}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Volver\""
+      }
+    },
+    {
+      "file": "app/fondero-acceso.tsx",
+      "line": 185,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{[s.sendBtn, loading && s.sendBtnOff]}",
+        "onPress": "{handleSend}",
+        "disabled": "{loading}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Enviar enlace\"",
+        "accessibilityState": "{{ disabled: loading, busy: loading }}",
+        "activeOpacity": "{0.86}"
+      }
+    },
+    {
+      "file": "app/fondero-acceso.tsx",
+      "line": 207,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.changeLink}",
+        "onPress": "{() => setSent(false)}",
+        "activeOpacity": "{0.7}",
+        "hitSlop": "{{ top: 10, bottom: 10, left: 10, right: 10 }}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Cambiar correo\""
+      }
+    },
+    {
+      "file": "app/fondero-acceso.tsx",
+      "line": 220,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.footer}",
+        "onPress": "{exploreInstead}",
+        "activeOpacity": "{0.7}",
+        "hitSlop": "{{ top: 8, bottom: 8, left: 8, right: 8 }}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Ver lo de hoy, explorar sin publicar\""
+      }
+    },
+    {
+      "file": "app/foto-menu.tsx",
+      "line": 87,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.cancelBtn}",
+        "onPress": "{cancelRead}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Cancelar lectura\"",
+        "activeOpacity": "{0.7}"
+      }
+    },
+    {
+      "file": "app/foto-menu.tsx",
+      "line": 125,
+      "tag": "TouchableOpacity",
+      "props": {
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Cerrar cámara\"",
+        "style": "{s.cameraControl}",
+        "onPress": "{() => router.replace('/historial')}"
+      }
+    },
+    {
+      "file": "app/foto-menu.tsx",
+      "line": 132,
+      "tag": "TouchableOpacity",
+      "props": {
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{flashOn ? 'Apagar flash' : 'Encender flash'}",
+        "accessibilityState": "{{ selected: flashOn }}",
+        "style": "{s.cameraControl}",
+        "onPress": "{() => setFlashOn((value) => !value)}"
+      }
+    },
+    {
+      "file": "app/foto-menu.tsx",
+      "line": 150,
+      "tag": "TouchableOpacity",
+      "props": {
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Tomar foto\"",
+        "accessibilityState": "{{ disabled: shutterDisabled }}",
+        "style": "{[s.shutterOuter, shutterDisabled && s.shutterOff]}",
+        "onPress": "{capture}",
+        "disabled": "{shutterDisabled}"
+      }
+    },
+    {
+      "file": "app/historial.tsx",
+      "line": 131,
+      "tag": "TouchableOpacity",
+      "props": {
+        "key": "{key}",
+        "style": "{[s.card, { borderColor: c.border }]}",
+        "onPress": "{() => (selecting ? toggleSelect(key) : reuse(menu))}",
+        "onLongPress": "{() => { if (!selecting) { Haptics.selectionAsync().catch(() => {}); setSelecting(true); toggleSelect(key); } }}",
+        "activeOpacity": "{0.82}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{selecting ? `${isSelected ? 'Quitar de la selección' : 'Seleccionar'} menú de ${dateLabel(menu.fecha)}` : `Usar menú de ${dateLabel(menu.fecha)}`}"
+      }
+    },
+    {
+      "file": "app/historial.tsx",
+      "line": 147,
+      "tag": "TouchableOpacity",
+      "props": {
+        "ref": "{(el) => { moreRefs.current.set(key, el); }}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Acciones del menú\"",
+        "style": "{s.iconBtn}",
+        "onPress": "{() => setActionsFor(menu)}",
+        "activeOpacity": "{0.72}"
+      }
+    },
+    {
+      "file": "app/historial.tsx",
+      "line": 173,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.selectToggle}",
+        "accessibilityRole": "\"checkbox\"",
+        "accessibilityLabel": "\"Seleccionar todos los menús\"",
+        "accessibilityState": "{{ checked: visibleMenus.length > 0 && visibleMenus.every((menu) => selectedFechas.has(menu.id)) }}",
+        "onPress": "{() => setSelectedFechas((current) => { const next = new Set(current); const all = visibleMenus.every((menu) => current.has(menu.id)); visibleMenus.forEach((menu) => all ? next.delete(menu.id) : next.add(menu.id)); return next; })}"
+      }
+    },
+    {
+      "file": "app/historial.tsx",
+      "line": 174,
+      "tag": "TouchableOpacity",
+      "props": {
+        "onPress": "{exitSelecting}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Cancelar selección\"",
+        "hitSlop": "{8}",
+        "style": "{s.selectToggle}"
+      }
+    },
+    {
+      "file": "app/historial.tsx",
+      "line": 181,
+      "tag": "GlassIconButton",
+      "props": {
+        "icon": "\"add\"",
+        "iconSize": "{22}",
+        "onPress": "{() => setNewMenuSheetVisible(true)}",
+        "accessibilityLabel": "{pendingToday ? 'Nuevo menú, pendiente publicar hoy' : 'Nuevo menú'}"
+      }
+    },
+    {
+      "file": "app/historial.tsx",
+      "line": 185,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{[s.streakPill, { borderColor: c.border, backgroundColor: c.surface }]}",
+        "activeOpacity": "{0.75}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{`Racha de ${streak} ${streak === 1 ? 'día' : 'días'} seguidos publicando menú. Toca para más información`}",
+        "onPress": "{() => Alert.alert(\n                    `Racha de ${streak} ${streak === 1 ? 'día' : 'días'}`,\n                    `Llevas ${streak} ${streak === 1 ? 'día seguido publicando' : 'días seguidos publicando'} tu menú. Se rompe si dejas pasar un día completo sin publicar.`,\n                  )}"
+      }
+    },
+    {
+      "file": "app/historial.tsx",
+      "line": 199,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{[s.listsBtn, { borderColor: c.border, backgroundColor: c.surface }]}",
+        "hitSlop": "{2}",
+        "onPress": "{() => setSheetMode('filter')}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{activeListIds.length ? `Listas, ${activeListIds.length} activas` : 'Listas'}",
+        "activeOpacity": "{0.75}"
+      }
+    },
+    {
+      "file": "app/historial.tsx",
+      "line": 226,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{[s.cta, { backgroundColor: c.accent }]}",
+        "onPress": "{() => setNewMenuSheetVisible(true)}",
+        "activeOpacity": "{0.82}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Nuevo menú\""
+      }
+    },
+    {
+      "file": "app/login-callback.tsx",
+      "line": 72,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{[s.button, { backgroundColor: theme.accent }]}",
+        "onPress": "{() => router.replace(accessRoute)}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Solicitar otro enlace\""
+      }
+    },
+    {
+      "file": "app/manifiesto.tsx",
+      "line": 105,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.backBtn}",
+        "onPress": "{handleBack}",
+        "activeOpacity": "{0.76}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Regresar\""
+      }
+    },
+    {
+      "file": "app/menu-publicado.tsx",
+      "line": 34,
+      "tag": "TouchableOpacity",
+      "props": {
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Editar menú\"",
+        "style": "{s.editButton}",
+        "onPress": "{editMenu}",
+        "activeOpacity": "{0.7}"
+      }
+    },
+    {
+      "file": "app/menu-publicado.tsx",
+      "line": 48,
+      "tag": "TouchableOpacity",
+      "props": {
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Ver el menú publicado\"",
+        "style": "{s.primary}",
+        "onPress": "{() => router.replace('/preview')}",
+        "activeOpacity": "{0.84}"
+      }
+    },
+    {
+      "file": "app/menu-publicado.tsx",
+      "line": 57,
+      "tag": "TouchableOpacity",
+      "props": {
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Listo\"",
+        "style": "{s.secondary}",
+        "onPress": "{() => router.replace('/historial')}",
+        "activeOpacity": "{0.72}"
+      }
+    },
+    {
+      "file": "app/notificaciones.tsx",
+      "line": 65,
+      "tag": "TouchableOpacity",
+      "props": {
+        "key": "{`${event.reviewId}-${index}`}",
+        "style": "{[s.row, index > 0 && { borderTopColor: theme.border, borderTopWidth: StyleSheet.hairlineWidth }]}",
+        "onPress": "{() => { if (event.fonditaId) router.push({ pathname: '/patio/[id]', params: { id: event.fonditaId } }); }}",
+        "activeOpacity": "{0.7}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{`Ver ${event.fonditaName}`}"
+      }
+    },
+    {
+      "file": "app/onboarding.tsx",
+      "line": 147,
+      "tag": "Pressable",
+      "props": {
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Anterior\"",
+        "style": "{{ position: 'absolute', left: 0, top: 0, bottom: 200, width: '28%' }}",
+        "onPress": "{() => goTo(index - 1)}"
+      }
+    },
+    {
+      "file": "app/onboarding.tsx",
+      "line": 148,
+      "tag": "Pressable",
+      "props": {
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Siguiente\"",
+        "style": "{{ position: 'absolute', right: 0, top: 0, bottom: 200, width: '72%' }}",
+        "onPress": "{() => goTo(index + 1)}"
+      }
+    },
+    {
+      "file": "app/onboarding.tsx",
+      "line": 151,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{[s.closeBtn, { top: insets.top + 8 }]}",
+        "onPress": "{() => goTo(SLIDES.length - 1)}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Saltar introducción\"",
+        "hitSlop": "{{ top: 6, bottom: 6, left: 6, right: 6 }}",
+        "disabled": "{isLast}",
+        "activeOpacity": "{0.7}"
+      }
+    },
+    {
+      "file": "app/onboarding.tsx",
+      "line": 177,
+      "tag": "TouchableOpacity",
+      "props": {
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Ver qué hay hoy\"",
+        "accessibilityState": "{{ disabled: routing }}",
+        "disabled": "{routing}",
+        "style": "{s.roleButton}",
+        "onPress": "{() => chooseRole('foodie')}",
+        "activeOpacity": "{0.84}"
+      }
+    },
+    {
+      "file": "app/onboarding.tsx",
+      "line": 187,
+      "tag": "TouchableOpacity",
+      "props": {
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Publicar lo que preparo\"",
+        "accessibilityState": "{{ disabled: routing }}",
+        "disabled": "{routing}",
+        "style": "{s.roleButton}",
+        "onPress": "{() => chooseRole('fondero')}",
+        "activeOpacity": "{0.84}"
+      }
+    },
+    {
+      "file": "app/onboarding.tsx",
+      "line": 198,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.ctaGlass}",
+        "onPress": "{() => goTo(index + 1)}",
+        "activeOpacity": "{0.86}",
+        "hitSlop": "{{ top: 5, bottom: 5, left: 5, right: 5 }}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Continuar\""
+      }
+    },
+    {
+      "file": "app/patio-smart.tsx",
+      "line": 120,
+      "tag": "TouchableOpacity",
+      "props": {
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Continuar\"",
+        "accessibilityState": "{{ disabled: disabled || loading, busy: loading }}",
+        "disabled": "{disabled || loading}",
+        "onPress": "{onPress}",
+        "activeOpacity": "{0.78}",
+        "style": "{[s.continueButton, { backgroundColor: colors.accent }, (disabled || loading) && s.disabled]}"
+      }
+    },
+    {
+      "file": "app/patio-smart.tsx",
+      "line": 277,
+      "tag": "TouchableOpacity",
+      "props": {
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Volver\"",
+        "hitSlop": "{{ top: 2, bottom: 2, left: 2, right: 2 }}",
+        "onPress": "{() => setStage('payments')}",
+        "activeOpacity": "{0.72}",
+        "style": "{[s.finishBack, { top: insets.top + 8 }]}"
+      }
+    },
+    {
+      "file": "app/patio-smart.tsx",
+      "line": 303,
+      "tag": "TouchableOpacity",
+      "props": {
+        "onPress": "{() => setNewMenuSheetVisible(true)}",
+        "activeOpacity": "{0.82}",
+        "style": "{s.finishButton}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Crear mi primer menú\""
+      }
+    },
+    {
+      "file": "app/patio-smart.tsx",
+      "line": 314,
+      "tag": "TouchableOpacity",
+      "props": {
+        "onPress": "{() => setStage('name')}",
+        "activeOpacity": "{0.68}",
+        "style": "{s.finishEdit}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Editar datos\""
+      }
+    },
+    {
+      "file": "app/patio-smart.tsx",
+      "line": 333,
+      "tag": "TouchableOpacity",
+      "props": {
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Volver\"",
+        "onPress": "{goBack}",
+        "activeOpacity": "{0.7}",
+        "style": "{[s.close, { backgroundColor: colors.surface }]}"
+      }
+    },
+    {
+      "file": "app/patio-smart.tsx",
+      "line": 387,
+      "tag": "ContinueButton",
+      "props": {
+        "colors": "{colors}",
+        "disabled": "{!result.nombre.trim()}",
+        "onPress": "{() => { Keyboard.dismiss(); setStage('category'); }}"
+      }
+    },
+    {
+      "file": "app/patio-smart.tsx",
+      "line": 407,
+      "tag": "TouchableOpacity",
+      "props": {
+        "key": "{item.id}",
+        "accessibilityRole": "\"checkbox\"",
+        "accessibilityLabel": "{item.label}",
+        "accessibilityState": "{{ checked: selected, disabled: locked }}",
+        "disabled": "{locked}",
+        "onPress": "{() => {\n                      if (selected) {\n                        const next = result.tipos.filter((id) => id !== item.id);\n                        update({ tipos: next, tipo: next[0] ?? 'otro' });\n                        Haptics.selectionAsync();\n                      } else if (!atMax) {\n                        const next = [...result.tipos, item.id];\n                        update({ tipos: next, tipo: next[0] });\n                        Haptics.selectionAsync();\n                      } else {\n                        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);\n                      }\n                    }}",
+        "style": "{[\n                      s.typeOption,\n                      { backgroundColor: colors.surface, borderColor: selected ? colors.accent : colors.border },\n                      locked && s.typeOptionLocked,\n                    ]}"
+      }
+    },
+    {
+      "file": "app/patio-smart.tsx",
+      "line": 439,
+      "tag": "ContinueButton",
+      "props": {
+        "colors": "{colors}",
+        "onPress": "{() => setStage('location')}"
+      }
+    },
+    {
+      "file": "app/patio-smart.tsx",
+      "line": 451,
+      "tag": "TouchableOpacity",
+      "props": {
+        "accessibilityRole": "\"button\"",
+        "onPress": "{useCurrentLocation}",
+        "accessibilityLabel": "{hasCoordinates ? 'Actualizar ubicación del negocio' : 'Usar mi ubicación actual'}",
+        "accessibilityState": "{{ disabled: locating, busy: locating }}",
+        "disabled": "{locating}",
+        "activeOpacity": "{0.72}",
+        "style": "{[s.locationAction, { backgroundColor: colors.surface, borderColor: colors.border }]}"
+      }
+    },
+    {
+      "file": "app/patio-smart.tsx",
+      "line": 493,
+      "tag": "ContinueButton",
+      "props": {
+        "colors": "{colors}",
+        "disabled": "{!hasLocation}",
+        "loading": "{locating}",
+        "onPress": "{continueFromLocation}"
+      }
+    },
+    {
+      "file": "app/patio-smart.tsx",
+      "line": 510,
+      "tag": "ContinueButton",
+      "props": {
+        "colors": "{colors}",
+        "disabled": "{selectedDays.length === 0}",
+        "onPress": "{confirmSchedule}"
+      }
+    },
+    {
+      "file": "app/patio-smart.tsx",
+      "line": 532,
+      "tag": "ContinueButton",
+      "props": {
+        "colors": "{colors}",
+        "disabled": "{!Object.values(result.pagos).some(Boolean)}",
+        "loading": "{loading}",
+        "onPress": "{confirmPayments}"
+      }
+    },
+    {
+      "file": "app/perfil-comunidad.tsx",
+      "line": 110,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.back}",
+        "onPress": "{() => router.back()}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Regresar\""
+      }
+    },
+    {
+      "file": "app/perfil-comunidad.tsx",
+      "line": 112,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{[s.avatar, { backgroundColor: theme.surface, borderColor: theme.border }]}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{avatarUri ? 'Cambiar foto de perfil' : 'Agregar foto de perfil'}",
+        "onPress": "{async () => {\n            try {\n              const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], allowsEditing: true, aspect: [1, 1], quality: 0.75 });\n              if (!result.canceled && result.assets[0]) setAvatarUri(result.assets[0].uri);\n            } catch {\n              Alert.alert(noWidow('No pudimos abrir tus fotos'), noWidow('Revisa los permisos de Patio en Ajustes e inténtalo de nuevo.'));\n            }\n          }}"
+      }
+    },
+    {
+      "file": "app/perfil-comunidad.tsx",
+      "line": 136,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{[s.button, { backgroundColor: theme.accent, opacity: busy ? 0.55 : 1 }]}",
+        "disabled": "{busy}",
+        "onPress": "{save}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityState": "{{ disabled: busy, busy }}",
+        "accessibilityLabel": "{busy ? 'Guardando perfil' : 'Continuar'}"
+      }
+    },
+    {
+      "file": "app/perfil-editar.tsx",
+      "line": 112,
+      "tag": "GlassIconButton",
+      "props": {
+        "icon": "\"chevron-back\"",
+        "accessibilityLabel": "\"Volver\"",
+        "onPress": "{handleBack}",
+        "size": "{38}",
+        "iconSize": "{19}"
+      }
+    },
+    {
+      "file": "app/perfil-editar.tsx",
+      "line": 138,
+      "tag": "TouchableOpacity",
+      "props": {
+        "key": "{id}",
+        "accessibilityRole": "\"radio\"",
+        "accessibilityLabel": "{label}",
+        "accessibilityState": "{{ selected }}",
+        "hitSlop": "{{ top: 5, bottom: 5, left: 3, right: 3 }}",
+        "onPress": "{() => setTipoNegocioState(id)}",
+        "style": "{[s.typeChip, selected && s.typeChipSelected]}"
+      }
+    },
+    {
+      "file": "app/perfil-editar.tsx",
+      "line": 178,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.locationBtn}",
+        "hitSlop": "{{ top: 8, bottom: 8, left: 4, right: 4 }}",
+        "onPress": "{handleMarkLocation}",
+        "disabled": "{isSavingLocation}",
+        "activeOpacity": "{0.7}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{locationSaved ? 'En el mapa' : 'Marcar en el mapa'}",
+        "accessibilityState": "{{ disabled: isSavingLocation, busy: isSavingLocation }}"
+      }
+    },
+    {
+      "file": "app/perfil-editar.tsx",
+      "line": 225,
+      "tag": "SettingsRow",
+      "props": {
+        "c": "{sc}",
+        "icon": "\"mail-outline\"",
+        "title": "{email || 'Sin correo'}"
+      }
+    },
+    {
+      "file": "app/perfil-editar.tsx",
+      "line": 226,
+      "tag": "SettingsRow",
+      "props": {
+        "c": "{sc}",
+        "icon": "\"log-out-outline\"",
+        "title": "\"Cerrar sesión\"",
+        "divider": "true",
+        "onPress": "{handleSignOut}"
+      }
+    },
+    {
+      "file": "app/perfil-editar.tsx",
+      "line": 238,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{[s.saveBtn, isSaving && { opacity: 0.6 }]}",
+        "onPress": "{handleSaveAll}",
+        "disabled": "{isSaving || savedFlash}",
+        "activeOpacity": "{0.85}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{isSaving ? 'Guardando cambios' : savedFlash ? 'Guardado' : 'Guardar cambios'}",
+        "accessibilityState": "{{ disabled: isSaving || savedFlash, busy: isSaving }}"
+      }
+    },
+    {
+      "file": "app/perfil.tsx",
+      "line": 104,
+      "tag": "SettingsRow",
+      "props": {
+        "c": "{sc}",
+        "icon": "\"create-outline\"",
+        "title": "\"Editar mi negocio\"",
+        "sub": "{address || undefined}",
+        "onPress": "{() => router.push('/perfil-editar')}"
+      }
+    },
+    {
+      "file": "app/perfil.tsx",
+      "line": 108,
+      "tag": "SettingsRow",
+      "props": {
+        "c": "{sc}",
+        "icon": "\"notifications-outline\"",
+        "title": "\"Avisos\"",
+        "sub": "\"Actividad, recordatorios y permisos\"",
+        "onPress": "{() => router.push({ pathname: '/avisos', params: { role: 'fondero' } })}"
+      }
+    },
+    {
+      "file": "app/perfil.tsx",
+      "line": 115,
+      "tag": "SettingsRow",
+      "props": {
+        "c": "{sc}",
+        "icon": "\"rocket-outline\"",
+        "title": "\"Plan\"",
+        "sub": "\"Patio Gratis para negocios\"",
+        "divider": "true",
+        "onPress": "{() => router.push({ pathname: '/plan', params: { role: 'fondero' } })}"
+      }
+    },
+    {
+      "file": "app/perfil.tsx",
+      "line": 123,
+      "tag": "SettingsRow",
+      "props": {
+        "c": "{sc}",
+        "icon": "\"moon-outline\"",
+        "title": "\"Modo oscuro\"",
+        "divider": "true",
+        "trailing": "{<ToggleSwitch accessibilityLabel=\"Modo oscuro\" value={theme.isDark} onValueChange={toggleTheme} activeColor={c.accent} />}"
+      }
+    },
+    {
+      "file": "app/perfil.tsx",
+      "line": 133,
+      "tag": "SettingsRow",
+      "props": {
+        "c": "{sc}",
+        "icon": "\"sparkles-outline\"",
+        "title": "\"Nuestro manifiesto\"",
+        "onPress": "{() => router.push('/manifiesto')}"
+      }
+    },
+    {
+      "file": "app/perfil.tsx",
+      "line": 134,
+      "tag": "SettingsRow",
+      "props": {
+        "c": "{sc}",
+        "icon": "\"chatbubble-outline\"",
+        "title": "\"Ayuda y soporte\"",
+        "divider": "true",
+        "onPress": "{() => router.push('/soporte')}"
+      }
+    },
+    {
+      "file": "app/perfil.tsx",
+      "line": 138,
+      "tag": "SettingsRow",
+      "props": {
+        "c": "{sc}",
+        "icon": "\"repeat-outline\"",
+        "title": "\"Cambiar a modo Foodie\"",
+        "onPress": "{exploreAsClient}"
+      }
+    },
+    {
+      "file": "app/perfil.tsx",
+      "line": 139,
+      "tag": "SettingsRow",
+      "props": {
+        "c": "{sc}",
+        "icon": "\"lock-closed-outline\"",
+        "title": "\"Privacidad\"",
+        "divider": "true",
+        "onPress": "{() => router.push('/privacidad')}"
+      }
+    },
+    {
+      "file": "app/perfil.tsx",
+      "line": 140,
+      "tag": "SettingsRow",
+      "props": {
+        "c": "{sc}",
+        "icon": "\"log-out-outline\"",
+        "title": "\"Cerrar sesión\"",
+        "divider": "true",
+        "onPress": "{signOut}"
+      }
+    },
+    {
+      "file": "app/plan.tsx",
+      "line": 20,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.back}",
+        "onPress": "{() => router.back()}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Volver\""
+      }
+    },
+    {
+      "file": "app/preview.tsx",
+      "line": 58,
+      "tag": "TouchableOpacity",
+      "props": {
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Crear menú\"",
+        "style": "{s.emptyButton}",
+        "onPress": "{() => setNewMenuSheetVisible(true)}",
+        "activeOpacity": "{0.84}"
+      }
+    },
+    {
+      "file": "app/preview.tsx",
+      "line": 72,
+      "tag": "GlassIconButton",
+      "props": {
+        "icon": "\"chevron-back\"",
+        "accessibilityLabel": "\"Volver\"",
+        "onPress": "{handleBack}"
+      }
+    },
+    {
+      "file": "app/preview.tsx",
+      "line": 118,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.cta}",
+        "onPress": "{sharePoster}",
+        "disabled": "{sharing}",
+        "activeOpacity": "{0.86}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{sharing ? 'Preparando imagen' : 'Compartir como imagen'}",
+        "accessibilityState": "{{ disabled: sharing, busy: sharing }}"
+      }
+    },
+    {
+      "file": "app/preview.tsx",
+      "line": 129,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.shareLink}",
+        "onPress": "{handleOpenProfile}",
+        "disabled": "{!patioId}",
+        "activeOpacity": "{0.72}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Ver en mi perfil\"",
+        "accessibilityState": "{{ disabled: !patioId }}"
+      }
+    },
+    {
+      "file": "app/privacidad.tsx",
+      "line": 61,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.back}",
+        "onPress": "{() => router.canGoBack() ? router.back() : router.replace('/cuenta')}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Volver\""
+      }
+    },
+    {
+      "file": "app/privacidad.tsx",
+      "line": 74,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.retry}",
+        "onPress": "{() => setRetry((value) => value + 1)}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Reintentar cargar privacidad\""
+      }
+    },
+    {
+      "file": "app/resenas.tsx",
+      "line": 195,
+      "tag": "TouchableOpacity",
+      "props": {
+        "key": "{item.key}",
+        "activeOpacity": "{item.kind === 'like' ? 0.7 : 1}",
+        "disabled": "{item.kind !== 'like'}",
+        "onPress": "{() => { if (item.dishName) openDishLikeDetail(item.dishName); }}",
+        "style": "{[s.row, index > 0 && { borderTopColor: c.border, borderTopWidth: StyleSheet.hairlineWidth }]}"
+      }
+    },
+    {
+      "file": "app/resenas.tsx",
+      "line": 242,
+      "tag": "TouchableOpacity",
+      "props": {
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Publicar respuesta\"",
+        "accessibilityState": "{{ disabled: !reply.trim() }}",
+        "style": "{{ minHeight: 44, justifyContent: 'center' }}",
+        "onPress": "{() => sendReply(item)}",
+        "disabled": "{!reply.trim()}"
+      }
+    },
+    {
+      "file": "app/resenas.tsx",
+      "line": 244,
+      "tag": "TouchableOpacity",
+      "props": {
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Responder reseña\"",
+        "style": "{s.replyButton}",
+        "onPress": "{() => { setReplyingTo(item.userId ?? null); setReply(''); }}"
+      }
+    },
+    {
+      "file": "app/soporte.tsx",
+      "line": 36,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.back}",
+        "onPress": "{() => topic ? setTopic(null) : router.back()}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{topic ? 'Volver a temas' : 'Regresar'}"
+      }
+    },
+    {
+      "file": "app/soporte.tsx",
+      "line": 46,
+      "tag": "TouchableOpacity",
+      "props": {
+        "key": "{item.id}",
+        "style": "{[s.row, index > 0 && { borderTopColor: theme.border, borderTopWidth: StyleSheet.hairlineWidth }]}",
+        "onPress": "{() => setTopic(item)}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{`${item.title}, ${item.hint}`}"
+      }
+    },
+    {
+      "file": "app/soporte.tsx",
+      "line": 77,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{[s.send, { backgroundColor: theme.accent }, !canSend && { opacity: 0.35 }]}",
+        "disabled": "{!canSend}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Abrir correo\"",
+        "onPress": "{() => { void Linking.openURL(encodedMail).catch(() => Alert.alert(noWidow('No pudimos abrir el correo'), noWidow(`Puedes escribirnos a ${SUPPORT_EMAIL}.`))); }}"
+      }
+    },
+    {
+      "file": "app/vistos.tsx",
+      "line": 70,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.cta}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Reintentar\"",
+        "onPress": "{reload}"
+      }
+    },
+    {
+      "file": "app/vistos.tsx",
+      "line": 78,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.cta}",
+        "onPress": "{() => router.replace('/explorar')}",
+        "activeOpacity": "{0.82}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Ver qué hay hoy\""
+      }
+    },
+    {
+      "file": "app/vistos.tsx",
+      "line": 84,
+      "tag": "TouchableOpacity",
+      "props": {
+        "key": "{patio.id}",
+        "style": "{s.card}",
+        "onPress": "{() => router.push(`/patio/${patio.id}`)}",
+        "activeOpacity": "{0.82}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{patioCardAccessibilityLabel(patio)}"
+      }
+    },
+    {
+      "file": "app/coleccion/[id].tsx",
+      "line": 123,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.navButton}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Volver\"",
+        "onPress": "{() => router.canGoBack() ? router.back() : router.replace('/favoritos')}"
+      }
+    },
+    {
+      "file": "app/coleccion/[id].tsx",
+      "line": 126,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.explore}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Reintentar\"",
+        "onPress": "{() => { void load(); }}"
+      }
+    },
+    {
+      "file": "app/coleccion/[id].tsx",
+      "line": 134,
+      "tag": "TouchableOpacity",
+      "props": {
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Volver\"",
+        "style": "{s.navButton}",
+        "onPress": "{() => router.back()}"
+      }
+    },
+    {
+      "file": "app/coleccion/[id].tsx",
+      "line": 135,
+      "tag": "TouchableOpacity",
+      "props": {
+        "ref": "{moreRef}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Acciones de la lista\"",
+        "style": "{s.navButton}",
+        "onPress": "{() => { Haptics.selectionAsync().catch(() => {}); setActionsOpen(true); }}"
+      }
+    },
+    {
+      "file": "app/coleccion/[id].tsx",
+      "line": 154,
+      "tag": "TouchableOpacity",
+      "props": {
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Ver esta lista en el mapa\"",
+        "style": "{[s.primaryAction, { backgroundColor: theme.accent }]}",
+        "onPress": "{() => router.replace({ pathname: '/explorar', params: { collection: item.id } })}"
+      }
+    },
+    {
+      "file": "app/coleccion/[id].tsx",
+      "line": 158,
+      "tag": "TouchableOpacity",
+      "props": {
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Compartir\"",
+        "disabled": "{busy}",
+        "accessibilityState": "{{ disabled: busy, busy }}",
+        "style": "{[s.shareButton, { borderColor: theme.border }]}",
+        "onPress": "{share}"
+      }
+    },
+    {
+      "file": "app/coleccion/[id].tsx",
+      "line": 166,
+      "tag": "TouchableOpacity",
+      "props": {
+        "key": "{patio.id}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{patioCardAccessibilityLabel(patio)}",
+        "style": "{[s.row, { borderBottomColor: theme.border }]}",
+        "activeOpacity": "{0.72}",
+        "onPress": "{() => router.push(`/patio/${patio.id}`)}"
+      }
+    },
+    {
+      "file": "app/coleccion/[id].tsx",
+      "line": 178,
+      "tag": "TouchableOpacity",
+      "props": {
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Explorar lugares\"",
+        "style": "{[s.explore, { borderColor: theme.border }]}",
+        "onPress": "{() => router.replace('/explorar')}"
+      }
+    },
+    {
+      "file": "app/coleccion-publica/[id].tsx",
+      "line": 117,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.navButton}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Volver\"",
+        "onPress": "{back}"
+      }
+    },
+    {
+      "file": "app/coleccion-publica/[id].tsx",
+      "line": 119,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.navButton}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Compartir lista\"",
+        "onPress": "{share}"
+      }
+    },
+    {
+      "file": "app/coleccion-publica/[id].tsx",
+      "line": 126,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.retry}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Reintentar carga de lista\"",
+        "onPress": "{() => { void load(); }}"
+      }
+    },
+    {
+      "file": "app/coleccion-publica/[id].tsx",
+      "line": 132,
+      "tag": "TouchableOpacity",
+      "props": {
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{saved ? 'Quitar lista de Guardados' : 'Guardar lista'}",
+        "accessibilityState": "{{ disabled: saving, busy: saving, selected: saved }}",
+        "disabled": "{saving}",
+        "style": "{[s.button, { backgroundColor: theme.accent, opacity: saving ? 0.6 : 1 }]}",
+        "onPress": "{save}"
+      }
+    },
+    {
+      "file": "app/coleccion-publica/[id].tsx",
+      "line": 136,
+      "tag": "TouchableOpacity",
+      "props": {
+        "accessibilityRole": "\"button\"",
+        "style": "{[s.row, { borderColor: theme.border }]}",
+        "onPress": "{() => router.push({ pathname: '/foodie/[id]', params: { id: item.owner_id } })}"
+      }
+    },
+    {
+      "file": "app/coleccion-publica/[id].tsx",
+      "line": 137,
+      "tag": "TouchableOpacity",
+      "props": {
+        "key": "{place.id}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{`Abrir ${place.nombre}`}",
+        "style": "{[s.row, { borderColor: theme.border }]}",
+        "onPress": "{() => router.push(`/patio/${place.id}`)}"
+      }
+    },
+    {
+      "file": "app/foodie/[id].tsx",
+      "line": 111,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.navButton}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Volver\"",
+        "onPress": "{back}"
+      }
+    },
+    {
+      "file": "app/foodie/[id].tsx",
+      "line": 119,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.retry}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Reintentar carga de perfil\"",
+        "onPress": "{() => { void load(); }}"
+      }
+    },
+    {
+      "file": "app/foodie/[id].tsx",
+      "line": 129,
+      "tag": "TouchableOpacity",
+      "props": {
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{following ? 'Dejar de seguir perfil' : 'Seguir perfil'}",
+        "accessibilityState": "{{ disabled: saving, busy: saving, selected: following }}",
+        "disabled": "{saving}",
+        "style": "{[s.follow, { backgroundColor: following ? theme.surface : theme.accent, borderColor: theme.border, opacity: saving ? 0.6 : 1 }]}",
+        "onPress": "{follow}"
+      }
+    },
+    {
+      "file": "app/foodie/[id].tsx",
+      "line": 132,
+      "tag": "TouchableOpacity",
+      "props": {
+        "key": "{list.id}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{`Abrir ${list.title}`}",
+        "style": "{[s.row, { borderColor: theme.border }]}",
+        "onPress": "{() => router.push({ pathname: '/coleccion-publica/[id]', params: { id: list.id } })}"
+      }
+    },
+    {
+      "file": "app/guardar/[id].tsx",
+      "line": 95,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.navButton}",
+        "onPress": "{() => router.back()}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Cerrar\""
+      }
+    },
+    {
+      "file": "app/guardar/[id].tsx",
+      "line": 99,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.navButton}",
+        "onPress": "{() => router.back()}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Listo\""
+      }
+    },
+    {
+      "file": "app/guardar/[id].tsx",
+      "line": 107,
+      "tag": "TouchableOpacity",
+      "props": {
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Reintentar carga de listas\"",
+        "style": "{s.retry}",
+        "onPress": "{reload}"
+      }
+    },
+    {
+      "file": "app/guardar/[id].tsx",
+      "line": 110,
+      "tag": "LibraryListRow",
+      "props": {
+        "key": "{collection.id}",
+        "title": "{collection.title}",
+        "count": "{collection.patioIds.length}",
+        "unit": "\"lugar\"",
+        "checked": "{selected}",
+        "disabled": "{busy}",
+        "divider": "{index > 0}",
+        "onPress": "{() => { void mutate(async () => { await togglePatioInCollection(collection.id, patioId); }); }}"
+      }
+    },
+    {
+      "file": "app/guardar/[id].tsx",
+      "line": 131,
+      "tag": "TouchableOpacity",
+      "props": {
+        "disabled": "{busy}",
+        "accessibilityState": "{{ disabled: busy, busy }}",
+        "style": "{s.createButton}",
+        "onPress": "{create}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Crear lista\""
+      }
+    },
+    {
+      "file": "app/guardar/[id].tsx",
+      "line": 144,
+      "tag": "TouchableOpacity",
+      "props": {
+        "key": "{key}",
+        "onPress": "{() => updateMeta({ status: selected ? undefined : key })}",
+        "style": "{[s.statusChip, { backgroundColor: selected ? theme.text : theme.surface }]}",
+        "hitSlop": "{{ top: 3, bottom: 3, left: 3, right: 3 }}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityState": "{{ selected }}"
+      }
+    },
+    {
+      "file": "app/guardar/[id].tsx",
+      "line": 168,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.retry}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Reintentar guardado de tus datos privados\"",
+        "onPress": "{() => { void updateMeta({}); }}"
+      }
+    },
+    {
+      "file": "app/guardar/[id].tsx",
+      "line": 172,
+      "tag": "TouchableOpacity",
+      "props": {
+        "key": "{value}",
+        "onPress": "{() => updateMeta({ rating: meta.rating === value ? undefined : value })}",
+        "hitSlop": "{{ top: 12, bottom: 12, left: 12, right: 12 }}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{`${value} ${value === 1 ? 'estrella' : 'estrellas'}`}",
+        "accessibilityState": "{{ selected: value <= (meta.rating ?? 0) }}"
+      }
+    },
+    {
+      "file": "app/guardar/[id].tsx",
+      "line": 188,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{[s.publicRow, { backgroundColor: theme.surface, borderColor: theme.border }]}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Escribir una reseña\"",
+        "onPress": "{() => router.push({ pathname: '/resena/[id]', params: { id: patioId } })}"
+      }
+    },
+    {
+      "file": "app/patio/[id].tsx",
+      "line": 396,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.glassIcon}",
+        "onPress": "{onPress}",
+        "activeOpacity": "{0.76}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{label}",
+        "accessibilityState": "{selected !== undefined ? { selected } : undefined}"
+      }
+    },
+    {
+      "file": "app/patio/[id].tsx",
+      "line": 534,
+      "tag": "TouchableOpacity",
+      "props": {
+        "hitSlop": "{{ top: 8, bottom: 8, left: 8, right: 8 }}",
+        "onPress": "{() => handleToggleDishLike(item.name)}",
+        "activeOpacity": "{0.7}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{dishLiked ? `Quitar like a ${item.name}` : `Dar like a ${item.name}`}",
+        "accessibilityState": "{{ selected: dishLiked }}",
+        "style": "{s.dishLikeBtn}"
+      }
+    },
+    {
+      "file": "app/patio/[id].tsx",
+      "line": 572,
+      "tag": "TouchableOpacity",
+      "props": {
+        "key": "{badge.id}",
+        "style": "{[s.earnedBadge, activeBadgeId === badge.id && s.earnedBadgeActive]}",
+        "onPress": "{() => setActiveBadgeId((current) => current === badge.id ? null : badge.id)}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{badge.title}",
+        "accessibilityState": "{{ expanded: activeBadgeId === badge.id }}"
+      }
+    },
+    {
+      "file": "app/patio/[id].tsx",
+      "line": 587,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.badgeInline}",
+        "onPress": "{() => setActiveBadgeId(null)}",
+        "accessibilityRole": "\"button\"",
+        "accessible": "true",
+        "accessibilityLabel": "{`${activeBadge.title}. ${activeBadge.detail}. Toca para cerrar`}"
+      }
+    },
+    {
+      "file": "app/patio/[id].tsx",
+      "line": 613,
+      "tag": "TouchableOpacity",
+      "props": {
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{patio.weeklyHours?.length ? 'Ver horario semanal' : 'Horario no disponible'}",
+        "accessibilityState": "{{ expanded: showSchedule, disabled: !patio.weeklyHours?.length }}",
+        "disabled": "{!patio.weeklyHours?.length}",
+        "style": "{[s.factColumn, s.factColumnRight]}",
+        "onPress": "{() => setShowSchedule((value) => !value)}"
+      }
+    },
+    {
+      "file": "app/patio/[id].tsx",
+      "line": 631,
+      "tag": "TouchableOpacity",
+      "props": {
+        "accessibilityLabel": "{`Abrir indicaciones para ${patio.name}`}",
+        "accessibilityRole": "\"button\"",
+        "style": "{s.mapPanel}",
+        "onPress": "{handleComoLlegar}",
+        "activeOpacity": "{0.86}"
+      }
+    },
+    {
+      "file": "app/patio/[id].tsx",
+      "line": 670,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{[s.reviewPrompt, reviewedToday && { opacity: 0.55 }]}",
+        "onPress": "{reviewedToday ? undefined : () => handleStarPress(0)}",
+        "disabled": "{reviewedToday}",
+        "activeOpacity": "{0.8}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{reviewedToday ? 'Ya reseñaste hoy' : userReview ? 'Registrar otra visita' : 'Reseñar este Patio'}"
+      }
+    },
+    {
+      "file": "app/patio/[id].tsx",
+      "line": 677,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.ratingScore}",
+        "onPress": "{() => setRatingFilter(null)}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{`${ratingAverage.toFixed(1)} de 5, ${reviews.length} reseñas. Mostrar todas`}"
+      }
+    },
+    {
+      "file": "app/patio/[id].tsx",
+      "line": 689,
+      "tag": "TouchableOpacity",
+      "props": {
+        "key": "{stars}",
+        "style": "{[s.ratingBarRow, (ratingFilter === null || ratingFilter === stars) && s.ratingBarRowActive]}",
+        "onPress": "{() => setRatingFilter((current) => current === stars ? null : stars)}",
+        "disabled": "{!count}",
+        "hitSlop": "{{ top: 3, bottom: 3, left: 0, right: 0 }}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{`${stars} estrellas, ${count} reseñas`}"
+      }
+    },
+    {
+      "file": "app/patio/[id].tsx",
+      "line": 742,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.reviewAction}",
+        "hitSlop": "{4}",
+        "onPress": "{() => {\n                            if (replyCount > 0) {\n                              setExpandedThreads((current) => ({ ...current, [reviewKey]: !(current[reviewKey] ?? false) }));\n                              setReplyingTo(null);\n                              setReplyingToComment(null);\n                            } else {\n                              setReplyingTo((current) => current === reviewKey ? null : reviewKey);\n                            }\n                          }}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{replyCount > 0 ? (expandedThreads[reviewKey] ? 'Ocultar comentarios' : `Ver ${replyCount} comentarios`) : 'Comentar'}",
+        "accessibilityState": "{{ expanded: replyCount > 0 ? (expandedThreads[reviewKey] ?? false) : undefined }}"
+      }
+    },
+    {
+      "file": "app/patio/[id].tsx",
+      "line": 760,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.reviewAction}",
+        "hitSlop": "{4}",
+        "onPress": "{() => {\n                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});\n                            setReviewLikes((current) => ({ ...current, [reviewKey]: { mine: !like.mine, count: Math.max(0, like.count + (like.mine ? -1 : 1)) } }));\n                            if (review.reviewId) void toggleReviewLike(review.reviewId);\n                          }}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Me gusta\"",
+        "accessibilityState": "{{ selected: like.mine }}"
+      }
+    },
+    {
+      "file": "app/patio/[id].tsx",
+      "line": 774,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.reviewAction}",
+        "hitSlop": "{4}",
+        "onPress": "{shareReview}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Compartir reseña\""
+      }
+    },
+    {
+      "file": "app/patio/[id].tsx",
+      "line": 805,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.reviewThreadTextAction}",
+        "hitSlop": "{{ top: 8, bottom: 8, left: 6, right: 6 }}",
+        "onPress": "{() => setReplyLikes((current) => ({\n                                    ...current,\n                                    [reply.id]: {\n                                      mine: !reaction.mine,\n                                      count: Math.max(0, reaction.count + (reaction.mine ? -1 : 1)),\n                                    },\n                                  }))}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{`Me gusta el comentario de ${reply.mine ? 'ti' : reply.author}`}",
+        "accessibilityState": "{{ selected: reaction.mine }}"
+      }
+    },
+    {
+      "file": "app/patio/[id].tsx",
+      "line": 820,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.reviewThreadTextAction}",
+        "hitSlop": "{{ top: 8, bottom: 8, left: 6, right: 6 }}",
+        "onPress": "{() => {\n                                    setReplyingToComment({ reviewKey, parentId, author: reply.mine ? 'Tú' : reply.author });\n                                    setReplyingTo(null);\n                                    setReplyDraft('');\n                                  }}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{`Responder a ${reply.mine ? 'tu comentario' : reply.author}`}"
+      }
+    },
+    {
+      "file": "app/patio/[id].tsx",
+      "line": 852,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{[s.reviewReplySend, !replyDraft.trim() && { opacity: 0.35 }]}",
+        "hitSlop": "{3}",
+        "disabled": "{!replyDraft.trim()}",
+        "onPress": "{() => {\n                                          const next = replyDraft.trim();\n                                          const child: ReviewThreadReply = { id: `${reviewKey}-mine-${Date.now()}`, author: 'Tú', body: next, likes: 0, mine: true, parentId: reply.id };\n                                          setReviewReplies((current) => ({ ...current, [reviewKey]: [...(current[reviewKey] ?? []), child] }));\n                                          setReplyDraft('');\n                                          setReplyingToComment(null);\n                                        }}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Publicar respuesta\""
+      }
+    },
+    {
+      "file": "app/patio/[id].tsx",
+      "line": 878,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{[s.reviewReplySend, !replyDraft.trim() && { opacity: 0.35 }]}",
+        "hitSlop": "{3}",
+        "disabled": "{!replyDraft.trim()}",
+        "onPress": "{() => {\n                              const next = replyDraft.trim();\n                              const reply: ReviewThreadReply = {\n                                id: `${reviewKey}-mine-${Date.now()}`,\n                                author: 'Tú',\n                                body: next,\n                                likes: 0,\n                                mine: true,\n                              };\n                              setReviewReplies((current) => ({ ...current, [reviewKey]: [...(current[reviewKey] ?? []), reply] }));\n                              setExpandedThreads((current) => ({ ...current, [reviewKey]: true }));\n                              setReplyDraft('');\n                              setReplyingTo(null);\n                            }}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Publicar respuesta\""
+      }
+    },
+    {
+      "file": "app/resena/[id].tsx",
+      "line": 136,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.navBtn}",
+        "onPress": "{() => router.back()}",
+        "activeOpacity": "{0.7}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Regresar\""
+      }
+    },
+    {
+      "file": "app/resena/[id].tsx",
+      "line": 151,
+      "tag": "TouchableOpacity",
+      "props": {
+        "key": "{n}",
+        "activeOpacity": "{0.8}",
+        "onPress": "{() => pressStar(n)}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{`${n} ${n === 1 ? 'estrella' : 'estrellas'}`}",
+        "accessibilityState": "{{ selected: active }}"
+      }
+    },
+    {
+      "file": "app/resena/[id].tsx",
+      "line": 165,
+      "tag": "TouchableOpacity",
+      "props": {
+        "key": "{t}",
+        "activeOpacity": "{0.8}",
+        "onPress": "{() => toggleTag(t)}",
+        "style": "{[s.tag, on ? s.tagOn : s.tagOff]}",
+        "hitSlop": "{{ top: 6, bottom: 6, left: 4, right: 4 }}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityState": "{{ selected: on }}"
+      }
+    },
+    {
+      "file": "app/resena/[id].tsx",
+      "line": 187,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.photoRow}",
+        "activeOpacity": "{0.8}",
+        "onPress": "{pickPhoto}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{photoUri ? 'Cambiar foto de la reseña' : 'Agregar foto opcional a la reseña'}"
+      }
+    },
+    {
+      "file": "app/resena/[id].tsx",
+      "line": 200,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{[s.cta, (stars === 0 || saving) && s.ctaDisabled]}",
+        "onPress": "{submit}",
+        "disabled": "{stars === 0 || saving}",
+        "activeOpacity": "{0.86}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityState": "{{ disabled: stars === 0 || saving, busy: saving }}",
+        "accessibilityLabel": "{saving ? 'Publicando reseña' : 'Publicar reseña'}"
+      }
+    },
+    {
+      "file": "components/account-deletion-row.tsx",
+      "line": 41,
+      "tag": "SettingsRow",
+      "props": {
+        "c": "{c}",
+        "icon": "\"trash-outline\"",
+        "divider": "true",
+        "title": "{busy ? 'Eliminando cuenta…' : 'Eliminar cuenta'}",
+        "trailing": "{busy ? <ActivityIndicator color={c.textSecondary} /> : undefined}",
+        "onPress": "{busy ? undefined : () => { void confirm().catch(() => Alert.alert(noWidow('No pudimos verificar tu cuenta'), noWidow('Inténtalo de nuevo.'))); }}"
+      }
+    },
+    {
+      "file": "components/action-sheet.tsx",
+      "line": 107,
+      "tag": "TouchableWithoutFeedback",
+      "props": {
+        "onPress": "{onDismiss}"
+      }
+    },
+    {
+      "file": "components/action-sheet.tsx",
+      "line": 129,
+      "tag": "TouchableOpacity",
+      "props": {
+        "onPress": "{() => runOption(option)}",
+        "style": "{[s.row, !grouped && (index > 0 || !!title) && s.divider]}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{option.label}",
+        "accessibilityHint": "{option.accessibilityHint}",
+        "accessibilityState": "{option.selected === undefined ? undefined : { selected: option.selected }}"
+      }
+    },
+    {
+      "file": "components/blocked-accounts.tsx",
+      "line": 45,
+      "tag": "TouchableOpacity",
+      "props": {
+        "onPress": "{() => setRetry((value) => value + 1)}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Reintentar carga de cuentas bloqueadas\"",
+        "style": "{{ minHeight: 44, justifyContent: 'center' }}"
+      }
+    },
+    {
+      "file": "components/blocked-accounts.tsx",
+      "line": 51,
+      "tag": "TouchableOpacity",
+      "props": {
+        "disabled": "{busy !== null}",
+        "onPress": "{() => void unblock(profile.user_id)}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityState": "{{ disabled: busy !== null, busy: busy === profile.user_id }}",
+        "accessibilityLabel": "{`Desbloquear ${profile.display_name || 'cuenta'}`}",
+        "style": "{{ minHeight: 44, justifyContent: 'center' }}"
+      }
+    },
+    {
+      "file": "components/bottom-tab-bar.tsx",
+      "line": 97,
+      "tag": "TouchableOpacity",
+      "props": {
+        "key": "{path}",
+        "accessibilityRole": "\"tab\"",
+        "accessibilityLabel": "{label}",
+        "accessibilityState": "{{ selected: active }}",
+        "accessibilityValue": "{hasNews ? { text: 'Novedades' } : undefined}",
+        "style": "{styles.tab}",
+        "activeOpacity": "{0.7}",
+        "hitSlop": "{{ top: 4, bottom: 4, left: 0, right: 0 }}",
+        "onPress": "{onTabPress}"
+      }
+    },
+    {
+      "file": "components/business-payment-selector.tsx",
+      "line": 29,
+      "tag": "TouchableOpacity",
+      "props": {
+        "key": "{option.key}",
+        "accessibilityRole": "\"checkbox\"",
+        "accessibilityState": "{{ checked: active }}",
+        "accessibilityLabel": "{`${option.label}: ${active ? 'aceptado' : 'no aceptado'}`}",
+        "onPress": "{() => onChange({ ...value, [option.key]: !active })}",
+        "activeOpacity": "{0.72}",
+        "style": "{[s.row, { backgroundColor: colors.surface, borderColor: active ? colors.accent : colors.border }]}"
+      }
+    },
+    {
+      "file": "components/business-schedule-editor.tsx",
+      "line": 155,
+      "tag": "TouchableOpacity",
+      "props": {
+        "key": "{preset.label}",
+        "onPress": "{() => applyPreset(preset.days)}",
+        "activeOpacity": "{0.72}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{preset.label}",
+        "accessibilityState": "{{ selected: active }}",
+        "style": "{[s.preset, { borderColor: active ? colors.accent : colors.border, backgroundColor: active ? `${colors.accent}18` : colors.surface }]}"
+      }
+    },
+    {
+      "file": "components/business-schedule-editor.tsx",
+      "line": 184,
+      "tag": "TouchableOpacity",
+      "props": {
+        "key": "{item.id}",
+        "accessibilityLabel": "{`${item.label}: ${open ? 'abierto' : 'cerrado'}`}",
+        "accessibilityRole": "\"checkbox\"",
+        "accessibilityState": "{{ checked: open }}",
+        "onPress": "{() => toggleDay(item.id)}",
+        "activeOpacity": "{0.72}",
+        "style": "{[s.dayDot, { backgroundColor: open ? colors.accent : colors.surface, borderColor: open ? colors.accent : colors.border }]}"
+      }
+    },
+    {
+      "file": "components/business-schedule-editor.tsx",
+      "line": 214,
+      "tag": "TouchableOpacity",
+      "props": {
+        "accessibilityLabel": "{`${field === 'abre' ? 'Apertura' : 'Cierre'} de ${item.label}`}",
+        "accessibilityRole": "\"button\"",
+        "activeOpacity": "{0.72}",
+        "onPress": "{() => {\n                      void Haptics.selectionAsync();\n                      setActivePicker({ dia: item.id, field });\n                    }}",
+        "style": "{[s.compactTime, { backgroundColor: colors.bg }]}"
+      }
+    },
+    {
+      "file": "components/business-schedule-editor.tsx",
+      "line": 267,
+      "tag": "Pressable",
+      "props": {
+        "accessibilityLabel": "\"Cerrar selector de hora\"",
+        "style": "{StyleSheet.absoluteFill}",
+        "onPress": "{() => setActivePicker(null)}"
+      }
+    },
+    {
+      "file": "components/collapsing-header.tsx",
+      "line": 79,
+      "tag": "TouchableOpacity",
+      "props": {
+        "onPress": "{onBack}",
+        "hitSlop": "{{ top: 10, bottom: 10, left: 10, right: 10 }}",
+        "activeOpacity": "{0.7}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Regresar\""
+      }
+    },
+    {
+      "file": "components/collapsing-header.tsx",
+      "line": 98,
+      "tag": "TouchableOpacity",
+      "props": {
+        "key": "{i}",
+        "onPress": "{a.onPress}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{a.accessibilityLabel}",
+        "hitSlop": "{{ top: 10, bottom: 10, left: 8, right: 8 }}",
+        "activeOpacity": "{0.7}"
+      }
+    },
+    {
+      "file": "components/content-safety-menu.tsx",
+      "line": 42,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}",
+        "accessibilityState": "{{ disabled: busy, busy }}",
+        "disabled": "{busy}",
+        "onPress": "{() => setMenu('actions')}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Reportar o bloquear contenido\""
+      }
+    },
+    {
+      "file": "components/dish-like-detail-sheet.tsx",
+      "line": 74,
+      "tag": "TouchableWithoutFeedback",
+      "props": {
+        "onPress": "{onClose}",
+        "accessibilityLabel": "\"Cerrar\""
+      }
+    },
+    {
+      "file": "components/foodie-filter-bar.tsx",
+      "line": 631,
+      "tag": "TouchableOpacity",
+      "props": {
+        "hitSlop": "{SCOPE_HIT_SLOP}",
+        "onPress": "{() => { Haptics.selectionAsync().catch(() => {}); onChange({ ...filters, openAt: filters.openAt ? null : { ahora: true } }); }}",
+        "onLongPress": "{() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {}); setOpenPickerVisible(true); }}",
+        "delayLongPress": "{350}",
+        "style": "{[s.organizer, s.scopeControl, s.openChip, { backgroundColor: filters.openAt ? theme.accent : pillBg, borderColor: filters.openAt ? theme.accent : theme.border }]}",
+        "activeOpacity": "{0.7}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{`Abierto${!openMoment ? (filters.openAt ? ' ahora' : '') : otroDiaActivo ? ` el ${DIA_CORTO[openMoment.dia]}, ${openLabel}` : `, hasta ${openLabel}`}`}",
+        "accessibilityHint": "{filters.openAt ? 'Toca para quitar el filtro. Mantén presionado para elegir día y hora' : 'Toca para ver lo abierto ahora. Mantén presionado para elegir día y hora'}",
+        "accessibilityState": "{{ expanded: openPickerVisible }}"
+      }
+    },
+    {
+      "file": "components/foodie-filter-bar.tsx",
+      "line": 649,
+      "tag": "TouchableOpacity",
+      "props": {
+        "hitSlop": "{SCOPE_HIT_SLOP}",
+        "onPress": "{() => { Keyboard.dismiss(); togglePanel('filters'); }}",
+        "style": "{[s.organizer, s.scopeControl, { backgroundColor: pillBg }]}",
+        "activeOpacity": "{0.7}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{`Filtros${filterCount ? `, ${filterCount} activos` : ''}`}",
+        "accessibilityState": "{{ expanded: openPanel === 'filters' }}"
+      }
+    },
+    {
+      "file": "components/foodie-filter-bar.tsx",
+      "line": 667,
+      "tag": "TouchableOpacity",
+      "props": {
+        "hitSlop": "{SCOPE_HIT_SLOP}",
+        "onPress": "{() => { Keyboard.dismiss(); togglePanel('lists'); }}",
+        "style": "{[s.organizer, s.scopeControl, { backgroundColor: pillBg }]}",
+        "activeOpacity": "{0.7}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{`Tus listas${listCount ? `, ${listCount} activas` : ''}`}",
+        "accessibilityState": "{{ expanded: openPanel === 'lists' }}"
+      }
+    },
+    {
+      "file": "components/foodie-filter-bar.tsx",
+      "line": 688,
+      "tag": "TouchableOpacity",
+      "props": {
+        "hitSlop": "{CONTROL_HIT_SLOP}",
+        "onPress": "{locationAction.onPress}",
+        "disabled": "{locationAction.busy}",
+        "style": "{[s.organizer, s.organizerCompact, { backgroundColor: pillBg }]}",
+        "activeOpacity": "{0.7}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Centrar en mi ubicación\"",
+        "accessibilityState": "{{ busy: locationAction.busy, disabled: locationAction.busy }}"
+      }
+    },
+    {
+      "file": "components/foodie-filter-bar.tsx",
+      "line": 703,
+      "tag": "TouchableOpacity",
+      "props": {
+        "hitSlop": "{CONTROL_HIT_SLOP}",
+        "ref": "{organizerRef}",
+        "onPress": "{() => { Keyboard.dismiss(); Haptics.selectionAsync().catch(() => {}); setOrganizerVisible(true); }}",
+        "style": "{[s.organizer, s.organizerCompact, { backgroundColor: pillBg }]}",
+        "activeOpacity": "{0.7}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Organizar Guardados\"",
+        "accessibilityState": "{{ expanded: organizerVisible }}",
+        "accessibilityHint": "\"Ordenar, cambiar vista y seleccionar lugares\""
+      }
+    },
+    {
+      "file": "components/foodie-filter-bar.tsx",
+      "line": 747,
+      "tag": "TouchableOpacity",
+      "props": {
+        "disabled": "{creatingPending}",
+        "style": "{[s.headerIcon, { width: 'auto', paddingHorizontal: 8 }]}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Cancelar nueva lista\"",
+        "onPress": "{() => { setCreatingList(false); setNewListTitle(''); }}"
+      }
+    },
+    {
+      "file": "components/foodie-filter-bar.tsx",
+      "line": 748,
+      "tag": "TouchableOpacity",
+      "props": {
+        "disabled": "{deletingLists || listActionBusy}",
+        "style": "{[s.headerIcon, { width: 'auto', paddingHorizontal: 8 }]}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Cancelar selección\"",
+        "onPress": "{() => { setSelectingLists(false); setSelectedListIds([]); }}"
+      }
+    },
+    {
+      "file": "components/foodie-filter-bar.tsx",
+      "line": 751,
+      "tag": "TouchableOpacity",
+      "props": {
+        "ref": "{listsMenuRef}",
+        "style": "{s.headerIcon}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Acciones de listas\"",
+        "onPress": "{() => openListActions()}"
+      }
+    },
+    {
+      "file": "components/foodie-filter-bar.tsx",
+      "line": 762,
+      "tag": "TouchableOpacity",
+      "props": {
+        "disabled": "{!newListTitle.trim() || creatingPending}",
+        "hitSlop": "{CREATE_BTN_HIT_SLOP}",
+        "onPress": "{() => { void handleCreateList(); }}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Crear lista\"",
+        "style": "{[s.createBtn, (!newListTitle.trim() || creatingPending) && s.createBtnDisabled]}"
+      }
+    },
+    {
+      "file": "components/foodie-filter-bar.tsx",
+      "line": 767,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{[s.confirmMoveButton, (!moveDestinationId || listActionBusy) && s.createBtnDisabled]}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Mover lugares\"",
+        "accessibilityState": "{{ disabled: !moveDestinationId || listActionBusy, busy: listActionBusy }}",
+        "disabled": "{!moveDestinationId || listActionBusy}",
+        "onPress": "{() => { const destination = collections.find((item) => item.id === moveDestinationId); if (destination) moveSelectedTo(destination); }}"
+      }
+    },
+    {
+      "file": "components/foodie-filter-bar.tsx",
+      "line": 801,
+      "tag": "TouchableOpacity",
+      "props": {
+        "activeOpacity": "{1}",
+        "style": "{StyleSheet.absoluteFillObject}",
+        "onPress": "{closeListMenu}",
+        "accessibilityLabel": "\"Cerrar acciones\""
+      }
+    },
+    {
+      "file": "components/foodie-filter-bar.tsx",
+      "line": 806,
+      "tag": "TouchableOpacity",
+      "props": {
+        "key": "{option.label}",
+        "onPress": "{() => { closeListMenu(); option.onPress(); }}",
+        "style": "{[s.inlineRow, (index > 0 || !!actionsTarget?.title) && s.divider]}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{option.label}"
+      }
+    },
+    {
+      "file": "components/foodie-filter-bar.tsx",
+      "line": 826,
+      "tag": "TouchableOpacity",
+      "props": {
+        "key": "{value}",
+        "onPress": "{() => { Haptics.selectionAsync().catch(() => {}); onChange({ ...filters, [filterDetail]: toggleValue(filters[filterDetail], value) }); }}",
+        "style": "{[s.availabilityRow, s.choiceRow, index > 0 && s.rowDivider]}",
+        "accessibilityRole": "\"checkbox\"",
+        "accessibilityLabel": "{value}",
+        "accessibilityState": "{{ checked: active }}"
+      }
+    },
+    {
+      "file": "components/foodie-filter-bar.tsx",
+      "line": 841,
+      "tag": "TouchableOpacity",
+      "props": {
+        "key": "{group.field}",
+        "style": "{[s.availabilityRow, index > 0 && s.rowDivider]}",
+        "disabled": "{disabled}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{group.title}",
+        "accessibilityValue": "{{ text: summary }}",
+        "accessibilityState": "{{ disabled }}",
+        "onPress": "{() => { Haptics.selectionAsync().catch(() => {}); setFilterDetail(group.field); }}"
+      }
+    },
+    {
+      "file": "components/foodie-filter-bar.tsx",
+      "line": 851,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.option}",
+        "onPress": "{additionalFilter.onClear}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{`Quitar filtro ${additionalFilter.label}`}"
+      }
+    },
+    {
+      "file": "components/foodie-filter-bar.tsx",
+      "line": 854,
+      "tag": "TouchableOpacity",
+      "props": {
+        "key": "{item.id}",
+        "disabled": "{listActionBusy}",
+        "style": "{[s.option, index > 0 && s.rowDivider]}",
+        "accessibilityRole": "\"radio\"",
+        "accessibilityState": "{{ checked: item.id === moveDestinationId, disabled: listActionBusy }}",
+        "accessibilityLabel": "{`Destino ${item.title}`}",
+        "onPress": "{() => { setMoveDestinationId(item.id); Haptics.selectionAsync().catch(() => {}); }}"
+      }
+    },
+    {
+      "file": "components/foodie-filter-bar.tsx",
+      "line": 860,
+      "tag": "TouchableOpacity",
+      "props": {
+        "disabled": "{deletingLists || listActionBusy}",
+        "style": "{s.option}",
+        "accessibilityRole": "\"checkbox\"",
+        "accessibilityLabel": "\"Seleccionar todas las listas\"",
+        "accessibilityState": "{{ checked: selectedListIds.length === collections.length, disabled: deletingLists || listActionBusy }}",
+        "onPress": "{() => { Haptics.selectionAsync().catch(() => {}); setSelectedListIds(selectedListIds.length === collections.length ? [] : collections.map((item) => item.id)); }}"
+      }
+    },
+    {
+      "file": "components/foodie-filter-bar.tsx",
+      "line": 864,
+      "tag": "TouchableOpacity",
+      "props": {
+        "onPress": "{() => { Haptics.selectionAsync().catch(() => {}); onChange({ ...filters, collectionIds: [] }); }}",
+        "style": "{s.option}",
+        "accessibilityRole": "\"checkbox\"",
+        "accessibilityState": "{{ checked: !listCount }}",
+        "accessibilityLabel": "\"Todos los lugares\""
+      }
+    },
+    {
+      "file": "components/foodie-filter-bar.tsx",
+      "line": 870,
+      "tag": "LibraryListRow",
+      "props": {
+        "key": "{collection.id}",
+        "title": "{collection.title}",
+        "count": "{collection.patioIds.length}",
+        "unit": "\"lugar\"",
+        "checked": "{active}",
+        "pinned": "{collection.pinned}",
+        "divider": "true",
+        "disabled": "{deletingLists || listActionBusy}",
+        "onPress": "{() => { Haptics.selectionAsync().catch(() => {}); if (selectingLists) setSelectedListIds((current) => toggleValue(current, collection.id)); else onChange({ ...filters, collectionIds: toggleValue(filters.collectionIds, collection.id) }); }}",
+        "onLongPress": "{() => { if (!selectingLists) { Haptics.selectionAsync().catch(() => {}); beginListSelection(collection.id); } }}",
+        "moreRef": "{(el) => { moreRefs.current.set(collection.id, el); }}",
+        "onMore": "{selectingLists ? undefined : () => openListActions(collection)}"
+      }
+    },
+    {
+      "file": "components/foodie-filter-bar.tsx",
+      "line": 895,
+      "tag": "Pressable",
+      "props": {
+        "accessibilityLabel": "\"Cerrar selector de horario\"",
+        "style": "{StyleSheet.absoluteFillObject}",
+        "onPress": "{closeOpenPicker}"
+      }
+    },
+    {
+      "file": "components/foodie-filter-bar.tsx",
+      "line": 903,
+      "tag": "TouchableOpacity",
+      "props": {
+        "key": "{dia}",
+        "hitSlop": "{{ top: 4, bottom: 4, left: 2, right: 2 }}",
+        "onPress": "{() => { Haptics.selectionAsync().catch(() => {}); setOpenPickerDia(dia); }}",
+        "style": "{[s.pickerDayChip, active && { backgroundColor: theme.accent, borderColor: theme.accent }]}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{`${DIA_CORTO[dia]}${esHoy ? ', hoy' : ''}`}",
+        "accessibilityState": "{{ selected: active }}"
+      }
+    },
+    {
+      "file": "components/glass-button.tsx",
+      "line": 29,
+      "tag": "TouchableOpacity",
+      "props": {
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{accessibilityLabel}",
+        "onPress": "{onPress}",
+        "hitSlop": "{hitSlopFor(size)}",
+        "activeOpacity": "{0.72}",
+        "style": "{{ width: size, height: size, borderRadius: size / 2, overflow: 'hidden', backgroundColor: theme.surface }}"
+      }
+    },
+    {
+      "file": "components/hint-sheet.tsx",
+      "line": 53,
+      "tag": "TouchableWithoutFeedback",
+      "props": {
+        "onPress": "{dismiss}"
+      }
+    },
+    {
+      "file": "components/hint-sheet.tsx",
+      "line": 57,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.closeBtn}",
+        "onPress": "{dismiss}",
+        "activeOpacity": "{0.76}",
+        "hitSlop": "{{ top: 10, bottom: 10, left: 10, right: 10 }}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Cerrar\""
+      }
+    },
+    {
+      "file": "components/hint-sheet.tsx",
+      "line": 65,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.primaryBtn}",
+        "onPress": "{handlePrimary}",
+        "activeOpacity": "{0.86}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{primaryLabel}"
+      }
+    },
+    {
+      "file": "components/hint-sheet.tsx",
+      "line": 68,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.secondaryBtn}",
+        "onPress": "{handleSecondary}",
+        "activeOpacity": "{0.76}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{secondaryLabel}"
+      }
+    },
+    {
+      "file": "components/library-list-row.tsx",
+      "line": 16,
+      "tag": "Pressable",
+      "props": {
+        "style": "{({ pressed }) => [s.main, pressed && { backgroundColor: theme.surface2 }]}",
+        "disabled": "{disabled}",
+        "accessibilityRole": "{role}",
+        "accessibilityLabel": "{`${title}, ${countLabel}${pinned ? ', fijada' : ''}`}",
+        "accessibilityState": "{{ checked, disabled: !!disabled }}",
+        "onPress": "{onPress}",
+        "onLongPress": "{onLongPress}"
+      }
+    },
+    {
+      "file": "components/library-list-row.tsx",
+      "line": 22,
+      "tag": "TouchableOpacity",
+      "props": {
+        "ref": "{moreRef}",
+        "style": "{s.more}",
+        "disabled": "{disabled}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{`Acciones de ${title}`}",
+        "accessibilityState": "{{ disabled: !!disabled }}",
+        "onPress": "{onMore}"
+      }
+    },
+    {
+      "file": "components/library-sheet.tsx",
+      "line": 140,
+      "tag": "TouchableOpacity",
+      "props": {
+        "activeOpacity": "{1}",
+        "style": "{StyleSheet.absoluteFillObject}",
+        "onPress": "{() => dismissRef.current()}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Cerrar\""
+      }
+    },
+    {
+      "file": "components/library-sheet.tsx",
+      "line": 152,
+      "tag": "TouchableOpacity",
+      "props": {
+        "onPress": "{onBack}",
+        "style": "{s.backButton}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Volver\""
+      }
+    },
+    {
+      "file": "components/library-sheet.tsx",
+      "line": 156,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.headerIcon}",
+        "onPress": "{onCreate}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Nueva lista\""
+      }
+    },
+    {
+      "file": "components/library-sheet.tsx",
+      "line": 157,
+      "tag": "TouchableOpacity",
+      "props": {
+        "hitSlop": "{CLEAR_HIT_SLOP}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{`Limpiar ${title.toLowerCase()}`}",
+        "onPress": "{onClear}"
+      }
+    },
+    {
+      "file": "components/library-sheet.tsx",
+      "line": 159,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.headerIcon}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Cerrar\"",
+        "accessibilityState": "{{ disabled: !!dismissDisabled }}",
+        "disabled": "{dismissDisabled}",
+        "onPress": "{() => dismissRef.current()}"
+      }
+    },
+    {
+      "file": "components/menu-composer.tsx",
+      "line": 153,
+      "tag": "GlassIconButton",
+      "props": {
+        "icon": "\"close\"",
+        "accessibilityLabel": "\"Cerrar\"",
+        "onPress": "{onBack}",
+        "size": "{40}",
+        "iconSize": "{19}"
+      }
+    },
+    {
+      "file": "components/menu-composer.tsx",
+      "line": 178,
+      "tag": "GlassIconButton",
+      "props": {
+        "icon": "\"checkmark\"",
+        "accessibilityLabel": "\"Nombre guardado, toca para continuar\"",
+        "onPress": "{() => {\n                Haptics.selectionAsync().catch(() => {});\n                setNombreSaved(false);\n              }}",
+        "size": "{40}",
+        "iconSize": "{18}"
+      }
+    },
+    {
+      "file": "components/menu-composer.tsx",
+      "line": 189,
+      "tag": "GlassIconButton",
+      "props": {
+        "icon": "\"camera-outline\"",
+        "accessibilityLabel": "\"Tomar otra foto\"",
+        "onPress": "{onRetake}",
+        "size": "{40}",
+        "iconSize": "{18}"
+      }
+    },
+    {
+      "file": "components/menu-composer.tsx",
+      "line": 205,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.collapseButton}",
+        "hitSlop": "{{ top: 4, bottom: 4, left: 7, right: 7 }}",
+        "onPress": "{() => toggleCollapsed(section.id)}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{isCollapsed ? 'Mostrar sección' : 'Ocultar sección'}",
+        "activeOpacity": "{0.7}"
+      }
+    },
+    {
+      "file": "components/menu-composer.tsx",
+      "line": 222,
+      "tag": "TouchableOpacity",
+      "props": {
+        "ref": "{(el) => { sectionMoreRefs.current.set(section.id, el); }}",
+        "style": "{s.moreButton}",
+        "hitSlop": "{3}",
+        "onPress": "{() => toggleSectionActions(section.id)}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Más acciones de la sección\"",
+        "accessibilityState": "{{ expanded: actionsOpen }}",
+        "activeOpacity": "{0.7}"
+      }
+    },
+    {
+      "file": "components/menu-composer.tsx",
+      "line": 277,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.addPrice}",
+        "hitSlop": "{{ top: 5, bottom: 5, left: 4, right: 4 }}",
+        "onPress": "{() => {\n                                  pendingFocus.current = `p-${dish.id}`;\n                                  setPriceEditing((current) => ({ ...current, [dish.id]: true }));\n                                }}",
+        "activeOpacity": "{0.7}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{`Agregar precio a ${dish.nombre || 'platillo'}`}"
+      }
+    },
+    {
+      "file": "components/menu-composer.tsx",
+      "line": 291,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.removeDish}",
+        "hitSlop": "{{ top: 7, bottom: 7, left: 7, right: 7 }}",
+        "onPress": "{() => removeDish(section.id, dish.id)}",
+        "activeOpacity": "{0.7}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{`Eliminar ${dish.nombre || 'platillo'}`}"
+      }
+    },
+    {
+      "file": "components/menu-composer.tsx",
+      "line": 315,
+      "tag": "TouchableOpacity",
+      "props": {
+        "hitSlop": "{{ top: 6, bottom: 6, left: 4, right: 4 }}",
+        "onPress": "{() => {\n                                revealDetails(dish.id);\n                                pendingFocus.current = `d-${dish.id}`;\n                              }}",
+        "activeOpacity": "{0.7}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Agregar descripción\""
+      }
+    },
+    {
+      "file": "components/menu-composer.tsx",
+      "line": 332,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.addDish}",
+        "hitSlop": "{{ top: 2, bottom: 2 }}",
+        "onPress": "{() => addDishFocused(section)}",
+        "activeOpacity": "{0.7}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Agregar platillo\""
+      }
+    },
+    {
+      "file": "components/menu-composer.tsx",
+      "line": 354,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.addSectionToggle}",
+        "hitSlop": "{{ top: 2, bottom: 2 }}",
+        "onPress": "{() => setShowSectionSuggestions(true)}",
+        "activeOpacity": "{0.7}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Agregar sección\""
+      }
+    },
+    {
+      "file": "components/menu-composer.tsx",
+      "line": 367,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.addSectionHeader}",
+        "hitSlop": "{{ top: 8, bottom: 8, left: 4, right: 4 }}",
+        "activeOpacity": "{data.secciones.length > 0 ? 0.7 : 1}",
+        "disabled": "{data.secciones.length === 0}",
+        "onPress": "{() => setShowSectionSuggestions(false)}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Cerrar sugerencias de sección\"",
+        "accessibilityState": "{{ disabled: data.secciones.length === 0 }}"
+      }
+    },
+    {
+      "file": "components/menu-composer.tsx",
+      "line": 382,
+      "tag": "TouchableOpacity",
+      "props": {
+        "key": "{nombre}",
+        "style": "{s.chip}",
+        "hitSlop": "{{ top: 4, bottom: 4 }}",
+        "onPress": "{() => {\n                        addSection(nombre);\n                        setShowSectionSuggestions(false);\n                      }}",
+        "activeOpacity": "{0.7}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{`Agregar sección ${nombre}`}"
+      }
+    },
+    {
+      "file": "components/menu-composer.tsx",
+      "line": 398,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.chip}",
+        "hitSlop": "{{ top: 4, bottom: 4 }}",
+        "onPress": "{() => {\n                      addSection();\n                      setShowSectionSuggestions(false);\n                    }}",
+        "activeOpacity": "{0.7}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Agregar sección nueva\""
+      }
+    },
+    {
+      "file": "components/menu-composer.tsx",
+      "line": 420,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{[s.saveButton, publishing && { opacity: 0.5 }]}",
+        "disabled": "{publishing}",
+        "accessibilityState": "{{ disabled: publishing }}",
+        "onPress": "{saveDraft}",
+        "activeOpacity": "{0.8}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{savedFlash ? 'Guardado' : 'Guardar borrador'}"
+      }
+    },
+    {
+      "file": "components/menu-composer.tsx",
+      "line": 431,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.publishButton}",
+        "onPress": "{publish}",
+        "disabled": "{publishing}",
+        "activeOpacity": "{0.86}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{publishing ? 'Publicando menú' : 'Publicar menú'}",
+        "accessibilityState": "{{ disabled: publishing, busy: publishing }}"
+      }
+    },
+    {
+      "file": "components/menu-lists-sheet.tsx",
+      "line": 109,
+      "tag": "TouchableOpacity",
+      "props": {
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{choosingSource ? 'Continuar al destino' : 'Mover menús'}",
+        "accessibilityState": "{{ disabled: busy || !canContinue || (!choosingSource && !destinationId), busy }}",
+        "disabled": "{busy || !canContinue || (!choosingSource && !destinationId)}",
+        "onPress": "{choosingSource ? () => setChoosingSource(false) : move}",
+        "style": "{[s.confirm, { backgroundColor: theme.accent, opacity: busy || !canContinue || (!choosingSource && !destinationId) ? 0.35 : 1 }]}"
+      }
+    },
+    {
+      "file": "components/menu-lists-sheet.tsx",
+      "line": 113,
+      "tag": "TouchableOpacity",
+      "props": {
+        "disabled": "{busy || !newTitle.trim()}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Crear lista\"",
+        "accessibilityState": "{{ disabled: busy || !newTitle.trim(), busy }}",
+        "onPress": "{() => create()}",
+        "style": "{s.control}"
+      }
+    },
+    {
+      "file": "components/menu-lists-sheet.tsx",
+      "line": 118,
+      "tag": "LibraryListRow",
+      "props": {
+        "key": "{collection.id}",
+        "title": "{collection.title}",
+        "count": "{collection.fechas.length}",
+        "unit": "\"menú\"",
+        "role": "{mode === 'move' && !choosingSource ? 'radio' : 'checkbox'}",
+        "checked": "{membership(collection)}",
+        "disabled": "{busy}",
+        "divider": "{index > 0}",
+        "onPress": "{() => toggle(collection)}",
+        "onMore": "{mode === 'move' ? undefined : () => Alert.alert(collection.title, undefined, [\n          { text: 'Renombrar', onPress: () => startRename(collection) }, { text: 'Eliminar', style: 'destructive', onPress: () => remove(collection) }, { text: 'Cancelar', style: 'cancel' },\n        ])}"
+      }
+    },
+    {
+      "file": "components/new-menu-sheet.tsx",
+      "line": 72,
+      "tag": "TouchableOpacity",
+      "props": {
+        "activeOpacity": "{1}",
+        "style": "{s.backdrop}",
+        "onPress": "{onClose}",
+        "accessibilityLabel": "\"Cerrar\""
+      }
+    },
+    {
+      "file": "components/new-menu-sheet.tsx",
+      "line": 77,
+      "tag": "TouchableOpacity",
+      "props": {
+        "key": "{option.label}",
+        "onPress": "{option.onPress}",
+        "style": "{[s.row, index > 0 && { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: c.border }]}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{option.label}"
+      }
+    },
+    {
+      "file": "components/new-menu-sheet.tsx",
+      "line": 89,
+      "tag": "TouchableOpacity",
+      "props": {
+        "onPress": "{onClose}",
+        "style": "{s.cancelGroup}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Cancelar\""
+      }
+    },
+    {
+      "file": "components/rename-dialog.tsx",
+      "line": 23,
+      "tag": "Pressable",
+      "props": {
+        "style": "{StyleSheet.absoluteFill}",
+        "onPress": "{close}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Cancelar\""
+      }
+    },
+    {
+      "file": "components/rename-dialog.tsx",
+      "line": 30,
+      "tag": "TouchableOpacity",
+      "props": {
+        "accessibilityRole": "\"button\"",
+        "accessibilityState": "{{ disabled: busy }}",
+        "disabled": "{busy}",
+        "onPress": "{close}",
+        "style": "{s.button}"
+      }
+    },
+    {
+      "file": "components/rename-dialog.tsx",
+      "line": 31,
+      "tag": "TouchableOpacity",
+      "props": {
+        "accessibilityRole": "\"button\"",
+        "accessibilityState": "{{ disabled: busy || !value.trim(), busy }}",
+        "disabled": "{busy || !value.trim()}",
+        "onPress": "{() => { void save(); }}",
+        "style": "{[s.button, { backgroundColor: theme.accent, opacity: busy || !value.trim() ? 0.4 : 1 }]}"
+      }
+    },
+    {
+      "file": "components/save-to-list-sheet.tsx",
+      "line": 175,
+      "tag": "TouchableWithoutFeedback",
+      "props": {
+        "onPress": "{dismiss}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Cerrar\""
+      }
+    },
+    {
+      "file": "components/save-to-list-sheet.tsx",
+      "line": 187,
+      "tag": "TouchableOpacity",
+      "props": {
+        "accessibilityLabel": "{creating ? 'Cancelar nueva lista' : canReturnToSource ? 'Volver a origen' : 'Nueva lista'}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityState": "{{ disabled: busy }}",
+        "disabled": "{busy}",
+        "onPress": "{() => {\n              if (creating) { setCreating(false); Keyboard.dismiss(); }\n              else if (canReturnToSource) { setChoosingSource(true); setDestinationId(null); }\n              else setCreating(true);\n            }}",
+        "style": "{s.headerIcon}"
+      }
+    },
+    {
+      "file": "components/save-to-list-sheet.tsx",
+      "line": 195,
+      "tag": "TouchableOpacity",
+      "props": {
+        "disabled": "{busy}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Nueva lista\"",
+        "onPress": "{() => setCreating(true)}",
+        "style": "{s.headerIcon}"
+      }
+    },
+    {
+      "file": "components/save-to-list-sheet.tsx",
+      "line": 196,
+      "tag": "TouchableOpacity",
+      "props": {
+        "accessibilityRole": "\"button\"",
+        "accessibilityState": "{{ disabled: busy }}",
+        "onPress": "{dismiss}",
+        "disabled": "{busy}",
+        "style": "{s.closeButton}"
+      }
+    },
+    {
+      "file": "components/save-to-list-sheet.tsx",
+      "line": 204,
+      "tag": "TouchableOpacity",
+      "props": {
+        "disabled": "{!newTitle.trim() || busy}",
+        "onPress": "{handleCreate}",
+        "style": "{[s.createButton, (!newTitle.trim() || busy) && s.disabled]}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Crear lista\""
+      }
+    },
+    {
+      "file": "components/save-to-list-sheet.tsx",
+      "line": 214,
+      "tag": "TouchableOpacity",
+      "props": {
+        "key": "{collection.id}",
+        "disabled": "{busy}",
+        "accessibilityRole": "{mode === 'move' && !choosingSource ? 'radio' : 'checkbox'}",
+        "accessibilityState": "{{ checked: partial ? 'mixed' : selected, disabled: busy }}",
+        "accessibilityLabel": "{`${collection.title}, ${collection.patioIds.length} ${collection.patioIds.length === 1 ? 'lugar' : 'lugares'}`}",
+        "onPress": "{() => choose(collection)}",
+        "style": "{[s.row, index > 0 && s.divider]}"
+      }
+    },
+    {
+      "file": "components/save-to-list-sheet.tsx",
+      "line": 225,
+      "tag": "TouchableOpacity",
+      "props": {
+        "disabled": "{busy || !(choosingSource ? canContinue : canConfirm)}",
+        "onPress": "{choosingSource ? () => setChoosingSource(false) : move}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{choosingSource ? 'Continuar al destino' : 'Mover lugares'}",
+        "accessibilityState": "{{ disabled: busy || !(choosingSource ? canContinue : canConfirm), busy }}",
+        "style": "{[s.confirmButton, (busy || !(choosingSource ? canContinue : canConfirm)) && s.disabled]}"
+      }
+    },
+    {
+      "file": "components/search-field.tsx",
+      "line": 23,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.control}",
+        "onPress": "{onCancel}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Cerrar búsqueda\""
+      }
+    },
+    {
+      "file": "components/search-field.tsx",
+      "line": 36,
+      "tag": "TouchableOpacity",
+      "props": {
+        "style": "{s.control}",
+        "onPress": "{() => { if (onClear) onClear(); else input.onChangeText?.(''); }}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "\"Borrar búsqueda\""
+      }
+    },
+    {
+      "file": "components/selection-actions.tsx",
+      "line": 16,
+      "tag": "TouchableOpacity",
+      "props": {
+        "key": "{action.label}",
+        "onPress": "{action.onPress}",
+        "disabled": "{busy || action.disabled}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{action.label}",
+        "accessibilityState": "{{ disabled: busy || !!action.disabled, busy }}",
+        "style": "{[s.action, expanded && s.expandedAction]}"
+      }
+    },
+    {
+      "file": "components/settings-list.tsx",
+      "line": 71,
+      "tag": "TouchableOpacity",
+      "props": {
+        "activeOpacity": "{0.7}",
+        "onPress": "{onPress}",
+        "accessibilityRole": "\"button\"",
+        "accessibilityLabel": "{sub ? `${title}, ${sub}` : title}"
+      }
+    },
+    {
+      "file": "components/toggle-switch.tsx",
+      "line": 27,
+      "tag": "TouchableOpacity",
+      "props": {
+        "accessibilityRole": "\"switch\"",
+        "accessibilityLabel": "{accessibilityLabel}",
+        "accessibilityState": "{{ checked: value, disabled }}",
+        "disabled": "{disabled}",
+        "hitSlop": "{{ top: 9, bottom: 9, left: 4, right: 4 }}",
+        "onPress": "{() => {\n        void Haptics.selectionAsync();\n        onValueChange(!value);\n      }}",
+        "activeOpacity": "{0.85}"
+      }
+    }
+  ],
+  "icons": [
+    {
+      "file": "app/avisos.tsx",
+      "line": 94,
+      "tag": "Ionicons",
+      "icon": "\"chevron-back\""
+    },
+    {
+      "file": "app/avisos.tsx",
+      "line": 100,
+      "tag": "SettingsRow",
+      "icon": "\"chatbubble-ellipses-outline\""
+    },
+    {
+      "file": "app/avisos.tsx",
+      "line": 108,
+      "tag": "SettingsRow",
+      "icon": "\"document-text-outline\""
+    },
+    {
+      "file": "app/avisos.tsx",
+      "line": 120,
+      "tag": "SettingsRow",
+      "icon": "\"settings-outline\""
+    },
+    {
+      "file": "app/comunidad-acceso.tsx",
+      "line": 75,
+      "tag": "Ionicons",
+      "icon": "\"chevron-back\""
+    },
+    {
+      "file": "app/cuenta.tsx",
+      "line": 52,
+      "tag": "SettingsRow",
+      "icon": "\"person-outline\""
+    },
+    {
+      "file": "app/cuenta.tsx",
+      "line": 53,
+      "tag": "SettingsRow",
+      "icon": "\"at-outline\""
+    },
+    {
+      "file": "app/cuenta.tsx",
+      "line": 54,
+      "tag": "SettingsRow",
+      "icon": "\"heart-outline\""
+    },
+    {
+      "file": "app/cuenta.tsx",
+      "line": 58,
+      "tag": "SettingsRow",
+      "icon": "\"notifications-outline\""
+    },
+    {
+      "file": "app/cuenta.tsx",
+      "line": 65,
+      "tag": "SettingsRow",
+      "icon": "\"lock-closed-outline\""
+    },
+    {
+      "file": "app/cuenta.tsx",
+      "line": 66,
+      "tag": "SettingsRow",
+      "icon": "\"rocket-outline\""
+    },
+    {
+      "file": "app/cuenta.tsx",
+      "line": 67,
+      "tag": "SettingsRow",
+      "icon": "{theme.isDark ? 'moon' : 'sunny-outline'}"
+    },
+    {
+      "file": "app/cuenta.tsx",
+      "line": 71,
+      "tag": "SettingsRow",
+      "icon": "\"sparkles-outline\""
+    },
+    {
+      "file": "app/cuenta.tsx",
+      "line": 72,
+      "tag": "SettingsRow",
+      "icon": "\"chatbubble-outline\""
+    },
+    {
+      "file": "app/cuenta.tsx",
+      "line": 76,
+      "tag": "SettingsRow",
+      "icon": "\"create-outline\""
+    },
+    {
+      "file": "app/cuenta.tsx",
+      "line": 84,
+      "tag": "SettingsRow",
+      "icon": "\"create-outline\""
+    },
+    {
+      "file": "app/cuenta.tsx",
+      "line": 93,
+      "tag": "SettingsRow",
+      "icon": "\"log-out-outline\""
+    },
+    {
+      "file": "app/cuenta.tsx",
+      "line": 98,
+      "tag": "Ionicons",
+      "icon": "\"ellipse\""
+    },
+    {
+      "file": "app/explorar.tsx",
+      "line": 692,
+      "tag": "PlaceIcon",
+      "icon": "{categoryIcon(patio.categories[0] ?? 'Fondita')}"
+    },
+    {
+      "file": "app/explorar.tsx",
+      "line": 742,
+      "tag": "PlaceIcon",
+      "icon": "{categoryIcon(category)}"
+    },
+    {
+      "file": "app/explorar.tsx",
+      "line": 897,
+      "tag": "Ionicons",
+      "icon": "\"search-outline\""
+    },
+    {
+      "file": "app/explorar.tsx",
+      "line": 940,
+      "tag": "Ionicons",
+      "icon": "\"sparkles\""
+    },
+    {
+      "file": "app/explorar.tsx",
+      "line": 1023,
+      "tag": "Ionicons",
+      "icon": "\"sparkles\""
+    },
+    {
+      "file": "app/explorar.tsx",
+      "line": 1051,
+      "tag": "Ionicons",
+      "icon": "\"search\""
+    },
+    {
+      "file": "app/explorar.tsx",
+      "line": 1109,
+      "tag": "Ionicons",
+      "icon": "\"bookmark-outline\""
+    },
+    {
+      "file": "app/favoritos.tsx",
+      "line": 333,
+      "tag": "Ionicons",
+      "icon": "{isSelected ? 'checkmark-circle' : 'ellipse-outline'}"
+    },
+    {
+      "file": "app/favoritos.tsx",
+      "line": 337,
+      "tag": "Ionicons",
+      "icon": "{isSelected ? 'checkmark-circle' : 'ellipse-outline'}"
+    },
+    {
+      "file": "app/favoritos.tsx",
+      "line": 434,
+      "tag": "Ionicons",
+      "icon": "\"bookmark-outline\""
+    },
+    {
+      "file": "app/favoritos.tsx",
+      "line": 450,
+      "tag": "Ionicons",
+      "icon": "{normalizedQuery ? 'search-outline' : 'options-outline'}"
+    },
+    {
+      "file": "app/fondero-acceso.tsx",
+      "line": 141,
+      "tag": "Ionicons",
+      "icon": "\"chevron-back\""
+    },
+    {
+      "file": "app/fondero-acceso.tsx",
+      "line": 195,
+      "tag": "Ionicons",
+      "icon": "\"arrow-forward\""
+    },
+    {
+      "file": "app/foto-menu.tsx",
+      "line": 126,
+      "tag": "Ionicons",
+      "icon": "\"close\""
+    },
+    {
+      "file": "app/foto-menu.tsx",
+      "line": 138,
+      "tag": "Ionicons",
+      "icon": "{flashOn ? 'flash' : 'flash-off-outline'}"
+    },
+    {
+      "file": "app/historial.tsx",
+      "line": 140,
+      "tag": "Ionicons",
+      "icon": "{isSelected ? 'checkmark-circle' : 'ellipse-outline'}"
+    },
+    {
+      "file": "app/historial.tsx",
+      "line": 155,
+      "tag": "Ionicons",
+      "icon": "\"ellipsis-horizontal\""
+    },
+    {
+      "file": "app/historial.tsx",
+      "line": 181,
+      "tag": "GlassIconButton",
+      "icon": "\"add\""
+    },
+    {
+      "file": "app/historial.tsx",
+      "line": 195,
+      "tag": "Ionicons",
+      "icon": "\"flame\""
+    },
+    {
+      "file": "app/historial.tsx",
+      "line": 206,
+      "tag": "Ionicons",
+      "icon": "\"folder-outline\""
+    },
+    {
+      "file": "app/historial.tsx",
+      "line": 222,
+      "tag": "Ionicons",
+      "icon": "\"document-text-outline\""
+    },
+    {
+      "file": "app/historial.tsx",
+      "line": 232,
+      "tag": "Ionicons",
+      "icon": "\"filter-outline\""
+    },
+    {
+      "file": "app/manifiesto.tsx",
+      "line": 106,
+      "tag": "Ionicons",
+      "icon": "\"chevron-back\""
+    },
+    {
+      "file": "app/menu-publicado.tsx",
+      "line": 41,
+      "tag": "Ionicons",
+      "icon": "\"checkmark\""
+    },
+    {
+      "file": "app/menu-publicado.tsx",
+      "line": 54,
+      "tag": "Ionicons",
+      "icon": "\"eye-outline\""
+    },
+    {
+      "file": "app/notificaciones.tsx",
+      "line": 85,
+      "tag": "Ionicons",
+      "icon": "\"heart\""
+    },
+    {
+      "file": "app/notificaciones.tsx",
+      "line": 93,
+      "tag": "Ionicons",
+      "icon": "\"heart-outline\""
+    },
+    {
+      "file": "app/onboarding.tsx",
+      "line": 161,
+      "tag": "Ionicons",
+      "icon": "\"close\""
+    },
+    {
+      "file": "app/onboarding.tsx",
+      "line": 179,
+      "tag": "Ionicons",
+      "icon": "\"map-outline\""
+    },
+    {
+      "file": "app/onboarding.tsx",
+      "line": 184,
+      "tag": "Ionicons",
+      "icon": "\"chevron-forward\""
+    },
+    {
+      "file": "app/onboarding.tsx",
+      "line": 189,
+      "tag": "Ionicons",
+      "icon": "\"storefront-outline\""
+    },
+    {
+      "file": "app/onboarding.tsx",
+      "line": 194,
+      "tag": "Ionicons",
+      "icon": "\"chevron-forward\""
+    },
+    {
+      "file": "app/patio-smart.tsx",
+      "line": 284,
+      "tag": "Ionicons",
+      "icon": "\"chevron-back\""
+    },
+    {
+      "file": "app/patio-smart.tsx",
+      "line": 339,
+      "tag": "Ionicons",
+      "icon": "{stage === 'name' ? 'close' : 'chevron-back'}"
+    },
+    {
+      "file": "app/patio-smart.tsx",
+      "line": 432,
+      "tag": "PlaceIcon",
+      "icon": "{item.icon}"
+    },
+    {
+      "file": "app/patio-smart.tsx",
+      "line": 434,
+      "tag": "Ionicons",
+      "icon": "\"checkmark-circle\""
+    },
+    {
+      "file": "app/patio-smart.tsx",
+      "line": 462,
+      "tag": "Ionicons",
+      "icon": "{hasCoordinates ? 'checkmark' : 'navigate-outline'}"
+    },
+    {
+      "file": "app/patio-smart.tsx",
+      "line": 472,
+      "tag": "Ionicons",
+      "icon": "\"chevron-forward\""
+    },
+    {
+      "file": "app/perfil-comunidad.tsx",
+      "line": 110,
+      "tag": "Ionicons",
+      "icon": "\"chevron-back\""
+    },
+    {
+      "file": "app/perfil-comunidad.tsx",
+      "line": 124,
+      "tag": "Ionicons",
+      "icon": "\"camera-outline\""
+    },
+    {
+      "file": "app/perfil-editar.tsx",
+      "line": 112,
+      "tag": "GlassIconButton",
+      "icon": "\"chevron-back\""
+    },
+    {
+      "file": "app/perfil-editar.tsx",
+      "line": 187,
+      "tag": "Ionicons",
+      "icon": "{locationSaved ? 'checkmark-circle' : 'navigate-outline'}"
+    },
+    {
+      "file": "app/perfil-editar.tsx",
+      "line": 225,
+      "tag": "SettingsRow",
+      "icon": "\"mail-outline\""
+    },
+    {
+      "file": "app/perfil-editar.tsx",
+      "line": 226,
+      "tag": "SettingsRow",
+      "icon": "\"log-out-outline\""
+    },
+    {
+      "file": "app/perfil-editar.tsx",
+      "line": 246,
+      "tag": "Ionicons",
+      "icon": "\"checkmark\""
+    },
+    {
+      "file": "app/perfil-editar.tsx",
+      "line": 254,
+      "tag": "HintSheet",
+      "icon": "\"storefront\""
+    },
+    {
+      "file": "app/perfil.tsx",
+      "line": 104,
+      "tag": "SettingsRow",
+      "icon": "\"create-outline\""
+    },
+    {
+      "file": "app/perfil.tsx",
+      "line": 108,
+      "tag": "SettingsRow",
+      "icon": "\"notifications-outline\""
+    },
+    {
+      "file": "app/perfil.tsx",
+      "line": 115,
+      "tag": "SettingsRow",
+      "icon": "\"rocket-outline\""
+    },
+    {
+      "file": "app/perfil.tsx",
+      "line": 123,
+      "tag": "SettingsRow",
+      "icon": "\"moon-outline\""
+    },
+    {
+      "file": "app/perfil.tsx",
+      "line": 133,
+      "tag": "SettingsRow",
+      "icon": "\"sparkles-outline\""
+    },
+    {
+      "file": "app/perfil.tsx",
+      "line": 134,
+      "tag": "SettingsRow",
+      "icon": "\"chatbubble-outline\""
+    },
+    {
+      "file": "app/perfil.tsx",
+      "line": 138,
+      "tag": "SettingsRow",
+      "icon": "\"repeat-outline\""
+    },
+    {
+      "file": "app/perfil.tsx",
+      "line": 139,
+      "tag": "SettingsRow",
+      "icon": "\"lock-closed-outline\""
+    },
+    {
+      "file": "app/perfil.tsx",
+      "line": 140,
+      "tag": "SettingsRow",
+      "icon": "\"log-out-outline\""
+    },
+    {
+      "file": "app/plan.tsx",
+      "line": 20,
+      "tag": "Ionicons",
+      "icon": "\"chevron-back\""
+    },
+    {
+      "file": "app/plan.tsx",
+      "line": 28,
+      "tag": "Ionicons",
+      "icon": "\"checkmark\""
+    },
+    {
+      "file": "app/preview.tsx",
+      "line": 54,
+      "tag": "Ionicons",
+      "icon": "\"document-text-outline\""
+    },
+    {
+      "file": "app/preview.tsx",
+      "line": 72,
+      "tag": "GlassIconButton",
+      "icon": "\"chevron-back\""
+    },
+    {
+      "file": "app/preview.tsx",
+      "line": 126,
+      "tag": "Ionicons",
+      "icon": "\"share-outline\""
+    },
+    {
+      "file": "app/privacidad.tsx",
+      "line": 62,
+      "tag": "Ionicons",
+      "icon": "\"chevron-back\""
+    },
+    {
+      "file": "app/privacidad.tsx",
+      "line": 78,
+      "tag": "Ionicons",
+      "icon": "\"chatbubble-ellipses-outline\""
+    },
+    {
+      "file": "app/resenas.tsx",
+      "line": 218,
+      "tag": "Ionicons",
+      "icon": "{n <= item.stars ? 'star' : 'star-outline'}"
+    },
+    {
+      "file": "app/resenas.tsx",
+      "line": 246,
+      "tag": "Ionicons",
+      "icon": "\"return-down-forward-outline\""
+    },
+    {
+      "file": "app/resenas.tsx",
+      "line": 270,
+      "tag": "Ionicons",
+      "icon": "\"heart-outline\""
+    },
+    {
+      "file": "app/soporte.tsx",
+      "line": 37,
+      "tag": "Ionicons",
+      "icon": "\"chevron-back\""
+    },
+    {
+      "file": "app/soporte.tsx",
+      "line": 49,
+      "tag": "Ionicons",
+      "icon": "{item.icon}"
+    },
+    {
+      "file": "app/soporte.tsx",
+      "line": 55,
+      "tag": "Ionicons",
+      "icon": "\"chevron-forward\""
+    },
+    {
+      "file": "app/vistos.tsx",
+      "line": 74,
+      "tag": "Ionicons",
+      "icon": "\"eye-outline\""
+    },
+    {
+      "file": "app/coleccion/[id].tsx",
+      "line": 123,
+      "tag": "Ionicons",
+      "icon": "\"chevron-back\""
+    },
+    {
+      "file": "app/coleccion/[id].tsx",
+      "line": 134,
+      "tag": "Ionicons",
+      "icon": "\"chevron-back\""
+    },
+    {
+      "file": "app/coleccion/[id].tsx",
+      "line": 135,
+      "tag": "Ionicons",
+      "icon": "\"ellipsis-horizontal\""
+    },
+    {
+      "file": "app/coleccion/[id].tsx",
+      "line": 155,
+      "tag": "Ionicons",
+      "icon": "\"map-outline\""
+    },
+    {
+      "file": "app/coleccion/[id].tsx",
+      "line": 159,
+      "tag": "Ionicons",
+      "icon": "\"share-outline\""
+    },
+    {
+      "file": "app/coleccion/[id].tsx",
+      "line": 169,
+      "tag": "Ionicons",
+      "icon": "\"chevron-forward\""
+    },
+    {
+      "file": "app/coleccion/[id].tsx",
+      "line": 175,
+      "tag": "Ionicons",
+      "icon": "\"bookmark-outline\""
+    },
+    {
+      "file": "app/coleccion-publica/[id].tsx",
+      "line": 117,
+      "tag": "Ionicons",
+      "icon": "\"chevron-back\""
+    },
+    {
+      "file": "app/coleccion-publica/[id].tsx",
+      "line": 119,
+      "tag": "Ionicons",
+      "icon": "\"share-outline\""
+    },
+    {
+      "file": "app/coleccion-publica/[id].tsx",
+      "line": 133,
+      "tag": "Ionicons",
+      "icon": "{saved ? 'bookmark' : 'bookmark-outline'}"
+    },
+    {
+      "file": "app/coleccion-publica/[id].tsx",
+      "line": 136,
+      "tag": "Ionicons",
+      "icon": "\"chevron-forward\""
+    },
+    {
+      "file": "app/coleccion-publica/[id].tsx",
+      "line": 140,
+      "tag": "Ionicons",
+      "icon": "\"chevron-forward\""
+    },
+    {
+      "file": "app/foodie/[id].tsx",
+      "line": 112,
+      "tag": "Ionicons",
+      "icon": "\"chevron-back\""
+    },
+    {
+      "file": "app/foodie/[id].tsx",
+      "line": 124,
+      "tag": "Ionicons",
+      "icon": "\"person\""
+    },
+    {
+      "file": "app/foodie/[id].tsx",
+      "line": 132,
+      "tag": "Ionicons",
+      "icon": "\"chevron-forward\""
+    },
+    {
+      "file": "app/guardar/[id].tsx",
+      "line": 96,
+      "tag": "Ionicons",
+      "icon": "\"close\""
+    },
+    {
+      "file": "app/guardar/[id].tsx",
+      "line": 117,
+      "tag": "Ionicons",
+      "icon": "\"add\""
+    },
+    {
+      "file": "app/guardar/[id].tsx",
+      "line": 152,
+      "tag": "Ionicons",
+      "icon": "{icon}"
+    },
+    {
+      "file": "app/guardar/[id].tsx",
+      "line": 180,
+      "tag": "Ionicons",
+      "icon": "{value <= (meta.rating ?? 0) ? 'star' : 'star-outline'}"
+    },
+    {
+      "file": "app/guardar/[id].tsx",
+      "line": 194,
+      "tag": "Ionicons",
+      "icon": "\"chatbubble-outline\""
+    },
+    {
+      "file": "app/guardar/[id].tsx",
+      "line": 200,
+      "tag": "Ionicons",
+      "icon": "\"chevron-forward\""
+    },
+    {
+      "file": "app/patio/[id].tsx",
+      "line": 406,
+      "tag": "Ionicons",
+      "icon": "{name}"
+    },
+    {
+      "file": "app/patio/[id].tsx",
+      "line": 415,
+      "tag": "GlassIcon",
+      "icon": "\"chevron-back\""
+    },
+    {
+      "file": "app/patio/[id].tsx",
+      "line": 427,
+      "tag": "GlassIcon",
+      "icon": "\"chevron-back\""
+    },
+    {
+      "file": "app/patio/[id].tsx",
+      "line": 478,
+      "tag": "Ionicons",
+      "icon": "\"time-outline\""
+    },
+    {
+      "file": "app/patio/[id].tsx",
+      "line": 483,
+      "tag": "GlassIcon",
+      "icon": "\"chevron-back\""
+    },
+    {
+      "file": "app/patio/[id].tsx",
+      "line": 486,
+      "tag": "GlassIcon",
+      "icon": "\"share-outline\""
+    },
+    {
+      "file": "app/patio/[id].tsx",
+      "line": 487,
+      "tag": "GlassIcon",
+      "icon": "{isSaved ? 'bookmark' : 'bookmark-outline'}"
+    },
+    {
+      "file": "app/patio/[id].tsx",
+      "line": 504,
+      "tag": "SymbolView",
+      "icon": "\"checkmark.seal.fill\""
+    },
+    {
+      "file": "app/patio/[id].tsx",
+      "line": 504,
+      "tag": "Ionicons",
+      "icon": "\"checkmark-circle\""
+    },
+    {
+      "file": "app/patio/[id].tsx",
+      "line": 542,
+      "tag": "Ionicons",
+      "icon": "{dishLiked ? 'heart' : 'heart-outline'}"
+    },
+    {
+      "file": "app/patio/[id].tsx",
+      "line": 561,
+      "tag": "Ionicons",
+      "icon": "\"time-outline\""
+    },
+    {
+      "file": "app/patio/[id].tsx",
+      "line": 580,
+      "tag": "Ionicons",
+      "icon": "{badge.icon}"
+    },
+    {
+      "file": "app/patio/[id].tsx",
+      "line": 595,
+      "tag": "Ionicons",
+      "icon": "\"calendar-outline\""
+    },
+    {
+      "file": "app/patio/[id].tsx",
+      "line": 606,
+      "tag": "SymbolView",
+      "icon": "{icon.symbol}"
+    },
+    {
+      "file": "app/patio/[id].tsx",
+      "line": 606,
+      "tag": "Ionicons",
+      "icon": "{icon.fallback}"
+    },
+    {
+      "file": "app/patio/[id].tsx",
+      "line": 614,
+      "tag": "Ionicons",
+      "icon": "\"time-outline\""
+    },
+    {
+      "file": "app/patio/[id].tsx",
+      "line": 616,
+      "tag": "Ionicons",
+      "icon": "{showSchedule ? 'chevron-up' : 'chevron-down'}"
+    },
+    {
+      "file": "app/patio/[id].tsx",
+      "line": 657,
+      "tag": "Ionicons",
+      "icon": "\"navigate\""
+    },
+    {
+      "file": "app/patio/[id].tsx",
+      "line": 671,
+      "tag": "Ionicons",
+      "icon": "{reviewedToday ? 'checkmark-circle-outline' : userReview ? 'add-circle-outline' : 'star-outline'}"
+    },
+    {
+      "file": "app/patio/[id].tsx",
+      "line": 684,
+      "tag": "Ionicons",
+      "icon": "{star <= Math.round(ratingAverage) ? 'star' : 'star-outline'}"
+    },
+    {
+      "file": "app/patio/[id].tsx",
+      "line": 722,
+      "tag": "Ionicons",
+      "icon": "{star < review.stars ? 'star' : 'star-outline'}"
+    },
+    {
+      "file": "app/patio/[id].tsx",
+      "line": 757,
+      "tag": "Ionicons",
+      "icon": "\"chatbubble-outline\""
+    },
+    {
+      "file": "app/patio/[id].tsx",
+      "line": 771,
+      "tag": "Ionicons",
+      "icon": "{like.mine ? 'heart' : 'heart-outline'}"
+    },
+    {
+      "file": "app/patio/[id].tsx",
+      "line": 780,
+      "tag": "Ionicons",
+      "icon": "\"share-outline\""
+    },
+    {
+      "file": "app/patio/[id].tsx",
+      "line": 797,
+      "tag": "SymbolView",
+      "icon": "\"checkmark.seal.fill\""
+    },
+    {
+      "file": "app/patio/[id].tsx",
+      "line": 797,
+      "tag": "Ionicons",
+      "icon": "\"checkmark-circle\""
+    },
+    {
+      "file": "app/patio/[id].tsx",
+      "line": 865,
+      "tag": "SymbolView",
+      "icon": "\"paperplane.fill\""
+    },
+    {
+      "file": "app/patio/[id].tsx",
+      "line": 865,
+      "tag": "Ionicons",
+      "icon": "\"send\""
+    },
+    {
+      "file": "app/patio/[id].tsx",
+      "line": 898,
+      "tag": "SymbolView",
+      "icon": "\"paperplane.fill\""
+    },
+    {
+      "file": "app/patio/[id].tsx",
+      "line": 898,
+      "tag": "Ionicons",
+      "icon": "\"send\""
+    },
+    {
+      "file": "app/resena/[id].tsx",
+      "line": 137,
+      "tag": "Ionicons",
+      "icon": "\"chevron-back\""
+    },
+    {
+      "file": "app/resena/[id].tsx",
+      "line": 154,
+      "tag": "Ionicons",
+      "icon": "{active ? 'star' : 'star-outline'}"
+    },
+    {
+      "file": "app/resena/[id].tsx",
+      "line": 190,
+      "tag": "Ionicons",
+      "icon": "\"camera-outline\""
+    },
+    {
+      "file": "app/resena/[id].tsx",
+      "line": 194,
+      "tag": "Ionicons",
+      "icon": "\"checkmark-circle\""
+    },
+    {
+      "file": "components/account-deletion-row.tsx",
+      "line": 41,
+      "tag": "SettingsRow",
+      "icon": "\"trash-outline\""
+    },
+    {
+      "file": "components/action-sheet.tsx",
+      "line": 136,
+      "tag": "Ionicons",
+      "icon": "\"checkmark\""
+    },
+    {
+      "file": "components/action-sheet.tsx",
+      "line": 137,
+      "tag": "Ionicons",
+      "icon": "{option.icon}"
+    },
+    {
+      "file": "components/action-sheet.tsx",
+      "line": 139,
+      "tag": "Ionicons",
+      "icon": "\"checkmark\""
+    },
+    {
+      "file": "components/bottom-tab-bar.tsx",
+      "line": 109,
+      "tag": "Ionicons",
+      "icon": "{active ? selectedIcon : icon}"
+    },
+    {
+      "file": "components/business-payment-selector.tsx",
+      "line": 39,
+      "tag": "Ionicons",
+      "icon": "{option.icon}"
+    },
+    {
+      "file": "components/business-payment-selector.tsx",
+      "line": 42,
+      "tag": "Ionicons",
+      "icon": "{active ? 'checkmark-circle' : 'ellipse-outline'}"
+    },
+    {
+      "file": "components/business-schedule-editor.tsx",
+      "line": 249,
+      "tag": "Ionicons",
+      "icon": "\"arrow-forward\""
+    },
+    {
+      "file": "components/collapsing-header.tsx",
+      "line": 82,
+      "tag": "Ionicons",
+      "icon": "\"chevron-back\""
+    },
+    {
+      "file": "components/collapsing-header.tsx",
+      "line": 107,
+      "tag": "Ionicons",
+      "icon": "{a.icon}"
+    },
+    {
+      "file": "components/content-safety-menu.tsx",
+      "line": 44,
+      "tag": "Ionicons",
+      "icon": "\"ellipsis-horizontal\""
+    },
+    {
+      "file": "components/foodie-filter-bar.tsx",
+      "line": 645,
+      "tag": "Ionicons",
+      "icon": "{otroDiaActivo ? 'calendar-outline' : 'time-outline'}"
+    },
+    {
+      "file": "components/foodie-filter-bar.tsx",
+      "line": 661,
+      "tag": "Ionicons",
+      "icon": "\"options-outline\""
+    },
+    {
+      "file": "components/foodie-filter-bar.tsx",
+      "line": 679,
+      "tag": "Ionicons",
+      "icon": "\"folder-outline\""
+    },
+    {
+      "file": "components/foodie-filter-bar.tsx",
+      "line": 700,
+      "tag": "Ionicons",
+      "icon": "\"navigate-outline\""
+    },
+    {
+      "file": "components/foodie-filter-bar.tsx",
+      "line": 716,
+      "tag": "Ionicons",
+      "icon": "\"ellipsis-horizontal\""
+    },
+    {
+      "file": "components/foodie-filter-bar.tsx",
+      "line": 753,
+      "tag": "Ionicons",
+      "icon": "\"ellipsis-horizontal\""
+    },
+    {
+      "file": "components/foodie-filter-bar.tsx",
+      "line": 813,
+      "tag": "Ionicons",
+      "icon": "{option.icon}"
+    },
+    {
+      "file": "components/foodie-filter-bar.tsx",
+      "line": 831,
+      "tag": "Ionicons",
+      "icon": "\"checkmark\""
+    },
+    {
+      "file": "components/foodie-filter-bar.tsx",
+      "line": 844,
+      "tag": "PlaceIcon",
+      "icon": "{group.icon}"
+    },
+    {
+      "file": "components/foodie-filter-bar.tsx",
+      "line": 847,
+      "tag": "Ionicons",
+      "icon": "\"chevron-forward\""
+    },
+    {
+      "file": "components/foodie-filter-bar.tsx",
+      "line": 851,
+      "tag": "Ionicons",
+      "icon": "\"close-circle\""
+    },
+    {
+      "file": "components/foodie-filter-bar.tsx",
+      "line": 855,
+      "tag": "Ionicons",
+      "icon": "{item.id === moveDestinationId ? 'checkmark-circle' : 'ellipse-outline'}"
+    },
+    {
+      "file": "components/foodie-filter-bar.tsx",
+      "line": 862,
+      "tag": "Ionicons",
+      "icon": "{selectedListIds.length === collections.length ? 'checkmark-circle' : selectedListIds.length ? 'remove-circle' : 'ellipse-outline'}"
+    },
+    {
+      "file": "components/foodie-filter-bar.tsx",
+      "line": 865,
+      "tag": "Ionicons",
+      "icon": "{!listCount ? 'checkmark-circle' : 'ellipse-outline'}"
+    },
+    {
+      "file": "components/foodie-filter-bar.tsx",
+      "line": 876,
+      "tag": "Ionicons",
+      "icon": "\"list-outline\""
+    },
+    {
+      "file": "components/glass-button.tsx",
+      "line": 48,
+      "tag": "Ionicons",
+      "icon": "{icon}"
+    },
+    {
+      "file": "components/hint-sheet.tsx",
+      "line": 58,
+      "tag": "Ionicons",
+      "icon": "\"close\""
+    },
+    {
+      "file": "components/hint-sheet.tsx",
+      "line": 61,
+      "tag": "Ionicons",
+      "icon": "{icon}"
+    },
+    {
+      "file": "components/library-list-row.tsx",
+      "line": 17,
+      "tag": "Ionicons",
+      "icon": "{checked === 'mixed' ? 'remove-circle-outline' : checked ? 'checkmark-circle' : 'ellipse-outline'}"
+    },
+    {
+      "file": "components/library-list-row.tsx",
+      "line": 22,
+      "tag": "Ionicons",
+      "icon": "\"ellipsis-horizontal\""
+    },
+    {
+      "file": "components/library-sheet.tsx",
+      "line": 152,
+      "tag": "Ionicons",
+      "icon": "\"chevron-back\""
+    },
+    {
+      "file": "components/library-sheet.tsx",
+      "line": 156,
+      "tag": "Ionicons",
+      "icon": "\"add\""
+    },
+    {
+      "file": "components/library-sheet.tsx",
+      "line": 159,
+      "tag": "Ionicons",
+      "icon": "\"close\""
+    },
+    {
+      "file": "components/like-avatar-stack.tsx",
+      "line": 75,
+      "tag": "Ionicons",
+      "icon": "\"heart\""
+    },
+    {
+      "file": "components/menu-composer.tsx",
+      "line": 153,
+      "tag": "GlassIconButton",
+      "icon": "\"close\""
+    },
+    {
+      "file": "components/menu-composer.tsx",
+      "line": 178,
+      "tag": "GlassIconButton",
+      "icon": "\"checkmark\""
+    },
+    {
+      "file": "components/menu-composer.tsx",
+      "line": 189,
+      "tag": "GlassIconButton",
+      "icon": "\"camera-outline\""
+    },
+    {
+      "file": "components/menu-composer.tsx",
+      "line": 212,
+      "tag": "Ionicons",
+      "icon": "{isCollapsed ? 'chevron-forward' : 'chevron-down'}"
+    },
+    {
+      "file": "components/menu-composer.tsx",
+      "line": 231,
+      "tag": "Ionicons",
+      "icon": "\"ellipsis-horizontal\""
+    },
+    {
+      "file": "components/menu-composer.tsx",
+      "line": 243,
+      "tag": "Ionicons",
+      "icon": "\"alert-circle-outline\""
+    },
+    {
+      "file": "components/menu-composer.tsx",
+      "line": 298,
+      "tag": "Ionicons",
+      "icon": "\"close\""
+    },
+    {
+      "file": "components/menu-composer.tsx",
+      "line": 339,
+      "tag": "Ionicons",
+      "icon": "\"add\""
+    },
+    {
+      "file": "components/menu-composer.tsx",
+      "line": 362,
+      "tag": "Ionicons",
+      "icon": "\"add-circle\""
+    },
+    {
+      "file": "components/menu-composer.tsx",
+      "line": 377,
+      "tag": "Ionicons",
+      "icon": "\"chevron-up\""
+    },
+    {
+      "file": "components/menu-composer.tsx",
+      "line": 394,
+      "tag": "Ionicons",
+      "icon": "\"add\""
+    },
+    {
+      "file": "components/menu-composer.tsx",
+      "line": 408,
+      "tag": "Ionicons",
+      "icon": "\"add\""
+    },
+    {
+      "file": "components/menu-composer.tsx",
+      "line": 428,
+      "tag": "Ionicons",
+      "icon": "\"checkmark\""
+    },
+    {
+      "file": "components/new-menu-sheet.tsx",
+      "line": 84,
+      "tag": "Ionicons",
+      "icon": "{option.icon}"
+    },
+    {
+      "file": "components/patio-card-info.tsx",
+      "line": 41,
+      "tag": "Ionicons",
+      "icon": "\"checkmark-circle\""
+    },
+    {
+      "file": "components/patio-card-info.tsx",
+      "line": 49,
+      "tag": "Ionicons",
+      "icon": "\"star\""
+    },
+    {
+      "file": "components/patio-identity-icon.tsx",
+      "line": 12,
+      "tag": "PlaceIcon",
+      "icon": "{icon}"
+    },
+    {
+      "file": "components/pin-icon.tsx",
+      "line": 6,
+      "tag": "SymbolView",
+      "icon": "{remove ? 'pin.slash' : 'pin'}"
+    },
+    {
+      "file": "components/pin-icon.tsx",
+      "line": 7,
+      "tag": "MaterialCommunityIcons",
+      "icon": "{remove ? 'pin-off-outline' : 'pin-outline'}"
+    },
+    {
+      "file": "components/place-icon.tsx",
+      "line": 9,
+      "tag": "Ionicons",
+      "icon": "{name}"
+    },
+    {
+      "file": "components/save-to-list-sheet.tsx",
+      "line": 192,
+      "tag": "Ionicons",
+      "icon": "{creating || canReturnToSource ? 'chevron-back' : 'add'}"
+    },
+    {
+      "file": "components/save-to-list-sheet.tsx",
+      "line": 195,
+      "tag": "Ionicons",
+      "icon": "\"add\""
+    },
+    {
+      "file": "components/save-to-list-sheet.tsx",
+      "line": 216,
+      "tag": "Ionicons",
+      "icon": "{selected ? 'checkmark-circle' : partial ? 'remove-circle-outline' : 'ellipse-outline'}"
+    },
+    {
+      "file": "components/search-field.tsx",
+      "line": 24,
+      "tag": "Ionicons",
+      "icon": "\"chevron-back\""
+    },
+    {
+      "file": "components/search-field.tsx",
+      "line": 25,
+      "tag": "Ionicons",
+      "icon": "\"search-outline\""
+    },
+    {
+      "file": "components/search-field.tsx",
+      "line": 37,
+      "tag": "Ionicons",
+      "icon": "\"close-circle\""
+    },
+    {
+      "file": "components/selection-actions.tsx",
+      "line": 21,
+      "tag": "Ionicons",
+      "icon": "{action.icon}"
+    },
+    {
+      "file": "components/settings-list.tsx",
+      "line": 55,
+      "tag": "Ionicons",
+      "icon": "{icon}"
+    },
+    {
+      "file": "components/settings-list.tsx",
+      "line": 67,
+      "tag": "Ionicons",
+      "icon": "\"chevron-forward\""
+    }
+  ]
+}

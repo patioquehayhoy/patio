@@ -1,0 +1,188 @@
+--- a/components/library-sheet.tsx
++++ b/components/library-sheet.tsx
+@@ -23,14 +23,15 @@
+     grabberTouch: { alignItems: 'center', flexShrink: 0 },
+     grabber: { width: 36, height: 4, borderRadius: 2, marginTop: 8, marginBottom: 12, backgroundColor: t.isDark ? 'rgba(255,255,255,0.16)' : 'rgba(0,0,0,0.10)' },
+     panelHeader: { width: '100%', paddingHorizontal: 16, paddingBottom: 4 },
+-    toolbar: { minHeight: 44, flexDirection: 'row', alignItems: 'center' },
+-    titleSlot: { flex: 1, minWidth: 0, alignItems: 'center', paddingHorizontal: 4 },
++    toolbar: { minHeight: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', columnGap: 8, rowGap: 4 },
++    titleSlot: { position: 'absolute', top: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
+     titleRow: { paddingHorizontal: 16, paddingTop: 4, paddingBottom: 8, alignItems: 'center' },
+     backButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+     panelTitle: { textAlign: 'center', flexShrink: 1, fontSize: 17, lineHeight: 23, fontWeight: '700', color: t.text },
+-    panelActions: { flexDirection: 'row', alignItems: 'center', gap: 4 },
++    panelActions: { minWidth: 44, maxWidth: '100%', minHeight: 44, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 4, flexShrink: 0 },
+     headerIcon: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+-    panelClear: { fontSize: 14, fontWeight: '600', color: t.text },
++    headerTextAction: { minWidth: 44, minHeight: 44, paddingHorizontal: 8, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
++    panelClear: { fontSize: 15, lineHeight: 20, fontWeight: '600', color: t.text },
+   });
+ }
+ 
+@@ -52,6 +53,7 @@
+   const leadingWidth = leadingMeasures[viewKey] ?? 44;
+   const trailingWidth = trailingMeasures[viewKey] ?? 44;
+   const sideWidth = Math.max(44, leadingWidth, trailingWidth);
++  const controlsMeasured = leadingMeasures[viewKey] !== undefined && trailingMeasures[viewKey] !== undefined;
+   const titleKey = `${title}:${fontScale}`;
+   const [titleMeasure, setTitleMeasure] = useState({ key: '', width: 0 });
+   // Measure the actual themed text; a fixed 128 pt minimum split even short titles.
+@@ -168,21 +170,25 @@
+               {!hideTitle && <Text key={titleKey} accessible={false} accessibilityElementsHidden importantForAccessibility="no-hide-descendants" pointerEvents="none"
+                 style={[s.panelTitle, { position: 'absolute', opacity: 0, alignSelf: 'flex-start' }]}
+                 onLayout={(event) => setTitleMeasure({ key: titleKey, width: event.nativeEvent.layout.width })}>{noWidow(title)}</Text>}
++              {/* Measure actions at their natural width. Constraining them to
++                  the measured width would trap text controls at the 44 pt fallback. */}
+               <View style={s.toolbar}>
+-                <View style={{ width: separateTitle ? undefined : sideWidth, flex: separateTitle ? 1 : undefined, alignItems: 'flex-start' }}>
+-                  <View style={s.panelActions} onLayout={(event) => setLeadingMeasures((current) => current[viewKey] === event.nativeEvent.layout.width ? current : { ...current, [viewKey]: event.nativeEvent.layout.width })}>
+-                    {leadingAction ?? (onBack
+-                      ? <TouchableOpacity onPress={onBack} style={s.backButton} accessibilityRole="button" accessibilityLabel="Volver"><Ionicons name="chevron-back" size={20} color={theme.text} /></TouchableOpacity>
+-                      : !hideClose && <TouchableOpacity style={s.headerIcon} accessibilityRole="button" accessibilityLabel="Cerrar" accessibilityState={{ disabled: !!dismissDisabled }} disabled={dismissDisabled} onPress={() => dismissRef.current()}><Ionicons name="close" size={20} color={theme.textSecondary} /></TouchableOpacity>)}
+-                  </View>
++                <View style={s.panelActions} onLayout={(event) => {
++                  const width = event.nativeEvent.layout.width;
++                  setLeadingMeasures((current) => current[viewKey] === width ? current : { ...current, [viewKey]: width });
++                }}>
++                  {leadingAction ?? (onBack
++                    ? <TouchableOpacity onPress={onBack} style={s.backButton} accessibilityRole="button" accessibilityLabel="Volver"><Ionicons name="chevron-back" size={20} color={theme.text} /></TouchableOpacity>
++                    : !hideClose && <TouchableOpacity style={s.headerIcon} accessibilityRole="button" accessibilityLabel="Cerrar" accessibilityState={{ disabled: !!dismissDisabled }} disabled={dismissDisabled} onPress={() => dismissRef.current()}><Ionicons name="close" size={20} color={theme.textSecondary} /></TouchableOpacity>)}
+                 </View>
+-                {!separateTitle && <View style={s.titleSlot}>{!hideTitle && <Text accessibilityRole="header" accessibilityLiveRegion="polite" style={s.panelTitle}>{noWidow(title)}</Text>}</View>}
+-                <View style={{ width: separateTitle ? undefined : sideWidth, alignItems: 'flex-end' }}>
+-                  <View style={s.panelActions} onLayout={(event) => setTrailingMeasures((current) => current[viewKey] === event.nativeEvent.layout.width ? current : { ...current, [viewKey]: event.nativeEvent.layout.width })}>
+-                    {!!onClear && <TouchableOpacity style={[s.headerIcon, { width: 'auto', paddingHorizontal: 8 }]} accessibilityRole="button" accessibilityLabel={`Limpiar ${title.toLowerCase()}`} onPress={onClear}><Text style={s.panelClear}>Limpiar</Text></TouchableOpacity>}
+-                    {headerActions}
+-                    {onCreate && <TouchableOpacity style={s.headerIcon} disabled={dismissDisabled} accessibilityState={{ disabled: !!dismissDisabled }} onPress={onCreate} accessibilityRole="button" accessibilityLabel="Nueva lista"><Ionicons name="add" size={22} color={theme.text} /></TouchableOpacity>}
+-                  </View>
++                {!separateTitle && <View pointerEvents="none" accessibilityElementsHidden={!controlsMeasured} style={[s.titleSlot, { left: sideWidth, right: sideWidth }, !controlsMeasured && { opacity: 0 }]}>{!hideTitle && <Text accessibilityRole="header" accessibilityLiveRegion="polite" style={s.panelTitle}>{noWidow(title)}</Text>}</View>}
++                <View style={[s.panelActions, { marginLeft: 'auto', justifyContent: 'flex-end' }]} onLayout={(event) => {
++                  const width = event.nativeEvent.layout.width;
++                  setTrailingMeasures((current) => current[viewKey] === width ? current : { ...current, [viewKey]: width });
++                }}>
++                  {!!onClear && <TouchableOpacity style={s.headerTextAction} accessibilityRole="button" accessibilityLabel={`Limpiar ${title.toLowerCase()}`} onPress={onClear}><Text numberOfLines={1} style={s.panelClear}>Limpiar</Text></TouchableOpacity>}
++                  {headerActions}
++                  {onCreate && <TouchableOpacity style={s.headerIcon} disabled={dismissDisabled} accessibilityState={{ disabled: !!dismissDisabled }} onPress={onCreate} accessibilityRole="button" accessibilityLabel="Nueva lista"><Ionicons name="add" size={22} color={theme.text} /></TouchableOpacity>}
+                 </View>
+               </View>
+               {separateTitle && !hideTitle && <View style={s.titleRow}><Text accessibilityRole="header" accessibilityLiveRegion="polite" style={s.panelTitle}>{noWidow(title)}</Text></View>}
+--- a/components/foodie-filter-bar.tsx
++++ b/components/foodie-filter-bar.tsx
+@@ -94,7 +94,8 @@
+     scopeGroup: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+     organizer: { minHeight: 40, paddingHorizontal: 6, paddingVertical: 4, borderRadius: 16, flexDirection: 'row', alignItems: 'center', gap: 4, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, backgroundColor: t.glass },
+     organizerCompact: { flexShrink: 0, width: 40, paddingHorizontal: 0, justifyContent: 'center' },
+-    headerActionText: { fontSize: 15, fontWeight: '600', color: t.text },
++    headerTextAction: { minWidth: 44, minHeight: 44, paddingHorizontal: 8, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
++    headerActionText: { fontSize: 15, lineHeight: 20, fontWeight: '600', color: t.text },
+     organizerText: { flexShrink: 1, minWidth: 0, fontSize: 13, fontWeight: '600', color: t.text },
+     controlIcon: { width: 20, height: 20, alignItems: 'center', justifyContent: 'center' },
+     activeCount: { position: 'absolute', top: -5, right: -3, minWidth: 18, height: 18, paddingHorizontal: 4, borderRadius: 9, overflow: 'hidden', backgroundColor: t.text, color: t.bg, textAlign: 'center', fontSize: 10, lineHeight: 18, fontWeight: '700', fontVariant: ['tabular-nums'] },
+@@ -724,7 +725,7 @@
+       preserveBrowsingHeight={namingList}
+       stabilizeEditor={namingList}
+       dismissDisabled={creatingPending || deletingLists || listActionBusy}
+-      headerActions={openPanel === 'lists' && !movingLists && !namingList ? selectingLists ? <TouchableOpacity disabled={deletingLists || listActionBusy} style={[s.headerIcon, { width: 'auto', paddingHorizontal: 8 }]} accessibilityRole="button" accessibilityLabel="Terminar de organizar listas" onPress={() => { setSelectingLists(false); setSelectedListIds([]); }}><Text style={s.headerActionText}>Listo</Text></TouchableOpacity> : collections.length > 0 ? <TouchableOpacity style={[s.headerIcon, { width: 'auto', paddingHorizontal: 8 }]} accessibilityRole="button" accessibilityLabel="Organizar listas" onPress={() => beginListSelection()}><Text style={s.headerActionText}>Organizar</Text></TouchableOpacity> : undefined : undefined}
++      headerActions={openPanel === 'lists' && !movingLists && !namingList ? selectingLists ? <TouchableOpacity disabled={deletingLists || listActionBusy} style={s.headerTextAction} accessibilityRole="button" accessibilityLabel="Terminar de organizar listas" onPress={() => { setSelectingLists(false); setSelectedListIds([]); }}><Text numberOfLines={1} style={s.headerActionText}>Listo</Text></TouchableOpacity> : collections.length > 0 ? <TouchableOpacity style={s.headerTextAction} accessibilityRole="button" accessibilityLabel="Organizar listas" onPress={() => beginListSelection()}><Text numberOfLines={1} style={s.headerActionText}>Organizar</Text></TouchableOpacity> : undefined : undefined}
+       editor={openPanel === 'lists' && namingList ? <View style={s.section}><View style={s.group}>
+           <View style={[s.option, { paddingVertical: 12 }]}>
+             <View style={s.rowCopy}>
+--- a/scripts/tests/library-controls.test.cjs
++++ b/scripts/tests/library-controls.test.cjs
+@@ -23,11 +23,17 @@
+   const slots = [];
+   const effects = [];
+   let cursor = 0;
++  let deferUpdates = false;
++  const deferredUpdates = [];
+   const react = {
+     useState(initial) {
+       const index = cursor++;
+       if (!(index in slots)) slots[index] = typeof initial === 'function' ? initial() : initial;
+-      return [slots[index], (value) => { slots[index] = typeof value === 'function' ? value(slots[index]) : value; }];
++      return [slots[index], (value) => {
++        const apply = () => { slots[index] = typeof value === 'function' ? value(slots[index]) : value; };
++        if (deferUpdates) deferredUpdates.push(apply);
++        else apply();
++      }];
+     },
+     useRef(initial) {
+       const index = cursor++;
+@@ -127,6 +133,11 @@
+   return {
+     exports: module.exports,
+     native: mocks['react-native'],
++    deferStateUpdates() { deferUpdates = true; },
++    flushStateUpdates() {
++      deferUpdates = false;
++      deferredUpdates.splice(0).forEach((apply) => apply());
++    },
+     render(component, props) {
+       cursor = 0;
+       const result = component(props);
+@@ -789,16 +800,16 @@
+ });
+ 
+ 
+-test('sheet centers its heading with equal side columns and gives long controls a separate title row', () => {
++test('sheet centers its heading between natural actions and gives long controls a separate title row', () => {
+   const f = fixture('components/library-sheet.tsx');
+   const props = { visible: true, onClose() {}, title: 'Listas', preferredHeight: 340, theme: {}, children: 'Content' };
+   let tree = f.render(f.exports.LibrarySheet, props);
+-  const groups = () => nodes(tree).filter((node) => node.type === 'View' && node.props.onLayout && node.props.style?.gap === 4);
++  const groups = () => nodes(tree).filter((node) => node.type === 'View' && node.props.onLayout && Object.assign({}, ...[node.props.style].flat().filter(Boolean)).gap === 4);
+   groups()[0].props.onLayout({ nativeEvent: { layout: { width: 44 } } });
+   groups()[1].props.onLayout({ nativeEvent: { layout: { width: 80 } } });
+   tree = f.render(f.exports.LibrarySheet, props);
+-  const columns = nodes(tree).filter((node) => node.type === 'View' && node.props.style?.width === 80);
+-  assert.equal(columns.length, 2, 'Asymmetric actions reserve symmetric columns around the title');
++  const titleSlot = nodes(tree).find((node) => node.type === 'View' && Array.isArray(node.props.style) && node.props.style[0]?.position === 'absolute' && node.props.style[1]?.left === 80);
++  assert.deepEqual(titleSlot.props.style[1], { left: 80, right: 80 }, 'Asymmetric actions reserve symmetric title insets without constraining their own width');
+   groups()[1].props.onLayout({ nativeEvent: { layout: { width: 140 } } });
+   tree = f.render(f.exports.LibrarySheet, props);
+   const titleRow = nodes(tree).find((node) => node.type === 'View' && node.props.style?.paddingBottom === 8 && node.props.style?.paddingTop === 4);
+@@ -812,7 +823,7 @@
+   f.native.useWindowDimensions = () => ({ width: 393, height: 852, fontScale: 1 });
+   const props = { visible: true, onClose() {}, title: 'Listas', preferredHeight: 340, theme: {}, children: 'Content' };
+   let tree = f.render(f.exports.LibrarySheet, props);
+-  const groups = nodes(tree).filter((node) => node.type === 'View' && node.props.onLayout && node.props.style?.gap === 4);
++  const groups = nodes(tree).filter((node) => node.type === 'View' && node.props.onLayout && Object.assign({}, ...[node.props.style].flat().filter(Boolean)).gap === 4);
+   groups[0].props.onLayout({ nativeEvent: { layout: { width: 44 } } });
+   groups[1].props.onLayout({ nativeEvent: { layout: { width: 138 } } });
+   const probe = nodes(tree).find((node) => node.type === 'Text' && node.props.accessibilityElementsHidden);
+@@ -917,7 +928,7 @@
+   let tree = f.render(f.exports.LibrarySheet, props);
+   const frame = () => nodes(tree).find((node) => node.type === 'Animated.View' && node.props.accessibilityViewIsModal).props.style[1];
+   nodes(tree).find((node) => node.type === 'ScrollView').props.onContentSizeChange(320, 650);
+-  const groups = nodes(tree).filter((node) => node.type === 'View' && node.props.onLayout && node.props.style?.gap === 4);
++  const groups = nodes(tree).filter((node) => node.type === 'View' && node.props.onLayout && Object.assign({}, ...[node.props.style].flat().filter(Boolean)).gap === 4);
+   groups[1].props.onLayout({ nativeEvent: { layout: { width: 140 } } });
+   tree = f.render(f.exports.LibrarySheet, props);
+   const physicalHeight = frame().height;
+@@ -950,3 +961,25 @@
+     assert.equal(tree.props.style.right, -16);
+   }
+ });
++
++
++test('opening lists keeps both header measurements after native layout events are released', () => {
++  const f = fixture('components/library-sheet.tsx');
++  f.native.useWindowDimensions = () => ({ width: 393, height: 852, fontScale: 1 });
++  const props = { visible: true, onClose() {}, title: 'Listas', viewKey: 'lists', preferredHeight: 460, theme: {}, children: 'Rows' };
++  let tree = f.render(f.exports.LibrarySheet, props);
++  const groups = nodes(tree).filter((node) => node.type === 'View' && node.props.onLayout && Object.assign({}, ...[node.props.style].flat().filter(Boolean)).gap === 4);
++  f.deferStateUpdates();
++  for (const [index, width] of [44, 134].entries()) {
++    const event = { nativeEvent: { layout: { width } } };
++    groups[index].props.onLayout(event);
++    // React Native releases the synthetic event before queued updates render.
++    event.nativeEvent = null;
++  }
++  assert.doesNotThrow(() => f.flushStateUpdates());
++  tree = f.render(f.exports.LibrarySheet, props);
++  const titleSlot = nodes(tree).find((node) => node.type === 'View' && Array.isArray(node.props.style) && node.props.style[0]?.position === 'absolute');
++  assert.equal(titleSlot.props.style[1].left, 134);
++  assert.equal(titleSlot.props.style[1].right, 134);
++  assert.equal(titleSlot.props.accessibilityElementsHidden, false);
++});

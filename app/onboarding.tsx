@@ -144,8 +144,8 @@ export default function OnboardingScreen() {
       />
 
       {/* Tap zones estilo stories: izquierda regresa, derecha avanza */}
-      <Pressable style={{ position: 'absolute', left: 0, top: 0, bottom: 200, width: '28%' }} onPress={() => goTo(index - 1)} />
-      <Pressable style={{ position: 'absolute', right: 0, top: 0, bottom: 200, width: '72%' }} onPress={() => goTo(index + 1)} />
+      <Pressable accessibilityRole="button" accessibilityLabel="Anterior" style={{ position: 'absolute', left: 0, top: 0, bottom: 200, width: '28%' }} onPress={() => goTo(index - 1)} />
+      <Pressable accessibilityRole="button" accessibilityLabel="Siguiente" style={{ position: 'absolute', right: 0, top: 0, bottom: 200, width: '72%' }} onPress={() => goTo(index + 1)} />
 
       {/* Cerrar/saltar: solo un tache sutil en glass */}
       <TouchableOpacity

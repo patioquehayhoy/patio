@@ -1,3 +1,4 @@
+import { PlaceIcon } from '@/components/place-icon';
 import { Ionicons } from '@expo/vector-icons';
 import { router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
@@ -122,19 +123,19 @@ export default function PublicCollection() {
       {state === 'loading' ? <ActivityIndicator style={s.feedback} color={theme.textSecondary} accessibilityLabel="Cargando lista" /> : state !== 'ready' ? (
         <View style={s.feedback}>
           <Text style={[s.desc, { color: theme.textSecondary }]}>{noWidow(state === 'error' ? 'No pudimos cargar esta lista.' : 'Esta lista no está disponible.')}</Text>
-          {state === 'error' && <TouchableOpacity style={s.retry} accessibilityRole="button" onPress={() => { void load(); }}><Text style={{ color: theme.text }}>{noWidow('Intentar de nuevo')}</Text></TouchableOpacity>}
+          {state === 'error' && <TouchableOpacity style={s.retry} accessibilityRole="button" accessibilityLabel="Reintentar carga de lista" onPress={() => { void load(); }}><Text style={{ color: theme.text }}>{noWidow('Intentar de nuevo')}</Text></TouchableOpacity>}
         </View>
       ) : item && (
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}>
           <Text style={[s.title, { color: theme.text }]}>{noWidow(item.title)}</Text>
           {!!item.description && <Text style={[s.desc, { color: theme.textSecondary }]}>{noWidow(item.description)}</Text>}
-          <TouchableOpacity accessibilityRole="button" accessibilityState={{ disabled: saving, selected: saved }} disabled={saving} style={[s.button, { backgroundColor: theme.accent, opacity: saving ? 0.6 : 1 }]} onPress={save}>
+          <TouchableOpacity accessibilityRole="button" accessibilityLabel={saved ? 'Quitar lista de Guardados' : 'Guardar lista'} accessibilityState={{ disabled: saving, busy: saving, selected: saved }} disabled={saving} style={[s.button, { backgroundColor: theme.accent, opacity: saving ? 0.6 : 1 }]} onPress={save}>
             <Ionicons name={saved ? 'bookmark' : 'bookmark-outline'} size={17} color="#FFFFFF" />
             <Text style={{ color: '#FFFFFF', fontWeight: '700' }}>{noWidow(saved ? 'Lista guardada' : 'Guardar lista')}</Text>
           </TouchableOpacity>
           <TouchableOpacity accessibilityRole="button" style={[s.row, { borderColor: theme.border }]} onPress={() => router.push({ pathname: '/foodie/[id]', params: { id: item.owner_id } })}><Text style={{ color: theme.textSecondary }}>{noWidow('Ver perfil del curador')}</Text><Ionicons name="chevron-forward" size={16} color={theme.textMute} /></TouchableOpacity>
           {places.map((place) => <TouchableOpacity key={place.id} accessibilityRole="button" accessibilityLabel={`Abrir ${place.nombre}`} style={[s.row, { borderColor: theme.border }]} onPress={() => router.push(`/patio/${place.id}`)}>
-            <View style={s.placeIcon}><Ionicons name="restaurant-outline" size={18} color={theme.textSecondary} /></View>
+            <View style={s.placeIcon}><PlaceIcon size={18} color={theme.textSecondary} /></View>
             <Text numberOfLines={2} ellipsizeMode="tail" style={[s.placeName, { color: theme.text }]}>{noWidow(place.nombre)}</Text>
             <Ionicons name="chevron-forward" size={16} color={theme.textMute} />
           </TouchableOpacity>)}

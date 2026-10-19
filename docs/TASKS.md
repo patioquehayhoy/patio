@@ -1,11 +1,16 @@
 # TASKS — Cola de trabajo para agentes
 
-> **Corte vigente — 2026-10-12:** código de homologación, tarjetas y navegación
-> cerrado localmente: TypeScript/lint y **177 pruebas** aprobados, 54 ejemplos web.
-> Backend ensayado/promovido el 2026-10-09. Lanzamiento todavía pendiente de
-> QA móvil, auditoría npm, Maps/Firebase Android, integraciones y distribución.
-> [Heads-up](HEADS_UP_2026-10-12.md) · [Checklist/roadmap](PENDING_LAUNCH_2026-10-12.md).
-> Los cortes anteriores son históricos y no sustituyen este estado.
+> **Corte vigente — 2026-10-18:** pulido de Filtros/Listas, botones,
+> iconografía y paleta compartida entre Foodie/Fondero guardado en este corte.
+> Tras corregir el error de apertura de Listas, Alejandro respondió «ya quedó
+> me parece» y pidió cerrar con documentación, commit y push. Se registra como
+> confirmación del ajuste reciente; no sustituye QA completa de ambos roles,
+> Android, letra grande ni candidato de tienda.
+> `npm run check`: TypeScript/lint, 189 pruebas y control de release aprobados
+> (29 verificaciones, 0 errores, 2 configuraciones Android pendientes).
+> Push bloqueado por credenciales: GitHub confirma que `T1Alejandro` tiene
+> lectura y carece de permiso de escritura en `patioquehayhoy/patio`.
+> Checklist vigente: [pendientes](PENDING_LAUNCH_2026-10-12.md).
 
 ## Cola accionable vigente
 
@@ -13,12 +18,12 @@ Usar [PENDING_LAUNCH_2026-10-12](PENDING_LAUNCH_2026-10-12.md) para marcar
 avances. Orden: QA móvil → dependencias/configuración → integraciones/privacidad
 → candidatos/tiendas. Miniatura del local y crecimiento van después del candidato.
 La homologación de bibliotecas, centrar ubicación y columnas de cards están
-implementadas; falta aceptación física. No repetir backend ya promovido.
+implementadas; el usuario confirmó el ajuste reciente de Listas. Falta QA física integral. No repetir backend ya promovido.
 
 ## Registro histórico y backlog de producto
 
 Los pendientes siguientes conservan decisiones de su fecha. Cuando contradigan
-el checklist superior, prevalece el corte del 2026-10-12.
+el checklist superior, prevalece el corte del 2026-10-18.
 
 > **Producción actualizada (2026-10-09):** siete migraciones aplicadas y registradas; cinco funciones ACTIVE con JWT. Datos existentes conservados; correos protegidos. Evidencia: [PRODUCTION_PROMOTION_2026-10-09.md](PRODUCTION_PROMOTION_2026-10-09.md). Lanzamiento aún pendiente de QA móvil y requisitos de distribución.
 

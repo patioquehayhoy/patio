@@ -33,9 +33,9 @@ export function GlassIconButton({
       onPress={onPress}
       hitSlop={hitSlopFor(size)}
       activeOpacity={0.72}
-      style={{ width: size, height: size, borderRadius: size / 2, overflow: 'hidden' }}>
+      style={{ width: size, height: size, borderRadius: size / 2, overflow: 'hidden', backgroundColor: theme.surface }}>
       <BlurView
-        intensity={theme.isDark ? 42 : 34}
+        intensity={theme.isDark ? 16 : 20}
         tint={theme.isDark ? 'dark' : 'light'}
         style={StyleSheet.absoluteFill}
       />

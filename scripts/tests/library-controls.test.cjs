@@ -23,11 +23,17 @@ function fixture(file, overrides = {}) {
   const slots = [];
   const effects = [];
   let cursor = 0;
+  let deferUpdates = false;
+  const deferredUpdates = [];
   const react = {
     useState(initial) {
       const index = cursor++;
       if (!(index in slots)) slots[index] = typeof initial === 'function' ? initial() : initial;
-      return [slots[index], (value) => { slots[index] = typeof value === 'function' ? value(slots[index]) : value; }];
+      return [slots[index], (value) => {
+        const apply = () => { slots[index] = typeof value === 'function' ? value(slots[index]) : value; };
+        if (deferUpdates) deferredUpdates.push(apply);
+        else apply();
+      }];
     },
     useRef(initial) {
       const index = cursor++;
@@ -63,8 +69,12 @@ function fixture(file, overrides = {}) {
     },
     'react-native-safe-area-context': { useSafeAreaInsets: () => ({ top: 44, bottom: 34, left: 0, right: 0 }) },
     '@react-native-community/datetimepicker': { __esModule: true, default: 'DateTimePicker' },
-    '@expo/vector-icons': { Ionicons: 'Icon' },
+    '@expo/vector-icons': { Ionicons: 'Icon', MaterialCommunityIcons: 'MaterialIcon' },
+    'expo-symbols': { SymbolView: 'SymbolView' },
+    '@/components/pin-icon': { PinIcon: 'PinIcon' },
+    '@/components/place-icon': { PlaceIcon: 'Icon' },
     'expo-blur': { BlurView: 'BlurView' },
+    '@/components/bottom-content-fade': { BottomContentFade: 'BottomContentFade' },
     'expo-linear-gradient': { LinearGradient: 'LinearGradient' },
     'expo-location': { getForegroundPermissionsAsync: async () => ({ granted: false }) },
     'expo-haptics': {
@@ -123,6 +133,11 @@ function fixture(file, overrides = {}) {
   return {
     exports: module.exports,
     native: mocks['react-native'],
+    deferStateUpdates() { deferUpdates = true; },
+    flushStateUpdates() {
+      deferUpdates = false;
+      deferredUpdates.splice(0).forEach((apply) => apply());
+    },
     render(component, props) {
       cursor = 0;
       const result = component(props);
@@ -243,7 +258,7 @@ test('map and library expose Filters and Your lists directly and clear each scop
   const panelType = panelOf(tree).type;
   assert.equal(panelOf(tree).props.visible, true);
   assert.equal(panelOf(tree).props.title, 'Filtros');
-  assert.equal(panelOf(tree).props.hideTitle, true);
+  assert.equal(panelOf(tree).props.hideTitle, false);
   assert.equal(nodes(tree).find((node) => node.props?.accessibilityLabel === 'Menú de hoy'), undefined);
 
   // Availability is an independent time picker, not a checkbox inside Filters.
@@ -268,8 +283,8 @@ test('map and library expose Filters and Your lists directly and clear each scop
   scopeButtons()[1].props.onPress();
   tree = f.render(FoodieFilterBar, props);
   assert.equal(panelOf(tree).type, panelType);
-  assert.equal(panelOf(tree).props.title, 'Tus listas');
-  assert.equal(panelOf(tree).props.hideTitle, true);
+  assert.equal(panelOf(tree).props.title, 'Listas');
+  assert.equal(panelOf(tree).props.hideTitle, false);
   for (const label of ['Cerca', 'Comida']) {
     nodes(tree).find((node) => node.props?.accessibilityRole === 'checkbox' && node.props?.accessibilityLabel?.startsWith(`${label},`)).props.onPress();
     tree = f.render(FoodieFilterBar, props);
@@ -317,7 +332,7 @@ test('map location uses the shared trailing control slot and exposes pending fee
   assert.equal(location.type, 'TouchableOpacity');
   assert.equal(Object.assign({}, ...location.props.style).width, 40);
   assert.deepEqual(location.props.accessibilityState, { busy: false, disabled: false });
-  assert.ok(nodes(location).some((node) => node.props?.name === 'locate-outline'));
+  assert.ok(nodes(location).some((node) => node.props?.name === 'navigate-outline'));
   location.props.onPress();
   assert.equal(centered, 1);
   props.locationAction.busy = true;
@@ -534,7 +549,7 @@ test('compact filter overview summarizes selections and returns from each group 
     assert.equal(panel().props.visible, true);
   };
   assert.equal(panel().props.title, 'Filtros');
-  assert.equal(panel().props.hideTitle, true);
+  assert.equal(panel().props.hideTitle, false);
   assert.deepEqual(nodes(panel().props.children).filter((node) => node.props?.accessibilityRole === 'checkbox').map((node) => node.props.accessibilityLabel), []);
   assert.equal(control('Menú de hoy'), undefined);
   assert.match(nodes(tree).find((node) => node.props?.accessibilityLabel?.startsWith('Abierto')).props.accessibilityLabel, /^Abierto,/);
@@ -560,7 +575,7 @@ test('compact filter overview summarizes selections and returns from each group 
   back();
   assertSameSheet();
   assert.equal(panel().props.title, 'Filtros');
-  assert.equal(panel().props.hideTitle, true);
+  assert.equal(panel().props.hideTitle, false);
   assert.equal(props.filters, selected, 'Back changes navigation only');
   assert.match(control('Tipo de lugar').props.accessibilityValue.text, /Tacos/);
   assert.match(control('Pago').props.accessibilityValue.text, /Tarjeta/);
@@ -594,8 +609,9 @@ test('creating an empty list preserves the current results until that list is ex
   for (const activeListIds of [[], ['a']]) {
     const created = { id: 'new', title: 'Fin de semana', patioIds: [] };
     const calls = [];
+    let fail = true;
     const f = fixture('components/foodie-filter-bar.tsx', {
-      '@/lib/collections': { normalizeCollectionTitle: (title) => title.replace(/\s+/g, ' ').trim().slice(0, 60), createCollection: async (title) => { calls.push(title); return created; } },
+      '@/lib/collections': { normalizeCollectionTitle: (title) => title.replace(/\s+/g, ' ').trim().slice(0, 60), createCollection: async (title) => { calls.push(title); if (fail) { fail = false; throw new Error('Offline'); } return created; } },
       'expo-haptics': { selectionAsync: async () => {}, notificationAsync: async () => {}, NotificationFeedbackType: { Success: 'success' } },
     });
     const { FoodieFilterBar, EMPTY_FOODIE_FILTERS, matchesFoodieFilters } = f.exports;
@@ -610,20 +626,30 @@ test('creating an empty list preserves the current results until that list is ex
     const control = (label) => nodes(tree).find((node) => node.props?.accessibilityLabel === label);
     const collectionControl = (label) => nodes(tree).find((node) => node.props?.accessibilityRole === 'checkbox' && node.props?.accessibilityLabel?.startsWith(`${label},`));
     const panel = () => nodes(tree).find((node) => typeof node.type === 'function' && node.type.name === 'LibrarySheet');
-    let promptActions;
-    f.native.Alert.prompt = (_title, _message, actions) => { promptActions = actions; };
+    f.native.Alert.prompt = () => { throw new Error('Creation must use the app theme, not a system prompt'); };
     nodes(tree).find((node) => node.props?.accessibilityLabel?.startsWith('Tus listas')).props.onPress();
     tree = f.render(FoodieFilterBar, props);
     const listPanel = panel();
-    assert.equal(listPanel.props.title, 'Tus listas');
-    assert.equal(listPanel.props.hideTitle, true);
+    assert.equal(listPanel.props.title, 'Listas');
+    assert.equal(listPanel.props.hideTitle, false);
     assert.equal(typeof listPanel.props.onCreate, 'function');
     listPanel.props.onCreate();
-    assert.ok(promptActions, 'iOS opens the native naming prompt');
-    promptActions.find((action) => action.text === 'Crear').onPress('  Fin de semana  ');
+    tree = f.render(FoodieFilterBar, props);
+    assert.equal(panel().props.title, 'Nueva lista');
+    assert.equal(panel().props.children, null);
+    assert.equal(nodes(panel().props.editor).filter((node) => node.type === 'Text' && node.props.children === 'Nombre de la lista').length, 0);
+    assert.equal(panel().props.stabilizeEditor, true);
+    nodes(panel().props.editor).find((node) => node.props?.accessibilityLabel === 'Nombre de la lista').props.onChangeText('  Fin de semana  ');
+    tree = f.render(FoodieFilterBar, props);
+    nodes(panel().props.editor).find((node) => node.props?.accessibilityLabel === 'Crear lista').props.onPress();
     await new Promise(setImmediate);
     tree = f.render(FoodieFilterBar, props);
-    assert.deepEqual(calls, ['Fin de semana']);
+    assert.equal(panel().props.title, 'Nueva lista', 'Failed creation retains the themed editor');
+    assert.equal(nodes(panel().props.editor).find((node) => node.props?.accessibilityLabel === 'Nombre de la lista').props.value, '  Fin de semana  ');
+    nodes(panel().props.editor).find((node) => node.props?.accessibilityLabel === 'Crear lista').props.onPress();
+    await new Promise(setImmediate);
+    tree = f.render(FoodieFilterBar, props);
+    assert.deepEqual(calls, ['Fin de semana', 'Fin de semana']);
     assert.equal(props.filters, originalFilters);
     assert.equal(collectionControl('Fin de semana').props.accessibilityState.checked, false);
     assert.equal((activeListIds.length ? collectionControl('Cerca') : control('Todos los lugares')).props.accessibilityState.checked, true);
@@ -676,20 +702,31 @@ test('list selection keeps five action slots and moving waits for explicit desti
   nodes(tree).find((node) => node.props?.accessibilityLabel === 'Tus listas').props.onPress();
   render();
   assert.equal(overlays.at(-1), true);
-  row('Cerca').props.onLongPress();
+  nodes(panel().props.headerActions).find((node) => node.props?.accessibilityLabel === 'Organizar listas').props.onPress();
+  render();
+  assert.equal(panel().props.title, 'Organizar listas');
+  assert.ok(nodes(panel().props.headerActions).some((node) => node.props?.accessibilityLabel === 'Terminar de organizar listas'));
+  assert.equal(panel().props.leadingAction, undefined);
+  row('Cerca').props.onPress();
   render();
   assertSlots();
   assert.equal(actions().find((action) => action.label === 'Renombrar').disabled, false);
+  assert.equal(panel().props.title, '1 lista seleccionada');
+  assert.equal(nodes(panel().props.children).find((node) => node.props?.accessibilityLabel === 'Seleccionar todas las listas').props.accessibilityState.checked, 'mixed');
+  assert.ok(!nodes(panel().props.children).some((node) => String(node.props?.children).startsWith('Elige las listas')));
+  assert.equal(actions().find((action) => action.label === 'Fijar').icon, 'pin-outline');
   assert.deepEqual(props.filters.collectionIds, [], 'Selecting sources never changes active filters');
 
   row('Cerca').props.onPress();
   render();
   assertSlots();
   assert.ok(actions().every((action) => action.disabled), 'Zero selected keeps every slot disabled');
+  assert.equal(panel().props.title, 'Organizar listas');
+  assert.equal(panel().props.hideClose, true);
   row('Fin de semana').props.onPress();
   render();
   assertSlots();
-  assert.equal(actions().find((action) => action.label === 'Mover').disabled, false, 'Empty selected lists explain why there is nothing to move');
+  assert.equal(actions().find((action) => action.label === 'Mover').disabled, true, 'Empty lists cannot start an empty move');
   actions().find((action) => action.label === 'Mover').onPress();
   render();
   assert.equal(moves.length, 0, 'Empty lists never issue a move');
@@ -697,7 +734,7 @@ test('list selection keeps five action slots and moving waits for explicit desti
   row('Cerca').props.onPress();
   render();
   assertSlots();
-  assert.equal(actions().find((action) => action.label === 'Renombrar').disabled, false, 'Multiple selections can request guidance to select one list');
+  assert.equal(actions().find((action) => action.label === 'Renombrar').disabled, true, 'Rename requires exactly one list');
   row('Fin de semana').props.onPress();
   render();
 
@@ -732,9 +769,217 @@ test('list selection keeps five action slots and moving waits for explicit desti
   completeMove(props.collections.map((item) => item.id === 'a' ? { ...item, patioIds: [] } : item));
   await new Promise(setImmediate);
   render();
-  assert.equal(panel().props.title, 'Tus listas');
+  assert.equal(panel().props.title, 'Listas');
   assert.equal(panel().props.footer, undefined);
   panel().props.onClose();
   render();
   assert.equal(overlays.at(-1), false);
+});
+
+
+test('selection header keeps its title and one explicit cancel action without a duplicate close button', () => {
+  const f = fixture('components/library-sheet.tsx');
+  const props = { visible: true, onClose() {}, title: 'Seleccionar listas', preferredHeight: 340, hideClose: true,
+    leadingAction: { type: 'TouchableOpacity', props: { accessibilityLabel: 'Cancelar selección' } }, theme: {}, children: 'Listas' };
+  let tree = f.render(f.exports.LibrarySheet, props);
+  assert.ok(nodes(tree).some((node) => node.props?.accessibilityRole === 'header' && node.props.children === 'Seleccionar listas'));
+  assert.equal(nodes(tree).filter((node) => node.props?.accessibilityLabel === 'Cancelar selección').length, 1);
+  assert.equal(nodes(tree).filter((node) => node.type === 'Icon' && node.props?.name === 'close').length, 0);
+  tree = f.render(f.exports.LibrarySheet, { ...props, hideClose: false, leadingAction: undefined, title: 'Listas' });
+  assert.equal(nodes(tree).filter((node) => node.type === 'Icon' && node.props?.name === 'close').length, 1);
+});
+
+test('pin and unpin use thumbtacks on native symbols and fallback, never a saved bookmark', () => {
+  const f = fixture('components/pin-icon.tsx');
+  for (const remove of [false, true]) {
+    const tree = f.render(f.exports.PinIcon, { remove, size: 22, color: '#111214' });
+    assert.equal(tree.props.name, remove ? 'pin.slash' : 'pin');
+    assert.equal(tree.props.fallback.props.name, remove ? 'pin-off-outline' : 'pin-outline');
+    assert.equal(tree.props.fallback.type, 'MaterialIcon');
+  }
+});
+
+
+test('sheet centers its heading between natural actions and gives long controls a separate title row', () => {
+  const f = fixture('components/library-sheet.tsx');
+  const props = { visible: true, onClose() {}, title: 'Listas', preferredHeight: 340, theme: {}, children: 'Content' };
+  let tree = f.render(f.exports.LibrarySheet, props);
+  const groups = () => nodes(tree).filter((node) => node.type === 'View' && node.props.onLayout && Object.assign({}, ...[node.props.style].flat().filter(Boolean)).gap === 4);
+  groups()[0].props.onLayout({ nativeEvent: { layout: { width: 44 } } });
+  groups()[1].props.onLayout({ nativeEvent: { layout: { width: 80 } } });
+  tree = f.render(f.exports.LibrarySheet, props);
+  const titleSlot = nodes(tree).find((node) => node.type === 'View' && Array.isArray(node.props.style) && node.props.style[0]?.position === 'absolute' && node.props.style[1]?.left === 80);
+  assert.deepEqual(titleSlot.props.style[1], { left: 80, right: 80 }, 'Asymmetric actions reserve symmetric title insets without constraining their own width');
+  groups()[1].props.onLayout({ nativeEvent: { layout: { width: 140 } } });
+  tree = f.render(f.exports.LibrarySheet, props);
+  const titleRow = nodes(tree).find((node) => node.type === 'View' && node.props.style?.paddingBottom === 8 && node.props.style?.paddingTop === 4);
+  assert.ok(titleRow, 'Constrained width moves the heading to its own row instead of clipping it');
+  assert.equal(nodes(titleRow).find((node) => node.props.accessibilityRole === 'header').props.children, 'Listas');
+});
+
+
+test('short Listas title stays in one toolbar row at iPhone width with Organizar and add', () => {
+  const f = fixture('components/library-sheet.tsx');
+  f.native.useWindowDimensions = () => ({ width: 393, height: 852, fontScale: 1 });
+  const props = { visible: true, onClose() {}, title: 'Listas', preferredHeight: 340, theme: {}, children: 'Content' };
+  let tree = f.render(f.exports.LibrarySheet, props);
+  const groups = nodes(tree).filter((node) => node.type === 'View' && node.props.onLayout && Object.assign({}, ...[node.props.style].flat().filter(Boolean)).gap === 4);
+  groups[0].props.onLayout({ nativeEvent: { layout: { width: 44 } } });
+  groups[1].props.onLayout({ nativeEvent: { layout: { width: 138 } } });
+  const probe = nodes(tree).find((node) => node.type === 'Text' && node.props.accessibilityElementsHidden);
+  probe.props.onLayout({ nativeEvent: { layout: { width: 54 } } });
+  tree = f.render(f.exports.LibrarySheet, props);
+  assert.equal(nodes(tree).filter((node) => node.props?.accessibilityRole === 'header').length, 1);
+  assert.ok(!nodes(tree).some((node) => node.type === 'View' && node.props.style?.paddingBottom === 8 && node.props.style?.paddingTop === 4));
+  f.native.useWindowDimensions = () => ({ width: 393, height: 852, fontScale: 1.8 });
+  tree = f.render(f.exports.LibrarySheet, props);
+  assert.ok(nodes(tree).some((node) => node.type === 'View' && node.props.style?.paddingBottom === 8 && node.props.style?.paddingTop === 4));
+});
+
+
+test('action footer overlays a passive fade and reserves enough scroll clearance for the last row', () => {
+  const f = fixture('components/library-sheet.tsx');
+  const props = { visible: true, onClose() {}, title: 'Organizar listas', preferredHeight: 500, theme: { isDark: false }, children: 'Rows', footer: 'Actions' };
+  let tree = f.render(f.exports.LibrarySheet, props);
+  const scrolls = nodes(tree).filter((node) => node.type === 'ScrollView');
+  scrolls[1].props.onContentSizeChange(393, 60);
+  tree = f.render(f.exports.LibrarySheet, props);
+  const body = nodes(tree).find((node) => node.type === 'ScrollView' && node.props.contentContainerStyle);
+  assert.equal(body.props.contentContainerStyle.paddingBottom, 76);
+  const fade = nodes(tree).find((node) => node.type === 'BottomContentFade');
+  assert.ok(fade.props.height > 60);
+  const footer = nodes(tree).find((node) => node.type === 'View' && node.props.pointerEvents === 'box-none');
+  assert.equal(footer.props.style.position, 'absolute');
+  assert.equal(footer.props.style.bottom, 34);
+});
+
+test('renaming a place list stays in the themed sheet, retains failure and closes without leaving an overlay active', async () => {
+  const overlays = [];
+  let fail = true;
+  const f = fixture('components/foodie-filter-bar.tsx', {
+    '@/lib/collections': {
+      normalizeCollectionTitle: (s) => s.trim(),
+      renameCollection: async (id, title) => { if (fail) { fail = false; throw new Error('Offline'); } return { id, title, patioIds: ['one'] }; },
+    },
+  });
+  const props = { filters: f.exports.EMPTY_FOODIE_FILTERS, categories: [], collections: [{ id: 'a', title: 'Cerca', patioIds: ['one'] }],
+    onChange() {}, onCollectionUpdated: (item) => { props.collections = [item]; }, onOverlayVisibilityChange: (value) => overlays.push(value) };
+  let tree;
+  const render = () => { tree = f.render(f.exports.FoodieFilterBar, props); };
+  const panel = () => nodes(tree).find((node) => node.type?.name === 'LibrarySheet');
+  const editor = (label) => nodes(panel().props.editor).find((node) => node.props?.accessibilityLabel === label);
+  render();
+  nodes(tree).find((node) => node.props?.accessibilityLabel === 'Tus listas').props.onPress(); render();
+  nodes(panel().props.headerActions).find((node) => node.props?.accessibilityLabel === 'Organizar listas').props.onPress(); render();
+  nodes(panel().props.children).find((node) => node.props?.accessibilityLabel?.startsWith('Cerca,')).props.onPress(); render();
+  nodes(panel().props.footer).find((node) => node.type === 'SelectionActions').props.actions.find((action) => action.label === 'Renombrar').onPress(); render();
+  assert.equal(panel().props.title, 'Renombrar lista');
+  editor('Nombre de la lista').props.onChangeText('Mi zona'); render();
+  editor('Guardar nombre de la lista').props.onPress(); await new Promise(setImmediate); render();
+  assert.equal(panel().props.title, 'Renombrar lista');
+  assert.equal(editor('Nombre de la lista').props.value, 'Mi zona');
+  editor('Guardar nombre de la lista').props.onPress(); await new Promise(setImmediate); render();
+  assert.equal(props.collections[0].title, 'Mi zona');
+  panel().props.onClose(); render();
+  assert.equal(overlays.at(-1), false);
+});
+
+test('contextual list actions fit the viewport and isolate the sheet below from accessibility', () => {
+  const f = fixture('components/foodie-filter-bar.tsx');
+  const props = { filters: f.exports.EMPTY_FOODIE_FILTERS, categories: [], collections: [{ id: 'a', title: 'Cerca', patioIds: [] }], onChange() {} };
+  let tree = f.render(f.exports.FoodieFilterBar, props);
+  const panel = () => nodes(tree).find((node) => node.type?.name === 'LibrarySheet');
+  nodes(tree).find((node) => node.props?.accessibilityLabel === 'Tus listas').props.onPress(); tree = f.render(f.exports.FoodieFilterBar, props);
+  const row = nodes(panel().props.children).find((node) => node.props?.accessibilityLabel?.startsWith('Cerca,'));
+  row.props.moreRef({ measureInWindow: (done) => done(260, 470, 44, 44) });
+  row.props.onMore(); tree = f.render(f.exports.FoodieFilterBar, props);
+  const menu = nodes(panel().props.overlay).find((node) => node.type === 'View' && node.props.accessibilityViewIsModal);
+  const geometry = menu.props.style[1];
+  assert.ok(geometry.left >= 8 && geometry.left + geometry.width <= 312);
+  assert.ok(geometry.maxHeight > 0 && geometry.maxHeight <= 568 - 44 - 34 - 16);
+  assert.ok(nodes(menu).some((node) => node.type === 'ScrollView'));
+  const sheet = fixture('components/library-sheet.tsx');
+  const rendered = sheet.render(sheet.exports.LibrarySheet, { visible: true, onClose() {}, title: 'Listas', preferredHeight: 400, theme: {}, children: 'Rows', overlay: panel().props.overlay });
+  assert.ok(nodes(rendered).some((node) => node.type === 'Animated.View' && node.props.accessibilityElementsHidden === true));
+});
+
+
+test('renaming can resize temporarily without overwriting the organization height and Back dismisses a contextual menu first', () => {
+  const f = fixture('components/library-sheet.tsx');
+  const props = { visible: true, onClose() {}, title: 'Listas', viewKey: 'lists', preferredHeight: 400, theme: {}, children: 'Rows' };
+  let tree = f.render(f.exports.LibrarySheet, props);
+  const frame = () => nodes(tree).find((node) => node.type === 'Animated.View' && node.props.accessibilityViewIsModal).props.style[1];
+  const original = frame().height;
+  tree = f.render(f.exports.LibrarySheet, { ...props, title: 'Renombrar lista', viewKey: 'rename', preferredHeight: 180, preserveBrowsingHeight: true });
+  assert.ok(frame().height < original);
+  tree = f.render(f.exports.LibrarySheet, { ...props, editing: true });
+  assert.equal(frame().height, original);
+  let dismissedMenu = 0;
+  tree = f.render(f.exports.LibrarySheet, { ...props, overlay: 'Menu', onOverlayClose: () => { dismissedMenu++; } });
+  nodes(tree).find((node) => node.type === 'Modal').props.onRequestClose();
+  assert.equal(dismissedMenu, 1);
+});
+
+
+test('new list keeps the physical sheet height through mount and keyboard and does not reuse old toolbar measurements', () => {
+  let keyboard = { keyboardInset: 0, keyboardVisible: false, viewportHeight: 568 };
+  const f = fixture('components/library-sheet.tsx', { '@/lib/use-sheet-keyboard': { useSheetKeyboard: () => keyboard } });
+  const props = { visible: true, onClose() {}, title: 'Listas', viewKey: 'lists', preferredHeight: 460, theme: {}, children: 'Rows' };
+  let tree = f.render(f.exports.LibrarySheet, props);
+  const frame = () => nodes(tree).find((node) => node.type === 'Animated.View' && node.props.accessibilityViewIsModal).props.style[1];
+  nodes(tree).find((node) => node.type === 'ScrollView').props.onContentSizeChange(320, 650);
+  const groups = nodes(tree).filter((node) => node.type === 'View' && node.props.onLayout && Object.assign({}, ...[node.props.style].flat().filter(Boolean)).gap === 4);
+  groups[1].props.onLayout({ nativeEvent: { layout: { width: 140 } } });
+  tree = f.render(f.exports.LibrarySheet, props);
+  const physicalHeight = frame().height;
+  const naming = { ...props, title: 'Nueva lista', viewKey: 'lists-create', preferredHeight: 180, stabilizeEditor: true, children: 'Field' };
+  tree = f.render(f.exports.LibrarySheet, naming);
+  assert.equal(frame().height, physicalHeight, 'Mounting the field never flashes the large fallback then shrinks');
+  assert.ok(!nodes(tree).some((node) => node.type === 'View' && node.props.style?.paddingBottom === 8 && node.props.style?.paddingTop === 4), 'Naming has fresh side measurements');
+  nodes(tree).find((node) => node.type === 'ScrollView').props.onContentSizeChange(320, 130);
+  tree = f.render(f.exports.LibrarySheet, naming);
+  assert.equal(frame().height, physicalHeight, 'Measuring the field does not resize the sheet');
+  keyboard = { keyboardInset: 300, keyboardVisible: true, viewportHeight: 268 };
+  tree = f.render(f.exports.LibrarySheet, naming);
+  assert.equal(frame().height, physicalHeight, 'Keyboard consumes internal space before moving the top edge');
+  assert.ok(frame().height - keyboard.keyboardInset >= 180);
+  keyboard = { keyboardInset: 0, keyboardVisible: false, viewportHeight: 568 };
+  tree = f.render(f.exports.LibrarySheet, props);
+  assert.equal(frame().height, physicalHeight, 'Returning reuses the measured list height');
+});
+
+
+test('shared bottom fade uses the current theme and never intercepts input or accessibility', () => {
+  for (const bg of ['#F8F8F5', '#0A0B0D']) {
+    const f = fixture('components/bottom-content-fade.tsx', { '@/lib/theme': { useTheme: () => ({ theme: { bg } }) } });
+    const tree = f.render(f.exports.BottomContentFade, { height: 100, bottom: -34, inset: 16 });
+    assert.deepEqual(tree.props.colors, [`${bg}00`, bg, bg]);
+    assert.equal(tree.props.pointerEvents, 'none');
+    assert.equal(tree.props.accessibilityElementsHidden, true);
+    assert.equal(tree.props.style.bottom, -34);
+    assert.equal(tree.props.style.left, -16);
+    assert.equal(tree.props.style.right, -16);
+  }
+});
+
+
+test('opening lists keeps both header measurements after native layout events are released', () => {
+  const f = fixture('components/library-sheet.tsx');
+  f.native.useWindowDimensions = () => ({ width: 393, height: 852, fontScale: 1 });
+  const props = { visible: true, onClose() {}, title: 'Listas', viewKey: 'lists', preferredHeight: 460, theme: {}, children: 'Rows' };
+  let tree = f.render(f.exports.LibrarySheet, props);
+  const groups = nodes(tree).filter((node) => node.type === 'View' && node.props.onLayout && Object.assign({}, ...[node.props.style].flat().filter(Boolean)).gap === 4);
+  f.deferStateUpdates();
+  for (const [index, width] of [44, 134].entries()) {
+    const event = { nativeEvent: { layout: { width } } };
+    groups[index].props.onLayout(event);
+    // React Native releases the synthetic event before queued updates render.
+    event.nativeEvent = null;
+  }
+  assert.doesNotThrow(() => f.flushStateUpdates());
+  tree = f.render(f.exports.LibrarySheet, props);
+  const titleSlot = nodes(tree).find((node) => node.type === 'View' && Array.isArray(node.props.style) && node.props.style[0]?.position === 'absolute');
+  assert.equal(titleSlot.props.style[1].left, 134);
+  assert.equal(titleSlot.props.style[1].right, 134);
+  assert.equal(titleSlot.props.accessibilityElementsHidden, false);
 });

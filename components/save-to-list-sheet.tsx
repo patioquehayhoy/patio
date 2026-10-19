@@ -1,3 +1,4 @@
+import { BottomContentFade } from '@/components/bottom-content-fade';
 import { useScrollEdges } from '@/lib/use-scroll-edges';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
@@ -191,16 +192,16 @@ export function SaveToListSheet({ visible, patioIds, patioName, onDismiss, mode 
             }} style={s.headerIcon}>
               <Ionicons name={creating || canReturnToSource ? 'chevron-back' : 'add'} size={20} color={theme.text} />
             </TouchableOpacity>}
-            <Text accessibilityRole="header" style={s.context} numberOfLines={1}>{noWidow(mode === 'move' ? choosingSource ? 'Origen' : 'Destino' : patioIds.length > 1 ? `${patioIds.length} lugares` : patioName || 'Guardar en lista')}</Text>
+            <Text accessibilityRole="header" style={s.context} numberOfLines={1}>{noWidow(creating ? 'Nueva lista' : mode === 'move' ? choosingSource ? 'Origen' : 'Destino' : patioIds.length > 1 ? `${patioIds.length} lugares` : patioName || 'Guardar en lista')}</Text>
             {canReturnToSource && !creating && <TouchableOpacity disabled={busy} accessibilityRole="button" accessibilityLabel="Nueva lista" onPress={() => setCreating(true)} style={s.headerIcon}><Ionicons name="add" size={20} color={theme.text} /></TouchableOpacity>}
             <TouchableOpacity accessibilityRole="button" accessibilityState={{ disabled: busy }} onPress={dismiss} disabled={busy} style={s.closeButton}><Text style={s.closeText}>{mode === 'move' ? 'Cancelar' : 'Listo'}</Text></TouchableOpacity>
           </View>
         </View>
         <View style={{ flexShrink: 1, minHeight: 0 }}>
-        <ScrollView key={`${visible}:${mode}:${choosingSource ? 'source' : 'destination'}`} onLayout={edges.onLayout} onScroll={edges.onScroll} scrollEventThrottle={16} style={[s.list, { height: Math.min(listContentHeight || Math.max(1, choices.length) * 52, maxListHeight), maxHeight: maxListHeight }]}
+        <ScrollView key={`${visible}:${mode}:${choosingSource ? 'source' : 'destination'}`} onLayout={edges.onLayout} onScroll={edges.onScroll} scrollEventThrottle={16} contentContainerStyle={{ paddingBottom: mode === 'move' ? 32 : 0 }} style={[s.list, { height: Math.min(listContentHeight || Math.max(1, choices.length) * 52, maxListHeight), maxHeight: maxListHeight }]}
           onContentSizeChange={(width, height) => { edges.onContentSizeChange(width, height); setListContentHeight(height); }} showsVerticalScrollIndicator indicatorStyle={theme.isDark ? 'white' : 'black'} keyboardShouldPersistTaps="handled">
         {creating && <View style={[s.row, { backgroundColor: theme.surface, borderRadius: 14, marginTop: 8 }]}>
-          <TextInput autoFocus value={newTitle} editable={!busy} onChangeText={setNewTitle} maxLength={60} accessibilityLabel="Nombre de la lista" onSubmitEditing={handleCreate} placeholder="Nombre de la lista" placeholderTextColor={theme.textMute} returnKeyType="done" autoCapitalize="words" style={s.input} />
+          <TextInput autoFocus keyboardAppearance={theme.isDark ? 'dark' : 'light'} value={newTitle} editable={!busy} onChangeText={setNewTitle} maxLength={60} accessibilityLabel="Nombre de la lista" onSubmitEditing={handleCreate} placeholder="Nombre de la lista" placeholderTextColor={theme.textMute} returnKeyType="done" autoCapitalize="words" style={s.input} />
           <TouchableOpacity disabled={!newTitle.trim() || busy} onPress={handleCreate} style={[s.createButton, (!newTitle.trim() || busy) && s.disabled]} accessibilityRole="button" accessibilityLabel="Crear lista"><Text style={s.createText}>{busy ? 'Creando…' : 'Crear'}</Text></TouchableOpacity>
         </View>}
         {mode === 'move' && (
@@ -219,6 +220,7 @@ export function SaveToListSheet({ visible, patioIds, patioName, onDismiss, mode 
           })}
           {!choices.length && <View style={s.empty}><Text style={s.rowMeta}>{noWidow(mode === 'move' && !choosingSource ? 'Sin listas de destino' : 'Sin listas')}</Text></View>}
         </ScrollView>
+        {mode === 'move' && <BottomContentFade height={24} />}
         </View>
         {mode === 'move' && <ScrollView style={{ flexGrow: 0, flexShrink: 0, height: visibleFooterHeight, maxHeight: footerMaxHeight }}
           onContentSizeChange={(_width, height) => setFooterHeight(height)} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator indicatorStyle={theme.isDark ? 'white' : 'black'}>
@@ -249,7 +251,7 @@ function makeStyles(t: Theme) {
     rowCopy: { flex: 1, minWidth: 0, justifyContent: 'center' },
     rowTitle: { fontSize: 15, lineHeight: 20, fontWeight: '500', color: t.text },
     rowMeta: { minWidth: 64, fontSize: 13, lineHeight: 18, color: t.textSecondary, textAlign: 'right', fontVariant: ['tabular-nums'] },
-    input: { flex: 1, minWidth: 0, height: 44, paddingVertical: 0, fontSize: 15, fontWeight: '500', color: t.text },
+    input: { flex: 1, minWidth: 0, height: 44, paddingVertical: 0, fontSize: 16, fontWeight: '400', color: t.text },
     createButton: { minWidth: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
     createText: { fontSize: 15, fontWeight: '500', color: t.accent },
     confirmButton: { minHeight: 50, borderRadius: 25, marginTop: 8, paddingHorizontal: 20, paddingVertical: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: t.accent },

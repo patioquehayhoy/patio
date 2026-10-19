@@ -1,0 +1,172 @@
+--- a/components/library-sheet.tsx
++++ b/components/library-sheet.tsx
+@@ -34,9 +34,9 @@
+   });
+ }
+ 
+-export function LibrarySheet({ visible, onClose, title, viewKey: viewKeyProp, onClear, onBack, hideTitle, hideClose, onCreate, leadingAction, headerActions, footer, dismissDisabled, editing, preserveBrowsingHeight, editor, preferredHeight, children, overlay, onOverlayClose, theme }: {
++export function LibrarySheet({ visible, onClose, title, viewKey: viewKeyProp, onClear, onBack, hideTitle, hideClose, onCreate, leadingAction, headerActions, footer, dismissDisabled, editing, preserveBrowsingHeight, stabilizeEditor, editor, preferredHeight, children, overlay, onOverlayClose, theme }: {
+   visible: boolean; onClose: () => boolean | void; title: string; viewKey?: string; onClear?: () => void; onBack?: () => void;
+-  preferredHeight: number; hideTitle?: boolean; hideClose?: boolean; onCreate?: () => void; leadingAction?: React.ReactNode; headerActions?: React.ReactNode; footer?: React.ReactNode; dismissDisabled?: boolean; editing?: boolean; preserveBrowsingHeight?: boolean; editor?: React.ReactNode;
++  preferredHeight: number; hideTitle?: boolean; hideClose?: boolean; onCreate?: () => void; leadingAction?: React.ReactNode; headerActions?: React.ReactNode; footer?: React.ReactNode; dismissDisabled?: boolean; editing?: boolean; preserveBrowsingHeight?: boolean; stabilizeEditor?: boolean; editor?: React.ReactNode;
+   children: React.ReactNode; overlay?: React.ReactNode; onOverlayClose?: () => void; theme: ReturnType<typeof useTheme>['theme'];
+ }) {
+   const s = sheetStyles(theme);
+@@ -47,29 +47,36 @@
+   const viewKey = viewKeyProp ?? title;
+   const { width: screenWidth, height: screenHeight, fontScale } = useWindowDimensions();
+   const { keyboardInset, keyboardVisible, viewportHeight } = useSheetKeyboard();
+-  const [leadingWidth, setLeadingWidth] = useState(44);
+-  const [trailingWidth, setTrailingWidth] = useState(44);
++  const [leadingMeasures, setLeadingMeasures] = useState<Record<string, number>>({});
++  const [trailingMeasures, setTrailingMeasures] = useState<Record<string, number>>({});
++  const leadingWidth = leadingMeasures[viewKey] ?? 44;
++  const trailingWidth = trailingMeasures[viewKey] ?? 44;
+   const sideWidth = Math.max(44, leadingWidth, trailingWidth);
+   const titleKey = `${title}:${fontScale}`;
+   const [titleMeasure, setTitleMeasure] = useState({ key: '', width: 0 });
+   // Measure the actual themed text; a fixed 128 pt minimum split even short titles.
+   const titleWidth = titleMeasure.key === titleKey ? titleMeasure.width : title.length * 9 * fontScale;
+   const separateTitle = fontScale > 1.4 || screenWidth - 32 - sideWidth * 2 < titleWidth + 16;
+-  const [contentSize, setContentSize] = useState({ title: '', height: 0 });
++  const [contentSizes, setContentSizes] = useState<Record<string, number>>({});
++  const contentHeight = contentSizes[viewKey] ?? 0;
+   const [headerHeight, setHeaderHeight] = useState(68);
+   const [footerHeight, setFooterHeight] = useState(60);
+   // La hoja sigue por debajo del teclado (mismo cuerpo, mismo vidrio): las
+   // esquinas redondeadas del teclado ya no dejan ver el mapa como un filo.
+   const bottomPadding = keyboardVisible ? 8 : insets.bottom || 8;
+-  const naturalHeight = contentSize.title === viewKey && contentSize.height > 0
+-    ? headerHeight + contentSize.height + (footer ? bottomPadding : 0)
++  const naturalHeight = contentHeight > 0
++    ? headerHeight + contentHeight + (footer ? bottomPadding : 0)
+     : preferredHeight + bottomPadding;
+   const measuredHeight = librarySheetHeight({ available: screenHeight - insets.top - 16,
+     preferred: preferredHeight, natural: naturalHeight, header: headerHeight,
+     footer: footer ? footerHeight : 0, safeBottom: bottomPadding, fontScale });
+   const browsingHeight = useRef(measuredHeight);
+-  if (!editing && !preserveBrowsingHeight) browsingHeight.current = measuredHeight;
+-  const sheetHeight = editing ? browsingHeight.current : measuredHeight;
++  if (!editing && !preserveBrowsingHeight && !stabilizeEditor) browsingHeight.current = measuredHeight;
++  // Preserve physical height while the naming field mounts and the keyboard
++  // opens; only move further when the field really needs more visible space.
++  const sheetHeight = stabilizeEditor
++    ? Math.max(measuredHeight, browsingHeight.current - keyboardInset)
++    : editing ? browsingHeight.current : measuredHeight;
+   const translateY = useRef(new Animated.Value(sheetHeight)).current;
+   const onCloseRef = useRef(onClose);
+   onCloseRef.current = onClose;
+@@ -163,7 +170,7 @@
+                 onLayout={(event) => setTitleMeasure({ key: titleKey, width: event.nativeEvent.layout.width })}>{noWidow(title)}</Text>}
+               <View style={s.toolbar}>
+                 <View style={{ width: separateTitle ? undefined : sideWidth, flex: separateTitle ? 1 : undefined, alignItems: 'flex-start' }}>
+-                  <View style={s.panelActions} onLayout={(event) => setLeadingWidth(event.nativeEvent.layout.width)}>
++                  <View style={s.panelActions} onLayout={(event) => setLeadingMeasures((current) => current[viewKey] === event.nativeEvent.layout.width ? current : { ...current, [viewKey]: event.nativeEvent.layout.width })}>
+                     {leadingAction ?? (onBack
+                       ? <TouchableOpacity onPress={onBack} style={s.backButton} accessibilityRole="button" accessibilityLabel="Volver"><Ionicons name="chevron-back" size={20} color={theme.text} /></TouchableOpacity>
+                       : !hideClose && <TouchableOpacity style={s.headerIcon} accessibilityRole="button" accessibilityLabel="Cerrar" accessibilityState={{ disabled: !!dismissDisabled }} disabled={dismissDisabled} onPress={() => dismissRef.current()}><Ionicons name="close" size={20} color={theme.textSecondary} /></TouchableOpacity>)}
+@@ -171,7 +178,7 @@
+                 </View>
+                 {!separateTitle && <View style={s.titleSlot}>{!hideTitle && <Text accessibilityRole="header" accessibilityLiveRegion="polite" style={s.panelTitle}>{noWidow(title)}</Text>}</View>}
+                 <View style={{ width: separateTitle ? undefined : sideWidth, alignItems: 'flex-end' }}>
+-                  <View style={s.panelActions} onLayout={(event) => setTrailingWidth(event.nativeEvent.layout.width)}>
++                  <View style={s.panelActions} onLayout={(event) => setTrailingMeasures((current) => current[viewKey] === event.nativeEvent.layout.width ? current : { ...current, [viewKey]: event.nativeEvent.layout.width })}>
+                     {!!onClear && <TouchableOpacity style={[s.headerIcon, { width: 'auto', paddingHorizontal: 8 }]} accessibilityRole="button" accessibilityLabel={`Limpiar ${title.toLowerCase()}`} onPress={onClear}><Text style={s.panelClear}>Limpiar</Text></TouchableOpacity>}
+                     {headerActions}
+                     {onCreate && <TouchableOpacity style={s.headerIcon} disabled={dismissDisabled} accessibilityState={{ disabled: !!dismissDisabled }} onPress={onCreate} accessibilityRole="button" accessibilityLabel="Nueva lista"><Ionicons name="add" size={22} color={theme.text} /></TouchableOpacity>}
+@@ -183,7 +190,7 @@
+           </View>
+           <View style={{ flex: 1, minHeight: 0 }}>
+             <ScrollView key={`${visible}:${viewKey}`} style={{ flex: 1 }} onLayout={edges.onLayout} onScroll={edges.onScroll} scrollEventThrottle={16} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator indicatorStyle={theme.isDark ? 'white' : 'black'}
+-            onContentSizeChange={(width, height) => { edges.onContentSizeChange(width, height); setContentSize((current) => current.title === viewKey && current.height === height ? current : { title: viewKey, height }); }}
++            onContentSizeChange={(width, height) => { edges.onContentSizeChange(width, height); setContentSizes((current) => current[viewKey] === height ? current : { ...current, [viewKey]: height }); }}
+             contentContainerStyle={{ paddingBottom: footer ? Math.min(footerHeight, footerMaxHeight) + 16 : 16 + bottomPadding }}>
+               {editor}
+               {children}
+--- a/components/foodie-filter-bar.tsx
++++ b/components/foodie-filter-bar.tsx
+@@ -720,13 +720,13 @@
+       viewKey={renameTarget ? `lists-rename:${renameTarget.id}` : creatingList ? 'lists-create' : openPanel === 'filters' ? (filterDetail ?? 'filters') : movingLists ? 'lists-move' : selectingLists ? 'lists-select' : 'lists'}
+       onCreate={openPanel === 'lists' && !namingList && (!selectingLists || movingLists) ? startCreate : undefined}
+       editing={selectingLists && !movingLists && !namingList}
+-      preserveBrowsingHeight={selectingLists && namingList}
++      preserveBrowsingHeight={namingList}
++      stabilizeEditor={namingList}
+       dismissDisabled={creatingPending || deletingLists || listActionBusy}
+       headerActions={openPanel === 'lists' && !movingLists && !namingList ? selectingLists ? <TouchableOpacity disabled={deletingLists || listActionBusy} style={[s.headerIcon, { width: 'auto', paddingHorizontal: 8 }]} accessibilityRole="button" accessibilityLabel="Terminar de organizar listas" onPress={() => { setSelectingLists(false); setSelectedListIds([]); }}><Text style={s.headerActionText}>Listo</Text></TouchableOpacity> : collections.length > 0 ? <TouchableOpacity style={[s.headerIcon, { width: 'auto', paddingHorizontal: 8 }]} accessibilityRole="button" accessibilityLabel="Organizar listas" onPress={() => beginListSelection()}><Text style={s.headerActionText}>Organizar</Text></TouchableOpacity> : undefined : undefined}
+       editor={openPanel === 'lists' && namingList ? <View style={s.section}><View style={s.group}>
+           <View style={[s.option, { paddingVertical: 12 }]}>
+             <View style={s.rowCopy}>
+-              <Text style={s.rowDetail}>{noWidow('Nombre de la lista')}</Text>
+               <TextInput autoFocus keyboardAppearance={theme.isDark ? 'dark' : 'light'} value={namingValue} editable={!namingBusy} onChangeText={renameTarget ? setRenameValue : setNewListTitle} maxLength={60} onSubmitEditing={saveListName} placeholder="Nombre de la lista" accessibilityLabel="Nombre de la lista" placeholderTextColor={theme.textMute} returnKeyType="done" autoCapitalize="sentences" style={[s.createInput, { minHeight: 44 }]} />
+             </View>
+             <TouchableOpacity disabled={!namingValue.trim() || namingBusy} hitSlop={CREATE_BTN_HIT_SLOP} onPress={saveListName} accessibilityRole="button" accessibilityLabel={renameTarget ? 'Guardar nombre de la lista' : 'Crear lista'} accessibilityState={{ disabled: !namingValue.trim() || namingBusy, busy: namingBusy }} style={[s.createBtn, (!namingValue.trim() || namingBusy) && s.createBtnDisabled]}><Text style={s.createBtnText}>{namingBusy ? renameTarget ? 'Guardando…' : 'Creando…' : renameTarget ? 'Guardar' : 'Crear'}</Text></TouchableOpacity>
+@@ -747,7 +747,7 @@
+           { label: 'Eliminar', icon: 'trash-outline', disabled: !selectedLists.length, onPress: removeSelectedLists },
+         ]} />
+       </View> : undefined}
+-      preferredHeight={openPanel === 'filters'
++      preferredHeight={namingList ? 180 : openPanel === 'filters'
+         ? filterDetail === 'categories' ? Math.min(560, 96 + categoryOptions.length * 48)
+           : filterDetail === 'payments' ? 244 : 216 + (additionalFilter ? 56 : 0)
+         : Math.min(514, 152 + Math.max(1, collections.length) * 56 + (creatingList ? 96 : 0) + (selectingLists ? 44 : 0))}
+--- a/components/menu-lists-sheet.tsx
++++ b/components/menu-lists-sheet.tsx
+@@ -103,12 +103,12 @@
+     <TouchableOpacity accessibilityRole="button" accessibilityLabel={choosingSource ? 'Continuar al destino' : 'Mover menús'} accessibilityState={{ disabled: busy || !canContinue || (!choosingSource && !destinationId), busy }} disabled={busy || !canContinue || (!choosingSource && !destinationId)} onPress={choosingSource ? () => setChoosingSource(false) : move} style={[s.confirm, { backgroundColor: theme.accent, opacity: busy || !canContinue || (!choosingSource && !destinationId) ? 0.35 : 1 }]}><Text style={s.confirmText}>{busy ? 'Moviendo…' : choosingSource ? 'Continuar' : 'Mover'}</Text></TouchableOpacity>
+   </View> : undefined;
+   const editor = naming ? <View style={[s.editor, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+-    <View style={{ flex: 1, minWidth: 0 }}><Text style={{ fontSize: 13, lineHeight: 18, color: theme.textSecondary }}>{noWidow('Nombre de la lista')}</Text>
++    <View style={{ flex: 1, minWidth: 0 }}>
+     <TextInput autoFocus keyboardAppearance={theme.isDark ? 'dark' : 'light'} value={namingValue} onChangeText={renameTarget ? setRenameValue : setNewTitle} maxLength={32} editable={!busy} accessibilityLabel="Nombre de la lista" placeholder="Nombre de la lista" placeholderTextColor={theme.textMute} returnKeyType="done" onSubmitEditing={saveName} style={[s.input, { color: theme.text }]} /></View>
+     <TouchableOpacity disabled={busy || !namingValue.trim()} accessibilityRole="button" accessibilityLabel={renameTarget ? 'Guardar nombre de la lista' : 'Crear lista'} accessibilityState={{ disabled: busy || !namingValue.trim(), busy }} onPress={saveName} style={s.control}><Text style={{ color: theme.accent, fontSize: 15, fontWeight: '600' }}>{busy ? renameTarget ? 'Guardando…' : 'Creando…' : renameTarget ? 'Guardar' : 'Crear'}</Text></TouchableOpacity>
+   </View> : undefined;
+   return <>
+-    <LibrarySheet visible={visible} onClose={close} title={renameTarget ? 'Renombrar lista' : creating ? 'Nueva lista' : mode === 'filter' ? 'Listas' : mode === 'move' ? choosingSource ? 'Origen' : 'Destino' : 'Añadir a lista'} viewKey={`menus:${mode}:${choosingSource}:${creating}:${renameTarget?.id ?? ''}`} footer={naming ? undefined : footer} theme={theme} preferredHeight={460} onCreate={naming || choosingSource ? undefined : startCreate} onBack={renameTarget ? () => { if (!busy) { setRenameTarget(null); Keyboard.dismiss(); } } : creating ? () => { if (!busy) { setCreating(false); Keyboard.dismiss(); } } : mode === 'move' && !choosingSource && !sourceKey ? () => { if (!busy) { setChoosingSource(true); setDestinationId(null); } } : undefined} onClear={!naming && mode === 'filter' && selectedIds.length ? onClearFilter : undefined} dismissDisabled={busy} editing={false} editor={editor}>
++    <LibrarySheet visible={visible} onClose={close} title={renameTarget ? 'Renombrar lista' : creating ? 'Nueva lista' : mode === 'filter' ? 'Listas' : mode === 'move' ? choosingSource ? 'Origen' : 'Destino' : 'Añadir a lista'} viewKey={`menus:${mode}:${choosingSource}:${creating}:${renameTarget?.id ?? ''}`} footer={naming ? undefined : footer} theme={theme} preferredHeight={naming ? 180 : 460} stabilizeEditor={naming} onCreate={naming || choosingSource ? undefined : startCreate} onBack={renameTarget ? () => { if (!busy) { setRenameTarget(null); Keyboard.dismiss(); } } : creating ? () => { if (!busy) { setCreating(false); Keyboard.dismiss(); } } : mode === 'move' && !choosingSource && !sourceKey ? () => { if (!busy) { setChoosingSource(true); setDestinationId(null); } } : undefined} onClear={!naming && mode === 'filter' && selectedIds.length ? onClearFilter : undefined} dismissDisabled={busy} editing={false} editor={editor}>
+       {!naming && <>
+       <View style={[s.group, { backgroundColor: theme.surface }]}>
+         {choices.map((collection, index) => <LibraryListRow key={collection.id} title={collection.title} count={collection.fechas.length} unit="menú" role={mode === 'move' && !choosingSource ? 'radio' : 'checkbox'} checked={membership(collection)} disabled={busy} divider={index > 0} onPress={() => toggle(collection)} onMore={mode === 'move' ? undefined : () => Alert.alert(collection.title, undefined, [
+--- a/scripts/tests/library-controls.test.cjs
++++ b/scripts/tests/library-controls.test.cjs
+@@ -625,6 +625,8 @@
+     tree = f.render(FoodieFilterBar, props);
+     assert.equal(panel().props.title, 'Nueva lista');
+     assert.equal(panel().props.children, null);
++    assert.equal(nodes(panel().props.editor).filter((node) => node.type === 'Text' && node.props.children === 'Nombre de la lista').length, 0);
++    assert.equal(panel().props.stabilizeEditor, true);
+     nodes(panel().props.editor).find((node) => node.props?.accessibilityLabel === 'Nombre de la lista').props.onChangeText('  Fin de semana  ');
+     tree = f.render(FoodieFilterBar, props);
+     nodes(panel().props.editor).find((node) => node.props?.accessibilityLabel === 'Crear lista').props.onPress();
+@@ -907,3 +909,31 @@
+   nodes(tree).find((node) => node.type === 'Modal').props.onRequestClose();
+   assert.equal(dismissedMenu, 1);
+ });
++
++
++test('new list keeps the physical sheet height through mount and keyboard and does not reuse old toolbar measurements', () => {
++  let keyboard = { keyboardInset: 0, keyboardVisible: false, viewportHeight: 568 };
++  const f = fixture('components/library-sheet.tsx', { '@/lib/use-sheet-keyboard': { useSheetKeyboard: () => keyboard } });
++  const props = { visible: true, onClose() {}, title: 'Listas', viewKey: 'lists', preferredHeight: 460, theme: {}, children: 'Rows' };
++  let tree = f.render(f.exports.LibrarySheet, props);
++  const frame = () => nodes(tree).find((node) => node.type === 'Animated.View' && node.props.accessibilityViewIsModal).props.style[1];
++  nodes(tree).find((node) => node.type === 'ScrollView').props.onContentSizeChange(320, 650);
++  const groups = nodes(tree).filter((node) => node.type === 'View' && node.props.onLayout && node.props.style?.gap === 4);
++  groups[1].props.onLayout({ nativeEvent: { layout: { width: 140 } } });
++  tree = f.render(f.exports.LibrarySheet, props);
++  const physicalHeight = frame().height;
++  const naming = { ...props, title: 'Nueva lista', viewKey: 'lists-create', preferredHeight: 180, stabilizeEditor: true, children: 'Field' };
++  tree = f.render(f.exports.LibrarySheet, naming);
++  assert.equal(frame().height, physicalHeight, 'Mounting the field never flashes the large fallback then shrinks');
++  assert.ok(!nodes(tree).some((node) => node.type === 'View' && node.props.style?.paddingBottom === 8 && node.props.style?.paddingTop === 4), 'Naming has fresh side measurements');
++  nodes(tree).find((node) => node.type === 'ScrollView').props.onContentSizeChange(320, 130);
++  tree = f.render(f.exports.LibrarySheet, naming);
++  assert.equal(frame().height, physicalHeight, 'Measuring the field does not resize the sheet');
++  keyboard = { keyboardInset: 300, keyboardVisible: true, viewportHeight: 268 };
++  tree = f.render(f.exports.LibrarySheet, naming);
++  assert.equal(frame().height, physicalHeight, 'Keyboard consumes internal space before moving the top edge');
++  assert.ok(frame().height - keyboard.keyboardInset >= 180);
++  keyboard = { keyboardInset: 0, keyboardVisible: false, viewportHeight: 568 };
++  tree = f.render(f.exports.LibrarySheet, props);
++  assert.equal(frame().height, physicalHeight, 'Returning reuses the measured list height');
++});

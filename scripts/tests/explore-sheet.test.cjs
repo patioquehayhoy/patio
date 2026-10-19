@@ -219,6 +219,7 @@ test('the real map screen restores its tabs after swipe and reopens results on s
     'react-native-maps': { __esModule: true, default: 'MapView', Marker: 'Marker' },
     'react-native-safe-area-context': { useSafeAreaInsets: () => ({ top: 44, bottom: 34 }) },
     'expo-blur': { BlurView: 'BlurView' }, 'expo-linear-gradient': { LinearGradient: 'LinearGradient' }, '@expo/vector-icons': { Ionicons: 'Icon' },
+    '@/components/place-icon': { PlaceIcon: 'Icon' },
     '@/lib/controllers/useFoodieExploreController': { FOODIE_INITIAL_REGION: initialRegion, useFoodieExploreController: () => controller },
     '@/lib/theme': { Radius: { sheet: 28 }, Fonts: { brand: 'brand' }, useTheme: () => ({ theme: { accent: '#F2612F', isDark: false } }) },
     '@/lib/map-style': { MAP_STYLE_DARK: [], MAP_STYLE_LIGHT: [] },

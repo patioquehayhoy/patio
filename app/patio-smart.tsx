@@ -1,3 +1,4 @@
+import { PlaceIcon } from '@/components/place-icon';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -73,7 +74,7 @@ const STEP_BY_STAGE: Record<Exclude<Stage, 'finish'>, number> = {
 // separados — antes eran una sola etiqueta compuesta "Elotes y botanas".
 // Iconos únicos dentro de este arreglo, sin repetir entre entradas.
 const BUSINESS_TYPES: { id: BusinessType; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
-  { id: 'fondita', label: BUSINESS_TYPE_LABELS.fondita, icon: 'restaurant-outline' },
+  { id: 'fondita', label: BUSINESS_TYPE_LABELS.fondita, icon: 'location-outline' },
   { id: 'taqueria', label: 'Tacos', icon: 'flame-outline' },
   { id: 'antojitos', label: BUSINESS_TYPE_LABELS.antojitos, icon: 'fast-food-outline' },
   { id: 'elotes', label: BUSINESS_TYPE_LABELS.elotes, icon: 'nutrition-outline' },
@@ -81,7 +82,7 @@ const BUSINESS_TYPES: { id: BusinessType; label: string; icon: keyof typeof Ioni
   { id: 'reposteria', label: 'Postres y pan', icon: 'cafe-outline' },
   { id: 'mariscos', label: BUSINESS_TYPE_LABELS.mariscos, icon: 'fish-outline' },
   { id: 'bebidas', label: BUSINESS_TYPE_LABELS.bebidas, icon: 'wine-outline' },
-  { id: 'restaurante', label: BUSINESS_TYPE_LABELS.restaurante, icon: 'book-outline' },
+  { id: 'restaurante', label: BUSINESS_TYPE_LABELS.restaurante, icon: 'location-outline' },
   { id: 'otro', label: 'Otro', icon: 'ellipsis-horizontal' },
 ];
 
@@ -407,7 +408,8 @@ export default function PatioSmartScreen() {
                   <TouchableOpacity
                     key={item.id}
                     accessibilityRole="checkbox"
-                    accessibilityState={{ selected, disabled: locked }}
+                    accessibilityLabel={item.label}
+                    accessibilityState={{ checked: selected, disabled: locked }}
                     disabled={locked}
                     onPress={() => {
                       if (selected) {
@@ -427,7 +429,7 @@ export default function PatioSmartScreen() {
                       { backgroundColor: colors.surface, borderColor: selected ? colors.accent : colors.border },
                       locked && s.typeOptionLocked,
                     ]}>
-                    <Ionicons name={item.icon} size={19} color={selected ? colors.accent : colors.textSecondary} />
+                    <PlaceIcon name={item.icon} size={19} color={selected ? colors.accent : colors.textSecondary} />
                     <Text style={[s.typeLabel, { color: colors.text }]}>{item.label}</Text>
                     {selected ? <Ionicons name="checkmark-circle" size={18} color={colors.accent} /> : null}
                   </TouchableOpacity>
@@ -449,13 +451,15 @@ export default function PatioSmartScreen() {
             <TouchableOpacity
               accessibilityRole="button"
               onPress={useCurrentLocation}
+              accessibilityLabel={hasCoordinates ? 'Actualizar ubicación del negocio' : 'Usar mi ubicación actual'}
+              accessibilityState={{ disabled: locating, busy: locating }}
               disabled={locating}
               activeOpacity={0.72}
               style={[s.locationAction, { backgroundColor: colors.surface, borderColor: colors.border }]}>
               <View style={[s.locationIcon, { backgroundColor: colors.iconBg }]}>
                 {locating
                   ? <ActivityIndicator size="small" color={colors.text} />
-                  : <Ionicons name={hasCoordinates ? 'checkmark' : 'location'} size={18} color={colors.text} />}
+                  : <Ionicons name={hasCoordinates ? 'checkmark' : 'navigate-outline'} size={18} color={colors.text} />}
               </View>
               <View style={s.locationCopy}>
                 <Text style={[s.locationTitle, { color: colors.text }]} maxFontSizeMultiplier={1.4}>

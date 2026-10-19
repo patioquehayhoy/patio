@@ -20,7 +20,7 @@ import { useTheme, type Theme } from '@/lib/theme';
 import { GlassIconButton } from '@/components/glass-button';
 import { BusinessPaymentSelector } from '@/components/business-payment-selector';
 import { BusinessScheduleEditor } from '@/components/business-schedule-editor';
-import { SettingsGroup, SettingsRow, type SettingsColors } from '@/components/settings-list';
+import { SettingsGroup, SettingsRow, settingsColors } from '@/components/settings-list';
 
 const MAX_DESCRIPCION = 80;
 const MAX_UBICACION   = 80;
@@ -66,18 +66,6 @@ function makeStyles(theme: Theme) {
   });
 }
 
-function settingsColors(theme: Theme): SettingsColors {
-  return {
-    surface: theme.surface,
-    border: theme.border,
-    text: theme.text,
-    textSecondary: theme.textSecondary,
-    textMute: theme.textMute,
-    accent: theme.accent,
-    iconBg: theme.isDark ? 'rgba(255,255,255,0.06)' : 'rgba(17,18,20,0.04)',
-    accentBg: theme.accentSoft,
-  };
-}
 
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 export default function PerfilScreen() {
@@ -197,7 +185,7 @@ export default function PerfilScreen() {
               accessibilityLabel={locationSaved ? 'En el mapa' : 'Marcar en el mapa'}
               accessibilityState={{ disabled: isSavingLocation, busy: isSavingLocation }}>
               <Ionicons
-                name={locationSaved ? 'checkmark-circle' : 'location-outline'}
+                name={locationSaved ? 'checkmark-circle' : 'navigate-outline'}
                 size={14}
                 color={locationSaved ? theme.accent : theme.textSecondary}
               />

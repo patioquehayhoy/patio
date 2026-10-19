@@ -43,7 +43,7 @@ export function BlockedAccounts() {
   return <View style={{ marginTop: 24, gap: 8 }}>
     <Text style={{ fontSize: 16, fontWeight: '700', color: theme.text }}>{noWidow('Cuentas bloqueadas')}</Text>
     {loading ? <ActivityIndicator color={theme.textSecondary} accessibilityLabel="Cargando cuentas bloqueadas" /> : error ?
-      <TouchableOpacity onPress={() => setRetry((value) => value + 1)} accessibilityRole="button" style={{ minHeight: 44, justifyContent: 'center' }}>
+      <TouchableOpacity onPress={() => setRetry((value) => value + 1)} accessibilityRole="button" accessibilityLabel="Reintentar carga de cuentas bloqueadas" style={{ minHeight: 44, justifyContent: 'center' }}>
         <Text style={{ color: theme.accent }}>{noWidow('No pudimos cargar las cuentas. Reintentar.')}</Text>
       </TouchableOpacity> : profiles.length ? profiles.map((profile) =>
         <View key={profile.user_id} style={{ flexDirection: 'row', alignItems: 'center', minHeight: 52, gap: 16 }}>

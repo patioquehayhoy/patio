@@ -58,6 +58,7 @@ function screenFixture(kind, { signedIn = true, failRead = false, missing = fals
     'react-native': { ...native, Alert: { alert: (...args) => alerts.push(args) }, Share: { share: async () => {} }, StyleSheet: { create: (style) => style, hairlineWidth: 0.5 } },
     'react-native-safe-area-context': { useSafeAreaInsets: () => ({ top: 0, bottom: 0 }) },
     '@expo/vector-icons': { Ionicons: 'Icon' },
+    '@/components/place-icon': { PlaceIcon: 'Icon' },
     'expo-router': { useLocalSearchParams: () => ({ id }), useFocusEffect: (callback) => { focus = callback; }, Stack: { Screen: 'Screen' }, router: { push: (route) => routes.push(route), canGoBack: () => false, replace: (route) => routes.push(route) } },
     '@/lib/supabase': { supabase },
     '@/lib/theme': { Fonts: {}, useTheme: () => ({ theme }) },

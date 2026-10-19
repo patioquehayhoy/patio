@@ -150,7 +150,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
       <Stack.Screen options={{ headerShown: false }} />
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <View style={[s.nav, { paddingTop: insets.top + 6 }]}>
-          <GlassIconButton icon="close" accessibilityLabel="Cerrar" onPress={onBack} size={38} iconSize={19} />
+          <GlassIconButton icon="close" accessibilityLabel="Cerrar" onPress={onBack} size={40} iconSize={19} />
           {/* Título del menú de hoy, como el de una nota: en blanco muestra el
               placeholder de siempre, y en cuanto el fondero le pone nombre
               (aquí mismo, sin salir a Menús) ese nombre se queda — ley
@@ -183,11 +183,11 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                 Haptics.selectionAsync().catch(() => {});
                 setNombreSaved(false);
               }}
-              size={38}
+              size={40}
               iconSize={18}
             />
           ) : source === 'foto' && onRetake ? (
-            <GlassIconButton icon="camera-outline" accessibilityLabel="Tomar otra foto" onPress={onRetake} size={38} iconSize={18} />
+            <GlassIconButton icon="camera-outline" accessibilityLabel="Tomar otra foto" onPress={onRetake} size={40} iconSize={18} />
           ) : <View style={s.navButton} />}
         </View>
 
@@ -337,7 +337,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                       accessibilityRole="button"
                       accessibilityLabel="Agregar platillo">
                       <Ionicons name="add" size={16} color={c.accent} />
-                      <Text style={s.addDishText}>{noWidow('Agregar platillo')}</Text>
+                      <Text style={s.addDishText}>{noWidow('Agregar')}</Text>
                     </TouchableOpacity>
                   </>
                 )}
@@ -414,16 +414,18 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
           </View>
 
           {/* Cierre del flujo, dentro del contenido: cápsulas HIG en fila —
-              el secundario abraza su texto (tintado, sin borde), el primario
+              el secundario usa superficie neutra y borde fino, el primario
               lleva el peso. Nada ocupa todo el ancho. */}
           <View style={s.actionsBlock}>
             <TouchableOpacity
-              style={s.saveButton}
+              style={[s.saveButton, publishing && { opacity: 0.5 }]}
+              disabled={publishing}
+              accessibilityState={{ disabled: publishing }}
               onPress={saveDraft}
               activeOpacity={0.8}
               accessibilityRole="button"
               accessibilityLabel={savedFlash ? 'Guardado' : 'Guardar borrador'}>
-              <Ionicons name={savedFlash ? 'checkmark' : 'bookmark-outline'} size={15} color={c.text} />
+              <Ionicons name="checkmark" size={18} color={c.text} style={{ opacity: savedFlash ? 1 : 0 }} />
               <Text style={s.saveText}>{savedFlash ? 'Guardado' : 'Guardar'}</Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -454,20 +456,16 @@ function makeStyles(c: FonderoColors) {
   return StyleSheet.create({
     root: { flex: 1, backgroundColor: c.bg },
     nav: { minHeight: 54, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-    // 38×38 — mismo tamaño que los GlassIconButton de este nav (cerca,
-    // cámara, palomita). Antes era 44×44: al alternar con la palomita
-    // (que sí es 38) el slot de la derecha cambiaba de ancho y el título
-    // (flex:1) se reajustaba de golpe — el "flickeo" reportado 2026-09-06.
-    navButton: { width: 38, height: 38, alignItems: 'center', justifyContent: 'center' },
+    navButton: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
     navTitle: { flex: 1, textAlign: 'left', paddingHorizontal: 8, fontSize: 16, fontWeight: '700', color: c.textSecondary },
     dayPriceField: { minWidth: 78, height: 40, paddingHorizontal: 10, borderRadius: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', backgroundColor: c.iconBg },
     dayPriceCurrency: { fontSize: 15, fontWeight: '700', color: c.textSecondary },
     dayPriceInput: { minWidth: 56, height: 44, paddingVertical: 0, paddingLeft: 2, textAlign: 'right', fontSize: 17, fontWeight: '700', color: c.text },
-    section: { borderTopWidth: StyleSheet.hairlineWidth, borderColor: c.border, paddingVertical: 14 },
+    section: { borderTopWidth: StyleSheet.hairlineWidth, borderColor: c.border, paddingVertical: 12 },
     sectionHeader: { minHeight: 44, flexDirection: 'row', alignItems: 'center' },
     collapseButton: { width: 30, height: 36, alignItems: 'flex-start', justifyContent: 'center' },
-    sectionName: { flex: 1, paddingVertical: 6, fontSize: 18, lineHeight: 22, fontWeight: '900', letterSpacing: 0.5, color: c.text },
-    moreButton: { width: 38, height: 38, alignItems: 'flex-end', justifyContent: 'center' },
+    sectionName: { flex: 1, paddingVertical: 6, fontSize: 14, lineHeight: 20, fontWeight: '700', letterSpacing: 0.6, color: c.text },
+    moreButton: { width: 44, height: 44, alignItems: 'flex-end', justifyContent: 'center' },
     currency: { fontSize: 13, fontWeight: '300', color: c.textMute },
     dish: { paddingVertical: 7, paddingLeft: 30 },
     dishDivider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: c.border },
@@ -483,20 +481,20 @@ function makeStyles(c: FonderoColors) {
     dishPrice: { width: 44, paddingVertical: 3, textAlign: 'right', fontSize: 15, fontWeight: '700', color: c.text },
     addPrice: { minHeight: 34, paddingHorizontal: 8, flexDirection: 'row', alignItems: 'center', gap: 4 },
     addPriceText: { fontSize: 12, fontWeight: '300', color: c.textSecondary },
-    addDish: { minHeight: 40, marginLeft: 30, flexDirection: 'row', alignItems: 'center', gap: 8 },
+    addDish: { minHeight: 44, marginLeft: 30, flexDirection: 'row', alignItems: 'center', gap: 8 },
     addDishText: { fontSize: 13, fontWeight: '700', color: c.accent },
     addSectionBlock: { borderTopWidth: StyleSheet.hairlineWidth, borderColor: c.border, paddingTop: 14 },
-    addSectionToggle: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 40 },
+    addSectionToggle: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 44 },
     addSectionToggleText: { fontSize: 13, fontWeight: '700', color: c.accent },
     addSectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: 28, marginBottom: 10 },
     addSectionLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1.6, color: c.textMute },
     chipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
     chip: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingLeft: 10, paddingRight: 14, minHeight: 36, borderRadius: 100, backgroundColor: c.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: c.border },
     chipText: { fontSize: 12, fontWeight: '700', letterSpacing: 0.6, color: c.text },
-    actionsBlock: { marginTop: 28, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
-    saveButton: { height: 50, borderRadius: 25, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: c.iconBg },
-    saveText: { fontSize: 15, fontWeight: '700', color: c.text },
-    publishButton: { height: 50, borderRadius: 25, paddingHorizontal: 32, alignItems: 'center', justifyContent: 'center', backgroundColor: c.accent, shadowColor: c.accent, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.28, shadowRadius: 14, elevation: 4 },
+    actionsBlock: { marginTop: 24, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: 8 },
+    saveButton: { minHeight: 50, borderRadius: 25, paddingVertical: 12, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: c.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: c.border },
+    saveText: { minWidth: 76, textAlign: 'center', fontSize: 15, fontWeight: '700', color: c.text },
+    publishButton: { minHeight: 50, borderRadius: 25, paddingVertical: 12, paddingHorizontal: 32, alignItems: 'center', justifyContent: 'center', backgroundColor: c.accent },
     publishText: { fontSize: 15, fontWeight: '700', color: '#fff', letterSpacing: -0.2 },
   });
 }

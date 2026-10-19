@@ -1,6 +1,6 @@
 import { router, usePathname } from 'expo-router';
 import { BlurView } from 'expo-blur';
-import { LinearGradient } from 'expo-linear-gradient';
+import { BottomContentFade } from '@/components/bottom-content-fade';
 import { Animated, Keyboard, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -30,7 +30,7 @@ const FOODIE_TABS: Tab[] = [
 ];
 
 const FONDERO_TABS: Tab[] = [
-  { path: '/historial', label: 'Menús',     icon: 'restaurant-outline', selectedIcon: 'restaurant' },
+  { path: '/historial', label: 'Menús',     icon: 'document-text-outline', selectedIcon: 'document-text' },
   { path: '/resenas',   label: 'Actividad', icon: 'heart-outline',      selectedIcon: 'heart' },
   { path: '/perfil',    label: 'Perfil',    icon: 'person-outline',     selectedIcon: 'person' },
 ];
@@ -64,14 +64,7 @@ export function BottomTabBar({ variant = 'fondero' }: { variant?: 'foodie' | 'fo
   const tabs = variant === 'foodie' ? FOODIE_TABS : FONDERO_TABS;
   return (
     <Animated.View pointerEvents="box-none" style={[styles.wrap, { bottom: bottomTabOffset(insets.bottom) }, translateY ? { transform: [{ translateY }] } : null]}>
-      <LinearGradient
-        colors={isDark
-          ? ['rgba(10,11,13,0)', 'rgba(10,11,13,0.32)']
-          : ['rgba(248,248,245,0)', 'rgba(248,248,245,0.45)']}
-        locations={[0, 1]}
-        pointerEvents="none"
-        style={[styles.readabilityGradient, { bottom: -(insets.bottom + 14) }]}
-      />
+      <BottomContentFade height={BOTTOM_TAB_HEIGHT + bottomTabOffset(insets.bottom) + 16} bottom={-bottomTabOffset(insets.bottom)} />
       <View style={styles.pill} accessibilityRole="tablist">
         <BlurView
           intensity={isDark ? 16 : 20}
@@ -119,7 +112,6 @@ export function BottomTabBar({ variant = 'fondero' }: { variant?: 'foodie' | 'fo
 
 const makeStyles = (t: Theme) => StyleSheet.create({
   wrap: { position: 'absolute', left: 0, right: 0, alignItems: 'center', zIndex: 100 },
-  readabilityGradient: { position: 'absolute', left: 0, right: 0, height: 72 },
   pill: {
     flexDirection: 'row',
     gap: 4,

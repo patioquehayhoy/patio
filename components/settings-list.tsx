@@ -1,3 +1,4 @@
+import type { Theme } from '@/lib/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { noWidow } from '@/lib/typography';
 import type { ReactNode } from 'react';
@@ -20,6 +21,19 @@ export type SettingsColors = {
   iconBg: string;   // fondo neutro del icono
   accentBg: string; // fondo tibio del icono cuando accent=true
 };
+
+export function settingsColors(theme: Theme): SettingsColors {
+  return {
+    surface: theme.surface,
+    border: theme.border,
+    text: theme.text,
+    textSecondary: theme.textSecondary,
+    textMute: theme.textMute,
+    accent: theme.accent,
+    iconBg: theme.iconBg,
+    accentBg: theme.accentSoft,
+  };
+}
 
 type SettingsRowProps = {
   c: SettingsColors;

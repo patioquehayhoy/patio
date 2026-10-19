@@ -1,3 +1,4 @@
+import { PinIcon } from '@/components/pin-icon';
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import type { Ref } from 'react';
@@ -12,10 +13,10 @@ export function LibraryListRow({ title, count, unit, checked, disabled, onPress,
   const { theme } = useTheme();
   const countLabel = `${count} ${count === 1 ? unit : unit === 'lugar' ? 'lugares' : 'menús'}`;
   return <View style={[s.row, divider && { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.border }]}>
-    <Pressable style={({ pressed }) => [s.main, pressed && { backgroundColor: theme.surface2 }]} disabled={disabled} accessibilityRole={role} accessibilityLabel={`${title}, ${countLabel}`} accessibilityState={{ checked, disabled: !!disabled }} onPress={onPress} onLongPress={onLongPress}>
+    <Pressable style={({ pressed }) => [s.main, pressed && { backgroundColor: theme.surface2 }]} disabled={disabled} accessibilityRole={role} accessibilityLabel={`${title}, ${countLabel}${pinned ? ', fijada' : ''}`} accessibilityState={{ checked, disabled: !!disabled }} onPress={onPress} onLongPress={onLongPress}>
       <Ionicons name={checked === 'mixed' ? 'remove-circle-outline' : checked ? 'checkmark-circle' : 'ellipse-outline'} size={22} color={checked ? theme.accent : theme.textMute} />
       <Text numberOfLines={2} ellipsizeMode="tail" style={[s.title, { color: theme.text }]}>{noWidow(title)}</Text>
-      {pinned && <Ionicons name="bookmark" size={13} color={theme.textSecondary} />}
+      {pinned && <PinIcon size={14} color={theme.textSecondary} />}
       <Text numberOfLines={2} style={[s.count, { color: theme.textSecondary }]}>{countLabel}</Text>
     </Pressable>
     {onMore && <TouchableOpacity ref={moreRef} style={s.more} disabled={disabled} accessibilityRole="button" accessibilityLabel={`Acciones de ${title}`} accessibilityState={{ disabled: !!disabled }} onPress={onMore}><Ionicons name="ellipsis-horizontal" size={20} color={theme.textSecondary} /></TouchableOpacity>}

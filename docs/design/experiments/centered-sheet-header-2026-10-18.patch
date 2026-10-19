@@ -1,0 +1,472 @@
+--- a/components/library-sheet.tsx
++++ b/components/library-sheet.tsx
+@@ -12,7 +12,6 @@
+ import { libraryFooterMaxHeight, librarySheetHeight } from '@/lib/layout-metrics';
+ import { sheetSurfaceTint } from '@/lib/surface-styles';
+ 
+-const CLEAR_HIT_SLOP = { top: 13, bottom: 13, left: 8, right: 4 };
+ function sheetStyles(t: Theme) {
+   const border = t.border;
+   return StyleSheet.create({
+@@ -22,19 +21,21 @@
+     sheetTint: { ...StyleSheet.absoluteFillObject, backgroundColor: sheetSurfaceTint(t.isDark) },
+     grabberTouch: { alignItems: 'center', flexShrink: 0 },
+     grabber: { width: 36, height: 4, borderRadius: 2, marginTop: 8, marginBottom: 12, backgroundColor: t.isDark ? 'rgba(255,255,255,0.16)' : 'rgba(0,0,0,0.10)' },
+-    panelHeader: { width: '100%', minHeight: 44, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 8 },
+-    panelHeading: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center' },
+-    backButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', marginLeft: -12 },
+-    panelTitle: { flexShrink: 1, fontSize: 17, lineHeight: 23, fontWeight: '700', color: t.text },
++    panelHeader: { width: '100%', paddingHorizontal: 16, paddingBottom: 4 },
++    toolbar: { minHeight: 44, flexDirection: 'row', alignItems: 'center' },
++    titleSlot: { flex: 1, minWidth: 0, alignItems: 'center', paddingHorizontal: 4 },
++    titleRow: { paddingHorizontal: 16, paddingTop: 4, paddingBottom: 8, alignItems: 'center' },
++    backButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
++    panelTitle: { textAlign: 'center', flexShrink: 1, fontSize: 17, lineHeight: 23, fontWeight: '700', color: t.text },
+     panelActions: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+     headerIcon: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+     panelClear: { fontSize: 14, fontWeight: '600', color: t.text },
+   });
+ }
+ 
+-export function LibrarySheet({ visible, onClose, title, viewKey: viewKeyProp, onClear, onBack, hideTitle, hideClose, onCreate, headerActions, footer, dismissDisabled, editing, editor, preferredHeight, children, overlay, theme }: {
++export function LibrarySheet({ visible, onClose, title, viewKey: viewKeyProp, onClear, onBack, hideTitle, hideClose, onCreate, leadingAction, headerActions, footer, dismissDisabled, editing, editor, preferredHeight, children, overlay, theme }: {
+   visible: boolean; onClose: () => boolean | void; title: string; viewKey?: string; onClear?: () => void; onBack?: () => void;
+-  preferredHeight: number; hideTitle?: boolean; hideClose?: boolean; onCreate?: () => void; headerActions?: React.ReactNode; footer?: React.ReactNode; dismissDisabled?: boolean; editing?: boolean; editor?: React.ReactNode;
++  preferredHeight: number; hideTitle?: boolean; hideClose?: boolean; onCreate?: () => void; leadingAction?: React.ReactNode; headerActions?: React.ReactNode; footer?: React.ReactNode; dismissDisabled?: boolean; editing?: boolean; editor?: React.ReactNode;
+   children: React.ReactNode; overlay?: React.ReactNode; theme: ReturnType<typeof useTheme>['theme'];
+ }) {
+   const s = sheetStyles(theme);
+@@ -43,8 +44,16 @@
+   // El título puede cambiar dentro de la misma vista ("2 seleccionadas"); la
+   // vista, no el título, decide cuándo se remonta el scroll y se re-mide.
+   const viewKey = viewKeyProp ?? title;
+-  const { height: screenHeight, fontScale } = useWindowDimensions();
++  const { width: screenWidth, height: screenHeight, fontScale } = useWindowDimensions();
+   const { keyboardInset, keyboardVisible, viewportHeight } = useSheetKeyboard();
++  const [leadingWidth, setLeadingWidth] = useState(44);
++  const [trailingWidth, setTrailingWidth] = useState(44);
++  const sideWidth = Math.max(44, leadingWidth, trailingWidth);
++  const titleKey = `${title}:${fontScale}`;
++  const [titleMeasure, setTitleMeasure] = useState({ key: '', width: 0 });
++  // Measure the actual themed text; a fixed 128 pt minimum split even short titles.
++  const titleWidth = titleMeasure.key === titleKey ? titleMeasure.width : title.length * 9 * fontScale;
++  const separateTitle = fontScale > 1.4 || screenWidth - 32 - sideWidth * 2 < titleWidth + 16;
+   const [contentSize, setContentSize] = useState({ title: '', height: 0 });
+   const [headerHeight, setHeaderHeight] = useState(68);
+   const [footerHeight, setFooterHeight] = useState(60);
+@@ -148,16 +157,27 @@
+           <View {...pan.panHandlers} style={s.grabberTouch} onLayout={(event) => setHeaderHeight(event.nativeEvent.layout.height)}>
+             <View style={s.grabber} />
+             <View style={s.panelHeader}>
+-              <View style={s.panelHeading}>
+-                {onBack && <TouchableOpacity onPress={onBack} style={s.backButton} accessibilityRole="button" accessibilityLabel="Volver"><Ionicons name="chevron-back" size={20} color={theme.text} /></TouchableOpacity>}
+-                {!hideTitle && <Text accessibilityRole="header" accessibilityLiveRegion="polite" style={s.panelTitle}>{noWidow(title)}</Text>}
++              {!hideTitle && <Text key={titleKey} accessible={false} accessibilityElementsHidden importantForAccessibility="no-hide-descendants" pointerEvents="none"
++                style={[s.panelTitle, { position: 'absolute', opacity: 0, alignSelf: 'flex-start' }]}
++                onLayout={(event) => setTitleMeasure({ key: titleKey, width: event.nativeEvent.layout.width })}>{noWidow(title)}</Text>}
++              <View style={s.toolbar}>
++                <View style={{ width: separateTitle ? undefined : sideWidth, flex: separateTitle ? 1 : undefined, alignItems: 'flex-start' }}>
++                  <View style={s.panelActions} onLayout={(event) => setLeadingWidth(event.nativeEvent.layout.width)}>
++                    {leadingAction ?? (onBack
++                      ? <TouchableOpacity onPress={onBack} style={s.backButton} accessibilityRole="button" accessibilityLabel="Volver"><Ionicons name="chevron-back" size={20} color={theme.text} /></TouchableOpacity>
++                      : !hideClose && <TouchableOpacity style={s.headerIcon} accessibilityRole="button" accessibilityLabel="Cerrar" accessibilityState={{ disabled: !!dismissDisabled }} disabled={dismissDisabled} onPress={() => dismissRef.current()}><Ionicons name="close" size={20} color={theme.textSecondary} /></TouchableOpacity>)}
++                  </View>
++                </View>
++                {!separateTitle && <View style={s.titleSlot}>{!hideTitle && <Text accessibilityRole="header" accessibilityLiveRegion="polite" style={s.panelTitle}>{noWidow(title)}</Text>}</View>}
++                <View style={{ width: separateTitle ? undefined : sideWidth, alignItems: 'flex-end' }}>
++                  <View style={s.panelActions} onLayout={(event) => setTrailingWidth(event.nativeEvent.layout.width)}>
++                    {!!onClear && <TouchableOpacity style={[s.headerIcon, { width: 'auto', paddingHorizontal: 8 }]} accessibilityRole="button" accessibilityLabel={`Limpiar ${title.toLowerCase()}`} onPress={onClear}><Text style={s.panelClear}>Limpiar</Text></TouchableOpacity>}
++                    {headerActions}
++                    {onCreate && <TouchableOpacity style={s.headerIcon} disabled={dismissDisabled} accessibilityState={{ disabled: !!dismissDisabled }} onPress={onCreate} accessibilityRole="button" accessibilityLabel="Nueva lista"><Ionicons name="add" size={22} color={theme.text} /></TouchableOpacity>}
++                  </View>
++                </View>
+               </View>
+-              <View style={s.panelActions}>
+-                {onCreate && <TouchableOpacity style={s.headerIcon} onPress={onCreate} accessibilityRole="button" accessibilityLabel="Nueva lista"><Ionicons name="add" size={22} color={theme.text} /></TouchableOpacity>}
+-                {!!onClear && <TouchableOpacity hitSlop={CLEAR_HIT_SLOP} accessibilityRole="button" accessibilityLabel={`Limpiar ${title.toLowerCase()}`} onPress={onClear}><Text style={s.panelClear}>Limpiar</Text></TouchableOpacity>}
+-                {headerActions}
+-                {!hideClose && <TouchableOpacity style={s.headerIcon} accessibilityRole="button" accessibilityLabel="Cerrar" accessibilityState={{ disabled: !!dismissDisabled }} disabled={dismissDisabled} onPress={() => dismissRef.current()}><Ionicons name="close" size={20} color={theme.textSecondary} /></TouchableOpacity>}
+-              </View>
++              {separateTitle && !hideTitle && <View style={s.titleRow}><Text accessibilityRole="header" accessibilityLiveRegion="polite" style={s.panelTitle}>{noWidow(title)}</Text></View>}
+             </View>
+           </View>
+           <View style={{ flex: 1, minHeight: 0 }}>
+--- a/components/foodie-filter-bar.tsx
++++ b/components/foodie-filter-bar.tsx
+@@ -150,10 +150,10 @@
+     // caja de fondo — corregido 2026-08-24, había ido en la dirección
+     // contraria (le había puesto caja en vez de quitársela a los otros).
+     listRowMore: { width: 36, height: 44, alignItems: 'center', justifyContent: 'center' },
+-    createInput: { flex: 1, fontSize: 15, fontWeight: '500', color: t.text, padding: 0 },
++    createInput: { flex: 1, fontSize: 16, fontWeight: '400', color: t.text, padding: 0 },
+     createBtn: { minWidth: 44, minHeight: 44, paddingHorizontal: 8, alignItems: 'center', justifyContent: 'center' },
+     createBtnDisabled: { opacity: 0.35 },
+-    createBtnText: { fontSize: 15, fontWeight: '500', color: t.accent },
++    createBtnText: { fontSize: 15, fontWeight: '600', color: t.accent },
+     confirmMoveButton: { minHeight: 50, borderRadius: 25, backgroundColor: t.accent, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 20, paddingVertical: 12 },
+     confirmMoveText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF', textAlign: 'center' },
+     // Menú de acciones por lista — anclado junto al botón "···" (mismo
+@@ -297,8 +297,6 @@
+   const [filterDetail, setFilterDetail] = useState<FilterDetail>(null);
+   const [organizerVisible, setOrganizerVisible] = useState(false);
+   const organizerRef = useRef<View>(null);
+-  const listsMenuRef = useRef<View>(null);
+-  const [listsMenuVisible, setListsMenuVisible] = useState(false);
+   const [creatingList, setCreatingList] = useState(false);
+   const [selectingLists, setSelectingLists] = useState(false);
+   const [selectedListIds, setSelectedListIds] = useState<string[]>([]);
+@@ -389,7 +387,6 @@
+   const togglePanel = (panel: OpenPanel) => {
+     Haptics.selectionAsync().catch(() => {});
+     setActionsTarget(null);
+-    setListsMenuVisible(false);
+     setMovingLists(false);
+     setMoveDestinationId(null);
+     setCreatingList(false);
+@@ -420,24 +417,11 @@
+     }
+   };
+ 
+-  // Crear y renombrar comparten el mismo gesto de nombrar: alert nativo con
+-  // campo de texto en iOS (sin pelear con el teclado dentro de la hoja).
++  // Keep creation in the themed sheet on both platforms, without a native alert.
+   const startCreate = () => {
++    if (createPendingRef.current || deleteListsPending.current) return;
+     Haptics.selectionAsync().catch(() => {});
+-    if (Platform.OS === 'ios') {
+-      Alert.prompt(
+-        'Nueva lista',
+-        undefined,
+-        [
+-          { text: 'Cancelar', style: 'cancel' },
+-          { text: 'Crear', onPress: (value?: string) => { void handleCreateList(value ?? ''); } },
+-        ],
+-        'plain-text',
+-        '',
+-      );
+-    } else {
+-      setCreatingList(true);
+-    }
++    setCreatingList(true);
+   };
+ 
+   const commitRename = async (collectionId: string, rawTitle: string): Promise<boolean> => {
+@@ -553,17 +537,16 @@
+     );
+   };
+ 
+-  const openListActions = (collection?: PatioCollection) => {
++  const openListActions = (collection: PatioCollection) => {
+     Haptics.selectionAsync().catch(() => {});
+-    const anchor = collection ? moreRefs.current.get(collection.id) : listsMenuRef.current;
++    const anchor = moreRefs.current.get(collection.id);
+     if (!anchor) return;
+     anchor.measureInWindow((x, y, width, height) => {
+       const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+       const spaceBelow = screenHeight - (y + height);
+       const left = Math.min(Math.max(8, x + width - ACTION_SHEET_MENU_WIDTH), screenWidth - ACTION_SHEET_MENU_WIDTH - 8);
+       setActionsLayout(spaceBelow > 220 ? { top: y + height + 8, left } : { bottom: screenHeight - y + 8, left });
+-      setActionsTarget(collection ?? null);
+-      setListsMenuVisible(!collection);
++      setActionsTarget(collection);
+     });
+   };
+ 
+@@ -571,16 +554,13 @@
+     setSelectingLists(true);
+     setSelectedListIds(id ? [id] : []);
+     setActionsTarget(null);
+-    setListsMenuVisible(false);
+-  };
+-  const closeListMenu = () => { setActionsTarget(null); setListsMenuVisible(false); };
++  };
++  const closeListMenu = () => { setActionsTarget(null); };
+   const listMenuOptions: ActionSheetOption[] = actionsTarget ? [
+     { label: 'Compartir', icon: 'share-outline', onPress: () => shareCollection(actionsTarget) },
+     { label: 'Renombrar', icon: 'pencil', onPress: () => startRename(actionsTarget) },
+     { label: 'Eliminar', icon: 'trash-outline', destructive: true, onPress: () => removeCollection(actionsTarget) },
+-  ] : [
+-    { label: 'Seleccionar listas', icon: 'checkmark-circle-outline', onPress: () => beginListSelection() },
+-  ];
++  ] : [];
+ 
+   useEffect(() => { setListActionNotice(null); }, [selectedListIds, openPanel]);
+ 
+@@ -739,37 +719,29 @@
+       }}
+       hideTitle={false}
+       hideClose={selectingLists && !movingLists && !creatingList}
+-      title={openPanel === 'filters' ? filterDetail === 'categories' ? 'Tipo de lugar' : filterDetail === 'payments' ? 'Pago' : 'Filtros' : creatingList ? 'Nueva lista' : movingLists ? 'Destino' : selectingLists ? selectedListIds.length ? `${selectedListIds.length} ${selectedListIds.length === 1 ? 'lista seleccionada' : 'listas seleccionadas'}` : 'Seleccionar listas' : 'Listas'}
+-      viewKey={openPanel === 'filters' ? (filterDetail ?? 'filters') : movingLists ? 'lists-move' : selectingLists ? 'lists-select' : 'lists'}
++      title={openPanel === 'filters' ? filterDetail === 'categories' ? 'Tipo de lugar' : filterDetail === 'payments' ? 'Pago' : 'Filtros' : creatingList ? 'Nueva lista' : movingLists ? 'Destino' : selectingLists ? 'Organizar listas' : 'Listas'}
++      viewKey={creatingList ? 'lists-create' : openPanel === 'filters' ? (filterDetail ?? 'filters') : movingLists ? 'lists-move' : selectingLists ? 'lists-select' : 'lists'}
+       onCreate={openPanel === 'lists' && !creatingList && (!selectingLists || movingLists) ? startCreate : undefined}
+       editing={selectingLists && !movingLists}
+       dismissDisabled={creatingPending || deletingLists || listActionBusy}
+-      headerActions={movingLists && !creatingList ? undefined : openPanel === 'lists' && creatingList ? <TouchableOpacity disabled={creatingPending} style={[s.headerIcon, { width: 'auto', paddingHorizontal: 8 }]} accessibilityRole="button" accessibilityLabel="Cancelar nueva lista" onPress={() => { setCreatingList(false); setNewListTitle(''); }}><Text style={s.organizerText}>Cancelar</Text></TouchableOpacity> : openPanel === 'lists' && collections.length > 0 ? (
+-        selectingLists ? <TouchableOpacity disabled={deletingLists || listActionBusy} style={[s.headerIcon, { width: 'auto', paddingHorizontal: 8 }]} accessibilityRole="button" accessibilityLabel="Cancelar selección"
+-          onPress={() => { setSelectingLists(false); setSelectedListIds([]); }}>
+-          <Text style={s.organizerText}>Cancelar</Text>
+-        </TouchableOpacity> : <TouchableOpacity ref={listsMenuRef} style={s.headerIcon} accessibilityRole="button" accessibilityLabel="Acciones de listas"
+-          onPress={() => openListActions()}>
+-          <Ionicons name="ellipsis-horizontal" size={22} color={theme.text} />
+-        </TouchableOpacity>
+-      ) : undefined}
++      headerActions={openPanel === 'lists' && !movingLists && !creatingList ? selectingLists ? <TouchableOpacity disabled={deletingLists || listActionBusy} style={[s.headerIcon, { width: 'auto', paddingHorizontal: 8 }]} accessibilityRole="button" accessibilityLabel="Terminar de organizar listas" onPress={() => { setSelectingLists(false); setSelectedListIds([]); }}><Text style={s.organizerText}>Listo</Text></TouchableOpacity> : collections.length > 0 ? <TouchableOpacity style={[s.headerIcon, { width: 'auto', paddingHorizontal: 8 }]} accessibilityRole="button" accessibilityLabel="Organizar listas" onPress={() => beginListSelection()}><Text style={s.organizerText}>Organizar</Text></TouchableOpacity> : undefined : undefined}
+       editor={openPanel === 'lists' && creatingList ? <View style={s.section}><View style={s.group}>
+           <View style={[s.option, { paddingVertical: 12 }]}>
+             <View style={s.rowCopy}>
+               <Text style={s.rowDetail}>{noWidow('Nombre de la lista')}</Text>
+-              <TextInput autoFocus value={newListTitle} onChangeText={setNewListTitle} maxLength={60} onSubmitEditing={() => { void handleCreateList(); }} placeholder="Ej. Tacos del barrio" accessibilityLabel="Nombre de la lista" placeholderTextColor={theme.textMute} returnKeyType="done" autoCapitalize="sentences" style={[s.createInput, { minHeight: 44 }]} />
++              <TextInput autoFocus keyboardAppearance={theme.isDark ? 'dark' : 'light'} value={newListTitle} editable={!creatingPending} onChangeText={setNewListTitle} maxLength={60} onSubmitEditing={() => { void handleCreateList(); }} placeholder="Ej. Tacos del barrio" accessibilityLabel="Nombre de la lista" placeholderTextColor={theme.textMute} returnKeyType="done" autoCapitalize="sentences" style={[s.createInput, { minHeight: 44 }]} />
+             </View>
+-            <TouchableOpacity disabled={!newListTitle.trim() || creatingPending} hitSlop={CREATE_BTN_HIT_SLOP} onPress={() => { void handleCreateList(); }} accessibilityRole="button" accessibilityLabel="Crear lista" style={[s.createBtn, (!newListTitle.trim() || creatingPending) && s.createBtnDisabled]}><Text style={s.createBtnText}>{creatingPending ? 'Creando…' : 'Crear'}</Text></TouchableOpacity>
++            <TouchableOpacity disabled={!newListTitle.trim() || creatingPending} hitSlop={CREATE_BTN_HIT_SLOP} onPress={() => { void handleCreateList(); }} accessibilityRole="button" accessibilityLabel="Crear lista" accessibilityState={{ disabled: !newListTitle.trim() || creatingPending, busy: creatingPending }} style={[s.createBtn, (!newListTitle.trim() || creatingPending) && s.createBtnDisabled]}><Text style={s.createBtnText}>{creatingPending ? 'Creando…' : 'Crear'}</Text></TouchableOpacity>
+           </View>
+         </View></View> : undefined}
+-      footer={openPanel === 'lists' && movingLists ? <View style={{ paddingHorizontal: 16, paddingTop: 8 }}>
++      footer={!creatingList && openPanel === 'lists' && movingLists ? <View style={{ paddingHorizontal: 16, paddingTop: 8 }}>
+         <Text style={[s.rowDetail, { textAlign: 'center', marginBottom: 10 }]}>{noWidow(moveDestinationId ? 'Confirma para mover los lugares a esta lista.' : 'Elige una lista de destino o crea una nueva.')}</Text>
+         <TouchableOpacity style={[s.confirmMoveButton, (!moveDestinationId || listActionBusy) && s.createBtnDisabled]}
+           accessibilityRole="button" accessibilityLabel="Mover lugares" accessibilityState={{ disabled: !moveDestinationId || listActionBusy, busy: listActionBusy }}
+           disabled={!moveDestinationId || listActionBusy} onPress={() => { const destination = collections.find((item) => item.id === moveDestinationId); if (destination) moveSelectedTo(destination); }}>
+           <Text style={s.confirmMoveText}>{noWidow(listActionBusy ? 'Moviendo…' : `Mover ${selectedPatioIds.length} ${selectedPatioIds.length === 1 ? 'lugar' : 'lugares'}`)}</Text>
+         </TouchableOpacity>
+-      </View> : openPanel === 'lists' && selectingLists ? <View style={{ paddingHorizontal: 16, paddingTop: 8 }}>
++      </View> : !creatingList && openPanel === 'lists' && selectingLists ? <View style={{ paddingHorizontal: 16, paddingTop: 8 }}>
+         {listActionNotice && <Text accessibilityLiveRegion="polite" role="status" style={[s.rowDetail, { textAlign: 'center', marginBottom: 10 }]}>{noWidow(listActionNotice)}</Text>}
+         <SelectionActions busy={deletingLists || listActionBusy} actions={[
+           { label: allPinned ? 'Desfijar' : 'Fijar', icon: allPinned ? 'pin-off-outline' : 'pin-outline', disabled: !selectedLists.length, onPress: pinSelectedLists },
+@@ -783,13 +755,13 @@
+         ? filterDetail === 'categories' ? Math.min(560, 96 + categoryOptions.length * 48)
+           : filterDetail === 'payments' ? 244 : 216 + (additionalFilter ? 56 : 0)
+         : Math.min(514, 152 + Math.max(1, collections.length) * 56 + (creatingList ? 96 : 0) + (selectingLists ? 44 : 0))}
+-      onBack={movingLists ? () => { if (!listActionBusy) { setMovingLists(false); setMoveDestinationId(null); } } : openPanel === 'filters' && filterDetail ? () => { Haptics.selectionAsync().catch(() => {}); setFilterDetail(null); } : undefined}
++      onBack={creatingList ? () => { if (!creatingPending) { setCreatingList(false); setNewListTitle(''); Keyboard.dismiss(); } } : movingLists ? () => { if (!listActionBusy) { setMovingLists(false); setMoveDestinationId(null); } } : openPanel === 'filters' && filterDetail ? () => { Haptics.selectionAsync().catch(() => {}); setFilterDetail(null); } : undefined}
+       onClear={openPanel === 'filters'
+         ? filterDetail
+           ? (filters[filterDetail].length ? () => { Haptics.selectionAsync().catch(() => {}); onChange({ ...filters, [filterDetail]: [] }); } : undefined)
+           : (filterCount ? () => { Haptics.selectionAsync().catch(() => {}); onChange({ ...filters, categories: [], payments: [] }); additionalFilter?.onClear(); } : undefined)
+         : undefined}
+-      overlay={openPanel === 'lists' && (actionsTarget || listsMenuVisible) && actionsLayout && (
++      overlay={openPanel === 'lists' && actionsTarget && actionsLayout && (
+         <>
+           {/* Menú anclado junto al botón "···" que tocaste — mismo
+               componente visual que ActionSheet (vidrio, sin fila de
+@@ -818,7 +790,7 @@
+         </>
+       )}
+       theme={theme}>
+-      {openPanel === 'filters' ? <>
++      {creatingList ? null : openPanel === 'filters' ? <>
+         {filterDetail ? (
+           <View style={s.section}><View style={s.group}>
+             {(filterDetail === 'categories' ? categoryOptions : PAYMENT_METHODS).map((value, index) => {
+@@ -856,6 +828,7 @@
+         </TouchableOpacity>)}
+         {!visibleCollections.some((item) => !selectedListIds.includes(item.id)) && <View style={s.emptyLists}><Text style={s.emptyDetail}>{noWidow('Crea una lista para mover aquí los lugares seleccionados.')}</Text></View>}
+       </View></View> : <>
++        {selectingLists && <Text accessibilityLiveRegion="polite" style={[s.rowDetail, { marginHorizontal: 24, marginTop: 8, textAlign: 'center' }]}>{noWidow(selectedListIds.length ? `${selectedListIds.length} ${selectedListIds.length === 1 ? 'lista seleccionada' : 'listas seleccionadas'}` : 'Elige las listas que quieres organizar.')}</Text>}
+         <View style={s.section}><View style={s.group}>
+           {selectingLists ? <TouchableOpacity disabled={deletingLists || listActionBusy} style={s.option} accessibilityRole="checkbox" accessibilityLabel="Seleccionar todas las listas" accessibilityState={{ checked: selectedListIds.length === collections.length, disabled: deletingLists || listActionBusy }}
+             onPress={() => { Haptics.selectionAsync().catch(() => {}); setSelectedListIds(selectedListIds.length === collections.length ? [] : collections.map((item) => item.id)); }}>
+--- a/scripts/tests/library-controls.test.cjs
++++ b/scripts/tests/library-controls.test.cjs
+@@ -597,8 +597,9 @@
+   for (const activeListIds of [[], ['a']]) {
+     const created = { id: 'new', title: 'Fin de semana', patioIds: [] };
+     const calls = [];
++    let fail = true;
+     const f = fixture('components/foodie-filter-bar.tsx', {
+-      '@/lib/collections': { normalizeCollectionTitle: (title) => title.replace(/\s+/g, ' ').trim().slice(0, 60), createCollection: async (title) => { calls.push(title); return created; } },
++      '@/lib/collections': { normalizeCollectionTitle: (title) => title.replace(/\s+/g, ' ').trim().slice(0, 60), createCollection: async (title) => { calls.push(title); if (fail) { fail = false; throw new Error('Offline'); } return created; } },
+       'expo-haptics': { selectionAsync: async () => {}, notificationAsync: async () => {}, NotificationFeedbackType: { Success: 'success' } },
+     });
+     const { FoodieFilterBar, EMPTY_FOODIE_FILTERS, matchesFoodieFilters } = f.exports;
+@@ -613,8 +614,7 @@
+     const control = (label) => nodes(tree).find((node) => node.props?.accessibilityLabel === label);
+     const collectionControl = (label) => nodes(tree).find((node) => node.props?.accessibilityRole === 'checkbox' && node.props?.accessibilityLabel?.startsWith(`${label},`));
+     const panel = () => nodes(tree).find((node) => typeof node.type === 'function' && node.type.name === 'LibrarySheet');
+-    let promptActions;
+-    f.native.Alert.prompt = (_title, _message, actions) => { promptActions = actions; };
++    f.native.Alert.prompt = () => { throw new Error('Creation must use the app theme, not a system prompt'); };
+     nodes(tree).find((node) => node.props?.accessibilityLabel?.startsWith('Tus listas')).props.onPress();
+     tree = f.render(FoodieFilterBar, props);
+     const listPanel = panel();
+@@ -622,11 +622,20 @@
+     assert.equal(listPanel.props.hideTitle, false);
+     assert.equal(typeof listPanel.props.onCreate, 'function');
+     listPanel.props.onCreate();
+-    assert.ok(promptActions, 'iOS opens the native naming prompt');
+-    promptActions.find((action) => action.text === 'Crear').onPress('  Fin de semana  ');
++    tree = f.render(FoodieFilterBar, props);
++    assert.equal(panel().props.title, 'Nueva lista');
++    assert.equal(panel().props.children, null);
++    nodes(panel().props.editor).find((node) => node.props?.accessibilityLabel === 'Nombre de la lista').props.onChangeText('  Fin de semana  ');
++    tree = f.render(FoodieFilterBar, props);
++    nodes(panel().props.editor).find((node) => node.props?.accessibilityLabel === 'Crear lista').props.onPress();
+     await new Promise(setImmediate);
+     tree = f.render(FoodieFilterBar, props);
+-    assert.deepEqual(calls, ['Fin de semana']);
++    assert.equal(panel().props.title, 'Nueva lista', 'Failed creation retains the themed editor');
++    assert.equal(nodes(panel().props.editor).find((node) => node.props?.accessibilityLabel === 'Nombre de la lista').props.value, '  Fin de semana  ');
++    nodes(panel().props.editor).find((node) => node.props?.accessibilityLabel === 'Crear lista').props.onPress();
++    await new Promise(setImmediate);
++    tree = f.render(FoodieFilterBar, props);
++    assert.deepEqual(calls, ['Fin de semana', 'Fin de semana']);
+     assert.equal(props.filters, originalFilters);
+     assert.equal(collectionControl('Fin de semana').props.accessibilityState.checked, false);
+     assert.equal((activeListIds.length ? collectionControl('Cerca') : control('Todos los lugares')).props.accessibilityState.checked, true);
+@@ -679,11 +688,17 @@
+   nodes(tree).find((node) => node.props?.accessibilityLabel === 'Tus listas').props.onPress();
+   render();
+   assert.equal(overlays.at(-1), true);
+-  row('Cerca').props.onLongPress();
++  nodes(panel().props.headerActions).find((node) => node.props?.accessibilityLabel === 'Organizar listas').props.onPress();
++  render();
++  assert.equal(panel().props.title, 'Organizar listas');
++  assert.ok(nodes(panel().props.headerActions).some((node) => node.props?.accessibilityLabel === 'Terminar de organizar listas'));
++  assert.equal(panel().props.leadingAction, undefined);
++  row('Cerca').props.onPress();
+   render();
+   assertSlots();
+   assert.equal(actions().find((action) => action.label === 'Renombrar').disabled, false);
+-  assert.equal(panel().props.title, '1 lista seleccionada');
++  assert.equal(panel().props.title, 'Organizar listas');
++  assert.ok(nodes(panel().props.children).some((node) => node.props?.children === '1 lista seleccionada'));
+   assert.equal(actions().find((action) => action.label === 'Fijar').icon, 'pin-outline');
+   assert.deepEqual(props.filters.collectionIds, [], 'Selecting sources never changes active filters');
+ 
+@@ -691,7 +706,7 @@
+   render();
+   assertSlots();
+   assert.ok(actions().every((action) => action.disabled), 'Zero selected keeps every slot disabled');
+-  assert.equal(panel().props.title, 'Seleccionar listas');
++  assert.equal(panel().props.title, 'Organizar listas');
+   assert.equal(panel().props.hideClose, true);
+   row('Fin de semana').props.onPress();
+   render();
+@@ -750,12 +765,12 @@
+ test('selection header keeps its title and one explicit cancel action without a duplicate close button', () => {
+   const f = fixture('components/library-sheet.tsx');
+   const props = { visible: true, onClose() {}, title: 'Seleccionar listas', preferredHeight: 340, hideClose: true,
+-    headerActions: { type: 'TouchableOpacity', props: { accessibilityLabel: 'Cancelar selección' } }, theme: {}, children: 'Listas' };
++    leadingAction: { type: 'TouchableOpacity', props: { accessibilityLabel: 'Cancelar selección' } }, theme: {}, children: 'Listas' };
+   let tree = f.render(f.exports.LibrarySheet, props);
+   assert.ok(nodes(tree).some((node) => node.props?.accessibilityRole === 'header' && node.props.children === 'Seleccionar listas'));
+   assert.equal(nodes(tree).filter((node) => node.props?.accessibilityLabel === 'Cancelar selección').length, 1);
+   assert.equal(nodes(tree).filter((node) => node.type === 'Icon' && node.props?.name === 'close').length, 0);
+-  tree = f.render(f.exports.LibrarySheet, { ...props, hideClose: false, headerActions: undefined, title: 'Listas' });
++  tree = f.render(f.exports.LibrarySheet, { ...props, hideClose: false, leadingAction: undefined, title: 'Listas' });
+   assert.equal(nodes(tree).filter((node) => node.type === 'Icon' && node.props?.name === 'close').length, 1);
+ });
+ 
+@@ -768,3 +783,40 @@
+     assert.equal(tree.props.fallback.type, 'MaterialIcon');
+   }
+ });
++
++
++test('sheet centers its heading with equal side columns and gives long controls a separate title row', () => {
++  const f = fixture('components/library-sheet.tsx');
++  const props = { visible: true, onClose() {}, title: 'Listas', preferredHeight: 340, theme: {}, children: 'Content' };
++  let tree = f.render(f.exports.LibrarySheet, props);
++  const groups = () => nodes(tree).filter((node) => node.type === 'View' && node.props.onLayout && node.props.style?.gap === 4);
++  groups()[0].props.onLayout({ nativeEvent: { layout: { width: 44 } } });
++  groups()[1].props.onLayout({ nativeEvent: { layout: { width: 80 } } });
++  tree = f.render(f.exports.LibrarySheet, props);
++  const columns = nodes(tree).filter((node) => node.type === 'View' && node.props.style?.width === 80);
++  assert.equal(columns.length, 2, 'Asymmetric actions reserve symmetric columns around the title');
++  groups()[1].props.onLayout({ nativeEvent: { layout: { width: 140 } } });
++  tree = f.render(f.exports.LibrarySheet, props);
++  const titleRow = nodes(tree).find((node) => node.type === 'View' && node.props.style?.paddingBottom === 8 && node.props.style?.paddingTop === 4);
++  assert.ok(titleRow, 'Constrained width moves the heading to its own row instead of clipping it');
++  assert.equal(nodes(titleRow).find((node) => node.props.accessibilityRole === 'header').props.children, 'Listas');
++});
++
++
++test('short Listas title stays in one toolbar row at iPhone width with Organizar and add', () => {
++  const f = fixture('components/library-sheet.tsx');
++  f.native.useWindowDimensions = () => ({ width: 393, height: 852, fontScale: 1 });
++  const props = { visible: true, onClose() {}, title: 'Listas', preferredHeight: 340, theme: {}, children: 'Content' };
++  let tree = f.render(f.exports.LibrarySheet, props);
++  const groups = nodes(tree).filter((node) => node.type === 'View' && node.props.onLayout && node.props.style?.gap === 4);
++  groups[0].props.onLayout({ nativeEvent: { layout: { width: 44 } } });
++  groups[1].props.onLayout({ nativeEvent: { layout: { width: 124 } } });
++  const probe = nodes(tree).find((node) => node.type === 'Text' && node.props.accessibilityElementsHidden);
++  probe.props.onLayout({ nativeEvent: { layout: { width: 54 } } });
++  tree = f.render(f.exports.LibrarySheet, props);
++  assert.equal(nodes(tree).filter((node) => node.props?.accessibilityRole === 'header').length, 1);
++  assert.ok(!nodes(tree).some((node) => node.type === 'View' && node.props.style?.paddingBottom === 8 && node.props.style?.paddingTop === 4));
++  f.native.useWindowDimensions = () => ({ width: 393, height: 852, fontScale: 1.8 });
++  tree = f.render(f.exports.LibrarySheet, props);
++  assert.ok(nodes(tree).some((node) => node.type === 'View' && node.props.style?.paddingBottom === 8 && node.props.style?.paddingTop === 4));
++});
+--- a/components/menu-lists-sheet.tsx
++++ b/components/menu-lists-sheet.tsx
+@@ -76,13 +76,7 @@
+       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+     });
+   };
+-  const startCreate = () => {
+-    if (busy) return;
+-    if (Platform.OS === 'ios') Alert.prompt(noWidow('Nueva lista'), undefined, [
+-      { text: 'Cancelar', style: 'cancel' }, { text: 'Crear', onPress: (value?: string) => create(value ?? '') },
+-    ], 'plain-text', '');
+-    else setCreating(true);
+-  };
++  const startCreate = () => { if (!busy) setCreating(true); };
+   const rename = (id: string, rawTitle: string) => {
+     const title = normalizeMenuListTitle(rawTitle);
+     if (!title) return Promise.resolve(false);
+@@ -109,17 +103,20 @@
+     <TouchableOpacity accessibilityRole="button" accessibilityLabel={choosingSource ? 'Continuar al destino' : 'Mover menús'} accessibilityState={{ disabled: busy || !canContinue || (!choosingSource && !destinationId), busy }} disabled={busy || !canContinue || (!choosingSource && !destinationId)} onPress={choosingSource ? () => setChoosingSource(false) : move} style={[s.confirm, { backgroundColor: theme.accent, opacity: busy || !canContinue || (!choosingSource && !destinationId) ? 0.35 : 1 }]}><Text style={s.confirmText}>{busy ? 'Moviendo…' : choosingSource ? 'Continuar' : 'Mover'}</Text></TouchableOpacity>
+   </View> : undefined;
+   const editor = creating ? <View style={[s.editor, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+-    <TextInput autoFocus value={newTitle} onChangeText={setNewTitle} maxLength={32} editable={!busy} accessibilityLabel="Nombre de la lista" placeholder="Nombre de la lista" placeholderTextColor={theme.textMute} returnKeyType="done" onSubmitEditing={() => create()} style={[s.input, { color: theme.text }]} />
+-    <TouchableOpacity disabled={busy || !newTitle.trim()} accessibilityRole="button" accessibilityLabel="Crear lista" accessibilityState={{ disabled: busy || !newTitle.trim(), busy }} onPress={() => create()} style={s.control}><Text style={{ color: theme.accent }}>{busy ? 'Creando…' : 'Crear'}</Text></TouchableOpacity>
++    <View style={{ flex: 1, minWidth: 0 }}><Text style={{ fontSize: 13, lineHeight: 18, color: theme.textSecondary }}>{noWidow('Nombre de la lista')}</Text>
++    <TextInput autoFocus keyboardAppearance={theme.isDark ? 'dark' : 'light'} value={newTitle} onChangeText={setNewTitle} maxLength={32} editable={!busy} accessibilityLabel="Nombre de la lista" placeholder="Nombre de la lista" placeholderTextColor={theme.textMute} returnKeyType="done" onSubmitEditing={() => create()} style={[s.input, { color: theme.text }]} /></View>
++    <TouchableOpacity disabled={busy || !newTitle.trim()} accessibilityRole="button" accessibilityLabel="Crear lista" accessibilityState={{ disabled: busy || !newTitle.trim(), busy }} onPress={() => create()} style={s.control}><Text style={{ color: theme.accent, fontSize: 15, fontWeight: '600' }}>{busy ? 'Creando…' : 'Crear'}</Text></TouchableOpacity>
+   </View> : undefined;
+   return <>
+-    <LibrarySheet visible={visible} onClose={close} title={mode === 'filter' ? 'Tus listas' : mode === 'move' ? choosingSource ? 'Origen' : 'Destino' : 'Añadir a lista'} viewKey={`menus:${mode}:${choosingSource}`} footer={footer} theme={theme} preferredHeight={460} onCreate={creating || choosingSource ? undefined : startCreate} onBack={creating ? () => { if (!busy) { setCreating(false); Keyboard.dismiss(); } } : mode === 'move' && !choosingSource && !sourceKey ? () => { if (!busy) { setChoosingSource(true); setDestinationId(null); } } : undefined} onClear={mode === 'filter' && selectedIds.length ? onClearFilter : undefined} dismissDisabled={busy} editing={creating} editor={editor}>
++    <LibrarySheet visible={visible} onClose={close} title={creating ? 'Nueva lista' : mode === 'filter' ? 'Listas' : mode === 'move' ? choosingSource ? 'Origen' : 'Destino' : 'Añadir a lista'} viewKey={`menus:${mode}:${choosingSource}:${creating}`} footer={creating ? undefined : footer} theme={theme} preferredHeight={460} onCreate={creating || choosingSource ? undefined : startCreate} onBack={creating ? () => { if (!busy) { setCreating(false); Keyboard.dismiss(); } } : mode === 'move' && !choosingSource && !sourceKey ? () => { if (!busy) { setChoosingSource(true); setDestinationId(null); } } : undefined} onClear={mode === 'filter' && selectedIds.length ? onClearFilter : undefined} dismissDisabled={busy} editing={creating} editor={editor}>
++      {!creating && <>
+       <View style={[s.group, { backgroundColor: theme.surface }]}>
+         {choices.map((collection, index) => <LibraryListRow key={collection.id} title={collection.title} count={collection.fechas.length} unit="menú" role={mode === 'move' && !choosingSource ? 'radio' : 'checkbox'} checked={membership(collection)} disabled={busy} divider={index > 0} onPress={() => toggle(collection)} onMore={mode === 'move' ? undefined : () => Alert.alert(collection.title, undefined, [
+           { text: 'Renombrar', onPress: () => startRename(collection) }, { text: 'Eliminar', style: 'destructive', onPress: () => remove(collection) }, { text: 'Cancelar', style: 'cancel' },
+         ])} />)}
+         {!choices.length && <Text style={[s.empty, { color: theme.textSecondary }]}>{noWidow('Sin listas')}</Text>}
+       </View>
++      </>}
+     </LibrarySheet>
+     {Platform.OS !== 'ios' && <RenameDialog visible={!!renameTarget} title="Renombrar lista" value={renameValue} onChangeText={setRenameValue} maxLength={32} onClose={() => setRenameTarget(null)} onSave={() => renameTarget ? rename(renameTarget.id, renameValue) : Promise.resolve(false)} />}
+   </>;
+@@ -129,7 +126,7 @@
+   confirmText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
+   group: { marginHorizontal: 16, marginTop: 12, borderRadius: 14, overflow: 'hidden' },
+   empty: { padding: 24, fontSize: 14, textAlign: 'center' },
+-  editor: { marginHorizontal: 16, marginVertical: 8, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, gap: 8 },
+-  input: { flex: 1, minWidth: 0, minHeight: 48, fontSize: 15 },
++  editor: { marginHorizontal: 16, marginVertical: 12, paddingVertical: 12, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, gap: 8 },
++  input: { flex: 1, minWidth: 0, minHeight: 44, padding: 0, fontSize: 16, fontWeight: '400', backgroundColor: 'transparent' },
+   control: { minWidth: 44, minHeight: 44, justifyContent: 'center', alignItems: 'center' },
+ });
+--- a/scripts/tests/menu-library.test.cjs
++++ b/scripts/tests/menu-library.test.cjs
+@@ -53,11 +53,11 @@
+ 
+ test('new menu list retries assignment without creating a duplicate after a partial failure', async () => {
+   const f = fixture(); f.render(); f.panel().props.onCreate(); f.render();
+-  f.panel().props.editor.props.children[0].props.onChangeText('Especiales'); f.render();
+-  f.failSecondWrite(); f.panel().props.editor.props.children[1].props.onPress(); await f.settle();
++  nodes(f.panel().props.editor).find((node) => node.props?.accessibilityLabel === 'Nombre de la lista').props.onChangeText('Especiales'); f.render();
++  f.failSecondWrite(); nodes(f.panel().props.editor).find((node) => node.props?.accessibilityLabel === 'Crear lista').props.onPress(); await f.settle();
+   assert.equal(f.stored().length, 1); assert.deepEqual(f.stored()[0].fechas, []);
+   const id = f.stored()[0].id;
+-  f.panel().props.editor.props.children[1].props.onPress(); await f.settle();
++  nodes(f.panel().props.editor).find((node) => node.props?.accessibilityLabel === 'Crear lista').props.onPress(); await f.settle();
+   assert.equal(f.stored().length, 1); assert.equal(f.stored()[0].id, id); assert.deepEqual(f.stored()[0].fechas, ['one', 'two']);
+ });
+ 

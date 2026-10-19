@@ -1,0 +1,16 @@
+Yoga de React Native con medición SF mediante AppKit/macOS.
+Verifica geometría; no es una captura de iPhone.
+
+320pt 100% Listo group=50.88 x=237.12 text=34.88x20.00 toolbarH=44.00 title=centered PASS
+320pt 100% Organizar group=134.22 x=153.78 text=70.22x20.00 toolbarH=44.00 title=second-row PASS
+320pt 160% Listo group=68.93 x=219.07 text=52.93x32.00 toolbarH=44.00 title=second-row PASS
+320pt 160% Organizar group=170.64 x=117.36 text=106.64x32.00 toolbarH=44.00 title=second-row PASS
+320pt 200% Listo group=82.28 x=205.72 text=66.28x40.00 toolbarH=44.00 title=second-row PASS
+320pt 200% Organizar group=197.37 x=90.63 text=133.37x40.00 toolbarH=44.00 title=second-row PASS
+393pt 100% Listo group=50.88 x=310.12 text=34.88x20.00 toolbarH=44.00 title=centered PASS
+393pt 100% Organizar group=134.22 x=226.78 text=70.22x20.00 toolbarH=44.00 title=centered PASS
+393pt 160% Listo group=68.93 x=292.07 text=52.93x32.00 toolbarH=44.00 title=second-row PASS
+393pt 160% Organizar group=170.64 x=190.36 text=106.64x32.00 toolbarH=44.00 title=second-row PASS
+393pt 200% Listo group=82.28 x=278.72 text=66.28x40.00 toolbarH=44.00 title=second-row PASS
+393pt 200% Organizar group=197.37 x=163.63 text=133.37x40.00 toolbarH=44.00 title=second-row PASS
+CHECKED 12; FAILURES 0

@@ -1,3 +1,4 @@
+import { PlaceIcon } from '@/components/place-icon';
 import { useScrollEdges } from '@/lib/use-scroll-edges';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
@@ -210,11 +211,11 @@ function categoryIcon(category: string): keyof typeof Ionicons.glyphMap {
   if (normalized.includes('postre') || normalized.includes('pan') || normalized.includes('reposter') || normalized.includes('cafe') || normalized.includes('desayuno')) return 'cafe-outline';
   if (normalized.includes('bar') || normalized.includes('antro') || normalized.includes('cantina')) return 'wine-outline';
   if (normalized.includes('bebida')) return 'wine-outline';
-  if (normalized.includes('restaurante')) return 'book-outline';
+  if (normalized.includes('restaurante')) return 'location-outline';
   if (normalized.includes('mercado')) return 'basket-outline';
   if (normalized.includes('marisco')) return 'fish-outline';
   if (normalized.includes('tianguis')) return 'storefront-outline';
-  return 'restaurant-outline';
+  return 'location-outline';
 }
 
 export default function ExplorarScreen() {
@@ -688,7 +689,7 @@ export default function ExplorarScreen() {
             </View>
           )}
           <View style={[s.pinCategory, (showSelectedOverlay || showMatch) && s.pinCategoryOpaque]}>
-            <Ionicons name={categoryIcon(patio.categories[0] ?? 'Fondita')} size={13} color={theme.text} style={{ transform: [{ rotate: '45deg' }] }} />
+            <View style={{ transform: [{ rotate: '45deg' }] }}><PlaceIcon name={categoryIcon(patio.categories[0] ?? 'Fondita')} size={13} color={theme.text} /></View>
           </View>
         </View>
       </Marker>
@@ -738,7 +739,7 @@ export default function ExplorarScreen() {
         }}>
         <View style={s.clusterHitArea}>
           <View style={s.clusterPin}>
-            <Ionicons name={categoryIcon(category)} size={15} color={theme.text} />
+            <PlaceIcon name={categoryIcon(category)} size={15} color={theme.text} />
             <View style={[s.pinPointer, { borderTopColor: theme.isDark ? 'rgba(18,19,22,0.94)' : 'rgba(255,255,255,0.96)' }]} />
           </View>
         </View>
@@ -815,7 +816,7 @@ export default function ExplorarScreen() {
                     <View style={[s.pinMatch, selected && s.pinMatchSelected]}><View style={s.pinMatchCore} /></View>
                   ) : (
                     <View style={[s.pinCategory, selected && s.pinCategorySelected]}>
-                      <Ionicons name={categoryIcon(patio.category)} size={13} color={selected ? '#FFFFFF' : theme.text} />
+                      <PlaceIcon name={categoryIcon(patio.category)} size={13} color={selected ? '#FFFFFF' : theme.text} />
                       <View style={[s.pinPointer, { borderTopColor: selected ? '#111214' : theme.isDark ? 'rgba(18,19,22,0.90)' : 'rgba(255,255,255,0.92)' }]} />
                     </View>
                   )}
@@ -847,7 +848,7 @@ export default function ExplorarScreen() {
               }}>
               <View style={s.clusterHitArea}>
                 <View style={s.clusterPin}>
-                  <Ionicons name={categoryIcon(cluster.category)} size={15} color={theme.text} />
+                  <PlaceIcon name={categoryIcon(cluster.category)} size={15} color={theme.text} />
                   <View style={[s.pinPointer, { borderTopColor: theme.isDark ? 'rgba(18,19,22,0.94)' : 'rgba(255,255,255,0.96)' }]} />
                 </View>
               </View>

@@ -40,7 +40,7 @@ export function ContentSafetyMenu({ targetType, targetId, authorId, onBlocked }:
   if (!/^[0-9a-f-]{36}$/i.test(targetId)) return null;
   return <View ref={anchor} collapsable={false}>
     <TouchableOpacity style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}
-      disabled={busy} onPress={() => setMenu('actions')} accessibilityRole="button" accessibilityLabel="Reportar o bloquear contenido">
+      accessibilityState={{ disabled: busy, busy }} disabled={busy} onPress={() => setMenu('actions')} accessibilityRole="button" accessibilityLabel="Reportar o bloquear contenido">
       {busy ? <ActivityIndicator color={theme.textSecondary} /> : <Ionicons name="ellipsis-horizontal" size={20} color={theme.textSecondary} />}
     </TouchableOpacity>
     <ActionSheet visible={menu !== null} anchorRef={anchor} title={menu === 'reasons' ? 'Motivo del reporte' : 'Seguridad'} onDismiss={() => setMenu(null)}

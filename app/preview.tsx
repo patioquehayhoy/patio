@@ -51,7 +51,7 @@ export default function PreviewScreen() {
       <View style={[s.root, s.emptyRoot, { paddingTop: insets.top + 32, paddingBottom: insets.bottom + 24 }]}>
         <Stack.Screen options={{ headerShown: false }} />
         <View style={s.emptyIcon}>
-          <Ionicons name="receipt-outline" size={28} color={c.accent} />
+          <Ionicons name="document-text-outline" size={28} color={c.accent} />
         </View>
         <Text style={s.emptyTitle}>{noWidow('Primero publica lo de hoy')}</Text>
         <Text style={s.emptyBody}>{noWidow('Cuando tu menú esté listo, aquí aparecerá publicado.')}</Text>

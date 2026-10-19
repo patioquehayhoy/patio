@@ -239,10 +239,10 @@ export default function ResenasScreen() {
           ) : replyingTo === item.userId ? (
             <View style={[s.replyComposer, { borderColor: c.border }]}>
               <TextInput autoFocus multiline maxLength={600} value={reply} onChangeText={setReply} placeholder="Responde con claridad y respeto…" placeholderTextColor={c.textMute} style={[s.replyInput, { color: c.text }]} />
-              <TouchableOpacity onPress={() => sendReply(item)} disabled={!reply.trim()}><Text style={[s.replyAction, { color: reply.trim() ? c.accent : c.textMute }]}>{noWidow('Publicar respuesta')}</Text></TouchableOpacity>
+              <TouchableOpacity accessibilityRole="button" accessibilityLabel="Publicar respuesta" accessibilityState={{ disabled: !reply.trim() }} style={{ minHeight: 44, justifyContent: 'center' }} onPress={() => sendReply(item)} disabled={!reply.trim()}><Text style={[s.replyAction, { color: reply.trim() ? c.accent : c.textMute }]}>{noWidow('Publicar respuesta')}</Text></TouchableOpacity>
             </View>
           ) : (
-            <TouchableOpacity style={s.replyButton} onPress={() => { setReplyingTo(item.userId ?? null); setReply(''); }}>
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Responder reseña" style={s.replyButton} onPress={() => { setReplyingTo(item.userId ?? null); setReply(''); }}>
               <Ionicons name="return-down-forward-outline" size={15} color={c.accent} />
               <Text style={[s.replyAction, { color: c.accent }]}>Responder</Text>
             </TouchableOpacity>

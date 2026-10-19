@@ -1,11 +1,16 @@
 # ROADCONTROLLER — Patio
 
-> **Corte vigente — 2026-10-12:** código de homologación, tarjetas y navegación
-> cerrado localmente: TypeScript/lint y **177 pruebas** aprobados, 54 ejemplos web.
-> Backend ensayado/promovido el 2026-10-09. Lanzamiento todavía pendiente de
-> QA móvil, auditoría npm, Maps/Firebase Android, integraciones y distribución.
-> [Heads-up](HEADS_UP_2026-10-12.md) · [Checklist/roadmap](PENDING_LAUNCH_2026-10-12.md).
-> Los cortes anteriores son históricos y no sustituyen este estado.
+> **Corte vigente — 2026-10-18:** pulido de Filtros/Listas, botones,
+> iconografía y paleta compartida entre Foodie/Fondero guardado en este corte.
+> Tras corregir el error de apertura de Listas, Alejandro respondió «ya quedó
+> me parece» y pidió cerrar con documentación, commit y push. Se registra como
+> confirmación del ajuste reciente; no sustituye QA completa de ambos roles,
+> Android, letra grande ni candidato de tienda.
+> `npm run check`: TypeScript/lint, 189 pruebas y control de release aprobados
+> (29 verificaciones, 0 errores, 2 configuraciones Android pendientes).
+> Push bloqueado por credenciales: GitHub confirma que `T1Alejandro` tiene
+> lectura y carece de permiso de escritura en `patioquehayhoy/patio`.
+> Checklist vigente: [pendientes](PENDING_LAUNCH_2026-10-12.md).
 
 > **Producción actualizada (2026-10-09):** siete migraciones aplicadas y registradas; cinco funciones ACTIVE con JWT. Datos existentes conservados; correos protegidos. Evidencia: [PRODUCTION_PROMOTION_2026-10-09.md](PRODUCTION_PROMOTION_2026-10-09.md). Lanzamiento aún pendiente de QA móvil y requisitos de distribución.
 
@@ -34,7 +39,7 @@ Evidencia y límites: [PENDING_AUDIT_2026-10-01.md](PENDING_AUDIT_2026-10-01.md)
 Los cortes históricos siguientes no sustituyen este estado.
 
 
-> Estado: v4 · 2026-10-12
+> Estado: v5 · 2026-10-18
 > Uso: mapa operativo superior de `/Users/parco/Patio`.
 > Función: decidir qué frente leer, qué carpeta tocar, qué está activo, qué está pausado y cómo no mezclar sistemas.
 > Inspirado en `~/T1all/ROADCONTROLLER.md` (solo el formato; los sistemas no se mezclan).
@@ -91,11 +96,11 @@ Patio/
 
 | Frente | Dónde | Estado | Siguiente útil |
 |---|---|---|---|
-| Código RN (producto) | `app/` `components/` `lib/` | Homologación y cards implementadas; 177 pruebas locales; QA móvil pendiente | Alejandro prueba y reporta fallos concretos |
+| Código RN (producto) | `app/` `components/` `lib/` | Pulido compartido cerrado; 189 pruebas; confirmación reciente del usuario, QA integral pendiente | Alejandro prueba y reporta fallos concretos |
 | Rama de trabajo | `rebuild/patio-final` | Checkpoint de este corte; push a la misma rama | No mezclar ni forzar main/v2-menu-vivo |
 | Backend | `supabase/` `scripts/backend/` | Siete migraciones y cinco funciones promovidas tras 15 ensayos reales, 2026-10-09 | Integraciones IA/SMTP/push y QA móvil pendientes |
 | Figma Make | `design-source/figma-make/` | Cerrado como herramienta; v01/v02 históricos | No retomar |
-| Docs de estado | `HANDOFF` `STATE` `TASKS` | Corte 2026-10-12 y checklist único | Actualizar resultados de QA y gates de release |
+| Docs de estado | `HANDOFF` `STATE` `TASKS` | Corte 2026-10-18 y checklist único | Actualizar resultados de QA y gates de release |
 | QA dispositivo | iPhone y Android | El usuario realizará la prueba; cierre iPhone previo sin confirmar | Búsqueda/swipe, GPS, ambas bibliotecas y ambos roles |
 | TestFlight/Google Play | Distribución | Candidato firmado actual pendiente; no se inició EAS | Resolver gates del checklist antes de construir/enviar |
 | Supabase | `patio`, org Parco Apps | Cuenta Patio como único Owner, verificado 2026-10-09 | No repetir login/promoción ni reasignar datos sintéticos |

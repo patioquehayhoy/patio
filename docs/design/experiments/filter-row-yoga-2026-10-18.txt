@@ -1,0 +1,29 @@
+React Native Yoga; medición de fuente del sistema con AppKit/macOS.
+Comprueba columnas, no rasterizado ni fuentes en iPhone.
+
+screen scale label value oldX newX expectedX
+320 100% Tipo de lugar Todos 272.00 272.00 272.00 PASS
+320 100% Tipo de lugar Cualquiera 272.00 272.00 272.00 PASS
+320 100% Tipo de lugar largo 272.00 272.00 272.00 PASS
+320 100% Pago Todos 240.55 272.00 272.00 PASS
+320 100% Pago Cualquiera 240.55 272.00 272.00 PASS
+320 100% Pago largo 240.55 272.00 272.00 PASS
+320 160% Tipo de lugar Todos 272.00 272.00 272.00 PASS
+320 160% Tipo de lugar Cualquiera 272.00 272.00 272.00 PASS
+320 160% Tipo de lugar largo 272.00 272.00 272.00 PASS
+320 160% Pago Todos 258.88 272.00 272.00 PASS
+320 160% Pago Cualquiera 258.88 272.00 272.00 PASS
+320 160% Pago largo 258.88 272.00 272.00 PASS
+393 100% Tipo de lugar Todos 329.99 345.00 345.00 PASS
+393 100% Tipo de lugar Cualquiera 329.99 345.00 345.00 PASS
+393 100% Tipo de lugar largo 329.99 345.00 345.00 PASS
+393 100% Pago Todos 273.40 345.00 345.00 PASS
+393 100% Pago Cualquiera 273.40 345.00 345.00 PASS
+393 100% Pago largo 273.40 345.00 345.00 PASS
+393 160% Tipo de lugar Todos 345.00 345.00 345.00 PASS
+393 160% Tipo de lugar Cualquiera 345.00 345.00 345.00 PASS
+393 160% Tipo de lugar largo 345.00 345.00 345.00 PASS
+393 160% Pago Todos 291.73 345.00 345.00 PASS
+393 160% Pago Cualquiera 291.73 345.00 345.00 PASS
+393 160% Pago largo 291.73 345.00 345.00 PASS
+CHECKED 24; FAILURES 0

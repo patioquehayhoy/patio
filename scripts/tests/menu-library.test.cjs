@@ -53,11 +53,11 @@ test('menu membership distinguishes partial selection, retains failure, and retr
 
 test('new menu list retries assignment without creating a duplicate after a partial failure', async () => {
   const f = fixture(); f.render(); f.panel().props.onCreate(); f.render();
-  f.panel().props.editor.props.children[0].props.onChangeText('Especiales'); f.render();
-  f.failSecondWrite(); f.panel().props.editor.props.children[1].props.onPress(); await f.settle();
+  nodes(f.panel().props.editor).find((node) => node.props?.accessibilityLabel === 'Nombre de la lista').props.onChangeText('Especiales'); f.render();
+  f.failSecondWrite(); nodes(f.panel().props.editor).find((node) => node.props?.accessibilityLabel === 'Crear lista').props.onPress(); await f.settle();
   assert.equal(f.stored().length, 1); assert.deepEqual(f.stored()[0].fechas, []);
   const id = f.stored()[0].id;
-  f.panel().props.editor.props.children[1].props.onPress(); await f.settle();
+  nodes(f.panel().props.editor).find((node) => node.props?.accessibilityLabel === 'Crear lista').props.onPress(); await f.settle();
   assert.equal(f.stored().length, 1); assert.equal(f.stored()[0].id, id); assert.deepEqual(f.stored()[0].fechas, ['one', 'two']);
 });
 
@@ -92,4 +92,18 @@ test('moving a menu retains unchosen source memberships and rejects stale/missin
   await assert.rejects(() => m.moveMenusToCollection(['one', 'missing'], ['a'], 'c')); assert.equal(f.writes, 0);
   await assert.rejects(() => m.moveMenusToCollection(['one'], ['a'], 'missing')); assert.equal(f.writes, 0);
   await m.moveMenusToCollection(['one'], ['a'], 'c'); assert.deepEqual(f.stored().map((c) => c.fechas), [[], ['one'], ['one']]);
+});
+
+test('menu list renaming uses the same inline field and preserves text on a failed save', async () => {
+  const f = fixture('filter', [collection('a', 'Cerca', [])]); f.render();
+  f.row('Cerca').props.onMore();
+  f.alerts.at(-1)[2].find((action) => action.text === 'Renombrar').onPress(); f.render();
+  const editor = (label) => nodes(f.panel().props.editor).find((node) => node.props?.accessibilityLabel === label);
+  assert.equal(f.panel().props.title, 'Renombrar lista');
+  editor('Nombre de la lista').props.onChangeText('Mi zona'); f.render();
+  f.failNextWrite(); editor('Guardar nombre de la lista').props.onPress(); await f.settle();
+  assert.equal(editor('Nombre de la lista').props.value, 'Mi zona');
+  editor('Guardar nombre de la lista').props.onPress(); await f.settle();
+  assert.equal(f.stored()[0].title, 'Mi zona');
+  assert.equal(f.panel().props.title, 'Listas');
 });

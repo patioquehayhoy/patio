@@ -116,7 +116,7 @@ export default function FoodieProfile() {
       {state === 'loading' ? <ActivityIndicator style={s.feedback} color={theme.textSecondary} accessibilityLabel="Cargando perfil" /> : state !== 'ready' ? (
         <View style={s.feedback}>
           <Text style={[s.bio, { color: theme.textSecondary }]}>{noWidow(state === 'error' ? 'No pudimos cargar este perfil.' : 'Este perfil no está disponible.')}</Text>
-          {state === 'error' && <TouchableOpacity style={s.retry} accessibilityRole="button" onPress={() => { void load(); }}><Text style={{ color: theme.text }}>{noWidow('Intentar de nuevo')}</Text></TouchableOpacity>}
+          {state === 'error' && <TouchableOpacity style={s.retry} accessibilityRole="button" accessibilityLabel="Reintentar carga de perfil" onPress={() => { void load(); }}><Text style={{ color: theme.text }}>{noWidow('Intentar de nuevo')}</Text></TouchableOpacity>}
         </View>
       ) : profile && (
         <ScrollView contentContainerStyle={{ paddingBottom: ins.bottom + 40 }}>
@@ -126,7 +126,7 @@ export default function FoodieProfile() {
             {!!profile.handle && <Text style={[s.handle, { color: theme.textSecondary }]}>@{profile.handle}</Text>}
             <Text style={[s.handle, { color: theme.textSecondary }]}>{noWidow(`${counts.followers} seguidores · ${counts.following} siguiendo`)}</Text>
             {!!profile.bio && <Text style={[s.bio, { color: theme.textSecondary }]}>{noWidow(profile.bio)}</Text>}
-            {!own && <TouchableOpacity accessibilityRole="button" accessibilityState={{ disabled: saving, selected: following }} disabled={saving} style={[s.follow, { backgroundColor: following ? theme.surface : theme.accent, borderColor: theme.border, opacity: saving ? 0.6 : 1 }]} onPress={follow}><Text style={{ color: following ? theme.text : '#FFFFFF', fontWeight: '700' }}>{following ? 'Siguiendo' : 'Seguir'}</Text></TouchableOpacity>}
+            {!own && <TouchableOpacity accessibilityRole="button" accessibilityLabel={following ? 'Dejar de seguir perfil' : 'Seguir perfil'} accessibilityState={{ disabled: saving, busy: saving, selected: following }} disabled={saving} style={[s.follow, { backgroundColor: following ? theme.surface : theme.accent, borderColor: theme.border, opacity: saving ? 0.6 : 1 }]} onPress={follow}><Text style={{ color: following ? theme.text : '#FFFFFF', fontWeight: '700' }}>{following ? 'Siguiendo' : 'Seguir'}</Text></TouchableOpacity>}
           </View>
           <Text style={[s.label, { color: theme.textSecondary }]}>COLECCIONES</Text>
           {lists.map((list) => <TouchableOpacity key={list.id} accessibilityRole="button" accessibilityLabel={`Abrir ${list.title}`} style={[s.row, { borderColor: theme.border }]} onPress={() => router.push({ pathname: '/coleccion-publica/[id]', params: { id: list.id } })}><View style={{ flex: 1 }}><Text style={[s.listName, { color: theme.text }]}>{noWidow(list.title)}</Text>{!!list.description && <Text style={[s.desc, { color: theme.textSecondary }]}>{noWidow(list.description)}</Text>}</View><Ionicons name="chevron-forward" size={17} color={theme.textMute} /></TouchableOpacity>)}

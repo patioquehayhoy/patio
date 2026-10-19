@@ -8,10 +8,10 @@ import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { bottomTabClearance } from '@/lib/layout-metrics';
 import { AccountDeletionRow } from '@/components/account-deletion-row';
 import { signOutAccount } from '@/lib/account-session';
-import { SettingsGroup, SettingsRow, type SettingsColors } from '@/components/settings-list';
+import { SettingsGroup, SettingsRow, settingsColors } from '@/components/settings-list';
 import { ToggleSwitch } from '@/components/toggle-switch';
 import { USER_ROLE_KEY } from '@/lib/entry-flow';
-import { fonderoPalette, type FonderoColors } from '@/lib/fondero-palette';
+import { fonderoPalette } from '@/lib/fondero-palette';
 import {
   getFonditaDireccion,
   getFonditaName,
@@ -24,18 +24,6 @@ import { Fonts, Layout, Spacing, useTheme } from '@/lib/theme';
 import { useTabBarScroll } from '@/lib/tab-bar-visibility';
 import { noWidow } from '@/lib/typography';
 
-function settingsColorsFrom(c: FonderoColors, accentBg: string): SettingsColors {
-  return {
-    surface: c.surface,
-    border: c.border,
-    text: c.text,
-    textSecondary: c.textSecondary,
-    textMute: c.textMute,
-    accent: c.accent,
-    iconBg: c.iconBg,
-    accentBg,
-  };
-}
 
 export default function PerfilScreen() {
   const insets = useSafeAreaInsets();
@@ -81,7 +69,7 @@ export default function PerfilScreen() {
     router.replace('/explorar');
   };
 
-  const sc = settingsColorsFrom(c, theme.accentSoft);
+  const sc = settingsColors(theme);
 
   return (
     <View style={[s.root, { backgroundColor: c.bg, paddingTop: insets.top }]}>
@@ -143,7 +131,7 @@ export default function PerfilScreen() {
 
         <SettingsGroup c={sc} label="Ayuda">
           <SettingsRow c={sc} icon="sparkles-outline" title="Nuestro manifiesto" onPress={() => router.push('/manifiesto')} />
-          <SettingsRow c={sc} icon="help-circle-outline" title="Ayuda y soporte" divider onPress={() => router.push('/soporte')} />
+          <SettingsRow c={sc} icon="chatbubble-outline" title="Ayuda y soporte" divider onPress={() => router.push('/soporte')} />
         </SettingsGroup>
 
         <SettingsGroup c={sc} label="Cuenta">

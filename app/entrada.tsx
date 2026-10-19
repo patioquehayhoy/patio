@@ -84,13 +84,13 @@ export default function EntradaScreen() {
             <>
               <Text style={s.devVersion} allowFontScaling={true}>DEV · {DEV_VERSION}</Text>
               <View style={s.devBar}>
-                <TouchableOpacity style={s.devBtn} onPress={handleDevFoodie} activeOpacity={0.7}>
+                <TouchableOpacity style={s.devBtn} onPress={handleDevFoodie} accessibilityRole="button" accessibilityLabel="Abrir exploración de prueba" activeOpacity={0.7}>
                   <Text style={s.devBtnText} allowFontScaling={true}>Foodie</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={s.devBtn} onPress={handleDevFondero} activeOpacity={0.7}>
+                <TouchableOpacity style={s.devBtn} onPress={handleDevFondero} accessibilityRole="button" accessibilityLabel="Abrir negocio de prueba" activeOpacity={0.7}>
                   <Text style={s.devBtnText} allowFontScaling={true}>Fondero</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={s.devBtn} onPress={handleDevOnboarding} activeOpacity={0.7}>
+                <TouchableOpacity style={s.devBtn} onPress={handleDevOnboarding} accessibilityRole="button" accessibilityLabel="Abrir introducción de prueba" activeOpacity={0.7}>
                   <Text style={s.devBtnText} allowFontScaling={true}>Onboarding</Text>
                 </TouchableOpacity>
               </View>

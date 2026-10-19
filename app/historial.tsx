@@ -1,8 +1,8 @@
+import { BottomContentFade } from '@/components/bottom-content-fade';
 import { resolveLibraryMoveSelection } from '@/lib/library-selection';
 import { RenameDialog } from '@/components/rename-dialog';
 import { useScrollEdges } from '@/lib/use-scroll-edges';
 import { Ionicons } from '@expo/vector-icons';
-import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import { router, Stack, useFocusEffect } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
@@ -15,6 +15,7 @@ import { bottomActionClearance, bottomTabClearance } from '@/lib/layout-metrics'
 import { SelectionActions } from '@/components/selection-actions';
 import { FoodieLoading } from '@/components/foodie-loading';
 import { MenuListsSheet } from '@/components/menu-lists-sheet';
+import { GlassIconButton } from '@/components/glass-button';
 import { NewMenuSheet } from '@/components/new-menu-sheet';
 import { cleanMenu, publishMenuNow } from '@/lib/controllers/useFonderoMenuDraftController';
 import { dateLabel, defaultHistoryTitle, useMenuHistoryController, type PublishedMenu } from '@/lib/controllers/useMenuHistoryController';
@@ -124,18 +125,14 @@ export default function HistorialScreen() {
   })();
   const showGroupLabels = groups.length > 1;
 
-  // Tarjeta individual — mismo tratamiento que renderPatio en favoritos.tsx
-  // (t.surface, Radius.card, borde, gap entre tarjetas en vez de una lista
-  // continua con separadores). Todo el renglón (círculo + texto) es UN solo
-  // touchable, igual que ahí — antes el círculo vivía fuera del
-  // TouchableOpacity y no registraba el toque (bug 2026-08-24).
+  // Filas continuas como Guardados; toda la fila abre el menú.
   const renderMenuRow = (menu: (typeof menus)[number]) => {
     const key = menu.id;
     const isSelected = selectedFechas.has(key);
     return (
       <TouchableOpacity
         key={key}
-        style={[s.card, { backgroundColor: c.surface, borderColor: c.border }]}
+        style={[s.card, { borderColor: c.border }]}
         onPress={() => (selecting ? toggleSelect(key) : reuse(menu))}
         onLongPress={() => { if (!selecting) { Haptics.selectionAsync().catch(() => {}); setSelecting(true); toggleSelect(key); } }}
         activeOpacity={0.82}
@@ -145,7 +142,7 @@ export default function HistorialScreen() {
           <Ionicons name={isSelected ? 'checkmark-circle' : 'ellipse-outline'} size={22} color={isSelected ? c.accent : c.textMute} />
         )}
         <View style={{ flex: 1, minWidth: 0 }}>
-          <Text style={[s.summary, { color: c.text }]}>{menu.nombre || defaultHistoryTitle(menu)}</Text>
+          <Text style={[s.summary, { color: c.text }]} numberOfLines={2}>{menu.nombre || defaultHistoryTitle(menu)}</Text>
           <Text style={[s.date, { color: c.textMute }]}>{noWidow(`${menu.published ? 'Publicado' : 'Guardado'} · ${dateLabel(menu.fecha)}`)}</Text>
         </View>
         {!selecting && (
@@ -173,28 +170,18 @@ export default function HistorialScreen() {
       {menus.length > 0 && (
         selecting ? (
           <View style={s.selectRow}>
-            <Text style={{ flex: 1, color: c.textSecondary }}>{noWidow(`${selectedFechas.size} ${selectedFechas.size === 1 ? 'seleccionado' : 'seleccionados'}`)}</Text>
+            <Text style={{ flex: 1, color: c.textSecondary }}>{noWidow(selectedFechas.size ? `${selectedFechas.size} ${selectedFechas.size === 1 ? 'menú seleccionado' : 'menús seleccionados'}` : 'Seleccionar menús')}</Text>
             <TouchableOpacity style={s.selectToggle} accessibilityRole="checkbox" accessibilityLabel="Seleccionar todos los menús" accessibilityState={{ checked: visibleMenus.length > 0 && visibleMenus.every((menu) => selectedFechas.has(menu.id)) }} onPress={() => setSelectedFechas((current) => { const next = new Set(current); const all = visibleMenus.every((menu) => current.has(menu.id)); visibleMenus.forEach((menu) => all ? next.delete(menu.id) : next.add(menu.id)); return next; })}><Text style={{ color: c.textSecondary }}>{visibleMenus.length > 0 && visibleMenus.every((menu) => selectedFechas.has(menu.id)) ? 'Ninguno' : 'Todos'}</Text></TouchableOpacity>
             <TouchableOpacity onPress={exitSelecting} accessibilityRole="button" accessibilityLabel="Cancelar selección" hitSlop={8} style={s.selectToggle}>
               <Text style={[s.selectToggleText, { color: c.accent }]}>Cancelar</Text>
             </TouchableOpacity>
           </View>
         ) : (
-          // "+" arriba a la izquierda, plano, sin fondo — mismo lugar que la
-          // cámara/crear de Instagram, no un botón de color en la navegación
-          // (corregido 2026-08-24 tras pedirlo Alejandro dos veces: la
-          // acción vive en el header de la pantalla, no en el tab bar).
           <View style={s.headerRow}>
-            <TouchableOpacity
-              style={s.createBtn}
-              onPress={() => setNewMenuSheetVisible(true)}
-              accessibilityRole="button"
-              accessibilityLabel={pendingToday ? 'Nuevo menú, pendiente publicar hoy' : 'Nuevo menú'}
-              activeOpacity={0.7}
-              hitSlop={8}>
-              <Ionicons name="add" size={26} color={c.text} />
-              {pendingToday && <View style={[s.createBadge, { backgroundColor: c.accent, borderColor: c.bg }]} />}
-            </TouchableOpacity>
+            <View>
+              <GlassIconButton icon="add" iconSize={22} onPress={() => setNewMenuSheetVisible(true)} accessibilityLabel={pendingToday ? 'Nuevo menú, pendiente publicar hoy' : 'Nuevo menú'} />
+              {pendingToday && <View pointerEvents="none" style={[s.createBadge, { backgroundColor: c.accent, borderColor: c.bg }]} />}
+            </View>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               {streak > 0 && (
                 <TouchableOpacity
@@ -212,15 +199,12 @@ export default function HistorialScreen() {
               )}
               <TouchableOpacity
                 style={[s.listsBtn, { borderColor: c.border, backgroundColor: c.surface }]}
-                hitSlop={5}
+                hitSlop={2}
                 onPress={() => setSheetMode('filter')}
                 accessibilityRole="button"
                 accessibilityLabel={activeListIds.length ? `Listas, ${activeListIds.length} activas` : 'Listas'}
                 activeOpacity={0.75}>
-                <View style={s.listsBlurClip}>
-                  <BlurView intensity={30} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
-                </View>
-                <Ionicons name="bookmark-outline" size={16} color={c.text} />
+                <Ionicons name="folder-outline" size={20} color={c.text} />
                 {activeListIds.length > 0 && (
                   <View style={[s.listsBadge, { backgroundColor: c.accent }]}>
                     <Text style={s.listsBadgeText}>{activeListIds.length}</Text>
@@ -236,7 +220,7 @@ export default function HistorialScreen() {
         {loading ? <View style={{ minHeight: 240 }}><FoodieLoading label="Cargando menús" /></View> : menus.length === 0 ? (
           <View style={s.empty}>
             <View style={[s.emptyIcon, { borderColor: c.border, backgroundColor: c.surface }]}>
-              <Ionicons name="receipt-outline" size={32} color={c.textSecondary} />
+              <Ionicons name="document-text-outline" size={32} color={c.textSecondary} />
             </View>
             <Text style={[s.emptyTitle, { color: c.text }]}>{noWidow('Publica tu primer menú')}</Text>
             <Text style={[s.emptyBody, { color: c.textSecondary }]}>{noWidow('Cuando publiques uno aparecerá aquí para volver a usarlo.')}</Text>
@@ -268,6 +252,7 @@ export default function HistorialScreen() {
       <RenameDialog visible={!!editing} title="Renombrar menú" value={draftName} onChangeText={setDraftName} maxLength={48} onClose={closeRename} onSave={saveName} />
       {selecting ? (
         sheetMode === null && <View onLayout={(event) => setSelectionBarHeight(event.nativeEvent.layout.height)} style={{ position: 'absolute', left: 16, right: 16, bottom: insets.bottom + 8 }}>
+          <BottomContentFade height={Math.max(52, selectionBarHeight) + insets.bottom + 8 + 16} bottom={-(insets.bottom + 8)} inset={16} />
           <SelectionActions actions={[
             { label: 'Añadir', icon: 'folder-outline', disabled: !selectedFechas.size, onPress: () => { setAssignFechas(Array.from(selectedFechas)); setSheetMode('assign'); } },
             { label: 'Mover', icon: 'folder-open-outline', disabled: !moveSelection.canMove, onPress: () => { setAssignFechas([...selectedFechas]); setSheetMode('move'); } },
@@ -286,7 +271,7 @@ export default function HistorialScreen() {
           { label: 'Publicar igual', icon: 'checkmark-done-outline', onPress: () => publishReused(actionsFor) },
           { label: 'Editar y usar', icon: 'create-outline', onPress: () => reuse(actionsFor) },
           { label: 'Renombrar', icon: 'pencil', onPress: () => openRename(actionsFor) },
-          { label: 'Añadir a lista', icon: 'bookmark-outline', onPress: () => { setAssignFechas([actionsFor.id]); setSheetMode('assign'); } },
+          { label: 'Añadir a lista', icon: 'folder-outline', onPress: () => { setAssignFechas([actionsFor.id]); setSheetMode('assign'); } },
           { label: 'Eliminar', icon: 'trash-outline', destructive: true, onPress: () => deleteMenu(actionsFor) },
         ] : []}
       />
@@ -313,17 +298,10 @@ export default function HistorialScreen() {
 const s = StyleSheet.create({
   root: { flex: 1 },
   headerRow: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  createBtn: { width: 34, height: 34, alignItems: 'center', justifyContent: 'center' },
   createBadge: { position: 'absolute', top: 2, right: 2, width: 9, height: 9, borderRadius: 4.5, borderWidth: 1.5 },
-  // Racha de publicación — mismo alto/radio que listsBtn para leerse como
-  // pareja en el header, pero cápsula (ancho variable) por llevar número.
-  streakPill: { height: 34, borderRadius: 17, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10 },
+  streakPill: { minHeight: 40, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 12 },
   streakText: { fontSize: 13, fontWeight: '700' },
-  // Pill idéntico al botón "Listas" de foodie-filter-bar.tsx (34×34,
-  // borderRadius 17, glass) — copiado, no reinventado (ley de Alejandro
-  // 2026-08-24: Menús comparte lenguaje visual con Guardados).
-  listsBtn: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth, overflow: 'visible' },
-  listsBlurClip: { ...StyleSheet.absoluteFillObject, borderRadius: 17, overflow: 'hidden' },
+  listsBtn: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth, overflow: 'visible' },
   listsBadge: { position: 'absolute', top: -4, right: -4, minWidth: 16, height: 16, borderRadius: 8, paddingHorizontal: 4, alignItems: 'center', justifyContent: 'center' },
   listsBadgeText: { fontSize: 10, fontWeight: '700', color: '#fff' },
   // Empty state — copiado 1:1 de favoritos.tsx (icono en caja + título +
@@ -332,13 +310,13 @@ const s = StyleSheet.create({
   emptyIcon: { width: 68, height: 68, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center', marginBottom: 18 },
   emptyTitle: { fontSize: 22, fontWeight: '900', letterSpacing: -0.5, textAlign: 'center', fontFamily: Fonts.brand },
   emptyBody: { marginTop: 10, fontSize: 15, lineHeight: 21, fontWeight: '400', textAlign: 'center' },
-  cta: { marginTop: 26, height: 54, paddingHorizontal: 24, borderRadius: Radius.card, alignItems: 'center', justifyContent: 'center' },
+  cta: { marginTop: 26, height: 54, paddingHorizontal: 24, borderRadius: 27, alignItems: 'center', justifyContent: 'center' },
   ctaText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
   filterEmptyCard: { alignItems: 'center', paddingVertical: 28, paddingHorizontal: 20, borderRadius: Radius.card, borderWidth: StyleSheet.hairlineWidth, marginTop: 16 },
   filterEmptyText: { marginTop: 10, fontSize: 14, lineHeight: 20, fontWeight: '400', textAlign: 'center' },
-  // Pila de tarjetas — mismo lenguaje que `list`/`card` de favoritos.tsx.
-  list: { gap: 10 },
-  card: { flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: Radius.card, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 14, paddingVertical: 7 },
+  // Filas separadas por una línea fina, con espacio entre grupos.
+  list: { gap: 0 },
+  card: { minHeight: 68, flexDirection: 'row', alignItems: 'center', gap: 12, borderBottomWidth: StyleSheet.hairlineWidth, paddingVertical: 12 },
   groupLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1.4, textTransform: 'uppercase' },
   // Nombre = identidad del menú, lidera la fila (antes iba abajo, más chico
   // y menos peso que la fecha — jerarquía invertida). Fecha = contexto,

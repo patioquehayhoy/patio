@@ -1,0 +1,197 @@
+--- a/components/foodie-filter-bar.tsx
++++ b/components/foodie-filter-bar.tsx
+@@ -99,10 +99,11 @@
+     controlIcon: { width: 20, height: 20, alignItems: 'center', justifyContent: 'center' },
+     activeCount: { position: 'absolute', top: -5, right: -3, minWidth: 18, height: 18, paddingHorizontal: 4, borderRadius: 9, overflow: 'hidden', backgroundColor: t.text, color: t.bg, textAlign: 'center', fontSize: 10, lineHeight: 18, fontWeight: '700', fontVariant: ['tabular-nums'] },
+     choiceRow: { minHeight: 48 },
+-    disclosureLabel: { fontSize: 15, fontWeight: '500', color: t.text, flexShrink: 1 },
+-    disclosureValue: { flex: 1, minWidth: 0, maxWidth: '45%', fontSize: 14, color: t.textSecondary, textAlign: 'right' },
++    disclosureLabel: { flex: 1, minWidth: 0, fontSize: 15, fontWeight: '500', color: t.text },
++    disclosureValue: { flexShrink: 1, minWidth: 0, maxWidth: '45%', fontSize: 14, color: t.textSecondary, textAlign: 'right' },
+     availabilityRow: { minHeight: 52, paddingHorizontal: 16, paddingVertical: 6, flexDirection: 'row', alignItems: 'center', gap: 12 },
+-    checkSlot: { width: 22, alignItems: 'center' },
++    checkSlot: { width: 22, flexShrink: 0, alignItems: 'center' },
++    disclosureChevron: { width: 16, height: 24, flexShrink: 0, alignItems: 'center', justifyContent: 'center' },
+     backButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', marginLeft: -12 },
+     // Recorta el BlurView a la cápsula sin recortar también el badge — el
+     // badge vive fuera de los bordes del pill (top/right negativos) y con
+@@ -815,7 +816,7 @@
+                 <View style={s.checkSlot}><PlaceIcon name={group.icon} size={20} color={theme.textSecondary} /></View>
+                 <Text style={s.disclosureLabel}>{noWidow(group.title)}</Text>
+                 <Text numberOfLines={2} style={s.disclosureValue}>{noWidow(summary)}</Text>
+-                <Ionicons name="chevron-forward" size={16} color={theme.textMute} />
++                <View style={s.disclosureChevron}><Ionicons name="chevron-forward" size={16} color={theme.textMute} /></View>
+               </TouchableOpacity>;
+             })}
+           </View></View>
+--- a/components/library-sheet.tsx
++++ b/components/library-sheet.tsx
+@@ -1,4 +1,4 @@
+-import { LinearGradient } from 'expo-linear-gradient';
++import { BottomContentFade } from '@/components/bottom-content-fade';
+ import { Ionicons } from '@expo/vector-icons';
+ import { BlurView } from 'expo-blur';
+ import * as Haptics from 'expo-haptics';
+@@ -197,9 +197,7 @@
+             </ScrollView>
+           </View>
+           {footer && <View pointerEvents="box-none" style={{ position: 'absolute', left: 0, right: 0, bottom: bottomPadding + keyboardInset }}>
+-            <LinearGradient pointerEvents="none" accessible={false} accessibilityElementsHidden importantForAccessibility="no-hide-descendants"
+-              colors={[`${theme.bg}00`, theme.bg, theme.bg]}
+-              locations={[0, 0.5, 1]} style={{ position: 'absolute', left: 0, right: 0, bottom: -bottomPadding, height: Math.min(footerHeight, footerMaxHeight) + bottomPadding + 32 }} />
++            <BottomContentFade height={Math.min(footerHeight, footerMaxHeight) + bottomPadding + 16} bottom={-bottomPadding} />
+             <ScrollView style={{ flexGrow: 0, flexShrink: 0, height: Math.min(footerHeight, footerMaxHeight), maxHeight: footerMaxHeight }}
+               keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator indicatorStyle={theme.isDark ? 'white' : 'black'}
+               onContentSizeChange={(_width, height) => setFooterHeight(height)}>{footer}</ScrollView>
+--- a/components/save-to-list-sheet.tsx
++++ b/components/save-to-list-sheet.tsx
+@@ -1,3 +1,4 @@
++import { BottomContentFade } from '@/components/bottom-content-fade';
+ import { useScrollEdges } from '@/lib/use-scroll-edges';
+ import { Ionicons } from '@expo/vector-icons';
+ import { BlurView } from 'expo-blur';
+@@ -197,7 +198,7 @@
+           </View>
+         </View>
+         <View style={{ flexShrink: 1, minHeight: 0 }}>
+-        <ScrollView key={`${visible}:${mode}:${choosingSource ? 'source' : 'destination'}`} onLayout={edges.onLayout} onScroll={edges.onScroll} scrollEventThrottle={16} style={[s.list, { height: Math.min(listContentHeight || Math.max(1, choices.length) * 52, maxListHeight), maxHeight: maxListHeight }]}
++        <ScrollView key={`${visible}:${mode}:${choosingSource ? 'source' : 'destination'}`} onLayout={edges.onLayout} onScroll={edges.onScroll} scrollEventThrottle={16} contentContainerStyle={{ paddingBottom: mode === 'move' ? 32 : 0 }} style={[s.list, { height: Math.min(listContentHeight || Math.max(1, choices.length) * 52, maxListHeight), maxHeight: maxListHeight }]}
+           onContentSizeChange={(width, height) => { edges.onContentSizeChange(width, height); setListContentHeight(height); }} showsVerticalScrollIndicator indicatorStyle={theme.isDark ? 'white' : 'black'} keyboardShouldPersistTaps="handled">
+         {creating && <View style={[s.row, { backgroundColor: theme.surface, borderRadius: 14, marginTop: 8 }]}>
+           <TextInput autoFocus keyboardAppearance={theme.isDark ? 'dark' : 'light'} value={newTitle} editable={!busy} onChangeText={setNewTitle} maxLength={60} accessibilityLabel="Nombre de la lista" onSubmitEditing={handleCreate} placeholder="Nombre de la lista" placeholderTextColor={theme.textMute} returnKeyType="done" autoCapitalize="words" style={s.input} />
+@@ -219,6 +220,7 @@
+           })}
+           {!choices.length && <View style={s.empty}><Text style={s.rowMeta}>{noWidow(mode === 'move' && !choosingSource ? 'Sin listas de destino' : 'Sin listas')}</Text></View>}
+         </ScrollView>
++        {mode === 'move' && <BottomContentFade height={24} />}
+         </View>
+         {mode === 'move' && <ScrollView style={{ flexGrow: 0, flexShrink: 0, height: visibleFooterHeight, maxHeight: footerMaxHeight }}
+           onContentSizeChange={(_width, height) => setFooterHeight(height)} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator indicatorStyle={theme.isDark ? 'white' : 'black'}>
+--- a/components/bottom-tab-bar.tsx
++++ b/components/bottom-tab-bar.tsx
+@@ -1,6 +1,6 @@
+ import { router, usePathname } from 'expo-router';
+ import { BlurView } from 'expo-blur';
+-import { LinearGradient } from 'expo-linear-gradient';
++import { BottomContentFade } from '@/components/bottom-content-fade';
+ import { Animated, Keyboard, StyleSheet, TouchableOpacity, View } from 'react-native';
+ import { useSafeAreaInsets } from 'react-native-safe-area-context';
+ import { Ionicons } from '@expo/vector-icons';
+@@ -64,14 +64,7 @@
+   const tabs = variant === 'foodie' ? FOODIE_TABS : FONDERO_TABS;
+   return (
+     <Animated.View pointerEvents="box-none" style={[styles.wrap, { bottom: bottomTabOffset(insets.bottom) }, translateY ? { transform: [{ translateY }] } : null]}>
+-      <LinearGradient
+-        colors={isDark
+-          ? ['rgba(10,11,13,0)', 'rgba(10,11,13,0.32)']
+-          : ['rgba(248,248,245,0)', 'rgba(248,248,245,0.45)']}
+-        locations={[0, 1]}
+-        pointerEvents="none"
+-        style={[styles.readabilityGradient, { bottom: -(insets.bottom + 14) }]}
+-      />
++      <BottomContentFade height={BOTTOM_TAB_HEIGHT + bottomTabOffset(insets.bottom) + 16} bottom={-bottomTabOffset(insets.bottom)} />
+       <View style={styles.pill} accessibilityRole="tablist">
+         <BlurView
+           intensity={isDark ? 16 : 20}
+@@ -119,7 +112,6 @@
+ 
+ const makeStyles = (t: Theme) => StyleSheet.create({
+   wrap: { position: 'absolute', left: 0, right: 0, alignItems: 'center', zIndex: 100 },
+-  readabilityGradient: { position: 'absolute', left: 0, right: 0, height: 72 },
+   pill: {
+     flexDirection: 'row',
+     gap: 4,
+--- a/app/favoritos.tsx
++++ b/app/favoritos.tsx
+@@ -1,3 +1,4 @@
++import { BottomContentFade } from '@/components/bottom-content-fade';
+ import { patioDistance, patioMinimumPrice, sortPatiosByMetric, type PatioSortMode } from '@/lib/patio-sort';
+ import { FoodieLoading } from '@/components/foodie-loading';
+ import { useScrollEdges } from '@/lib/use-scroll-edges';
+@@ -461,6 +462,7 @@
+       {showAlphabet && <View pointerEvents="box-none" style={[StyleSheet.absoluteFillObject, { bottom: insets.bottom + 90 }]}><AlphabetIndex letters={letters} activeLetter={activeLetter || letters[0]} onSelect={jumpToLetter} /></View>}
+       </View>
+       {selecting ? !saveSheetVisible && !organizerOverlayVisible && <View onLayout={(event) => setSelectionBarHeight(event.nativeEvent.layout.height)} style={{ position: 'absolute', left: 16, right: 16, bottom: insets.bottom + 8 }}>
++        <BottomContentFade height={Math.max(52, selectionBarHeight) + insets.bottom + 8 + 16} bottom={-(insets.bottom + 8)} inset={16} />
+         <SelectionActions actions={[
+           { label: 'Añadir', icon: 'folder-outline', disabled: !selectedIds.size, onPress: () => { setSaveMode('add'); setSaveSheetVisible(true); } },
+           { label: 'Mover', icon: 'folder-open-outline', disabled: !moveSelection.canMove, onPress: () => {
+--- a/app/historial.tsx
++++ b/app/historial.tsx
+@@ -1,3 +1,4 @@
++import { BottomContentFade } from '@/components/bottom-content-fade';
+ import { resolveLibraryMoveSelection } from '@/lib/library-selection';
+ import { RenameDialog } from '@/components/rename-dialog';
+ import { useScrollEdges } from '@/lib/use-scroll-edges';
+@@ -251,6 +252,7 @@
+       <RenameDialog visible={!!editing} title="Renombrar menú" value={draftName} onChangeText={setDraftName} maxLength={48} onClose={closeRename} onSave={saveName} />
+       {selecting ? (
+         sheetMode === null && <View onLayout={(event) => setSelectionBarHeight(event.nativeEvent.layout.height)} style={{ position: 'absolute', left: 16, right: 16, bottom: insets.bottom + 8 }}>
++          <BottomContentFade height={Math.max(52, selectionBarHeight) + insets.bottom + 8 + 16} bottom={-(insets.bottom + 8)} inset={16} />
+           <SelectionActions actions={[
+             { label: 'Añadir', icon: 'folder-outline', disabled: !selectedFechas.size, onPress: () => { setAssignFechas(Array.from(selectedFechas)); setSheetMode('assign'); } },
+             { label: 'Mover', icon: 'folder-open-outline', disabled: !moveSelection.canMove, onPress: () => { setAssignFechas([...selectedFechas]); setSheetMode('move'); } },
+--- a/scripts/tests/library-controls.test.cjs
++++ b/scripts/tests/library-controls.test.cjs
+@@ -68,6 +68,7 @@
+     '@/components/pin-icon': { PinIcon: 'PinIcon' },
+     '@/components/place-icon': { PlaceIcon: 'Icon' },
+     'expo-blur': { BlurView: 'BlurView' },
++    '@/components/bottom-content-fade': { BottomContentFade: 'BottomContentFade' },
+     'expo-linear-gradient': { LinearGradient: 'LinearGradient' },
+     'expo-location': { getForegroundPermissionsAsync: async () => ({ granted: false }) },
+     'expo-haptics': {
+@@ -834,10 +835,8 @@
+   tree = f.render(f.exports.LibrarySheet, props);
+   const body = nodes(tree).find((node) => node.type === 'ScrollView' && node.props.contentContainerStyle);
+   assert.equal(body.props.contentContainerStyle.paddingBottom, 76);
+-  const fade = nodes(tree).find((node) => node.type === 'LinearGradient');
+-  assert.equal(fade.props.pointerEvents, 'none');
+-  assert.equal(fade.props.accessibilityElementsHidden, true);
+-  assert.ok(fade.props.style.height > 60);
++  const fade = nodes(tree).find((node) => node.type === 'BottomContentFade');
++  assert.ok(fade.props.height > 60);
+   const footer = nodes(tree).find((node) => node.type === 'View' && node.props.pointerEvents === 'box-none');
+   assert.equal(footer.props.style.position, 'absolute');
+   assert.equal(footer.props.style.bottom, 34);
+@@ -937,3 +936,17 @@
+   tree = f.render(f.exports.LibrarySheet, props);
+   assert.equal(frame().height, physicalHeight, 'Returning reuses the measured list height');
+ });
++
++
++test('shared bottom fade uses the current theme and never intercepts input or accessibility', () => {
++  for (const bg of ['#F8F8F5', '#0A0B0D']) {
++    const f = fixture('components/bottom-content-fade.tsx', { '@/lib/theme': { useTheme: () => ({ theme: { bg } }) } });
++    const tree = f.render(f.exports.BottomContentFade, { height: 100, bottom: -34, inset: 16 });
++    assert.deepEqual(tree.props.colors, [`${bg}00`, bg, bg]);
++    assert.equal(tree.props.pointerEvents, 'none');
++    assert.equal(tree.props.accessibilityElementsHidden, true);
++    assert.equal(tree.props.style.bottom, -34);
++    assert.equal(tree.props.style.left, -16);
++    assert.equal(tree.props.style.right, -16);
++  }
++});
+--- a/scripts/tests/save-list-flow.test.cjs
++++ b/scripts/tests/save-list-flow.test.cjs
+@@ -90,6 +90,7 @@
+     'react-native-safe-area-context': { useSafeAreaInsets: () => ({ top: 44, bottom: 34 }) },
+     '@expo/vector-icons': { Ionicons: 'Icon' },
+     'expo-blur': { BlurView: 'BlurView' },
++    '@/components/bottom-content-fade': { BottomContentFade: 'BottomContentFade' },
+     'expo-haptics': {
+       selectionAsync: async () => {}, impactAsync: async () => {}, notificationAsync: async () => {},
+       ImpactFeedbackStyle: { Light: 'light' }, NotificationFeedbackType: { Success: 'success' },
+--- /dev/null
++++ b/components/bottom-content-fade.tsx
+@@ -0,0 +1,10 @@
++import { LinearGradient } from 'expo-linear-gradient';
++import { useTheme } from '@/lib/theme';
++
++/** Passive transition behind fixed controls; scroll content supplies clearance. */
++export function BottomContentFade({ height, bottom = 0, inset = 0 }: { height: number; bottom?: number; inset?: number }) {
++  const { theme } = useTheme();
++  return <LinearGradient pointerEvents="none" accessible={false} accessibilityElementsHidden importantForAccessibility="no-hide-descendants"
++    colors={[`${theme.bg}00`, theme.bg, theme.bg]} locations={[0, 0.65, 1]}
++    style={{ position: 'absolute', left: -inset, right: -inset, bottom, height }} />;
++}

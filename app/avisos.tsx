@@ -4,7 +4,7 @@ import { useCallback, useState } from 'react';
 import { Alert, Linking, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { SettingsGroup, SettingsRow, type SettingsColors } from '@/components/settings-list';
+import { SettingsGroup, SettingsRow, settingsColors } from '@/components/settings-list';
 import { ToggleSwitch } from '@/components/toggle-switch';
 import {
   CommunitySignInRequiredError,
@@ -15,28 +15,16 @@ import {
   syncSavedPatioNotificationSubscriptions,
 } from '@/lib/community-notifications';
 import { getFavoritePatioIds } from '@/lib/favorites';
-import { useTheme, type Theme } from '@/lib/theme';
+import { useTheme } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
 
-function colors(t: Theme): SettingsColors {
-  return {
-    surface: t.surface,
-    border: t.border,
-    text: t.text,
-    textSecondary: t.textSecondary,
-    textMute: t.textMute,
-    accent: t.accent,
-    iconBg: t.isDark ? 'rgba(255,255,255,0.06)' : 'rgba(17,18,20,0.04)',
-    accentBg: t.accentSoft,
-  };
-}
 
 export default function AvisosScreen() {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   const { role } = useLocalSearchParams<{ role?: 'foodie' | 'fondero' }>();
   const fondero = role === 'fondero';
-  const sc = colors(theme);
+  const sc = settingsColors(theme);
   const [system, setSystem] = useState<'granted' | 'denied' | 'undetermined' | 'unavailable'>('undetermined');
   const [signedIn, setSignedIn] = useState(true);
   const [updating, setUpdating] = useState<keyof NotificationPreferences | 'reminder' | null>(null);
@@ -120,7 +108,7 @@ export default function AvisosScreen() {
           ) : (
             <SettingsRow
               c={sc}
-              icon="restaurant-outline"
+              icon="document-text-outline"
               title="Menús nuevos"
               sub="Cuando un lugar que guardaste publica"
               trailing={<ToggleSwitch value={signedIn && remote.patioPublications} disabled={updating === 'patioPublications'} accessibilityLabel="Menús nuevos" onValueChange={(value) => signedIn ? updateRemote({ patioPublications: value }) : router.push({ pathname: '/comunidad-acceso', params: { returnTo: '/avisos' } })} />}

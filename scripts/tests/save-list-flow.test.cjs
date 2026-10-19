@@ -90,6 +90,7 @@ function fixture({ patioIds = ['shared'], sourceCollectionIds = [] } = {}) {
     'react-native-safe-area-context': { useSafeAreaInsets: () => ({ top: 44, bottom: 34 }) },
     '@expo/vector-icons': { Ionicons: 'Icon' },
     'expo-blur': { BlurView: 'BlurView' },
+    '@/components/bottom-content-fade': { BottomContentFade: 'BottomContentFade' },
     'expo-haptics': {
       selectionAsync: async () => {}, impactAsync: async () => {}, notificationAsync: async () => {},
       ImpactFeedbackStyle: { Light: 'light' }, NotificationFeedbackType: { Success: 'success' },

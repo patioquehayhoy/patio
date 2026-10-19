@@ -1,3 +1,4 @@
+import { BottomContentFade } from '@/components/bottom-content-fade';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
@@ -12,7 +13,6 @@ import { noWidow } from '@/lib/typography';
 import { libraryFooterMaxHeight, librarySheetHeight } from '@/lib/layout-metrics';
 import { sheetSurfaceTint } from '@/lib/surface-styles';
 
-const CLEAR_HIT_SLOP = { top: 13, bottom: 13, left: 8, right: 4 };
 function sheetStyles(t: Theme) {
   const border = t.border;
   return StyleSheet.create({
@@ -22,20 +22,23 @@ function sheetStyles(t: Theme) {
     sheetTint: { ...StyleSheet.absoluteFillObject, backgroundColor: sheetSurfaceTint(t.isDark) },
     grabberTouch: { alignItems: 'center', flexShrink: 0 },
     grabber: { width: 36, height: 4, borderRadius: 2, marginTop: 8, marginBottom: 12, backgroundColor: t.isDark ? 'rgba(255,255,255,0.16)' : 'rgba(0,0,0,0.10)' },
-    panelHeader: { width: '100%', minHeight: 44, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 8 },
-    panelHeading: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center' },
-    backButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', marginLeft: -12 },
-    panelTitle: { flexShrink: 1, fontSize: 17, fontWeight: '700', color: t.text },
-    panelActions: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+    panelHeader: { width: '100%', paddingHorizontal: 16, paddingBottom: 4 },
+    toolbar: { minHeight: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', columnGap: 8, rowGap: 4 },
+    titleSlot: { position: 'absolute', top: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
+    titleRow: { paddingHorizontal: 16, paddingTop: 4, paddingBottom: 8, alignItems: 'center' },
+    backButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+    panelTitle: { textAlign: 'center', flexShrink: 1, fontSize: 17, lineHeight: 23, fontWeight: '700', color: t.text },
+    panelActions: { minWidth: 44, maxWidth: '100%', minHeight: 44, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 4, flexShrink: 0 },
     headerIcon: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-    panelClear: { fontSize: 14, fontWeight: '600', color: t.text },
+    headerTextAction: { minWidth: 44, minHeight: 44, paddingHorizontal: 8, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+    panelClear: { fontSize: 15, lineHeight: 20, fontWeight: '600', color: t.text },
   });
 }
 
-export function LibrarySheet({ visible, onClose, title, viewKey: viewKeyProp, onClear, onBack, hideTitle, onCreate, headerActions, footer, dismissDisabled, editing, editor, preferredHeight, children, overlay, theme }: {
+export function LibrarySheet({ visible, onClose, title, viewKey: viewKeyProp, onClear, onBack, hideTitle, hideClose, onCreate, leadingAction, headerActions, footer, dismissDisabled, editing, preserveBrowsingHeight, stabilizeEditor, editor, preferredHeight, children, overlay, onOverlayClose, theme }: {
   visible: boolean; onClose: () => boolean | void; title: string; viewKey?: string; onClear?: () => void; onBack?: () => void;
-  preferredHeight: number; hideTitle?: boolean; onCreate?: () => void; headerActions?: React.ReactNode; footer?: React.ReactNode; dismissDisabled?: boolean; editing?: boolean; editor?: React.ReactNode;
-  children: React.ReactNode; overlay?: React.ReactNode; theme: ReturnType<typeof useTheme>['theme'];
+  preferredHeight: number; hideTitle?: boolean; hideClose?: boolean; onCreate?: () => void; leadingAction?: React.ReactNode; headerActions?: React.ReactNode; footer?: React.ReactNode; dismissDisabled?: boolean; editing?: boolean; preserveBrowsingHeight?: boolean; stabilizeEditor?: boolean; editor?: React.ReactNode;
+  children: React.ReactNode; overlay?: React.ReactNode; onOverlayClose?: () => void; theme: ReturnType<typeof useTheme>['theme'];
 }) {
   const s = sheetStyles(theme);
   const edges = useScrollEdges(`${visible}:${viewKeyProp ?? title}`);
@@ -43,23 +46,39 @@ export function LibrarySheet({ visible, onClose, title, viewKey: viewKeyProp, on
   // El título puede cambiar dentro de la misma vista ("2 seleccionadas"); la
   // vista, no el título, decide cuándo se remonta el scroll y se re-mide.
   const viewKey = viewKeyProp ?? title;
-  const { height: screenHeight, fontScale } = useWindowDimensions();
+  const { width: screenWidth, height: screenHeight, fontScale } = useWindowDimensions();
   const { keyboardInset, keyboardVisible, viewportHeight } = useSheetKeyboard();
-  const [contentSize, setContentSize] = useState({ title: '', height: 0 });
+  const [leadingMeasures, setLeadingMeasures] = useState<Record<string, number>>({});
+  const [trailingMeasures, setTrailingMeasures] = useState<Record<string, number>>({});
+  const leadingWidth = leadingMeasures[viewKey] ?? 44;
+  const trailingWidth = trailingMeasures[viewKey] ?? 44;
+  const sideWidth = Math.max(44, leadingWidth, trailingWidth);
+  const controlsMeasured = leadingMeasures[viewKey] !== undefined && trailingMeasures[viewKey] !== undefined;
+  const titleKey = `${title}:${fontScale}`;
+  const [titleMeasure, setTitleMeasure] = useState({ key: '', width: 0 });
+  // Measure the actual themed text; a fixed 128 pt minimum split even short titles.
+  const titleWidth = titleMeasure.key === titleKey ? titleMeasure.width : title.length * 9 * fontScale;
+  const separateTitle = fontScale > 1.4 || screenWidth - 32 - sideWidth * 2 < titleWidth + 16;
+  const [contentSizes, setContentSizes] = useState<Record<string, number>>({});
+  const contentHeight = contentSizes[viewKey] ?? 0;
   const [headerHeight, setHeaderHeight] = useState(68);
   const [footerHeight, setFooterHeight] = useState(60);
   // La hoja sigue por debajo del teclado (mismo cuerpo, mismo vidrio): las
   // esquinas redondeadas del teclado ya no dejan ver el mapa como un filo.
   const bottomPadding = keyboardVisible ? 8 : insets.bottom || 8;
-  const naturalHeight = contentSize.title === viewKey && contentSize.height > 0
-    ? headerHeight + contentSize.height + (footer ? footerHeight + bottomPadding : 0)
+  const naturalHeight = contentHeight > 0
+    ? headerHeight + contentHeight + (footer ? bottomPadding : 0)
     : preferredHeight + bottomPadding;
   const measuredHeight = librarySheetHeight({ available: screenHeight - insets.top - 16,
     preferred: preferredHeight, natural: naturalHeight, header: headerHeight,
     footer: footer ? footerHeight : 0, safeBottom: bottomPadding, fontScale });
   const browsingHeight = useRef(measuredHeight);
-  if (!editing) browsingHeight.current = measuredHeight;
-  const sheetHeight = editing ? browsingHeight.current : measuredHeight;
+  if (!editing && !preserveBrowsingHeight && !stabilizeEditor) browsingHeight.current = measuredHeight;
+  // Preserve physical height while the naming field mounts and the keyboard
+  // opens; only move further when the field really needs more visible space.
+  const sheetHeight = stabilizeEditor
+    ? Math.max(measuredHeight, browsingHeight.current - keyboardInset)
+    : editing ? browsingHeight.current : measuredHeight;
   const translateY = useRef(new Animated.Value(sheetHeight)).current;
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
@@ -132,14 +151,14 @@ export function LibrarySheet({ visible, onClose, title, viewKey: viewKeyProp, on
   if (!rendered) return null;
 
   return (
-    <Modal transparent visible animationType="none" onRequestClose={onBack ?? (() => dismissRef.current())} statusBarTranslucent>
+    <Modal transparent visible animationType="none" onRequestClose={overlay && onOverlayClose ? onOverlayClose : onBack ?? (() => dismissRef.current())} statusBarTranslucent>
       {/* The absolute sheet follows the keyboard frame; adding padding to a
           KeyboardAvoidingView cannot reposition an absolute bottom child. */}
       <View style={s.kav}>
         <Animated.View style={[s.backdrop, { opacity: backdropOpacity }]}>
           <TouchableOpacity activeOpacity={1} style={StyleSheet.absoluteFillObject} onPress={() => dismissRef.current()} accessibilityRole="button" accessibilityLabel="Cerrar" />
         </Animated.View>
-        <Animated.View accessibilityViewIsModal onAccessibilityEscape={onBack ?? (() => dismissRef.current())} style={[s.sheet, { height: visibleSheetHeight + keyboardInset, bottom: 0, paddingBottom: (footer ? bottomPadding : 0) + keyboardInset, transform: [{ translateY }] }]}>
+        <Animated.View accessibilityViewIsModal accessibilityElementsHidden={!!overlay} importantForAccessibility={overlay ? 'no-hide-descendants' : 'auto'} onAccessibilityEscape={onBack ?? (() => dismissRef.current())} style={[s.sheet, { height: visibleSheetHeight + keyboardInset, bottom: 0, paddingBottom: (footer ? bottomPadding : 0) + keyboardInset, transform: [{ translateY }] }]}>
           <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
           <View pointerEvents="none" style={s.sheetTint} />
           {/* Zona de arrastre ampliada (antes 22pt, muy angosta para agarrar
@@ -148,29 +167,47 @@ export function LibrarySheet({ visible, onClose, title, viewKey: viewKeyProp, on
           <View {...pan.panHandlers} style={s.grabberTouch} onLayout={(event) => setHeaderHeight(event.nativeEvent.layout.height)}>
             <View style={s.grabber} />
             <View style={s.panelHeader}>
-              <View style={s.panelHeading}>
-                {onBack && <TouchableOpacity onPress={onBack} style={s.backButton} accessibilityRole="button" accessibilityLabel="Volver"><Ionicons name="chevron-back" size={20} color={theme.text} /></TouchableOpacity>}
-                {!hideTitle && <Text accessibilityRole="header" style={s.panelTitle}>{noWidow(title)}</Text>}
+              {!hideTitle && <Text key={titleKey} accessible={false} accessibilityElementsHidden importantForAccessibility="no-hide-descendants" pointerEvents="none"
+                style={[s.panelTitle, { position: 'absolute', opacity: 0, alignSelf: 'flex-start' }]}
+                onLayout={(event) => setTitleMeasure({ key: titleKey, width: event.nativeEvent.layout.width })}>{noWidow(title)}</Text>}
+              {/* Measure actions at their natural width. Constraining them to
+                  the measured width would trap text controls at the 44 pt fallback. */}
+              <View style={s.toolbar}>
+                <View style={s.panelActions} onLayout={(event) => {
+                  const width = event.nativeEvent.layout.width;
+                  setLeadingMeasures((current) => current[viewKey] === width ? current : { ...current, [viewKey]: width });
+                }}>
+                  {leadingAction ?? (onBack
+                    ? <TouchableOpacity onPress={onBack} style={s.backButton} accessibilityRole="button" accessibilityLabel="Volver"><Ionicons name="chevron-back" size={20} color={theme.text} /></TouchableOpacity>
+                    : !hideClose && <TouchableOpacity style={s.headerIcon} accessibilityRole="button" accessibilityLabel="Cerrar" accessibilityState={{ disabled: !!dismissDisabled }} disabled={dismissDisabled} onPress={() => dismissRef.current()}><Ionicons name="close" size={20} color={theme.textSecondary} /></TouchableOpacity>)}
+                </View>
+                {!separateTitle && <View pointerEvents="none" accessibilityElementsHidden={!controlsMeasured} style={[s.titleSlot, { left: sideWidth, right: sideWidth }, !controlsMeasured && { opacity: 0 }]}>{!hideTitle && <Text accessibilityRole="header" accessibilityLiveRegion="polite" style={s.panelTitle}>{noWidow(title)}</Text>}</View>}
+                <View style={[s.panelActions, { marginLeft: 'auto', justifyContent: 'flex-end' }]} onLayout={(event) => {
+                  const width = event.nativeEvent.layout.width;
+                  setTrailingMeasures((current) => current[viewKey] === width ? current : { ...current, [viewKey]: width });
+                }}>
+                  {!!onClear && <TouchableOpacity style={s.headerTextAction} accessibilityRole="button" accessibilityLabel={`Limpiar ${title.toLowerCase()}`} onPress={onClear}><Text numberOfLines={1} style={s.panelClear}>Limpiar</Text></TouchableOpacity>}
+                  {headerActions}
+                  {onCreate && <TouchableOpacity style={s.headerIcon} disabled={dismissDisabled} accessibilityState={{ disabled: !!dismissDisabled }} onPress={onCreate} accessibilityRole="button" accessibilityLabel="Nueva lista"><Ionicons name="add" size={22} color={theme.text} /></TouchableOpacity>}
+                </View>
               </View>
-              <View style={s.panelActions}>
-                {onCreate && <TouchableOpacity style={s.headerIcon} onPress={onCreate} accessibilityRole="button" accessibilityLabel="Nueva lista"><Ionicons name="add" size={22} color={theme.text} /></TouchableOpacity>}
-                {!!onClear && <TouchableOpacity hitSlop={CLEAR_HIT_SLOP} accessibilityRole="button" accessibilityLabel={`Limpiar ${title.toLowerCase()}`} onPress={onClear}><Text style={s.panelClear}>Limpiar</Text></TouchableOpacity>}
-                {headerActions}
-                <TouchableOpacity style={s.headerIcon} accessibilityRole="button" accessibilityLabel="Cerrar" accessibilityState={{ disabled: !!dismissDisabled }} disabled={dismissDisabled} onPress={() => dismissRef.current()}><Ionicons name="close" size={20} color={theme.textSecondary} /></TouchableOpacity>
-              </View>
+              {separateTitle && !hideTitle && <View style={s.titleRow}><Text accessibilityRole="header" accessibilityLiveRegion="polite" style={s.panelTitle}>{noWidow(title)}</Text></View>}
             </View>
           </View>
           <View style={{ flex: 1, minHeight: 0 }}>
             <ScrollView key={`${visible}:${viewKey}`} style={{ flex: 1 }} onLayout={edges.onLayout} onScroll={edges.onScroll} scrollEventThrottle={16} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator indicatorStyle={theme.isDark ? 'white' : 'black'}
-            onContentSizeChange={(width, height) => { edges.onContentSizeChange(width, height); setContentSize((current) => current.title === viewKey && current.height === height ? current : { title: viewKey, height }); }}
-            contentContainerStyle={{ paddingBottom: footer ? 16 : 16 + bottomPadding }}>
+            onContentSizeChange={(width, height) => { edges.onContentSizeChange(width, height); setContentSizes((current) => current[viewKey] === height ? current : { ...current, [viewKey]: height }); }}
+            contentContainerStyle={{ paddingBottom: footer ? Math.min(footerHeight, footerMaxHeight) + 16 : 16 + bottomPadding }}>
               {editor}
               {children}
             </ScrollView>
           </View>
-          {footer && <ScrollView style={{ flexGrow: 0, flexShrink: 0, height: Math.min(footerHeight, footerMaxHeight), maxHeight: footerMaxHeight }}
-            keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator indicatorStyle={theme.isDark ? 'white' : 'black'}
-            onContentSizeChange={(_width, height) => setFooterHeight(height)}>{footer}</ScrollView>}
+          {footer && <View pointerEvents="box-none" style={{ position: 'absolute', left: 0, right: 0, bottom: bottomPadding + keyboardInset }}>
+            <BottomContentFade height={Math.min(footerHeight, footerMaxHeight) + bottomPadding + 16} bottom={-bottomPadding} />
+            <ScrollView style={{ flexGrow: 0, flexShrink: 0, height: Math.min(footerHeight, footerMaxHeight), maxHeight: footerMaxHeight }}
+              keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator indicatorStyle={theme.isDark ? 'white' : 'black'}
+              onContentSizeChange={(_width, height) => setFooterHeight(height)}>{footer}</ScrollView>
+          </View>}
         </Animated.View>
         {/* El menú de acciones por lista vive AQUÍ — dentro del mismo Modal
             (evita el bug real de dos <Modal> de RN anidados en iOS, ver

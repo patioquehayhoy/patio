@@ -145,8 +145,8 @@ Abierto se activa con un toque, sin número. Mantener presionado permite
 horario específico; etiqueta visible siempre Abierto. Filtros y Listas
 resumen selecciones con insignias absolutas de notificación.
 
-Paneles iniciales sin título redundante «Filtros» / «Tus listas»; conservan
-cerrar y acciones. Subpantallas identifican criterio o tarea: Tipo de lugar,
+Paneles iniciales con título visible «Filtros» / «Listas»; la cabecera
+identifica el contexto y agrupa cerrar y acciones. No reservar una fila vacía. Subpantallas identifican criterio o tarea: Tipo de lugar,
 Pago, Destino o Nueva lista.
 
 ## Listas, selección y feedback
@@ -154,7 +154,8 @@ Pago, Destino o Nueva lista.
 LibrarySheet, LibraryListRow, SelectionActions y RenameDialog son comunes.
 «Todos los lugares» usa la misma selección izquierda que las demás filas.
 Nombres largos: dos líneas, cuenta legible y nombre completo accesible.
-Fijar usa marcador; renombrar, lápiz sólido.
+Fijar usa chincheta y Desfijar, chincheta tachada; guardar usa marcador.
+Renombrar usa lápiz sólido y añadir a una lista, carpeta.
 
 Mover requiere selección, origen inequívoco, destino y confirmación. Cuando
 falta selección, la explicación aparece junto a las acciones. Fallos
@@ -219,3 +220,193 @@ La referencia Uber es [Base: List item](https://base.uber.com/6d2425e9f/p/96ccc3
 [States](https://base.uber.com/6d2425e9f/p/65ae6d) y
 [Transitions](https://base.uber.com/6d2425e9f/p/312fab-transitions).
 La posición concreta del precio y la elección de sheets son decisiones de Patio.
+
+## Homologación Menús/editor — 2026-10-18
+
+- Menús: crear y Listas en círculos de 40 pt, iconos de 20–22 y área
+  táctil de 44; Listas usa carpeta como Guardados. Filas continuas con
+  separador fino, padding vertical 12 y sin cajas blancas separadas.
+- GlassIconButton: superficie temática bajo el vidrio para distinguirse
+  sobre fondos claros; intensidad 20 claro / 16 oscuro.
+- Editor: navegación 40 pt, títulos de sección 14/20 y peso 700;
+  grupos separados por 12 pt. Guardar es secundario neutro; Publicar
+  naranja sin glow. Cápsulas de alto mínimo 50 que crecen con el texto;
+  acciones pueden pasar a otra fila. Confirmación de guardado reserva espacio.
+- Identidad genérica de lugar: pin (location-outline). Menús: hoja con
+  texto (document-text-outline/document-text). Publicar mi menú: create-outline
+  tanto en DEV como en acceso normal. Una sola familia Ionicons, sin cubiertos. Obtener/centrar
+  ubicación: flecha (navigate-outline); Cómo llegar conserva flecha de dirección.
+- El bloque protegido de precio del día permanece intacto.
+- Validación visual en dispositivo pendiente; no equivale a aceptación móvil.
+
+## Paleta compartida entre perfiles — 2026-10-18
+
+Theme es la fuente de fondo, superficie, borde, texto, acento e iconBg para
+ambos roles. fonderoPalette adapta esos mismos tokens; no mantiene una paleta
+independiente. Perfil, Cuenta, Editar negocio y Avisos usan settingsColors
+compartido. Se elimina el beige exclusivo de iconos del negocio. El botón
+Listas de Menús usa la misma superficie neutra de los controles de Guardados.
+El mapa conserva vidrio por su contexto flotante. Verificación visual móvil
+pendiente.
+
+## Paneles y selección — 2026-10-18
+
+Filtros y Listas muestran título en su cabecera existente. Selección vacía:
+«Seleccionar listas/lugares/menús»; con selección, cuenta y tipo de contenido.
+La cabecera de selección de listas ofrece Cancelar para volver a explorar
+listas y omite la X duplicada; arrastre/fondo siguen cerrando el panel.
+Se mantienen las cinco posiciones de acciones y su estado deshabilitado sin
+selección. PinIcon representa Fijar/Desfijar y el indicador de lista fijada:
+SF Symbols pin/pin.slash, fallback de chincheta MaterialCommunityIcons.
+Es una excepción semántica explícita: Ionicons pin es un alfiler, no chincheta.
+Auditoría e inventario: CONTROLS_AUDIT_2026-10-18.md.
+
+## Prueba reversible de cabeceras — 2026-10-18
+
+Decisión del usuario: probar y volver atrás si no convence. LibrarySheet centra
+el título con columnas laterales simétricas medidas. Cerrar/Volver/Cancelar a
+la izquierda; acciones a la derecha. Si falta espacio o fontScale supera 1.4,
+el título tiene una fila propia, sin superponerse a botones. Controles mínimos
+44 pt. Listas muestra Seleccionar directamente y +; se elimina el menú global
+que solo contenía Seleccionar listas. Los menús de cada lista permanecen.
+
+Nueva lista se edita dentro de la misma LibrarySheet en iOS y Android, con
+tokens del tema y teclado acorde. Evita que Alert.prompt adopte un modo de
+sistema diferente del tema de Patio. Campo 16 pt/400, etiqueta 13/18 y Crear
+15/600. Al fallar conserva texto; al cancelar vuelve a listas; no modifica
+filtros por crear una lista vacía. Editor con identidad de scroll propia.
+
+Fundamentos consultados: Apple Sheets, Toolbars, Layout y Buttons. Centrar el
+título y los umbrales son decisiones de Patio, no medidas obligatorias de Apple.
+Rollback exclusivo de esta prueba:
+`git apply --reverse --check docs/design/experiments/centered-sheet-header-2026-10-18.patch`
+y, solo si el check pasa y se solicita volver, aplicar sin --check. No revierte
+los ajustes previos de colores, iconos o paneles. Aceptación móvil pendiente.
+
+## Ajuste fino tras capturas — 2026-10-18
+
+Sustituye el umbral fijo de 128 pt de la prueba anterior: el ancho del título
+se mide con su tipografía real mediante un texto de medición oculto también
+para accesibilidad. Las columnas de controles siguen siendo simétricas para
+centrar geométricamente el título. Listas, Organizar y + permanecen en una fila
+cuando caben; solo se separa el título por falta de espacio real o letra grande.
+
+Filtrar listas y organizarlas son tareas diferentes: la acción se llama
+Organizar. Dentro, título estable Organizar listas; ayuda inicial Elige las
+listas que quieres organizar. y luego conteo seleccionado en el mismo lugar.
+Listo, a la derecha, termina la organización; no guarda ni aplica filtros.
+Las acciones de organización ya efectuadas siguen su comportamiento inmediato.
+
+Rollback de este ajuste fino: design/experiments/fine-sheet-header-2026-10-18.patch.
+El patch centered-sheet-header-2026-10-18.patch también se actualiza para poder
+revertir toda la prueba de cabeceras, incluido este refinamiento. Aplicar solo
+el patch correspondiente y siempre comprobar primero --reverse --check.
+TypeScript/lint y 181 pruebas; falta aceptación visual en dispositivo.
+
+## Cierre de pulido de Filtros/Listas — 2026-10-18
+
+Este corte sustituye la ayuda «Elige las listas…» y las instrucciones de los
+pies de Mover/Organizar. No se agregan notas de implementación ni instrucciones
+permanentes: título del contexto, nombres de controles/campos, datos reales y
+estados vacíos breves. Los errores reales conservan respuesta y reintento.
+
+- Organizar listas sin selección; al seleccionar, cuenta en el título. Listo
+  termina el modo. No hay subtítulo instructivo.
+- SelectionActions: cápsula de mínimo 52 pt, objetivos mínimos 48, iconos 20,
+  chincheta SF Symbols regular 18 y cajas ópticas 24. Etiqueta 11/14; con letra
+  grande crece y reorganiza sus acciones. Fijar se distingue de Guardar.
+- Footer flotante sobre el scroll con gradiente inferior pasivo según theme.bg;
+  el scroll reserva su alto real para que la última fila quede alcanzable.
+  El alto natural no vuelve a sumar la reserva del footer. La capa no intercepta
+  toques ni aparece en accesibilidad. Compatible con teclado y área segura.
+- Mover deshabilitado sin lugares; Renombrar requiere una lista exacta. Sin
+  notas que expliquen después de tocar una acción inválida. Seleccionar todas
+  comunica estado mixto cuando corresponde.
+- Crear/Renombrar listas comparten editor dentro de LibrarySheet en ambos roles,
+  con teclado y colores del tema. Error conserva texto; cambio de vista reinicia
+  scroll. Renombrar desde Organizar conserva el alto de esa vista al regresar.
+- Menú por lista: limitado al espacio disponible, scroll propio, fondo fuera del
+  recorrido de VoiceOver y escape/Back cierran primero el menú.
+- Guardar en lista conserva datos de origen para evitar mover desde una lista
+  ambigua; su campo de creación usa también teclado temático y título Nueva lista.
+
+Fuentes consultadas: Apple HIG Sheets, Toolbars, Layout y Buttons. Medidas y
+composición exactas son decisiones de Patio. Alcance verificado: TypeScript,
+lint y 186 pruebas locales; revisión adicional de código independiente.
+La captura del usuario guía el ajuste, pero la aceptación visual final en
+celular sigue pendiente. No se certifican blur/fuentes nativas con tests JS.
+
+Rollback de este último pulido: design/experiments/final-filter-lists-polish-2026-10-18.patch.
+Comprobar con git apply --reverse --check antes de aplicar. Los patches de
+pruebas anteriores se conservan como historial y no se aplican sobre este corte.
+
+Ajuste óptico posterior: en SelectionActions, la chincheta SF de iPhone se
+traslada 1.5 pt hacia abajo dentro de su caja de 24 pt. Tamaño 18, etiquetas y
+objetivos táctiles intactos; Android conserva su posición. Aceptación visual
+pendiente en dispositivo.
+
+## Nueva lista: transición sin rebote — 2026-10-18
+
+Usuario reportó parpadeo al crear y rechazó etiqueta visible duplicada.
+Crear/Renombrar en Foodie y Menús conservan solo el placeholder del campo y
+su accessibilityLabel; se retira el texto visible repetido por autorización
+expresa. El título sigue indicando Nueva lista o Renombrar lista.
+
+LibrarySheet conserva medidas de contenido y controles por viewKey. Naming
+usa un tamaño preferido compacto y stabilizeEditor conserva el alto físico
+previo cuando aparece el teclado; solo amplía si hace falta para el campo.
+No reutiliza Organizar/+ en la primera medición del formulario y recupera las
+medidas de Listas al volver. No se agregan timeouts ni animaciones por onLayout.
+Prueba de regresión: montaje, medición de campo, teclado y regreso mantienen
+el alto cuando hay espacio. TypeScript, lint y 187 pruebas locales. Verificación
+del parpadeo reportado sigue pendiente en el dispositivo del usuario.
+Rollback exclusivo: design/experiments/new-list-transition-2026-10-18.patch.
+El patch final-filter-lists-polish también incluye este ajuste; comprobar
+--reverse --check y usar solo el corte que corresponda.
+
+## Columnas de Filtros y desvanecido compartido — 2026-10-18
+
+En Tipo de lugar/Pago, el nombre absorbe el espacio sobrante; el valor se
+ajusta hasta 45% y la flecha ocupa una caja fija de 16 pt. Las dos flechas
+terminan en la misma columna con resúmenes cortos/largos. Comprobado en Yoga
+con 24 combinaciones, anchos 320/393 y letra 100/160%; la medición de texto usa
+SF de macOS, no una captura de iPhone. Evidencia: [resultados](design/experiments/filter-row-yoga-2026-10-18.txt) y
+[fuente](design/experiments/filter-row-yoga-2026-10-18.mm).
+
+BottomContentFade comparte theme.bg en claro/oscuro, independientemente del
+rol. Se usa detrás de navegación Foodie/Fondero, acciones de selección de
+Guardados/Menús y footer de LibrarySheet (Listas de ambos roles). El inicio
+queda 16 pt por encima del control, igual a la reserva de scroll, para que
+la última fila salga sin teñirse al llegar al final. Guardar/Mover tiene una
+transición de 24 pt antes del footer y reserva 32 pt de scroll.
+
+La capa es pasiva y oculta para accesibilidad; no se añaden bandas en cada
+extremo de listas ni instrucciones auxiliares. Conserva indicador de scroll
+nativo. No se cambian tamaños de botones por agregar el efecto.
+
+TypeScript, lint y 188 pruebas locales aprobados; revisión independiente de
+geometría de scroll. No equivale a aceptación visual/táctil en dispositivo.
+Rollback puntual: design/experiments/filter-align-fade-2026-10-18.patch.
+El patch final-filter-lists-polish incluye también este corte. Comprobar
+--reverse --check antes de revertir y aplicar solo el corte correspondiente.
+
+## Acciones de cabecera con ancho natural — 2026-10-18
+
+La captura mostró Listo partido. La columna inicial de 44 pt restringía su
+medición y onLayout devolvía ese ancho ya limitado; el texto recibía 28 pt y
+no podía recuperarse. Reproducido con Yoga y SF mediante AppKit/macOS.
+
+Las acciones se distribuyen con ancho natural y minHeight de 44 pt. Sus medidas
+solo determinan insets simétricos para el título absoluto; nunca restringen
+al grupo que se mide. Listo/Organizar/Limpiar tienen una línea, tipo 15/20 y
+peso 600. El título pasa a otra fila cuando no cabe. Durante la primera
+medición, el título absoluto está oculto para evitar solapamiento transitorio;
+no se agregan timeouts. Las medidas se conservan por vista al regresar.
+
+[Reproducción anterior](design/experiments/header-yoga-2026-10-18.txt) y
+[geometría actual](design/experiments/header-current-yoga-2026-10-18.txt):
+12 casos aprobados, anchos de 320/393 pt y letra al 100/160/200%. Es una comprobación de
+geometría, no aprobación de renderizado nativo de iPhone.
+Rollback puntual: design/experiments/natural-header-actions-2026-10-18.patch.
+El combinado final-filter-lists-polish incluye este ajuste; los cortes anteriores
+se conservan como historial. Siempre comprobar --reverse --check antes de aplicar.

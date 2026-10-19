@@ -1,4 +1,4 @@
-# Pendientes y roadmap de lanzamiento — 2026-10-12
+# Pendientes y roadmap de lanzamiento — actualizado 2026-10-18
 
 Objetivo: iPhone y Android. Este es el checklist vigente; reemplaza pendientes
 operativos de los cortes históricos. El lanzamiento público sigue pendiente.
@@ -11,7 +11,9 @@ operativos de los cortes históricos. El lanzamiento público sigue pendiente.
 - [x] Bibliotecas, mover/renombrar, filtros, selección y estados homologados.
 - [x] Cards con columnas estables, estrella única y colonia · distancia.
 - [x] Centrar ubicación en Mapa y recuperar navegación al cerrar resultados.
-- [x] TypeScript y lint limpios; 177 pruebas locales y 54 ejemplos web.
+- [x] TypeScript/lint y 189 pruebas locales aprobados el 2026-10-18.
+- [x] Pulido compartido de Filtros/Listas, encabezados, iconos, colores y desvanecido.
+- [x] Error al abrir Listas corregido con regresión; el usuario confirmó «ya quedó me parece».
 - [x] Borrador de fichas preparado; soporte `quehayhoy.patio@gmail.com`.
 
 Backend comprobado el 2026-10-09: [producción](PRODUCTION_PROMOTION_2026-10-09.md)
@@ -20,9 +22,10 @@ asignación de dueños ni borrado de datos sintéticos para cerrar esta lista.
 
 ## 1. QA del usuario y estabilidad móvil
 
-- [ ] Terminar el push del checkpoint: commit local `b21c898`, cuenta activa
-  `T1Alejandro` sin escritura en Patio. Hace falta autenticar `patioquehayhoy`;
-  conservar la rama y los commits locales, sin force-push ni cambio de propietario.
+- [ ] Subir los commits locales y el cierre del 2026-10-18 a `rebuild/patio-final`.
+  GitHub confirma que la cuenta activa `T1Alejandro` tiene `push: false`.
+  Autenticar una cuenta de Patio con escritura; conservar historia y rama,
+  sin force-push ni cambio de propietario.
 
 - [ ] Alejandro: buscar «mole», cerrar resultados con swipe, tocar Guardados/
   Cuenta y reabrir la misma búsqueda. Confirmar que vuelve la navegación y
@@ -35,7 +38,8 @@ asignación de dueños ni borrado de datos sintéticos para cerrar esta lista.
 - [ ] Completar recorridos Foodie/Fondero en iPhone y Android: acceso, guardar,
   listas/mover/renombrar, cámara/galería, publicar y recuperar tras fallo de red.
 
-El usuario hará la prueba en el celular. Diagnóstico USB y auditoría amplia
+La confirmación del ajuste reciente de Listas queda registrada; no acredita
+los recorridos completos anteriores. El usuario hará esas pruebas en el celular. Diagnóstico USB y auditoría amplia
 detenidos por su petición; retomar solo hallazgos concretos que reporte.
 
 ## 2. Dependencias, Android e integraciones

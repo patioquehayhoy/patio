@@ -10,7 +10,7 @@ import { noWidow } from '@/lib/typography';
 const SUPPORT_EMAIL = 'quehayhoy.patio@gmail.com';
 const TOPICS = [
   { id: 'acceso', icon: 'key-outline', title: 'No puedo entrar', hint: 'Correo, enlace o sesión' },
-  { id: 'menu', icon: 'receipt-outline', title: 'Mi menú', hint: 'Foto, lectura, guardado o publicación' },
+  { id: 'menu', icon: 'document-text-outline', title: 'Mi menú', hint: 'Foto, lectura, guardado o publicación' },
   { id: 'lugar', icon: 'location-outline', title: 'Mi Patio', hint: 'Nombre, horario o ubicación' },
   { id: 'avisos', icon: 'notifications-outline', title: 'Avisos', hint: 'Permisos y recordatorios' },
   { id: 'resena', icon: 'star-outline', title: 'Reseñas y seguridad', hint: 'Reportar contenido o una experiencia' },

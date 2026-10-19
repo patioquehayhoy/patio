@@ -1,6 +1,45 @@
 # HANDOFF
 
-> **Estado vigente — 2026-10-12:** auditoría de diseño aplicada a tarjetas,
+> **Corte vigente — 2026-10-18:** pulido de Filtros/Listas, botones,
+> iconografía y paleta compartida entre Foodie/Fondero guardado en este corte.
+> Tras corregir el error de apertura de Listas, Alejandro respondió «ya quedó
+> me parece» y pidió cerrar con documentación, commit y push. Se registra como
+> confirmación del ajuste reciente; no sustituye QA completa de ambos roles,
+> Android, letra grande ni candidato de tienda.
+> `npm run check`: TypeScript/lint, 189 pruebas y control de release aprobados
+> (29 verificaciones, 0 errores, 2 configuraciones Android pendientes).
+> Push bloqueado por credenciales: GitHub confirma que `T1Alejandro` tiene
+> lectura y carece de permiso de escritura en `patioquehayhoy/patio`.
+> Checklist vigente: [pendientes](PENDING_LAUNCH_2026-10-12.md).
+
+## Cierre del pulido
+
+- Colores y fondos dependen del tema; ambos roles comparten controles.
+- Filtros usa columnas estables para valores y flechas; Listas y sus acciones
+  conservan agrupación y medidas compartidas, sin instrucciones auxiliares.
+- Listo/Organizar/Limpiar usan ancho natural; el título se centra con insets
+  simétricos independientes. Las mediciones capturan el valor antes de liberar
+  el evento nativo. Regresión del error `layout of null` cubierta.
+- Nueva lista/Renombrar comparten editor temático, sin etiqueta duplicada y
+  con altura estabilizada al abrir el teclado.
+- Desvanecido pasivo en navegación y acciones de ambos roles, con espacio
+  para mostrar completa la última fila. Fijar usa chincheta diferenciada.
+- Evidencia y límites: [controles](CONTROLS_AUDIT_2026-10-18.md),
+  [iconos](ICON_AUDIT_2026-10-18.md) y [sistema de diseño](DESIGN_SYSTEM.md).
+- Rollback combinado: `design/experiments/final-filter-lists-polish-2026-10-18.patch`.
+  Solo aplicar si se solicita volver y `git apply --reverse --check` pasa.
+  Los demás parches son cortes históricos, no una secuencia para aplicar.
+
+## Continuación
+
+Completar la autenticación para subir esta rama sin force-push. Después,
+seguir el checklist vigente; no reabrir el pulido aceptado sin un hallazgo.
+No repetir migraciones ni login de Supabase. Diagnóstico USB, auditorías amplias,
+EAS y publicación siguen fuera del alcance de este cierre.
+
+## Historial anterior
+
+> **Corte histórico — 2026-10-12:** auditoría de diseño aplicada a tarjetas,
 > iconos, pills, listas, formularios, tipografía, feedback y copy. Contrato:
 > [DESIGN_SYSTEM](DESIGN_SYSTEM.md). Evidencia y checklist físico:
 > [DESIGN_AUDIT_2026-10-10](DESIGN_AUDIT_2026-10-10.md).

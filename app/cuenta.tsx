@@ -8,7 +8,7 @@ import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { bottomTabClearance } from '@/lib/layout-metrics';
 import { AccountDeletionRow } from '@/components/account-deletion-row';
 import Constants from 'expo-constants';
-import { SettingsGroup, SettingsRow, type SettingsColors } from '@/components/settings-list';
+import { SettingsGroup, SettingsRow, settingsColors } from '@/components/settings-list';
 import { ToggleSwitch } from '@/components/toggle-switch';
 import { useFoodieAccountController } from '@/lib/controllers/useFoodieAccountController';
 import { useTabBarScroll } from '@/lib/tab-bar-visibility';
@@ -29,18 +29,6 @@ function makeStyles(t: Theme) {
   });
 }
 
-function settingsColors(t: Theme): SettingsColors {
-  return {
-    surface: t.surface,
-    border: t.border,
-    text: t.text,
-    textSecondary: t.textSecondary,
-    textMute: t.textMute,
-    accent: t.accent,
-    iconBg: t.isDark ? 'rgba(255,255,255,0.06)' : 'rgba(17,18,20,0.04)',
-    accentBg: t.accentSoft,
-  };
-}
 
 export default function CuentaScreen() {
   const { theme, toggleTheme } = useTheme();
@@ -88,7 +76,7 @@ export default function CuentaScreen() {
             {__DEV__ ? (
               <SettingsRow
                 c={sc}
-                icon="construct-outline"
+                icon="create-outline"
                 title="Publicar mi menú · DEV"
                 sub="Entrar sin iniciar sesión"
                 onPress={handleDevFondero}
@@ -96,7 +84,7 @@ export default function CuentaScreen() {
             ) : (
               <SettingsRow
                 c={sc}
-                icon="storefront-outline"
+                icon="create-outline"
                 title="Publicar mi menú"
                 sub="Para cocinas y fonditas"
                 onPress={handleFonderoAccess}

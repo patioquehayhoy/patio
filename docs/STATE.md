@@ -10,6 +10,7 @@
 > (29 verificaciones, 0 errores, 2 configuraciones Android pendientes).
 > Push bloqueado por credenciales: GitHub confirma que `T1Alejandro` tiene
 > lectura y carece de permiso de escritura en `patioquehayhoy/patio`.
+> Commit del cierre: `335f36c`. Push intentado y rechazado con HTTP 403.
 > Checklist vigente: [pendientes](PENDING_LAUNCH_2026-10-12.md).
 
 ## Cierre del pulido

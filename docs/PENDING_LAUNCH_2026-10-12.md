@@ -22,7 +22,8 @@ asignación de dueños ni borrado de datos sintéticos para cerrar esta lista.
 
 ## 1. QA del usuario y estabilidad móvil
 
-- [ ] Subir los commits locales y el cierre del 2026-10-18 a `rebuild/patio-final`.
+- [ ] Subir los commits locales y el cierre `335f36c` del 2026-10-18 a
+  `rebuild/patio-final`. El intento de push devolvió HTTP 403.
   GitHub confirma que la cuenta activa `T1Alejandro` tiene `push: false`.
   Autenticar una cuenta de Patio con escritura; conservar historia y rama,
   sin force-push ni cambio de propietario.

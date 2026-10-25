@@ -12,7 +12,6 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { ThemeProvider, useTheme } from '@/lib/theme';
 import { TabBarVisibilityProvider } from '@/lib/tab-bar-visibility';
-import { PatioGiros } from '@/components/business-category-icon';
 import { FoodieFiltersProvider } from '@/lib/foodie-filters-context';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -128,7 +127,7 @@ function RootStack() {
 }
 
 export default function RootLayout() {
-  const [fontsLoaded, fontError] = useFonts({ PlusJakartaSans_800ExtraBold, ...MaterialCommunityIcons.font, ...PatioGiros.font });
+  const [fontsLoaded, fontError] = useFonts({ PlusJakartaSans_800ExtraBold, ...MaterialCommunityIcons.font });
   const [herosLoaded, setHerosLoaded] = useState(false);
 
   useEffect(() => {

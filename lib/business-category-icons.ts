@@ -1,46 +1,45 @@
+import type { Ionicons } from '@expo/vector-icons';
 import type { BusinessType } from './smart-setup';
 
-/** Glyphs of the PatioGiros font (Lucide family; tacos/elotes drawn on its grid). */
-export type CategoryIcon =
-  | 'fondita' | 'tacos' | 'antojitos' | 'elotes' | 'botanas' | 'postres' | 'cafeteria'
-  | 'mariscos' | 'bebidas' | 'jugos' | 'restaurante' | 'otro' | 'pin';
+/** Giros use Ionicons, the same family as navigation and actions. */
+export type CategoryIcon = keyof typeof Ionicons.glyphMap;
 
 export const BUSINESS_CATEGORY_ICONS = {
-  fondita: 'fondita',
-  taqueria: 'tacos',
-  antojitos: 'antojitos',
-  elotes: 'elotes',
-  botanas: 'botanas',
-  reposteria: 'postres',
-  cafeteria: 'cafeteria',
-  mariscos: 'mariscos',
-  bebidas: 'bebidas',
-  jugos: 'jugos',
-  restaurante: 'restaurante',
-  otro: 'otro',
+  fondita: 'storefront-outline',
+  taqueria: 'flame-outline',
+  antojitos: 'fast-food-outline',
+  elotes: 'leaf-outline',
+  botanas: 'basket-outline',
+  reposteria: 'ice-cream-outline',
+  cafeteria: 'cafe-outline',
+  mariscos: 'fish-outline',
+  bebidas: 'beer-outline',
+  jugos: 'nutrition-outline',
+  restaurante: 'restaurant-outline',
+  otro: 'ellipsis-horizontal',
 } as const satisfies Record<BusinessType, CategoryIcon>;
 
 // Free-text categories (Supabase `categorias`, «Otro» answers) resolve by keyword.
 const KEYWORDS: [RegExp, CategoryIcon][] = [
-  [/taco|taquer/, 'tacos'],
-  [/elote|esquite/, 'elotes'],
-  [/botana|palomita/, 'botanas'],
-  [/jugo|fruta|licuad/, 'jugos'],
-  [/cafeter|cafe\b/, 'cafeteria'],
-  [/antojito|garnacha|quesadilla|hamburgues|torta|empanada/, 'antojitos'],
-  [/postre|\bpan\b|panader|reposter|pastel/, 'postres'],
-  [/marisco|pescad/, 'mariscos'],
-  [/bebida|bar\b|antro|cantina/, 'bebidas'],
-  [/restaurante/, 'restaurante'],
-  [/fond|cocina|caser/, 'fondita'],
+  [/taco|taquer/, 'flame-outline'],
+  [/elote|esquite/, 'leaf-outline'],
+  [/botana|palomita/, 'basket-outline'],
+  [/jugo|fruta|licuad/, 'nutrition-outline'],
+  [/cafeter|cafe\b/, 'cafe-outline'],
+  [/antojito|garnacha|quesadilla|hamburgues|torta|empanada/, 'fast-food-outline'],
+  [/postre|\bpan\b|panader|reposter|pastel/, 'ice-cream-outline'],
+  [/marisco|pescad/, 'fish-outline'],
+  [/bebida|bar\b|antro|cantina/, 'beer-outline'],
+  [/restaurante/, 'restaurant-outline'],
+  [/fond|cocina|caser/, 'storefront-outline'],
 ];
 
 export function businessCategoryIcon(category: string, context: 'onboarding' | 'map' = 'onboarding'): CategoryIcon {
-  const value = category.normalize('NFD').replace(/[̀-ͯ]/g, '').trim().toLowerCase();
+  const value = category.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
   const exact = Object.hasOwn(BUSINESS_CATEGORY_ICONS, value) ? BUSINESS_CATEGORY_ICONS[value as BusinessType] : null;
-  const icon = exact ?? KEYWORDS.find(([pattern]) => pattern.test(value))?.[1] ?? 'otro';
+  const icon = exact ?? KEYWORDS.find(([pattern]) => pattern.test(value))?.[1] ?? 'ellipsis-horizontal';
   // On the map a generic place is a pin, not a storefront or cutlery.
-  if (context === 'map' && (icon === 'fondita' || icon === 'restaurante' || icon === 'otro')) return 'pin';
+  if (context === 'map' && (icon === 'storefront-outline' || icon === 'restaurant-outline' || icon === 'ellipsis-horizontal')) return 'location-outline';
   return icon;
 }
 

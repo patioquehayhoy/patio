@@ -518,8 +518,8 @@ Cafetería entraron el 2026-10-25.
 ### Plan Creador para foodies
 
 - Foodie sigue gratis, pero hay salida de pago para quien recomienda y tiene
-  audiencia (influencers): plan «Creador», precio por definir (propuesta
-  $[199] al mes / $[1,990] al año). Alejandro ve disposición de pago incluso de
+  audiencia (influencers): plan «Creador», propuesta $199 al mes / $1,990
+  al año. Alejandro ve disposición de pago incluso de
   ~$1,000.
 - Beneficios: listas destacadas en Explorar, estadísticas de sus listas (quién
   las guarda y a qué lugar llega), sello de Creador, enlace de invitación propio

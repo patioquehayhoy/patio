@@ -47,6 +47,7 @@ const SECCION_DEFAULTS: Record<string, string[]> = {
   botanas:    ['DORILOCOS Y BOTANAS', 'EXTRAS', 'BEBIDAS'],
   bebidas:    ['BEBIDAS', 'TAMAÑOS', 'EXTRAS'],
   jugos:      ['JUGOS', 'LICUADOS', 'FRUTA PREPARADA'],
+  cafeteria:  ['CAFÉ', 'PAN', 'DESAYUNOS'],
   restaurante:['ENTRADAS', 'PLATOS FUERTES', 'POSTRES', 'BEBIDAS'],
   otro:       ['SECCIÓN 1'],
 };

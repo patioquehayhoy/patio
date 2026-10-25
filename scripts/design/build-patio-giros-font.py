@@ -5,7 +5,8 @@ from fontTools.pens.cu2quPen import Cu2QuPen
 from fontTools.pens.transformPen import TransformPen
 from fontTools.svgLib.path import parse_path
 src,out=sys.argv[1],sys.argv[2]
-names={'taco':0xE001,'corn':0xE002}
+import json,os
+names=json.loads(sys.argv[3]) if len(sys.argv)>3 else {'taco':0xE001,'corn':0xE002}
 glyphs={'.notdef':TTGlyphPen(None).glyph()}
 for n in names:
     svg=open(f'{src}/{n}.pico.svg').read()

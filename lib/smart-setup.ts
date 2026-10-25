@@ -43,6 +43,7 @@ export type BusinessType =
   | 'botanas'
   | 'bebidas'
   | 'jugos'
+  | 'cafeteria'
   | 'restaurante'
   | 'otro';
 
@@ -58,6 +59,7 @@ export const BUSINESS_TYPE_LABELS: Record<BusinessType, string> = {
   botanas: 'Botanas',
   bebidas: 'Bebidas',
   jugos: 'Jugos y fruta',
+  cafeteria: 'Cafetería',
   restaurante: 'Restaurante',
   otro: 'Otro',
 };

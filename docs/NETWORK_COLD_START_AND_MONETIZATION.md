@@ -449,3 +449,58 @@ criterio; el seguidor obtiene un mapa accionable; el negocio recibe descubrimien
 
 Este patrón se tratará como adquisición por distribución del artefacto, no como
 una campaña separada ni como una segunda red atómica.
+
+## 14. Notas de lanzamiento — 2026-10-25
+
+Notas de trabajo, todavía por cerrar con Alejandro. Complementan la sección 3
+(cohorte fundadora); no la reemplazan.
+
+### Fundadores: selección curada
+
+- **Por invitación, no abierto a todos.** Alejandro elige a los negocios. Abrirlo
+  a cualquiera rompe la red atómica (sección 2): diez negocios dispersos no
+  forman una red; diez en la misma zona caminable, sí.
+- Criterios propuestos para elegir:
+  1. dentro de la microzona inicial (Polanco y bordes inmediatos);
+  2. cambia o confirma su menú al menos cuatro días por semana;
+  3. variedad de giros: que la zona no quede con diez fondas iguales;
+  4. acepta el acompañamiento en el alta y la primera publicación;
+  5. tiene clientela habitual que pueda invitar (sección 3, demanda inicial).
+- Compromiso a cambio: publicar las primeras cuatro semanas. Quien lo cumple
+  conserva el sello para siempre; los seis meses de Pro corren desde el alta.
+- Invitar a otra cocina de la zona suma un mes de Pro a las dos. Es reciprocidad
+  del lado difícil: el fundador recluta a su vecino y la red se densifica.
+
+### Sello de Fundador
+
+- Distintivo ganado, nunca comprado (sección 3). Muestra el rol, la colonia y el
+  año: «Fundador · Polanco · 2026».
+- Vive en el perfil público y en la tarjeta del mapa, en tinta neutra con el
+  mismo trazo que los iconos. El naranja queda para la acción principal de cada
+  pantalla, no para el sello.
+- La colonia en el sello hace que cada zona nueva tenga sus propios fundadores
+  cuando Patio se expanda (sección 2, paso 4).
+
+### Planes
+
+- Selector «Para comer» / «Para tu negocio», como Uber (pasajero/conductor) o
+  Airbnb (huésped/anfitrión): una sola app y una sola cuenta.
+- Foodie se queda solo con Gratis. Es el lado fácil: cobrarle frena la demanda
+  que el lado difícil necesita ver. El desglose muestra lo que incluye, con los
+  mismos cupos visuales que los planes de negocio.
+- Negocios: Gratis (10 lecturas con foto al mes) y Pro ($99, 60 lecturas y 8
+  avisos especiales al mes). Cupos en lugar de «ilimitado» para que el costo de
+  IA (≈ $0.55 MXN por lectura, estimado con Sonnet 4.6) nunca supere el precio.
+- Propuesta visual: `artifacts/planes-propuesta-2026-10-25.html`.
+
+### Giros guiados por el mercado
+
+«Otro» guarda el texto que escribe el negocio. Un recopilado periódico de esos
+textos decide qué giros nuevos agregar (ver PENDING_LAUNCH). Jugos y fruta y
+Cafetería entraron el 2026-10-25.
+
+### Pendientes de decisión
+
+- Tamaño final de la cohorte (la sección 3 dice 10) y colonia exacta de arranque.
+- Cupos finales de lecturas y avisos tras medir uso real.
+- Diseño final del sello con la tipografía que se elija.

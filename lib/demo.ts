@@ -464,7 +464,7 @@ export const DEMO_PATIOS: Patio[] = [
 // nunca inventar otras aquí, o los chips de categoría del mapa se contaminan.
 const DENSITY_CATEGORIES = [
   'Fondita', 'Taquería', 'Antojitos', 'Elotes', 'Botanas',
-  'Repostería', 'Mariscos', 'Bebidas', 'Jugos y fruta', 'Restaurante',
+  'Repostería', 'Cafetería', 'Mariscos', 'Bebidas', 'Jugos y fruta', 'Restaurante',
 ];
 
 function seededUnit(seed: number): number {
@@ -475,7 +475,7 @@ function seededUnit(seed: number): number {
 // Nombres y colonias verosímiles: el mapa de prueba debe verse como en vivo.
 const DENSITY_NAME_KINDS: Record<string, string> = {
   Fondita: 'Fonda', Taquería: 'Tacos', Antojitos: 'Antojitos', Elotes: 'Elotes', Botanas: 'Botanas',
-  Repostería: 'Pan y postres', Mariscos: 'Mariscos', Bebidas: 'Bebidas', 'Jugos y fruta': 'Jugos', Restaurante: 'Cocina',
+  Repostería: 'Pan y postres', Cafetería: 'Café', Mariscos: 'Mariscos', Bebidas: 'Bebidas', 'Jugos y fruta': 'Jugos', Restaurante: 'Cocina',
 };
 const DENSITY_OWNERS = ['Doña Mary', 'Don Chucho', 'La Güera', 'El Güero', 'Lupita', 'Don Beto', 'La Esquina', 'Doña Toña', 'El Chino', 'Carmelita', 'La Abuela', 'Don Pepe', 'Marisol', 'El Paisa', 'Las Tías', 'Don Rafa', 'La Morena'];
 const DENSITY_AREAS = ['Polanco', 'Granada', 'Anzures', 'Verónica Anzures', 'Pensil', 'Anáhuac', 'Irrigación', 'Lomas de Sotelo'];

@@ -62,11 +62,16 @@ li::before{content:"";display:inline-block;width:6px;height:6px;border-radius:3p
         <p class="name">Foodie</p>
         <p class="price">Gratis</p>
         <p class="soft">Siempre. Comer bien no se&nbsp;cobra.</p>
+        <div class="quota">
+          <div><span>Buscar qué hay hoy</span><b>Sin límite</b></div>
+          <div><span>Listas y lugares guardados</span><b>Sin límite</b></div>
+          <div><span>Reseñas</span><b>Sin límite</b></div>
+        </div>
         <ul>
-          <li>Qué hay hoy cerca de ti</li>
-          <li>Buscar por platillo</li>
-          <li>Listas para guardar y compartir</li>
-          <li>Reseñas, seguidores y tu&nbsp;@usuario</li>
+          <li>Búsqueda por platillo</li>
+          <li>Tu perfil con @usuario y seguidores</li>
+          <li>Comparte tus listas con quien quieras</li>
+          <li>Aviso cuando tu lugar publica</li>
         </ul>
         <div class="spacer"></div>
         <a class="btn" href="#">Ver qué hay hoy</a>
@@ -117,12 +122,20 @@ li::before{content:"";display:inline-block;width:6px;height:6px;border-radius:3p
     </div>
 
     <div class="founder">
-      <div>
+      <svg width="96" height="96" viewBox="0 0 96 96" role="img" aria-label="Sello de Fundador">
+        <circle cx="48" cy="48" r="44" fill="none" stroke="#111214" stroke-width="2.75"/>
+        <circle cx="48" cy="48" r="34" fill="none" stroke="#111214" stroke-width="1.5" stroke-dasharray="2 4" stroke-linecap="round"/>
+        <path d="M34 50l9 9 19-21" fill="none" stroke="#111214" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"/>
+        <defs><path id="arc" d="M14 48a34 34 0 0 1 68 0"/><path id="arc2" d="M18 52a30 30 0 0 0 60 0"/></defs>
+        <text font-size="9" font-weight="700" letter-spacing="2" fill="#111214"><textPath href="#arc" startOffset="50%" text-anchor="middle">FUNDADOR</textPath></text>
+        <text font-size="8" letter-spacing="1.4" fill="#4A4A47"><textPath href="#arc2" startOffset="50%" text-anchor="middle">POLANCO · 2026</textPath></text>
+      </svg>
+      <div style="flex:1;min-width:240px">
         <p class="eyebrow">Fundadores</p>
         <h2>6 meses de Pro, gratis</h2>
-        <p class="soft">Para las primeras cocinas de cada colonia. Sello de Fundador para siempre y un mes más por cada cocina que&nbsp;invites.</p>
+        <p class="soft">Por invitación, para las primeras cocinas de cada colonia. Publica tus primeras cuatro semanas y el sello es tuyo para siempre. Cada cocina que invites les suma un mes a las&nbsp;dos.</p>
       </div>
-      <a class="btn" href="#" style="padding:0 24px">Quiero ser fundador</a>
+      <a class="btn" href="#" style="padding:0 24px">Me interesa</a>
     </div>
     <p class="note">Precios en pesos, con IVA. Las lecturas se renuevan cada mes. Pro se paga y se cancela desde App Store o Google&nbsp;Play.</p>
   </section>

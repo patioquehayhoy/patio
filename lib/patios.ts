@@ -251,7 +251,7 @@ export const MOCK_PATIOS: Patio[] = [
 // Único origen de verdad — los datos demo/densidad (lib/demo.ts) deben usar
 // exactamente estas etiquetas, nunca inventar otras, o los chips de categoría
 // del mapa se contaminan.
-export const PATIO_CATEGORIES = ['Fondita', 'Taquería', 'Antojitos', 'Elotes', 'Botanas', 'Repostería', 'Mariscos', 'Bebidas', 'Jugos y fruta', 'Restaurante'];
+export const PATIO_CATEGORIES = ['Fondita', 'Taquería', 'Antojitos', 'Elotes', 'Botanas', 'Repostería', 'Cafetería', 'Mariscos', 'Bebidas', 'Jugos y fruta', 'Restaurante'];
 
 // Fallback para filas de Supabase que todavía no tienen `categorias` (text[])
 // poblado: deriva etiquetas atómicas desde el `tipo_negocio` legacy (single
@@ -269,6 +269,7 @@ function tipoLabels(tipo: string | null): string[] {
     botanas: ['Botanas'],
     bebidas: ['Bebidas'],
     jugos: ['Jugos y fruta'],
+    cafeteria: ['Cafetería'],
     restaurante: ['Restaurante'],
     otro: ['Otro'],
   };

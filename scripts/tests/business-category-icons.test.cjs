@@ -13,23 +13,25 @@ const { businessCategoryIcon, BUSINESS_CATEGORY_ICONS, mapMarkerDetail } = loade
 
 test('the original icon catalogue is preserved except for literal tacos and corn', () => {
   const glyphs = require('@expo/vector-icons/build/vendor/react-native-vector-icons/glyphmaps/Ionicons.json');
-  const foodGlyphs = { taco: 0xe001, corn: 0xe002 };
+  const foodGlyphs = { taco: 0xe001, corn: 0xe002, chips: 0xe003, cake: 0xe004, coffee: 0xe005, juice: 0xe006 };
   const font = fs.readFileSync(path.resolve(__dirname, '../../assets/fonts/PatioGiros.ttf'));
   assert.ok(font.length > 500, 'PatioGiros font ships with the app');
-  assert.match(fs.readFileSync(path.resolve(__dirname, '../../components/business-category-icon.tsx'), 'utf8'), /taco: 0xe001, corn: 0xe002/);
-  assert.equal(Object.keys(BUSINESS_CATEGORY_ICONS).length, 11);
+  assert.match(fs.readFileSync(path.resolve(__dirname, '../../components/business-category-icon.tsx'), 'utf8'), /taco: 0xe001, corn: 0xe002, chips: 0xe003, cake: 0xe004, coffee: 0xe005, juice: 0xe006/);
+  assert.equal(Object.keys(BUSINESS_CATEGORY_ICONS).length, 12);
   for (const [type, name] of Object.entries(BUSINESS_CATEGORY_ICONS)) {
-    assert.ok((name === 'taco' || name === 'corn' ? foodGlyphs : glyphs)[name], `${type}: glyph must exist in the shipped font`);
+    assert.ok((name in foodGlyphs ? foodGlyphs : glyphs)[name], `${type}: glyph must exist in the shipped font`);
     assert.equal(businessCategoryIcon(type), name);
   }
   for (const label of ['Tacos al pastor', 'Taquería']) assert.equal(businessCategoryIcon(label), 'taco');
   for (const label of ['Elotes', 'Esquites']) assert.equal(businessCategoryIcon(label), 'corn');
-  assert.equal(businessCategoryIcon('Panadería'), 'cafe-outline');
+  assert.equal(businessCategoryIcon('Panadería'), 'cake');
+  assert.equal(businessCategoryIcon('Cafetería'), 'coffee');
+  assert.equal(businessCategoryIcon('Café de olla', 'map'), 'coffee');
   assert.equal(businessCategoryIcon('Empanadas'), 'fast-food-outline');
-  assert.equal(businessCategoryIcon('Botanas'), 'basket-outline');
-  assert.equal(businessCategoryIcon('Botanas', 'map'), 'basket-outline');
-  assert.equal(businessCategoryIcon('Jugos y fruta'), 'nutrition-outline');
-  assert.equal(businessCategoryIcon('Jugos y fruta', 'map'), 'nutrition-outline');
+  assert.equal(businessCategoryIcon('Botanas'), 'chips');
+  assert.equal(businessCategoryIcon('Botanas', 'map'), 'chips');
+  assert.equal(businessCategoryIcon('Jugos y fruta'), 'juice');
+  assert.equal(businessCategoryIcon('Jugos y fruta', 'map'), 'juice');
   assert.equal(businessCategoryIcon('Giro desconocido'), 'ellipsis-horizontal');
   assert.equal(businessCategoryIcon('Fondita', 'map'), 'location-outline');
   assert.equal(businessCategoryIcon('Restaurante', 'map'), 'location-outline');

@@ -124,6 +124,8 @@ No iniciar EAS ni publicación automáticamente desde esta actualización docume
   (hoy «Otro» se guarda como Fondita y se pierde el dato). Con ese texto y su
   menú, generar un recopilado semanal o mensual de altas nuevas para decidir qué
   giros agregar. Jugos y fruta fue el primero en entrar (2026-10-25).
+- [ ] Licencia del icono de Tacos (Flaticon 10305288, modificado): dar atribución al autor
+  en Créditos de la app o pagar Flaticon Premium antes de publicar.
 - [ ] Medir el piloto de la microzona: publicación, búsqueda, regreso y soporte.
 - [ ] Evaluar OTA, mejoras de búsqueda y crecimiento después de QA y datos del
   piloto. [Roadmap de producto](PRODUCT_EVOLUTION_ROADMAP_2026-07-18.md).

@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Monument estilo Pangram</title>
+<style>
+@font-face{font-family:"PPM";src:url("../design-source/fuentes-prueba/PPMonumentNormal-Regular.otf");font-weight:400}
+@font-face{font-family:"PPM";src:url("../design-source/fuentes-prueba/PPMonumentNormal-Black.otf");font-weight:900}
+:root{--ink:#111214;--soft:#5A5A56;--gray:#EDEDEA;--bg:#F7F7F5;--orange:#EC4A27;--white:#fff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"PPM",sans-serif;font-weight:400;-webkit-font-smoothing:antialiased}
+/* La prueba solo trae Regular y Black; "med" simula el Medium de la licencia completa. */
+.med{-webkit-text-stroke:.45px currentColor}
+main{max-width:1240px;margin:0 auto;padding:24px 16px 80px}
+.nav{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px}
+.pill{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 22px;border-radius:100px;font-size:17px;text-decoration:none;color:var(--ink);background:var(--white)}
+.pill.line{background:transparent;border:1.5px solid var(--ink)}
+.pill.orange{background:var(--orange);color:#fff}
+.pill.black{background:var(--ink);color:#fff}
+.hero{background:var(--ink);color:#fff;border-radius:32px;padding:56px 40px;display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:32px}
+.hero h1{margin:0;font-weight:400;font-size:clamp(48px,7vw,84px);line-height:.98;letter-spacing:-.035em}
+.hero h1 span{color:var(--orange)}
+.hero p{margin:0 0 18px;font-size:20px;line-height:1.4;letter-spacing:-.01em;color:rgba(255,255,255,.92);text-wrap:pretty}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-top:16px}
+.card{border-radius:28px;padding:28px;background:var(--gray);display:flex;flex-direction:column;gap:14px;min-height:240px}
+.card.orange{background:var(--orange)} .card.black{background:var(--ink);color:#fff}
+.lbl{margin:0;font-size:15px;letter-spacing:-.005em}
+.big{margin:0;font-size:34px;line-height:1.06;letter-spacing:-.025em}
+.small{margin:0;font-size:15px;line-height:1.35;color:inherit;opacity:.8}
+h2{margin:56px 0 14px;font-size:15px;letter-spacing:.02em;color:var(--soft)}
+.phones{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:20px}
+.phone{background:var(--bg);border:.5px solid rgba(17,18,20,.1);border-radius:40px;padding:28px 16px 20px;display:flex;flex-direction:column;gap:12px}
+.ttl{margin:4px 4px 6px;font-size:44px;line-height:1;letter-spacing:-.035em}
+.place{border-radius:24px;padding:18px;background:var(--gray);display:flex;flex-direction:column;gap:6px}
+.place .row{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.place .n{margin:0;font-size:22px;line-height:1.1;letter-spacing:-.02em}
+.place .p{margin:0;font-size:22px;letter-spacing:-.02em}
+.place .m{margin:0;font-size:14px;color:var(--soft)}
+.dish{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-top:.5px solid rgba(17,18,20,.12);font-size:17px;letter-spacing:-.01em}
+.dish small{display:block;font-size:13px;color:var(--soft);margin-top:2px}
+.note{margin:12px 0 0;max-width:760px;font-family:-apple-system,system-ui,sans-serif;font-size:14px;line-height:1.5;color:var(--soft);text-wrap:pretty}
+</style>
+</head>
+<body>
+<main>
+  <div class="nav">
+    <a class="pill med" href="#">Patio</a><a class="pill" href="#">Explorar</a>
+    <span style="flex:1"></span>
+    <a class="pill line" href="#">Ver qué hay hoy</a><a class="pill orange" href="#">Publicar lo de hoy</a>
+  </div>
+
+  <section class="hero">
+    <h1 class="med">¿Qué hay hoy?<br><span>Saaaaaaabes.</span></h1>
+    <div>
+      <p>Las fondas, taquerías y puestos de tu colonia publican lo que prepararon hoy. Tú ves qué hay cerca, en cuánto y qué tan lejos&nbsp;queda.</p>
+      <p>Si cocinas, tomas foto de tu menú y Patio lo lee por ti. Lo de hoy aparece en el mapa para quien anda cerca buscando dónde&nbsp;comer.</p>
+    </div>
+  </section>
+
+  <div class="cards">
+    <div class="card orange"><p class="lbl med">Fundadores</p><p class="big">Polanco<br>quedan 23 de&nbsp;100</p><p class="small">Por invitación. El sello se gana publicando las primeras cuatro&nbsp;semanas.</p></div>
+    <div class="card"><p class="lbl med">Giros</p><p class="big med">Fondita<br>Tacos<br>Elotes<br>Antojitos</p></div>
+    <div class="card"><p class="lbl med">Hoy en Polanco</p><p class="big med">Chiles&nbsp;rellenos<br>Pozole<br>Enmoladas</p><p class="small">Datos de ejemplo</p></div>
+    <div class="card black"><p class="lbl med">Patio Pro</p><p class="big">$99 al mes</p><p class="small">60 lecturas con foto, 8 avisos especiales y quién te guarda.</p><span style="flex:1"></span><a class="pill" href="#" style="align-self:flex-start">Probar Pro</a></div>
+  </div>
+  <p class="note">Así la usa Pangram: Monument en todo, con pesos medios (no Black), letras muy juntas en lo grande, tarjetas de color plano con una etiqueta chica arriba y el dato grande abajo, y botones en cápsula: contorno, negro y uno solo naranja. El Medium aquí está simulado; la licencia completa lo trae&nbsp;real.</p>
+
+  <h2>Pantallas de Patio con ese estilo</h2>
+  <div class="phones">
+    <div class="phone">
+      <p class="lbl med" style="margin:0 4px;color:var(--soft)">Cerca de ti</p>
+      <p class="ttl med">Explorar</p>
+      <div class="place"><div class="row"><p class="n med">Fonda Doña Rosa</p><p class="p">$95</p></div><p class="m">Polanco · 250 m · Abierto</p></div>
+      <div class="place"><div class="row"><p class="n med">Tacos Don Chucho</p><p class="p">$60</p></div><p class="m">Granada · 400 m · Abierto</p></div>
+      <div class="place" style="background:var(--ink);color:#fff"><div class="row"><p class="n med">Elotes La Güera</p><p class="p">$35</p></div><p class="m" style="color:rgba(255,255,255,.7)">Anzures · 600 m · Fundador #007</p></div>
+    </div>
+    <div class="phone">
+      <div class="place" style="background:var(--orange);padding:24px 20px">
+        <p class="lbl med">Fondita · Polanco</p>
+        <p class="big med" style="font-size:38px">Fonda Doña&nbsp;Rosa</p>
+        <p class="small">Abierto hasta las 5 · 250 m</p>
+      </div>
+      <div style="padding:6px 6px 0">
+        <p class="lbl med" style="margin:8px 0;color:var(--soft)">Menú del día · $95</p>
+        <div class="dish"><span>Sopa de fideo<small>Con limón y chile pasilla</small></span></div>
+        <div class="dish"><span>Chile relleno<small>De queso, en caldillo</small></span></div>
+        <div class="dish"><span>Agua de jamaica<small>Incluida</small></span></div>
+      </div>
+      <span style="flex:1"></span>
+      <a class="pill black" href="#">Cómo llegar</a>
+    </div>
+    <div class="phone">
+      <p class="ttl med">Tu plan</p>
+      <div class="place" style="padding:22px"><p class="lbl med">Gratis</p><p class="big">$0</p><p class="m">10 lecturas con foto al mes</p></div>
+      <div class="place" style="background:var(--ink);color:#fff;padding:22px"><p class="lbl med">Pro · Más elegido</p><p class="big">$99 al mes</p><p class="m" style="color:rgba(255,255,255,.7)">60 lecturas · 8 avisos especiales</p><a class="pill orange" href="#" style="margin-top:10px">Probar Pro</a></div>
+    </div>
+  </div>
+  <p class="note">Ojo con Apple: en la app, el texto chico (nombres de platillo, detalles, botones) en Monument debe crecer con el tamaño de letra del iPhone igual que la fuente del sistema. Se puede, pero hay que programarlo; si no, conviene dejar ese texto en la fuente del&nbsp;sistema.</p>
+</main>
+</body>
+</html>

@@ -15,7 +15,7 @@ test('every giro uses Ionicons, the same family as the rest of the app', () => {
   const glyphs = require('@expo/vector-icons/build/vendor/react-native-vector-icons/glyphmaps/Ionicons.json');
   assert.equal(Object.keys(BUSINESS_CATEGORY_ICONS).length, 12);
   for (const [type, name] of Object.entries(BUSINESS_CATEGORY_ICONS)) {
-    assert.ok(glyphs[name], `${type}: ${name} must exist in Ionicons`);
+    assert.ok(glyphs[name] || name === 'patio-jugos', `${type}: ${name} must exist in Ionicons`);
     assert.equal(businessCategoryIcon(type), name);
   }
   assert.equal(new Set(Object.values(BUSINESS_CATEGORY_ICONS)).size, 12, 'each giro has its own icon');
@@ -24,7 +24,7 @@ test('every giro uses Ionicons, the same family as the rest of the app', () => {
   assert.equal(businessCategoryIcon('Panadería'), 'ice-cream-outline');
   assert.equal(businessCategoryIcon('Cafetería'), 'cafe-outline');
   assert.equal(businessCategoryIcon('Empanadas'), 'fast-food-outline');
-  assert.equal(businessCategoryIcon('Jugos y fruta', 'map'), 'nutrition-outline');
+  assert.equal(businessCategoryIcon('Jugos y fruta', 'map'), 'patio-jugos');
   assert.equal(businessCategoryIcon('Tamales'), 'ellipsis-horizontal');
   assert.equal(businessCategoryIcon('Tamales', 'map'), 'location-outline');
   assert.equal(businessCategoryIcon('Fondita', 'map'), 'location-outline');

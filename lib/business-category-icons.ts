@@ -1,8 +1,10 @@
 import type { Ionicons } from '@expo/vector-icons';
 import type { BusinessType } from './smart-setup';
 
-/** Giros use Ionicons, the same family as navigation and actions. */
-export type CategoryIcon = keyof typeof Ionicons.glyphMap;
+/** Giros use Ionicons, the same family as navigation and actions. Giros Ionicons
+ * lacks are composed from real Ionicons parts in the PatioGiros font. */
+export type PatioGiroGlyph = 'patio-jugos';
+export type CategoryIcon = keyof typeof Ionicons.glyphMap | PatioGiroGlyph;
 
 export const BUSINESS_CATEGORY_ICONS = {
   fondita: 'storefront-outline',
@@ -14,7 +16,7 @@ export const BUSINESS_CATEGORY_ICONS = {
   cafeteria: 'cafe-outline',
   mariscos: 'fish-outline',
   bebidas: 'beer-outline',
-  jugos: 'nutrition-outline',
+  jugos: 'patio-jugos',
   restaurante: 'restaurant-outline',
   otro: 'ellipsis-horizontal',
 } as const satisfies Record<BusinessType, CategoryIcon>;
@@ -24,7 +26,7 @@ const KEYWORDS: [RegExp, CategoryIcon][] = [
   [/taco|taquer/, 'flame-outline'],
   [/elote|esquite/, 'leaf-outline'],
   [/botana|palomita/, 'basket-outline'],
-  [/jugo|fruta|licuad/, 'nutrition-outline'],
+  [/jugo|fruta|licuad/, 'patio-jugos'],
   [/cafeter|cafe\b/, 'cafe-outline'],
   [/antojito|garnacha|quesadilla|hamburgues|torta|empanada/, 'fast-food-outline'],
   [/postre|\bpan\b|panader|reposter|pastel/, 'ice-cream-outline'],

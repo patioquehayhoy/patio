@@ -77,8 +77,8 @@ export default function CuentaScreen() {
               <SettingsRow
                 c={sc}
                 icon="create-outline"
-                title="Publicar mi menú · DEV"
-                sub="Entrar sin iniciar sesión"
+                title="Publicar mi menú"
+                sub="Para cocinas y fonditas"
                 onPress={handleDevFondero}
               />
             ) : (

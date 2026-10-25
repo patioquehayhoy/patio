@@ -17,7 +17,7 @@ import { noWidow } from '@/lib/typography';
 // Patio controla jerarquía, encuadre y acciones. No agrega filtros ni edición
 // cosmética: el objetivo es obtener un menú legible con la menor fricción.
 export default function FotoMenuScreen() {
-  const { source } = useLocalSearchParams<{ source?: string }>();
+  const { source, uri, width, height } = useLocalSearchParams<{ source?: string; uri?: string; width?: string; height?: string }>();
   // Cámara solo con elección explícita: cualquier otra entrada abre Fotos.
   const fromLibrary = source !== 'camera';
   const { theme } = useTheme();
@@ -61,6 +61,8 @@ export default function FotoMenuScreen() {
   useEffect(() => {
     if (launched.current) return;
     if (!fromLibrary) { launched.current = true; void prepareCamera(); return; }
+    // La foto ya se eligió en Nuevo menú: leerla sin volver a abrir Fotos.
+    if (uri) { launched.current = true; void analyzePhoto(uri, Number(width) || undefined, Number(height) || undefined); return; }
     // iOS no presenta Fotos mientras la transición de entrada sigue activa.
     const task = InteractionManager.runAfterInteractions(() => {
       if (launched.current) return;
@@ -68,7 +70,7 @@ export default function FotoMenuScreen() {
       void choosePhoto();
     });
     return () => task.cancel();
-  }, [choosePhoto, fromLibrary, prepareCamera]);
+  }, [analyzePhoto, choosePhoto, fromLibrary, height, prepareCamera, uri, width]);
 
   useEffect(() => () => { if (zoomFrame.current !== null) cancelAnimationFrame(zoomFrame.current); }, []);
 
@@ -107,7 +109,8 @@ export default function FotoMenuScreen() {
     );
   }
 
-  if (state === 'processing') {
+  // Con foto ya elegida, la pantalla entra directo a la lectura.
+  if (state === 'processing' || (uri && !launched.current)) {
     return (
       <SafeAreaView style={[s.root, s.center]}>
         <Stack.Screen options={{ headerShown: false }} />
@@ -173,10 +176,7 @@ export default function FotoMenuScreen() {
           <TouchableOpacity accessibilityRole="button" accessibilityLabel="Cerrar cámara" style={s.cameraControl} onPress={() => router.replace('/historial')}>
             <Ionicons name="close" size={23} color="#fff" />
           </TouchableOpacity>
-          <View style={s.cameraCopy}>
-            <Text style={s.cameraTitle}>{noWidow('Fotografía el menú')}</Text>
-            <Text style={s.cameraHint}>{noWidow('Completo, de frente y con buena luz')}</Text>
-          </View>
+          <View style={s.cameraCopy} />
           <TouchableOpacity
             accessibilityRole="button"
             accessibilityLabel={flashOn ? 'Apagar flash' : 'Encender flash'}
@@ -195,11 +195,6 @@ export default function FotoMenuScreen() {
         </View>
 
         <View style={s.cameraBottom}>
-          {zoom > 0.001 ? (
-            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Quitar zoom" style={s.zoomReset} onPress={() => applyZoom(0)}>
-              <Text style={s.zoomResetText}>1×</Text>
-            </TouchableOpacity>
-          ) : null}
           <TouchableOpacity
             accessibilityRole="button"
             accessibilityLabel="Tomar foto"
@@ -230,21 +225,17 @@ function makeStyles(theme: Theme) {
     cancelText: { fontSize: 15, fontWeight: '400', color: c.textSecondary },
     cameraRoot: { flex: 1, backgroundColor: '#000' },
     cameraLoading: { alignItems: 'center', justifyContent: 'center', backgroundColor: '#090909' },
-    cameraOverlay: { flex: 1, justifyContent: 'space-between', paddingHorizontal: 18, backgroundColor: 'rgba(0,0,0,0.08)' },
+    cameraOverlay: { flex: 1, justifyContent: 'space-between', paddingHorizontal: 18 },
     cameraTop: { minHeight: 76, flexDirection: 'row', alignItems: 'center', gap: 8 },
     cameraControl: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(0,0,0,0.42)', alignItems: 'center', justifyContent: 'center' },
     cameraCopy: { flex: 1, alignItems: 'center' },
-    cameraTitle: { color: '#fff', fontSize: 16, fontWeight: '700', textShadowColor: 'rgba(0,0,0,0.45)', textShadowRadius: 8 },
-    cameraHint: { marginTop: 3, color: 'rgba(255,255,255,0.72)', fontSize: 11.5, fontWeight: '400', textShadowColor: 'rgba(0,0,0,0.45)', textShadowRadius: 8 },
     guide: { alignSelf: 'center', width: '88%', flex: 1, maxHeight: '68%', marginVertical: 18 },
     corner: { position: 'absolute', width: 28, height: 28, borderColor: 'rgba(255,255,255,0.86)' },
     cornerTL: { top: 0, left: 0, borderTopWidth: 2, borderLeftWidth: 2, borderTopLeftRadius: 8 },
     cornerTR: { top: 0, right: 0, borderTopWidth: 2, borderRightWidth: 2, borderTopRightRadius: 8 },
     cornerBL: { bottom: 0, left: 0, borderBottomWidth: 2, borderLeftWidth: 2, borderBottomLeftRadius: 8 },
     cornerBR: { bottom: 0, right: 0, borderBottomWidth: 2, borderRightWidth: 2, borderBottomRightRadius: 8 },
-    cameraBottom: { minHeight: 122, paddingBottom: 10, alignItems: 'center', justifyContent: 'center', gap: 14 },
-    zoomReset: { minWidth: 44, height: 32, borderRadius: 16, paddingHorizontal: 10, backgroundColor: 'rgba(0,0,0,0.42)', alignItems: 'center', justifyContent: 'center' },
-    zoomResetText: { color: '#fff', fontSize: 13, fontWeight: '700' },
+    cameraBottom: { minHeight: 122, paddingBottom: 10, alignItems: 'center', justifyContent: 'center' },
     shutterOuter: { width: 76, height: 76, borderRadius: 38, borderWidth: 3, borderColor: '#fff', alignItems: 'center', justifyContent: 'center' },
     shutterInner: { width: 62, height: 62, borderRadius: 31, backgroundColor: '#fff' },
     shutterOff: { opacity: 0.45 },

@@ -39,6 +39,7 @@ function fixture(file, overrides = {}) {
     'react/jsx-runtime': { jsx, jsxs: jsx },
     'react-native': {
       ...Object.fromEntries(['View', 'Text', 'TouchableOpacity', 'Modal', 'ActivityIndicator'].map(x => [x, x])),
+      Alert: { alert() {} },
       Platform: { OS: 'ios' },
       InteractionManager: { runAfterInteractions: fn => { fn(); return { cancel() {} }; } },
       StyleSheet: { create: x => x, absoluteFillObject: {}, hairlineWidth: 0.5 },
@@ -57,6 +58,7 @@ function fixture(file, overrides = {}) {
     '@/lib/fondero-palette': { fonderoPalette: () => ({ text: '#111', textSecondary: '#555' }) },
     '@/lib/sheet-motion': { SHEET_DISMISS_MS: 190, SHEET_SPRING: {} },
     '@/lib/typography': { noWidow: x => x },
+    'expo-image-picker': { launchImageLibraryAsync: async () => ({ canceled: true }) },
     '@/components/agent-spinner': { AgentSpinner: 'AgentSpinner' },
     '@/components/menu-composer': { MenuComposer: 'MenuComposer' },
     ...overrides,
@@ -82,8 +84,12 @@ function nodes(tree) {
   return [tree, ...[tree.props?.children].flat(Infinity).flatMap(nodes)];
 }
 
-test('Photos route waits for native sheet dismissal and duplicate presses cannot open the camera', () => {
-  const f = fixture('components/new-menu-sheet.tsx');
+test('Photos opens from the current screen after native dismissal; only a chosen photo navigates', async () => {
+  let opened = 0;
+  let pick = { canceled: false, assets: [{ uri: 'file:///menu.jpg', width: 1200, height: 1600 }] };
+  const f = fixture('components/new-menu-sheet.tsx', {
+    'expo-image-picker': { launchImageLibraryAsync: async () => { opened++; return pick; } },
+  });
   const props = { visible: true, onClose: () => { props.visible = false; } };
   const tree = f.render(props);
   const buttons = nodes(tree);
@@ -97,7 +103,31 @@ test('Photos route waits for native sheet dismissal and duplicate presses cannot
   assert.deepEqual(f.routes, [], 'animation completion is not UIKit dismissal');
   hidden.props.onDismiss();
   hidden.props.onDismiss();
-  assert.deepEqual(f.routes, [{ pathname: '/foto-menu', params: { source: 'library' } }]);
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(opened, 1);
+  assert.deepEqual(f.routes, [{ pathname: '/foto-menu', params: { source: 'library', uri: 'file:///menu.jpg', width: '1200', height: '1600' } }]);
+
+  pick = { canceled: true, assets: null };
+  const again = f.render({ visible: true, onClose() {} });
+  nodes(again).find(n => n.props.accessibilityLabel === 'Elegir de Fotos').props.onPress();
+  f.render({ visible: false, onClose() {} }).props.onDismiss();
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(f.routes.length, 1, 'cancelling Photos stays on the current screen');
+});
+
+test('A photo chosen in Nuevo menú is read directly, without reopening Photos or showing camera', () => {
+  let picked = 0;
+  const analyzed = [];
+  const controller = { choosePhoto: async () => { picked++; }, prepareCamera: async () => {}, analyzePhoto: async (...a) => { analyzed.push(a); }, state: 'idle', cameraAllowed: true, cancelRead() {} };
+  const f = fixture('app/foto-menu.tsx', {
+    'expo-router': { router: {}, Stack: { Screen: 'Screen' }, useLocalSearchParams: () => ({ source: 'library', uri: 'file:///menu.jpg', width: '1200', height: '1600' }) },
+    '@/lib/controllers/useFotoMenuController': { useFotoMenuController: () => controller },
+  });
+  const tree = f.render();
+  assert.equal(picked, 0);
+  assert.deepEqual(analyzed, [['file:///menu.jpg', 1200, 1600]]);
+  assert.equal(nodes(tree).some(n => n.type === 'CameraView'), false);
+  assert.equal(nodes(tree).some(n => n.type === 'AgentSpinner'), true, 'enters straight into reading');
 });
 
 test('Photos entry opens the library and never renders camera controls, even with camera permission already granted', () => {

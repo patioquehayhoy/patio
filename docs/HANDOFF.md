@@ -14,6 +14,22 @@
 > QA física integral y aceptación final de los últimos ajustes pendientes.
 > [Continuidad](HEADS_UP_2026-10-12.md) · [Pendientes](PENDING_LAUNCH_2026-10-12.md).
 
+## Fotos directo, cámara limpia y datos sin leyendas — 2026-10-25 (tarde)
+
+- Elegir de Fotos se presenta desde la pantalla actual tras el cierre nativo
+  del sheet (`components/new-menu-sheet.tsx`); solo con foto elegida se entra
+  a `foto-menu` con `uri`, que va directo a la lectura. Cancelar no navega.
+- Cámara: sin título/indicación ni pastilla `1×`; solo cerrar, flash, guía de
+  esquinas, obturador y pellizco para zoom (como la cámara del teléfono).
+- Datos sintéticos sin leyendas: "Mi Patio Demo" → "Fonda Doña Rosa";
+  "Lugar laboratorio N / laboratorio DEV" → nombres y colonias verosímiles;
+  Cuenta muestra "Publicar mi menú" también en DEV. Entrada conserva su panel DEV.
+- Lámina de iconos actuales: `artifacts/iconos-giros-actuales-2026-10-25.png`.
+- npm audit: sin cambio posible compatible. node-forge (5 altos) no tiene
+  versión corregida publicada y solo vive en @expo/cli (no va en la app);
+  decode-uri-component (3 moderados) vía expo-router → query-string 7; el fix
+  es ESM-only y rompe el require. Real fix: SDK 58. Opcional: parche local.
+
 ## Fotos sin cámara y zoom en cámara — 2026-10-25 (cierre)
 
 Usuario pidió que Elegir de Fotos abra la fototeca, nunca la cámara, y que

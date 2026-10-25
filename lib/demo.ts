@@ -94,7 +94,7 @@ export async function getDevPublishedMenu(): Promise<MenuData | null> {
 export function makeDevPublishedPatio(data: MenuData): Patio {
   return {
     id: DEV_MY_PATIO_ID,
-    name: 'Mi Patio Demo',
+    name: 'Fonda Doña Rosa',
     categories: ['Fondita'],
     area: 'Irrigación',
     price: '$90–$125',
@@ -472,6 +472,14 @@ function seededUnit(seed: number): number {
   return value - Math.floor(value);
 }
 
+// Nombres y colonias verosímiles: el mapa de prueba debe verse como en vivo.
+const DENSITY_NAME_KINDS: Record<string, string> = {
+  Fondita: 'Fonda', Taquería: 'Tacos', Antojitos: 'Antojitos', Elotes: 'Elotes', Botanas: 'Botanas',
+  Repostería: 'Pan y postres', Mariscos: 'Mariscos', Bebidas: 'Jugos', Restaurante: 'Cocina',
+};
+const DENSITY_OWNERS = ['Doña Mary', 'Don Chucho', 'La Güera', 'El Güero', 'Lupita', 'Don Beto', 'La Esquina', 'Doña Toña', 'El Chino', 'Carmelita', 'La Abuela', 'Don Pepe', 'Marisol', 'El Paisa', 'Las Tías', 'Don Rafa', 'La Morena'];
+const DENSITY_AREAS = ['Polanco', 'Granada', 'Anzures', 'Verónica Anzures', 'Pensil', 'Anáhuac', 'Irrigación', 'Lomas de Sotelo'];
+
 export const DENSITY_DEMO_PATIOS: Patio[] = Array.from({ length: 400 }, (_, index) => {
   const source = DEMO_PATIOS[index % DEMO_PATIOS.length];
   const radius = Math.sqrt(seededUnit(index + 1));
@@ -484,9 +492,9 @@ export const DENSITY_DEMO_PATIOS: Patio[] = Array.from({ length: 400 }, (_, inde
   return {
     ...source,
     id: `density-lab-${index + 1}`,
-    name: `Lugar laboratorio ${index + 1}`,
+    name: `${DENSITY_NAME_KINDS[primary]} ${DENSITY_OWNERS[index % DENSITY_OWNERS.length]}`,
     categories,
-    area: 'Polanco · laboratorio DEV',
+    area: DENSITY_AREAS[index % DENSITY_AREAS.length],
     latitude: 19.4429 + Math.sin(angle) * radius * 0.012,
     longitude: -99.2044 + Math.cos(angle) * radius * 0.015,
     ratingCount: (index * 7) % 93,

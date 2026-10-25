@@ -1,13 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
+import * as ImagePicker from 'expo-image-picker';
 import { router, type Href } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Animated, Modal, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Animated, Modal, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { fonderoPalette } from '@/lib/fondero-palette';
 import { Radius, useTheme } from '@/lib/theme';
 import { SHEET_DISMISS_MS, SHEET_SPRING } from '@/lib/sheet-motion';
+import { noWidow } from '@/lib/typography';
 
 // Elegir cómo capturar el menú es una acción intencional con tres caminos
 // igual de válidos — el patrón real que documenta Apple (HIG "Action
@@ -67,17 +69,33 @@ export function NewMenuSheet({ visible, onClose, replaceOnNavigate }: {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible]);
 
+  const navigate = (path: Href) => {
+    if (replaceOnNavigate) router.replace(path); else router.push(path);
+  };
   const go = (path: Href) => {
     if (deferredNavigation.current) return;
+    deferredNavigation.current = () => navigate(path);
+    onClose();
+  };
+  // Fotos se presenta desde la pantalla actual: sin transición intermedia.
+  // Solo con una foto elegida se entra a la lectura; cancelar no navega.
+  const pickFromLibrary = () => {
+    if (deferredNavigation.current) return;
     deferredNavigation.current = () => {
-      if (replaceOnNavigate) router.replace(path); else router.push(path);
+      void ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.85 })
+        .then((result) => {
+          const asset = !result.canceled ? result.assets?.[0] : null;
+          if (!asset) return;
+          navigate({ pathname: '/foto-menu', params: { source: 'library', uri: asset.uri, width: String(asset.width ?? ''), height: String(asset.height ?? '') } });
+        })
+        .catch(() => Alert.alert(noWidow('No se pudo abrir Fotos'), noWidow('Inténtalo otra vez.')));
     };
     onClose();
   };
 
   const options = [
     { label: 'Tomar foto', icon: 'camera-outline' as const, onPress: () => go({ pathname: '/foto-menu', params: { source: 'camera' } }) },
-    { label: 'Elegir de Fotos', icon: 'images-outline' as const, onPress: () => go({ pathname: '/foto-menu', params: { source: 'library' } }) },
+    { label: 'Elegir de Fotos', icon: 'images-outline' as const, onPress: pickFromLibrary },
     { label: 'Escribir a mano', icon: 'create-outline' as const, onPress: () => go('/menu-editar') },
   ];
 

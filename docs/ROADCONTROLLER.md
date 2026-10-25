@@ -1,6 +1,21 @@
 # ROADCONTROLLER — Patio
 
-> **Corte vigente — 2026-10-18:** pulido de Filtros/Listas, botones,
+> **Corte vigente — 2026-10-25:** iconos originales conservados; solo Tacos
+> y Elotes cambian a taco/corn. Mapa: puntos sin números de lejos/medio e
+> iconos cerca; búsqueda conserva consulta y excluye no coincidentes.
+> Menús = libro; Listas Foodie = líneas/puntos; Listas Fondero = marcadores.
+> Precio por platillo sin `+`; Nuevo menú sincroniza fondo y desplazamiento;
+> Elegir de Fotos abre solo la fototeca; cámara con pellizco para zoom.
+> `npm run check`: TypeScript/lint y **195 pruebas** aprobados; 29 controles
+> de release correctos, dos configuraciones Android pendientes. Auditoría npm
+> aparte: ocho paquetes afectados (5 altos/3 moderados), cierre pendiente.
+> iPhone: cliente DEV restaurado por USB tras una prueba Release local;
+> no confundir esa instalación con un candidato de tienda ni producción.
+> QA física integral y aceptación final de los últimos ajustes pendientes.
+> [Continuidad](HEADS_UP_2026-10-12.md) · [Pendientes](PENDING_LAUNCH_2026-10-12.md).
+
+
+> **Corte histórico — 2026-10-18:** pulido de Filtros/Listas, botones,
 > iconografía y paleta compartida entre Foodie/Fondero guardado en este corte.
 > Tras corregir el error de apertura de Listas, Alejandro respondió «ya quedó
 > me parece» y pidió cerrar con documentación, commit y push. Se registra como

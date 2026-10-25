@@ -1,7 +1,14 @@
-# Pendientes y roadmap de lanzamiento — actualizado 2026-10-18
+# Pendientes y roadmap de lanzamiento — actualizado 2026-10-25
 
 Objetivo: iPhone y Android. Este es el checklist vigente; reemplaza pendientes
 operativos de los cortes históricos. El lanzamiento público sigue pendiente.
+
+Último cierre técnico: [prebuild](PREBUILD_CLOSEOUT_2026-10-24.md) y
+[continuidad del 25 de octubre](HEADS_UP_2026-10-12.md). **195 pruebas de app**,
+19 SQL y 12 de esquema aislado aprobadas. Exportaciones iOS/Android y builds
+locales Release/Debug realizadas; DEV restaurado en iPhone. Eso no es un
+candidato de tienda ni aceptación del recorrido completo. Auditoría npm y
+configuración Android siguen pendientes.
 
 ## Completado
 
@@ -11,9 +18,14 @@ operativos de los cortes históricos. El lanzamiento público sigue pendiente.
 - [x] Bibliotecas, mover/renombrar, filtros, selección y estados homologados.
 - [x] Cards con columnas estables, estrella única y colonia · distancia.
 - [x] Centrar ubicación en Mapa y recuperar navegación al cerrar resultados.
-- [x] TypeScript/lint y 189 pruebas locales aprobados el 2026-10-18.
+- [x] TypeScript/lint y 195 pruebas locales aprobados el 2026-10-25.
+- [x] Cámara con pellizco para zoom y pastilla 1× para regresar.
 - [x] Pulido compartido de Filtros/Listas, encabezados, iconos, colores y desvanecido.
 - [x] Error al abrir Listas corregido con regresión; el usuario confirmó «ya quedó me parece».
+- [x] Precio por platillo sin + y panel Nuevo menú con oscurecimiento sincronizado.
+- [x] Elegir de Fotos corregido en código: cierre nativo antes del picker,
+  recuperación sin cámara y regresiones automatizadas. QA física pendiente.
+- [x] Zoom progresivo sin números; iconos originales salvo taco/elote.
 - [x] Borrador de fichas preparado; soporte `quehayhoy.patio@gmail.com`.
 
 Backend comprobado el 2026-10-09: [producción](PRODUCTION_PROMOTION_2026-10-09.md)
@@ -40,13 +52,27 @@ asignación de dueños ni borrado de datos sintéticos para cerrar esta lista.
   listas/mover/renombrar, cámara/galería, publicar y recuperar tras fallo de red.
 
 La confirmación del ajuste reciente de Listas queda registrada; no acredita
-los recorridos completos anteriores. El usuario hará esas pruebas en el celular. Diagnóstico USB y auditoría amplia
-detenidos por su petición; retomar solo hallazgos concretos que reporte.
+los recorridos completos anteriores. El usuario prueba en celular. USB fue
+retomado con autorización y DEV restaurado; no repetirlo ni sustituir por
+Release sin necesidad. Auditorías amplias siguen fuera de este cierre.
+
+- [ ] Confirmar en iPhone/Android: Elegir de Fotos abre el selector, cancelar
+  sale al historial, reintentar lectura conserva Fotos; cámara solo al elegirla.
+- [ ] Confirmar en mapa lejano/medio/cercano: puntos sin números, búsqueda
+  conservada, selección, snapshots y tacos/elotes legibles sin cierres.
 
 ## 2. Dependencias, Android e integraciones
 
+- Verificación 2026-10-24: auditoría actualizada de 10 a **8 paquetes afectados
+  (5 altos, 3 moderados, 0 críticos)** tras actualizar `fast-uri` 3.1.8 → 3.1.9
+  y `undici` 6.28.1 → 6.29.1 en el lockfile. Parches Metro/maps reaplicados;
+  TypeScript, lint y 189 pruebas aprobados. Quedan las cadenas de `node-forge`
+  y `decode-uri-component`; no aplicar `audit fix --force` (propone cambios
+  incompatibles de Expo/router). Release: 29 correctos, dos pendientes Android.
+  Evidencia local: `/private/tmp/patio-check-20261024.log`.
+
 - [ ] Resolver la auditoría npm conservando compatibilidad nativa y verificar
-  otra vez. Consulta del 2026-10-12: **32 paquetes afectados, 24 altos, 8
+  otra vez. Última consulta 2026-10-24: **8 paquetes afectados, 5 altos, 3
   moderados, 0 críticos**. Son cadenas de dependencias, no 32 fallos independientes.
   `npm audit` sigue devolviendo 1; `npm run check` no sustituye esa auditoría.
   CI conserva su gate `npm audit --audit-level=high`; no desactivarlo para dar
@@ -68,8 +94,11 @@ Logs de esta verificación: `/private/tmp/patio-npm-audit-20261012.json` y
 
 ## 3. Privacidad, operación y tiendas
 
-- [ ] Confirmar responsable legal y publicar URLs HTTPS operativas de
-  privacidad, soporte y solicitud de eliminación de cuenta.
+- [ ] Confirmar operador legal (persona física o sociedad), nombre completo,
+  domicilio y dominio; publicar URLs HTTPS de privacidad/soporte/eliminación.
+  Soporte y borrado dentro de ambos perfiles ya existen; no reconstruirlos.
+  El usuario plantea ser responsable, sin confirmación definitiva de modalidad.
+  No se encontró aviso integral ni URL pública en el repo/sitios consultados.
 - [ ] Asignar atención a soporte/reportes y completar moderación operativa.
   El soporte público aprobado sigue siendo `quehayhoy.patio@gmail.com`.
 - [ ] Preparar cuentas de revisión y completar App Privacy/Data Safety,

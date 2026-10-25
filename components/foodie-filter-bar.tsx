@@ -654,7 +654,7 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
           <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
         </View>}
         <View style={s.controlIcon}>
-          <Ionicons name="folder-outline" size={20} color={theme.text} />
+          <Ionicons name="list-outline" size={20} color={theme.text} />
         </View>
         <Text numberOfLines={1} adjustsFontSizeToFit style={s.organizerText}>Listas</Text>
         {listCount > 0 && <Text accessible={false} style={s.activeCount}>{listCount > 99 ? '99+' : listCount}</Text>}

@@ -232,12 +232,29 @@ La posición concreta del precio y la elección de sheets son decisiones de Pati
   grupos separados por 12 pt. Guardar es secundario neutro; Publicar
   naranja sin glow. Cápsulas de alto mínimo 50 que crecen con el texto;
   acciones pueden pasar a otra fila. Confirmación de guardado reserva espacio.
-- Identidad genérica de lugar: pin (location-outline). Menús: hoja con
-  texto (document-text-outline/document-text). Publicar mi menú: create-outline
-  tanto en DEV como en acceso normal. Una sola familia Ionicons, sin cubiertos. Obtener/centrar
+- Identidad genérica de lugar: pin (location-outline). Menús: libro
+  (book-outline/book). Publicar mi menú: create-outline
+  tanto en DEV como en acceso normal. Navegación y acciones usan Ionicons. Obtener/centrar
   ubicación: flecha (navigate-outline); Cómo llegar conserva flecha de dirección.
 - El bloque protegido de precio del día permanece intacto.
 - Validación visual en dispositivo pendiente; no equivale a aceptación móvil.
+
+### Giros y detalle del mapa — 2026-10-25
+
+Se conserva la galería original Ionicons en los giros. Por corrección explícita
+solo Tacos y Elotes se reemplazan por `taco` y `corn` de MaterialCommunityIcons.
+Mapa y onboarding mantienen sus metáforas anteriores para todos los demás
+casos. `lib/business-category-icons.ts` centraliza esas dos excepciones;
+navegación, listas y tarjetas genéricas no cambian.
+
+Mapa: span de latitud mayor de 0.018 agrupa lugares como puntos **sin números**;
+medio muestra puntos individuales; span hasta 0.006 muestra iconos del giro.
+Un lugar seleccionado conserva su detalle individual mientras no se agrupa.
+Los umbrales son decisiones de Patio para QA, no requisitos de Apple.
+Las búsquedas excluyen no coincidentes también de los puntos agrupados y
+usan el acento para sus puntos. Los puntos representan lugares, no horarios.
+Marcadores nativos conservan sus claves; al cambiar detalle se solicita un
+redibujado puntual en lugar de desmontarlos o dejarlos redibujando sin límite.
 
 ## Paleta compartida entre perfiles — 2026-10-18
 

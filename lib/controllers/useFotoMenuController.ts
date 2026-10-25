@@ -15,6 +15,7 @@ import { leerMenuDeFoto, type MenuSeccion } from '@/lib/vision';
 export type FotoMenuState = 'idle' | 'processing' | 'review';
 
 type FotoMenuHandlers = {
+  photoSource?: 'camera' | 'library';
   /** El humano canceló la cámara/galería sin foto: salir del flujo. */
   onExit?: () => void;
   /** Eligió escribir el menú a mano tras un fallo de lectura. */
@@ -156,7 +157,10 @@ export function useFotoMenuController(handlers?: FotoMenuHandlers) {
       clearMenuExtractionSnapshot();
       setState('idle');
       Alert.alert(noWidow('No pudimos leerlo'), noWidow(error instanceof Error && error.name === 'AIServiceError' ? error.message : 'Prueba con otra foto o escríbelo a mano.'), [
-        { text: 'Otra foto', onPress: () => { void prepareCameraRef.current(); } },
+        { text: 'Otra foto', onPress: () => {
+          if (handlersRef.current?.photoSource === 'library') void choosePhotoRef.current();
+          else void prepareCameraRef.current();
+        } },
         { text: 'Escribirlo a mano', onPress: () => handlersRef.current?.onManual?.() },
         { text: 'Ahora no', style: 'cancel', onPress: () => handlersRef.current?.onExit?.() },
       ]);

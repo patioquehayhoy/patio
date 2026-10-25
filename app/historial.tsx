@@ -204,7 +204,7 @@ export default function HistorialScreen() {
                 accessibilityRole="button"
                 accessibilityLabel={activeListIds.length ? `Listas, ${activeListIds.length} activas` : 'Listas'}
                 activeOpacity={0.75}>
-                <Ionicons name="folder-outline" size={20} color={c.text} />
+                <Ionicons name="bookmarks-outline" size={20} color={c.text} />
                 {activeListIds.length > 0 && (
                   <View style={[s.listsBadge, { backgroundColor: c.accent }]}>
                     <Text style={s.listsBadgeText}>{activeListIds.length}</Text>
@@ -220,7 +220,7 @@ export default function HistorialScreen() {
         {loading ? <View style={{ minHeight: 240 }}><FoodieLoading label="Cargando menús" /></View> : menus.length === 0 ? (
           <View style={s.empty}>
             <View style={[s.emptyIcon, { borderColor: c.border, backgroundColor: c.surface }]}>
-              <Ionicons name="document-text-outline" size={32} color={c.textSecondary} />
+              <Ionicons name="book-outline" size={32} color={c.textSecondary} />
             </View>
             <Text style={[s.emptyTitle, { color: c.text }]}>{noWidow('Publica tu primer menú')}</Text>
             <Text style={[s.emptyBody, { color: c.textSecondary }]}>{noWidow('Cuando publiques uno aparecerá aquí para volver a usarlo.')}</Text>

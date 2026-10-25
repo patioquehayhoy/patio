@@ -1,4 +1,4 @@
-import { PlaceIcon } from '@/components/place-icon';
+import { BusinessCategoryIcon } from '@/components/business-category-icon';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -73,17 +73,17 @@ const STEP_BY_STAGE: Record<Exclude<Stage, 'finish'>, number> = {
 // Multi-tag: hasta 3 (ver MAX_CATEGORIES). 'Elotes' y 'Botanas' viven
 // separados — antes eran una sola etiqueta compuesta "Elotes y botanas".
 // Iconos únicos dentro de este arreglo, sin repetir entre entradas.
-const BUSINESS_TYPES: { id: BusinessType; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
-  { id: 'fondita', label: BUSINESS_TYPE_LABELS.fondita, icon: 'location-outline' },
-  { id: 'taqueria', label: 'Tacos', icon: 'flame-outline' },
-  { id: 'antojitos', label: BUSINESS_TYPE_LABELS.antojitos, icon: 'fast-food-outline' },
-  { id: 'elotes', label: BUSINESS_TYPE_LABELS.elotes, icon: 'nutrition-outline' },
-  { id: 'botanas', label: BUSINESS_TYPE_LABELS.botanas, icon: 'basket-outline' },
-  { id: 'reposteria', label: 'Postres y pan', icon: 'cafe-outline' },
-  { id: 'mariscos', label: BUSINESS_TYPE_LABELS.mariscos, icon: 'fish-outline' },
-  { id: 'bebidas', label: BUSINESS_TYPE_LABELS.bebidas, icon: 'wine-outline' },
-  { id: 'restaurante', label: BUSINESS_TYPE_LABELS.restaurante, icon: 'location-outline' },
-  { id: 'otro', label: 'Otro', icon: 'ellipsis-horizontal' },
+const BUSINESS_TYPES: { id: BusinessType; label: string }[] = [
+  { id: 'fondita', label: BUSINESS_TYPE_LABELS.fondita },
+  { id: 'taqueria', label: 'Tacos' },
+  { id: 'antojitos', label: BUSINESS_TYPE_LABELS.antojitos },
+  { id: 'elotes', label: BUSINESS_TYPE_LABELS.elotes },
+  { id: 'botanas', label: BUSINESS_TYPE_LABELS.botanas },
+  { id: 'reposteria', label: 'Postres y pan' },
+  { id: 'mariscos', label: BUSINESS_TYPE_LABELS.mariscos },
+  { id: 'bebidas', label: BUSINESS_TYPE_LABELS.bebidas },
+  { id: 'restaurante', label: BUSINESS_TYPE_LABELS.restaurante },
+  { id: 'otro', label: 'Otro' },
 ];
 
 function formatPlacemark(place?: Location.LocationGeocodedAddress): string {
@@ -429,7 +429,7 @@ export default function PatioSmartScreen() {
                       { backgroundColor: colors.surface, borderColor: selected ? colors.accent : colors.border },
                       locked && s.typeOptionLocked,
                     ]}>
-                    <PlaceIcon name={item.icon} size={19} color={selected ? colors.accent : colors.textSecondary} />
+                    <BusinessCategoryIcon category={item.id} size={19} color={selected ? colors.accent : colors.textSecondary} />
                     <Text style={[s.typeLabel, { color: colors.text }]}>{item.label}</Text>
                     {selected ? <Ionicons name="checkmark-circle" size={18} color={colors.accent} /> : null}
                   </TouchableOpacity>

@@ -1,15 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { router, type Href } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
-import { Animated, Modal, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Animated, Modal, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { fonderoPalette } from '@/lib/fondero-palette';
 import { Radius, useTheme } from '@/lib/theme';
-
-const SHEET_DISMISS_MS = 190;
-const SHEET_SPRING = { stiffness: 320, damping: 30, mass: 0.75, useNativeDriver: true } as const;
+import { SHEET_DISMISS_MS, SHEET_SPRING } from '@/lib/sheet-motion';
 
 // Elegir cómo capturar el menú es una acción intencional con tres caminos
 // igual de válidos — el patrón real que documenta Apple (HIG "Action
@@ -36,41 +34,60 @@ export function NewMenuSheet({ visible, onClose, replaceOnNavigate }: {
   const c = fonderoPalette(theme.isDark);
   const s = makeStyles(theme.isDark);
   const insets = useSafeAreaInsets();
-  const { height: screenHeight } = useWindowDimensions();
-  const translateY = useRef(new Animated.Value(screenHeight)).current;
+  const bottomPadding = insets.bottom || 20;
+  const [contentHeight, setContentHeight] = useState(232 + bottomPadding);
+  const contentHeightRef = useRef(contentHeight);
+  contentHeightRef.current = contentHeight;
+  const translateY = useRef(new Animated.Value(contentHeight)).current;
   const [rendered, setRendered] = useState(visible);
+  const deferredNavigation = useRef<(() => void) | null>(null);
+  const finishDismiss = useCallback(() => {
+    const navigate = deferredNavigation.current;
+    deferredNavigation.current = null;
+    navigate?.();
+  }, []);
+  const backdropOpacity = translateY.interpolate({ inputRange: [0, Math.max(1, contentHeight)], outputRange: [1, 0], extrapolate: 'clamp' });
+
+  useEffect(() => {
+    if (rendered || Platform.OS === 'ios') return;
+    const frame = requestAnimationFrame(finishDismiss);
+    return () => cancelAnimationFrame(frame);
+  }, [rendered, finishDismiss]);
 
   useEffect(() => {
     if (visible) {
-      translateY.setValue(screenHeight);
+      translateY.setValue(contentHeightRef.current);
       setRendered(true);
       Animated.spring(translateY, { toValue: 0, ...SHEET_SPRING }).start();
     } else if (rendered) {
-      Animated.timing(translateY, { toValue: screenHeight, duration: SHEET_DISMISS_MS, useNativeDriver: true }).start(({ finished }) => {
+      Animated.timing(translateY, { toValue: contentHeightRef.current, duration: SHEET_DISMISS_MS, useNativeDriver: true }).start(({ finished }) => {
         if (finished) setRendered(false);
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [visible, screenHeight]);
+  }, [visible]);
 
   const go = (path: Href) => {
+    if (deferredNavigation.current) return;
+    deferredNavigation.current = () => {
+      if (replaceOnNavigate) router.replace(path); else router.push(path);
+    };
     onClose();
-    if (replaceOnNavigate) router.replace(path); else router.push(path);
   };
 
-  if (!rendered) return null;
-
   const options = [
-    { label: 'Tomar foto', icon: 'camera-outline' as const, onPress: () => go('/foto-menu') },
+    { label: 'Tomar foto', icon: 'camera-outline' as const, onPress: () => go({ pathname: '/foto-menu', params: { source: 'camera' } }) },
     { label: 'Elegir de Fotos', icon: 'images-outline' as const, onPress: () => go({ pathname: '/foto-menu', params: { source: 'library' } }) },
     { label: 'Escribir a mano', icon: 'create-outline' as const, onPress: () => go('/menu-editar') },
   ];
 
   return (
-    <Modal transparent visible animationType="none" onRequestClose={onClose} statusBarTranslucent>
+    <Modal transparent visible={rendered} animationType="none" onDismiss={finishDismiss} onRequestClose={onClose} statusBarTranslucent>
       <View style={{ flex: 1 }}>
-        <TouchableOpacity activeOpacity={1} style={s.backdrop} onPress={onClose} accessibilityLabel="Cerrar" />
-        <Animated.View style={[s.wrap, { paddingBottom: insets.bottom || 20, transform: [{ translateY }] }]}>
+        <Animated.View style={[StyleSheet.absoluteFillObject, { opacity: backdropOpacity }]}>
+          <TouchableOpacity activeOpacity={1} style={s.backdrop} onPress={onClose} accessibilityRole="button" accessibilityLabel="Cerrar" />
+        </Animated.View>
+        <Animated.View accessibilityViewIsModal onAccessibilityEscape={onClose} onLayout={(event) => setContentHeight(event.nativeEvent.layout.height)} style={[s.wrap, { paddingBottom: bottomPadding, transform: [{ translateY }] }]}>
           <View style={s.group}>
             <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
             <View pointerEvents="none" style={[s.groupTint, { backgroundColor: theme.isDark ? 'rgba(20,21,24,0.72)' : 'rgba(255,255,255,0.70)' }]} />
@@ -100,8 +117,8 @@ export function NewMenuSheet({ visible, onClose, replaceOnNavigate }: {
 function makeStyles(isDark: boolean) {
   const border = isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.06)';
   return StyleSheet.create({
-    backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.25)' },
-    wrap: { paddingHorizontal: 8, gap: 8 },
+    backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.16)' },
+    wrap: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 8, gap: 8 },
     group: { borderRadius: Radius.card, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: border },
     groupTint: StyleSheet.absoluteFillObject,
     row: { minHeight: 56, flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 18 },

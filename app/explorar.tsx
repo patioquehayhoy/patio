@@ -1,4 +1,5 @@
-import { PlaceIcon } from '@/components/place-icon';
+import { BusinessCategoryIcon } from '@/components/business-category-icon';
+import { mapMarkerDetail } from '@/lib/business-category-icons';
 import { useScrollEdges } from '@/lib/use-scroll-edges';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
@@ -104,6 +105,7 @@ function makeStyles(t: Theme) {
     loadingOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: t.bg, zIndex: 50 },
     map: { ...StyleSheet.absoluteFillObject, backgroundColor: t.isDark ? '#191A1B' : '#D8D6D0' },
     mapView: { ...StyleSheet.absoluteFillObject },
+    mapDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: t.textSecondary, borderWidth: 1.5, borderColor: t.isDark ? '#191A1B' : '#FFFFFF' },
     pinHitArea: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
     // Gota invertida como UNA sola pieza (no círculo + triángulo pegado):
     // cuadrado con 3 esquinas redondeadas al 50% y la esquina inferior
@@ -201,21 +203,6 @@ function makeStyles(t: Theme) {
     emptyPillText: { fontSize: 14, fontWeight: '400', color: t.text },
     mapFilters: { position: 'absolute', left: 0, right: 0 },
   });
-}
-
-function categoryIcon(category: string): keyof typeof Ionicons.glyphMap {
-  const normalized = category.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-  if (normalized.includes('taco') || normalized.includes('taquer')) return 'flame-outline';
-  if (normalized.includes('antojito') || normalized.includes('hamburgues')) return 'fast-food-outline';
-  if (normalized.includes('elote') || normalized.includes('botana')) return 'leaf-outline';
-  if (normalized.includes('postre') || normalized.includes('pan') || normalized.includes('reposter') || normalized.includes('cafe') || normalized.includes('desayuno')) return 'cafe-outline';
-  if (normalized.includes('bar') || normalized.includes('antro') || normalized.includes('cantina')) return 'wine-outline';
-  if (normalized.includes('bebida')) return 'wine-outline';
-  if (normalized.includes('restaurante')) return 'location-outline';
-  if (normalized.includes('mercado')) return 'basket-outline';
-  if (normalized.includes('marisco')) return 'fish-outline';
-  if (normalized.includes('tianguis')) return 'storefront-outline';
-  return 'location-outline';
 }
 
 export default function ExplorarScreen() {
@@ -519,7 +506,19 @@ export default function ExplorarScreen() {
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [matchedResultIdsKey, isFiltering, searchPending, filteringSheetBottom, mediumSheetHeight]);
-  const shouldCluster = !isFiltering && mapRegion.latitudeDelta > 0.018;
+  const markerDetail = mapMarkerDetail(mapRegion.latitudeDelta);
+  const shouldCluster = markerDetail === 'cluster';
+  const showCategoryIcons = markerDetail === 'icon';
+  const markerRefs = useRef<Map<string, { redraw: () => void }>>(new Map());
+  const clusterRefs = useRef<Map<string, { redraw: () => void }>>(new Map());
+  // Refresh snapshots once when detail changes; do not remount native markers
+  // or leave tracksViewChanges running for every point during map gestures.
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      if (!shouldCluster) markerRefs.current.forEach(marker => marker.redraw());
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [showCategoryIcons, shouldCluster]);
   // Si el pin seleccionado se agrupa en un cluster al alejar el zoom, su
   // Marker se vuelve invisible (`opacity: included && !shouldCluster ? 1
   // : 0`) pero nada limpiaba `pressedPinId` ni el `Animated.Value` de su
@@ -558,6 +557,7 @@ export default function ExplorarScreen() {
     const minLng = mapRegion.longitude - mapRegion.longitudeDelta / 2;
 
     filteredPins.forEach((patio) => {
+      if (isFiltering && !matchingPatioIds.has(patio.id)) return;
       const row = Math.floor((patio.latitude - minLat) / latStep);
       const column = Math.floor((patio.longitude - minLng) / lngStep);
       if (row < 0 || row >= CLUSTER_ROWS || column < 0 || column >= CLUSTER_COLS) return;
@@ -569,7 +569,13 @@ export default function ExplorarScreen() {
       cells.set(key, cell);
     });
     return cells;
-  }, [filteredPins, mapRegion, shouldCluster]);
+  }, [filteredPins, mapRegion, shouldCluster, isFiltering, matchingPatioIds]);
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      clusterCells.forEach((_cell, key) => clusterRefs.current.get(key)?.redraw());
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [clusterCells, isFiltering, theme.isDark]);
   const clusterGridKeys = useMemo(() => {
     const keys: string[] = [];
     for (let row = 0; row < CLUSTER_ROWS; row++) {
@@ -637,6 +643,8 @@ export default function ExplorarScreen() {
     return (
       <Marker
         key={patio.id}
+        ref={marker => { if (marker) markerRefs.current.set(patio.id, marker); else markerRefs.current.delete(patio.id); }}
+        accessibilityLabel={`Abrir ${patio.name}`}
         coordinate={{ latitude: patio.latitude, longitude: patio.longitude }}
         // Antes los que no hacían match se mostraban atenuados (18%) en vez
         // de ocultarse — se sentían como "fantasmas" ensuciando el mapa.
@@ -655,6 +663,7 @@ export default function ExplorarScreen() {
           openPatioFromPin(patio.id);
         }}>
         <View style={s.pinHitArea}>
+          {showCategoryIcons || showSelectedOverlay ? <>
           {showSelectedOverlay && (
             <Animated.View
               pointerEvents="none"
@@ -689,32 +698,24 @@ export default function ExplorarScreen() {
             </View>
           )}
           <View style={[s.pinCategory, (showSelectedOverlay || showMatch) && s.pinCategoryOpaque]}>
-            <View style={{ transform: [{ rotate: '45deg' }] }}><PlaceIcon name={categoryIcon(patio.categories[0] ?? 'Fondita')} size={13} color={theme.text} /></View>
+            <View style={{ transform: [{ rotate: '45deg' }] }}><BusinessCategoryIcon context="map" category={patio.categories[0] ?? 'Fondita'} size={15} color={theme.text} /></View>
           </View>
+          </> : <View style={[s.mapDot, showMatch && { backgroundColor: theme.accent, borderColor: theme.accent }]} />}
         </View>
       </Marker>
     );
-  }), [animatingPinIds, filteredPinIds, getSelectedPinAnim, isFiltering, matchingPatioIds, matchTrackWindow, openPatioFromPin, pinGlowColors, pressedPinId, s, shouldCluster, stableMapPatios, theme]);
+  }), [animatingPinIds, filteredPinIds, getSelectedPinAnim, isFiltering, matchingPatioIds, matchTrackWindow, openPatioFromPin, pinGlowColors, pressedPinId, s, shouldCluster, showCategoryIcons, stableMapPatios, theme]);
 
   const clusterMarkerElements = useMemo(() => clusterGridKeys.map((key) => {
     const cell = clusterCells.get(key);
     const visible = !!cell && cell.patios.length > 0;
-    let category = 'Cocina mexicana';
-    if (cell && visible) {
-      // Un cluster solo puede mostrar un ícono — cuenta el tag PRIMARIO de
-      // cada lugar (no todos sus tags) para decidir cuál domina la celda.
-      const categoryCounts = new Map<string, number>();
-      cell.patios.forEach((patio) => {
-        const primary = patio.categories[0] ?? 'Fondita';
-        categoryCounts.set(primary, (categoryCounts.get(primary) ?? 0) + 1);
-      });
-      category = [...categoryCounts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? category;
-    }
     const latitude = cell && visible ? cell.latitude / cell.patios.length : FOODIE_INITIAL_REGION.latitude;
     const longitude = cell && visible ? cell.longitude / cell.patios.length : FOODIE_INITIAL_REGION.longitude;
     return (
       <Marker
         key={`cluster-${key}`}
+        ref={marker => { if (marker) clusterRefs.current.set(key, marker); else clusterRefs.current.delete(key); }}
+        accessibilityLabel={cell ? `${cell.patios.length} ${cell.patios.length === 1 ? 'lugar' : 'lugares'}, acercar mapa` : undefined}
         coordinate={{ latitude, longitude }}
         opacity={visible ? 1 : 0}
         tappable={visible}
@@ -738,14 +739,11 @@ export default function ExplorarScreen() {
           }
         }}>
         <View style={s.clusterHitArea}>
-          <View style={s.clusterPin}>
-            <PlaceIcon name={categoryIcon(category)} size={15} color={theme.text} />
-            <View style={[s.pinPointer, { borderTopColor: theme.isDark ? 'rgba(18,19,22,0.94)' : 'rgba(255,255,255,0.96)' }]} />
-          </View>
+          <View style={[s.mapDot, isFiltering && { backgroundColor: theme.accent, borderColor: theme.accent }]} />
         </View>
       </Marker>
     );
-  }), [clusterGridKeys, clusterCells, mapRegion.latitudeDelta, mapRegion.longitudeDelta, s, theme]);
+  }), [clusterGridKeys, clusterCells, mapRegion.latitudeDelta, mapRegion.longitudeDelta, isFiltering, s, theme]);
 
   return (
     <View style={s.container}>
@@ -816,7 +814,7 @@ export default function ExplorarScreen() {
                     <View style={[s.pinMatch, selected && s.pinMatchSelected]}><View style={s.pinMatchCore} /></View>
                   ) : (
                     <View style={[s.pinCategory, selected && s.pinCategorySelected]}>
-                      <PlaceIcon name={categoryIcon(patio.category)} size={13} color={selected ? '#FFFFFF' : theme.text} />
+                      <BusinessCategoryIcon context="map" category={patio.category} size={13} color={selected ? '#FFFFFF' : theme.text} />
                       <View style={[s.pinPointer, { borderTopColor: selected ? '#111214' : theme.isDark ? 'rgba(18,19,22,0.90)' : 'rgba(255,255,255,0.92)' }]} />
                     </View>
                   )}
@@ -848,7 +846,7 @@ export default function ExplorarScreen() {
               }}>
               <View style={s.clusterHitArea}>
                 <View style={s.clusterPin}>
-                  <PlaceIcon name={categoryIcon(cluster.category)} size={15} color={theme.text} />
+                  <BusinessCategoryIcon context="map" category={cluster.category} size={15} color={theme.text} />
                   <View style={[s.pinPointer, { borderTopColor: theme.isDark ? 'rgba(18,19,22,0.94)' : 'rgba(255,255,255,0.96)' }]} />
                 </View>
               </View>

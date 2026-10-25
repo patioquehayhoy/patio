@@ -2,7 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { CameraView } from 'expo-camera';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, InteractionManager, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AgentSpinner } from '@/components/agent-spinner';
@@ -17,32 +18,59 @@ import { noWidow } from '@/lib/typography';
 // cosmética: el objetivo es obtener un menú legible con la menor fricción.
 export default function FotoMenuScreen() {
   const { source } = useLocalSearchParams<{ source?: string }>();
+  // Cámara solo con elección explícita: cualquier otra entrada abre Fotos.
+  const fromLibrary = source !== 'camera';
   const { theme } = useTheme();
   const c = fonderoPalette(theme.isDark);
   const s = makeStyles(theme);
   const { analyzePhoto, cameraAllowed, cancelRead, choosePhoto, menu, prepareCamera, state } = useFotoMenuController({
     onExit: () => router.replace('/historial'),
     onManual: () => router.replace('/menu-editar'),
+    photoSource: fromLibrary ? 'library' : 'camera',
   });
   const launched = useRef(false);
   const cameraRef = useRef<CameraView | null>(null);
   const [cameraReady, setCameraReady] = useState(false);
   const [capturing, setCapturing] = useState(false);
   const [flashOn, setFlashOn] = useState(false);
+  // expo-camera no trae pellizco propio. `zoom` es 0–1 del rango del equipo;
+  // en iOS crece de forma exponencial, por eso el pellizco suma log2(escala).
+  const [zoom, setZoom] = useState(0);
+  const zoomRef = useRef(0);
+  const pinchBase = useRef(0);
+  const zoomFrame = useRef<number | null>(null);
+  const applyZoom = (value: number) => {
+    zoomRef.current = Math.min(MAX_ZOOM, Math.max(0, value));
+    if (zoomFrame.current !== null) return;
+    zoomFrame.current = requestAnimationFrame(() => {
+      zoomFrame.current = null;
+      setZoom(zoomRef.current);
+    });
+  };
+  const pinch = Gesture.Pinch()
+    .runOnJS(true)
+    .onStart(() => { pinchBase.current = zoomRef.current; })
+    .onUpdate((event) => { applyZoom(pinchBase.current + Math.log2(Math.max(event.scale, 0.01)) * ZOOM_PER_DOUBLING); });
 
   // Pedir el permiso de cámara aquí ya es seguro (HIG Privacy: acceso en
-  // contexto): para llegar a esta pantalla sin `source=library` la persona
+  // contexto): para llegar a esta pantalla con `source=camera` la persona
   // ya eligió "Tomar foto" en NewMenuSheet — la elección explícita vive un
   // paso antes, no aquí. Antes esta pantalla se abría directo desde el "+"
   // y pedía el permiso de golpe sin que la persona hubiera elegido cámara
   // todavía; ahora ese momento de elección ocurre siempre antes de entrar.
   useEffect(() => {
-    if (!launched.current) {
+    if (launched.current) return;
+    if (!fromLibrary) { launched.current = true; void prepareCamera(); return; }
+    // iOS no presenta Fotos mientras la transición de entrada sigue activa.
+    const task = InteractionManager.runAfterInteractions(() => {
+      if (launched.current) return;
       launched.current = true;
-      if (source === 'library') void choosePhoto();
-      else void prepareCamera();
-    }
-  }, [choosePhoto, prepareCamera, source]);
+      void choosePhoto();
+    });
+    return () => task.cancel();
+  }, [choosePhoto, fromLibrary, prepareCamera]);
+
+  useEffect(() => () => { if (zoomFrame.current !== null) cancelAnimationFrame(zoomFrame.current); }, []);
 
   const shutterDisabled = !cameraReady || capturing;
 
@@ -60,7 +88,9 @@ export default function FotoMenuScreen() {
   };
 
   const retake = async () => {
+    if (fromLibrary) { await choosePhoto(); return; }
     setCameraReady(false);
+    applyZoom(0);
     await prepareCamera();
   };
 
@@ -91,9 +121,26 @@ export default function FotoMenuScreen() {
     );
   }
 
+  // Photos is a separate source: never mount or show the camera while its
+  // native picker opens, is retried, or returns a reading error.
+  if (fromLibrary) {
+    return <SafeAreaView style={[s.root, s.center]}>
+      <Stack.Screen options={{ headerShown: false }} />
+      <Ionicons name="images-outline" size={32} color={c.textSecondary} />
+      <Text style={s.processingTitle}>{noWidow('Elige una foto de tu menú')}</Text>
+      <TouchableOpacity style={s.cancelBtn} onPress={() => { void choosePhoto(); }} accessibilityRole="button" accessibilityLabel="Elegir de Fotos">
+        <Text style={s.cancelText}>{noWidow('Elegir de Fotos')}</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={s.cancelBtn} onPress={cancelRead} accessibilityRole="button" accessibilityLabel="Cancelar selección de foto">
+        <Text style={s.cancelText}>Cancelar</Text>
+      </TouchableOpacity>
+    </SafeAreaView>;
+  }
+
   // Captura: visor completo, guía vertical flexible y controles en zonas
   // seguras. La guía no recorta la foto; solo ayuda a mantener el menú recto.
   return (
+    <GestureDetector gesture={pinch}>
     <View style={s.cameraRoot}>
       <Stack.Screen options={{ headerShown: false }} />
       {cameraAllowed ? (
@@ -102,6 +149,7 @@ export default function FotoMenuScreen() {
           style={StyleSheet.absoluteFill}
           facing="back"
           flash={flashOn ? 'on' : 'off'}
+          zoom={zoom}
           mode="picture"
           animateShutter
           responsiveOrientationWhenOrientationLocked
@@ -147,6 +195,11 @@ export default function FotoMenuScreen() {
         </View>
 
         <View style={s.cameraBottom}>
+          {zoom > 0.001 ? (
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Quitar zoom" style={s.zoomReset} onPress={() => applyZoom(0)}>
+              <Text style={s.zoomResetText}>1×</Text>
+            </TouchableOpacity>
+          ) : null}
           <TouchableOpacity
             accessibilityRole="button"
             accessibilityLabel="Tomar foto"
@@ -159,8 +212,12 @@ export default function FotoMenuScreen() {
         </View>
       </SafeAreaView>
     </View>
+    </GestureDetector>
   );
 }
+
+const MAX_ZOOM = 0.6;
+const ZOOM_PER_DOUBLING = 0.16;
 
 function makeStyles(theme: Theme) {
   const c = fonderoPalette(theme.isDark);
@@ -185,7 +242,9 @@ function makeStyles(theme: Theme) {
     cornerTR: { top: 0, right: 0, borderTopWidth: 2, borderRightWidth: 2, borderTopRightRadius: 8 },
     cornerBL: { bottom: 0, left: 0, borderBottomWidth: 2, borderLeftWidth: 2, borderBottomLeftRadius: 8 },
     cornerBR: { bottom: 0, right: 0, borderBottomWidth: 2, borderRightWidth: 2, borderBottomRightRadius: 8 },
-    cameraBottom: { minHeight: 122, paddingBottom: 10, alignItems: 'center', justifyContent: 'center' },
+    cameraBottom: { minHeight: 122, paddingBottom: 10, alignItems: 'center', justifyContent: 'center', gap: 14 },
+    zoomReset: { minWidth: 44, height: 32, borderRadius: 16, paddingHorizontal: 10, backgroundColor: 'rgba(0,0,0,0.42)', alignItems: 'center', justifyContent: 'center' },
+    zoomResetText: { color: '#fff', fontSize: 13, fontWeight: '700' },
     shutterOuter: { width: 76, height: 76, borderRadius: 38, borderWidth: 3, borderColor: '#fff', alignItems: 'center', justifyContent: 'center' },
     shutterInner: { width: 62, height: 62, borderRadius: 31, backgroundColor: '#fff' },
     shutterOff: { opacity: 0.45 },

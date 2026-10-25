@@ -1,5 +1,181 @@
 # HANDOFF
 
+> **Corte vigente — 2026-10-25:** iconos originales conservados; solo Tacos
+> y Elotes cambian a taco/corn. Mapa: puntos sin números de lejos/medio e
+> iconos cerca; búsqueda conserva consulta y excluye no coincidentes.
+> Menús = libro; Listas Foodie = líneas/puntos; Listas Fondero = marcadores.
+> Precio por platillo sin `+`; Nuevo menú sincroniza fondo y desplazamiento;
+> Elegir de Fotos abre solo la fototeca; cámara con pellizco para zoom.
+> `npm run check`: TypeScript/lint y **195 pruebas** aprobados; 29 controles
+> de release correctos, dos configuraciones Android pendientes. Auditoría npm
+> aparte: ocho paquetes afectados (5 altos/3 moderados), cierre pendiente.
+> iPhone: cliente DEV restaurado por USB tras una prueba Release local;
+> no confundir esa instalación con un candidato de tienda ni producción.
+> QA física integral y aceptación final de los últimos ajustes pendientes.
+> [Continuidad](HEADS_UP_2026-10-12.md) · [Pendientes](PENDING_LAUNCH_2026-10-12.md).
+
+## Fotos sin cámara y zoom en cámara — 2026-10-25 (cierre)
+
+Usuario pidió que Elegir de Fotos abra la fototeca, nunca la cámara, y que
+la cámara permita zoom. `app/foto-menu.tsx`: la cámara solo se monta con
+`source=camera` explícito; cualquier otra entrada abre Fotos. El selector
+espera `InteractionManager` para no presentarse durante la transición de
+entrada en iOS. iOS usa el selector del sistema (PHPicker): no pide permiso
+de fototeca porque solo entrega la foto elegida; es el comportamiento correcto.
+Cámara: pellizco con dos dedos (react-native-gesture-handler) sobre `zoom`
+de expo-camera, limitado a 0.6 del rango del equipo y actualizado por frame;
+pastilla `1×` aparece al acercar y regresa sin zoom. Enfoque continuo
+nativo intacto. `npm run check`: 195 pruebas, 29 controles de release.
+Falta probar en iPhone físico pellizco y apertura de Fotos.
+
+## Aprendizajes operativos de este cierre
+
+- Cambiar solo el control y rol pedido: Listas Foodie/Fondero y Menús en
+  navegación son tres decisiones distintas. No propagar un cambio a ambos
+  perfiles por semejanza sin que sea el alcance solicitado.
+- Conservar el pack existente; el usuario rechazó reemplazar todos los giros.
+  Solo Tacos/Elotes necesitan sustitución literal. Las láminas descartadas
+  no son una guía para rehacer el sistema visual.
+- Zoom lejano sin números. Los puntos son lugares, no estados de horario.
+  Mantener búsqueda al cambiar zoom y no contar negocios no coincidentes.
+- En iOS, cerrar una animación JS no equivale a cerrar un Modal nativo.
+  Diferir navegación/picker a onDismiss; proteger doble toque y recuperación
+  de Fotos sin caer a cámara.
+- Un curl 200 desde la Mac no prueba conexión del iPhone. LAN necesita IP
+  vigente, misma red y permiso Red local. El cable permite instalar/abrir,
+  pero no da por sí solo red inversa a Metro. Registrar errores concretos.
+- No sustituir DEV por Release para resolver acceso sin explicar antes la
+  pérdida de accesos DEV y la necesidad de recompilar. El usuario quiere
+  cambiar Foodie/Fondero con facilidad durante la revisión.
+- El usuario autorizó el túnel temporal Expo/ngrok tras explicar exposición;
+  no pidió publicación, cambios de permisos de terceros ni envíos a tiendas.
+- Pruebas, exportación, instalación local y aceptación móvil son evidencias
+  distintas. No certificar el recorrido físico ni el release por un check verde.
+- Soporte y eliminación dentro de la app ya existen. La pantalla Privacidad
+  controla visibilidad; no reemplaza el aviso público. No inventar responsable,
+  domicilio o dominio ni dar por revocada una clave porque ya no está en .env.
+
+
+## Corrección de alcance de giros — 2026-10-25
+
+Usuario rechazó la nueva familia completa: restaurar los iconos anteriores
+salvo Tacos/Elotes, que conservan `taco`/`corn`. Aplicado en onboarding y mapa
+respetando las metáforas previas de cada contexto. Zoom lejano conserva
+puntos agrupados, pero sin números visibles; la cantidad queda solo en la
+etiqueta accesible. Medio puntos y cerca iconos se mantienen.
+Las láminas y la familia completa del corte anterior quedan rechazadas.
+
+
+## Corte descartado: familia completa y conteos — 2026-10-25
+
+Usuario eligió puntos de lejos/medio e iconos literales al acercar. Aplicado
+catálogo compartido MaterialCommunityIcons (taco, corn y familia de diez
+giros) en alta y mapa; Ionicons se mantiene en navegación/acciones y tarjetas
+genéricas. Fuente de giros precargada antes del primer render para no congelar
+marcadores con un glifo vacío. Sin dependencias nativas nuevas ni build EAS.
+
+Lejos (`latitudeDelta > 0.018`): punto individual o agrupación con conteo;
+medio: puntos; cerca (`<= 0.006`): iconos. Selección individual mantiene su
+detalle. Búsqueda filtra también la agrupación, conserva consulta y destaca
+coincidencias. Claves de Marker estables y redraw puntual al cambiar detalle
+o conteos; no se remonta la capa de marcadores.
+
+`npm run check`: TypeScript, lint y 194 pruebas aprobadas, incluidos zoom
+medio/cerca/lejos con búsqueda, conteos sin no-coincidentes y glifos reales
+del catálogo. Falta QA física de mapas, snapshots y umbrales de zoom en ambos
+teléfonos. Lámina ilustrativa (no screenshot):
+`artifacts/giros-y-zoom-propuesta-2026-10-25.png`.
+Log: `/private/tmp/patio-giros-zoom-check.log`.
+
+## Fotos y propuestas de giros — 2026-10-25
+
+Usuario reportó que Elegir de Fotos terminaba mostrando cámara. Se corrigió
+la presentación: Nuevo menú difiere navegación hasta el `onDismiss` nativo
+de iOS (Android tras render oculto); las rutas llevan fuente explícita y se
+ignoran dobles toques mientras hay navegación pendiente. La ruta library
+no monta cámara ni sus controles; repetir foto desde revisión o tras error
+reabre Fotos. Cancelar conserva salida al historial.
+
+`npm run check`: TypeScript/lint y 192 pruebas aprobadas (tres regresiones
+nuevas de presentación, ruta y recuperación); release con dos configuraciones
+Android pendientes. Pruebas con fronteras nativas simuladas: falta aceptación
+física del selector en iPhone, no afirmar QA UIKit a partir de esos tests.
+Log: `/private/tmp/patio-photo-source-check-20261025.log`.
+
+Comparación visual solicitada de giros en
+`artifacts/propuestas-iconos-giros-2026-10-25.png`: actual, ubicación uniforme,
+puntos con texto, más esquema de agrupación/zoom. Es propuesta ilustrada,
+no screenshot ni cambio de taxonomía/mapa. No se aplicaron iconos ni puntos
+sin que el usuario decida.
+
+## Cliente DEV restaurado y túnel HTTPS — 2026-10-25
+
+El usuario pidió recuperar accesos DEV y enlace manual. Se compiló Debug
+localmente con firma existente (`xcodebuild` 0), y `devicectl` confirmó su
+instalación sobre Release, sin desinstalar ni limpiar datos. El túnel
+Expo/ngrok está autorizado por el usuario y activo con
+`EXPO_PACKAGER_PROXY_URL=https://4kx7pcs-parcomx-8081.exp.direct` para anunciar
+manifiesto y bundle por HTTPS. Manifiesto público verificado.
+
+La apertura remota con `exp+lafondita://expo-development-client/?url=...`
+fue rechazada por iOS porque el teléfono está bloqueado (`Locked`). Falta
+que el usuario desbloquee y abra Patio con el enlace; no registrar conexión
+exitosa del iPhone hasta observar descarga y arranque.
+Logs: `/private/tmp/patio-usb-dev-build.log`, `patio-usb-dev-install.json`.
+
+## iPhone por USB, versión local sin Metro — 2026-10-25
+
+Usuario autorizó diagnosticar y conectar directamente el iPhone por USB tras
+fallar LAN y túnel. Dispositivo emparejado, transporte wired, modo desarrollador
+activo. Aperturas del cliente de desarrollo no generaron solicitudes a Metro.
+No se atribuye una causa de red definitiva a partir de esas observaciones.
+
+Se compiló `Patio` Release para dispositivo con la firma ya configurada,
+sin EAS, cambios de credenciales ni envío a tiendas. `xcodebuild` terminó 0;
+`main.jsbundle` incluido y no vacío. Instalación por `devicectl` aprobada.
+Se apagó Metro y se abrió la app instalada sin payload URL; proceso Patio
+confirmado activo después del arranque. Sin errores fatales en el tramo
+observado; falta confirmación visual del usuario y QA funcional completa.
+
+Ya no requiere introducir IP para esta instalación. Los siguientes cambios
+de código necesitan nueva instalación local o recuperar el cliente dev.
+No desinstalar ni limpiar datos para volver a desarrollo.
+
+Artefacto: `/private/tmp/patio-usb-preview-20261025/Build/Products/Release-iphoneos/Patio.app`.
+Logs: `/private/tmp/patio-usb-build.log`, `patio-usb-install.json` y
+`patio-usb-processes.json`. Warnings nativos de background fetch/notificaciones
+persisten; no habilitar modos de segundo plano sin una necesidad funcional.
+Este resultado no certifica APNs, red, cámara, publicación ni candidato de tienda.
+
+## Preparación técnica antes del build — 2026-10-24
+
+Petición: cerrar lo posible antes del candidato, con revisión enfocada.
+Resultado: 189 pruebas, 19 comprobaciones SQL y 12 de esquema reconstruido
+aprobadas; exportaciones iOS/Android completas. iOS estricto 19/19; Android
+dos pendientes (Maps/Firebase), ausentes también en EAS production. Auditoría
+mantiene 8 paquetes afectados. No se inició simulador, Maestro, EAS, envío
+ni escrituras en producción. Evidencia, bloqueos y límites en
+[cierre previo al build](PREBUILD_CLOSEOUT_2026-10-24.md).
+
+## Ajustes reportados en celular — 2026-10-24
+
+- Precio por platillo: eliminado `+$`; campo siempre visible con `$`,
+  placeholder Precio y teclado decimal. Bloque de precio del día intacto.
+- Nuevo menú (`+`): fondo atenuado a 0.16 como Listas, opacidad ligada al
+  desplazamiento de la tarjeta; recorrido basado en altura de contenido,
+  no en toda la pantalla. Usa constantes compartidas de movimiento.
+- Iconos en revisión visual: Listas Foodie prueba `list-outline` (líneas
+  y puntos), solicitado por el usuario; Listas Fondero usa los marcadores
+  `bookmarks-outline`. Menús en navegación conserva `book-outline` / `book`.
+- Alta de negocio: Fondita `storefront-outline`, Restaurante
+  `restaurant-outline`; las categorías ya no comparten icono.
+- `npm run check`: TypeScript, lint y 189 pruebas aprobados; release con
+  29 verificaciones correctas y dos configuraciones Android pendientes.
+- Falta aceptación visual del usuario en celular, especialmente apertura/cierre
+  de Nuevo menú y captura de precio. No se ejecutó simulador ni EAS.
+- Servidor de desarrollo reiniciado en LAN; el manifiesto iOS anuncia
+  `http://192.168.100.141:8081`, evitando el túnel anterior al abrir por LAN.
+
 > **Corte vigente — 2026-10-18:** pulido de Filtros/Listas, botones,
 > iconografía y paleta compartida entre Foodie/Fondero guardado en este corte.
 > Tras corregir el error de apertura de Listas, Alejandro respondió «ya quedó

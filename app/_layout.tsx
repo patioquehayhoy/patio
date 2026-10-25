@@ -1,4 +1,5 @@
 import { PlusJakartaSans_800ExtraBold, useFonts } from '@expo-google-fonts/plus-jakarta-sans';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Asset } from 'expo-asset';
 import * as SplashScreen from 'expo-splash-screen';
 import { router, Stack, usePathname } from 'expo-router';
@@ -126,7 +127,7 @@ function RootStack() {
 }
 
 export default function RootLayout() {
-  const [fontsLoaded, fontError] = useFonts({ PlusJakartaSans_800ExtraBold });
+  const [fontsLoaded, fontError] = useFonts({ PlusJakartaSans_800ExtraBold, ...MaterialCommunityIcons.font });
   const [herosLoaded, setHerosLoaded] = useState(false);
 
   useEffect(() => {

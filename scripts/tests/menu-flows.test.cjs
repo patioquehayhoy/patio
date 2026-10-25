@@ -383,7 +383,7 @@ test('a late title blur cannot overwrite newly saved dishes or erase publication
   runtime.unmount();
 });
 
-function photoFixture({ vision, picker } = {}) {
+function photoFixture({ vision, picker, handlers } = {}) {
   const runtime = hookRuntime();
   const alerts = [];
   const f = fixture({ overrides: {
@@ -397,7 +397,7 @@ function photoFixture({ vision, picker } = {}) {
     '@/lib/vision': { leerMenuDeFoto: vision ?? (async () => ({ error: 'No dishes', secciones: [] })) },
   } });
   const { useFotoMenuController } = f.load('lib/controllers/useFotoMenuController.ts');
-  return { ...f, alerts, runtime, render: () => runtime.render(() => useFotoMenuController()) };
+  return { ...f, alerts, runtime, render: () => runtime.render(() => useFotoMenuController(handlers)) };
 }
 
 test('photo-library reading failure can retry with an enabled camera', async () => {
@@ -408,6 +408,20 @@ test('photo-library reading failure can retry with an enabled camera', async () 
   retry.onPress();
   await new Promise(setImmediate);
   assert.equal(f.render().cameraAllowed, true);
+});
+
+test('a failed library read retries Photos without requesting or enabling the camera', async () => {
+  let picks = 0;
+  const f = photoFixture({ handlers: { photoSource: 'library' }, picker: async () => {
+    picks++;
+    return { canceled: false, assets: [{ uri: 'photo.jpg' }] };
+  } });
+  await f.render().choosePhoto();
+  const retry = f.alerts.at(-1)[2].find((button) => button.text === 'Otra foto');
+  retry.onPress();
+  await new Promise(setImmediate);
+  assert.equal(picks, 2);
+  assert.equal(f.render().cameraAllowed, false);
 });
 
 test('leaving the photo flow prevents a late picker response from starting analysis', async () => {

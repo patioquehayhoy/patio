@@ -107,7 +107,6 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
   // que ya hay secciones armadas — no compiten por espacio con el contenido
   // (Apple HIG: "essential info gets sufficient space, don't crowd it").
   const [showSectionSuggestions, setShowSectionSuggestions] = useState(false);
-  const [priceEditing, setPriceEditing] = useState<Record<string, boolean>>({});
 
   // Cadena de foco: "siguiente" recorre platillo → descripción → siguiente
   // platillo. El precio se toca aparte (cambia de vez en cuando, no es parte
@@ -256,38 +255,20 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                               blurOnSubmit={false}
                               onSubmitEditing={() => submitDishName(dish)}
                             />
-                            {dish.precio || priceEditing[dish.id] ? (
-                              <View style={s.inlinePrice}>
-                                <Text style={s.currency}>$</Text>
-                                <TextInput
-                                  ref={registerInput(`p-${dish.id}`)}
-                                  style={s.dishPrice}
-                                  value={dish.precio}
-                                  onChangeText={precio => patchDish(section.id, dish.id, { precio: precio.replace(/[^0-9.]/g, '') })}
-                                  placeholder="0"
-                                  placeholderTextColor={c.textMute}
-                                  keyboardType="decimal-pad"
-                                  selectTextOnFocus
-                                  onBlur={() => {
-                                    if (!dish.precio) setPriceEditing((current) => ({ ...current, [dish.id]: false }));
-                                  }}
-                                  accessibilityLabel={`Precio de ${dish.nombre || 'platillo'}`}
-                                />
-                              </View>
-                            ) : (
-                              <TouchableOpacity
-                                style={s.addPrice}
-                                hitSlop={{ top: 5, bottom: 5, left: 4, right: 4 }}
-                                onPress={() => {
-                                  pendingFocus.current = `p-${dish.id}`;
-                                  setPriceEditing((current) => ({ ...current, [dish.id]: true }));
-                                }}
-                                activeOpacity={0.7}
-                                accessibilityRole="button"
-                                accessibilityLabel={`Agregar precio a ${dish.nombre || 'platillo'}`}>
-                                <Text style={s.addPriceText}>+$</Text>
-                              </TouchableOpacity>
-                            )}
+                            <View style={s.inlinePrice}>
+                              <Text style={s.currency}>$</Text>
+                              <TextInput
+                                ref={registerInput(`p-${dish.id}`)}
+                                style={s.dishPrice}
+                                value={dish.precio}
+                                onChangeText={precio => patchDish(section.id, dish.id, { precio: precio.replace(/[^0-9.]/g, '') })}
+                                placeholder="Precio"
+                                placeholderTextColor={c.textMute}
+                                keyboardType="decimal-pad"
+                                selectTextOnFocus
+                                accessibilityLabel={`Precio de ${dish.nombre || 'platillo'}`}
+                              />
+                            </View>
                             <TouchableOpacity
                               style={s.removeDish}
                               hitSlop={{ top: 7, bottom: 7, left: 7, right: 7 }}
@@ -478,9 +459,7 @@ function makeStyles(c: FonderoColors) {
     detailRow: { marginTop: 2, flexDirection: 'row', alignItems: 'center' },
     description: { flex: 1, paddingVertical: 3, fontSize: 13, fontWeight: '300', color: c.textSecondary },
     inlinePrice: { minWidth: 68, height: 36, paddingHorizontal: 8, borderRadius: 11, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', backgroundColor: c.iconBg },
-    dishPrice: { width: 44, paddingVertical: 3, textAlign: 'right', fontSize: 15, fontWeight: '700', color: c.text },
-    addPrice: { minHeight: 34, paddingHorizontal: 8, flexDirection: 'row', alignItems: 'center', gap: 4 },
-    addPriceText: { fontSize: 12, fontWeight: '300', color: c.textSecondary },
+    dishPrice: { width: 52, paddingVertical: 3, textAlign: 'right', fontSize: 15, fontWeight: '700', color: c.text },
     addDish: { minHeight: 44, marginLeft: 30, flexDirection: 'row', alignItems: 'center', gap: 8 },
     addDishText: { fontSize: 13, fontWeight: '700', color: c.accent },
     addSectionBlock: { borderTopWidth: StyleSheet.hairlineWidth, borderColor: c.border, paddingTop: 14 },

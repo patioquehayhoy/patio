@@ -73,11 +73,11 @@ function fixture(overrides = {}) {
     const output = ts.transpileModule(fs.readFileSync(path.resolve(__dirname, '../..', file), 'utf8'), {
       compilerOptions: { jsx: ts.JsxEmit.ReactJSX, module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, esModuleInterop: true },
     }).outputText;
-    new Function('require', 'module', 'exports', '__DEV__', output)((id) => {
+    new Function('require', 'module', 'exports', '__DEV__', 'requestAnimationFrame', 'cancelAnimationFrame', output)((id) => {
       if (Object.hasOwn(mocks, id)) return mocks[id];
       if (id.startsWith('@/')) return load(`${id.slice(2)}.ts`);
       throw new Error(`Unexpected dependency: ${id}`);
-    }, module, module.exports, false);
+    }, module, module.exports, false, callback => { callback(); return 1; }, () => {});
     return module.exports;
   }
   return {
@@ -202,7 +202,7 @@ function nodes(node) {
 }
 
 test('the real map screen restores its tabs after swipe and reopens results on submit/focus', () => {
-  const patios = [{ id: 'mole-place', name: 'Cocina del Barrio', categories: ['Fondita'], latitude: 19.4, longitude: -99.2 }];
+  const patios = [{ id: 'mole-place', name: 'Cocina del Barrio', categories: ['Fondita'], latitude: 19.4, longitude: -99.2 }, { id: 'other', name: 'Elotes', categories: ['Elotes'], latitude: 19.4, longitude: -99.2 }];
   const initialRegion = { latitude: 19.4, longitude: -99.2, latitudeDelta: 0.012, longitudeDelta: 0.012 };
   const controller = {
     activeSavedCategories: [], aiMode: false, aiNote: '', allPatios: patios, savedIds: [], mapFilteredPatios: patios,
@@ -220,6 +220,7 @@ test('the real map screen restores its tabs after swipe and reopens results on s
     'react-native-safe-area-context': { useSafeAreaInsets: () => ({ top: 44, bottom: 34 }) },
     'expo-blur': { BlurView: 'BlurView' }, 'expo-linear-gradient': { LinearGradient: 'LinearGradient' }, '@expo/vector-icons': { Ionicons: 'Icon' },
     '@/components/place-icon': { PlaceIcon: 'Icon' },
+    '@/components/business-category-icon': { BusinessCategoryIcon: 'BusinessCategoryIcon' },
     '@/lib/controllers/useFoodieExploreController': { FOODIE_INITIAL_REGION: initialRegion, useFoodieExploreController: () => controller },
     '@/lib/theme': { Radius: { sheet: 28 }, Fonts: { brand: 'brand' }, useTheme: () => ({ theme: { accent: '#F2612F', isDark: false } }) },
     '@/lib/map-style': { MAP_STYLE_DARK: [], MAP_STYLE_LIGHT: [] },
@@ -256,5 +257,25 @@ test('the real map screen restores its tabs after swipe and reopens results on s
   items.find((n) => n.type === 'SearchField').props.onFocus();
   tree = f.render(screen);
   assert.ok(!nodes(tree).some((n) => n.type === 'BottomTabBar'));
+  const zoom = (delta) => {
+    nodes(tree).find(n => n.type === 'MapView').props.onRegionChangeComplete({ ...initialRegion, latitudeDelta: delta, longitudeDelta: delta });
+    tree = f.render(screen);
+    return nodes(tree);
+  };
+  let markers = zoom(0.012).filter(n => n.type === 'Marker' && n.props.opacity === 1);
+  assert.equal(markers.length, 1, 'Medium zoom only shows the matching place');
+  assert.equal(nodes(markers[0]).some(n => n.type === 'BusinessCategoryIcon'), false);
+  markers = zoom(0.004).filter(n => n.type === 'Marker' && n.props.opacity === 1);
+  assert.equal(nodes(markers[0]).find(n => n.type === 'BusinessCategoryIcon').props.category, 'Fondita');
+  markers = zoom(0.05).filter(n => n.type === 'Marker' && n.props.opacity === 1);
+  assert.equal(markers.length, 1);
+  assert.equal(markers[0].props.accessibilityLabel, '1 lugar, acercar mapa', 'Far clusters exclude nonmatching businesses');
+  assert.equal(nodes(markers[0]).some(n => n.type === 'BusinessCategoryIcon'), false);
+  assert.equal(controller.query, 'mole', 'Zoom never clears the search');
+  controller.isFiltering = false;
+  tree = f.render(screen);
+  markers = nodes(tree).filter(n => n.type === 'Marker' && n.props.opacity === 1);
+  assert.equal(markers[0].props.accessibilityLabel, '2 lugares, acercar mapa');
+  assert.equal(nodes(markers[0]).some(n => n.type === 'Text'), false, 'Far grouped points have no visible numbers');
   f.unmount();
 });

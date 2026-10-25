@@ -119,6 +119,11 @@ No iniciar EAS ni publicación automáticamente desde esta actualización docume
 
 - [ ] Incorporar una miniatura real del local en la zona superior del grid;
   definir origen/calidad de imagen y fallback manteniendo columnas y alturas.
+- [ ] Giros guiados por el mercado (idea de Alejandro, 2026-10-25): al elegir
+  «Otro» en el alta, pedir «¿De qué es tu negocio?» en texto libre y guardarlo
+  (hoy «Otro» se guarda como Fondita y se pierde el dato). Con ese texto y su
+  menú, generar un recopilado semanal o mensual de altas nuevas para decidir qué
+  giros agregar. Jugos y fruta fue el primero en entrar (2026-10-25).
 - [ ] Medir el piloto de la microzona: publicación, búsqueda, regreso y soporte.
 - [ ] Evaluar OTA, mejoras de búsqueda y crecimiento después de QA y datos del
   piloto. [Roadmap de producto](PRODUCT_EVOLUTION_ROADMAP_2026-07-18.md).

@@ -17,7 +17,7 @@ test('the original icon catalogue is preserved except for literal tacos and corn
   const font = fs.readFileSync(path.resolve(__dirname, '../../assets/fonts/PatioGiros.ttf'));
   assert.ok(font.length > 500, 'PatioGiros font ships with the app');
   assert.match(fs.readFileSync(path.resolve(__dirname, '../../components/business-category-icon.tsx'), 'utf8'), /taco: 0xe001, corn: 0xe002/);
-  assert.equal(Object.keys(BUSINESS_CATEGORY_ICONS).length, 10);
+  assert.equal(Object.keys(BUSINESS_CATEGORY_ICONS).length, 11);
   for (const [type, name] of Object.entries(BUSINESS_CATEGORY_ICONS)) {
     assert.ok((name === 'taco' || name === 'corn' ? foodGlyphs : glyphs)[name], `${type}: glyph must exist in the shipped font`);
     assert.equal(businessCategoryIcon(type), name);
@@ -27,6 +27,9 @@ test('the original icon catalogue is preserved except for literal tacos and corn
   assert.equal(businessCategoryIcon('Panadería'), 'cafe-outline');
   assert.equal(businessCategoryIcon('Empanadas'), 'fast-food-outline');
   assert.equal(businessCategoryIcon('Botanas'), 'basket-outline');
+  assert.equal(businessCategoryIcon('Botanas', 'map'), 'basket-outline');
+  assert.equal(businessCategoryIcon('Jugos y fruta'), 'nutrition-outline');
+  assert.equal(businessCategoryIcon('Jugos y fruta', 'map'), 'nutrition-outline');
   assert.equal(businessCategoryIcon('Giro desconocido'), 'ellipsis-horizontal');
   assert.equal(businessCategoryIcon('Fondita', 'map'), 'location-outline');
   assert.equal(businessCategoryIcon('Restaurante', 'map'), 'location-outline');

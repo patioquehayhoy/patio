@@ -32,6 +32,7 @@ const BUSINESS_TYPES = [
   ['reposteria', 'Postres'],
   ['mariscos', 'Mariscos'],
   ['bebidas', 'Bebidas'],
+  ['jugos', 'Jugos y fruta'],
   ['restaurante', 'Restaurante'],
   ['otro', 'Otro'],
 ] as const;

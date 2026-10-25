@@ -46,6 +46,7 @@ const SECCION_DEFAULTS: Record<string, string[]> = {
   elotes:     ['ELOTES Y ESQUITES', 'BOTANAS', 'EXTRAS', 'BEBIDAS'],
   botanas:    ['DORILOCOS Y BOTANAS', 'EXTRAS', 'BEBIDAS'],
   bebidas:    ['BEBIDAS', 'TAMAÑOS', 'EXTRAS'],
+  jugos:      ['JUGOS', 'LICUADOS', 'FRUTA PREPARADA'],
   restaurante:['ENTRADAS', 'PLATOS FUERTES', 'POSTRES', 'BEBIDAS'],
   otro:       ['SECCIÓN 1'],
 };

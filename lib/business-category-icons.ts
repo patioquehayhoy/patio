@@ -11,6 +11,7 @@ export const BUSINESS_CATEGORY_ICONS = {
   reposteria: 'cafe-outline',
   mariscos: 'fish-outline',
   bebidas: 'wine-outline',
+  jugos: 'nutrition-outline',
   restaurante: 'restaurant-outline',
   otro: 'ellipsis-horizontal',
 } as const satisfies Record<BusinessType, keyof typeof Ionicons.glyphMap | 'taco' | 'corn'>;
@@ -21,7 +22,8 @@ export function businessCategoryIcon(category: string, context: 'onboarding' | '
     if (/taco|taquer/.test(value)) return 'taco';
     if (/elote|esquite/.test(value)) return 'corn';
     if (/antojito|hamburgues/.test(value)) return 'fast-food-outline';
-    if (/botana/.test(value)) return 'leaf-outline';
+    if (/botana/.test(value)) return 'basket-outline';
+    if (/jugo|fruta|licuad/.test(value)) return 'nutrition-outline';
     if (/postre|pan|reposter|cafe|desayuno/.test(value)) return 'cafe-outline';
     if (/bar|antro|cantina|bebida/.test(value)) return 'wine-outline';
     if (/mercado/.test(value)) return 'basket-outline';
@@ -33,6 +35,7 @@ export function businessCategoryIcon(category: string, context: 'onboarding' | '
   if (/taco|taquer/.test(value)) return BUSINESS_CATEGORY_ICONS.taqueria;
   if (/elote|esquite/.test(value)) return BUSINESS_CATEGORY_ICONS.elotes;
   if (/botana|palomita/.test(value)) return BUSINESS_CATEGORY_ICONS.botanas;
+  if (/jugo|fruta|licuad/.test(value)) return BUSINESS_CATEGORY_ICONS.jugos;
   if (/antojito|garnacha|quesadilla|hamburgues|torta|empanada/.test(value)) return BUSINESS_CATEGORY_ICONS.antojitos;
   if (/postre|\bpan\b|panader|reposter|pastel/.test(value)) return BUSINESS_CATEGORY_ICONS.reposteria;
   if (/marisco|pescad/.test(value)) return BUSINESS_CATEGORY_ICONS.mariscos;

@@ -1,10 +1,18 @@
 # PatioGiros
 
-Giros que Ionicons no trae, armados con piezas reales de Ionicons (MIT) para
-no salir de la familia. Se empaquetan como fuente (`assets/fonts/PatioGiros.ttf`).
+Giros que Ionicons no trae, con la misma línea que Ionicons (1.5 en retícula
+de 24, equivalente a 32 en 512). Se empaquetan como fuente
+(`assets/fonts/PatioGiros.ttf`) para no agregar dependencias nativas.
 
-- `jugos.svg`: el vaso con popote de `fast-food-outline` + la manzana de
-  `nutrition-outline` en lugar de la hamburguesa (trazo compensado a 32), con la hoja pegada a la
-  manzana.
-- Regenerar: `picosvg jugos.svg > jugos.pico.svg` y
-  `scripts/design/build-patio-giros-font.py <dir> assets/fonts/PatioGiros.ttf '{"jugos":57345}'`.
+| Archivo | Origen | Licencia |
+|---|---|---|
+| `jugos.svg` | piezas de Ionicons: vaso de `fast-food-outline` + manzana de `nutrition-outline`, con línea de nivel | MIT (Ionic) |
+| `tacos.svg` | Hugeicons `taco-01` sin puntos y con el borde de arriba liso | MIT (Hugeicons) |
+| `elotes.svg` | Hugeicons `corn` | MIT (Hugeicons) |
+| `postres.svg` | Hugeicons `cheese-cake-01` (elegida con Jev entre dos rebanadas) | MIT (Hugeicons) |
+| `botanas.svg` | IconPark `popcorn`, trazo 3 en retícula de 48 | Apache 2.0 (ByteDance) |
+
+Regenerar: expandir trazos con `picosvg NAME.svg > NAME.pico.svg` y correr
+`scripts/design/build-patio-giros-font.py <dir> assets/fonts/PatioGiros.ttf "$(cat codepoints.json)"`.
+Al cambiar los glifos, cambiar también el nombre de la familia en el script y en
+`components/business-category-icon.tsx` para que el teléfono no use la versión en caché.

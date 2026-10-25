@@ -3,16 +3,16 @@ import type { BusinessType } from './smart-setup';
 
 /** Giros use Ionicons, the same family as navigation and actions. Giros Ionicons
  * lacks are composed from real Ionicons parts in the PatioGiros font. */
-export type PatioGiroGlyph = 'patio-jugos';
+export type PatioGiroGlyph = 'patio-jugos' | 'patio-tacos' | 'patio-elotes' | 'patio-postres' | 'patio-botanas';
 export type CategoryIcon = keyof typeof Ionicons.glyphMap | PatioGiroGlyph;
 
 export const BUSINESS_CATEGORY_ICONS = {
   fondita: 'storefront-outline',
-  taqueria: 'flame-outline',
+  taqueria: 'patio-tacos',
   antojitos: 'fast-food-outline',
-  elotes: 'leaf-outline',
-  botanas: 'basket-outline',
-  reposteria: 'ice-cream-outline',
+  elotes: 'patio-elotes',
+  botanas: 'patio-botanas',
+  reposteria: 'patio-postres',
   cafeteria: 'cafe-outline',
   mariscos: 'fish-outline',
   bebidas: 'wine-outline',
@@ -23,13 +23,13 @@ export const BUSINESS_CATEGORY_ICONS = {
 
 // Free-text categories (Supabase `categorias`, «Otro» answers) resolve by keyword.
 const KEYWORDS: [RegExp, CategoryIcon][] = [
-  [/taco|taquer/, 'flame-outline'],
-  [/elote|esquite/, 'leaf-outline'],
-  [/botana|palomita/, 'basket-outline'],
+  [/taco|taquer/, 'patio-tacos'],
+  [/elote|esquite/, 'patio-elotes'],
+  [/botana|palomita/, 'patio-botanas'],
   [/jugo|fruta|licuad/, 'patio-jugos'],
   [/cafeter|cafe\b/, 'cafe-outline'],
   [/antojito|garnacha|quesadilla|hamburgues|torta|empanada/, 'fast-food-outline'],
-  [/postre|\bpan\b|panader|reposter|pastel/, 'ice-cream-outline'],
+  [/postre|\bpan\b|panader|reposter|pastel/, 'patio-postres'],
   [/marisco|pescad/, 'fish-outline'],
   [/bebida|bar\b|antro|cantina/, 'wine-outline'],
   [/restaurante/, 'restaurant-outline'],

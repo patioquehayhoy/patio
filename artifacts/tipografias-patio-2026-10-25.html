@@ -10,7 +10,10 @@
 <style>
 /* Archivos de prueba de las fundiciones: al ponerlos en design-source/fuentes-prueba/
    con estos nombres, la lámina los usa en lugar de la versión parecida. */
-@font-face{font-family:"Trial Monument";src:url("../design-source/fuentes-prueba/monument.otf"),url("../design-source/fuentes-prueba/monument.woff2");font-weight:100 900}
+@font-face{font-family:"Trial Monument";src:url("../design-source/fuentes-prueba/PPMonumentNormal-Regular.otf");font-weight:400}
+@font-face{font-family:"Trial Monument";src:url("../design-source/fuentes-prueba/PPMonumentNormal-Black.otf");font-weight:800 900}
+@font-face{font-family:"Trial Monument Narrow";src:url("../design-source/fuentes-prueba/PPMonumentNarrow-Regular.otf");font-weight:400}
+@font-face{font-family:"Trial Monument Narrow";src:url("../design-source/fuentes-prueba/PPMonumentNarrow-Black.otf");font-weight:800 900}
 @font-face{font-family:"Trial November";src:url("../design-source/fuentes-prueba/november.otf"),url("../design-source/fuentes-prueba/november.woff2");font-weight:100 900}
 @font-face{font-family:"Trial Yumex";src:url("../design-source/fuentes-prueba/yumex.otf"),url("../design-source/fuentes-prueba/yumex.woff2");font-weight:100 900}
 @font-face{font-family:"Trial Degular";src:url("../design-source/fuentes-prueba/degular.otf"),url("../design-source/fuentes-prueba/degular.woff2");font-weight:100 900}
@@ -41,6 +44,9 @@ main{max-width:1280px;margin:0 auto;padding:48px 16px 72px}
 /* Monument: Normal y Narrow (Archivo es la parecida gratuita, con anchos reales) */
 .monument{font-family:"Trial Monument","Archivo",sans-serif}
 .monument .display{font-weight:800;font-stretch:100%}
+.monument .brand .q,.monument .brand .s{font-size:34px;letter-spacing:-.8px}
+.monument .screen{letter-spacing:-.6px}
+.monument.narrow{font-family:"Trial Monument Narrow","Archivo",sans-serif}
 .monument.narrow .display{font-stretch:82%}
 .monument .text{font-weight:400;font-stretch:100%}
 .november{font-family:"Trial November","Instrument Sans",sans-serif}
@@ -62,13 +68,13 @@ main{max-width:1280px;margin:0 auto;padding:48px 16px 72px}
 <main>
   <div class="intro">
     <h1>Tipografías para Patio</h1>
-    <p>Fondo gris, tinta negra y naranja solo en lo que importa. Mientras no estén los archivos de prueba de cada fundición, cada lámina usa la tipografía gratuita más parecida (indicada abajo de cada una). Al poner los archivos en <code>design-source/fuentes-prueba/</code> se cambian&nbsp;solas.</p>
+    <p>Fondo gris, tinta negra y naranja solo en lo que importa. Monument ya es la fuente real (versión de prueba de uso personal). November y Degular siguen con una parecida gratuita hasta tener sus archivos de&nbsp;prueba.</p>
   </div>
   <div class="boards">
 
     <section class="board monument">
       <div class="meta"><b>Monument · Normal</b><span>Pangram Pangram</span></div>
-      <p class="tag">Vista parecida: Archivo (ancho normal)</p>
+      <p class="tag">Fuente real: PP Monument Normal (prueba personal)</p>
       <div class="brand display"><p class="q">¿Qué hay hoy?</p><p class="s">Saaaaaaabes.</p></div>
       <p class="screen display">Explorar</p>
       <p class="label text">Menú del día</p>
@@ -79,7 +85,7 @@ main{max-width:1280px;margin:0 auto;padding:48px 16px 72px}
 
     <section class="board monument narrow">
       <div class="meta"><b>Monument · Narrow</b><span>Pangram Pangram</span></div>
-      <p class="tag">Vista parecida: Archivo angosta. Monument Narrow real es menos alargada</p>
+      <p class="tag">Fuente real: PP Monument Narrow (prueba personal)</p>
       <div class="brand display"><p class="q">¿Qué hay hoy?</p><p class="s">Saaaaaaabes.</p></div>
       <p class="screen display">Explorar</p>
       <p class="label text">Menú del día</p>
@@ -102,17 +108,6 @@ main{max-width:1280px;margin:0 auto;padding:48px 16px 72px}
     <section class="board degular">
       <div class="meta"><b>Degular</b><span>OH no Type</span></div>
       <p class="tag">Vista parecida: Outfit</p>
-      <div class="brand display"><p class="q">¿Qué hay hoy?</p><p class="s">Saaaaaaabes.</p></div>
-      <p class="screen display">Explorar</p>
-      <p class="label text">Menú del día</p>
-      <div class="card"><div class="ph"></div><div><p class="n display">Fonda Doña Rosa</p><p class="m text">Polanco · 250 m · Abierto</p></div><p class="p display">$95</p></div>
-      <p class="body text">Sopa de fideo, arroz rojo y chiles rellenos de queso. Agua de jamaica incluida. Hoy cerramos a las cinco.</p>
-      <a class="btn text" href="#">Publicar lo de hoy</a>
-    </section>
-
-    <section class="board yumex">
-      <div class="meta"><b>Yumex</b><span>OH no Type</span></div>
-      <p class="tag">Vista muy aproximada: Bricolage Grotesque</p>
       <div class="brand display"><p class="q">¿Qué hay hoy?</p><p class="s">Saaaaaaabes.</p></div>
       <p class="screen display">Explorar</p>
       <p class="label text">Menú del día</p>

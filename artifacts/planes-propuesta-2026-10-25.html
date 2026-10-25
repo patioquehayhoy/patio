@@ -76,6 +76,25 @@ li::before{content:"";display:inline-block;width:6px;height:6px;border-radius:3p
         <div class="spacer"></div>
         <a class="btn" href="#">Ver qué hay hoy</a>
       </div>
+      <div class="card dark">
+        <span class="badge">Para creadores</span>
+        <p class="name">Creador</p>
+        <p class="price"><span data-price-mes>$[199] <small>al mes</small></span><span data-price-anual hidden>$[1,990] <small>al año</small></span></p>
+        <p class="soft">Para quien recomienda dónde comer y tiene quien lo&nbsp;siga.</p>
+        <div class="quota">
+          <div><span>Listas destacadas en Explorar</span><b>[3] a la vez</b></div>
+          <div><span>Estadísticas de tus listas</span><b>Completas</b></div>
+          <div><span>Invitaciones con tu enlace</span><b>Sin límite</b></div>
+        </div>
+        <ul>
+          <li>Todo lo de Gratis</li>
+          <li>Sello de Creador en tu perfil</li>
+          <li>Quién guarda tus listas y a dónde va</li>
+          <li class="soft">Pronto: colaboraciones con negocios</li>
+        </ul>
+        <div class="spacer"></div>
+        <a class="btn primary" href="#">Ser Creador</a>
+      </div>
     </div>
     <p class="note">¿Cocinas o tienes un puesto? Cambia a «Para tu negocio». Es la misma app y la misma&nbsp;cuenta.</p>
   </section>
@@ -122,22 +141,53 @@ li::before{content:"";display:inline-block;width:6px;height:6px;border-radius:3p
     </div>
 
     <div class="founder">
-      <svg width="96" height="96" viewBox="0 0 96 96" role="img" aria-label="Sello de Fundador">
-        <circle cx="48" cy="48" r="44" fill="none" stroke="#111214" stroke-width="2.75"/>
-        <circle cx="48" cy="48" r="34" fill="none" stroke="#111214" stroke-width="1.5" stroke-dasharray="2 4" stroke-linecap="round"/>
-        <path d="M34 50l9 9 19-21" fill="none" stroke="#111214" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"/>
-        <defs><path id="arc" d="M14 48a34 34 0 0 1 68 0"/><path id="arc2" d="M18 52a30 30 0 0 0 60 0"/></defs>
-        <text font-size="9" font-weight="700" letter-spacing="2" fill="#111214"><textPath href="#arc" startOffset="50%" text-anchor="middle">FUNDADOR</textPath></text>
-        <text font-size="8" letter-spacing="1.4" fill="#4A4A47"><textPath href="#arc2" startOffset="50%" text-anchor="middle">POLANCO · 2026</textPath></text>
-      </svg>
+      <svg width="112" height="112" viewBox="0 0 112 112" role="img" aria-label="Sello de Fundador #007"><path d="M56.00 1.50 L64.39 8.39 L74.64 4.79 L80.17 14.14 L91.03 14.25 L93.03 24.93 L103.20 28.75 L101.42 39.47 L109.67 46.54 L104.34 56.00 L109.67 65.46 L101.42 72.53 L103.20 83.25 L93.03 87.07 L91.03 97.75 L80.17 97.86 L74.64 107.21 L64.39 103.61 L56.00 110.50 L47.61 103.61 L37.36 107.21 L31.83 97.86 L20.97 97.75 L18.97 87.07 L8.80 83.25 L10.58 72.53 L2.33 65.46 L7.66 56.00 L2.33 46.54 L10.58 39.47 L8.80 28.75 L18.97 24.93 L20.97 14.25 L31.83 14.14 L37.36 4.79 L47.61 8.39Z" fill="#111214" stroke="#111214" stroke-width="1.5" stroke-linejoin="round"/><circle cx="56.0" cy="56.0" r="39.20" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1"/><text x="56.0" y="41.4" text-anchor="middle" font-size="9.5" font-weight="700" letter-spacing="1.68" fill="#fff">FUNDADOR</text><text x="56.0" y="67.2" text-anchor="middle" font-size="25.8" font-weight="800" letter-spacing="-1" fill="#fff">#007</text><text x="56.0" y="84.0" text-anchor="middle" font-size="7.8" letter-spacing="1.12" fill="rgba(255,255,255,0.75)">POLANCO · 2026</text></svg>
       <div style="flex:1;min-width:240px">
         <p class="eyebrow">Fundadores</p>
-        <h2>6 meses de Pro, gratis</h2>
-        <p class="soft">Por invitación, para las primeras cocinas de cada colonia. Publica tus primeras cuatro semanas y el sello es tuyo para siempre. Cada cocina que invites les suma un mes a las&nbsp;dos.</p>
+        <h2>Los primeros 100 de cada colonia</h2>
+        <p class="soft">Por invitación. Seis meses de Pro y un sello con tu número. Publica tus primeras cuatro semanas y el sello es tuyo para siempre. Cada cocina que invites les suma un mes a las&nbsp;dos.</p><p style="margin:12px 0 0;font-size:13px;font-weight:700">Polanco · quedan 23 de&nbsp;100</p>
       </div>
-      <a class="btn" href="#" style="padding:0 24px">Me interesa</a>
+      <a class="btn" href="#" style="padding:0 24px">Pedir mi lugar</a>
     </div>
     <p class="note">Precios en pesos, con IVA. Las lecturas se renuevan cada mes. Pro se paga y se cancela desde App Store o Google&nbsp;Play.</p>
+  </section>
+
+  <section style="margin-top:48px">
+    <p class="eyebrow">Así se ve en Patio</p>
+    <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr))">
+      <div class="card" style="gap:14px">
+        <p class="soft" style="font-size:12px">Perfil del negocio</p>
+        <div style="display:flex;gap:14px;align-items:center">
+          <div style="width:64px;height:64px;border-radius:18px;background:#EDEDE8"></div>
+          <div style="flex:1">
+            <p style="margin:0;font-size:24px;font-weight:800;letter-spacing:-0.6px">Fonda Doña Rosa</p>
+            <p class="soft" style="font-size:13px">Fondita · Polanco · 250 m</p>
+          </div>
+          <svg width="56" height="56" viewBox="0 0 56 56" role="img" aria-label="Sello de Fundador #007"><path d="M28.00 1.50 L32.07 4.94 L37.06 3.10 L39.71 7.72 L45.03 7.70 L45.94 12.95 L50.95 14.75 L50.01 19.99 L54.10 23.40 L51.42 28.00 L54.10 32.60 L50.01 36.01 L50.95 41.25 L45.94 43.05 L45.03 48.30 L39.71 48.28 L37.06 52.90 L32.07 51.06 L28.00 54.50 L23.93 51.06 L18.94 52.90 L16.29 48.28 L10.97 48.30 L10.06 43.05 L5.05 41.25 L5.99 36.01 L1.90 32.60 L4.58 28.00 L1.90 23.40 L5.99 19.99 L5.05 14.75 L10.06 12.95 L10.97 7.70 L16.29 7.72 L18.94 3.10 L23.93 4.94Z" fill="#111214" stroke="#111214" stroke-width="1.5" stroke-linejoin="round"/><circle cx="28.0" cy="28.0" r="19.60" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1"/><text x="28.0" y="20.7" text-anchor="middle" font-size="4.8" font-weight="700" letter-spacing="0.84" fill="#fff">FUNDADOR</text><text x="28.0" y="33.6" text-anchor="middle" font-size="12.9" font-weight="800" letter-spacing="-1" fill="#fff">#007</text><text x="28.0" y="42.0" text-anchor="middle" font-size="3.9" letter-spacing="0.56" fill="rgba(255,255,255,0.75)">POLANCO</text></svg>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;font-size:13px"><svg width="18" height="18" viewBox="0 0 18 18" role="img" aria-label="Sello de Fundador "><path d="M9.00 1.50 L10.13 2.59 L11.57 1.95 L12.25 3.36 L13.82 3.25 L13.99 4.82 L15.50 5.25 L15.12 6.77 L16.39 7.70 L15.51 9.00 L16.39 10.30 L15.12 11.23 L15.50 12.75 L13.99 13.18 L13.82 14.75 L12.26 14.64 L11.57 16.05 L10.13 15.41 L9.00 16.50 L7.87 15.41 L6.43 16.05 L5.74 14.64 L4.18 14.75 L4.01 13.18 L2.50 12.75 L2.88 11.23 L1.61 10.30 L2.49 9.00 L1.61 7.70 L2.88 6.77 L2.50 5.25 L4.01 4.82 L4.18 3.25 L5.75 3.36 L6.43 1.95 L7.87 2.59Z" fill="#111214" stroke="#111214" stroke-width="1.5" stroke-linejoin="round"/><circle cx="9.0" cy="9.0" r="6.30" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1"/><path d="M6.1 9.0l2.0 2.0 4.0-4.3" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span><b>Fundador #007</b> de Polanco · desde octubre 2026</span></div>
+      </div>
+      <div class="card" style="gap:10px">
+        <p class="soft" style="font-size:12px">Tarjeta en el mapa y en listas</p>
+        <div style="display:flex;gap:12px;align-items:center;padding:12px 0;border-bottom:0.5px solid var(--line)">
+          <div style="width:44px;height:44px;border-radius:14px;background:#EDEDE8"></div>
+          <div style="flex:1;min-width:0">
+            <p style="margin:0;font-size:16px;font-weight:700;display:flex;gap:6px;align-items:center">Fonda Doña Rosa <svg width="16" height="16" viewBox="0 0 16 16" role="img" aria-label="Sello de Fundador "><path d="M8.00 1.50 L8.98 2.47 L10.22 1.89 L10.81 3.13 L12.18 3.02 L12.31 4.39 L13.63 4.75 L13.28 6.08 L14.40 6.87 L13.62 8.00 L14.40 9.13 L13.28 9.92 L13.63 11.25 L12.31 11.61 L12.18 12.98 L10.81 12.87 L10.22 14.11 L8.98 13.53 L8.00 14.50 L7.02 13.53 L5.78 14.11 L5.19 12.87 L3.82 12.98 L3.69 11.61 L2.37 11.25 L2.72 9.92 L1.60 9.13 L2.38 8.00 L1.60 6.87 L2.72 6.08 L2.37 4.75 L3.69 4.39 L3.82 3.02 L5.19 3.13 L5.78 1.89 L7.02 2.47Z" fill="#111214" stroke="#111214" stroke-width="1.5" stroke-linejoin="round"/><circle cx="8.0" cy="8.0" r="5.60" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1"/><path d="M5.4 8.0l1.8 1.8 3.5-3.8" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></p>
+            <p class="soft" style="font-size:13px">Polanco · 250 m · Abierto</p>
+          </div>
+          <p style="margin:0;font-size:15px;font-weight:500">$95</p>
+        </div>
+        <div style="display:flex;gap:12px;align-items:center;padding:12px 0">
+          <div style="width:44px;height:44px;border-radius:14px;background:#EDEDE8"></div>
+          <div style="flex:1;min-width:0">
+            <p style="margin:0;font-size:16px;font-weight:700">Tacos Don Chucho</p>
+            <p class="soft" style="font-size:13px">Granada · 400 m · Abierto</p>
+          </div>
+          <p style="margin:0;font-size:15px;font-weight:500">$60</p>
+        </div>
+        <p class="soft" style="font-size:12px">En tarjetas el sello va chico junto al nombre; el número completo vive en el&nbsp;perfil.</p>
+      </div>
+    </div>
   </section>
 </main>
 <script>
@@ -145,13 +195,12 @@ const audBtns=document.querySelectorAll('[data-aud]');
 audBtns.forEach(b=>b.addEventListener('click',()=>{
   audBtns.forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
   document.querySelectorAll('[data-show]').forEach(s=>s.hidden=s.dataset.show!==b.dataset.aud);
-  document.getElementById('periodo').hidden=b.dataset.aud!=='negocio';
 }));
 const perBtns=document.querySelectorAll('[data-per]');
 perBtns.forEach(b=>b.addEventListener('click',()=>{
   perBtns.forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
-  document.querySelector('[data-price-mes]').hidden=b.dataset.per!=='mes';
-  document.querySelector('[data-price-anual]').hidden=b.dataset.per!=='anual';
+  document.querySelectorAll('[data-price-mes]').forEach(e=>e.hidden=b.dataset.per!=='mes');
+  document.querySelectorAll('[data-price-anual]').forEach(e=>e.hidden=b.dataset.per!=='anual');
 }));
 </script>
 </body>

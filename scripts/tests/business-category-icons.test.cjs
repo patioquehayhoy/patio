@@ -11,32 +11,29 @@ const loaded = { exports: {} };
 new Function('exports', output)(loaded.exports);
 const { businessCategoryIcon, BUSINESS_CATEGORY_ICONS, mapMarkerDetail } = loaded.exports;
 
-test('the original icon catalogue is preserved except for literal tacos and corn', () => {
-  const glyphs = require('@expo/vector-icons/build/vendor/react-native-vector-icons/glyphmaps/Ionicons.json');
-  const foodGlyphs = { taco: 0xe001, corn: 0xe002, chips: 0xe003, cake: 0xe004, coffee: 0xe005, juice: 0xe006 };
-  const font = fs.readFileSync(path.resolve(__dirname, '../../assets/fonts/PatioGiros.ttf'));
-  assert.ok(font.length > 500, 'PatioGiros font ships with the app');
-  assert.match(fs.readFileSync(path.resolve(__dirname, '../../components/business-category-icon.tsx'), 'utf8'), /taco: 0xe001, corn: 0xe002, chips: 0xe003, cake: 0xe004, coffee: 0xe005, juice: 0xe006/);
+test('every giro uses one family: the PatioGiros font glyphs', () => {
+  const codepoints = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../../design-source/patio-giros/codepoints.json'), 'utf8'));
+  const component = fs.readFileSync(path.resolve(__dirname, '../../components/business-category-icon.tsx'), 'utf8');
+  assert.ok(fs.readFileSync(path.resolve(__dirname, '../../assets/fonts/PatioGiros.ttf')).length > 1000, 'PatioGiros font ships with the app');
+  for (const [name, code] of Object.entries(codepoints)) {
+    assert.match(component, new RegExp(`${name}: 0x${code.toString(16)}\\b`), `${name} codepoint matches the built font`);
+  }
   assert.equal(Object.keys(BUSINESS_CATEGORY_ICONS).length, 12);
   for (const [type, name] of Object.entries(BUSINESS_CATEGORY_ICONS)) {
-    assert.ok((name in foodGlyphs ? foodGlyphs : glyphs)[name], `${type}: glyph must exist in the shipped font`);
+    assert.ok(codepoints[name], `${type}: glyph must exist in the shipped font`);
     assert.equal(businessCategoryIcon(type), name);
   }
-  for (const label of ['Tacos al pastor', 'Taquería']) assert.equal(businessCategoryIcon(label), 'taco');
-  for (const label of ['Elotes', 'Esquites']) assert.equal(businessCategoryIcon(label), 'corn');
-  assert.equal(businessCategoryIcon('Panadería'), 'cake');
-  assert.equal(businessCategoryIcon('Cafetería'), 'coffee');
-  assert.equal(businessCategoryIcon('Café de olla', 'map'), 'coffee');
-  assert.equal(businessCategoryIcon('Empanadas'), 'fast-food-outline');
-  assert.equal(businessCategoryIcon('Botanas'), 'chips');
-  assert.equal(businessCategoryIcon('Botanas', 'map'), 'chips');
-  assert.equal(businessCategoryIcon('Jugos y fruta'), 'juice');
-  assert.equal(businessCategoryIcon('Jugos y fruta', 'map'), 'juice');
-  assert.equal(businessCategoryIcon('Giro desconocido'), 'ellipsis-horizontal');
-  assert.equal(businessCategoryIcon('Fondita', 'map'), 'location-outline');
-  assert.equal(businessCategoryIcon('Restaurante', 'map'), 'location-outline');
-  assert.equal(businessCategoryIcon('Tacos', 'map'), 'taco');
-  assert.equal(businessCategoryIcon('Elotes', 'map'), 'corn');
+  for (const label of ['Tacos al pastor', 'Taquería']) assert.equal(businessCategoryIcon(label), 'tacos');
+  for (const label of ['Elotes', 'Esquites']) assert.equal(businessCategoryIcon(label), 'elotes');
+  assert.equal(businessCategoryIcon('Panadería'), 'postres');
+  assert.equal(businessCategoryIcon('Cafetería'), 'cafeteria');
+  assert.equal(businessCategoryIcon('Empanadas'), 'antojitos');
+  assert.equal(businessCategoryIcon('Botanas', 'map'), 'botanas');
+  assert.equal(businessCategoryIcon('Jugos y fruta', 'map'), 'jugos');
+  assert.equal(businessCategoryIcon('Tamales'), 'otro');
+  assert.equal(businessCategoryIcon('Tamales', 'map'), 'pin');
+  assert.equal(businessCategoryIcon('Fondita', 'map'), 'pin');
+  assert.equal(businessCategoryIcon('Restaurante', 'map'), 'pin');
 });
 
 test('map detail progresses from grouped points to individual points to category pictograms', () => {

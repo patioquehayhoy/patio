@@ -499,8 +499,38 @@ Notas de trabajo, todavía por cerrar con Alejandro. Complementan la sección 3
 textos decide qué giros nuevos agregar (ver PENDING_LAUNCH). Jugos y fruta y
 Cafetería entraron el 2026-10-25.
 
+### Fundadores numerados y escasez (idea de Alejandro, 2026-10-25)
+
+- **Cupo visible:** los primeros 100 negocios de cada colonia. El sello lleva el
+  número: «Fundador #007 · Polanco». El contador es público: «Polanco · quedan
+  23 de 100». La escasez es real, no un truco: el cupo se cierra.
+- **Selección por olas, estilo lanzamiento de Apple:** «Pedir mi lugar» abre una
+  lista de espera; Alejandro elige con los criterios de arriba y libera
+  invitaciones en olas anunciadas («el lunes se abren 20 lugares en Polanco»).
+  Los primeros 10 sembrados a mano (sección 3) son la ola cero.
+- **Se gana, no se regala:** el número se reserva al aceptar la invitación y el
+  sello se fija al cumplir las primeras cuatro semanas publicando. Si no se
+  cumple, el número vuelve a la ola siguiente.
+- **Forma del sello:** círculo recortado en picos (sello de sello postal),
+  tinta neutra. Grande con número en el perfil; chico, sin número, junto al
+  nombre en tarjetas del mapa y listas.
+
+### Plan Creador para foodies
+
+- Foodie sigue gratis, pero hay salida de pago para quien recomienda y tiene
+  audiencia (influencers): plan «Creador», precio por definir (propuesta
+  $[199] al mes / $[1,990] al año). Alejandro ve disposición de pago incluso de
+  ~$1,000.
+- Beneficios: listas destacadas en Explorar, estadísticas de sus listas (quién
+  las guarda y a qué lugar llega), sello de Creador, enlace de invitación propio
+  (suma usuarios a la app, sin web externa), colaboraciones con negocios después.
+- Mecanismo del libro: los creadores traen el lado fácil (demanda) en volumen; su
+  enlace de invitación es el bucle de crecimiento. Cobrarles no frena la red
+  porque el núcleo del Foodie sigue gratis.
+
 ### Pendientes de decisión
 
-- Tamaño final de la cohorte (la sección 3 dice 10) y colonia exacta de arranque.
+- Cupo final por colonia (propuesta: 100) y colonia exacta de arranque.
+- Precio y beneficios finales del plan Creador.
 - Cupos finales de lecturas y avisos tras medir uso real.
 - Diseño final del sello con la tipografía que se elija.

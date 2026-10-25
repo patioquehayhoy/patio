@@ -6,12 +6,13 @@
 <title>Tipografías para Patio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Instrument+Sans:wght@400..700&family=Outfit:wght@300..900&family=Plus+Jakarta+Sans:wght@400;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Instrument+Sans:wght@400..700&family=Outfit:wght@300..900&family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&family=Plus+Jakarta+Sans:wght@400;800&display=swap" rel="stylesheet">
 <style>
 /* Archivos de prueba de las fundiciones: al ponerlos en design-source/fuentes-prueba/
    con estos nombres, la lámina los usa en lugar de la versión parecida. */
 @font-face{font-family:"Trial Monument";src:url("../design-source/fuentes-prueba/monument.otf"),url("../design-source/fuentes-prueba/monument.woff2");font-weight:100 900}
 @font-face{font-family:"Trial November";src:url("../design-source/fuentes-prueba/november.otf"),url("../design-source/fuentes-prueba/november.woff2");font-weight:100 900}
+@font-face{font-family:"Trial Yumex";src:url("../design-source/fuentes-prueba/yumex.otf"),url("../design-source/fuentes-prueba/yumex.woff2");font-weight:100 900}
 @font-face{font-family:"Trial Degular";src:url("../design-source/fuentes-prueba/degular.otf"),url("../design-source/fuentes-prueba/degular.woff2");font-weight:100 900}
 :root{--gray:#EAEAE6;--ink:#111214;--soft:#4A4A47;--accent:#F2612F;--card:#FFFFFF}
 *{box-sizing:border-box}
@@ -48,6 +49,9 @@ main{max-width:1280px;margin:0 auto;padding:48px 16px 72px}
 .degular{font-family:"Trial Degular","Outfit",sans-serif}
 .degular .display{font-weight:700}
 .degular .text{font-weight:400}
+.yumex{font-family:"Trial Yumex","Bricolage Grotesque",sans-serif}
+.yumex .display{font-weight:800}
+.yumex .text{font-weight:400}
 .today{font-family:"Plus Jakarta Sans",sans-serif}
 .today .display{font-weight:800}
 .today .text{font-family:-apple-system,system-ui,sans-serif;font-weight:400}
@@ -75,7 +79,7 @@ main{max-width:1280px;margin:0 auto;padding:48px 16px 72px}
 
     <section class="board monument narrow">
       <div class="meta"><b>Monument · Narrow</b><span>Pangram Pangram</span></div>
-      <p class="tag">Vista parecida: Archivo (ancho angosto)</p>
+      <p class="tag">Vista parecida: Archivo angosta. Monument Narrow real es menos alargada</p>
       <div class="brand display"><p class="q">¿Qué hay hoy?</p><p class="s">Saaaaaaabes.</p></div>
       <p class="screen display">Explorar</p>
       <p class="label text">Menú del día</p>
@@ -98,6 +102,17 @@ main{max-width:1280px;margin:0 auto;padding:48px 16px 72px}
     <section class="board degular">
       <div class="meta"><b>Degular</b><span>OH no Type</span></div>
       <p class="tag">Vista parecida: Outfit</p>
+      <div class="brand display"><p class="q">¿Qué hay hoy?</p><p class="s">Saaaaaaabes.</p></div>
+      <p class="screen display">Explorar</p>
+      <p class="label text">Menú del día</p>
+      <div class="card"><div class="ph"></div><div><p class="n display">Fonda Doña Rosa</p><p class="m text">Polanco · 250 m · Abierto</p></div><p class="p display">$95</p></div>
+      <p class="body text">Sopa de fideo, arroz rojo y chiles rellenos de queso. Agua de jamaica incluida. Hoy cerramos a las cinco.</p>
+      <a class="btn text" href="#">Publicar lo de hoy</a>
+    </section>
+
+    <section class="board yumex">
+      <div class="meta"><b>Yumex</b><span>OH no Type</span></div>
+      <p class="tag">Vista muy aproximada: Bricolage Grotesque</p>
       <div class="brand display"><p class="q">¿Qué hay hoy?</p><p class="s">Saaaaaaabes.</p></div>
       <p class="screen display">Explorar</p>
       <p class="label text">Menú del día</p>

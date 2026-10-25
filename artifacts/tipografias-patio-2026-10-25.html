@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tipografías para Patio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Instrument+Sans:wght@400..700&family=Outfit:wght@300..900&family=Plus+Jakarta+Sans:wght@400;800&display=swap" rel="stylesheet">
+<style>
+/* Archivos de prueba de las fundiciones: al ponerlos en design-source/fuentes-prueba/
+   con estos nombres, la lámina los usa en lugar de la versión parecida. */
+@font-face{font-family:"Trial Monument";src:url("../design-source/fuentes-prueba/monument.otf"),url("../design-source/fuentes-prueba/monument.woff2");font-weight:100 900}
+@font-face{font-family:"Trial November";src:url("../design-source/fuentes-prueba/november.otf"),url("../design-source/fuentes-prueba/november.woff2");font-weight:100 900}
+@font-face{font-family:"Trial Degular";src:url("../design-source/fuentes-prueba/degular.otf"),url("../design-source/fuentes-prueba/degular.woff2");font-weight:100 900}
+:root{--gray:#EAEAE6;--ink:#111214;--soft:#4A4A47;--accent:#F2612F;--card:#FFFFFF}
+*{box-sizing:border-box}
+body{margin:0;background:#F8F8F5;color:var(--ink);font-family:-apple-system,system-ui,sans-serif}
+main{max-width:1280px;margin:0 auto;padding:48px 16px 72px}
+.intro{max-width:720px;margin-bottom:32px}
+.intro h1{margin:0 0 8px;font-size:28px;font-weight:700;letter-spacing:-.5px}
+.intro p{margin:0;font-size:14px;color:var(--soft);line-height:1.5;text-wrap:pretty}
+.boards{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.board{background:var(--gray);border-radius:28px;padding:28px 22px;display:flex;flex-direction:column;gap:22px}
+.meta{display:flex;justify-content:space-between;gap:8px;font:600 12px -apple-system,system-ui,sans-serif;color:var(--soft)}
+.meta b{color:var(--ink)}
+.brand{display:flex;flex-direction:column;gap:2px}
+.brand .q{margin:0;font-size:40px;line-height:1;letter-spacing:-1.4px}
+.brand .s{margin:0;font-size:40px;line-height:1;letter-spacing:-1.4px;color:var(--accent)}
+.screen{margin:0;font-size:32px;line-height:1.05;letter-spacing:-1px}
+.label{margin:0;font-size:11px;letter-spacing:1.7px;text-transform:uppercase;color:var(--soft)}
+.card{background:var(--card);border-radius:18px;padding:16px;display:flex;gap:12px;align-items:center}
+.ph{width:48px;height:48px;border-radius:14px;background:#E2E2DD;flex:none}
+.card .n{margin:0;font-size:17px;letter-spacing:-.2px}
+.card .m{margin:2px 0 0;font-size:13px;color:var(--soft)}
+.card .p{margin:0 0 0 auto;font-size:16px}
+.body{margin:0;font-size:15px;line-height:1.45;color:var(--soft);text-wrap:pretty}
+.btn{display:flex;align-items:center;justify-content:center;min-height:50px;border-radius:25px;background:var(--accent);color:#fff;font-size:16px;text-decoration:none}
+.tag{font:500 11px -apple-system,system-ui,sans-serif;color:var(--soft);margin-top:-8px}
+/* Monument: Normal y Narrow (Archivo es la parecida gratuita, con anchos reales) */
+.monument{font-family:"Trial Monument","Archivo",sans-serif}
+.monument .display{font-weight:800;font-stretch:100%}
+.monument.narrow .display{font-stretch:82%}
+.monument .text{font-weight:400;font-stretch:100%}
+.november{font-family:"Trial November","Instrument Sans",sans-serif}
+.november .display{font-weight:700}
+.november .text{font-weight:400}
+.degular{font-family:"Trial Degular","Outfit",sans-serif}
+.degular .display{font-weight:700}
+.degular .text{font-weight:400}
+.today{font-family:"Plus Jakarta Sans",sans-serif}
+.today .display{font-weight:800}
+.today .text{font-family:-apple-system,system-ui,sans-serif;font-weight:400}
+.btn.text{font-weight:600}
+</style>
+</head>
+<body>
+<main>
+  <div class="intro">
+    <h1>Tipografías para Patio</h1>
+    <p>Fondo gris, tinta negra y naranja solo en lo que importa. Mientras no estén los archivos de prueba de cada fundición, cada lámina usa la tipografía gratuita más parecida (indicada abajo de cada una). Al poner los archivos en <code>design-source/fuentes-prueba/</code> se cambian&nbsp;solas.</p>
+  </div>
+  <div class="boards">
+
+    <section class="board monument">
+      <div class="meta"><b>Monument · Normal</b><span>Pangram Pangram</span></div>
+      <p class="tag">Vista parecida: Archivo (ancho normal)</p>
+      <div class="brand display"><p class="q">¿Qué hay hoy?</p><p class="s">Saaaaaaabes.</p></div>
+      <p class="screen display">Explorar</p>
+      <p class="label text">Menú del día</p>
+      <div class="card"><div class="ph"></div><div><p class="n display">Fonda Doña Rosa</p><p class="m text">Polanco · 250 m · Abierto</p></div><p class="p display">$95</p></div>
+      <p class="body text">Sopa de fideo, arroz rojo y chiles rellenos de queso. Agua de jamaica incluida. Hoy cerramos a las cinco.</p>
+      <a class="btn text" href="#">Publicar lo de hoy</a>
+    </section>
+
+    <section class="board monument narrow">
+      <div class="meta"><b>Monument · Narrow</b><span>Pangram Pangram</span></div>
+      <p class="tag">Vista parecida: Archivo (ancho angosto)</p>
+      <div class="brand display"><p class="q">¿Qué hay hoy?</p><p class="s">Saaaaaaabes.</p></div>
+      <p class="screen display">Explorar</p>
+      <p class="label text">Menú del día</p>
+      <div class="card"><div class="ph"></div><div><p class="n display">Fonda Doña Rosa</p><p class="m text">Polanco · 250 m · Abierto</p></div><p class="p display">$95</p></div>
+      <p class="body text">Sopa de fideo, arroz rojo y chiles rellenos de queso. Agua de jamaica incluida. Hoy cerramos a las cinco.</p>
+      <a class="btn text" href="#">Publicar lo de hoy</a>
+    </section>
+
+    <section class="board november">
+      <div class="meta"><b>November</b><span>Typotheque</span></div>
+      <p class="tag">Vista parecida: Instrument Sans</p>
+      <div class="brand display"><p class="q">¿Qué hay hoy?</p><p class="s">Saaaaaaabes.</p></div>
+      <p class="screen display">Explorar</p>
+      <p class="label text">Menú del día</p>
+      <div class="card"><div class="ph"></div><div><p class="n display">Fonda Doña Rosa</p><p class="m text">Polanco · 250 m · Abierto</p></div><p class="p display">$95</p></div>
+      <p class="body text">Sopa de fideo, arroz rojo y chiles rellenos de queso. Agua de jamaica incluida. Hoy cerramos a las cinco.</p>
+      <a class="btn text" href="#">Publicar lo de hoy</a>
+    </section>
+
+    <section class="board degular">
+      <div class="meta"><b>Degular</b><span>OH no Type</span></div>
+      <p class="tag">Vista parecida: Outfit</p>
+      <div class="brand display"><p class="q">¿Qué hay hoy?</p><p class="s">Saaaaaaabes.</p></div>
+      <p class="screen display">Explorar</p>
+      <p class="label text">Menú del día</p>
+      <div class="card"><div class="ph"></div><div><p class="n display">Fonda Doña Rosa</p><p class="m text">Polanco · 250 m · Abierto</p></div><p class="p display">$95</p></div>
+      <p class="body text">Sopa de fideo, arroz rojo y chiles rellenos de queso. Agua de jamaica incluida. Hoy cerramos a las cinco.</p>
+      <a class="btn text" href="#">Publicar lo de hoy</a>
+    </section>
+
+    <section class="board today">
+      <div class="meta"><b>Hoy en Patio</b><span>Plus Jakarta + sistema</span></div>
+      <p class="tag">Referencia: lo que corre en la app</p>
+      <div class="brand display"><p class="q">¿Qué hay hoy?</p><p class="s">Saaaaaaabes.</p></div>
+      <p class="screen display">Explorar</p>
+      <p class="label text">Menú del día</p>
+      <div class="card"><div class="ph"></div><div><p class="n text" style="font-weight:700">Fonda Doña Rosa</p><p class="m text">Polanco · 250 m · Abierto</p></div><p class="p text" style="font-weight:500">$95</p></div>
+      <p class="body text">Sopa de fideo, arroz rojo y chiles rellenos de queso. Agua de jamaica incluida. Hoy cerramos a las cinco.</p>
+      <a class="btn text" href="#" style="font-weight:700">Publicar lo de hoy</a>
+    </section>
+
+  </div>
+</main>
+</body>
+</html>

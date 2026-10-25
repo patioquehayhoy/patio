@@ -15,7 +15,7 @@ export const BUSINESS_CATEGORY_ICONS = {
   reposteria: 'ice-cream-outline',
   cafeteria: 'cafe-outline',
   mariscos: 'fish-outline',
-  bebidas: 'beer-outline',
+  bebidas: 'wine-outline',
   jugos: 'patio-jugos',
   restaurante: 'restaurant-outline',
   otro: 'ellipsis-horizontal',
@@ -31,7 +31,7 @@ const KEYWORDS: [RegExp, CategoryIcon][] = [
   [/antojito|garnacha|quesadilla|hamburgues|torta|empanada/, 'fast-food-outline'],
   [/postre|\bpan\b|panader|reposter|pastel/, 'ice-cream-outline'],
   [/marisco|pescad/, 'fish-outline'],
-  [/bebida|bar\b|antro|cantina/, 'beer-outline'],
+  [/bebida|bar\b|antro|cantina/, 'wine-outline'],
   [/restaurante/, 'restaurant-outline'],
   [/fond|cocina|caser/, 'storefront-outline'],
 ];

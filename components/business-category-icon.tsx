@@ -4,7 +4,7 @@ import { businessCategoryIcon, type PatioGiroGlyph } from '@/lib/business-catego
 
 // Giros que Ionicons no trae, armados con piezas de Ionicons (design-source/patio-giros/).
 export const PATIO_GIROS_GLYPHS: Record<PatioGiroGlyph, number> = { 'patio-jugos': 0xe001 };
-export const PatioGiros = createIconSet(PATIO_GIROS_GLYPHS, 'PatioGirosIon', require('../assets/fonts/PatioGiros.ttf'));
+export const PatioGiros = createIconSet(PATIO_GIROS_GLYPHS, 'PatioGirosIon2', require('../assets/fonts/PatioGiros.ttf'));
 
 export function BusinessCategoryIcon({ category, context = 'onboarding', size = 19, color }: { category: string; context?: 'onboarding' | 'map'; size?: number; color: string }) {
   const icon = businessCategoryIcon(category, context);

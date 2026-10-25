@@ -25,6 +25,9 @@
   "Lugar laboratorio N / laboratorio DEV" → nombres y colonias verosímiles;
   Cuenta muestra "Publicar mi menú" también en DEV. Entrada conserva su panel DEV.
 - Lámina de iconos actuales: `artifacts/iconos-giros-actuales-2026-10-25.png`.
+- Taco/elote: el usuario rechazó los glifos MCI (trazo más grueso, elote relleno).
+  Redibujados en fuente propia `PatioGiros` con la retícula Ionicons; sin
+  dependencia nativa (expo-font). Lámina: `artifacts/giros-taco-elote-trazo-ionicons-2026-10-25.png`.
 - npm audit: sin cambio posible compatible. node-forge (5 altos) no tiene
   versión corregida publicada y solo vive en @expo/cli (no va en la app);
   decode-uri-component (3 moderados) vía expo-router → query-string 7; el fix

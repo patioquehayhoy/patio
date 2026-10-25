@@ -1,7 +1,7 @@
 import type { Ionicons } from '@expo/vector-icons';
 import type { BusinessType } from './smart-setup';
 
-/** Preserve the existing Ionicons catalogue; only taco/corn need literal replacements. */
+/** Preserve the existing Ionicons catalogue; taco/corn come from the PatioGiros font drawn on the Ionicons grid. */
 export const BUSINESS_CATEGORY_ICONS = {
   fondita: 'storefront-outline',
   taqueria: 'taco',

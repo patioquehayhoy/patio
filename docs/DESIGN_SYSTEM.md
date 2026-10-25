@@ -242,7 +242,11 @@ La posición concreta del precio y la elección de sheets son decisiones de Pati
 ### Giros y detalle del mapa — 2026-10-25
 
 Se conserva la galería original Ionicons en los giros. Por corrección explícita
-solo Tacos y Elotes se reemplazan por `taco` y `corn` de MaterialCommunityIcons.
+solo Tacos y Elotes usan `taco` y `corn` de la fuente propia `PatioGiros`
+(`assets/fonts/PatioGiros.ttf`), dibujados sobre la retícula Ionicons: 512,
+trazo 32, puntas redondas, sin relleno. Fuentes SVG en `design-source/patio-giros/`;
+regenerar con `scripts/design/build-patio-giros-font.py` (picosvg + fontTools).
+Nunca mezclar glifos de otro pack: cambian grosor y relleno.
 Mapa y onboarding mantienen sus metáforas anteriores para todos los demás
 casos. `lib/business-category-icons.ts` centraliza esas dos excepciones;
 navegación, listas y tarjetas genéricas no cambian.

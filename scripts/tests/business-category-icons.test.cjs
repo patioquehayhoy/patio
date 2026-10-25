@@ -13,7 +13,10 @@ const { businessCategoryIcon, BUSINESS_CATEGORY_ICONS, mapMarkerDetail } = loade
 
 test('the original icon catalogue is preserved except for literal tacos and corn', () => {
   const glyphs = require('@expo/vector-icons/build/vendor/react-native-vector-icons/glyphmaps/Ionicons.json');
-  const foodGlyphs = require('@expo/vector-icons/build/vendor/react-native-vector-icons/glyphmaps/MaterialCommunityIcons.json');
+  const foodGlyphs = { taco: 0xe001, corn: 0xe002 };
+  const font = fs.readFileSync(path.resolve(__dirname, '../../assets/fonts/PatioGiros.ttf'));
+  assert.ok(font.length > 500, 'PatioGiros font ships with the app');
+  assert.match(fs.readFileSync(path.resolve(__dirname, '../../components/business-category-icon.tsx'), 'utf8'), /taco: 0xe001, corn: 0xe002/);
   assert.equal(Object.keys(BUSINESS_CATEGORY_ICONS).length, 10);
   for (const [type, name] of Object.entries(BUSINESS_CATEGORY_ICONS)) {
     assert.ok((name === 'taco' || name === 'corn' ? foodGlyphs : glyphs)[name], `${type}: glyph must exist in the shipped font`);

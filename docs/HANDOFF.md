@@ -14,6 +14,17 @@
 > QA física integral y aceptación final de los últimos ajustes pendientes.
 > [Continuidad](HEADS_UP_2026-10-12.md) · [Pendientes](PENDING_LAUNCH_2026-10-12.md).
 
+## Dirección visual decidida — 2026-10-25 (noche)
+
+- Tipografía: PP Monument (Pangram Pangram) en toda la app, al estilo de su página:
+  pesos medios, tracking cerrado en grande, tarjetas de color plano (etiqueta chica +
+  dato grande), cápsulas. Lámina: `artifacts/monument-estilo-pangram-2026-10-25.html`.
+  Falta licencia comercial (escritorio + app); la prueba de `design-source/fuentes-prueba/`
+  es de uso personal y está fuera de git. No integrar en `assets/` hasta comprarla.
+- Giros: Ionicons + fuente PatioGiros (taco 2A de Flaticon sin pecas, elote, rebanada,
+  palomitas de IconPark, jugos con piezas de Ionicons). Origen y licencias en
+  `design-source/patio-giros/README.md`; el taco necesita atribución o Flaticon Premium.
+
 ## Fotos directo, cámara limpia y datos sin leyendas — 2026-10-25 (tarde)
 
 - Elegir de Fotos se presenta desde la pantalla actual tras el cierre nativo

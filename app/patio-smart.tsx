@@ -437,7 +437,28 @@ export default function PatioSmartScreen() {
                 );
               })}
             </View>
-            <ContinueButton colors={colors} onPress={() => setStage('location')} />
+            {result.tipos.includes('otro') ? (
+              <View style={[s.field, s.otroField, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                <Text style={[s.fieldLabel, { color: colors.textMute }]} maxFontSizeMultiplier={1.3}>¿DE QUÉ ES TU NEGOCIO?</Text>
+                <TextInput
+                  accessibilityLabel="De qué es tu negocio"
+                  value={result.otroGiro ?? ''}
+                  onChangeText={(otroGiro) => update({ otroGiro: otroGiro.slice(0, 40) })}
+                  placeholder="Tamales, crepas, pozole…"
+                  placeholderTextColor={colors.textMute}
+                  selectionColor={colors.accent}
+                  returnKeyType="done"
+                  autoCapitalize="sentences"
+                  maxFontSizeMultiplier={1.4}
+                  style={[s.fieldInput, { color: colors.text }]}
+                />
+              </View>
+            ) : null}
+            <ContinueButton
+              colors={colors}
+              disabled={result.tipos.includes('otro') && !result.otroGiro?.trim()}
+              onPress={() => { Keyboard.dismiss(); setStage('location'); }}
+            />
           </>
         )}
 
@@ -558,6 +579,7 @@ const s = StyleSheet.create({
   fieldLabel: { fontSize: 10, lineHeight: 14, fontWeight: '700', letterSpacing: 0.8 },
   fieldInput: { flex: 1, minHeight: 36, padding: 0, fontSize: 19, lineHeight: 25, fontWeight: '500' },
   addressField: { marginTop: 12 },
+  otroField: { marginTop: 12 },
   continueButton: { minWidth: 154, minHeight: 48, alignSelf: 'center', marginTop: 26, paddingHorizontal: 26, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
   continueText: { fontSize: 15, fontWeight: '700' },
   disabled: { opacity: 0.2 },

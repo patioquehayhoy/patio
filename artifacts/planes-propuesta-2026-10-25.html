@@ -1,120 +1,145 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Planes de Patio</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
-<style>body{margin:0;background:#E9E9E4;display:flex;gap:48px;padding:48px;align-items:flex-start;flex-wrap:wrap}a{color:#111214}h1,h2,p,li{text-wrap:pretty}</style></head><body>
-<div style="width: 1280px; height: 860px; box-sizing: border-box; padding: 64px 64px 56px; background: #F8F8F5; color: #111214; font-family: -apple-system, 'SF Pro Text', system-ui, sans-serif; display: flex; flex-direction: column; gap: 40px">
-  <div style="display: flex; flex-direction: column; gap: 8px">
-    <p style="margin: 0; font-size: 11px; font-weight: 700; letter-spacing: 1.7px; text-transform: uppercase; color: #4A4A47">Planes</p>
-    <h1 style="margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 38px; font-weight: 800; letter-spacing: -1.2px; line-height: 1.1">Lo de hoy, para todos. Lo de más, para quien crece.</h1>
-  </div>
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Planes de Patio</title>
+<style>
+:root{--bg:#F8F8F5;--ink:#111214;--soft:#4A4A47;--line:rgba(17,18,20,0.08);--card:#FFFFFF;--accent:#F2612F}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,'SF Pro Text',system-ui,sans-serif}
+main{max-width:1120px;margin:0 auto;padding:56px 16px 64px}
+h1{margin:0;font-size:38px;font-weight:800;letter-spacing:-1.2px;line-height:1.1;text-wrap:balance}
+p,li{text-wrap:pretty}
+.eyebrow{margin:0 0 8px;font-size:11px;font-weight:700;letter-spacing:1.7px;text-transform:uppercase;color:var(--soft)}
+.controls{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin:32px 0 24px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--card)}
+.seg button{border:0;background:transparent;font:inherit;font-size:14px;font-weight:700;padding:0 18px;min-height:44px;color:var(--soft);cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--ink);color:#fff}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px}
+.card{background:var(--card);border:0.5px solid var(--line);border-radius:18px;padding:24px;display:flex;flex-direction:column;gap:18px;position:relative}
+.card.dark{background:var(--ink);color:#fff;border-color:transparent}
+.card.dark .soft{color:rgba(255,255,255,0.72)}
+.badge{position:absolute;top:20px;right:20px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:5px 10px;border-radius:100px;background:rgba(255,255,255,0.14)}
+.name{margin:0;font-size:13px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase}
+.price{margin:0;font-size:34px;font-weight:800;letter-spacing:-1px}
+.price small{font-size:14px;font-weight:400;letter-spacing:0}
+.soft{color:var(--soft);margin:0;font-size:14px}
+.quota{border-radius:14px;padding:14px 16px;background:rgba(17,18,20,0.04);display:flex;flex-direction:column;gap:6px}
+.dark .quota{background:rgba(255,255,255,0.08)}
+.quota div{display:flex;justify-content:space-between;gap:12px;font-size:14px}
+.quota b{font-weight:700}
+ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:9px;font-size:14px;line-height:1.4}
+li::before{content:"";display:inline-block;width:6px;height:6px;border-radius:3px;background:currentColor;opacity:.5;margin:0 10px 2px 0}
+.spacer{flex-grow:1}
+.btn{display:flex;align-items:center;justify-content:center;min-height:48px;border-radius:24px;font-size:15px;font-weight:700;text-decoration:none;border:1.5px solid var(--line);color:inherit}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.note{margin-top:20px;font-size:13px;color:var(--soft)}
+.founder{margin-top:16px;border-radius:18px;padding:24px;background:var(--card);border:0.5px solid var(--line);display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between}
+.founder h2{margin:0;font-size:22px;font-weight:800;letter-spacing:-0.5px}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<main>
+  <p class="eyebrow">Planes</p>
+  <h1>Elige cómo usas&nbsp;Patio</h1>
 
-  <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; flex-grow: 1">
-
-    <div style="background: #FFFFFF; border-radius: 18px; border: 0.5px solid rgba(17,18,20,0.08); padding: 28px 24px; display: flex; flex-direction: column; gap: 20px">
-      <div style="display: flex; flex-direction: column; gap: 4px">
-        <p style="margin: 0; font-size: 11px; font-weight: 700; letter-spacing: 1.7px; text-transform: uppercase; color: #4A4A47">Foodie</p>
-        <h2 style="margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 28px; font-weight: 800; letter-spacing: -0.8px">Gratis</h2>
-        <p style="margin: 0; font-size: 14px; color: #4A4A47">Siempre.</p>
-      </div>
-      <ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; font-size: 14px; line-height: 1.4">
-        <li>Qué hay hoy cerca de ti</li>
-        <li>Buscar por platillo</li>
-        <li>Guardar lugares y armar listas</li>
-        <li>Reseñar y seguir a otros foodies</li>
-        <li>Aviso cuando tu lugar publica</li>
-      </ul>
-      <div style="flex-grow: 1"></div>
-      <a href="#" style="display: flex; align-items: center; justify-content: center; height: 48px; border-radius: 24px; border: 1.5px solid rgba(17,18,20,0.08); font-size: 15px; font-weight: 700; text-decoration: none">Ver qué hay hoy</a>
+  <div class="controls">
+    <div class="seg" role="group" aria-label="Tipo de cuenta">
+      <button type="button" aria-pressed="false" data-aud="foodie">Para comer</button>
+      <button type="button" aria-pressed="true" data-aud="negocio">Para tu negocio</button>
     </div>
-
-    <div style="background: #FFFFFF; border-radius: 18px; border: 0.5px solid rgba(17,18,20,0.08); padding: 28px 24px; display: flex; flex-direction: column; gap: 20px">
-      <div style="display: flex; flex-direction: column; gap: 4px">
-        <p style="margin: 0; font-size: 11px; font-weight: 700; letter-spacing: 1.7px; text-transform: uppercase; color: #4A4A47">Patio Gratis · negocios</p>
-        <h2 style="margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 28px; font-weight: 800; letter-spacing: -0.8px">$0</h2>
-        <p style="margin: 0; font-size: 14px; color: #4A4A47">Para empezar a publicar hoy.</p>
-      </div>
-      <ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; font-size: 14px; line-height: 1.4">
-        <li>Tu lugar en el mapa y perfil público</li>
-        <li>Menú del día escrito a mano, sin límite</li>
-        <li>[10] lecturas con foto al mes</li>
-        <li>Aviso a quienes te guardaron</li>
-        <li>Reseñas y respuestas</li>
-      </ul>
-      <div style="flex-grow: 1"></div>
-      <a href="#" style="display: flex; align-items: center; justify-content: center; height: 48px; border-radius: 24px; border: 1.5px solid rgba(17,18,20,0.08); font-size: 15px; font-weight: 700; text-decoration: none">Publicar lo de hoy</a>
-    </div>
-
-    <div style="background: #111214; color: #FFFFFF; border-radius: 18px; padding: 28px 24px; display: flex; flex-direction: column; gap: 20px">
-      <div style="display: flex; flex-direction: column; gap: 4px">
-        <p style="margin: 0; font-size: 11px; font-weight: 700; letter-spacing: 1.7px; text-transform: uppercase; color: rgba(255,255,255,0.72)">Patio Pro · negocios</p>
-        <h2 style="margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 28px; font-weight: 800; letter-spacing: -0.8px">$99 <span style="font-family: -apple-system, system-ui, sans-serif; font-size: 15px; font-weight: 400; letter-spacing: 0">al mes</span></h2>
-        <p style="margin: 0; font-size: 14px; color: rgba(255,255,255,0.72)">O $990 al año: dos meses de regalo.</p>
-      </div>
-      <ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; font-size: 14px; line-height: 1.4">
-        <li>Todo lo de Gratis</li>
-        <li>Lecturas con foto sin límite</li>
-        <li>Avisos especiales: «hoy cerramos», «mañana hay pozole»</li>
-        <li>Quién te guarda y cuántos ven tu menú</li>
-        <li>Platillo destacado en el mapa</li>
-        <li style="color: rgba(255,255,255,0.72)">Pronto: publica con tu voz</li>
-      </ul>
-      <div style="flex-grow: 1"></div>
-      <a href="#" style="display: flex; align-items: center; justify-content: center; height: 48px; border-radius: 24px; background: #F2612F; color: #FFFFFF; font-size: 15px; font-weight: 700; text-decoration: none">Probar Pro</a>
-    </div>
-
-    <div style="background: #FFFFFF; border-radius: 18px; border: 0.5px solid rgba(17,18,20,0.08); padding: 28px 24px; display: flex; flex-direction: column; gap: 20px">
-      <div style="display: flex; flex-direction: column; gap: 4px">
-        <p style="margin: 0; font-size: 11px; font-weight: 700; letter-spacing: 1.7px; text-transform: uppercase; color: #4A4A47">Fundadores</p>
-        <h2 style="margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 28px; font-weight: 800; letter-spacing: -0.8px">6 meses de Pro</h2>
-        <p style="margin: 0; font-size: 14px; color: #4A4A47">Para las primeras cocinas de cada&nbsp;colonia.</p>
-      </div>
-      <ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; font-size: 14px; line-height: 1.4">
-        <li>Todo Pro, sin costo, desde el primer día</li>
-        <li>Sello de Fundador en tu perfil, para siempre</li>
-        <li>Invita a otra cocina: un mes más para las dos</li>
-        <li>Línea directa con el equipo de Patio</li>
-      </ul>
-      <div style="flex-grow: 1"></div>
-      <a href="#" style="display: flex; align-items: center; justify-content: center; height: 48px; border-radius: 24px; border: 1.5px solid rgba(17,18,20,0.08); font-size: 15px; font-weight: 700; text-decoration: none">Quiero ser fundador</a>
-    </div>
-
-  </div>
-
-  <p style="margin: 0; font-size: 13px; color: #4A4A47">Precios en pesos mexicanos, con IVA. Pro se paga y se cancela desde App Store o Google Play.</p>
-</div>
-<div style="width: 390px; height: 844px; box-sizing: border-box; padding: 64px 16px 32px; background: #F8F8F5; color: #111214; font-family: -apple-system, 'SF Pro Text', system-ui, sans-serif; display: flex; flex-direction: column; gap: 24px">
-  <a href="#" aria-label="Volver" style="width: 38px; height: 38px; border-radius: 19px; background: rgba(255,255,255,0.8); border: 0.5px solid rgba(17,18,20,0.08); display: flex; align-items: center; justify-content: center">
-    <svg width="18" height="18" viewBox="0 0 512 512" aria-hidden="true"><path d="M328 112L184 256l144 144" fill="none" stroke="#111214" stroke-width="48" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-  </a>
-  <h1 style="margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 34px; font-weight: 800; letter-spacing: -1px">Tu plan</h1>
-
-  <div style="background: #FFFFFF; border-radius: 18px; border: 0.5px solid rgba(17,18,20,0.08); padding: 20px; display: flex; flex-direction: column; gap: 14px">
-    <div style="display: flex; justify-content: space-between; align-items: baseline">
-      <p style="margin: 0; font-size: 17px; font-weight: 700">Patio Gratis</p>
-      <p style="margin: 0; font-size: 14px; color: #4A4A47">$0</p>
-    </div>
-    <div style="display: flex; flex-direction: column; gap: 6px">
-      <div style="display: flex; justify-content: space-between; font-size: 13px; color: #4A4A47"><span>Lecturas con foto este mes</span><span>7 de [10]</span></div>
-      <div style="height: 6px; border-radius: 3px; background: rgba(17,18,20,0.08); overflow: hidden"><div style="width: 70%; height: 6px; background: #111214"></div></div>
-      <p style="margin: 0; font-size: 12px; color: #4A4A47">Se renuevan el 1 de noviembre. Escribir a mano siempre es&nbsp;libre.</p>
+    <div class="seg" role="group" aria-label="Periodo" id="periodo">
+      <button type="button" aria-pressed="true" data-per="mes">Mensual</button>
+      <button type="button" aria-pressed="false" data-per="anual">Anual · 2 meses gratis</button>
     </div>
   </div>
 
-  <div style="background: #111214; color: #FFFFFF; border-radius: 18px; padding: 22px 20px; display: flex; flex-direction: column; gap: 16px">
-    <div style="display: flex; flex-direction: column; gap: 4px">
-      <p style="margin: 0; font-size: 11px; font-weight: 700; letter-spacing: 1.7px; text-transform: uppercase; color: rgba(255,255,255,0.72)">Patio Pro</p>
-      <p style="margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 26px; font-weight: 800; letter-spacing: -0.8px">$99 <span style="font-family: -apple-system, system-ui, sans-serif; font-size: 14px; font-weight: 400; letter-spacing: 0">al mes</span></p>
+  <section data-show="foodie" hidden>
+    <div class="grid">
+      <div class="card">
+        <p class="name">Foodie</p>
+        <p class="price">Gratis</p>
+        <p class="soft">Siempre. Comer bien no se&nbsp;cobra.</p>
+        <ul>
+          <li>Qué hay hoy cerca de ti</li>
+          <li>Buscar por platillo</li>
+          <li>Listas para guardar y compartir</li>
+          <li>Reseñas, seguidores y tu&nbsp;@usuario</li>
+        </ul>
+        <div class="spacer"></div>
+        <a class="btn" href="#">Ver qué hay hoy</a>
+      </div>
     </div>
-    <ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 9px; font-size: 14px; line-height: 1.4">
-      <li>Lecturas con foto sin límite</li>
-      <li>Avisos especiales a tus clientes</li>
-      <li>Quién te guarda y cuántos ven tu menú</li>
-      <li>Platillo destacado en el mapa</li>
-    </ul>
-    <a href="#" style="display: flex; align-items: center; justify-content: center; height: 50px; border-radius: 25px; background: #F2612F; color: #FFFFFF; font-size: 16px; font-weight: 700; text-decoration: none">Probar Pro un mes</a>
-    <p style="margin: 0; text-align: center; font-size: 12px; color: rgba(255,255,255,0.72)">O $990 al año. Cancela cuando&nbsp;quieras.</p>
-  </div>
+    <p class="note">¿Cocinas o tienes un puesto? Cambia a «Para tu negocio». Es la misma app y la misma&nbsp;cuenta.</p>
+  </section>
 
-  <div style="flex-grow: 1"></div>
-  <a href="#" style="text-align: center; font-size: 14px; color: #4A4A47; text-decoration: none; min-height: 44px; display: flex; align-items: center; justify-content: center">Restaurar compras</a>
-</div>
-</body></html>
+  <section data-show="negocio">
+    <div class="grid">
+      <div class="card">
+        <p class="name">Gratis</p>
+        <p class="price">$0</p>
+        <p class="soft">Para publicar desde hoy.</p>
+        <div class="quota">
+          <div><span>Lecturas con foto</span><b>10 al mes</b></div>
+          <div><span>Menú escrito a mano</span><b>Sin límite</b></div>
+          <div><span>Avisos especiales</span><b>—</b></div>
+        </div>
+        <ul>
+          <li>Tu lugar en el mapa</li>
+          <li>Aviso a quienes te guardaron</li>
+          <li>Reseñas y respuestas</li>
+        </ul>
+        <div class="spacer"></div>
+        <a class="btn" href="#">Empezar gratis</a>
+      </div>
+
+      <div class="card dark">
+        <span class="badge">Más elegido</span>
+        <p class="name">Pro</p>
+        <p class="price"><span data-price-mes>$99 <small>al mes</small></span><span data-price-anual hidden>$990 <small>al año</small></span></p>
+        <p class="soft">Para la cocina que publica a&nbsp;diario.</p>
+        <div class="quota">
+          <div><span>Lecturas con foto</span><b>60 al mes</b></div>
+          <div><span>Menú escrito a mano</span><b>Sin límite</b></div>
+          <div><span>Avisos especiales</span><b>8 al mes</b></div>
+        </div>
+        <ul>
+          <li>Todo lo de Gratis</li>
+          <li>Quién te guarda y cuántos te ven</li>
+          <li>Platillo destacado en el mapa</li>
+          <li class="soft">Pronto: publica con tu voz</li>
+        </ul>
+        <div class="spacer"></div>
+        <a class="btn primary" href="#">Probar Pro</a>
+      </div>
+    </div>
+
+    <div class="founder">
+      <div>
+        <p class="eyebrow">Fundadores</p>
+        <h2>6 meses de Pro, gratis</h2>
+        <p class="soft">Para las primeras cocinas de cada colonia. Sello de Fundador para siempre y un mes más por cada cocina que&nbsp;invites.</p>
+      </div>
+      <a class="btn" href="#" style="padding:0 24px">Quiero ser fundador</a>
+    </div>
+    <p class="note">Precios en pesos, con IVA. Las lecturas se renuevan cada mes. Pro se paga y se cancela desde App Store o Google&nbsp;Play.</p>
+  </section>
+</main>
+<script>
+const audBtns=document.querySelectorAll('[data-aud]');
+audBtns.forEach(b=>b.addEventListener('click',()=>{
+  audBtns.forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+  document.querySelectorAll('[data-show]').forEach(s=>s.hidden=s.dataset.show!==b.dataset.aud);
+  document.getElementById('periodo').hidden=b.dataset.aud!=='negocio';
+}));
+const perBtns=document.querySelectorAll('[data-per]');
+perBtns.forEach(b=>b.addEventListener('click',()=>{
+  perBtns.forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+  document.querySelector('[data-price-mes]').hidden=b.dataset.per!=='mes';
+  document.querySelector('[data-price-anual]').hidden=b.dataset.per!=='anual';
+}));
+</script>
+</body>
+</html>

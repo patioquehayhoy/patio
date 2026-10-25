@@ -26,6 +26,8 @@ export type SmartSetupResult = {
   // elige al menos una.
   tipos: BusinessType[];
   especialidades: string[];
+  /** Texto libre cuando eligen «Otro»: alimenta los giros nuevos. */
+  otroGiro?: string;
   pagos: { efectivo: boolean; transferencia: boolean; tarjeta: boolean };
   horario: (HorarioSemanal[number] & { confirmado: boolean })[];
   faltantes: string[];
@@ -57,8 +59,15 @@ export const BUSINESS_TYPE_LABELS: Record<BusinessType, string> = {
   bebidas: 'Bebidas',
   jugos: 'Jugos y fruta',
   restaurante: 'Restaurante',
-  otro: 'Fondita',
+  otro: 'Otro',
 };
+
+// «Otro» guarda lo que la persona escribió (p. ej. «Tamales») en lugar de
+// perderlo; ese texto es la fuente del recopilado de giros nuevos.
+export function categoryLabel(id: BusinessType, otroGiro?: string): string {
+  const custom = id === 'otro' ? otroGiro?.trim().replace(/\s+/g, ' ') : '';
+  return custom ? custom.charAt(0).toLocaleUpperCase('es-MX') + custom.slice(1) : BUSINESS_TYPE_LABELS[id];
+}
 
 export async function prepareSmartSetup(relato: string): Promise<SmartSetupResult> {
   const { data, error } = await supabase.functions.invoke('smart-setup', {
@@ -98,7 +107,7 @@ export async function saveSmartSetup(result: SmartSetupResult): Promise<void> {
     // Multi-tag real (migración 20260816). Si el proyecto de Supabase todavía
     // no tiene la columna, Postgres rechaza el update completo por esa clave
     // desconocida — por eso se intenta aparte y se degrada sin bloquear el alta.
-    categorias: tipos.map((id) => BUSINESS_TYPE_LABELS[id]),
+    categorias: tipos.map((id) => categoryLabel(id, result.otroGiro)),
   };
   if (result.direccion.trim()) payload.direccion = result.direccion.trim();
   if (Number.isFinite(result.latitude) && Number.isFinite(result.longitude)) {

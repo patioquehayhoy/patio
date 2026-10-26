@@ -3,6 +3,10 @@
 body{margin:0;background:#F5F5F5;font-family:-apple-system,system-ui,sans-serif}
 .bar{position:sticky;top:0;z-index:10;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;padding:14px 24px;background:rgba(245,245,245,.9);backdrop-filter:blur(12px)}
 .bar p{margin:0;font-size:14px;color:#444}
+.toggle{display:inline-flex;align-items:center;gap:10px;border:0;font:600 14px -apple-system,system-ui;min-height:40px;padding:0 18px 0 8px;border-radius:100px;background:#fff;color:#000;box-shadow:0 1px 3px rgba(0,0,0,.1);cursor:pointer;user-select:none;-webkit-user-select:none}
+.toggle .dot{width:24px;height:24px;border-radius:50%;background:#111;transition:background .2s}
+.toggle[aria-pressed=true]{background:#111;color:#fff}
+.toggle[aria-pressed=true] .dot{background:#F2612F}
 .seg{display:inline-flex;padding:3px;border-radius:100px;background:rgba(0,0,0,.07)}
 .seg button{border:0;background:transparent;font:600 14px -apple-system,system-ui;padding:0 16px;min-height:36px;border-radius:100px;color:#555;cursor:pointer}
 .seg button[aria-pressed=true]{background:#fff;color:#000;box-shadow:0 1px 2px rgba(0,0,0,.08)}
@@ -41,7 +45,9 @@ body{margin:0;background:#F5F5F5;font-family:-apple-system,system-ui,sans-serif}
 @font-face{font-family:"PPM";src:url("../design-source/fuentes-prueba/PPMonumentNormal-Regular.otf");font-weight:400}
 @font-face{font-family:"PPM";src:url("../design-source/fuentes-prueba/PPMonumentNormal-Black.otf");font-weight:900}
 @font-face{font-family:"PPMX";src:url("../design-source/fuentes-prueba/PPMonumentExtended-Black.otf");font-weight:900}
-:root{--ui:"Helvetica Neue",Helvetica,Arial,sans-serif}
+@font-face{font-family:"NM";src:url("../design-source/fuentes-prueba/PPNeueMontreal-Regular.otf");font-weight:400}
+@font-face{font-family:"NM";src:url("../design-source/fuentes-prueba/PPNeueMontreal-Semibold.otf");font-weight:500 700}
+:root{--ui:"NM",sans-serif}
 .B *{box-sizing:border-box}
 .B{margin:0;background:#F5F5F5;font-family:var(--ui);color:#000;-webkit-font-smoothing:antialiased}
 .B main{max-width:1380px;margin:0 auto;padding:24px}
@@ -50,31 +56,28 @@ body{margin:0;background:#F5F5F5;font-family:-apple-system,system-ui,sans-serif}
 .B .pill.line{background:transparent;border:1.5px solid #000}
 .B .pill.orange{background:#FF2F00;color:#fff}
 .B .sample{background:#fff;border-radius:20px;padding:40px 26.5px;margin-bottom:26.5px;overflow:hidden}
-.B .sample .cap{margin:0 0 18px;font-size:12.4px;line-height:12.4px;font-weight:700}
+.B .sample .cap{margin:0 0 18px;font-size:12.4px;line-height:12.4px;font-weight:600}
 .B .sample .disp{margin:0;font-family:"PPM";font-weight:900;font-size:120px;line-height:.95;letter-spacing:0}
 .B .sample .disp span{color:#FF2F00}
 .B .sample .wide{margin:28px 0 0;font-family:"PPMX";font-weight:900;font-size:54px;line-height:1}
 .B .hero{background:#000;color:#FAFAFA;border-radius:20px;padding:53px 26.5px;display:grid;grid-template-columns:1fr 1fr;gap:26.5px}
-.B .hero h2{margin:0;font-size:60px;line-height:60px;font-weight:700;letter-spacing:-.01em}
+.B .hero h2{margin:0;font-size:60px;line-height:60px;font-weight:600;letter-spacing:-.01em}
 .B .hero p{margin:0 0 16px;font-size:17.7px;line-height:23px}
 .B .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:26.5px;margin-top:26.5px}
 .B .card{border-radius:20px;padding:26.5px;background:#EAEAEA;display:flex;flex-direction:column;gap:18px}
 .B .o{background:#FF2F00}
 .B .k{background:#000;color:#FAFAFA}
-.B h4{margin:0;font-size:12.4px;line-height:12.4px;font-weight:700}
+.B h4{margin:0;font-size:12.4px;line-height:12.4px;font-weight:600}
 .B .val{margin:0;font-size:19.9px;line-height:26px}
-.B .big{margin:0;padding:0;list-style:none;font-size:36px;line-height:36px;font-weight:700;letter-spacing:-.01em}
-.B .mid{margin:0;font-size:36px;line-height:36px;font-weight:700;letter-spacing:-.01em}
+.B .big{margin:0;padding:0;list-style:none;font-size:36px;line-height:36px;font-weight:600;letter-spacing:-.01em}
+.B .mid{margin:0;font-size:36px;line-height:36px;font-weight:600;letter-spacing:-.01em}
 .B .sm{margin:0;font-size:12.4px;line-height:16.2px}
 .B .red{color:#FF2F00}
 .B .btn{display:inline-flex;align-items:center;justify-content:center;height:38px;padding:0 30.8px;border-radius:20px;background:#000;color:#fff;font-size:17.7px;font-weight:500;text-decoration:none;white-space:nowrap}
 .B .note{font-size:13px;color:#555;margin:20px 0 0}
 </style></head><body>
-<div class="bar"><p>Toca para cambiar, o usa ← → en el teclado.</p>
-<div class="seg" role="group" aria-label="Versión">
-<button type="button" data-v="A" aria-pressed="true">A · Todo Monument</button>
-<button type="button" data-v="B" aria-pressed="false">B · Como Pangram</button>
-<button type="button" data-v="both" aria-pressed="false">Lado a lado</button></div></div>
+<div class="bar"><p>Mantén apretado el botón para ver la otra versión, o tócalo para dejarla fija.</p>
+<button type="button" class="toggle" id="t" aria-pressed="false"><span class="dot"></span><span id="tl">A · Todo Monument</span></button></div>
 <div class="views" id="views">
 <div class="v" data-k="A"><p class="cap">A · Todo Monument: titulares, texto, tarjetas y botón</p><div class="A"><main>
 <section class="hero"><h2 class="w600">¿Qué hay hoy?<br>Saaaaaaabes.</h2>
@@ -90,34 +93,28 @@ body{margin:0;background:#F5F5F5;font-family:-apple-system,system-ui,sans-serif}
 </div>
 <p class="note">Mismas medidas que la página de Pangram (tamaños, interlineado, espaciado 0, esquinas de 20 y rellenos de 26.5), pero con Monument Normal. Titulares, lista, datos y etiquetas en un Semibold simulado (entre el Regular y el Black de la prueba); con la licencia van los pesos&nbsp;reales.</p>
 </main></div></div>
-<div class="v" data-k="B" hidden><p class="cap">B · Monument solo en la marca, fuente neutra en la interfaz</p><div class="B"><main>
-<div class="nav"><a class="pill" href="#">Patio</a><a class="pill" href="#">Explorar</a><span style="flex:1"></span><a class="pill line" href="#">Ver qué hay hoy</a><a class="pill orange" href="#">Publicar lo de hoy</a></div>
-
-<section class="sample"><p class="cap">Monument Normal · Black</p>
-<p class="disp">¿Qué hay hoy?<br><span>Saaaaaaabes.</span></p></section>
-
-<section class="hero"><h2>Lo de hoy, en tu&nbsp;colonia.</h2>
-<div><p>Patio reúne lo que preparan hoy las fondas, taquerías y puestos de tu colonia. Ves qué hay cerca, en cuánto y qué tan lejos queda, antes de&nbsp;salir.</p>
-<p>Si cocinas, tomas foto de tu menú y Patio lo lee por ti. Lo de hoy aparece en el mapa para quien anda cerca buscando dónde comer, y se oculta solo cuando&nbsp;cierras.</p>
-<p>Tu cocina, tu precio y tu gente, en el mapa de tu&nbsp;colonia.</p></div></section>
-
+<div class="v" data-k="B" hidden><p class="cap">B · Como Pangram: todo en Neue Montreal</p><div class="B"><main>
+<section class="hero"><h2 class="w600">¿Qué hay hoy?<br>Saaaaaaabes.</h2>
+<div><p>Las fondas, taquerías y puestos de tu colonia publican lo que prepararon hoy. Tú ves qué hay cerca, en cuánto y qué tan lejos&nbsp;queda.</p>
+<p>Si cocinas, tomas foto de tu menú y Patio lo lee por ti. Lo de hoy aparece en el mapa para quien anda cerca buscando dónde&nbsp;comer.</p></div></section>
 <div class="cards">
 <div style="display:flex;flex-direction:column;gap:26.5px">
 <div class="card o"><h4>Fundadores</h4><p class="val">Polanco<br>Quedan 23 de&nbsp;100</p></div>
 <div class="card k"><h4>Cerca de ti</h4><p class="val">Fonda Doña Rosa</p></div></div>
-<div class="card"><h4>Giros</h4><ul class="big"><li>Fondita</li><li>Tacos</li><li>Elotes</li><li>Antojitos</li><li>Postres</li><li>Mariscos</li></ul></div>
-<div class="card"><h4>Hoy</h4><p class="mid">Chile relleno</p><p class="sm">Fonda Doña Rosa · Polanco · 250 m · Abierto hasta las&nbsp;5</p><a class="sm red" href="#">Ver el menú completo</a><h4 style="margin-top:22px">Precio</h4><p class="big">$95</p><p class="sm">Menú del día con agua&nbsp;incluida</p></div>
-<div class="card"><h4>Horario</h4><p style="margin:0;font-size:17.7px;line-height:17.7px;font-weight:700">Lunes a sábado · 1 a 5</p><h4 style="margin-top:28px">Pagos</h4><p class="sm">Efectivo, transferencia y tarjeta. Pregunta por comidas corridas y pedidos para&nbsp;llevar.</p><span style="flex:1"></span><a class="btn" href="#">Cómo llegar</a></div>
+<div class="card"><h4>Giros</h4><ul class="big w600"><li>Fondita</li><li>Tacos</li><li>Elotes</li><li>Antojitos</li><li>Postres</li><li>Mariscos</li></ul></div>
+<div class="card"><h4>Hoy</h4><p class="mid w600">Chiles rellenos</p><p class="sm">Fonda Doña Rosa · Polanco · 250&nbsp;m</p><a class="sm red" href="#">Ver el menú completo</a><span style="flex:1"></span><h4>Precio</h4><p class="big w600">$95</p><p class="sm">Menú del día con agua&nbsp;incluida</p></div>
+<div class="card"><h4>Horario</h4><p class="mid w600" style="line-height:17.7px;font-size:17.7px">Lunes a sábado · 1 a 5</p><h4 style="margin-top:28px">Pagos</h4><p class="sm">Efectivo, transferencia y tarjeta. Entrega en mostrador; pregunta por pedidos para llevar y comidas&nbsp;corridas.</p><span style="flex:1"></span><a class="btn w530" href="#">Cómo llegar</a></div>
 </div>
-<p class="note">Como lo hace Pangram: Monument solo en la muestra grande de marca (arriba) y una fuente de texto neutra en todo lo demás. Neue Montreal no está en esta Mac, así que Helvetica Neue hace sus veces; con su archivo de prueba se vería idéntico.</p>
+<p class="note">Mismas medidas que la página de Pangram (tamaños, interlineado, espaciado 0, esquinas de 20 y rellenos de 26.5), en Neue Montreal. Mismo texto y medidas en PP Neue Montreal real (Regular y Semibold), como en la página de&nbsp;Pangram.</p>
 </main></div></div>
 </div>
 <script>
-const views=document.getElementById('views'), btns=[...document.querySelectorAll('[data-v]')];
-function show(v){btns.forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===v)));
-views.classList.toggle('both',v==='both');
-document.querySelectorAll('.v').forEach(el=>el.hidden=!(v==='both'||el.dataset.k===v));}
-btns.forEach(b=>b.addEventListener('click',()=>show(b.dataset.v)));
-const order=['A','B','both'];
-addEventListener('keydown',e=>{if(e.key!=='ArrowRight'&&e.key!=='ArrowLeft')return;const cur=order.indexOf(btns.find(b=>b.getAttribute('aria-pressed')==='true').dataset.v);show(order[(cur+(e.key==='ArrowRight'?1:2))%3]);});
+const t=document.getElementById('t'), tl=document.getElementById('tl');
+const vA=document.querySelector('.v[data-k=A]'), vB=document.querySelector('.v[data-k=B]');
+let fixed=false, held=false, downAt=0;
+function render(){const b=fixed!==held; vA.hidden=b; vB.hidden=!b; t.setAttribute('aria-pressed',String(b)); tl.textContent=b?'B · Como Pangram':'A · Todo Monument';}
+t.addEventListener('pointerdown',()=>{downAt=Date.now();held=true;render();});
+addEventListener('pointerup',()=>{if(!held)return;held=false;if(Date.now()-downAt<250)fixed=!fixed;render();});
+t.addEventListener('keydown',e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();fixed=!fixed;render();}});
+render();
 </script></body></html>

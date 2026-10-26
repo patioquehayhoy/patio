@@ -26,7 +26,9 @@ export function useExploreSheet(options: Options) {
   const [hidden, setHidden] = useState(false);
   const [presentation, setPresentation] = useState(0);
   const showSheet = (options.isFiltering && !hidden) || options.sheetMode !== null;
-  const showNavigation = !options.searchActive || (hidden && !options.keyboardVisible);
+  // Navigation never sits behind the cards: it returns only when no sheet is up
+  // and the search keyboard is closed.
+  const showNavigation = !showSheet && !(options.searchActive && options.keyboardVisible);
   const revealNavigation = options.revealNavigation;
   const visible = useRef(showSheet);
   visible.current = showSheet;

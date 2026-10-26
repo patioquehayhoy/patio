@@ -172,6 +172,16 @@ test('stable gesture handlers use the current search mode and current detent geo
   assert.equal(f.closes, 0, 'The responder must use the new search, not its original nearby mode');
 });
 
+test('navigation hides behind any open sheet of cards, not only search results', () => {
+  const f = sheetFixture();
+  f.options.isFiltering = false; f.options.sheetMode = 'nearby'; f.options.searchActive = false;
+  let sheet = f.render();
+  assert.equal(sheet.showSheet, true);
+  assert.equal(sheet.showNavigation, false, 'Cards from the bottom must not show tabs behind them');
+  f.options.sheetMode = null; sheet = f.render();
+  assert.equal(sheet.showNavigation, true);
+});
+
 test('an expanded sheet survives geometry updates; closing prevents further resize animation', () => {
   const f = sheetFixture(); let sheet = f.render();
   sheet.activateSheetHandle(); sheet = f.render();

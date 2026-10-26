@@ -1,0 +1,36 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sección de Pangram con Monument</title>
+<style>
+@font-face{font-family:"PPM";src:url("../design-source/fuentes-prueba/PPMonumentNormal-Regular.otf");font-weight:400}
+@font-face{font-family:"PPM";src:url("../design-source/fuentes-prueba/PPMonumentNormal-Black.otf");font-weight:900}
+/* La prueba no trae 600 ni 530: se simulan engrosando el Regular. Con la licencia van los reales. */
+.w600{-webkit-text-stroke:.55px currentColor}.w530{-webkit-text-stroke:.35px currentColor}
+*{box-sizing:border-box} body{margin:0;background:#F5F5F5;font-family:"PPM",sans-serif;font-weight:400;color:#000;-webkit-font-smoothing:antialiased}
+main{max-width:1380px;margin:0 auto;padding:24px}
+.hero{background:#000;color:#FAFAFA;border-radius:20px;padding:53px 26.5px;display:grid;grid-template-columns:1fr 1fr;gap:26.5px}
+.hero h2{margin:0;font-weight:400;font-size:60px;line-height:60px;letter-spacing:0}
+.hero p{margin:0 0 16px;font-size:17.7px;line-height:23px;max-width:622px}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:26.5px;margin-top:26.5px}
+.card{border-radius:20px;padding:26.5px;background:#EAEAEA;display:flex;flex-direction:column;gap:18px}
+.o{background:#FF2F00}.k{background:#000;color:#FAFAFA}
+h4{margin:0;font-weight:400;font-size:12.4px;line-height:12.4px;letter-spacing:0}
+.val{margin:0;font-size:19.9px;line-height:26px}
+.big{margin:0;padding:0;list-style:none;font-size:36px;line-height:36px}
+.mid{margin:0;font-size:22.4px;line-height:29px}
+.sm{margin:0;font-size:12.4px;line-height:16.2px}
+.red{color:#FF2F00}
+.btn{display:inline-flex;align-items:center;justify-content:center;height:38px;padding:0 30.8px;border-radius:20px;background:#000;color:#fff;font-size:17.7px;text-decoration:none}
+.note{font-family:-apple-system,system-ui;font-size:13px;color:#555;margin:20px 0 0}
+</style></head><body><main>
+<section class="hero"><h2 class="w600">¿Qué hay hoy?<br>Saaaaaaabes.</h2>
+<div><p>Las fondas, taquerías y puestos de tu colonia publican lo que prepararon hoy. Tú ves qué hay cerca, en cuánto y qué tan lejos&nbsp;queda.</p>
+<p>Si cocinas, tomas foto de tu menú y Patio lo lee por ti. Lo de hoy aparece en el mapa para quien anda cerca buscando dónde&nbsp;comer.</p></div></section>
+<div class="cards">
+<div style="display:flex;flex-direction:column;gap:26.5px">
+<div class="card o"><h4 class="w600">Fundadores</h4><p class="val">Polanco<br>Quedan 23 de&nbsp;100</p></div>
+<div class="card k"><h4 class="w600">Cerca de ti</h4><p class="val">Fonda Doña Rosa</p></div></div>
+<div class="card"><h4 class="w600">Giros</h4><ul class="big w600"><li>Fondita</li><li>Tacos</li><li>Elotes</li><li>Antojitos</li><li>Postres</li><li>Mariscos</li></ul></div>
+<div class="card"><h4 class="w600">Hoy</h4><p class="mid w600">Chiles rellenos</p><p class="sm">Fonda Doña Rosa · Polanco · 250&nbsp;m</p><a class="sm red" href="#">Ver el menú completo</a><span style="flex:1"></span><h4 class="w600">Precio</h4><p class="big w600">$95</p><p class="sm">Menú del día con agua&nbsp;incluida</p></div>
+<div class="card"><h4 class="w600">Horario</h4><p class="mid w600" style="line-height:17.7px;font-size:17.7px">Lunes a sábado · 1 a 5</p><h4 class="w600" style="margin-top:28px">Pagos</h4><p class="sm">Efectivo, transferencia y tarjeta. Entrega en mostrador; pregunta por pedidos para llevar y comidas&nbsp;corridas.</p><span style="flex:1"></span><a class="btn w530" href="#">Cómo llegar</a></div>
+</div>
+<p class="note">Mismas medidas que la página de Pangram (tamaños, interlineado, espaciado 0, esquinas de 20 y rellenos de 26.5), pero con Monument Normal. Los pesos 600 y 530 están simulados porque la prueba no los trae.</p>
+</main></body></html>

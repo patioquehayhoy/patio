@@ -1,0 +1,4 @@
+Fuentes de prueba de Pangram Pangram (Free for Personal Use).
+Solo para ver la app en DEV en el iPhone de Alejandro. No se suben a git.
+Al comprar las licencias, reemplazar por los archivos con licencia (Monument Normal Semibold,
+Neue Montreal Regular y Semibold) y quitar este .gitignore.

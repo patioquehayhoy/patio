@@ -67,8 +67,13 @@ export const darkTheme: Theme = {
 
 export const DARK_MODE_KEY = '@lafondita_dark_mode';
 
+// Marca: Monument (momentos de marca). Interfaz: Neue Montreal (todo lo demás).
+// Hoy cargan las pruebas de uso personal (assets/fonts/prueba, fuera de git);
+// con la licencia se cambia Monument-Black por Monument Semibold aquí.
 export const Fonts = {
-  brand: 'PlusJakartaSans_800ExtraBold',
+  brand: 'Monument-Black',
+  text: 'NeueMontreal-Regular',
+  textSemibold: 'NeueMontreal-Semibold',
 } as const;
 
 // ─── Escala tipográfica ─────────────────────────────────────────────────────────
@@ -77,20 +82,18 @@ export const Fonts = {
 // Apple: letras más juntas en grande, más abiertas en chico; interlineado más
 // apretado en grande. La fuente de marca no lleva fontWeight: solo se carga 800.
 export const Type = {
-  // Espaciado de la fuente de marca: −1% del tamaño (−10/1000 em). Pangram usa 0
-  // en Monument y Apple incluso lo abre en SF a 28 pt o más; antes íbamos a −3%.
-  celebration: { fontFamily: Fonts.brand, fontSize: 46, lineHeight: 50, letterSpacing: -0.46 },
-  hero:        { fontFamily: Fonts.brand, fontSize: 40, lineHeight: 44, letterSpacing: -0.4 },
-  screen:      { fontFamily: Fonts.brand, fontSize: 34, lineHeight: 38, letterSpacing: -0.34 },
-  number:      { fontFamily: Fonts.brand, fontSize: 34, lineHeight: 38, letterSpacing: -0.34 },
-  title:       { fontFamily: Fonts.brand, fontSize: 28, lineHeight: 32, letterSpacing: -0.28 },
-  section:     { fontFamily: Fonts.brand, fontSize: 22, lineHeight: 26, letterSpacing: -0.22 },
-  // Texto del sistema: sin espaciado propio; iOS ya ajusta SF por tamaño.
+  // Monument trae su propio espaciado: 0, como Pangram. Interlineado de títulos ~1.05.
+  celebration: { fontFamily: Fonts.brand, fontSize: 44, lineHeight: 46, letterSpacing: 0 },
+  hero:        { fontFamily: Fonts.brand, fontSize: 38, lineHeight: 40, letterSpacing: 0 },
+  screen:      { fontFamily: Fonts.brand, fontSize: 32, lineHeight: 34, letterSpacing: 0 },
+  number:      { fontFamily: Fonts.brand, fontSize: 32, lineHeight: 34, letterSpacing: 0 },
+  title:       { fontFamily: Fonts.brand, fontSize: 26, lineHeight: 28, letterSpacing: 0 },
+  section:     { fontFamily: Fonts.brand, fontSize: 21, lineHeight: 24, letterSpacing: 0 },
+  // Neue Montreal: el peso lo resuelve components/app-text (600+ → Semibold).
   headline:    { fontSize: 17, lineHeight: 22, fontWeight: '600' },
-  body:        { fontSize: 15, lineHeight: 22, fontWeight: '400' },
-  subhead:     { fontSize: 13, lineHeight: 18, fontWeight: '400' },
+  body:        { fontSize: 15, lineHeight: 20, fontWeight: '400' },
+  subhead:     { fontSize: 13, lineHeight: 17, fontWeight: '400' },
   caption:     { fontSize: 12, lineHeight: 16, fontWeight: '400' },
-  // Mayúsculas chicas: +7% del tamaño, como Pangram (.07rem) en vez de +15%.
   label:       { fontSize: 11, lineHeight: 14, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase' },
 } as const;
 

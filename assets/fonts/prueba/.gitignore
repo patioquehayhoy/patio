@@ -1,0 +1,3 @@
+# Fuentes de prueba (uso personal): solo en esta Mac, nunca en git ni en builds de tienda.
+*.otf
+*.ttf

@@ -3,7 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Animated, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Type } from '@/lib/theme';
+import { Fonts, Type } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
 
 // ── Sistema de header unificado de Patio ───────────────────────────────────────
@@ -165,7 +165,8 @@ const styles = StyleSheet.create({
   compactRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14 },
   sideLeft: { minWidth: 60, alignItems: 'flex-start', justifyContent: 'center' },
   sideRight: { minWidth: 60, flexDirection: 'row', gap: 8, alignItems: 'center', justifyContent: 'flex-end' },
-  compactTitle: { flex: 1, textAlign: 'center', fontSize: 16, fontWeight: '700' },
+  // Animated.Text no pasa por app-text: lleva la familia explícita.
+  compactTitle: { flex: 1, textAlign: 'center', fontSize: 16, fontFamily: Fonts.textSemibold },
   circleBtn: { width: 44, height: 44, borderRadius: 22, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
 
   bigWrap: { paddingHorizontal: 22 },

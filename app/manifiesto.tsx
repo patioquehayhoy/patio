@@ -1,8 +1,8 @@
-import { Ionicons } from '@expo/vector-icons';
 import { router, Stack } from 'expo-router';
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { GlassIconButton } from '@/components/glass-button';
 import { useTheme, type Theme, Type } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
 
@@ -30,48 +30,21 @@ function makeStyles(t: Theme) {
       marginLeft: -5,
       marginBottom: 18,
     },
-    intro: { ...Type.section, color: t.text, textAlign: 'center', marginBottom: 4 },
-    introSub: {
-      fontSize: 14,
-      fontWeight: '400',
-      color: t.gray,
-      textAlign: 'center',
-      lineHeight: 18,
-      maxWidth: 308,
-    },
+    // Par de marca: mismas dos líneas, mismo rol; la segunda en tono secundario.
+    intro: { ...Type.title, color: t.text, textAlign: 'center' },
+    introSub: { ...Type.title, color: t.textSecondary, textAlign: 'center' },
     block: {
       marginBottom: 24,
     },
-    blockLabel: {
-      fontSize: 16,
-      fontWeight: '900',
-      color: t.text,
-      lineHeight: 19,
-      marginBottom: 6,
-    },
-    body: {
-      fontSize: 14,
-      fontWeight: '400',
-      color: t.text,
-      lineHeight: 18,
-      marginBottom: 6,
-      textAlign: 'left',
-    },
-    closing: {
-      fontSize: 14,
-      fontWeight: '400',
-      color: t.text,
-      lineHeight: 19,
-      marginTop: 10,
-      marginBottom: 0,
-    },
+    blockLabel: { ...Type.headline, color: t.text, marginBottom: 6 },
+    body: { ...Type.body, color: t.textSecondary, marginBottom: 10 },
+    closing: { ...Type.headline, color: t.text, marginTop: 14 },
     divider: {
       height: StyleSheet.hairlineWidth,
       backgroundColor: t.sep,
       marginTop: 2,
     },
     top: { flexDirection: 'row', alignItems: 'center', paddingBottom: 20 },
-    backBtn: { width: 44, height: 44, borderRadius: 14, backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, alignItems: 'center', justifyContent: 'center' },
   });
 }
 
@@ -93,9 +66,7 @@ export default function ManifiestoScreen() {
         contentContainerStyle={s.content}
         showsVerticalScrollIndicator={false}>
         <View style={s.top}>
-          <TouchableOpacity style={s.backBtn} onPress={handleBack} activeOpacity={0.76} accessibilityRole="button" accessibilityLabel="Regresar">
-            <Ionicons name="chevron-back" size={22} color={theme.text} />
-          </TouchableOpacity>
+          <GlassIconButton icon="chevron-back" accessibilityLabel="Regresar" onPress={handleBack} size={38} iconSize={19} />
         </View>
         <View style={s.hero}>
           <Image
@@ -128,7 +99,7 @@ export default function ManifiestoScreen() {
           <Text style={s.body} allowFontScaling={true}>
             {noWidow('Estás en las primeras versiones de Patio. Lo que uses y lo que nos digas le da forma a lo que sigue.')}
           </Text>
-          <Text style={s.closing} allowFontScaling={true}>Saaaaaaabes.</Text>
+          <Text style={s.closing} allowFontScaling={true}>{noWidow('¿Qué hay hoy? Saaaaaaabes.')}</Text>
         </View>
       </ScrollView>
     </View>

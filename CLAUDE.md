@@ -96,15 +96,7 @@ este valor a listas de 1-2 líneas — ahí sigue aplicando 5-7.
 
 ## Paleta
 
-| Token   | Hex       | Uso                                      |
-|---------|-----------|------------------------------------------|
-| BG      | `#F8F8F5` | Fondo principal claro                    |
-| BLACK   | `#111214` | Texto principal claro, botones neutros   |
-| WHITE   | `#FFFFFF` | Superficie, cards, inputs                |
-| Secundario | `#4A4A47` | Texto secundario claro                 |
-| Discreto | `#8A8A85` | Placeholder y metadata discreta clara    |
-
-En oscuro usar los tokens del tema. Fuente completa: `lib/colors.ts`.
+Paleta, tokens claro/oscuro y usos: `lib/colors.ts`. En oscuro usar los tokens del tema.
 
 ## Componentes
 
@@ -138,7 +130,7 @@ En oscuro usar los tokens del tema. Fuente completa: `lib/colors.ts`.
 > rompería como pareja. No uses esta excepción como precedente para otras
 > pantallas — es específica a esas dos.
 
-- **Botón de confirmación prominente** (la única acción destacada de la pantalla, sea cual sea su verbo — guardar/publicar/continuar/enviar/comenzar): **cápsula completa** — `borderRadius` = altura del botón / 2 (nunca 14; corregido 2026-09-06 tras auditoría: ningún botón de confirmación real en el código usa 14, y 6 de 11 instancias auditadas comparten radio-igual-a-mitad-de-altura de forma exacta e independiente, lo que confirma que es el patrón real homologado, no los 4 outliers en `Radius.card`/18 ni el caso aislado en 16). Fondo `ACCENT` (naranja), texto blanco `fontWeight '700'`. Referencia: `publishButton`/`saveButton` en `menu-composer.tsx` (`height 50, borderRadius 25`, comentario en código "cápsulas HIG en fila"), `saveBtn` en `perfil-editar.tsx` (`height 52, borderRadius 26`), `primary` en `menu-publicado.tsx` (`height 54, borderRadius 27`), `cta` en `preview.tsx` (`height 54, borderRadius 27`), `follow` en `foodie/[id].tsx` (`height 40, borderRadius 20`), `button` en `coleccion-publica/[id].tsx` (`height 48, borderRadius 24`).
+- **Botón de confirmación prominente** (la única acción destacada de la pantalla, sea cual sea su verbo — guardar/publicar/continuar/enviar/comenzar): **cápsula completa** — `borderRadius` = altura del botón / 2 (nunca 14; corregido 2026-09-06 tras auditoría: ningún botón de confirmación real en el código usa 14, y 6 de 11 instancias auditadas comparten radio-igual-a-mitad-de-altura de forma exacta e independiente, lo que confirma que es el patrón real homologado, no los 4 outliers en `Radius.card`/18 ni el caso aislado en 16). Fondo `ACCENT` (naranja), texto blanco `fontWeight '700'`.
 - **Botones primarios compactos genéricos** (cuando no hay una única acción prominente que destacar): `borderRadius 14`, fondo `BLACK (#292929)`, texto blanco `fontWeight '700'`.
 - **Botones de contorno**: `borderWidth 1.5`, fondo transparente. **Corregido 2026-09-06:**
   esta entrada decía `borderColor BLACK` (literal) — no es lo que corre en el código real.
@@ -255,4 +247,3 @@ Usar `LinearGradient` de `expo-linear-gradient` para:
 - Estilos en `makeStyles(t: Theme)` que recibe el tema — nunca hardcodear colores fuera de paleta
 - Nombres de sección en `UPPERCASE` con `letterSpacing`
 - Animaciones con `Animated` de React Native, duración estándar `200ms`
-- Importar `BlurView` de `expo-blur` y `LinearGradient` de `expo-linear-gradient` cuando aplique

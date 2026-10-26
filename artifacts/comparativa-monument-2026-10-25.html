@@ -79,11 +79,12 @@ body{margin:0;background:#F5F5F5;font-family:-apple-system,system-ui,sans-serif}
 /* B combinado: Monument en los momentos de marca (par de marca, giros y precio), Neue Montreal en el resto. */
 .B .hero h2{font-family:"PPM",sans-serif;font-weight:400;-webkit-text-stroke:1.2px currentColor}
 .B .big{font-family:"PPM",sans-serif;font-weight:400;-webkit-text-stroke:.75px currentColor}
+.shared{max-width:1332px;margin:8px auto 40px;padding:0 24px;font:400 13px/18px -apple-system,system-ui;color:#555}
 </style></head><body>
 <div class="bar"><p>Mantén apretado el botón para ver la otra versión, o tócalo para dejarla fija.</p>
 <button type="button" class="toggle" id="t" aria-pressed="false"><span class="dot"></span><span id="tl">A · Todo Monument</span></button></div>
 <div class="views" id="views">
-<div class="v" data-k="A"><p class="cap">A · Todo Monument: titulares, texto, tarjetas y botón</p><div class="A"><main>
+<div class="v" data-k="A"><div class="A"><main>
 <section class="hero"><h2 class="w600">¿Qué hay hoy?<br>Saaaaaaabes.</h2>
 <div><p>Las fondas, taquerías y puestos de tu colonia publican lo que prepararon hoy. Tú ves qué hay cerca, en cuánto y qué tan lejos&nbsp;queda.</p>
 <p>Si cocinas, tomas foto de tu menú y Patio lo lee por ti. Lo de hoy aparece en el mapa para quien anda cerca buscando dónde&nbsp;comer.</p></div></section>
@@ -95,9 +96,9 @@ body{margin:0;background:#F5F5F5;font-family:-apple-system,system-ui,sans-serif}
 <div class="card"><h4>Hoy</h4><p class="mid w600">Chiles rellenos</p><p class="sm">Fonda Doña Rosa · Polanco · 250&nbsp;m</p><a class="sm red" href="#">Ver el menú completo</a><span style="flex:1"></span><h4>Precio</h4><p class="big w600">$95</p><p class="sm">Menú del día con agua&nbsp;incluida</p></div>
 <div class="card"><h4>Horario</h4><p class="mid w600" style="line-height:17.7px;font-size:17.7px">Lunes a sábado · 1 a 5</p><h4 style="margin-top:28px">Pagos</h4><p class="sm">Efectivo, transferencia y tarjeta. Entrega en mostrador; pregunta por pedidos para llevar y comidas&nbsp;corridas.</p><span style="flex:1"></span><a class="btn w530" href="#">Cómo llegar</a></div>
 </div>
-<p class="note">Mismas medidas que la página de Pangram (tamaños, interlineado, espaciado 0, esquinas de 20 y rellenos de 26.5), pero con Monument Normal. Titulares, lista, datos y etiquetas en un Semibold simulado (entre el Regular y el Black de la prueba); con la licencia van los pesos&nbsp;reales.</p>
+
 </main></div></div>
-<div class="v" data-k="B" hidden><p class="cap">B · Combinado: Monument en la marca (par de marca, giros y precio) y Neue Montreal en el resto</p><div class="B"><main>
+<div class="v" data-k="B" hidden><div class="B"><main>
 <section class="hero"><h2 class="w600">¿Qué hay hoy?<br>Saaaaaaabes.</h2>
 <div><p>Las fondas, taquerías y puestos de tu colonia publican lo que prepararon hoy. Tú ves qué hay cerca, en cuánto y qué tan lejos&nbsp;queda.</p>
 <p>Si cocinas, tomas foto de tu menú y Patio lo lee por ti. Lo de hoy aparece en el mapa para quien anda cerca buscando dónde&nbsp;comer.</p></div></section>
@@ -109,9 +110,10 @@ body{margin:0;background:#F5F5F5;font-family:-apple-system,system-ui,sans-serif}
 <div class="card"><h4>Hoy</h4><p class="mid w600">Chiles rellenos</p><p class="sm">Fonda Doña Rosa · Polanco · 250&nbsp;m</p><a class="sm red" href="#">Ver el menú completo</a><span style="flex:1"></span><h4>Precio</h4><p class="big w600">$95</p><p class="sm">Menú del día con agua&nbsp;incluida</p></div>
 <div class="card"><h4>Horario</h4><p class="mid w600" style="line-height:17.7px;font-size:17.7px">Lunes a sábado · 1 a 5</p><h4 style="margin-top:28px">Pagos</h4><p class="sm">Efectivo, transferencia y tarjeta. Entrega en mostrador; pregunta por pedidos para llevar y comidas&nbsp;corridas.</p><span style="flex:1"></span><a class="btn w530" href="#">Cómo llegar</a></div>
 </div>
-<p class="note">Mismas medidas que la página de Pangram (tamaños, interlineado, espaciado 0, esquinas de 20 y rellenos de 26.5). Monument en «¿Qué hay hoy? / Saaaaaaabes.», la lista de giros y el precio; Neue Montreal real en etiquetas, textos, datos y&nbsp;botón.</p>
+
 </main></div></div>
 </div>
+<p class="shared">A · Todo Monument. B · Combinado: Monument en «¿Qué hay hoy? / Saaaaaaabes.», la lista de giros y el precio; Neue Montreal en lo demás. Mismo texto y mismas medidas de la página de Pangram en las dos; solo cambia la fuente. El Semibold de Monument está simulado hasta tener la&nbsp;licencia.</p>
 <script>
 const t=document.getElementById('t'), tl=document.getElementById('tl');
 const vA=document.querySelector('.v[data-k=A]'), vB=document.querySelector('.v[data-k=B]');

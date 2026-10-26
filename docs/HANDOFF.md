@@ -30,6 +30,17 @@ posterior de Claude y se deja intacto, fuera de este commit documental.
 Monument y atribución/licencia de Flaticon siguen siendo pendientes previos
 al empaquetado/publicación; no inventar que la licencia está comprada.
 
+## Dirección editorial en la app — 2026-10-26 (rama tipografía)
+
+Rama `tipografia/monument-neue-montreal`: Monument (marca) + Neue Montreal (interfaz)
+aplicadas con un componente de texto y una regla de Babel, sin tocar cada pantalla.
+Fuentes de prueba fuera de git; comprar licencias antes de tienda. Correcciones del
+mismo corte: interlineado mínimo 1.22 (títulos se cortaban), fuente de iconos con
+nombre PostScript (iOS mostraba «?»), «Postres», navegación oculta tras Nuevo menú y
+Listas, recorrido de bienvenida del Fondero tras el alta. Alejandro aprobó la dirección
+(«me encantó»); queda como tarea de branding pulir el recorrido y lo pendiente de marca.
+No fusionar a `rebuild/patio-final` mientras las fuentes sean de prueba.
+
 ## Punto de guardado — 2026-10-25 (cierre del día)
 
 Etiqueta git `checkpoint-2026-10-25-antes-tipografia` en `rebuild/patio-final`: app

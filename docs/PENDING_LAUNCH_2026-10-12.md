@@ -128,6 +128,13 @@ No iniciar EAS ni publicación automáticamente desde esta actualización docume
   giros agregar. Jugos y fruta fue el primero en entrar (2026-10-25).
 - [ ] Licencia del icono de Tacos (Flaticon 10305288, modificado): dar atribución al autor
   en Créditos de la app o pagar Flaticon Premium antes de publicar.
+- [ ] Comprar licencias de fuentes (Pangram Pangram): Monument Normal Semibold y Neue
+  Montreal Regular/Semibold, app + escritorio (≈ USD 240; redes después). Reemplazar las
+  pruebas de `assets/fonts/prueba/`, cambiar `Monument-Black` por Semibold y fusionar la
+  rama `tipografia/monument-neue-montreal`.
+- [ ] Branding: pulir el recorrido de bienvenida del Fondero, decidir etiquetas en
+  minúsculas, estilo de publicaciones/fotos/fondos y piezas de punto de venta
+  (cartel con QR, sello de Fundador, sticker de ventana).
 - [ ] Medir el piloto de la microzona: publicación, búsqueda, regreso y soporte.
 - [ ] Evaluar OTA, mejoras de búsqueda y crecimiento después de QA y datos del
   piloto. [Roadmap de producto](PRODUCT_EVOLUTION_ROADMAP_2026-07-18.md).

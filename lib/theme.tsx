@@ -82,13 +82,15 @@ export const Fonts = {
 // Apple: letras más juntas en grande, más abiertas en chico; interlineado más
 // apretado en grande. La fuente de marca no lleva fontWeight: solo se carga 800.
 export const Type = {
-  // Monument trae su propio espaciado: 0, como Pangram. Interlineado de títulos ~1.05.
-  celebration: { fontFamily: Fonts.brand, fontSize: 44, lineHeight: 46, letterSpacing: 0 },
-  hero:        { fontFamily: Fonts.brand, fontSize: 38, lineHeight: 40, letterSpacing: 0 },
-  screen:      { fontFamily: Fonts.brand, fontSize: 32, lineHeight: 34, letterSpacing: 0 },
-  number:      { fontFamily: Fonts.brand, fontSize: 32, lineHeight: 34, letterSpacing: 0 },
-  title:       { fontFamily: Fonts.brand, fontSize: 26, lineHeight: 28, letterSpacing: 0 },
-  section:     { fontFamily: Fonts.brand, fontSize: 21, lineHeight: 24, letterSpacing: 0 },
+  // Monument trae su propio espaciado: 0, como Pangram. Interlineado mínimo 1.22:
+  // la fuente sube 1.04 y baja 0.32 del tamaño; con menos, iOS corta acentos,
+  // «¿», la tilde de la ñ y las colas (y, g, p).
+  celebration: { fontFamily: Fonts.brand, fontSize: 44, lineHeight: 54, letterSpacing: 0 },
+  hero:        { fontFamily: Fonts.brand, fontSize: 38, lineHeight: 46, letterSpacing: 0 },
+  screen:      { fontFamily: Fonts.brand, fontSize: 32, lineHeight: 39, letterSpacing: 0 },
+  number:      { fontFamily: Fonts.brand, fontSize: 32, lineHeight: 39, letterSpacing: 0 },
+  title:       { fontFamily: Fonts.brand, fontSize: 26, lineHeight: 32, letterSpacing: 0 },
+  section:     { fontFamily: Fonts.brand, fontSize: 21, lineHeight: 26, letterSpacing: 0 },
   // Neue Montreal: el peso lo resuelve components/app-text (600+ → Semibold).
   headline:    { fontSize: 17, lineHeight: 22, fontWeight: '600' },
   body:        { fontSize: 15, lineHeight: 20, fontWeight: '400' },

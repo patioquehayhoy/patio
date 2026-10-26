@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useMemo, useRef } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef } from 'react';
 import { Animated, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native';
 
 // Visibilidad del tab bar estilo Facebook: se oculta al scrollear hacia abajo,
@@ -13,6 +13,7 @@ type TabBarCtx = {
   translateY: Animated.Value;   // 0 = visible, HIDE_DISTANCE = oculto
   onScroll: (e: NativeSyntheticEvent<NativeScrollEvent>) => void;
   reveal: () => void;
+  hide: () => void;
 };
 
 const Ctx = createContext<TabBarCtx | null>(null);
@@ -41,6 +42,12 @@ export function TabBarVisibilityProvider({ children }: { children: React.ReactNo
     lastY.current = 0;
     travel.current = 0;
     if (!shown.current) { shown.current = true; animateTo(0); }
+  }, [animateTo]);
+
+  // Para hojas y tarjetas que suben desde abajo: la barra no se queda detrás.
+  const hide = useCallback(() => {
+    travel.current = 0;
+    if (shown.current) { shown.current = false; animateTo(HIDE_DISTANCE); }
   }, [animateTo]);
 
   const onScroll = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -75,7 +82,7 @@ export function TabBarVisibilityProvider({ children }: { children: React.ReactNo
     }
   }, [animateTo]);
 
-  const value = useMemo(() => ({ translateY, onScroll, reveal }), [translateY, onScroll, reveal]);
+  const value = useMemo(() => ({ translateY, onScroll, reveal, hide }), [translateY, onScroll, reveal, hide]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 
@@ -90,5 +97,16 @@ export function useTabBarTranslate(): { translateY: Animated.Value | null; revea
 // scrollEventThrottle=16 recomendado en el ScrollView.
 export function useTabBarScroll() {
   const ctx = useContext(Ctx);
-  return { onScroll: ctx?.onScroll, reveal: ctx?.reveal };
+  return { onScroll: ctx?.onScroll, reveal: ctx?.reveal, hide: ctx?.hide };
+}
+
+// Hojas que suben desde abajo: mientras están abiertas, la navegación se esconde.
+export function useHideTabBarWhile(visible: boolean) {
+  const ctx = useContext(Ctx);
+  const hide = ctx?.hide; const reveal = ctx?.reveal;
+  useEffect(() => {
+    if (!visible) return;
+    hide?.();
+    return () => { reveal?.(); };
+  }, [visible, hide, reveal]);
 }

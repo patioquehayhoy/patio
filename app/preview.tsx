@@ -170,8 +170,8 @@ function makeStyles(c: FonderoColors) {
   menuSection: { marginTop: 10 },
   menuSectionTitle: { marginBottom: 2, fontSize: 10, fontWeight: '800', letterSpacing: 1, color: LIGHT.accent, textTransform: 'uppercase' },
   menuRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', paddingVertical: 5, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: LIGHT.sep },
-  menuRowName: { fontSize: 14, lineHeight: 17, fontWeight: '500', color: LIGHT.ink, marginRight: 10 },
-  menuRowDescription: { marginTop: 1, fontSize: 11.5, lineHeight: 14, color: LIGHT.inkSoft },
+  menuRowName: { fontSize: 14, lineHeight: 18, fontWeight: '500', color: LIGHT.ink, marginRight: 10 },
+  menuRowDescription: { marginTop: 1, fontSize: 11.5, lineHeight: 15, color: LIGHT.inkSoft },
   menuRowPrice: { fontSize: 13, fontWeight: '400', color: LIGHT.inkSoft },
 
   posterFoot: { paddingHorizontal: 22, paddingTop: 16, paddingBottom: 18 },

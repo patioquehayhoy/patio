@@ -34,6 +34,7 @@ function fixture(file, overrides = {}) {
   const jsx = (type, props) => ({ type, props: props ?? {} });
   const animation = () => ({ start: fn => fn?.({ finished: true }) });
   const routes = [];
+  const tabBar = [];
   const mocks = {
     react,
     'react/jsx-runtime': { jsx, jsxs: jsx },
@@ -57,6 +58,7 @@ function fixture(file, overrides = {}) {
     '@/lib/theme': { Radius: { card: 18 }, useTheme: () => ({ theme: { isDark: false } }) },
     '@/lib/fondero-palette': { fonderoPalette: () => ({ text: '#111', textSecondary: '#555' }) },
     '@/lib/sheet-motion': { SHEET_DISMISS_MS: 190, SHEET_SPRING: {} },
+    '@/lib/tab-bar-visibility': { useTabBarScroll: () => ({ hide: () => { tabBar.push('hide'); }, reveal: () => { tabBar.push('reveal'); } }) },
     '@/lib/typography': { noWidow: x => x },
     'expo-image-picker': { launchImageLibraryAsync: async () => ({ canceled: true }) },
     '@/components/agent-spinner': { AgentSpinner: 'AgentSpinner' },
@@ -72,7 +74,7 @@ function fixture(file, overrides = {}) {
     return mocks[id];
   }, module, module.exports);
   const Component = module.exports.default ?? module.exports.NewMenuSheet;
-  return { routes, render(props) {
+  return { routes, tabBar, render(props) {
     cursor = 0; effects = [];
     const tree = Component(props);
     effects.forEach(fn => fn());
@@ -101,6 +103,7 @@ test('Photos opens from the current screen after native dismissal; only a chosen
   assert.equal(hidden.type, 'Modal');
   assert.equal(hidden.props.visible, false);
   assert.deepEqual(f.routes, [], 'animation completion is not UIKit dismissal');
+  assert.deepEqual(f.tabBar.slice(0, 2), ['hide', 'reveal'], 'Navigation hides behind the sheet and returns when it closes');
   hidden.props.onDismiss();
   hidden.props.onDismiss();
   await new Promise(resolve => setImmediate(resolve));

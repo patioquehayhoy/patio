@@ -166,7 +166,7 @@ function makeStyles(t: Theme) {
     grabber: { alignSelf: 'center', width: 36, height: 4, borderRadius: 2, backgroundColor: t.isDark ? 'rgba(255,255,255,0.16)' : 'rgba(0,0,0,0.10)', marginTop: 7 },
     sheetHeader: { minHeight: 44 },
     grabberTouch: { height: 20, alignItems: 'center', justifyContent: 'flex-start' },
-    price: { fontSize: 24, lineHeight: 28, fontWeight: '400', color: t.text },
+    price: { fontSize: 24, lineHeight: 30, fontWeight: '400', color: t.text },
     listHeader: { paddingHorizontal: 20, paddingTop: 4, paddingBottom: 6, flexDirection: 'row', alignItems: 'center' },
     listTitle: { fontSize: 12.5, fontWeight: '600', color: t.textSecondary },
     aiNoteRow: { paddingHorizontal: 20, paddingBottom: 8, flexDirection: 'row', alignItems: 'center', gap: 4 },

@@ -238,7 +238,7 @@ test('the real map screen restores its tabs after swipe and reopens results on s
     '@/components/bottom-tab-bar': components, '@/components/search-field': components,
     '@/components/foodie-filter-bar': { FoodieFilterBar: 'FoodieFilterBar', matchesFoodieFilters: () => true },
     '@/lib/foodie-filters-context': { useFoodieFilters: () => filterContext },
-    '@/lib/tab-bar-visibility': { useTabBarScroll: () => tabScroll },
+    '@/lib/tab-bar-visibility': { useTabBarScroll: () => tabScroll, useHideTabBarWhile: () => {} },
     '@/lib/use-sheet-keyboard': { useSheetKeyboard: () => ({ keyboardInset: 0, keyboardVisible: false }) },
     '@/lib/use-map-location': { useMapLocation: () => ({ centerOnLocation() {}, cancelLocation() {}, locating: false, location: null }) },
     '@/lib/use-scroll-edges': { useScrollEdges: () => ({ onLayout() {}, onContentSizeChange() {}, onScroll() {} }) },

@@ -101,7 +101,7 @@ function fixture(file, overrides = {}) {
     '@/lib/layout-metrics': layoutMetrics,
     '@/lib/surface-styles': surfaceStyles,
     '@/lib/theme': { Radius: { card: 18 }, useTheme: () => ({ theme: { isDark: false, text: '#111', bg: '#fff', border: '#eee', accent: '#f60' } }) },
-    '@/lib/tab-bar-visibility': { useTabBarScroll: () => ({ onScroll() {}, reveal() {} }) },
+    '@/lib/tab-bar-visibility': { useTabBarScroll: () => ({ onScroll() {}, reveal() {} }), useHideTabBarWhile: () => {} },
     '@/lib/recent-patios': { recordRecentPatio: async () => {} },
     '@/lib/patio-sort': { patioDistance: () => null, patioMinimumPrice: () => null, sortPatiosByMetric: (items) => [...items] },
     '@/components/patio-status-indicator': { PatioStatusIndicator: 'PatioStatusIndicator' },

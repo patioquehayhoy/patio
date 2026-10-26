@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Animated, Modal, PanResponder, ScrollView, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useScrollEdges } from '@/lib/use-scroll-edges';
+import { useHideTabBarWhile } from '@/lib/tab-bar-visibility';
 import { isVerticalSheetDrag, SHEET_DISMISS_MS, SHEET_SPRING, shouldDismissSheet } from '@/lib/sheet-motion';
 import { useSheetKeyboard } from '@/lib/use-sheet-keyboard';
 import { type Theme, useTheme } from '@/lib/theme';
@@ -42,6 +43,7 @@ export function LibrarySheet({ visible, onClose, title, viewKey: viewKeyProp, on
 }) {
   const s = sheetStyles(theme);
   const edges = useScrollEdges(`${visible}:${viewKeyProp ?? title}`);
+  useHideTabBarWhile(visible);
   const insets = useSafeAreaInsets();
   // El título puede cambiar dentro de la misma vista ("2 seleccionadas"); la
   // vista, no el título, decide cuándo se remonta el scroll y se re-mide.

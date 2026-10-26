@@ -9,6 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { fonderoPalette } from '@/lib/fondero-palette';
 import { Radius, useTheme } from '@/lib/theme';
 import { SHEET_DISMISS_MS, SHEET_SPRING } from '@/lib/sheet-motion';
+import { useTabBarScroll } from '@/lib/tab-bar-visibility';
 import { noWidow } from '@/lib/typography';
 
 // Elegir cómo capturar el menú es una acción intencional con tres caminos
@@ -43,6 +44,7 @@ export function NewMenuSheet({ visible, onClose, replaceOnNavigate }: {
   const translateY = useRef(new Animated.Value(contentHeight)).current;
   const [rendered, setRendered] = useState(visible);
   const deferredNavigation = useRef<(() => void) | null>(null);
+  const { hide: hideTabBar, reveal: revealTabBar } = useTabBarScroll();
   const finishDismiss = useCallback(() => {
     const navigate = deferredNavigation.current;
     deferredNavigation.current = null;
@@ -58,10 +60,12 @@ export function NewMenuSheet({ visible, onClose, replaceOnNavigate }: {
 
   useEffect(() => {
     if (visible) {
+      hideTabBar?.();
       translateY.setValue(contentHeightRef.current);
       setRendered(true);
       Animated.spring(translateY, { toValue: 0, ...SHEET_SPRING }).start();
     } else if (rendered) {
+      revealTabBar?.();
       Animated.timing(translateY, { toValue: contentHeightRef.current, duration: SHEET_DISMISS_MS, useNativeDriver: true }).start(({ finished }) => {
         if (finished) setRendered(false);
       });

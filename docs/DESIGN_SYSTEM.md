@@ -455,3 +455,9 @@ sombra leve, iguales en claro y oscuro. Sello de verificado pegado al final del
 nombre (el nombre largo se corta antes del sello).
 
 Auditoría 2026-10-25 (Pangram + Apple): interlineado de la app ya entre 1.3 y 1.4 en texto; el problema era el espaciado. Marca a −1% del tamaño, etiquetas a +7%, texto del sistema sin espaciado manual.
+
+**Regla de no corte (2026-10-25):** ningún texto puede quedar recortado. Monument
+sube 1.04 y baja 0.32 del tamaño, así que su interlineado mínimo es 1.22; en Neue
+Montreal (1.20 natural) el mínimo es 1.22 también. Con menos, iOS corta acentos,
+«¿», la tilde de la ñ y las colas. Las hojas que suben desde abajo (Nuevo menú,
+Listas y demás `LibrarySheet`) esconden la navegación mientras están abiertas.

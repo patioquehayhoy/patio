@@ -222,7 +222,7 @@ test('the real map screen restores its tabs after swipe and reopens results on s
     '@/components/place-icon': { PlaceIcon: 'Icon' },
     '@/components/business-category-icon': { BusinessCategoryIcon: 'BusinessCategoryIcon' },
     '@/lib/controllers/useFoodieExploreController': { FOODIE_INITIAL_REGION: initialRegion, useFoodieExploreController: () => controller },
-    '@/lib/theme': { Radius: { sheet: 28 }, Fonts: { brand: 'brand' }, useTheme: () => ({ theme: { accent: '#F2612F', isDark: false } }) },
+    '@/lib/theme': { Radius: { sheet: 28 }, Fonts: { brand: 'brand' }, Type: new Proxy({}, { get: () => ({}) }), useTheme: () => ({ theme: { accent: '#F2612F', isDark: false } }) },
     '@/lib/map-style': { MAP_STYLE_DARK: [], MAP_STYLE_LIGHT: [] },
     '@/components/patio-identity-icon': components, '@/components/patio-card-info': components, '@/components/foodie-loading': components,
     '@/components/bottom-tab-bar': components, '@/components/search-field': components,

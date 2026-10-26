@@ -10,7 +10,7 @@ import { fetchFonditaById, getPatioById, type Patio } from '@/lib/patios';
 import { publicPrice } from '@/lib/prices';
 import { savePatioRating } from '@/lib/ratings';
 import { REVIEW_TAGS as TAGS } from '@/lib/review-tags';
-import { Fonts, useTheme, type Theme } from '@/lib/theme';
+import { useTheme, type Theme, Type } from '@/lib/theme';
 import { supabase } from '@/lib/supabase';
 import { noWidow } from '@/lib/typography';
 
@@ -23,7 +23,7 @@ function makeStyles(t: Theme) {
 
     content: { paddingHorizontal: 22, paddingTop: 8, paddingBottom: 140 },
     eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', color: t.accent, marginBottom: 6 },
-    title: { fontSize: 30, fontWeight: '900', letterSpacing: -1, lineHeight: 32, color: t.text, marginBottom: 4, fontFamily: Fonts.brand },
+    title: { ...Type.title, color: t.text, marginBottom: 4 },
     subtitle: { fontSize: 13, fontWeight: '400', color: t.textSecondary, marginBottom: 22 },
 
     starsRow: { flexDirection: 'row', gap: 8, marginBottom: 24 },

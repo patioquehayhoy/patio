@@ -5,7 +5,7 @@ import { Animated, Easing, StyleSheet, Text, TouchableOpacity, View } from 'reac
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { fonderoPalette, type FonderoColors } from '@/lib/fondero-palette';
-import { Fonts, useTheme } from '@/lib/theme';
+import { useTheme, Type } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
 
 export default function MenuPublicadoScreen() {
@@ -72,7 +72,7 @@ function makeStyles(c: FonderoColors) {
     content: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingBottom: 44 },
     check: { width: 54, height: 54, borderRadius: 27, marginBottom: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: c.accent },
     eyebrow: { marginBottom: 8, fontSize: 11, fontWeight: '700', letterSpacing: 1.6, color: c.accent },
-    title: { fontSize: 38, lineHeight: 41, fontWeight: '900', letterSpacing: -1.2, color: c.text, fontFamily: Fonts.brand },
+    title: { ...Type.screen, color: c.text },
     actions: { paddingBottom: 18 },
     primary: { minHeight: 54, paddingVertical: 12, paddingHorizontal: 16, borderRadius: 27, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: c.accent },
     primaryText: { flexShrink: 1, fontSize: 15, fontWeight: '700', color: '#FFFFFF' },

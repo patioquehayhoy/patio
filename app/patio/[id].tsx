@@ -19,7 +19,7 @@ import { canonicalDishName } from '@/lib/menu-store';
 import { getLikedReviewIds, getReviewLikeCounts, toggleReviewLike } from '@/lib/review-likes';
 import { formatHHMM12 } from '@/lib/horario';
 import { MAP_STYLE_DARK, MAP_STYLE_LIGHT } from '@/lib/map-style';
-import { Fonts, Radius, Spacing, useTheme, type Theme } from '@/lib/theme';
+import { Radius, Spacing, useTheme, type Theme, Type } from '@/lib/theme';
 import { recordRecentPatio } from '@/lib/recent-patios';
 import { noWidow } from '@/lib/typography';
 import { useKnownLocation } from '@/lib/use-known-location';
@@ -124,7 +124,7 @@ function makeStyles(t: Theme) {
     scheduleDay: { fontSize: 12.5, fontWeight: '600', color: t.text },
     scheduleHours: { fontSize: 12.5, color: t.textSecondary },
     titleRow: { marginBottom: 6, flexDirection: 'row', alignItems: 'flex-start', gap: 6 },
-    title: { flex: 1, minWidth: 0, fontSize: 36, lineHeight: 38, fontWeight: '900', letterSpacing: -1, fontFamily: Fonts.brand, color: t.text },
+    title: { ...Type.screen, flex: 1, minWidth: 0, color: t.text },
     verifiedMark: { width: 28, height: 28, alignItems: 'center', justifyContent: 'center' },
     summaryRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 16 },
     summaryPrice: { maxWidth: '50%', marginLeft: 'auto' },
@@ -149,10 +149,10 @@ function makeStyles(t: Theme) {
     groupDashed: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.border, marginTop: 4 },
     reviewSection: { paddingTop: 28, marginBottom: 22 },
     reviewsSummary: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
-    reviewsTitle: { fontSize: 22, lineHeight: 27, fontWeight: '900', fontFamily: Fonts.brand, color: t.text },
+    reviewsTitle: { ...Type.section, color: t.text },
     ratingOverview: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16, paddingVertical: 4 },
     ratingScore: { width: 84, minHeight: 88, alignItems: 'center', justifyContent: 'center' },
-    ratingAverage: { fontSize: 34, lineHeight: 38, fontWeight: '900', fontFamily: Fonts.brand, color: t.text, letterSpacing: -1 },
+    ratingAverage: { ...Type.number, color: t.text },
     ratingStars: { flexDirection: 'row', gap: 1, marginTop: 3 },
     ratingAll: { marginTop: 5, fontSize: 11.5, fontWeight: '600', color: t.textSecondary },
     ratingBars: { flex: 1, gap: 4 },

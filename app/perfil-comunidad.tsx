@@ -9,7 +9,7 @@ import { Alert, Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, T
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { supabase } from '@/lib/supabase';
-import { Fonts, useTheme } from '@/lib/theme';
+import { useTheme, Type } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
 import { safeReturnTo } from '@/lib/auth-links';
 
@@ -147,7 +147,7 @@ const s = StyleSheet.create({
   content: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: 24, paddingTop: 16 },
   avatar: { width: 68, height: 68, borderRadius: 34, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center', marginBottom: 24 },
   avatarImage: { width: 68, height: 68, borderRadius: 34 },
-  title: { maxWidth: 340, fontFamily: Fonts.brand, fontSize: 36, lineHeight: 39, fontWeight: '900', letterSpacing: -1.2 },
+  title: { ...Type.screen, maxWidth: 340 },
   body: { maxWidth: 350, marginTop: 12, marginBottom: 26, fontSize: 14, lineHeight: 21 },
   label: { fontSize: 13, lineHeight: 18, fontWeight: '700', marginBottom: 6 },
   input: { minHeight: 54, borderRadius: 15, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 16, paddingVertical: 14, marginBottom: 16, fontSize: 16 },

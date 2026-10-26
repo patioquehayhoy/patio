@@ -20,7 +20,7 @@ import {
 import { localMenuDate } from '@/lib/menu-date';
 import { getFonditaId } from '@/lib/user-store';
 import { supabase } from '@/lib/supabase';
-import { Fonts, Layout, Spacing, useTheme } from '@/lib/theme';
+import { Layout, Spacing, useTheme, Type } from '@/lib/theme';
 import { useTabBarScroll } from '@/lib/tab-bar-visibility';
 import { noWidow } from '@/lib/typography';
 
@@ -149,7 +149,7 @@ export default function PerfilScreen() {
 const s = StyleSheet.create({
   root: { flex: 1 },
   identity: { marginBottom: 8 },
-  fonditaName: { fontSize: 32, lineHeight: 36, fontWeight: '900', fontFamily: Fonts.brand, letterSpacing: -0.8 },
+  fonditaName: { ...Type.screen },
   statusRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8, minHeight: 20 },
   statusDot: { width: 7, height: 7, borderRadius: 4 },
   statusText: { flexShrink: 1, fontSize: 13, lineHeight: 18, fontWeight: '300' },

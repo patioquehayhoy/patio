@@ -3,7 +3,7 @@ import { router, Stack } from 'expo-router';
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Fonts, useTheme, type Theme } from '@/lib/theme';
+import { useTheme, type Theme, Type } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
 
 function makeStyles(t: Theme) {
@@ -30,19 +30,10 @@ function makeStyles(t: Theme) {
       marginLeft: -5,
       marginBottom: 18,
     },
-    intro: {
-      fontSize: 22,
-      fontWeight: '900',
-      fontFamily: Fonts.brand,
-      color: t.text,
-      textAlign: 'center',
-      lineHeight: 26,
-      marginBottom: 4,
-    },
+    intro: { ...Type.section, color: t.text, textAlign: 'center', marginBottom: 4 },
     introSub: {
       fontSize: 14,
       fontWeight: '400',
-      fontFamily: Fonts.brand,
       color: t.gray,
       textAlign: 'center',
       lineHeight: 18,

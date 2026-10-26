@@ -7,7 +7,7 @@ import { Animated, Easing, Pressable, ScrollView, StyleSheet, Text, TouchableOpa
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { completeOnboarding, saveUserRole, type UserRole } from '@/lib/entry-flow';
-import { Fonts, useTheme, type Theme } from '@/lib/theme';
+import { useTheme, type Theme, Type } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
 
 const KENBURNS_MS = 14000;
@@ -53,7 +53,7 @@ function makeStyles(_t: Theme) {
     closeInner: { width: 34, height: 34, alignItems: 'center', justifyContent: 'center' },
     content: { position: 'absolute', left: 28, right: 28 },
     eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.8, textTransform: 'uppercase', color: 'rgba(255,255,255,0.72)', marginBottom: 10 },
-    title: { fontSize: 40, fontWeight: '900', letterSpacing: -1.2, lineHeight: 42, color: '#FFFFFF', marginBottom: 10, fontFamily: Fonts.brand },
+    title: { ...Type.hero, color: '#FFFFFF', marginBottom: 10 },
     body: { fontSize: 15, fontWeight: '400', color: 'rgba(255,255,255,0.72)', lineHeight: 22 },
     ctaCol: { alignItems: 'stretch', gap: 4, marginTop: 28 },
     ctaGlass: { borderRadius: 14, overflow: 'hidden', alignSelf: 'center' },

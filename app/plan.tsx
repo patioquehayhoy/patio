@@ -3,7 +3,7 @@ import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Fonts, useTheme } from '@/lib/theme';
+import { useTheme, Type } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
 
 const FOODIE_BENEFITS = ['Explorar lugares y sus menús', 'Guardar y organizar lugares', 'Compartir listas', 'Publicar reseñas'];
@@ -38,10 +38,10 @@ const s = StyleSheet.create({
   nav: { minHeight: 52, paddingHorizontal: 12 },
   back: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   content: { paddingHorizontal: 20, paddingTop: 16 },
-  title: { fontFamily: Fonts.brand, fontSize: 34, lineHeight: 38, fontWeight: '900', letterSpacing: -0.8 },
+  title: { ...Type.screen },
   subtitle: { marginTop: 8, fontSize: 15, lineHeight: 21 },
   card: { marginTop: 24, padding: 20, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth },
-  planName: { fontFamily: Fonts.brand, fontSize: 22, lineHeight: 27, fontWeight: '900' },
+  planName: { ...Type.section },
   price: { marginTop: 2, fontSize: 14, lineHeight: 20 },
   benefits: { marginTop: 20, gap: 12 },
   benefit: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },

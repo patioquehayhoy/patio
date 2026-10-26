@@ -23,7 +23,7 @@ import { LOGIN_CALLBACK_URL } from '@/lib/auth';
 import { isValidEmail } from '@/lib/auth-links';
 import { completeOnboarding, saveUserRole } from '@/lib/entry-flow';
 import { supabase } from '@/lib/supabase';
-import { Fonts } from '@/lib/theme';
+import { Fonts, Type } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
 
 // Acceso de quien publica — decisión 2026-07-18 (Alejandro): mix A+B.
@@ -252,7 +252,7 @@ const s = StyleSheet.create({
   tagline: { fontSize: 15, fontWeight: '400', fontFamily: Fonts.brand, textAlign: 'center', color: 'rgba(248,248,245,0.7)' },
 
   actionArea: { alignItems: 'center' },
-  title: { fontSize: 26, fontWeight: '900', letterSpacing: -0.8, lineHeight: 30, color: '#F8F8F5', textAlign: 'center', marginBottom: 8, fontFamily: Fonts.brand },
+  title: { ...Type.title, color: '#F8F8F5', textAlign: 'center', marginBottom: 8 },
   sub: { fontSize: 14, fontWeight: '400', lineHeight: 20, color: 'rgba(248,248,245,0.7)', textAlign: 'center', marginBottom: 18, maxWidth: 320 },
   sentLead: { marginBottom: 4 },
   emailHi: { maxWidth: 320, fontSize: 14, fontWeight: '900', color: '#F8F8F5', textAlign: 'center' },

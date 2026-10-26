@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import { Animated, Dimensions, Modal, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Fonts, useTheme, type Theme } from '@/lib/theme';
+import { useTheme, type Theme, Type } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
 
 const SCREEN_HEIGHT = Dimensions.get('screen').height;
@@ -82,11 +82,11 @@ function makeStyles(t: Theme) {
     sheet:        { backgroundColor: t.surface, borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: 24, paddingTop: 20 },
     closeBtn:     { position: 'absolute', top: 16, right: 16, width: 44, height: 44, alignItems: 'center', justifyContent: 'center', opacity: 0.4 },
     iconBadge:    { alignSelf: 'center', width: 56, height: 56, borderRadius: 16, backgroundColor: t.accentSoft, alignItems: 'center', justifyContent: 'center', marginBottom: 16, marginTop: 12 },
-    title:        { fontSize: 24, fontWeight: '900', fontFamily: Fonts.brand, textAlign: 'center', color: t.text, marginBottom: 10 },
-    body:         { fontSize: 15, fontWeight: '400', fontFamily: Fonts.brand, textAlign: 'center', color: t.textSecondary, lineHeight: 22, marginBottom: 28 },
+    title:        { ...Type.title, textAlign: 'center', color: t.text, marginBottom: 10 },
+    body:         { fontSize: 15, fontWeight: '400', textAlign: 'center', color: t.textSecondary, lineHeight: 22, marginBottom: 28 },
     primaryBtn:   { minHeight: 56, borderRadius: 16, backgroundColor: t.text, alignItems: 'center', justifyContent: 'center' },
-    primaryText:  { fontSize: 16, fontWeight: '900', fontFamily: Fonts.brand, color: t.bg },
+    primaryText:  { fontSize: 16, fontWeight: '900', color: t.bg },
     secondaryBtn: { marginTop: 10, minHeight: 48, borderRadius: 16, borderWidth: 1.5, borderColor: t.border, alignItems: 'center', justifyContent: 'center' },
-    secondaryText:{ fontSize: 15, fontWeight: '400', fontFamily: Fonts.brand, color: t.text },
+    secondaryText:{ fontSize: 15, fontWeight: '400', color: t.text },
   });
 }

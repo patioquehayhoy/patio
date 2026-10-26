@@ -418,7 +418,7 @@ test('Guardados index scrolls without filtering and hides for search, grid and s
     '@/lib/collections': { getCollections: async () => [] },
     '@/lib/favorites': {}, '@/lib/horario': {}, '@/lib/library-index': indexing,
     '@/lib/library-selection': fixture('lib/library-selection.ts').exports,
-    '@/lib/theme': { Radius: { card: 18 }, Fonts: { brand: 'brand' }, useTheme: () => ({ theme: {} }) },
+    '@/lib/theme': { Radius: { card: 18 }, Fonts: { brand: 'brand' }, Type: new Proxy({}, { get: () => ({}) }), useTheme: () => ({ theme: {} }) },
   });
   let tree = f.render(f.exports.default);
   const bar = () => nodes(tree).find((node) => node.type === 'FoodieFilterBar');

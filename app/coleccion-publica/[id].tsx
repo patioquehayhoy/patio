@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ContentSafetyMenu } from '@/components/content-safety-menu';
 import { supabase } from '@/lib/supabase';
-import { Fonts, useTheme } from '@/lib/theme';
+import { useTheme, Type } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
 
 type Collection = { id: string; title: string; description: string; owner_id: string };
@@ -153,7 +153,7 @@ const s = StyleSheet.create({
   navActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   feedback: { alignItems: 'center', marginTop: 40 },
   retry: { minHeight: 44, justifyContent: 'center', marginTop: 16 },
-  title: { fontFamily: Fonts.brand, fontSize: 38, fontWeight: '900', letterSpacing: -1.2, marginTop: 24 },
+  title: { ...Type.screen, marginTop: 24 },
   desc: { fontSize: 15, lineHeight: 22, marginTop: 10 },
   button: { minHeight: 48, paddingVertical: 12, borderRadius: 24, alignSelf: 'flex-start', paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 26 },
   placeIcon: { width: 36, height: 36, flexShrink: 0, alignItems: 'center', justifyContent: 'center' },

@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, Linking, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Fonts, Radius, useTheme } from '@/lib/theme';
+import { Radius, useTheme, Type } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
 
 const SUPPORT_EMAIL = 'quehayhoy.patio@gmail.com';
@@ -94,7 +94,7 @@ const s = StyleSheet.create({
   back: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   navTitle: { fontSize: 15, fontWeight: '600' },
   content: { paddingHorizontal: 22, paddingTop: 22 },
-  title: { fontSize: 34, lineHeight: 37, fontWeight: '900', letterSpacing: -1, fontFamily: Fonts.brand },
+  title: { ...Type.screen },
   subtitle: { marginTop: 8, fontSize: 14, lineHeight: 20, fontWeight: '400', maxWidth: 330 },
   list: { marginTop: 26, borderRadius: Radius.card, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
   row: { minHeight: 70, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 8 },

@@ -3,7 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Animated, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Fonts } from '@/lib/theme';
+import { Type } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
 
 // ── Sistema de header unificado de Patio ───────────────────────────────────────
@@ -170,6 +170,6 @@ const styles = StyleSheet.create({
 
   bigWrap: { paddingHorizontal: 22 },
   eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.6, textTransform: 'uppercase', marginBottom: 8 },
-  bigTitle: { fontSize: 38, fontWeight: '900', letterSpacing: -1.3, lineHeight: 40, fontFamily: Fonts.brand },
+  bigTitle: { ...Type.screen },
   subtitle: { fontSize: 14, fontWeight: '400', lineHeight: 20, marginTop: 6 },
 });

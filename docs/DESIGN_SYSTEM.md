@@ -431,3 +431,24 @@ geometría, no aprobación de renderizado nativo de iPhone.
 Rollback puntual: design/experiments/natural-header-actions-2026-10-18.patch.
 El combinado final-filter-lists-polish incluye este ajuste; los cortes anteriores
 se conservan como historial. Siempre comprobar --reverse --check antes de aplicar.
+
+### Escala tipográfica `Type` — 2026-10-25
+
+`lib/theme.tsx` exporta `Type`: un rol por uso, con tamaño, interlineado y
+espaciado. Todos los estilos que usaban la fuente de marca ya la usan
+(`...Type.screen`, etc.); cambiar a Monument cuando haya licencia se hace solo
+en `Fonts`/`Type`.
+
+| Rol | Uso | Tamaño / interlineado / espaciado |
+|---|---|---|
+| `celebration` | nombre al terminar el alta | 46 / 51 / −1.6 |
+| `hero` | onboarding | 40 / 42 / −1.2 |
+| `screen` | título de pantalla, nombre del lugar, póster | 34 / 38 / −1 |
+| `number` | calificación grande | 34 / 38 / −1 |
+| `title` | vacíos grandes, sheets, perfil de foodie | 28 / 32 / −0.8 |
+| `section` | títulos de sección, vacíos chicos, nombre de plan | 22 / 27 / −0.5 |
+| `headline`, `body`, `subhead`, `caption`, `label` | texto del sistema | 17/22 · 15/22 · 13/18 · 12/16 · 11/14 (+1.6, mayúsculas) |
+
+La fuente de marca no lleva `fontWeight` (solo se carga el peso 800). Texto menor
+de 20 pt nunca en la fuente de marca. Mapa en oscuro: puntos naranjas sin
+contorno con sombra leve.

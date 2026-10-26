@@ -23,7 +23,7 @@ import { fonderoPalette } from '@/lib/fondero-palette';
 import { localMenuDate } from '@/lib/menu-date';
 import { getMenuCollections, type MenuCollection } from '@/lib/menu-collections';
 import { useTabBarScroll } from '@/lib/tab-bar-visibility';
-import { Fonts, Radius, useTheme } from '@/lib/theme';
+import { Radius, useTheme, Type } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
 
 // Menús es, a propósito, la misma pantalla que Guardados (app/favoritos.tsx)
@@ -308,7 +308,7 @@ const s = StyleSheet.create({
   // cuerpo + CTA), no la versión sin CTA que se había inventado antes.
   empty: { minHeight: 460, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 28 },
   emptyIcon: { width: 68, height: 68, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center', marginBottom: 18 },
-  emptyTitle: { fontSize: 22, fontWeight: '900', letterSpacing: -0.5, textAlign: 'center', fontFamily: Fonts.brand },
+  emptyTitle: { ...Type.section, textAlign: 'center' },
   emptyBody: { marginTop: 10, fontSize: 15, lineHeight: 21, fontWeight: '400', textAlign: 'center' },
   cta: { marginTop: 26, height: 54, paddingHorizontal: 24, borderRadius: 27, alignItems: 'center', justifyContent: 'center' },
   ctaText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
@@ -347,7 +347,7 @@ const s = StyleSheet.create({
   actionBtnText: { fontSize: 13, fontWeight: '700' },
   modalBackdrop: { flex: 1, paddingHorizontal: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.42)' },
   modalCard: { width: '100%', maxWidth: 360, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, padding: 18 },
-  modalTitle: { fontSize: 22, fontWeight: '900', fontFamily: Fonts.brand },
+  modalTitle: { ...Type.section },
   nameInput: { marginTop: 16, minHeight: 48, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 14, fontSize: 16, fontWeight: '500' },
   modalActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 8, marginTop: 16 },
   modalBtn: { minHeight: 44, minWidth: 104, borderRadius: 14, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 14 },

@@ -24,7 +24,7 @@ import { PatioCardInfo, PatioCardPrice } from '@/components/patio-card-info';
 import { useFavoritePatiosController } from '@/lib/controllers/useFavoritePatiosController';
 import { useFoodieFilters } from '@/lib/foodie-filters-context';
 import { formatDistance } from '@/lib/geo';
-import { Fonts, Radius, useTheme, type Theme } from '@/lib/theme';
+import { Radius, useTheme, type Theme, Type } from '@/lib/theme';
 import { recordRecentPatio } from '@/lib/recent-patios';
 import { useTabBarScroll } from '@/lib/tab-bar-visibility';
 import { noWidow } from '@/lib/typography';
@@ -92,7 +92,7 @@ function makeStyles(t: Theme) {
     // Empty
     empty: { minHeight: 520, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 28 },
     emptyIcon: { width: 68, height: 68, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, backgroundColor: t.surface, alignItems: 'center', justifyContent: 'center', marginBottom: 18 },
-    emptyTitle: { fontSize: 22, fontWeight: '900', letterSpacing: -0.5, color: t.text, textAlign: 'center', fontFamily: Fonts.brand },
+    emptyTitle: { ...Type.section, color: t.text, textAlign: 'center' },
     emptyText: { marginTop: 10, fontSize: 15, lineHeight: 21, fontWeight: '400', color: t.textSecondary, textAlign: 'center' },
     cta: { marginTop: 26, height: 54, paddingHorizontal: 24, borderRadius: 27, backgroundColor: t.accent, alignItems: 'center', justifyContent: 'center' },
     ctaText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },

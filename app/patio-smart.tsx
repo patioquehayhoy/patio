@@ -35,7 +35,7 @@ import {
   setTipoNegocio,
 } from '@/lib/menu-store';
 import { BUSINESS_TYPE_LABELS, confirmedSchedule, NombreDuplicadoError, saveSmartSetup, type BusinessType, type SmartSetupResult } from '@/lib/smart-setup';
-import { Fonts, useTheme } from '@/lib/theme';
+import { useTheme, Type } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
 
 type Stage = 'name' | 'category' | 'location' | 'schedule' | 'payments' | 'finish';
@@ -574,7 +574,7 @@ const s = StyleSheet.create({
   progressDotCurrent: { width: 18 },
   content: { flexGrow: 1, paddingHorizontal: 24, paddingTop: 24 },
   headerBlock: { alignItems: 'center', paddingHorizontal: 10 },
-  title: { maxWidth: 340, fontSize: 34, lineHeight: 38, fontWeight: '800', letterSpacing: -1.05, textAlign: 'center' },
+  title: { ...Type.screen, maxWidth: 340, textAlign: 'center' },
   subtitle: { maxWidth: 330, marginTop: 10, fontSize: 16, lineHeight: 22, fontWeight: '400', textAlign: 'center' },
   field: { marginTop: 30, minHeight: 76, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 16, paddingTop: 11, paddingBottom: 10 },
   fieldLabel: { fontSize: 10, lineHeight: 14, fontWeight: '700', letterSpacing: 0.8 },
@@ -598,7 +598,7 @@ const s = StyleSheet.create({
   finishRoot: { flex: 1, backgroundColor: '#0B0B0C' },
   finishBack: { position: 'absolute', left: 16, width: 42, height: 42, borderRadius: 21, backgroundColor: 'rgba(0,0,0,0.28)', alignItems: 'center', justifyContent: 'center', zIndex: 2 },
   finishIdentity: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 28 },
-  finishName: { maxWidth: 350, color: '#fff', fontSize: 46, lineHeight: 51, letterSpacing: -1.6, fontWeight: '900', fontFamily: Fonts.brand, textAlign: 'center', textShadowColor: 'rgba(0,0,0,0.28)', textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 16 },
+  finishName: { ...Type.celebration, maxWidth: 350, color: '#fff', textAlign: 'center', textShadowColor: 'rgba(0,0,0,0.28)', textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 16 },
   finishContent: { position: 'absolute', left: 26, right: 26, bottom: 0, alignItems: 'center' },
   finishTitle: { color: '#fff', fontSize: 25, lineHeight: 30, letterSpacing: -0.5, fontWeight: '700', textAlign: 'center' },
   finishBody: { maxWidth: 340, color: 'rgba(255,255,255,0.74)', marginTop: 8, fontSize: 15, lineHeight: 21, fontWeight: '400', textAlign: 'center' },

@@ -23,7 +23,7 @@ import { isValidEmail, safeReturnTo } from '@/lib/auth-links';
 import { COMMUNITY_RETURN_TO_KEY } from '@/lib/community-auth';
 import { saveUserRole } from '@/lib/entry-flow';
 import { supabase } from '@/lib/supabase';
-import { Fonts } from '@/lib/theme';
+import { Type } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
 
 const HERO = require('../assets/hero/botanica-5.jpg');
@@ -127,7 +127,7 @@ const s = StyleSheet.create({
   content: { flexGrow: 1, justifyContent: 'flex-end', paddingHorizontal: 24 },
   mark: { width: 48, height: 48, marginBottom: 22 },
   eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.7, marginBottom: 10, color: '#FF8A5F' },
-  title: { maxWidth: 350, fontSize: 38, lineHeight: 42, letterSpacing: -1.3, fontWeight: '900', fontFamily: Fonts.brand, color: '#fff' },
+  title: { ...Type.screen, maxWidth: 350, color: '#fff' },
   body: { maxWidth: 350, marginTop: 12, fontSize: 15, lineHeight: 22, fontWeight: '400', color: 'rgba(255,255,255,0.76)' },
   label: { marginTop: 26, fontSize: 13, fontWeight: '700', color: 'rgba(255,255,255,0.76)' },
   input: { minHeight: 54, marginTop: 8, paddingVertical: 14, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.30)', backgroundColor: 'rgba(0,0,0,0.28)', borderRadius: 16, paddingHorizontal: 17, fontSize: 16, color: '#fff' },

@@ -61,7 +61,7 @@ function screenFixture(kind, { signedIn = true, failRead = false, missing = fals
     '@/components/place-icon': { PlaceIcon: 'Icon' },
     'expo-router': { useLocalSearchParams: () => ({ id }), useFocusEffect: (callback) => { focus = callback; }, Stack: { Screen: 'Screen' }, router: { push: (route) => routes.push(route), canGoBack: () => false, replace: (route) => routes.push(route) } },
     '@/lib/supabase': { supabase },
-    '@/lib/theme': { Fonts: {}, useTheme: () => ({ theme }) },
+    '@/lib/theme': { Fonts: {}, Type: new Proxy({}, { get: () => ({}) }), useTheme: () => ({ theme }) },
     '@/lib/typography': { noWidow: (value) => value },
     '@/components/content-safety-menu': { ContentSafetyMenu: 'ContentSafetyMenu' },
   };

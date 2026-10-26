@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ContentSafetyMenu } from '@/components/content-safety-menu';
 import { supabase } from '@/lib/supabase';
-import { Fonts, useTheme } from '@/lib/theme';
+import { useTheme, Type } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
 
 type Profile = { user_id: string; display_name: string; handle?: string; avatar_url?: string; bio?: string };
@@ -145,7 +145,7 @@ const s = StyleSheet.create({
   retry: { minHeight: 44, justifyContent: 'center', marginTop: 16 },
   head: { alignItems: 'center', paddingVertical: 20 },
   avatar: { width: 72, height: 72, borderRadius: 36 },
-  name: { fontFamily: Fonts.brand, fontSize: 27, fontWeight: '900', marginTop: 12 },
+  name: { ...Type.title, marginTop: 12 },
   handle: { fontSize: 13, marginTop: 2 },
   bio: { fontSize: 14, lineHeight: 20, textAlign: 'center', marginTop: 10, maxWidth: 300 },
   follow: { minHeight: 44, borderRadius: 22, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 24, paddingVertical: 10, justifyContent: 'center', marginTop: 16 },

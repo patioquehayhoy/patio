@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
 import { useMenuPreviewController } from '@/lib/controllers/useMenuPreviewController';
-import { Fonts, useTheme } from '@/lib/theme';
+import { useTheme, Type } from '@/lib/theme';
 import { fonderoPalette, type FonderoColors } from '@/lib/fondero-palette';
 import { GlassIconButton } from '@/components/glass-button';
 import { NewMenuSheet } from '@/components/new-menu-sheet';
@@ -146,7 +146,7 @@ function makeStyles(c: FonderoColors) {
   root: { flex: 1, backgroundColor: c.bg },
   emptyRoot: { paddingHorizontal: 28, alignItems: 'center', justifyContent: 'center' },
   emptyIcon: { width: 58, height: 58, borderRadius: 20, backgroundColor: c.iconBg, alignItems: 'center', justifyContent: 'center' },
-  emptyTitle: { marginTop: 18, fontSize: 26, lineHeight: 30, fontWeight: '900', color: c.text, textAlign: 'center', fontFamily: Fonts.brand },
+  emptyTitle: { ...Type.title, marginTop: 18, color: c.text, textAlign: 'center' },
   emptyBody: { maxWidth: 310, marginTop: 9, fontSize: 14, lineHeight: 20, fontWeight: '400', color: c.textSecondary, textAlign: 'center' },
   emptyButton: { width: '100%', maxWidth: 330, minHeight: 56, marginTop: 24, borderRadius: 28, backgroundColor: c.accent, alignItems: 'center', justifyContent: 'center' },
   emptyButtonText: { color: '#fff', fontSize: 16, fontWeight: '700' },
@@ -161,7 +161,7 @@ function makeStyles(c: FonderoColors) {
   posterHead: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, paddingHorizontal: 22, paddingTop: 26, paddingBottom: 18 },
   posterHeadLeft: { flex: 1 },
   posterDate: { fontSize: 11, fontWeight: '700', letterSpacing: 1.4, textTransform: 'uppercase', color: LIGHT.accent, marginBottom: 7 },
-  posterName: { fontSize: 32, lineHeight: 35, fontWeight: '900', letterSpacing: -1, color: LIGHT.ink, fontFamily: Fonts.brand },
+  posterName: { ...Type.screen, color: LIGHT.ink },
 
   // Densidad editorial (regla HIG): nombre+descripción son una unidad óptica
   // (1px de separación), filas a 5px, secciones a 10px — el aire vive ENTRE

@@ -25,7 +25,7 @@ import { recordRecentPatio } from '@/lib/recent-patios';
 import { useExploreSheet } from '@/lib/use-explore-sheet';
 import { useTabBarScroll } from '@/lib/tab-bar-visibility';
 import { noWidow } from '@/lib/typography';
-import { Fonts, Radius, useTheme, type Theme } from '@/lib/theme';
+import { Radius, useTheme, type Theme, Type } from '@/lib/theme';
 import { createCollection, getCollections, type PatioCollection } from '@/lib/collections';
 import type { Patio } from '@/lib/patios';
 import { bottomTabClearance } from '@/lib/layout-metrics';
@@ -105,7 +105,12 @@ function makeStyles(t: Theme) {
     loadingOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: t.bg, zIndex: 50 },
     map: { ...StyleSheet.absoluteFillObject, backgroundColor: t.isDark ? '#191A1B' : '#D8D6D0' },
     mapView: { ...StyleSheet.absoluteFillObject },
-    mapDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: t.textSecondary, borderWidth: 1.5, borderColor: t.isDark ? '#191A1B' : '#FFFFFF' },
+    // Deja aire para que la sombra no se recorte en la captura del marcador.
+    mapDotWrap: { padding: 4 },
+    // Oscuro: punto naranja sin contorno con una sombra leve que lo separa del mapa.
+    mapDot: t.isDark
+      ? { width: 10, height: 10, borderRadius: 5, backgroundColor: t.accent, shadowColor: '#000', shadowOpacity: 0.35, shadowRadius: 3, shadowOffset: { width: 0, height: 1 }, elevation: 2 }
+      : { width: 10, height: 10, borderRadius: 5, backgroundColor: t.textSecondary, borderWidth: 1.5, borderColor: '#FFFFFF' },
     pinHitArea: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
     // Gota invertida como UNA sola pieza (no círculo + triángulo pegado):
     // cuadrado con 3 esquinas redondeadas al 50% y la esquina inferior
@@ -195,7 +200,7 @@ function makeStyles(t: Theme) {
     emptyResults: { paddingHorizontal: 28, paddingVertical: 36, alignItems: 'center' },
     emptyIconCircle: { width: 88, height: 88, borderRadius: 44, backgroundColor: t.accentSoft, alignItems: 'center', justifyContent: 'center', marginBottom: 24 },
     emptyEyebrow: { fontSize: 11, fontWeight: '900', letterSpacing: 1.5, textTransform: 'uppercase', color: t.accent, marginBottom: 10 },
-    emptyTitle: { fontSize: 26, fontWeight: '900', letterSpacing: -0.8, lineHeight: 30, color: t.text, textAlign: 'center', marginBottom: 12, fontFamily: Fonts.brand },
+    emptyTitle: { ...Type.title, color: t.text, textAlign: 'center', marginBottom: 12 },
     emptySub: { fontSize: 15, fontWeight: '400', lineHeight: 21, color: t.textSecondary, textAlign: 'center', marginBottom: 28, maxWidth: 300 },
     emptyPruebaLabel: { fontSize: 11, fontWeight: '900', letterSpacing: 1.4, textTransform: 'uppercase', color: t.textSecondary, marginBottom: 14 },
     emptyPills: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center' },
@@ -700,7 +705,7 @@ export default function ExplorarScreen() {
           <View style={[s.pinCategory, (showSelectedOverlay || showMatch) && s.pinCategoryOpaque]}>
             <View style={{ transform: [{ rotate: '45deg' }] }}><BusinessCategoryIcon context="map" category={patio.categories[0] ?? 'Fondita'} size={15} color={theme.text} /></View>
           </View>
-          </> : <View style={[s.mapDot, showMatch && { backgroundColor: theme.accent, borderColor: theme.accent }]} />}
+          </> : <View style={s.mapDotWrap}><View style={[s.mapDot, showMatch && { backgroundColor: theme.accent, borderColor: theme.accent }]} /></View>}
         </View>
       </Marker>
     );
@@ -739,7 +744,7 @@ export default function ExplorarScreen() {
           }
         }}>
         <View style={s.clusterHitArea}>
-          <View style={[s.mapDot, isFiltering && { backgroundColor: theme.accent, borderColor: theme.accent }]} />
+          <View style={s.mapDotWrap}><View style={[s.mapDot, isFiltering && { backgroundColor: theme.accent, borderColor: theme.accent }]} /></View>
         </View>
       </Marker>
     );

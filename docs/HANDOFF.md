@@ -1,18 +1,34 @@
 # HANDOFF
 
-> **Corte vigente — 2026-10-25:** iconos originales conservados; solo Tacos
-> y Elotes cambian a taco/corn. Mapa: puntos sin números de lejos/medio e
+> **Corte vigente — 2026-10-25:** conservar las últimas decisiones de Claude:
+> Ionicons + PatioGiros (taco 2A, elote, postres, botanas y jugos). Mapa: puntos sin números de lejos/medio e
 > iconos cerca; búsqueda conserva consulta y excluye no coincidentes.
 > Menús = libro; Listas Foodie = líneas/puntos; Listas Fondero = marcadores.
 > Precio por platillo sin `+`; Nuevo menú sincroniza fondo y desplazamiento;
 > Elegir de Fotos abre solo la fototeca; cámara con pellizco para zoom.
-> `npm run check`: TypeScript/lint y **195 pruebas** aprobados; 29 controles
+> `npm run check`: TypeScript/lint y **196 pruebas** aprobados; 29 controles
 > de release correctos, dos configuraciones Android pendientes. Auditoría npm
 > aparte: ocho paquetes afectados (5 altos/3 moderados), cierre pendiente.
 > iPhone: cliente DEV restaurado por USB tras una prueba Release local;
 > no confundir esa instalación con un candidato de tienda ni producción.
 > QA física integral y aceptación final de los últimos ajustes pendientes.
 > [Continuidad](HEADS_UP_2026-10-12.md) · [Pendientes](PENDING_LAUNCH_2026-10-12.md).
+
+## Conciliación del cierre con el trabajo de Claude — 2026-10-25
+
+Al reanudar, Claude ya había hecho commit de implementación/documentación
+hasta `4f9b22b`. Se preservan esos cambios, el taco 2A y la fuente PatioGiros;
+no restaurar mis propuestas previas rechazadas ni pisar sus artefactos.
+El cierre nuevo ajusta continuidad y pendientes; no vuelve a cambiar producto.
+Verificación ejecutada durante el trabajo concurrente: TypeScript/lint y
+196 pruebas aprobados; log `/private/tmp/patio-final-checkpoint-20261025.log`.
+Quedan cambios de producto activos de Claude sin incluir en este commit
+solo documental; no afirmar que todo el árbol esté cerrado o limpio.
+Push revalidado con dry-run: HTTP 403, cuenta T1Alejandro sin escritura.
+El PNG no rastreado `artifacts/taco-final-2026-10-25.png` pertenece al trabajo
+posterior de Claude y se deja intacto, fuera de este commit documental.
+Monument y atribución/licencia de Flaticon siguen siendo pendientes previos
+al empaquetado/publicación; no inventar que la licencia está comprada.
 
 ## Dirección visual decidida — 2026-10-25 (noche)
 

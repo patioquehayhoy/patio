@@ -4,7 +4,7 @@ Objetivo: iPhone y Android. Este es el checklist vigente; reemplaza pendientes
 operativos de los cortes históricos. El lanzamiento público sigue pendiente.
 
 Último cierre técnico: [prebuild](PREBUILD_CLOSEOUT_2026-10-24.md) y
-[continuidad del 25 de octubre](HEADS_UP_2026-10-12.md). **195 pruebas de app**,
+[continuidad del 25 de octubre](HEADS_UP_2026-10-12.md). **196 pruebas de app**,
 19 SQL y 12 de esquema aislado aprobadas. Exportaciones iOS/Android y builds
 locales Release/Debug realizadas; DEV restaurado en iPhone. Eso no es un
 candidato de tienda ni aceptación del recorrido completo. Auditoría npm y
@@ -18,14 +18,15 @@ configuración Android siguen pendientes.
 - [x] Bibliotecas, mover/renombrar, filtros, selección y estados homologados.
 - [x] Cards con columnas estables, estrella única y colonia · distancia.
 - [x] Centrar ubicación en Mapa y recuperar navegación al cerrar resultados.
-- [x] TypeScript/lint y 195 pruebas locales aprobados el 2026-10-25.
-- [x] Cámara con pellizco para zoom y pastilla 1× para regresar.
+- [x] TypeScript/lint y 196 pruebas locales aprobados el 2026-10-25.
+- [x] Cámara con pellizco para zoom; último corte sin título ni pastilla 1×.
 - [x] Pulido compartido de Filtros/Listas, encabezados, iconos, colores y desvanecido.
 - [x] Error al abrir Listas corregido con regresión; el usuario confirmó «ya quedó me parece».
 - [x] Precio por platillo sin + y panel Nuevo menú con oscurecimiento sincronizado.
 - [x] Elegir de Fotos corregido en código: cierre nativo antes del picker,
   recuperación sin cámara y regresiones automatizadas. QA física pendiente.
-- [x] Zoom progresivo sin números; iconos originales salvo taco/elote.
+- [x] Zoom progresivo sin números; giros finales de Claude/Jev en PatioGiros
+  junto con Ionicons (taco 2A y catálogo documentado).
 - [x] Borrador de fichas preparado; soporte `quehayhoy.patio@gmail.com`.
 
 Backend comprobado el 2026-10-09: [producción](PRODUCTION_PROMOTION_2026-10-09.md)
@@ -35,7 +36,8 @@ asignación de dueños ni borrado de datos sintéticos para cerrar esta lista.
 ## 1. QA del usuario y estabilidad móvil
 
 - [ ] Subir los commits locales y el cierre `335f36c` del 2026-10-18 a
-  `rebuild/patio-final`. El intento de push devolvió HTTP 403.
+  `rebuild/patio-final`, incluidos los commits posteriores de Claude.
+  Dry-run de push revalidado el 2026-10-25: HTTP 403.
   GitHub confirma que la cuenta activa `T1Alejandro` tiene `push: false`.
   Autenticar una cuenta de Patio con escritura; conservar historia y rama,
   sin force-push ni cambio de propietario.

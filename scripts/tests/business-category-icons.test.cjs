@@ -17,6 +17,8 @@ test('every giro uses Ionicons, the same family as the rest of the app', () => {
   const component = fs.readFileSync(path.resolve(__dirname, '../../components/business-category-icon.tsx'), 'utf8');
   const patioGlyphs = Object.fromEntries(Object.entries(codepoints).map(([k, v]) => [`patio-${k}`, v]));
   for (const [name, code] of Object.entries(patioGlyphs)) assert.match(component, new RegExp(`'${name}': 0x${code.toString(16)}\\b`));
+  const fontBytes = fs.readFileSync(path.resolve(__dirname, '../../assets/fonts/PatioGiros.ttf'));
+  assert.ok(fontBytes.includes(Buffer.from('PatioGiros5-Regular', 'utf16le').swap16()), 'iOS needs the PostScript name to register the icon font');
   assert.equal(Object.keys(BUSINESS_CATEGORY_ICONS).length, 12);
   for (const [type, name] of Object.entries(BUSINESS_CATEGORY_ICONS)) {
     assert.ok(glyphs[name] || patioGlyphs[name], `${type}: ${name} must exist in Ionicons or PatioGiros`);

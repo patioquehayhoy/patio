@@ -52,7 +52,7 @@ export type BusinessType =
 export const BUSINESS_TYPE_LABELS: Record<BusinessType, string> = {
   fondita: 'Fondita',
   taqueria: 'Taquería',
-  reposteria: 'Repostería',
+  reposteria: 'Postres',
   mariscos: 'Mariscos',
   antojitos: 'Antojitos',
   elotes: 'Elotes',

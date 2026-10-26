@@ -79,7 +79,7 @@ const BUSINESS_TYPES: { id: BusinessType; label: string }[] = [
   { id: 'antojitos', label: BUSINESS_TYPE_LABELS.antojitos },
   { id: 'elotes', label: BUSINESS_TYPE_LABELS.elotes },
   { id: 'botanas', label: BUSINESS_TYPE_LABELS.botanas },
-  { id: 'reposteria', label: 'Postres y pan' },
+  { id: 'reposteria', label: BUSINESS_TYPE_LABELS.reposteria },
   { id: 'cafeteria', label: BUSINESS_TYPE_LABELS.cafeteria },
   { id: 'mariscos', label: BUSINESS_TYPE_LABELS.mariscos },
   { id: 'bebidas', label: BUSINESS_TYPE_LABELS.bebidas },

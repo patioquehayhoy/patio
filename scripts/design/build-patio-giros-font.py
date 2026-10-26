@@ -27,7 +27,12 @@ fb.setupCharacterMap({v: k for k, v in names.items()})
 fb.setupGlyf(glyphs)
 fb.setupHorizontalMetrics({k: (512, 0) for k in glyphs})
 fb.setupHorizontalHeader(ascent=454, descent=-71)
-fb.setupNameTable({'familyName': 'PatioGiros', 'styleName': 'Regular'})
+FAMILY = 'PatioGiros5'
+# iOS registra la fuente por su nombre PostScript: sin él no carga y muestra «?».
+fb.setupNameTable({
+    'familyName': FAMILY, 'styleName': 'Regular', 'fullName': f'{FAMILY} Regular',
+    'psName': f'{FAMILY}-Regular', 'uniqueFontIdentifier': f'{FAMILY}-Regular-1.0', 'version': 'Version 1.000',
+})
 fb.setupOS2(sTypoAscender=454, sTypoDescender=-71, usWinAscent=454, usWinDescent=71)
 fb.setupPost()
 fb.save(out)

@@ -107,10 +107,8 @@ function makeStyles(t: Theme) {
     mapView: { ...StyleSheet.absoluteFillObject },
     // Deja aire para que la sombra no se recorte en la captura del marcador.
     mapDotWrap: { padding: 4 },
-    // Oscuro: punto naranja sin contorno con una sombra leve que lo separa del mapa.
-    mapDot: t.isDark
-      ? { width: 10, height: 10, borderRadius: 5, backgroundColor: t.accent, shadowColor: '#000', shadowOpacity: 0.35, shadowRadius: 3, shadowOffset: { width: 0, height: 1 }, elevation: 2 }
-      : { width: 10, height: 10, borderRadius: 5, backgroundColor: t.textSecondary, borderWidth: 1.5, borderColor: '#FFFFFF' },
+    // Claro y oscuro: mismo punto naranja sin contorno; solo cambia la fuerza de la sombra leve.
+    mapDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: t.accent, shadowColor: '#000', shadowOpacity: t.isDark ? 0.35 : 0.18, shadowRadius: 3, shadowOffset: { width: 0, height: 1 }, elevation: 2 },
     pinHitArea: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
     // Gota invertida como UNA sola pieza (no círculo + triángulo pegado):
     // cuadrado con 3 esquinas redondeadas al 50% y la esquina inferior

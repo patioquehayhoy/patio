@@ -450,5 +450,6 @@ en `Fonts`/`Type`.
 | `headline`, `body`, `subhead`, `caption`, `label` | texto del sistema | 17/22 · 15/22 · 13/18 · 12/16 · 11/14 (+1.6, mayúsculas) |
 
 La fuente de marca no lleva `fontWeight` (solo se carga el peso 800). Texto menor
-de 20 pt nunca en la fuente de marca. Mapa en oscuro: puntos naranjas sin
-contorno con sombra leve.
+de 20 pt nunca en la fuente de marca. Mapa: puntos naranjas sin contorno con
+sombra leve, iguales en claro y oscuro. Sello de verificado pegado al final del
+nombre (el nombre largo se corta antes del sello).

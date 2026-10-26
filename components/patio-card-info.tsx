@@ -101,7 +101,8 @@ function makeStyles(t: Theme) {
     stackedHeading: { flexDirection: 'column', gap: 3 },
     stackedIdentity: { flex: 0, width: '100%' },
     identity: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'flex-start', gap: 4 },
-    name: { flex: 1, minWidth: 0, fontSize: 16, lineHeight: 21, fontWeight: '700', color: t.text },
+    // Como Instagram/X: el sello va pegado al nombre; un nombre largo se corta con «…» antes del sello.
+    name: { flexShrink: 1, minWidth: 0, fontSize: 16, lineHeight: 21, fontWeight: '700', color: t.text },
     verification: { width: 16, height: 21, flexShrink: 0, alignItems: 'center', justifyContent: 'center' },
     area: { flexShrink: 1, minWidth: 0, fontSize: 13, lineHeight: 18, fontWeight: '400', color: t.textSecondary },
     location: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2, minWidth: 0 },

@@ -132,6 +132,10 @@ No iniciar EAS ni publicación automáticamente desde esta actualización docume
   Montreal Regular/Semibold, app + escritorio (≈ USD 240; redes después). Reemplazar las
   pruebas de `assets/fonts/prueba/`, cambiar `Monument-Black` por Semibold y fusionar la
   rama `tipografia/monument-neue-montreal`.
+- [ ] Planes: llevar a `app/plan.tsx` la propuesta de
+  `artifacts/planes-propuesta-2026-10-25.html` (Foodie/Creador; Gratis/Pro; Fundadores),
+  definir cupo final de lecturas y avisos, y conectar compras dentro de la app
+  (StoreKit/Play Billing o RevenueCat, requiere build nativo) con entitlement `patio_pro`.
 - [ ] Branding: pulir el recorrido de bienvenida del Fondero, decidir etiquetas en
   minúsculas, estilo de publicaciones/fotos/fondos y piezas de punto de venta
   (cartel con QR, sello de Fundador, sticker de ventana).

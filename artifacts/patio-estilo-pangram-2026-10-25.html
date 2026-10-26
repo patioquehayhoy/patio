@@ -1,0 +1,54 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Patio como lo hace Pangram</title>
+<style>
+@font-face{font-family:"PPM";src:url("../design-source/fuentes-prueba/PPMonumentNormal-Regular.otf");font-weight:400}
+@font-face{font-family:"PPM";src:url("../design-source/fuentes-prueba/PPMonumentNormal-Black.otf");font-weight:900}
+@font-face{font-family:"PPMX";src:url("../design-source/fuentes-prueba/PPMonumentExtended-Black.otf");font-weight:900}
+/* Neue Montreal no está instalada: Helvetica Neue (de la Mac) hace sus veces. Pesos: 400 texto, 500 botón, 700 donde Pangram usa 600. */
+:root{--ui:"Helvetica Neue",Helvetica,Arial,sans-serif}
+*{box-sizing:border-box} body{margin:0;background:#F5F5F5;font-family:var(--ui);color:#000;-webkit-font-smoothing:antialiased}
+main{max-width:1380px;margin:0 auto;padding:24px}
+.nav{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px}
+.pill{display:inline-flex;align-items:center;justify-content:center;height:38px;padding:0 22px;border-radius:20px;font-size:15px;text-decoration:none;color:#000;background:#fff;white-space:nowrap}
+.pill.line{background:transparent;border:1.5px solid #000}.pill.orange{background:#FF2F00;color:#fff}
+.sample{background:#fff;border-radius:20px;padding:40px 26.5px;margin-bottom:26.5px;overflow:hidden}
+.sample .cap{margin:0 0 18px;font-size:12.4px;line-height:12.4px;font-weight:700}
+.sample .disp{margin:0;font-family:"PPM";font-weight:900;font-size:120px;line-height:.95;letter-spacing:0}
+.sample .disp span{color:#FF2F00}
+.sample .wide{margin:28px 0 0;font-family:"PPMX";font-weight:900;font-size:54px;line-height:1}
+.hero{background:#000;color:#FAFAFA;border-radius:20px;padding:53px 26.5px;display:grid;grid-template-columns:1fr 1fr;gap:26.5px}
+.hero h2{margin:0;font-size:60px;line-height:60px;font-weight:700;letter-spacing:-.01em}
+.hero p{margin:0 0 16px;font-size:17.7px;line-height:23px}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:26.5px;margin-top:26.5px}
+.card{border-radius:20px;padding:26.5px;background:#EAEAEA;display:flex;flex-direction:column;gap:18px}
+.o{background:#FF2F00}.k{background:#000;color:#FAFAFA}
+h4{margin:0;font-size:12.4px;line-height:12.4px;font-weight:700}
+.val{margin:0;font-size:19.9px;line-height:26px}
+.big{margin:0;padding:0;list-style:none;font-size:36px;line-height:36px;font-weight:700;letter-spacing:-.01em}
+.mid{margin:0;font-size:36px;line-height:36px;font-weight:700;letter-spacing:-.01em}
+.sm{margin:0;font-size:12.4px;line-height:16.2px}
+.red{color:#FF2F00}
+.btn{display:inline-flex;align-items:center;justify-content:center;height:38px;padding:0 30.8px;border-radius:20px;background:#000;color:#fff;font-size:17.7px;font-weight:500;text-decoration:none;white-space:nowrap}
+.note{font-size:13px;color:#555;margin:20px 0 0}
+</style></head><body><main>
+<div class="nav"><a class="pill" href="#">Patio</a><a class="pill" href="#">Explorar</a><span style="flex:1"></span><a class="pill line" href="#">Ver qué hay hoy</a><a class="pill orange" href="#">Publicar lo de hoy</a></div>
+
+<section class="sample"><p class="cap">Monument Normal · Black</p>
+<p class="disp">¿Qué hay hoy?<br><span>Saaaaaaabes.</span></p>
+<p class="cap" style="margin-top:34px">Monument Extended · Black</p>
+<p class="wide">Fonda Doña Rosa</p></section>
+
+<section class="hero"><h2>Lo de hoy, en tu&nbsp;colonia.</h2>
+<div><p>Patio reúne lo que preparan hoy las fondas, taquerías y puestos de tu colonia. Ves qué hay cerca, en cuánto y qué tan lejos queda, antes de&nbsp;salir.</p>
+<p>Si cocinas, tomas foto de tu menú y Patio lo lee por ti. Lo de hoy aparece en el mapa para quien anda cerca buscando dónde comer, y se oculta solo cuando&nbsp;cierras.</p>
+<p>Tu cocina, tu precio y tu gente, en el mapa de tu&nbsp;colonia.</p></div></section>
+
+<div class="cards">
+<div style="display:flex;flex-direction:column;gap:26.5px">
+<div class="card o"><h4>Fundadores</h4><p class="val">Polanco<br>Quedan 23 de&nbsp;100</p></div>
+<div class="card k"><h4>Cerca de ti</h4><p class="val">Fonda Doña Rosa</p></div></div>
+<div class="card"><h4>Giros</h4><ul class="big"><li>Fondita</li><li>Tacos</li><li>Elotes</li><li>Antojitos</li><li>Postres</li><li>Mariscos</li></ul></div>
+<div class="card"><h4>Hoy</h4><p class="mid">Chile relleno</p><p class="sm">Fonda Doña Rosa · Polanco · 250 m · Abierto hasta las&nbsp;5</p><a class="sm red" href="#">Ver el menú completo</a><h4 style="margin-top:22px">Precio</h4><p class="big">$95</p><p class="sm">Menú del día con agua&nbsp;incluida</p></div>
+<div class="card"><h4>Horario</h4><p style="margin:0;font-size:17.7px;line-height:17.7px;font-weight:700">Lunes a sábado · 1 a 5</p><h4 style="margin-top:28px">Pagos</h4><p class="sm">Efectivo, transferencia y tarjeta. Pregunta por comidas corridas y pedidos para&nbsp;llevar.</p><span style="flex:1"></span><a class="btn" href="#">Cómo llegar</a></div>
+</div>
+<p class="note">Como lo hace Pangram: Monument solo en la muestra grande de marca (arriba) y una fuente de texto neutra en todo lo demás. Neue Montreal no está en esta Mac, así que Helvetica Neue hace sus veces; con su archivo de prueba se vería idéntico.</p>
+</main></body></html>

@@ -3,7 +3,13 @@
 @font-face{font-family:"PPM";src:url("../design-source/fuentes-prueba/PPMonumentNormal-Regular.otf");font-weight:400}
 @font-face{font-family:"PPM";src:url("../design-source/fuentes-prueba/PPMonumentNormal-Black.otf");font-weight:900}
 /* La prueba no trae 600 ni 530: se simulan engrosando el Regular. Con la licencia van los reales. */
-.w600{-webkit-text-stroke:.55px currentColor}.w530{-webkit-text-stroke:.35px currentColor}
+/* Semibold simulado: engrosado proporcional al tamaño (~2%). */
+.w600,.w530{-webkit-text-stroke:0}
+.hero h2{-webkit-text-stroke:1.2px currentColor}
+h4{-webkit-text-stroke:.28px currentColor}
+.big{-webkit-text-stroke:.75px currentColor}
+.mid{-webkit-text-stroke:.45px currentColor}
+.btn{-webkit-text-stroke:.35px currentColor}
 *{box-sizing:border-box} body{margin:0;background:#F5F5F5;font-family:"PPM",sans-serif;font-weight:400;color:#000;-webkit-font-smoothing:antialiased}
 main{max-width:1380px;margin:0 auto;padding:24px}
 .hero{background:#000;color:#FAFAFA;border-radius:20px;padding:53px 26.5px;display:grid;grid-template-columns:1fr 1fr;gap:26.5px}
@@ -32,5 +38,5 @@ h4{margin:0;font-weight:400;font-size:12.4px;line-height:12.4px;letter-spacing:0
 <div class="card"><h4>Hoy</h4><p class="mid w600">Chiles rellenos</p><p class="sm">Fonda Doña Rosa · Polanco · 250&nbsp;m</p><a class="sm red" href="#">Ver el menú completo</a><span style="flex:1"></span><h4>Precio</h4><p class="big w600">$95</p><p class="sm">Menú del día con agua&nbsp;incluida</p></div>
 <div class="card"><h4>Horario</h4><p class="mid w600" style="line-height:17.7px;font-size:17.7px">Lunes a sábado · 1 a 5</p><h4 style="margin-top:28px">Pagos</h4><p class="sm">Efectivo, transferencia y tarjeta. Entrega en mostrador; pregunta por pedidos para llevar y comidas&nbsp;corridas.</p><span style="flex:1"></span><a class="btn w530" href="#">Cómo llegar</a></div>
 </div>
-<p class="note">Mismas medidas que la página de Pangram (tamaños, interlineado, espaciado 0, esquinas de 20 y rellenos de 26.5), pero con Monument Normal. Etiquetas (Fundadores, Giros, Hoy…) en Regular, sin engrosar. Los pesos 600 y 530 de titulares y botón están simulados porque la prueba no los&nbsp;trae.</p>
+<p class="note">Mismas medidas que la página de Pangram (tamaños, interlineado, espaciado 0, esquinas de 20 y rellenos de 26.5), pero con Monument Normal. Titulares, lista, datos y etiquetas en un Semibold simulado (entre el Regular y el Black de la prueba); con la licencia van los pesos&nbsp;reales.</p>
 </main></body></html>

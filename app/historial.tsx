@@ -4,8 +4,9 @@ import { RenameDialog } from '@/components/rename-dialog';
 import { useScrollEdges } from '@/lib/use-scroll-edges';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { router, Stack, useFocusEffect } from 'expo-router';
-import { useCallback, useRef, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -17,6 +18,7 @@ import { FoodieLoading } from '@/components/foodie-loading';
 import { MenuListsSheet } from '@/components/menu-lists-sheet';
 import { GlassIconButton } from '@/components/glass-button';
 import { NewMenuSheet } from '@/components/new-menu-sheet';
+import { FONDERO_TOUR_SEEN_KEY, FonderoWelcomeTour } from '@/components/fondero-welcome-tour';
 import { cleanMenu, publishMenuNow } from '@/lib/controllers/useFonderoMenuDraftController';
 import { dateLabel, defaultHistoryTitle, useMenuHistoryController, type PublishedMenu } from '@/lib/controllers/useMenuHistoryController';
 import { fonderoPalette } from '@/lib/fondero-palette';
@@ -44,6 +46,16 @@ export default function HistorialScreen() {
   const { closeRename, deleteMenu, deleteMenus, draftName, editing, loading, menus, openRename, reuse, saveName, setDraftName, streak } = useMenuHistoryController();
   const [actionsFor, setActionsFor] = useState<PublishedMenu | null>(null);
   const [newMenuSheetVisible, setNewMenuSheetVisible] = useState(false);
+  // Recién terminada el alta: recorrido de bienvenida una sola vez.
+  const { bienvenida } = useLocalSearchParams<{ bienvenida?: string }>();
+  const [tourVisible, setTourVisible] = useState(false);
+  useEffect(() => {
+    if (bienvenida !== '1') return;
+    let alive = true;
+    // En desarrollo se repite cada vez para poder revisarlo.
+    AsyncStorage.getItem(FONDERO_TOUR_SEEN_KEY).then((seen) => { if (alive && (!seen || __DEV__)) setTourVisible(true); }).catch(() => {});
+    return () => { alive = false; };
+  }, [bienvenida]);
   const moreRefs = useRef<Map<string, View | null>>(new Map());
   const [selecting, setSelecting] = useState(false);
   const [selectionBarHeight, setSelectionBarHeight] = useState(60);
@@ -291,6 +303,7 @@ export default function HistorialScreen() {
         onMoved={exitSelecting}
       />
       <NewMenuSheet visible={newMenuSheetVisible} onClose={() => setNewMenuSheetVisible(false)} />
+      <FonderoWelcomeTour visible={tourVisible} onDone={() => setTourVisible(false)} onPublish={() => setTimeout(() => setNewMenuSheetVisible(true), 350)} />
     </View>
   );
 }

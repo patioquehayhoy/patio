@@ -77,7 +77,7 @@ function makeStyles(t: Theme) {
     today: { fontSize: 13, lineHeight: 18, fontWeight: '300', color: t.text, marginBottom: 2 },
     metaLine: { minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: 6 },
     distance: { flexShrink: 0, fontSize: 13, lineHeight: 18, fontWeight: '300', color: t.textSecondary, fontVariant: ['tabular-nums'] },
-    price: { flexShrink: 0, fontSize: 14, fontWeight: '300', color: t.textSecondary, letterSpacing: -0.1 },
+    price: { flexShrink: 0, fontSize: 14, fontWeight: '300', color: t.textSecondary },
     metaRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', columnGap: 8, rowGap: 2 },
     metaArea: { flexDirection: 'row', alignItems: 'center', gap: 3, minWidth: 0, flexShrink: 1 },
     metaAreaText: { fontSize: 12, lineHeight: 17, fontWeight: '300', color: t.textSecondary, flexShrink: 1 },

@@ -466,7 +466,7 @@ function makeStyles(c: FonderoColors) {
     addSectionToggle: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 44 },
     addSectionToggleText: { fontSize: 13, fontWeight: '700', color: c.accent },
     addSectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: 28, marginBottom: 10 },
-    addSectionLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1.6, color: c.textMute },
+    addSectionLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, color: c.textMute },
     chipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
     chip: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingLeft: 10, paddingRight: 14, minHeight: 36, borderRadius: 100, backgroundColor: c.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: c.border },
     chipText: { fontSize: 12, fontWeight: '700', letterSpacing: 0.6, color: c.text },
@@ -474,6 +474,6 @@ function makeStyles(c: FonderoColors) {
     saveButton: { minHeight: 50, borderRadius: 25, paddingVertical: 12, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: c.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: c.border },
     saveText: { minWidth: 76, textAlign: 'center', fontSize: 15, fontWeight: '700', color: c.text },
     publishButton: { minHeight: 50, borderRadius: 25, paddingVertical: 12, paddingHorizontal: 32, alignItems: 'center', justifyContent: 'center', backgroundColor: c.accent },
-    publishText: { fontSize: 15, fontWeight: '700', color: '#fff', letterSpacing: -0.2 },
+    publishText: { fontSize: 15, fontWeight: '700', color: '#fff' },
   });
 }

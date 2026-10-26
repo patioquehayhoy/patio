@@ -38,6 +38,6 @@ function makeStyles(t: Theme) {
       borderColor: t.isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)',
       borderTopColor: t.accent,
     },
-    label: { marginTop: 20, fontSize: 11, fontWeight: '700', letterSpacing: 1.4, textTransform: 'uppercase', color: t.textSecondary },
+    label: { marginTop: 20, fontSize: 11, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase', color: t.textSecondary },
   });
 }

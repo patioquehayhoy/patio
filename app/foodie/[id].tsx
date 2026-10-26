@@ -149,7 +149,7 @@ const s = StyleSheet.create({
   handle: { fontSize: 13, marginTop: 2 },
   bio: { fontSize: 14, lineHeight: 20, textAlign: 'center', marginTop: 10, maxWidth: 300 },
   follow: { minHeight: 44, borderRadius: 22, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 24, paddingVertical: 10, justifyContent: 'center', marginTop: 16 },
-  label: { fontSize: 11, fontWeight: '700', letterSpacing: 1.2, marginTop: 18 },
+  label: { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, marginTop: 18 },
   row: { minHeight: 70, borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center' },
   listName: { fontSize: 16, fontWeight: '700' },
   desc: { fontSize: 12, marginTop: 3 },

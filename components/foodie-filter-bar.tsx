@@ -140,7 +140,7 @@ function styles(t: Theme) {
     emptyLists: { paddingHorizontal: 24, paddingVertical: 24, gap: 8, alignItems: 'center' },
     emptyTitle: { fontSize: 17, fontWeight: '700', color: t.text },
     emptyDetail: { fontSize: 14, lineHeight: 20, color: t.textSecondary, textAlign: 'center' },
-    sectionLabel: { paddingHorizontal: 20, paddingBottom: 8, fontSize: 11, fontWeight: '700', letterSpacing: 1.4, textTransform: 'uppercase', color: t.textMute },
+    sectionLabel: { paddingHorizontal: 20, paddingBottom: 8, fontSize: 11, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase', color: t.textMute },
     option: { minHeight: 52, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 12 },
     optionText: { flex: 1, fontSize: 15, fontWeight: '500', color: t.text },
     // Fila de una lista real (a diferencia de "Nueva lista"): el toggle
@@ -201,7 +201,7 @@ function styles(t: Theme) {
     // separaba nada de verdad (bug real reportado 2026-09-16, se veía
     // pegado a los chips de día sin importar cuánto se subiera). Ahora es
     // un hijo normal del flujo, con su propio marginBottom real.
-    pickerTitle: { fontSize: 10.5, lineHeight: 13, fontWeight: '700', letterSpacing: 1.1, textAlign: 'center', color: t.textSecondary, marginBottom: 16 },
+    pickerTitle: { fontSize: 10.5, lineHeight: 13, fontWeight: '700', letterSpacing: 0.8, textAlign: 'center', color: t.textSecondary, marginBottom: 16 },
     // Fila de 7 días, orden fijo Lun–Dom (mismo que el editor de horario del
     // Fondero) — las 7 abreviaturas miden casi lo mismo entre sí, así que
     // caben parejas en una sola línea sin recortarse ni descuadrarse.

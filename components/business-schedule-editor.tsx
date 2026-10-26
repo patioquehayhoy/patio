@@ -321,7 +321,7 @@ const s = StyleSheet.create({
   timeColumn: { width: 104, alignItems: 'center' },
   rangeConnector: { width: 24, alignItems: 'center', justifyContent: 'center' },
   compactTime: { width: 104, minHeight: 44, borderRadius: 12, alignSelf: 'center', alignItems: 'center', justifyContent: 'center' },
-  compactTimeText: { fontSize: 17, lineHeight: 22, fontWeight: '500', letterSpacing: -0.3, textAlign: 'center' },
+  compactTimeText: { fontSize: 17, lineHeight: 22, fontWeight: '500', textAlign: 'center' },
   pickerOverlay: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   pickerSurface: { width: 320, minHeight: 236, borderRadius: 34, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 28, shadowOffset: { width: 0, height: 14 }, elevation: 18 },
   pickerTitle: { position: 'absolute', top: 18, left: 24, right: 24, zIndex: 1, fontSize: 10, lineHeight: 13, fontWeight: '700', letterSpacing: 0.9, textAlign: 'center' },

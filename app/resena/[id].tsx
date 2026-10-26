@@ -22,7 +22,7 @@ function makeStyles(t: Theme) {
     navHint: { fontSize: 14, fontWeight: '400', color: t.textSecondary },
 
     content: { paddingHorizontal: 22, paddingTop: 8, paddingBottom: 140 },
-    eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', color: t.accent, marginBottom: 6 },
+    eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase', color: t.accent, marginBottom: 6 },
     title: { ...Type.title, color: t.text, marginBottom: 4 },
     subtitle: { fontSize: 13, fontWeight: '400', color: t.textSecondary, marginBottom: 22 },
 
@@ -31,7 +31,7 @@ function makeStyles(t: Theme) {
     starOn: { backgroundColor: t.accentSoft, borderColor: 'rgba(242,97,47,0.25)' },
     starOff: { backgroundColor: t.isDark ? 'rgba(255,255,255,0.06)' : 'rgba(17,18,20,0.04)', borderColor: 'transparent' },
 
-    sectionLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase', color: t.textSecondary, marginBottom: 10 },
+    sectionLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase', color: t.textSecondary, marginBottom: 10 },
     tagsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 24 },
     tag: { minHeight: 44, maxWidth: '100%', justifyContent: 'center', paddingHorizontal: 13, paddingVertical: 9, borderRadius: 100, borderWidth: StyleSheet.hairlineWidth },
     tagOff: { backgroundColor: t.surface, borderColor: t.border },

@@ -441,15 +441,17 @@ en `Fonts`/`Type`.
 
 | Rol | Uso | Tamaño / interlineado / espaciado |
 |---|---|---|
-| `celebration` | nombre al terminar el alta | 46 / 51 / −1.6 |
-| `hero` | onboarding | 40 / 42 / −1.2 |
-| `screen` | título de pantalla, nombre del lugar, póster | 34 / 38 / −1 |
-| `number` | calificación grande | 34 / 38 / −1 |
-| `title` | vacíos grandes, sheets, perfil de foodie | 28 / 32 / −0.8 |
-| `section` | títulos de sección, vacíos chicos, nombre de plan | 22 / 27 / −0.5 |
-| `headline`, `body`, `subhead`, `caption`, `label` | texto del sistema | 17/22 · 15/22 · 13/18 · 12/16 · 11/14 (+1.6, mayúsculas) |
+| `celebration` | nombre al terminar el alta | 46 / 50 / −0.46 |
+| `hero` | onboarding | 40 / 44 / −0.4 |
+| `screen` | título de pantalla, nombre del lugar, póster | 34 / 38 / −0.34 |
+| `number` | calificación grande | 34 / 38 / −0.34 |
+| `title` | vacíos grandes, sheets, perfil de foodie | 28 / 32 / −0.28 |
+| `section` | títulos de sección, vacíos chicos, nombre de plan | 22 / 26 / −0.22 |
+| `headline`, `body`, `subhead`, `caption`, `label` | texto del sistema | 17/22 · 15/22 · 13/18 · 12/16 · 11/14 (+0.8, mayúsculas) |
 
 La fuente de marca no lleva `fontWeight` (solo se carga el peso 800). Texto menor
 de 20 pt nunca en la fuente de marca. Mapa: puntos naranjas sin contorno con
 sombra leve, iguales en claro y oscuro. Sello de verificado pegado al final del
 nombre (el nombre largo se corta antes del sello).
+
+Auditoría 2026-10-25 (Pangram + Apple): interlineado de la app ya entre 1.3 y 1.4 en texto; el problema era el espaciado. Marca a −1% del tamaño, etiquetas a +7%, texto del sistema sin espaciado manual.

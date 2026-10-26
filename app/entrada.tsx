@@ -114,7 +114,7 @@ const s = StyleSheet.create({
   actions: { alignItems: 'center', gap: 4 },
   ctaGlass: { alignSelf: 'stretch', borderRadius: 14, overflow: 'hidden' },
   ctaGlassInner: { minHeight: 52, paddingVertical: 12, alignItems: 'center', justifyContent: 'center' },
-  ctaGlassText: { fontSize: 16, fontWeight: '900', color: '#FFFFFF', letterSpacing: -0.2 },
+  ctaGlassText: { fontSize: 16, fontWeight: '900', color: '#FFFFFF' },
   devVersion: { marginTop: 6, fontSize: 10, fontWeight: '900', letterSpacing: 0.8, color: 'rgba(248,248,245,0.35)' },
   devBar: { flexDirection: 'row', gap: 8, marginTop: 8 },
   devBtn: { paddingHorizontal: 14, height: 32, borderRadius: 100, backgroundColor: 'rgba(255,255,255,0.10)', alignItems: 'center', justifyContent: 'center' },

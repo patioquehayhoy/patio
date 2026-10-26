@@ -71,7 +71,7 @@ function makeStyles(c: FonderoColors) {
     editText: { fontSize: 15, fontWeight: '600', color: c.accent },
     content: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingBottom: 44 },
     check: { width: 54, height: 54, borderRadius: 27, marginBottom: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: c.accent },
-    eyebrow: { marginBottom: 8, fontSize: 11, fontWeight: '700', letterSpacing: 1.6, color: c.accent },
+    eyebrow: { marginBottom: 8, fontSize: 11, fontWeight: '700', letterSpacing: 0.8, color: c.accent },
     title: { ...Type.screen, color: c.text },
     actions: { paddingBottom: 18 },
     primary: { minHeight: 54, paddingVertical: 12, paddingHorizontal: 16, borderRadius: 27, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: c.accent },

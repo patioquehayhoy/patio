@@ -153,7 +153,7 @@ function makeStyles(t: Theme) {
     titleRow: { minHeight: 34, paddingHorizontal: 14, alignItems: 'center', justifyContent: 'center' },
     titleText: { fontSize: 12, fontWeight: '700', color: t.textSecondary, textAlign: 'center' },
     sectionLabelRow: { minHeight: 28, paddingHorizontal: 14, justifyContent: 'flex-end', paddingBottom: 5 },
-    sectionLabelText: { fontSize: 10.5, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase', color: t.textSecondary },
+    sectionLabelText: { fontSize: 10.5, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase', color: t.textSecondary },
     row: { minHeight: 46, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 10 },
     divider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border },
     rowText: { flex: 1, fontSize: 15, fontWeight: '500', color: t.text, paddingVertical: 8 },

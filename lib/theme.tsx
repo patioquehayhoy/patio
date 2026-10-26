@@ -77,17 +77,21 @@ export const Fonts = {
 // Apple: letras más juntas en grande, más abiertas en chico; interlineado más
 // apretado en grande. La fuente de marca no lleva fontWeight: solo se carga 800.
 export const Type = {
-  celebration: { fontFamily: Fonts.brand, fontSize: 46, lineHeight: 51, letterSpacing: -1.6 },
-  hero:        { fontFamily: Fonts.brand, fontSize: 40, lineHeight: 42, letterSpacing: -1.2 },
-  screen:      { fontFamily: Fonts.brand, fontSize: 34, lineHeight: 38, letterSpacing: -1 },
-  number:      { fontFamily: Fonts.brand, fontSize: 34, lineHeight: 38, letterSpacing: -1 },
-  title:       { fontFamily: Fonts.brand, fontSize: 28, lineHeight: 32, letterSpacing: -0.8 },
-  section:     { fontFamily: Fonts.brand, fontSize: 22, lineHeight: 27, letterSpacing: -0.5 },
-  headline:    { fontSize: 17, lineHeight: 22, fontWeight: '600', letterSpacing: -0.2 },
+  // Espaciado de la fuente de marca: −1% del tamaño (−10/1000 em). Pangram usa 0
+  // en Monument y Apple incluso lo abre en SF a 28 pt o más; antes íbamos a −3%.
+  celebration: { fontFamily: Fonts.brand, fontSize: 46, lineHeight: 50, letterSpacing: -0.46 },
+  hero:        { fontFamily: Fonts.brand, fontSize: 40, lineHeight: 44, letterSpacing: -0.4 },
+  screen:      { fontFamily: Fonts.brand, fontSize: 34, lineHeight: 38, letterSpacing: -0.34 },
+  number:      { fontFamily: Fonts.brand, fontSize: 34, lineHeight: 38, letterSpacing: -0.34 },
+  title:       { fontFamily: Fonts.brand, fontSize: 28, lineHeight: 32, letterSpacing: -0.28 },
+  section:     { fontFamily: Fonts.brand, fontSize: 22, lineHeight: 26, letterSpacing: -0.22 },
+  // Texto del sistema: sin espaciado propio; iOS ya ajusta SF por tamaño.
+  headline:    { fontSize: 17, lineHeight: 22, fontWeight: '600' },
   body:        { fontSize: 15, lineHeight: 22, fontWeight: '400' },
   subhead:     { fontSize: 13, lineHeight: 18, fontWeight: '400' },
   caption:     { fontSize: 12, lineHeight: 16, fontWeight: '400' },
-  label:       { fontSize: 11, lineHeight: 14, fontWeight: '700', letterSpacing: 1.6, textTransform: 'uppercase' },
+  // Mayúsculas chicas: +7% del tamaño, como Pangram (.07rem) en vez de +15%.
+  label:       { fontSize: 11, lineHeight: 14, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase' },
 } as const;
 
 // ─── Escalas de diseño (Figma Make v02) ─────────────────────────────────────────

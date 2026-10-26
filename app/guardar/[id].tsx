@@ -220,7 +220,7 @@ const s = StyleSheet.create({
   createButton: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 4 },
   retry: { minHeight: 44, paddingVertical: 12, justifyContent: 'center' },
   create: { fontSize: 14, fontWeight: '700' },
-  sectionLabel: { marginTop: 28, marginBottom: 9, paddingHorizontal: 5, fontSize: 10.5, fontWeight: '700', letterSpacing: 1.4 },
+  sectionLabel: { marginTop: 28, marginBottom: 9, paddingHorizontal: 5, fontSize: 10.5, fontWeight: '700', letterSpacing: 0.8 },
   privateCard: { borderRadius: 24, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden', padding: 15 },
   statusRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   statusChip: { minHeight: 44, paddingVertical: 10, paddingHorizontal: 13, borderRadius: 22, flexDirection: 'row', alignItems: 'center', gap: 4 },

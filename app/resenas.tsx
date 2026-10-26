@@ -288,7 +288,7 @@ export default function ResenasScreen() {
 
 const s = StyleSheet.create({
   root: { flex: 1 },
-  groupLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1.4, textTransform: 'uppercase' },
+  groupLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase' },
 
   list: { borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
   // Fila estilo actividad de Instagram: avatar circular al frente, texto a

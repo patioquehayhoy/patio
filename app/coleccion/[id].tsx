@@ -200,7 +200,7 @@ const s = StyleSheet.create({
   description: { fontSize: 14.5, lineHeight: 20, marginTop: 8, padding: 0, minHeight: 24 }, count: { fontSize: 12.5, marginTop: 12 },
   actions: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 24 }, primaryAction: { minHeight: 50, paddingVertical: 12, paddingHorizontal: 16, flex: 1, borderRadius: 25, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   primaryText: { flexShrink: 1, fontSize: 15, fontWeight: '700' }, shareButton: { width: 50, height: 50, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
-  section: { marginTop: 32, marginBottom: 9, fontSize: 10.5, fontWeight: '800', letterSpacing: 1.3 }, list: {},
+  section: { marginTop: 32, marginBottom: 9, fontSize: 10.5, fontWeight: '800', letterSpacing: 0.8 }, list: {},
   row: { paddingVertical: 12, minHeight: 94, borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 8 }, rowBody: { flex: 1, minWidth: 0 },
   empty: { alignItems: 'center', paddingTop: 76, paddingHorizontal: 28 }, emptyIcon: { width: 64, height: 64, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
   emptyTitle: { ...Type.section, marginTop: 18 }, emptyText: { marginTop: 8, fontSize: 14, lineHeight: 20, textAlign: 'center' },

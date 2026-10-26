@@ -94,7 +94,7 @@ export function SettingsGroup({ c, label, children }: { c: SettingsColors; label
 
 const styles = StyleSheet.create({
   group: { marginTop: 16 },
-  groupLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1.6, textTransform: 'uppercase', paddingHorizontal: 6, paddingBottom: 8 },
+  groupLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase', paddingHorizontal: 6, paddingBottom: 8 },
   card: { borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
   // minHeight 56: altura estándar de fila tocable en toda la app.
   row: { minHeight: 56, flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 10, paddingHorizontal: 16 },

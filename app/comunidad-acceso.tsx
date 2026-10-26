@@ -126,7 +126,7 @@ const s = StyleSheet.create({
   back: { position: 'absolute', zIndex: 5, width: 44, height: 44, left: 12, borderRadius: 22, backgroundColor: 'rgba(0,0,0,0.22)', alignItems: 'center', justifyContent: 'center' },
   content: { flexGrow: 1, justifyContent: 'flex-end', paddingHorizontal: 24 },
   mark: { width: 48, height: 48, marginBottom: 22 },
-  eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.7, marginBottom: 10, color: '#FF8A5F' },
+  eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, marginBottom: 10, color: '#FF8A5F' },
   title: { ...Type.screen, maxWidth: 350, color: '#fff' },
   body: { maxWidth: 350, marginTop: 12, fontSize: 15, lineHeight: 22, fontWeight: '400', color: 'rgba(255,255,255,0.76)' },
   label: { marginTop: 26, fontSize: 13, fontWeight: '700', color: 'rgba(255,255,255,0.76)' },

@@ -236,8 +236,8 @@ Usar `LinearGradient` de `expo-linear-gradient` para:
 
 ## Tipografía — jerarquía visual
 
-- Títulos de pantalla: `fontSize 32-38`, `fontWeight '900'`, `fontFamily Fonts.brand`, `letterSpacing -0.5` a `-1.3`
-- Labels de sección: `fontSize 11`, `fontWeight '700'`, `letterSpacing 1.6-1.8`, `UPPERCASE` (no `'900'` — corregido 2026-07-22, así es como corre en producción)
+- Títulos: usar los roles de `Type` en `lib/theme.tsx` (`screen` 34/38, `title` 28/32, `section` 22/26, `hero` 40/44). Espaciado de la fuente de marca −1% del tamaño (corregido 2026-10-25: el −3% anterior apretaba de más; Pangram usa 0 en Monument y Apple abre SF en grande). La fuente de marca no lleva `fontWeight`.
+- Labels de sección: `Type.label` — `fontSize 11`, `fontWeight '700'`, `letterSpacing 0.8`, `UPPERCASE` (corregido 2026-10-25: +7% del tamaño, como Pangram; el 1.6–1.8 anterior abría de más). Texto del sistema sin `letterSpacing` propio: iOS ya ajusta SF por tamaño.
 - Metadata/subtítulo: `fontSize 12–14`, peso `'400'` y token secundario;
   mantener `'300'` solo en patrones de voz ligera existentes.
 - La jerarquía combina posición, proximidad, tamaño y peso por rol. No

@@ -317,7 +317,7 @@ const s = StyleSheet.create({
   // Filas separadas por una línea fina, con espacio entre grupos.
   list: { gap: 0 },
   card: { minHeight: 68, flexDirection: 'row', alignItems: 'center', gap: 12, borderBottomWidth: StyleSheet.hairlineWidth, paddingVertical: 12 },
-  groupLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1.4, textTransform: 'uppercase' },
+  groupLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase' },
   // Nombre = identidad del menú, lidera la fila (antes iba abajo, más chico
   // y menos peso que la fecha — jerarquía invertida). Fecha = contexto,
   // va después, muda y sin el acento de marca (el naranja es para acciones,

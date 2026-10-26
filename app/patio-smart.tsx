@@ -600,7 +600,7 @@ const s = StyleSheet.create({
   finishIdentity: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 28 },
   finishName: { ...Type.celebration, maxWidth: 350, color: '#fff', textAlign: 'center', textShadowColor: 'rgba(0,0,0,0.28)', textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 16 },
   finishContent: { position: 'absolute', left: 26, right: 26, bottom: 0, alignItems: 'center' },
-  finishTitle: { color: '#fff', fontSize: 25, lineHeight: 30, letterSpacing: -0.5, fontWeight: '700', textAlign: 'center' },
+  finishTitle: { color: '#fff', fontSize: 25, lineHeight: 30, fontWeight: '700', textAlign: 'center' },
   finishBody: { maxWidth: 340, color: 'rgba(255,255,255,0.74)', marginTop: 8, fontSize: 15, lineHeight: 21, fontWeight: '400', textAlign: 'center' },
   finishButton: { minHeight: 50, marginTop: 22, paddingHorizontal: 24, borderRadius: 25, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' },
   finishButtonText: { color: '#111214', fontSize: 15, fontWeight: '700' },

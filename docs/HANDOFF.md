@@ -30,6 +30,17 @@ posterior de Claude y se deja intacto, fuera de este commit documental.
 Monument y atribución/licencia de Flaticon siguen siendo pendientes previos
 al empaquetado/publicación; no inventar que la licencia está comprada.
 
+## Punto de guardado — 2026-10-25 (cierre del día)
+
+Etiqueta git `checkpoint-2026-10-25-antes-tipografia` en `rebuild/patio-final`: app
+completa antes del cambio de fuentes. Incluye giros con Ionicons + PatioGiros (taco
+2A, elote, rebanada, palomitas, jugos), escala `Type` con espaciado auditado
+(marca −1%, etiquetas +7%), mapa con puntos naranjas sin contorno en ambos temas,
+navegación oculta con tarjetas abiertas, sello de verificado pegado al nombre,
+Fotos directo desde Nuevo menú, «Otro» con giro escrito, Jugos y fruta y Cafetería.
+Decisión tipográfica (Jev 99%): Monument en momentos de marca + Neue Montreal en el
+resto. La prueba de fuentes vive en la rama `tipografia/monument-neue-montreal`.
+
 ## Dirección visual decidida — 2026-10-25 (noche)
 
 - Tipografía: PP Monument (Pangram Pangram) en toda la app, al estilo de su página:

@@ -1,6 +1,12 @@
 # HANDOFF
 
-> **Corte vigente — 2026-10-25:** conservar las últimas decisiones de Claude:
+> **Corte vigente — 2026-10-26:** decisiones de operación y lanzamiento en
+> [continuidad](HEADS_UP_2026-10-12.md#decisiones-del-2026-10-26): operador
+> persona física, soporte con apoyo de Claude/Codex, taco `PatioGiros6` con
+> crédito en Ayuda, tipografía de lanzamiento por decidir y bloqueos reales
+> repriorizados en [pendientes](PENDING_LAUNCH_2026-10-12.md).
+
+> **Corte histórico — 2026-10-25:** conservar las últimas decisiones de Claude:
 > Ionicons + PatioGiros (taco 2A, elote, postres, botanas y jugos). Mapa: puntos sin números de lejos/medio e
 > iconos cerca; búsqueda conserva consulta y excluye no coincidentes.
 > Menús = libro; Listas Foodie = líneas/puntos; Listas Fondero = marcadores.

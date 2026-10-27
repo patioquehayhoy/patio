@@ -1,6 +1,14 @@
 # ROADCONTROLLER — Patio
 
-> **Corte vigente — 2026-10-25:** conservar las últimas decisiones de Claude:
+> **Corte vigente — 2026-10-26:** operador legal Alejandro (persona física);
+> soporte con Alejandro como contacto y Claude/Codex de apoyo; taco ajustado por
+> Alejandro (`PatioGiros6`) con crédito en Ayuda; tipografía de lanzamiento por
+> decidir (Plus Jakarta gratis o comprar Monument/Neue Montreal ≈ USD 240).
+> Bloqueos reales de publicación: privacidad pública, acceso del revisor,
+> candidato firmado y tipografía publicable. 197 pruebas aprobadas.
+> [Continuidad](HEADS_UP_2026-10-12.md) · [Pendientes](PENDING_LAUNCH_2026-10-12.md).
+
+> **Corte histórico — 2026-10-25:** conservar las últimas decisiones de Claude:
 > Ionicons + PatioGiros (taco 2A, elote, postres, botanas y jugos). Mapa: puntos sin números de lejos/medio e
 > iconos cerca; búsqueda conserva consulta y excluye no coincidentes.
 > Menús = libro; Listas Foodie = líneas/puntos; Listas Fondero = marcadores.
@@ -191,11 +199,13 @@ horario semanal por día · stats vivas + `vistos.tsx` · collapsing-header (Lar
 
 ## 9. Prioridades actuales
 
-1. QA del usuario: búsqueda → swipe → navegación, cards, ubicación y bibliotecas.
-2. Resolver auditoría npm y Maps/Firebase Android; validar SMTP, IA y push reales.
-3. Completar privacidad, eliminación web, moderación y operación de soporte.
+1. Aviso de privacidad público (datos de Alejandro) y acceso del revisor
+   (código de 6 dígitos + cuenta de revisión).
+2. Decidir tipografía de lanzamiento (Plus Jakarta o comprar Monument).
+3. QA del usuario: búsqueda → swipe → navegación, cards, ubicación y bibliotecas.
 4. Candidatos firmados, QA iPhone/Android y fichas de tiendas.
-5. Después del candidato: miniatura real del local, piloto y radar de producto.
+5. Sin frenar el lanzamiento: auditoría npm, Maps/Firebase Android, SMTP, IA y push.
+6. Después del candidato: planes, branding, miniatura real del local y piloto.
 
 Criterios y responsables: [PENDING_LAUNCH_2026-10-12](PENDING_LAUNCH_2026-10-12.md).
 No reabrir auditoría amplia, USB ni EAS automáticamente. El cierre nativo previo

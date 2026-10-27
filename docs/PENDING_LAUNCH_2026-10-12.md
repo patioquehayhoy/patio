@@ -1,7 +1,16 @@
-# Pendientes y roadmap de lanzamiento — actualizado 2026-10-25
+# Pendientes y roadmap de lanzamiento — actualizado 2026-10-26
 
 Objetivo: iPhone y Android. Este es el checklist vigente; reemplaza pendientes
 operativos de los cortes históricos. El lanzamiento público sigue pendiente.
+
+**Lo que de verdad bloquea la publicación (repriorizado 2026-10-26 con Alejandro):**
+1. URL pública de privacidad (obligatoria en ambas tiendas).
+2. Acceso del revisor: código de 6 dígitos además del enlace y cuenta de revisión.
+3. Candidato firmado y su QA en TestFlight/Google Play.
+4. Tipografía publicable: salir con Plus Jakarta Sans (gratis, `rebuild/patio-final`)
+   o comprar Monument/Neue Montreal antes. Nunca publicar las fuentes de prueba.
+Lo demás (auditoría npm, push, IA real, branding) puede cerrarse después con
+actualizaciones; no frenar el lanzamiento por ello.
 
 Último cierre técnico: [prebuild](PREBUILD_CLOSEOUT_2026-10-24.md) y
 [continuidad del 25 de octubre](HEADS_UP_2026-10-12.md). **196 pruebas de app**,
@@ -96,14 +105,21 @@ Logs de esta verificación: `/private/tmp/patio-npm-audit-20261012.json` y
 
 ## 3. Privacidad, operación y tiendas
 
-- [ ] Confirmar operador legal (persona física o sociedad), nombre completo,
-  domicilio y dominio; publicar URLs HTTPS de privacidad/soporte/eliminación.
+- [x] Operador legal: Alejandro como persona física (confirmado 2026-10-26).
+- [ ] Nombre legal completo, domicilio y dominio para el aviso; publicar URLs
+  HTTPS de privacidad/soporte/eliminación. El domicilio puede ser una oficina
+  virtual o el domicilio fiscal, no el particular. Empezar solo en México evita
+  publicar dirección por la DSA europea. Claude redacta el aviso.
   Soporte y borrado dentro de ambos perfiles ya existen; no reconstruirlos.
-  El usuario plantea ser responsable, sin confirmación definitiva de modalidad.
-  No se encontró aviso integral ni URL pública en el repo/sitios consultados.
-- [ ] Asignar atención a soporte/reportes y completar moderación operativa.
+- [x] Contacto responsable ante tiendas: Alejandro; Claude/Codex apoyan con
+  triaje y borradores de respuesta (decidido 2026-10-26).
+- [ ] Conectar Gmail de `quehayhoy.patio@gmail.com` para la revisión diaria de
+  reportes y completar moderación operativa.
   El soporte público aprobado sigue siendo `quehayhoy.patio@gmail.com`.
-- [ ] Preparar cuentas de revisión y completar App Privacy/Data Safety,
+- [ ] Acceso del revisor (a cargo de Claude): hoy solo hay enlace mágico
+  (`signInWithOtp`), que el revisor no puede abrir. Agregar código de 6 dígitos
+  y documentar una cuenta de revisión con datos de prueba.
+- [ ] Completar App Privacy/Data Safety,
   clasificación, regiones, contratos y accesos de Apple/Google.
 - [ ] Generar un candidato firmado por plataforma después de resolver los
   gates anteriores. Verificar permisos, enlaces, mapas, push y bibliotecas
@@ -126,10 +142,14 @@ No iniciar EAS ni publicación automáticamente desde esta actualización docume
   (hoy «Otro» se guarda como Fondita y se pierde el dato). Con ese texto y su
   menú, generar un recopilado semanal o mensual de altas nuevas para decidir qué
   giros agregar. Jugos y fruta fue el primero en entrar (2026-10-25).
-- [ ] Licencia del icono de Tacos (Flaticon 10305288, modificado): dar atribución al autor
-  en Créditos de la app o pagar Flaticon Premium antes de publicar.
-- [ ] Comprar licencias de fuentes (Pangram Pangram): Monument Normal Semibold y Neue
-  Montreal Regular/Semibold, app + escritorio (≈ USD 240; redes después). Reemplazar las
+- [x] Icono de Tacos: Alejandro ajustó el trazo (2026-10-26, fuente `PatioGiros6`)
+  y Ayuda acredita «Icono de tacos: Freepik en Flaticon.» Conservar el crédito:
+  el ajuste no cambia la licencia del original.
+- [ ] Decidir tipografía de lanzamiento (Alejandro lo está pensando, 2026-10-26).
+  Comprar licencias de fuentes (Pangram Pangram): 3 estilos, Monument Normal Semibold y Neue
+  Montreal Regular/Semibold, app + escritorio (≈ USD 240 estimado, precio exacto en el
+  carrito; para persona física no vencen; redes y web después). Resumen en el
+  escritorio: «Patio — compra de fuentes.html». Reemplazar las
   pruebas de `assets/fonts/prueba/`, cambiar `Monument-Black` por Semibold y fusionar la
   rama `tipografia/monument-neue-montreal`.
 - [ ] Planes: llevar a `app/plan.tsx` la propuesta de

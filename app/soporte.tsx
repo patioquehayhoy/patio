@@ -56,6 +56,7 @@ export default function SoporteScreen() {
               </TouchableOpacity>
             ))}
           </View>
+          <Text style={[s.credits, { color: theme.textMute }]}>{noWidow('Icono de tacos: Freepik en Flaticon.')}</Text>
         </ScrollView>
       ) : (
         <View style={[s.content, { flex: 1, paddingBottom: insets.bottom + 24 }]}>
@@ -101,6 +102,7 @@ const s = StyleSheet.create({
   icon: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   rowTitle: { fontSize: 15, fontWeight: '600' },
   rowHint: { marginTop: 3, fontSize: 12, fontWeight: '400' },
+  credits: { marginTop: 24, fontSize: 12, fontWeight: '400', textAlign: 'center' },
   field: { minHeight: 180, marginTop: 24, padding: 16, borderRadius: Radius.card, borderWidth: StyleSheet.hairlineWidth },
   input: { minHeight: 130, fontSize: 15, lineHeight: 21, textAlignVertical: 'top' },
   counter: { alignSelf: 'flex-end', fontSize: 11 },

@@ -17,6 +17,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { EmailCodeForm } from '@/components/email-code-form';
 import { AgentSpinner } from '@/components/agent-spinner';
 import { LOGIN_CALLBACK_URL } from '@/lib/auth';
 import { isValidEmail, safeReturnTo } from '@/lib/auth-links';
@@ -43,11 +44,11 @@ export default function ComunidadAccesoScreen() {
   }, [returnTo]);
 
   const send = async () => {
-    if (sending.current) return;
+    if (sending.current) return false;
     const value = email.trim().toLowerCase();
     if (!isValidEmail(value)) {
       Alert.alert(noWidow('Revisa tu correo'), noWidow('Escribe un correo válido.'));
-      return;
+      return false;
     }
     sending.current = true;
     setBusy(true);
@@ -58,9 +59,12 @@ export default function ComunidadAccesoScreen() {
         options: { emailRedirectTo: LOGIN_CALLBACK_URL, shouldCreateUser: true },
       });
       if (error) throw error;
+      setEmail(value);
       setSent(true);
+      return true;
     } catch {
       Alert.alert(noWidow('No pudimos enviar el enlace'), noWidow('Revisa tu conexión e inténtalo de nuevo.'));
+      return false;
     } finally {
       sending.current = false;
       setBusy(false);
@@ -83,7 +87,7 @@ export default function ComunidadAccesoScreen() {
           </Text>
           <Text style={s.body}>
             {noWidow(sent
-              ? `Mandamos un enlace a ${email}. Al volver podrás seguir este Patio.`
+              ? `Mandamos un código y un enlace a ${email}. Escribe el código para entrar.`
               : 'Tu correo sincroniza guardados y reseñas. Sin contraseña.')}
           </Text>
 
@@ -110,9 +114,12 @@ export default function ComunidadAccesoScreen() {
               </TouchableOpacity>
             </>
           ) : (
+            <>
+            <EmailCodeForm email={email} role="foodie" onResend={send} />
             <TouchableOpacity style={s.change} onPress={() => setSent(false)} accessibilityRole="button" accessibilityLabel="Usar otro correo">
               <Text style={s.changeText}>{noWidow('Usar otro correo')}</Text>
             </TouchableOpacity>
+            </>
           )}
         </ScrollView>
       </KeyboardAvoidingView>

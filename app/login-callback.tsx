@@ -1,16 +1,12 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as Linking from 'expo-linking';
 
 import { AgentSpinner } from '@/components/agent-spinner';
-import { initializeSignedInUser } from '@/lib/auth';
+import { signedInDestination } from '@/lib/auth-destination';
 import { resolveLoginSession } from '@/lib/auth-callback';
-import { safeReturnTo } from '@/lib/auth-links';
-import { COMMUNITY_RETURN_TO_KEY } from '@/lib/community-auth';
-import { getUserRole, saveUserRole } from '@/lib/entry-flow';
-import { syncLocalLibraryToCloud } from '@/lib/collections';
+import { getUserRole } from '@/lib/entry-flow';
 import { useTheme } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
 import { withSessionLock } from '@/lib/session-queue';
@@ -44,18 +40,7 @@ export default function LoginCallback() {
       if (!rawUrl) throw new Error('No pudimos recuperar el enlace. Solicita uno nuevo.');
       const session = await resolveLoginSession(rawUrl);
       if (cancelled) return;
-      let destination: string;
-      if (role === 'foodie') {
-        await syncLocalLibraryToCloud().catch(() => {});
-        const pending = safeReturnTo(await AsyncStorage.getItem(COMMUNITY_RETURN_TO_KEY));
-        destination = session.user.user_metadata?.profile_complete
-          ? pending : `/perfil-comunidad?returnTo=${encodeURIComponent(pending)}`;
-        if (session.user.user_metadata?.profile_complete) await AsyncStorage.removeItem(COMMUNITY_RETURN_TO_KEY);
-      } else {
-        await saveUserRole('fondero');
-        const { needsSetup } = await initializeSignedInUser(session);
-        destination = needsSetup ? '/patio-smart' : '/historial';
-      }
+      const destination = await signedInDestination(session, role);
       if (!cancelled) router.replace(destination as never);
     };
     void withSessionLock(async () => { if (!cancelled) await handle(); }).catch((reason) => {

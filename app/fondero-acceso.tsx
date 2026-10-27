@@ -10,6 +10,7 @@ import {
   Keyboard,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -18,6 +19,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { EmailCodeForm } from '@/components/email-code-form';
 import { AgentSpinner } from '@/components/agent-spinner';
 import { LOGIN_CALLBACK_URL } from '@/lib/auth';
 import { isValidEmail } from '@/lib/auth-links';
@@ -85,9 +87,9 @@ export default function FonderoAccesoScreen() {
   }, []);
 
   const handleSend = async () => {
-    if (sending.current) return;
+    if (sending.current) return false;
     const trimmed = email.trim().toLowerCase();
-    if (!isValidEmail(trimmed)) { setError('Escribe un correo válido.'); return; }
+    if (!isValidEmail(trimmed)) { setError('Escribe un correo válido.'); return false; }
     setError('');
     sending.current = true;
     setLoading(true);
@@ -97,10 +99,13 @@ export default function FonderoAccesoScreen() {
         email: trimmed,
         options: { emailRedirectTo: LOGIN_CALLBACK_URL, shouldCreateUser: true },
       });
-      if (err) { showAuthError(err); return; }
+      if (err) { showAuthError(err); return false; }
+      setEmail(trimmed);
       setSent(true);
+      return true;
     } catch {
       showAuthError({ code: 'network_error' });
+      return false;
     } finally {
       sending.current = false;
       setLoading(false);
@@ -143,7 +148,7 @@ export default function FonderoAccesoScreen() {
 
       {/* Logo en el centro EXACTO de la pantalla (overlay fuera del teclado);
           el par de marca cuelga debajo sin mover el ancla */}
-      <Animated.View style={[s.brandOverlay, { opacity: brandFade }]} pointerEvents="none">
+      <Animated.View style={[s.brandOverlay, { opacity: sent ? 0 : brandFade }]} pointerEvents="none">
         <View>
           <Image source={LOGO_BLANCO} style={s.logo} resizeMode="contain" />
           <View style={s.pairBelow}>
@@ -156,7 +161,7 @@ export default function FonderoAccesoScreen() {
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}>
-        <View style={[s.content, { paddingBottom: insets.bottom + 28 }]}>
+        <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={[s.content, { paddingBottom: insets.bottom + 28 }]}>
 
           <View style={{ flex: 1 }} />
 
@@ -164,7 +169,7 @@ export default function FonderoAccesoScreen() {
             <View style={s.actionArea}>
               <Text style={s.title} allowFontScaling={true} lineBreakStrategyIOS="push-out" maxFontSizeMultiplier={1.4}>{noWidow('Tu menú, en un correo.')}</Text>
               <Text style={s.sub} allowFontScaling={true} lineBreakStrategyIOS="push-out" maxFontSizeMultiplier={1.7}>
-                {noWidow('Sin contraseñas. Te mandamos un enlace y publicas el menú del día en 30 segundos.')}
+                {noWidow('Sin contraseñas. Recibe un código por correo y publica tu menú.')}
               </Text>
               <View style={[s.field, error ? { borderColor: '#E5484D' } : null]}>
                 <BlurView intensity={16} tint="dark" style={s.fieldInner}>
@@ -201,9 +206,10 @@ export default function FonderoAccesoScreen() {
           ) : (
             <View style={s.actionArea}>
               <Text style={s.title} allowFontScaling={true} lineBreakStrategyIOS="push-out" maxFontSizeMultiplier={1.4}>{noWidow('Revisa tu correo.')}</Text>
-              <Text style={[s.sub, s.sentLead]} allowFontScaling={true} lineBreakStrategyIOS="push-out" maxFontSizeMultiplier={1.7}>{noWidow('Te mandamos un enlace a')}</Text>
+              <Text style={[s.sub, s.sentLead]} allowFontScaling={true} lineBreakStrategyIOS="push-out" maxFontSizeMultiplier={1.7}>{noWidow('Te mandamos un código y un enlace a')}</Text>
               <Text style={s.emailHi} allowFontScaling={true} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.4}>{email}</Text>
               <Text style={s.sentHint} allowFontScaling={true} lineBreakStrategyIOS="push-out" maxFontSizeMultiplier={1.7}>{noWidow('El enlace dura 15 minutos. Revisa spam si no aparece.')}</Text>
+              <EmailCodeForm email={email} role="fondero" onResend={handleSend} />
               <TouchableOpacity
                 style={s.changeLink}
                 onPress={() => setSent(false)}
@@ -228,7 +234,7 @@ export default function FonderoAccesoScreen() {
               {noWidow('¿Solo buscas algo rico?')} <Text style={s.footerAccent}>{noWidow('Ver lo de hoy →')}</Text>
             </Text>
           </TouchableOpacity>
-        </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </View>
   );
@@ -240,7 +246,7 @@ const s = StyleSheet.create({
 
   backBtn: { position: 'absolute', left: 16, zIndex: 20, width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.08)', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.10)', alignItems: 'center', justifyContent: 'center' },
 
-  content: { flex: 1, paddingHorizontal: 28 },
+  content: { flexGrow: 1, paddingHorizontal: 28 },
 
   // flex 1 arriba y abajo del bloque de marca lo dejan al centro óptico;
   // el bloque de acción vive abajo (ley: todo accionable abajo).

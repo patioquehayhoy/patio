@@ -502,3 +502,35 @@ test('confirmed remote deletion clears stale local credentials even if logout fa
   assert.equal(f.values.has('patio:favorites'), false);
   assert.equal(f.values.get('@lafondita_dark_mode'), '1');
 });
+
+test('email code rejects malformed credentials before contacting Auth', async () => {
+  let calls = 0;
+  const f = fixture({ auth: { verifyOtp: async () => { calls++; } } });
+  const { verifyEmailCode } = f.load('lib/auth-email-code.ts');
+  for (const [email, code] of [['bad', '123456'], ['person@example.com', '12345'], ['person@example.com', '12a456']]) {
+    await assert.rejects(verifyEmailCode(email, code), /6 dígitos/);
+  }
+  assert.equal(calls, 0);
+});
+
+test('valid email code normalizes email and activates the verified account', async () => {
+  let submitted;
+  const session = { user: { id: userId } };
+  const f = fixture({ auth: { verifyOtp: async (params) => {
+    submitted = params;
+    return { data: { session }, error: null };
+  } } });
+  const { verifyEmailCode } = f.load('lib/auth-email-code.ts');
+  assert.equal(await verifyEmailCode(' Person@Example.com ', '012345'), session);
+  assert.deepEqual(submitted, { email: 'person@example.com', token: '012345', type: 'email' });
+  assert.equal(f.values.get('@patio_active_account'), userId);
+});
+
+test('expired email code preserves the current account and its private work', async () => {
+  const f = fixture({ auth: { verifyOtp: async () => ({ data: { session: null }, error: { code: 'otp_expired' } }) } });
+  await f.load('lib/account-storage.ts').activateLocalAccount(userId);
+  f.values.set('@patio_menu_history', 'private draft');
+  await assert.rejects(f.load('lib/auth-email-code.ts').verifyEmailCode('person@example.com', '123456'), /verificar/);
+  assert.equal(f.values.get('@patio_active_account'), userId);
+  assert.equal(f.values.get('@patio_menu_history'), 'private draft');
+});

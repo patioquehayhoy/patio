@@ -1,5 +1,15 @@
 # STATE
 
+> **Ejecución 2026-10-26, Codex:** código de acceso implementado en ambos roles,
+> plantillas locales preparadas; catálogo de planes y checkout/restauración
+> RevenueCat preparados, cobro apagado hasta conectar tiendas/entitlements/cuotas.
+> «Otro» ya guarda el giro; regresión verificada. Auditoría reducida de 8 a 5
+> paquetes (5 altos de node-forge, 0 moderados). Domicilio al último por solicitud
+> de Alejandro. GitHub 403; Google requiere 2FA; Supabase figura INACTIVE y panel
+> sin sesión; Gmail sin conectar. No declarar integraciones reales cerradas.
+> [Estado de esta ejecución](EXECUTION_CLOSEOUT_2026-10-26.md).
+
+
 > **Corte vigente — 2026-10-25:** conservar las últimas decisiones de Claude:
 > Ionicons + PatioGiros (taco 2A, elote, postres, botanas y jugos). Mapa: puntos sin números de lejos/medio e
 > iconos cerca; búsqueda conserva consulta y excluye no coincidentes.

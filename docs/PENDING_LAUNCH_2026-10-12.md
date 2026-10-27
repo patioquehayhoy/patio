@@ -1,5 +1,40 @@
 # Pendientes y roadmap de lanzamiento — actualizado 2026-10-26
 
+## Ejecución solicitada por Alejandro — 2026-10-26
+
+- Domicilio y cierre/publicación del aviso quedan **al final**, por petición del usuario.
+- Monument + Neue Montreal se conservan en la rama actual; Alejandro prefiere
+  posponer el pago. La licencia disponible sigue siendo de prueba/uso personal;
+  no se registra compra ni autorización comercial inexistente.
+- [x] Implementar acceso por código de 6 dígitos en ambos roles y preparar
+  las dos plantillas de correo. [Detalle y límites](REVIEWER_ACCESS_2026-10-26.md).
+- [x] Verificar que «Otro» persiste el texto en `categorias`; regresión automatizada.
+  Consulta de recopilado preparada en `scripts/backend/custom-category-report.sql`.
+- [x] Llevar el catálogo aprobado y cuotas propuestas a la pantalla Tu plan;
+  preparar SDK/checkout/restauración, con cobro apagado.
+- [ ] Aplicar plantillas Auth, verificar entrega y crear acceso real de revisión.
+- [ ] Conectar tiendas/RevenueCat e implementar cuotas y beneficios en servidor.
+  Los límites antiabuso actuales no equivalen a planes. [Detalle](BILLING_SETUP_2026-10-26.md).
+- [ ] Google: activar 2FA en la cuenta de Patio; Firebase bloquea la consola
+  de `contacto.parco@gmail.com` hasta completarlo. No hay sesión de gcloud.
+  EAS production consultado: sin variables; Maps/Firebase siguen sin configurar.
+- [ ] GitHub: cuenta `T1Alejandro` sin permiso `push`, confirmado por conector
+  y dry-run HTTP 403. Hace falta autenticar cuenta con escritura.
+- [ ] Supabase: CLI reporta producción y staging INACTIVE; hosts públicos no
+  resolvieron. Panel sin sesión. No afirmar IA, push ni Auth real validados hoy.
+- [ ] Gmail: conexión propuesta, no completada. Rutina diaria preparada en
+  [soporte](SUPPORT_OPERATIONS_2026-10-26.md), sin automatización activa.
+- [x] Corregir las 3 alertas moderadas: `decode-uri-component` 0.5.0 oficial,
+  override de query-string y adaptación CJS/ESM por patch-package.
+- [ ] Cerrar las 5 alertas altas heredadas de `node-forge` 1.4.0: sin versión
+  corregida publicada. Auditoría final: **5 altas, 0 moderadas, 0 críticas**.
+  CI conserva su gate. No se aplicó `audit fix --force`.
+- [ ] Revocar clave legada en el proveedor: no confirmado. El código actual
+  solo usa `ANTHROPIC_API_KEY` del servidor; eso no prueba revocación.
+
+El detalle histórico siguiente se conserva como referencia; este bloque actualiza
+su estado. El build firmado y QA física siguen pendientes.
+
 Objetivo: iPhone y Android. Este es el checklist vigente; reemplaza pendientes
 operativos de los cortes históricos. El lanzamiento público sigue pendiente.
 
@@ -106,11 +141,7 @@ Logs de esta verificación: `/private/tmp/patio-npm-audit-20261012.json` y
 ## 3. Privacidad, operación y tiendas
 
 - [x] Operador legal: Alejandro como persona física (confirmado 2026-10-26).
-- [ ] Nombre legal completo, domicilio y dominio para el aviso; publicar URLs
-  HTTPS de privacidad/soporte/eliminación. El domicilio puede ser una oficina
-  virtual o el domicilio fiscal, no el particular. Empezar solo en México evita
-  publicar dirección por la DSA europea. Claude redacta el aviso.
-  Soporte y borrado dentro de ambos perfiles ya existen; no reconstruirlos.
+- El cierre del aviso y domicilio se mueve al último bloque, por petición del usuario.
 - [x] Contacto responsable ante tiendas: Alejandro; Claude/Codex apoyan con
   triaje y borradores de respuesta (decidido 2026-10-26).
 - [ ] Conectar Gmail de `quehayhoy.patio@gmail.com` para la revisión diaria de
@@ -137,11 +168,9 @@ No iniciar EAS ni publicación automáticamente desde esta actualización docume
 
 - [ ] Incorporar una miniatura real del local en la zona superior del grid;
   definir origen/calidad de imagen y fallback manteniendo columnas y alturas.
-- [ ] Giros guiados por el mercado (idea de Alejandro, 2026-10-25): al elegir
-  «Otro» en el alta, pedir «¿De qué es tu negocio?» en texto libre y guardarlo
-  (hoy «Otro» se guarda como Fondita y se pierde el dato). Con ese texto y su
-  menú, generar un recopilado semanal o mensual de altas nuevas para decidir qué
-  giros agregar. Jugos y fruta fue el primero en entrar (2026-10-25).
+- [x] «Otro» pide y guarda el giro escrito en el alta; regresión verificada
+  el 2026-10-26. Falta ejecutar/programar el recopilado periódico de nuevas altas;
+  consulta SQL de solo lectura preparada.
 - [x] Icono de Tacos: Alejandro ajustó el trazo (2026-10-26, fuente `PatioGiros6`)
   y Ayuda acredita «Icono de tacos: Freepik en Flaticon.» Conservar el crédito:
   el ajuste no cambia la licencia del original.
@@ -165,3 +194,10 @@ No iniciar EAS ni publicación automáticamente desde esta actualización docume
 
 Para cada pendiente cerrado, registrar dispositivo/versión, evidencia y fecha.
 No marcar aceptación móvil por pasar pruebas de componentes o exportar JavaScript.
+
+## 5. Al último: datos legales y publicación del aviso
+
+- [ ] Completar nombre legal, domicilio y dominio; finalizar aviso de privacidad
+  y publicar URLs HTTPS de privacidad, soporte y eliminación. Codex asume el
+  trabajo de preparación; no depende de coordinar otra sesión con Claude.
+  Soporte y borrado dentro de ambos perfiles ya existen; no reconstruirlos.

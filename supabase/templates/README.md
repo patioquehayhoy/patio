@@ -51,3 +51,11 @@ que **pegarlos a mano** en el dashboard de Supabase.
 ## Soporte
 
 Correo público de soporte: `quehayhoy.patio@gmail.com`.
+
+## Acceso por código (2026-10-26)
+
+`magic-link.html` y `confirm-signup.html` incluyen `{{ .Token }}` junto con
+el enlace. La app admite 6 dígitos mediante `verifyOtp({email, token, type: 'email'})`.
+Aplicar ambas plantillas y verificar OTP length = 6 en el proyecto correcto;
+probar cuenta nueva y existente. Los archivos locales no actualizan el panel.
+Estado de despliegue y revisión: `docs/REVIEWER_ACCESS_2026-10-26.md`.

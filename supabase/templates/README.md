@@ -55,7 +55,9 @@ Correo público de soporte: `quehayhoy.patio@gmail.com`.
 ## Acceso por código (2026-10-26)
 
 `magic-link.html` y `confirm-signup.html` incluyen `{{ .Token }}` junto con
-el enlace. La app admite 6 dígitos mediante `verifyOtp({email, token, type: 'email'})`.
-Aplicar ambas plantillas y verificar OTP length = 6 en el proyecto correcto;
+el enlace. La app admite 8 dígitos mediante `verifyOtp({email, token, type: 'email'})`.
+Aplicar ambas plantillas y conservar OTP length = 8 en el proyecto correcto;
 probar cuenta nueva y existente. Los archivos locales no actualizan el panel.
 Estado de despliegue y revisión: `docs/REVIEWER_ACCESS_2026-10-26.md`.
+
+Aplicadas ambas plantillas en producción tras restauración; entrega y verificación OTP reales aprobadas. El diseño remoto existente se conservó y se concilió en estos dos archivos. Ver actualización 2026-10-27 del documento de acceso.

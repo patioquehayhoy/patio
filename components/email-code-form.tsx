@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { AgentSpinner } from './agent-spinner';
-import { verifyEmailCode } from '@/lib/auth-email-code';
+import { EMAIL_CODE_LENGTH, verifyEmailCode } from '@/lib/auth-email-code';
 import { signedInDestination } from '@/lib/auth-destination';
 import { withSessionLock } from '@/lib/session-queue';
 import { noWidow } from '@/lib/typography';
@@ -29,7 +29,7 @@ export function EmailCodeForm({ email, role, onResend }: {
   }, [retryAt]);
 
   const verify = async () => {
-    if (pending.current || code.length !== 6) return;
+    if (pending.current || code.length !== EMAIL_CODE_LENGTH) return;
     pending.current = true;
     setBusy(true);
     setError('');
@@ -63,12 +63,12 @@ export function EmailCodeForm({ email, role, onResend }: {
   };
   return <View style={s.form}>
     <Text style={s.label}>{noWidow('Código del correo')}</Text>
-    <TextInput value={code} onChangeText={(value) => { setCode(value.replace(/\D/g, '').slice(0, 6)); setError(''); }}
+    <TextInput value={code} onChangeText={(value) => { setCode(value.replace(/\D/g, '').slice(0, EMAIL_CODE_LENGTH)); setError(''); }}
       style={s.input} keyboardType="number-pad" textContentType="oneTimeCode" autoComplete="one-time-code"
-      maxLength={6} editable={!busy} accessibilityLabel="Código de 6 dígitos" onSubmitEditing={verify} />
+      maxLength={EMAIL_CODE_LENGTH} editable={!busy} accessibilityLabel={`Código de ${EMAIL_CODE_LENGTH} dígitos`} onSubmitEditing={verify} />
     {error ? <Text accessibilityRole="alert" style={s.error}>{noWidow(error)}</Text> : null}
-    <TouchableOpacity onPress={verify} disabled={busy || code.length !== 6} accessibilityRole="button"
-      accessibilityState={{ disabled: busy || code.length !== 6, busy }} style={[s.button, (busy || code.length !== 6) && s.disabled]}>
+    <TouchableOpacity onPress={verify} disabled={busy || code.length !== EMAIL_CODE_LENGTH} accessibilityRole="button"
+      accessibilityState={{ disabled: busy || code.length !== EMAIL_CODE_LENGTH, busy }} style={[s.button, (busy || code.length !== EMAIL_CODE_LENGTH) && s.disabled]}>
       {busy ? <AgentSpinner variant="dots" size={18} color="#fff" /> : <Text style={s.buttonText}>Entrar</Text>}
     </TouchableOpacity>
     <TouchableOpacity onPress={resend} disabled={busy || remaining > 0} accessibilityRole="button"

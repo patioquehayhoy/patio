@@ -208,7 +208,7 @@ export default function FonderoAccesoScreen() {
               <Text style={s.title} allowFontScaling={true} lineBreakStrategyIOS="push-out" maxFontSizeMultiplier={1.4}>{noWidow('Revisa tu correo.')}</Text>
               <Text style={[s.sub, s.sentLead]} allowFontScaling={true} lineBreakStrategyIOS="push-out" maxFontSizeMultiplier={1.7}>{noWidow('Te mandamos un código y un enlace a')}</Text>
               <Text style={s.emailHi} allowFontScaling={true} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.4}>{email}</Text>
-              <Text style={s.sentHint} allowFontScaling={true} lineBreakStrategyIOS="push-out" maxFontSizeMultiplier={1.7}>{noWidow('El enlace dura 15 minutos. Revisa spam si no aparece.')}</Text>
+              <Text style={s.sentHint} allowFontScaling={true} lineBreakStrategyIOS="push-out" maxFontSizeMultiplier={1.7}>{noWidow('Revisa spam si el correo no aparece.')}</Text>
               <EmailCodeForm email={email} role="fondero" onResend={handleSend} />
               <TouchableOpacity
                 style={s.changeLink}

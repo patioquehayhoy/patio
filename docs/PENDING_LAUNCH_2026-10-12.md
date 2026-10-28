@@ -1,5 +1,34 @@
 # Pendientes y roadmap de lanzamiento — actualizado 2026-10-26
 
+> **Cierre vigente 2026-10-28:** Expo transferido a `patio-quehayhoy`, con UUID
+> y firmas conservados; acceso temporal Parco retirado. Auth usa 8 dígitos y
+> entrega/lectura IA real ya verificadas. `node-forge` actualizado a 1.4.2:
+> npm reporta 0 altas, 0 críticas y 16 bajas de la cadena deepmerge/Expo,
+> todavía sin parche publicado en deepmerge. No aplicar migración mayor forzada.
+> Firebase `patio-25a52` borrado, no restaurar. Supabase es el backend;
+> decisión sobre FCM/push Android en `FIREBASE_DECISION_2026-10-28.md`.
+> Los cortes anteriores se conservan como historial y no describen el estado actual.
+
+> **Referencia obligatoria de infraestructura — 2026-10-27:**
+> [inventario de credenciales comprobado](CREDENTIALS_INVENTORY_2026-10-27.md).
+> Play ya tiene Patio 8 (1.0.0) en prueba interna; hay firmas, EAS Submit,
+> certificado/perfil iOS y APNs existentes. No volver a crearlos ni sustituirlos.
+> Pendientes acotados: FCM V1 en Expo, conexión Maps/Firebase del candidato,
+> prueba cerrada Play (12 participantes/14 días, hoy 0 aceptados), QA y escritura GitHub.
+> El Firebase `patio-25a52` fue añadido por Codex en esta sesión, no es la
+> infraestructura histórica ni está conectado a Expo. No iniciar más altas/builds.
+
+
+> **Actualización 2026-10-27:** producción Supabase restaurada (ACTIVE_HEALTHY),
+> plantillas de alta/acceso aplicadas conservando el diseño remoto. Entrega de
+> correo, verificación OTP y una lectura IA real aprobadas con menú sintético.
+> El servidor usa **8 dígitos**; app ajustada a esa longitud, sin reducir Auth.
+> Google ya está en `quehayhoy.patio@gmail.com`: no requiere el cambio 2FA
+> de la cuenta personal. Firebase creado: `patio-25a52`, plan Spark, cuenta de Patio.
+> GitHub sigue pendiente de autenticar cuenta con escritura. Domicilio al final.
+> Los bloqueos descritos en el corte anterior se conservan solo como historial.
+
+
 ## Ejecución solicitada por Alejandro — 2026-10-26
 
 - Domicilio y cierre/publicación del aviso quedan **al final**, por petición del usuario.

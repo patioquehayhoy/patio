@@ -507,8 +507,8 @@ test('email code rejects malformed credentials before contacting Auth', async ()
   let calls = 0;
   const f = fixture({ auth: { verifyOtp: async () => { calls++; } } });
   const { verifyEmailCode } = f.load('lib/auth-email-code.ts');
-  for (const [email, code] of [['bad', '123456'], ['person@example.com', '12345'], ['person@example.com', '12a456']]) {
-    await assert.rejects(verifyEmailCode(email, code), /6 dígitos/);
+  for (const [email, code] of [['bad', '12345678'], ['person@example.com', '12345'], ['person@example.com', '123456'], ['person@example.com', '123456789'], ['person@example.com', '12a456']]) {
+    await assert.rejects(verifyEmailCode(email, code), /8 dígitos/);
   }
   assert.equal(calls, 0);
 });
@@ -521,8 +521,8 @@ test('valid email code normalizes email and activates the verified account', asy
     return { data: { session }, error: null };
   } } });
   const { verifyEmailCode } = f.load('lib/auth-email-code.ts');
-  assert.equal(await verifyEmailCode(' Person@Example.com ', '012345'), session);
-  assert.deepEqual(submitted, { email: 'person@example.com', token: '012345', type: 'email' });
+  assert.equal(await verifyEmailCode(' Person@Example.com ', '01234567'), session);
+  assert.deepEqual(submitted, { email: 'person@example.com', token: '01234567', type: 'email' });
   assert.equal(f.values.get('@patio_active_account'), userId);
 });
 
@@ -530,7 +530,7 @@ test('expired email code preserves the current account and its private work', as
   const f = fixture({ auth: { verifyOtp: async () => ({ data: { session: null }, error: { code: 'otp_expired' } }) } });
   await f.load('lib/account-storage.ts').activateLocalAccount(userId);
   f.values.set('@patio_menu_history', 'private draft');
-  await assert.rejects(f.load('lib/auth-email-code.ts').verifyEmailCode('person@example.com', '123456'), /verificar/);
+  await assert.rejects(f.load('lib/auth-email-code.ts').verifyEmailCode('person@example.com', '12345678'), /verificar/);
   assert.equal(f.values.get('@patio_active_account'), userId);
   assert.equal(f.values.get('@patio_menu_history'), 'private draft');
 });

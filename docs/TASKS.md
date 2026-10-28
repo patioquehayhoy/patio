@@ -1,5 +1,15 @@
 # TASKS — Cola de trabajo para agentes
 
+> **Referencia obligatoria de infraestructura — 2026-10-27:**
+> [inventario de credenciales comprobado](CREDENTIALS_INVENTORY_2026-10-27.md).
+> Play ya tiene Patio 8 (1.0.0) en prueba interna; hay firmas, EAS Submit,
+> certificado/perfil iOS y APNs existentes. No volver a crearlos ni sustituirlos.
+> Pendientes acotados: FCM V1 en Expo, conexión Maps/Firebase del candidato,
+> prueba cerrada Play (12 participantes/14 días, hoy 0 aceptados), QA y escritura GitHub.
+> El Firebase `patio-25a52` fue añadido por Codex en esta sesión, no es la
+> infraestructura histórica ni está conectado a Expo. No iniciar más altas/builds.
+
+
 > **Corte vigente — 2026-10-25:** conservar las últimas decisiones de Claude:
 > Ionicons + PatioGiros (taco 2A, elote, postres, botanas y jugos). Mapa: puntos sin números de lejos/medio e
 > iconos cerca; búsqueda conserva consulta y excluye no coincidentes.

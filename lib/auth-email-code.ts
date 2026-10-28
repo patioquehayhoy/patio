@@ -2,10 +2,12 @@ import { withLocalAccountTransition } from './account-storage';
 import { isValidEmail } from './auth-links';
 import { supabase } from './supabase';
 
+export const EMAIL_CODE_LENGTH = 8;
+
 export async function verifyEmailCode(email: string, token: string) {
   const normalizedEmail = email.trim().toLowerCase();
-  if (!isValidEmail(normalizedEmail) || !/^\d{6}$/.test(token)) {
-    throw new Error('Escribe el código de 6 dígitos que recibiste por correo.');
+  if (!isValidEmail(normalizedEmail) || !/^\d{8}$/.test(token)) {
+    throw new Error('Escribe el código de 8 dígitos que recibiste por correo.');
   }
   return withLocalAccountTransition(async (activate) => {
     const { data, error } = await supabase.auth.verifyOtp({ email: normalizedEmail, token, type: 'email' });

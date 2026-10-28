@@ -23,3 +23,12 @@ un procedimiento, no una promesa de vigilancia en segundo plano.
 Después de conectar la cuenta correcta, verificar lectura del buzón y preparar
 la primera revisión. La ejecución recurrente requiere configurar además un
 programador con acceso a esa cuenta y al origen de reportes.
+
+## Actualización 2026-10-27
+
+Buzón `quehayhoy.patio@gmail.com` accesible desde Chrome con la sesión Patio.
+Se comprobó recepción de un código de acceso. Esto habilita revisión manual
+en navegador; la integración Gmail y el programador diario siguen pendientes.
+Se observaron avisos de pausa de ambos proyectos Supabase; producción ya se
+restauró y staging continúa pausado. No se enviaron respuestas ni se eliminaron
+mensajes del buzón.

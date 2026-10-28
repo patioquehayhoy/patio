@@ -1,5 +1,23 @@
 # Ejecución de pendientes — 2026-10-26
 
+> **Cierre 2026-10-28:** Expo migrado a Patio conservando UUID y firmas;
+> `app.json.owner` sincronizado y Admin temporal retirado. GitHub CLI autenticado
+> como `patioquehayhoy`, permiso push confirmado. node-forge 1.4.2 corrige la
+> alerta alta; auditoría actual: 0 altas/críticas, 16 bajas de deepmerge/Expo.
+> `npm run check` pasó con 207 pruebas y 2 pendientes externos Android.
+> Firebase nuevo ya borrado; Supabase sigue como backend. No crear Firebase
+> hasta resolver explícitamente el alcance de FCM/push Android.
+
+> **Actualización 2026-10-27:** producción Supabase restaurada (ACTIVE_HEALTHY),
+> plantillas de alta/acceso aplicadas conservando el diseño remoto. Entrega de
+> correo, verificación OTP y una lectura IA real aprobadas con menú sintético.
+> El servidor usa **8 dígitos**; app ajustada a esa longitud, sin reducir Auth.
+> Google ya está en `quehayhoy.patio@gmail.com`: no requiere el cambio 2FA
+> de la cuenta personal. Firebase creado: `patio-25a52`, plan Spark, cuenta de Patio.
+> GitHub sigue pendiente de autenticar cuenta con escritura. Domicilio al final.
+> Los bloqueos descritos en el corte anterior se conservan solo como historial.
+
+
 Solicitud: concretar pendientes, asumir tareas de Claude y dejar domicilio al final.
 Rama preservada: `tipografia/monument-neue-montreal`. No se fusionó ni publicó.
 

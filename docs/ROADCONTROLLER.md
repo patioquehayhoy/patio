@@ -1,5 +1,23 @@
 # ROADCONTROLLER — Patio
 
+> **Auditoría de credenciales, 2026-10-27:** antes de proponer cuentas, proyectos,
+> claves o builds, consultar [inventario verificado](CREDENTIALS_INVENTORY_2026-10-27.md).
+> Ya existen firma Android/EAS Submit, Google Play interno 8, firma iOS, APNs y
+> builds anteriores. Cuenta Patio accede a Play y patio-eas. FCM V1 de Expo vacío;
+> Maps no configurado en los proyectos revisados; prueba cerrada Play pendiente.
+> Auditoría de lectura sin builds/cargos/rotaciones. No recrear infraestructura.
+
+
+> **Actualización 2026-10-27:** producción Supabase restaurada (ACTIVE_HEALTHY),
+> plantillas de alta/acceso aplicadas conservando el diseño remoto. Entrega de
+> correo, verificación OTP y una lectura IA real aprobadas con menú sintético.
+> El servidor usa **8 dígitos**; app ajustada a esa longitud, sin reducir Auth.
+> Google ya está en `quehayhoy.patio@gmail.com`: no requiere el cambio 2FA
+> de la cuenta personal. Firebase creado: `patio-25a52`, plan Spark, cuenta de Patio.
+> GitHub sigue pendiente de autenticar cuenta con escritura. Domicilio al final.
+> Los bloqueos descritos en el corte anterior se conservan solo como historial.
+
+
 > **Ejecución 2026-10-26, Codex:** código de acceso implementado en ambos roles,
 > plantillas locales preparadas; catálogo de planes y checkout/restauración
 > RevenueCat preparados, cobro apagado hasta conectar tiendas/entitlements/cuotas.

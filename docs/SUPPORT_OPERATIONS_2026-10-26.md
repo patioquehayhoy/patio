@@ -1,5 +1,15 @@
 # Soporte de Patio — rutina preparada
 
+## Revisión manual 2026-10-28
+
+Buzón Patio accesible y primera revisión realizada. Detectado aviso de fallo
+de GitHub Actions para `d4fc846`: exportación falla por ausencia de las fuentes
+de prueba ignoradas por Git. Repositorio público; no publicar esos archivos
+como arreglo automático. TypeScript/lint y pruebas del workflow previas a la
+exportación pasaron. No se enviaron respuestas ni se borraron mensajes.
+Gmail plugin sigue sin instalar según consulta de integraciones; conexión
+solicitada al usuario. No hay revisión recurrente activa.
+
 Cuenta: `quehayhoy.patio@gmail.com`. Responsable: Alejandro.
 Codex prepara clasificación y borradores; no enviar respuestas sin instrucción.
 

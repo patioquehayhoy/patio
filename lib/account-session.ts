@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { withLocalAccountTransition } from './account-storage';
 import { clearDeletedAccountSession, supabase } from './supabase';
 import { withSessionLock } from './session-queue';
+import { detachPushDevice } from './push-device-session';
 
 export async function signOutAccount(): Promise<void> {
   return withSessionLock(() => withLocalAccountTransition(async (activate) => {
@@ -9,6 +10,7 @@ export async function signOutAccount(): Promise<void> {
     const { data, error: sessionError } = await supabase.auth.getSession();
     if (sessionError) throw sessionError;
     if (data.session) await activate(data.session.user.id);
+    if (data.session) await detachPushDevice(data.session.user.id);
     const { error } = await supabase.auth.signOut({ scope: 'local' });
     if (error) throw error;
     await activate(null);

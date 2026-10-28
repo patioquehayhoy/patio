@@ -45,6 +45,41 @@ function fixture(supabase = {}) {
 const userId = 'a992e8c0-290e-4e17-a65f-bfd89d6e849c';
 const targetId = 'b992e8c0-290e-4e17-a65f-bfd89d6e849c';
 
+test('logout removes only this installation push token before ending Auth', async () => {
+  const events = [];
+  const filters = [];
+  const query = { eq(key, value) { filters.push([key, value]); return this; },
+    then(resolve) { events.push('detach'); return Promise.resolve({ error: null }).then(resolve); } };
+  const f = fixture({
+    from(table) { assert.equal(table, 'push_devices'); return { delete: () => query }; },
+    auth: {
+      getSession: async () => ({ data: { session: { user: { id: userId } } } }),
+      signOut: async () => { events.push('signOut'); return { error: null }; },
+    },
+  });
+  await f.load('lib/push-device-session.ts').rememberPushDevice('ExponentPushToken[installation]');
+  await f.load('lib/account-session.ts').signOutAccount();
+  assert.deepEqual(events, ['detach', 'signOut']);
+  assert.deepEqual(filters, [['user_id', userId], ['expo_push_token', 'ExponentPushToken[installation]']]);
+  assert.equal(f.values.has('@patio_push_device_token'), false);
+});
+
+test('failed push detachment preserves Auth and token for a safe logout retry', async () => {
+  let signedOut = false;
+  const query = { eq() { return this; }, then(resolve) { return Promise.resolve({ error: new Error('Offline') }).then(resolve); } };
+  const f = fixture({
+    from: () => ({ delete: () => query }),
+    auth: {
+      getSession: async () => ({ data: { session: { user: { id: userId } } } }),
+      signOut: async () => { signedOut = true; return { error: null }; },
+    },
+  });
+  await f.load('lib/push-device-session.ts').rememberPushDevice('ExponentPushToken[installation]');
+  await assert.rejects(f.load('lib/account-session.ts').signOutAccount(), /desconectar los avisos/);
+  assert.equal(signedOut, false);
+  assert.equal(f.values.get('@patio_push_device_token'), 'ExponentPushToken[installation]');
+});
+
 test('closing and reopening an account isolates and restores its unsynced library', async () => {
   const f = fixture();
   const scope = f.load('lib/account-storage.ts');

@@ -10,6 +10,16 @@ su archivo descargado para configurar Patio.
 
 ## Diferencia pendiente de decisión: push Android
 
+Actualización: el usuario pidió completar push remoto y el candidato Android.
+Se preparó agregar FCM al Google Cloud histórico `patio-eas`, sin duplicar
+Supabase. La revisión automática exige confirmación explícita de ese enlace
+por la instrucción previa de retirar Firebase; pregunta pendiente en el chat.
+No se agregó Firebase a `patio-eas` ni se crearon claves nuevas.
+
+El usuario respondió afirmativamente al alcance FCM, pero simultáneamente
+volvió a cuestionar la insistencia en Google/FCM. Se detuvo la configuración
+externa para no avanzar con esa objeción sin resolver. No activar servicios.
+
 Expo utiliza FCM para entregar push a Android, incluso cuando el emisor es una
 función Supabase. Eliminar FCM implica posponer esa capacidad. No confundir
 Supabase Realtime con entrega push cuando la aplicación está cerrada.

@@ -2,6 +2,8 @@ import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 
 import { supabase } from '@/lib/supabase';
+import { rememberPushDevice } from './push-device-session';
+import { withSessionLock } from './session-queue';
 
 type NotificationsModule = typeof import('expo-notifications');
 
@@ -68,6 +70,10 @@ export async function getSystemNotificationStatus(): Promise<'granted' | 'denied
  * never from saving a Patio or during app launch.
  */
 export async function registerCurrentDeviceForPush(): Promise<boolean> {
+  return withSessionLock(registerPushDevice);
+}
+
+async function registerPushDevice(): Promise<boolean> {
   const userId = await currentUserId();
   const Notifications = notificationsModule();
   if (!Notifications || Platform.OS === 'web') return false;
@@ -77,6 +83,8 @@ export async function registerCurrentDeviceForPush(): Promise<boolean> {
   const projectId = Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId;
   if (!projectId) throw new Error('Falta extra.eas.projectId para registrar push.');
   const token = await Notifications.getExpoPushTokenAsync({ projectId });
+  // Persist before the write so even a lost response can be cleaned up on logout.
+  await rememberPushDevice(token.data);
 
   const { error } = await supabase.from('push_devices').upsert(
     {

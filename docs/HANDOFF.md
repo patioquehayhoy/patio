@@ -1,5 +1,9 @@
 # HANDOFF
 
+> **Cierre 2026-10-29:** avisos push de reseña (al dueño) y reporte (a soporte)
+> activos en producción; migraciones al día. Mañana: cobro, Grok como revisor,
+> aviso de privacidad. Ver [heads-up](HEADS_UP_2026-10-12.md#cierre-del-2026-10-29-madrugada--para-retomar-mañana).
+
 > **UI y producto, 2026-10-28 noche (Claude, `2b0242d`):** manifiesto, Ayuda,
 > Planes, Notificaciones, Cuentas bloqueadas, Café y reseñas por giro;
 > 210 pruebas aprobadas. Migraciones de notificaciones y perfiles públicos

@@ -49,9 +49,12 @@
 > - [ ] Jev: misma cuenta Foodie/negocio y qué gana un negocio del lado Foodie.
 > - [ ] Filtro de lista Mapa/Guardados: compartido o separado.
 >
-> *Mañana (2026-10-29)*
+> *Siguiente sesión*
+> - [ ] Cobro: decidir RevenueCat, tiendas directas o Stripe web (recomendación:
+>   lanzar gratis y cobrar en una actualización).
 > - [ ] Grok como agente auxiliar: solo revisión e investigación, sin escribir en
 >   el repo, para no repetir el choque con Codex.
+> - [ ] Redactar aviso de privacidad y condiciones (solo falta el domicilio).
 
 > **Referencia obligatoria de infraestructura — 2026-10-27:**
 > [inventario de credenciales comprobado](CREDENTIALS_INVENTORY_2026-10-27.md).

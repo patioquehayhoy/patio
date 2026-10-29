@@ -11,6 +11,16 @@ export type NotificationPreferences = {
   patioPublications: boolean;
   businessActivity: boolean;
   productUpdates: boolean;
+  specialNotices: boolean;
+  newPlaces: boolean;
+};
+
+const PREFERENCE_COLUMNS: Record<keyof NotificationPreferences, string> = {
+  patioPublications: 'patio_publications',
+  businessActivity: 'business_activity',
+  productUpdates: 'product_updates',
+  specialNotices: 'special_notices',
+  newPlaces: 'new_places',
 };
 
 export class CommunitySignInRequiredError extends Error {
@@ -104,7 +114,8 @@ export async function getRemoteNotificationPreferences(): Promise<NotificationPr
   const userId = await currentUserId();
   const { data, error } = await supabase
     .from('notification_preferences')
-    .select('patio_publications,business_activity,product_updates')
+    // `*`: las columnas nuevas pueden faltar mientras su migración no corre.
+    .select('*')
     .eq('user_id', userId)
     .maybeSingle();
   if (error) throw error;
@@ -112,6 +123,8 @@ export async function getRemoteNotificationPreferences(): Promise<NotificationPr
     patioPublications: data?.patio_publications ?? false,
     businessActivity: data?.business_activity ?? true,
     productUpdates: data?.product_updates ?? false,
+    specialNotices: data?.special_notices ?? false,
+    newPlaces: data?.new_places ?? false,
   };
 }
 
@@ -123,9 +136,9 @@ export async function updateRemoteNotificationPreferences(
     user_id: userId,
     updated_at: new Date().toISOString(),
   };
-  if (patch.patioPublications !== undefined) payload.patio_publications = patch.patioPublications;
-  if (patch.businessActivity !== undefined) payload.business_activity = patch.businessActivity;
-  if (patch.productUpdates !== undefined) payload.product_updates = patch.productUpdates;
+  for (const [key, value] of Object.entries(patch) as [keyof NotificationPreferences, boolean | undefined][]) {
+    if (value !== undefined) payload[PREFERENCE_COLUMNS[key]] = value;
+  }
   const { error } = await supabase.from('notification_preferences').upsert(payload, { onConflict: 'user_id' });
   if (error) throw error;
   if (Object.values(patch).some(Boolean)) await registerCurrentDeviceForPush().catch(() => false);

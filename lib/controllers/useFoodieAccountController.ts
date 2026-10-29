@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import { useCallback, useState } from 'react';
 
 import { Alert } from 'react-native';
-import { saveUserRole } from '@/lib/entry-flow';
+import { completeOnboarding, saveUserRole } from '@/lib/entry-flow';
 import { signOutAccount } from '@/lib/account-session';
 import { noWidow } from '@/lib/typography';
 import { getFoodieStats, type FoodieStats } from '@/lib/stats';
@@ -36,9 +36,13 @@ export function useFoodieAccountController() {
     router.replace('/historial');
   }, []);
 
+  // Con sesión abierta no se pide el correo otra vez: la misma cuenta pasa
+  // directo a dar de alta su negocio.
   const handleFonderoAccess = useCallback(async () => {
     await saveUserRole('fondero').catch(() => {});
-    router.push('/fondero-acceso');
+    const { data } = await supabase.auth.getSession().catch(() => ({ data: { session: null } }));
+    if (!data.session) { router.push('/fondero-acceso'); return; }
+    router.replace(await completeOnboarding('fondero'));
   }, []);
 
   return {

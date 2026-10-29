@@ -9,7 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { fetchFonditaById, getPatioById, type Patio } from '@/lib/patios';
 import { publicPrice } from '@/lib/prices';
 import { savePatioRating } from '@/lib/ratings';
-import { REVIEW_TAGS as TAGS } from '@/lib/review-tags';
+import { reviewTags } from '@/lib/review-tags';
 import { useTheme, type Theme, Type } from '@/lib/theme';
 import { supabase } from '@/lib/supabase';
 import { noWidow } from '@/lib/typography';
@@ -17,12 +17,11 @@ import { noWidow } from '@/lib/typography';
 function makeStyles(t: Theme) {
   return StyleSheet.create({
     root: { flex: 1, backgroundColor: t.bg },
-    nav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingRight: 20, height: 44 },
-    navBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: t.isDark ? 'rgba(255,255,255,0.08)' : 'rgba(17,18,20,0.05)', alignItems: 'center', justifyContent: 'center' },
+    nav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, height: 52 },
+    navBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
     navHint: { fontSize: 14, fontWeight: '400', color: t.textSecondary },
 
     content: { paddingHorizontal: 22, paddingTop: 8, paddingBottom: 140 },
-    eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase', color: t.accent, marginBottom: 6 },
     title: { ...Type.title, color: t.text, marginBottom: 4 },
     subtitle: { fontSize: 13, fontWeight: '400', color: t.textSecondary, marginBottom: 22 },
 
@@ -78,7 +77,11 @@ export default function ResenaScreen() {
     fetchFonditaById(cleanId).then((found) => { if (found) setPatio(found); });
   }, [cleanId]);
 
+  const { label: tagLabel, tags: TAGS } = reviewTags(patio?.categories ?? [], stars);
+
   const pressStar = (n: number) => {
+    // Cruzar de «destacó» a «faltó» cambia las etiquetas: lo elegido ya no aplica.
+    if ((n <= 3) !== (stars <= 3)) setSelected([]);
     setStars(n);
     // Pulso de las estrellas activas, escalonado (como Figma).
     [1, 2, 3, 4, 5].forEach((i) => {
@@ -134,14 +137,13 @@ export default function ResenaScreen() {
       <View style={{ paddingTop: insets.top + 8 }}>
         <View style={s.nav}>
           <TouchableOpacity style={s.navBtn} onPress={() => router.back()} activeOpacity={0.7} accessibilityRole="button" accessibilityLabel="Regresar">
-            <Ionicons name="chevron-back" size={20} color={theme.text} />
+            <Ionicons name="chevron-back" size={21} color={theme.text} />
           </TouchableOpacity>
           <Text style={s.navHint} />
         </View>
       </View>
 
       <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-        <Text style={s.eyebrow} allowFontScaling={true}>{noWidow('Tu visita · hoy')}</Text>
         <Text style={s.title} allowFontScaling={true}>{noWidow(`¿Cómo estuvo ${patio?.name ?? 'tu visita'}?`)}</Text>
         {!!subtitle && <Text style={s.subtitle} allowFontScaling={true}>{subtitle}</Text>}
 
@@ -158,7 +160,7 @@ export default function ResenaScreen() {
           })}
         </View>
 
-        <Text style={s.sectionLabel} allowFontScaling={true}>{noWidow('¿Qué destacó?')}</Text>
+        <Text style={s.sectionLabel} allowFontScaling={true}>{noWidow(tagLabel)}</Text>
         <View style={s.tagsWrap}>
           {TAGS.map((t) => {
             const on = selected.includes(t);
@@ -196,7 +198,7 @@ export default function ResenaScreen() {
       </ScrollView>
 
       <View style={[s.ctaWrap, { paddingBottom: insets.bottom + 20 }]}>
-        <LinearGradient colors={['rgba(248,248,245,0)', theme.bg]} style={s.ctaFade} pointerEvents="none" />
+        <LinearGradient colors={[`${theme.bg}00`, theme.bg]} style={s.ctaFade} pointerEvents="none" />
         <TouchableOpacity style={[s.cta, (stars === 0 || saving) && s.ctaDisabled]} onPress={submit} disabled={stars === 0 || saving} activeOpacity={0.86} accessibilityRole="button" accessibilityState={{ disabled: stars === 0 || saving, busy: saving }} accessibilityLabel={saving ? 'Publicando reseña' : 'Publicar reseña'}>
           <Text style={s.ctaText} allowFontScaling={true}>{saving ? 'Publicando…' : 'Publicar reseña'}</Text>
         </TouchableOpacity>

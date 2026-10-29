@@ -251,7 +251,7 @@ export const MOCK_PATIOS: Patio[] = [
 // Único origen de verdad — los datos demo/densidad (lib/demo.ts) deben usar
 // exactamente estas etiquetas, nunca inventar otras, o los chips de categoría
 // del mapa se contaminan.
-export const PATIO_CATEGORIES = ['Fondita', 'Taquería', 'Antojitos', 'Elotes', 'Botanas', 'Postres', 'Cafetería', 'Mariscos', 'Bebidas', 'Jugos y fruta', 'Restaurante'];
+export const PATIO_CATEGORIES = ['Fondita', 'Taquería', 'Antojitos', 'Elotes', 'Botanas', 'Postres', 'Café', 'Mariscos', 'Bebidas', 'Jugos y fruta', 'Restaurante'];
 
 // Fallback para filas de Supabase que todavía no tienen `categorias` (text[])
 // poblado: deriva etiquetas atómicas desde el `tipo_negocio` legacy (single
@@ -269,7 +269,7 @@ function tipoLabels(tipo: string | null): string[] {
     botanas: ['Botanas'],
     bebidas: ['Bebidas'],
     jugos: ['Jugos y fruta'],
-    cafeteria: ['Cafetería'],
+    cafeteria: ['Café'],
     restaurante: ['Restaurante'],
     otro: ['Otro'],
   };
@@ -279,7 +279,7 @@ function tipoLabels(tipo: string | null): string[] {
 // Combina la columna nueva `categorias` (si ya trae datos) con el fallback
 // derivado de `tipo_negocio`, para no romper filas que aún no se migraron.
 // Etiquetas viejas guardadas en Supabase que hoy se muestran con otro nombre.
-const LEGACY_CATEGORY_LABELS: Record<string, string> = { 'Repostería': 'Postres' };
+const LEGACY_CATEGORY_LABELS: Record<string, string> = { 'Repostería': 'Postres', 'Cafetería': 'Café' };
 
 function categoriasFromRow(categorias: unknown, tipoNegocio: string | null): string[] {
   const fromColumn = Array.isArray(categorias) ? categorias.filter((c): c is string => typeof c === 'string' && c.length > 0) : [];

@@ -1,5 +1,12 @@
 # HANDOFF
 
+> **UI y producto, 2026-10-28 noche (Claude, sin commit):** manifiesto, Ayuda,
+> Planes, Notificaciones, Cuentas bloqueadas, Café y reseñas por giro cambiados
+> en local; 210 pruebas aprobadas. Dos migraciones aprobadas por Alejandro y
+> pendientes de su Run en el editor SQL. Detalle en
+> [heads-up](HEADS_UP_2026-10-12.md) y [pendientes](PENDING_LAUNCH_2026-10-12.md);
+> mapa de usuarios en [USER_TYPES](USER_TYPES.md).
+
 > **Expo Patio, 2026-10-28:** onboarding terminado, usuario `patiomx` y
 > organización `patio-quehayhoy` con correo Patio; Owner comprobado.
 > No se creó otro proyecto EAS. Transferencia aún pendiente: invitación temporal

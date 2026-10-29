@@ -9,6 +9,26 @@
 > decisión sobre FCM/push Android en `FIREBASE_DECISION_2026-10-28.md`.
 > Los cortes anteriores se conservan como historial y no describen el estado actual.
 
+> **Pendientes de producto — 2026-10-28 (sesión con Alejandro, actualizado noche):**
+> - [ ] Aplicar en producción `20261028120000_notification_categories.sql` y
+>   `20261028130000_public_profiles.sql` (aprobadas; Alejandro da Run en el
+>   editor SQL) y marcarlas con `migration repair --status applied`.
+> - [ ] Envío real de notificaciones: hoy el servidor solo manda «Menú de hoy».
+>   Promociones, Lugares nuevos, Novedades y Reseñas nuevas solo se guardan.
+> - [ ] Promociones del plan Pro: panel/flyer para avisar «acabamos de abrir» o
+>   una promoción a quien guardó el lugar. Nunca se desarrolló.
+> - [ ] Reportes: se guardan en `content_reports`, sin aviso ni panel. Propuesta:
+>   correo a soporte por cada reporte nuevo. Requisito de tiendas.
+> - [ ] Onboardings nuevos: siguiente ronda completa (referentes → propuesta → construir).
+> - [ ] Decidir con Jev: misma cuenta Foodie/negocio y qué gana un negocio del
+>   lado Foodie. Ver [tipos de usuario](USER_TYPES.md).
+> - [ ] QA física de los cambios locales del 28 (manifiesto en iPhone chico,
+>   Ayuda, Planes, Notificaciones, reseña por giro).
+> - [x] Privacidad → modelo Instagram: perfil público, solo «Cuentas bloqueadas».
+> - [x] Planes por rol; Café; etiquetas de reseña por giro; mapa de usuarios.
+> - Decisión vigente: filtro de lista compartido entre Mapa y Guardados (2026-08-20);
+>   Alejandro preguntó si separarlo; queda compartido hasta que confirme.
+
 > **Referencia obligatoria de infraestructura — 2026-10-27:**
 > [inventario de credenciales comprobado](CREDENTIALS_INVENTORY_2026-10-27.md).
 > Play ya tiene Patio 8 (1.0.0) en prueba interna; hay firmas, EAS Submit,

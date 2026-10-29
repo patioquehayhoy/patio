@@ -52,7 +52,7 @@ export function ContentSafetyMenu({ targetType, targetId, authorId, onBlocked }:
       ] : [
         { label: 'Reportar contenido', icon: 'flag-outline', onPress: () => setMenu('reasons') },
         ...(authorId ? [{ label: 'Bloquear cuenta', icon: 'ban-outline' as const, onPress: () => Alert.alert(
-          noWidow('¿Bloquear esta cuenta?'), noWidow('Dejarás de ver su perfil, reseñas y colecciones. Puedes desbloquearla desde Privacidad.'),
+          noWidow('¿Bloquear esta cuenta?'), noWidow('Dejarás de ver su perfil, reseñas y colecciones. Puedes desbloquearla en Perfil → Cuentas bloqueadas.'),
           [{ text: 'Cancelar', style: 'cancel' as const }, { text: 'Bloquear', style: 'destructive' as const, onPress: () => void run(() => blockUser(authorId), () => { onBlocked?.(); }) }],
         ) }] : []),
       ]} />

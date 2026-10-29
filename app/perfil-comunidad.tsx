@@ -21,7 +21,6 @@ export default function CommunityProfileScreen() {
   const [lastName, setLastName] = useState('');
   const [busy, setBusy] = useState(false);
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
-  const [visibility, setVisibility] = useState<'private' | 'public'>('private');
   const [handle, setHandle] = useState('');
   const [bio, setBio] = useState('');
 
@@ -30,8 +29,7 @@ export default function CommunityProfileScreen() {
       setFirstName(data.user?.user_metadata?.first_name ?? '');
       setLastName(data.user?.user_metadata?.last_name ?? '');
       setAvatarUri(data.user?.user_metadata?.avatar_url ?? null);
-      if (data.user) supabase.from('user_profiles').select('visibility,handle,bio').eq('user_id', data.user.id).maybeSingle().then(({ data: profile }) => {
-        setVisibility(profile?.visibility === 'public' ? 'public' : 'private');
+      if (data.user) supabase.from('user_profiles').select('handle,bio').eq('user_id', data.user.id).maybeSingle().then(({ data: profile }) => {
         setHandle(profile?.handle ?? '');
         setBio(profile?.bio ?? '');
       });
@@ -78,7 +76,8 @@ export default function CommunityProfileScreen() {
         display_name: `${firstName.trim()} ${lastName.trim().charAt(0)}.`,
         setup_completed: true,
         avatar_url: avatarUrl,
-        visibility,
+        // Perfiles públicos, como Instagram: cada lista decide aparte quién la ve.
+        visibility: 'public',
         handle: handle.trim().toLowerCase() || null,
         bio: bio.trim() || null,
       };

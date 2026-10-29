@@ -16,6 +16,7 @@ Antes de cualquier cambio de UI, copy o flujo, leer los siguientes documentos en
 5. `docs/design/foundations/ESSENTIAL_DESIGN_PRINCIPLES.md` — biblia de diseño (WWDC17 Mike Stern): 12 principios + filosofía humano-no-usuario
 6. `docs/HANDOFF.md` — estado actual y decisiones recientes
 7. `docs/STATE.md` — estado de features y flujos
+8. `docs/USER_TYPES.md` — tipos de usuario: qué viene a hacer cada uno, qué paga y qué nunca ve
 
 **Reglas de marca no negociables:**
 - `"Saaaaaaabes."` es el tagline oficial de Patio — no modificar, no parafrasear, no "mejorar"

@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { Alert, Linking, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Alert, Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { SettingsGroup, SettingsRow, settingsColors } from '@/components/settings-list';
@@ -27,11 +27,14 @@ export default function AvisosScreen() {
   const sc = settingsColors(theme);
   const [system, setSystem] = useState<'granted' | 'denied' | 'undetermined' | 'unavailable'>('undetermined');
   const [signedIn, setSignedIn] = useState(true);
+  const [preview, setPreview] = useState(false);
   const [updating, setUpdating] = useState<keyof NotificationPreferences | 'reminder' | null>(null);
   const [remote, setRemote] = useState<NotificationPreferences>({
     patioPublications: false,
     businessActivity: true,
     productUpdates: false,
+    specialNotices: false,
+    newPlaces: false,
   });
 
   useFocusEffect(useCallback(() => {
@@ -48,7 +51,11 @@ export default function AvisosScreen() {
         }
       })
       .catch((error) => {
-        if (active && error instanceof CommunitySignInRequiredError) setSignedIn(false);
+        if (!active || !(error instanceof CommunitySignInRequiredError)) return;
+        // En desarrollo, sin cuenta se ve la pantalla como con cuenta; los
+        // cambios se quedan en memoria y no tocan el servidor.
+        if (__DEV__) setPreview(true);
+        else setSignedIn(false);
       });
     return () => { active = false; };
   }, []));
@@ -57,6 +64,7 @@ export default function AvisosScreen() {
     const key = Object.keys(patch)[0] as keyof NotificationPreferences;
     const previous = remote;
     setRemote((current) => ({ ...current, ...patch }));
+    if (preview) return;
     setUpdating(key);
     try {
       const next = await updateRemoteNotificationPreferences(patch);
@@ -78,52 +86,54 @@ export default function AvisosScreen() {
     }
   };
 
-  const systemLabel = system === 'granted'
-    ? 'Permitidos en este dispositivo'
-    : system === 'denied'
-      ? 'Desactivados en los ajustes del dispositivo'
-      : system === 'unavailable'
-        ? 'Disponibles en la app instalada'
-        : 'Se pedirán cuando actives un aviso';
+  const systemLabel = 'Tu teléfono bloqueó las notificaciones de Patio';
+  const toggle = (key: keyof NotificationPreferences, label: string) => (
+    <ToggleSwitch value={remote[key]} disabled={updating === key} accessibilityLabel={label} onValueChange={(value) => updateRemote({ [key]: value })} />
+  );
 
   return (
     <View style={[s.root, { backgroundColor: theme.bg, paddingTop: insets.top }]}>
       <Stack.Screen options={{ headerShown: false }} />
-      <View style={s.header}>
+      <View style={s.nav}>
         <TouchableOpacity style={s.back} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Volver">
           <Ionicons name="chevron-back" size={21} color={theme.text} />
         </TouchableOpacity>
+        <Text accessibilityRole="header" style={[s.navTitle, { color: theme.text }]}>Notificaciones</Text>
+        <View style={s.back} />
       </View>
 
       <ScrollView contentContainerStyle={[s.content, { paddingBottom: insets.bottom + 34 }]} showsVerticalScrollIndicator={false}>
-        <SettingsGroup c={sc} label={fondero ? 'Tu negocio' : 'Tus guardados'}>
-          {fondero ? (
-            <SettingsRow
-              c={sc}
-              icon="chatbubble-ellipses-outline"
-              title="Actividad importante"
-              sub="Reseñas y actividad de tu Patio"
-              trailing={<ToggleSwitch value={signedIn && remote.businessActivity} disabled={updating === 'businessActivity'} accessibilityLabel="Actividad importante" onValueChange={(value) => signedIn ? updateRemote({ businessActivity: value }) : router.push('/fondero-acceso')} />}
-            />
-          ) : (
-            <SettingsRow
-              c={sc}
-              icon="document-text-outline"
-              title="Menús nuevos"
-              sub="Cuando un lugar que guardaste publica"
-              trailing={<ToggleSwitch value={signedIn && remote.patioPublications} disabled={updating === 'patioPublications'} accessibilityLabel="Menús nuevos" onValueChange={(value) => signedIn ? updateRemote({ patioPublications: value }) : router.push({ pathname: '/comunidad-acceso', params: { returnTo: '/avisos' } })} />}
-            />
-          )}
-        </SettingsGroup>
+        {system === 'denied' && <SettingsGroup c={sc}>
+          <SettingsRow c={sc} icon="settings-outline" title="Activar en Ajustes" sub={systemLabel} onPress={() => Linking.openSettings()} />
+        </SettingsGroup>}
 
-        {system === 'denied' && <SettingsGroup c={sc} label="Este dispositivo">
-          <SettingsRow
-            c={sc}
-            icon="settings-outline"
-            title="Activar en Ajustes"
-            sub={systemLabel}
-            onPress={() => Linking.openSettings()}
-          />
+        {!signedIn ? (
+          // Sin cuenta no hay a quién avisar: en vez de interruptores muertos, la entrada.
+          <SettingsGroup c={sc}>
+            <SettingsRow
+              c={sc}
+              icon="notifications-outline"
+              title="Elige qué recibir"
+              sub="Entra a tu cuenta para recibir notificaciones de tus lugares"
+              onPress={() => fondero ? router.push('/fondero-acceso') : router.push({ pathname: '/comunidad-acceso', params: { returnTo: '/avisos' } })}
+            />
+          </SettingsGroup>
+        ) : fondero ? (
+          <SettingsGroup c={sc} label="Tu negocio">
+            <SettingsRow c={sc} icon="chatbubble-ellipses-outline" title="Reseñas nuevas" sub="Cuando alguien opina sobre tu Patio" trailing={toggle('businessActivity', 'Reseñas nuevas')} />
+          </SettingsGroup>
+        ) : <>
+          <SettingsGroup c={sc} label="Tus lugares">
+            <SettingsRow c={sc} icon="document-text-outline" title="Menú de hoy" sub="Cuando un lugar que guardaste publica" trailing={toggle('patioPublications', 'Menú de hoy')} />
+            <SettingsRow c={sc} icon="megaphone-outline" title="Promociones" sub="Avisos especiales de tus lugares" divider trailing={toggle('specialNotices', 'Promociones')} />
+          </SettingsGroup>
+          <SettingsGroup c={sc} label="Cerca de ti">
+            <SettingsRow c={sc} icon="storefront-outline" title="Lugares nuevos" sub="Cuando abre un lugar cerca" trailing={toggle('newPlaces', 'Lugares nuevos')} />
+          </SettingsGroup>
+        </>}
+
+        {signedIn && <SettingsGroup c={sc} label="Patio">
+          <SettingsRow c={sc} icon="sparkles-outline" title="Novedades de Patio" sub="Funciones nuevas, de vez en cuando" trailing={toggle('productUpdates', 'Novedades de Patio')} />
         </SettingsGroup>}
       </ScrollView>
     </View>
@@ -132,7 +142,8 @@ export default function AvisosScreen() {
 
 const s = StyleSheet.create({
   root: { flex: 1 },
-  header: { paddingHorizontal: 22, paddingTop: 4 },
-  back: { width: 44, height: 44, marginLeft: -11, marginBottom: 8, alignItems: 'center', justifyContent: 'center' },
-  content: { paddingHorizontal: 18, paddingTop: 18 },
+  nav: { height: 52, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  back: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  navTitle: { fontSize: 15, fontWeight: '600' },
+  content: { paddingHorizontal: 18, paddingTop: 16 },
 });

@@ -36,7 +36,7 @@ export default function CuentaScreen() {
   const sc = settingsColors(theme);
   const insets = useSafeAreaInsets();
   const { onScroll } = useTabBarScroll();
-  const { handleDevFondero, handleFonderoAccess, handleSignOut, hasSession } = useFoodieAccountController();
+  const { handleSignOut, hasSession } = useFoodieAccountController();
   const [userId, setUserId] = useState<string | null>(null);
   useEffect(() => { supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id ?? null)).catch(() => {}); }, []);
 
@@ -51,48 +51,32 @@ export default function CuentaScreen() {
           <SettingsGroup c={sc} label="Perfil">
             <SettingsRow c={sc} icon="person-outline" title={hasSession ? 'Editar perfil' : 'Iniciar sesión'} sub={hasSession ? 'Nombre, foto y descripción' : 'Sincroniza listas y reseñas'} onPress={() => router.push(hasSession ? '/perfil-comunidad' : '/comunidad-acceso')} />
             {userId && <SettingsRow c={sc} icon="at-outline" title="Ver perfil público" divider onPress={() => router.push({ pathname: '/foodie/[id]', params: { id: userId } })} />}
-            {userId && <SettingsRow c={sc} icon="heart-outline" title="Notificaciones" sub="Cuando alguien le da like a tu reseña" divider onPress={() => router.push('/notificaciones')} />}
           </SettingsGroup>
 
           <SettingsGroup c={sc} label="Preferencias">
+            {/* Una sola entrada, como Instagram: la actividad y, desde ahí, qué recibir. */}
             <SettingsRow
               c={sc}
               icon="notifications-outline"
-              title="Avisos"
-              sub="Menús nuevos"
-              onPress={() => router.push({ pathname: '/avisos', params: { role: 'foodie' } })}
+              title="Notificaciones"
+              sub={userId ? 'Tu actividad y qué recibir' : 'Elige qué recibir'}
+              onPress={() => userId ? router.push('/notificaciones') : router.push({ pathname: '/avisos', params: { role: 'foodie' } })}
             />
-            <SettingsRow c={sc} icon="lock-closed-outline" title="Privacidad" divider onPress={() => router.push('/privacidad')} />
-            <SettingsRow c={sc} icon="rocket-outline" title="Plan" sub="Patio Gratis" divider onPress={() => router.push({ pathname: '/plan', params: { role: 'foodie' } })} />
+            <SettingsRow c={sc} icon="rocket-outline" title="Plan" sub="Foodie, Creador o Negocio" divider onPress={() => router.push({ pathname: '/plan', params: { role: 'foodie' } })} />
             <SettingsRow c={sc} icon={theme.isDark ? 'moon' : 'sunny-outline'} title="Apariencia" sub={theme.isDark ? 'Oscura' : 'Clara'} divider trailing={<ToggleSwitch value={theme.isDark} onValueChange={toggleTheme} accessibilityLabel="Modo oscuro" />} />
           </SettingsGroup>
 
           <SettingsGroup c={sc} label="Ayuda">
             <SettingsRow c={sc} icon="sparkles-outline" title="Nuestro manifiesto" onPress={() => router.push('/manifiesto')} />
-            <SettingsRow c={sc} icon="chatbubble-outline" title="Ayuda y soporte" divider onPress={() => router.push('/soporte')} />
+            <SettingsRow c={sc} icon="chatbubble-outline" title="Ayuda y soporte" divider onPress={() => router.push({ pathname: '/soporte', params: { role: 'foodie' } })} />
           </SettingsGroup>
 
-          <SettingsGroup c={sc} label="Para negocios">
-            {__DEV__ ? (
-              <SettingsRow
-                c={sc}
-                icon="create-outline"
-                title="Publicar mi menú"
-                sub="Para cocinas y fonditas"
-                onPress={handleDevFondero}
-              />
-            ) : (
-              <SettingsRow
-                c={sc}
-                icon="create-outline"
-                title="Publicar mi menú"
-                sub="Para cocinas y fonditas"
-                onPress={handleFonderoAccess}
-              />
-            )}
-            {(hasSession || __DEV__) && <SettingsRow c={sc} icon="log-out-outline" title="Cerrar sesión" divider onPress={handleSignOut} />}
+          {/* Publicar un negocio vive en Plan: se elige como plan, no como atajo. */}
+          {(hasSession || __DEV__) && <SettingsGroup c={sc} label="Sesión">
+            <SettingsRow c={sc} icon="ban-outline" title="Cuentas bloqueadas" onPress={() => router.push('/privacidad')} />
+            <SettingsRow c={sc} icon="log-out-outline" title="Cerrar sesión" divider onPress={handleSignOut} />
             {hasSession && <AccountDeletionRow c={sc} />}
-          </SettingsGroup>
+          </SettingsGroup>}
 
           <View style={s.footer}>
             <Ionicons name="ellipse" size={6} color={theme.textMute} />

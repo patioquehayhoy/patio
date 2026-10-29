@@ -39,9 +39,8 @@ export function BlockedAccounts() {
       Alert.alert(noWidow('No pudimos desbloquear esta cuenta'), noWidow('Inténtalo de nuevo.'));
     } finally { setBusy(null); }
   };
-  if (!signedIn) return null;
-  return <View style={{ marginTop: 24, gap: 8 }}>
-    <Text style={{ fontSize: 16, fontWeight: '700', color: theme.text }}>{noWidow('Cuentas bloqueadas')}</Text>
+  if (!signedIn && !__DEV__) return null;
+  return <View style={{ marginTop: 16, gap: 8 }}>
     {loading ? <ActivityIndicator color={theme.textSecondary} accessibilityLabel="Cargando cuentas bloqueadas" /> : error ?
       <TouchableOpacity onPress={() => setRetry((value) => value + 1)} accessibilityRole="button" accessibilityLabel="Reintentar carga de cuentas bloqueadas" style={{ minHeight: 44, justifyContent: 'center' }}>
         <Text style={{ color: theme.accent }}>{noWidow('No pudimos cargar las cuentas. Reintentar.')}</Text>

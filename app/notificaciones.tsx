@@ -52,8 +52,17 @@ export default function NotificacionesScreen() {
   return (
     <View style={[s.root, { paddingTop: insets.top }]}>
       <Stack.Screen options={{ headerShown: false }} />
+      <View style={s.nav}>
+        <TouchableOpacity style={s.navButton} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Volver">
+          <Ionicons name="chevron-back" size={21} color={theme.text} />
+        </TouchableOpacity>
+        <Text accessibilityRole="header" style={[s.navTitle, { color: theme.text }]}>Notificaciones</Text>
+        <TouchableOpacity style={s.navButton} onPress={() => router.push({ pathname: '/avisos', params: { role: 'foodie' } })} accessibilityRole="button" accessibilityLabel="Elegir qué notificaciones recibir">
+          <Ionicons name="settings-outline" size={20} color={theme.text} />
+        </TouchableOpacity>
+      </View>
       <ScrollView
-        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: bottomTabClearance(insets.bottom) }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: bottomTabClearance(insets.bottom) }}
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={16}
         onScroll={onScroll}>
@@ -106,6 +115,9 @@ export default function NotificacionesScreen() {
 function makeStyles(t: Theme) {
   return StyleSheet.create({
     root: { flex: 1, backgroundColor: t.bg },
+    nav: { height: 52, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+    navButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+    navTitle: { fontSize: 15, fontWeight: '600' },
     groupLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase' },
 
     list: { borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },

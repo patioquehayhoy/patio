@@ -28,7 +28,7 @@ test('every giro uses Ionicons, the same family as the rest of the app', () => {
   for (const label of ['Tacos al pastor', 'Taquería']) assert.equal(businessCategoryIcon(label), 'patio-tacos');
   for (const label of ['Elotes', 'Esquites']) assert.equal(businessCategoryIcon(label), 'patio-elotes');
   assert.equal(businessCategoryIcon('Panadería'), 'patio-postres');
-  assert.equal(businessCategoryIcon('Cafetería'), 'cafe-outline');
+  for (const label of ['Cafetería', 'Café']) assert.equal(businessCategoryIcon(label), 'cafe-outline');
   assert.equal(businessCategoryIcon('Empanadas'), 'fast-food-outline');
   assert.equal(businessCategoryIcon('Jugos y fruta', 'map'), 'patio-jugos');
   assert.equal(businessCategoryIcon('Tamales'), 'ellipsis-horizontal');

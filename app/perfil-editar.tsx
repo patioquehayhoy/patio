@@ -30,7 +30,7 @@ const BUSINESS_TYPES = [
   ['antojitos', 'Antojitos'],
   ['elotes', 'Elotes'],
   ['reposteria', 'Postres'],
-  ['cafeteria', 'Cafetería'],
+  ['cafeteria', 'Café'],
   ['mariscos', 'Mariscos'],
   ['bebidas', 'Bebidas'],
   ['jugos', 'Jugos y fruta'],

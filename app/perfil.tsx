@@ -108,8 +108,8 @@ export default function PerfilScreen() {
           <SettingsRow
             c={sc}
             icon="notifications-outline"
-            title="Avisos"
-            sub="Actividad, recordatorios y permisos"
+            title="Notificaciones"
+            sub="Reseñas nuevas y novedades"
             onPress={() => router.push({ pathname: '/avisos', params: { role: 'fondero' } })}
           />
           <SettingsRow
@@ -131,12 +131,12 @@ export default function PerfilScreen() {
 
         <SettingsGroup c={sc} label="Ayuda">
           <SettingsRow c={sc} icon="sparkles-outline" title="Nuestro manifiesto" onPress={() => router.push('/manifiesto')} />
-          <SettingsRow c={sc} icon="chatbubble-outline" title="Ayuda y soporte" divider onPress={() => router.push('/soporte')} />
+          <SettingsRow c={sc} icon="chatbubble-outline" title="Ayuda y soporte" divider onPress={() => router.push({ pathname: '/soporte', params: { role: 'fondero' } })} />
         </SettingsGroup>
 
         <SettingsGroup c={sc} label="Cuenta">
           <SettingsRow c={sc} icon="repeat-outline" title="Cambiar a modo Foodie" onPress={exploreAsClient} />
-          <SettingsRow c={sc} icon="lock-closed-outline" title="Privacidad" divider onPress={() => router.push('/privacidad')} />
+          {(hasSession || __DEV__) && <SettingsRow c={sc} icon="ban-outline" title="Cuentas bloqueadas" divider onPress={() => router.push('/privacidad')} />}
           <SettingsRow c={sc} icon="log-out-outline" title="Cerrar sesión" divider onPress={signOut} />
           {hasSession && <AccountDeletionRow c={sc} />}
         </SettingsGroup>

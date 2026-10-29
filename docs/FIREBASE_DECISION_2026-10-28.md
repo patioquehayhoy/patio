@@ -1,5 +1,25 @@
 # Firebase y Supabase — decisión vigente
 
+> **FCM configurado en Expo:** la cuenta dedicada `patio-expo-push` y su clave
+> FCM V1 aparecen en Expo para `com.parcomx.patio`, proyecto `patio-eas`.
+> La cuenta `eas-submit` y la firma de Google Play se comprobaron intactas.
+> La copia temporal de la clave creada en Descargas se eliminó; la copia local
+> protegida de `credentials/android/` está excluida de Git. La configuración
+> cliente consta en EAS preview y production. Falta validar un build y recepción
+> real Android; no declarar push operativo hasta completar dicha prueba.
+
+> **Estado actualizado 2026-10-28:** el usuario autorizó continuar con FCM
+> usando el proyecto existente `patio-eas`. Firebase se agregó a ese proyecto
+> Spark, con Analytics desactivado; se registró Android `com.parcomx.patio` y
+> FCM V1 figura habilitado. El archivo cliente correcto se guardó fuera de Git
+> y la variable secreta `GOOGLE_SERVICES_JSON` aparece en EAS preview y
+> production de `@patio-quehayhoy/lafondita`. Se creó la cuenta dedicada
+> `patio-expo-push@patio-eas.iam.gserviceaccount.com` con rol de API FCM y
+> una clave JSON autorizada, guardada fuera de Git. Cargar esa clave en Expo
+> sigue pendiente: la revisión automática no pudo completarse por límite de
+> uso y no ejecutó la acción. Sin esa carga ni prueba en teléfono, push Android
+> no está terminado. El texto posterior conserva el contexto histórico.
+
 Patio utiliza Supabase para Auth, base de datos, Storage y funciones de servidor.
 No necesitamos Firebase como backend y no se deben crear nuevos proyectos
 Firebase para sustituir o duplicar Supabase.

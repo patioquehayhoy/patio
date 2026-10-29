@@ -1,5 +1,18 @@
 # Cierre técnico — 2026-10-28
 
+> **FCM configurado:** Expo muestra la clave de la cuenta dedicada de FCM;
+> la credencial de Google Play sigue presente. El archivo Android está en EAS
+> preview y production. Pendientes: nuevo build, prueba de recepción Android,
+> Maps para producción y tipografías disponibles con licencia para CI/release.
+
+> **Actualización FCM:** `patio-eas` vinculado a Firebase Spark sin Analytics;
+> Android registrado y FCM V1 habilitado. `GOOGLE_SERVICES_JSON` configurado
+> en EAS preview/production; cuenta de servicio dedicada y clave creadas fuera
+> de Git. La carga de la clave FCM en Expo no se ejecutó por límite de revisión
+> automática. Falta cargarla, configurar Maps y probar un build en Android.
+> EAS CLI está autenticado como `patiomx`. Conservar el contenido posterior
+> como corte histórico, no como estado actual.
+
 ## Cerrado y comprobado
 
 - GitHub CLI `patioquehayhoy` con push, rama tipográfica subida sin force-push.

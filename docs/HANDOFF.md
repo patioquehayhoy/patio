@@ -1,9 +1,9 @@
 # HANDOFF
 
-> **UI y producto, 2026-10-28 noche (Claude, sin commit):** manifiesto, Ayuda,
+> **UI y producto, 2026-10-28 noche (Claude, `2b0242d`):** manifiesto, Ayuda,
 > Planes, Notificaciones, Cuentas bloqueadas, Café y reseñas por giro cambiados
-> en local; 210 pruebas aprobadas. Dos migraciones aprobadas por Alejandro y
-> pendientes de su Run en el editor SQL. Detalle en
+> ; 210 pruebas aprobadas. Migraciones de notificaciones y perfiles públicos
+> aplicadas en producción. Detalle en
 > [heads-up](HEADS_UP_2026-10-12.md) y [pendientes](PENDING_LAUNCH_2026-10-12.md);
 > mapa de usuarios en [USER_TYPES](USER_TYPES.md).
 

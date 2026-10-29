@@ -10,9 +10,8 @@
 > Los cortes anteriores se conservan como historial y no describen el estado actual.
 
 > **Pendientes de producto — 2026-10-28 (sesión con Alejandro, actualizado noche):**
-> - [ ] Aplicar en producción `20261028120000_notification_categories.sql` y
->   `20261028130000_public_profiles.sql` (aprobadas; Alejandro da Run en el
->   editor SQL) y marcarlas con `migration repair --status applied`.
+> - [x] Migraciones `20261028120000_notification_categories` y
+>   `20261028130000_public_profiles` aplicadas en producción y registradas.
 > - [ ] Envío real de notificaciones: hoy el servidor solo manda «Menú de hoy».
 >   Promociones, Lugares nuevos, Novedades y Reseñas nuevas solo se guardan.
 > - [ ] Promociones del plan Pro: panel/flyer para avisar «acabamos de abrir» o

@@ -37,7 +37,7 @@ const quote = value => '"' + value.replaceAll('"', '""') + '"';
   for(const t of inventory.tables) if(t.rls) await pg.exec(`alter table public.${quote(t.name)} enable row level security;`);
   for(const p of inventory.policies.filter(p=>p.schemaname==='public')) await pg.exec(`create policy ${quote(p.policyname)} on public.${quote(p.tablename)} as ${p.permissive} for ${p.cmd} to ${p.roles.map(quote).join(',')}${p.qual?` using (${p.qual})`:''}${p.with_check?` with check (${p.with_check})`:''};`);
   console.log('PASS restored 20 real public tables, constraints, indexes, functions, triggers and policies without user data');
-  for(const file of ['20260909_account_deletion.sql','20260910_content_safety.sql','20260910120000_publish_collection.sql','20261009100000_ai_request_limits.sql','20261009110000_review_server_dates.sql','20261009120000_live_schema_compatibility.sql','20261009130000_business_owner_uuid.sql']){
+  for(const file of ['20260909_account_deletion.sql','20260910000000_content_safety.sql','20260910120000_publish_collection.sql','20261009100000_ai_request_limits.sql','20261009110000_review_server_dates.sql','20261009120000_live_schema_compatibility.sql','20261009130000_business_owner_uuid.sql']){
    await pg.exec(fs.readFileSync(path.join(root,'supabase/migrations',file),'utf8'));
    console.log(`PASS apply ${file}`);
   }

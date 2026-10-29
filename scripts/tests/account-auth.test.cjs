@@ -419,10 +419,13 @@ test('expired login cannot silently fall back to a different signed-in account',
 
 test('reports use the authenticated identity and cannot claim moderator status', async () => {
   let inserted;
+  let alerted;
   const f = fixture({ auth: { getUser: async () => ({ data: { user: { id: userId } } }) },
-    from: (table) => ({ insert: async (payload) => { inserted = { table, payload }; return { error: null }; } }),
+    from: (table) => ({ insert: (payload) => { inserted = { table, payload }; return { select: () => ({ single: async () => ({ data: { id: 'report-1' }, error: null }) }) }; } }),
+    functions: { invoke: async (name, options) => { alerted = { name, body: options.body }; return { data: {}, error: null }; } },
   });
   await f.load('lib/content-safety.ts').reportContent('review', targetId, 'abuse', 'x'.repeat(600));
+  assert.deepEqual(alerted, { name: 'notify-content-report', body: { reportId: 'report-1' } });
   assert.equal(inserted.table, 'content_reports');
   assert.equal(inserted.payload.reporter_id, userId);
   assert.equal(inserted.payload.details.length, 500);

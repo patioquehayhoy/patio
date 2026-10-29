@@ -55,10 +55,11 @@ const PATIO_A = id(11), PATIO_B = id(12), COLLECTION_A = id(21), COLLECTION_B = 
     await pg.exec('grant select, insert, update, delete on all tables in schema public to anon, authenticated, service_role');
     for (const file of [
       '20260909_account_deletion.sql',
-      '20260910_content_safety.sql',
+      '20260910000000_content_safety.sql',
       '20260910120000_publish_collection.sql',
       '20261009100000_ai_request_limits.sql',
       '20261009110000_review_server_dates.sql',
+      '20261029100000_review_and_report_alerts.sql',
     ]) await pg.exec(sql(`supabase/migrations/${file}`));
 
     for (const [user, name, visibility] of [[A, 'Ana', 'public'], [B, 'Beto', 'public'], [C, 'Caro', 'public'], [PRIVATE, 'Privado', 'private']]) {

@@ -17,3 +17,9 @@ verify_jwt = true
 
 [functions.delete-account]
 verify_jwt = true
+
+[functions.send-review-notification]
+verify_jwt = true
+
+[functions.notify-content-report]
+verify_jwt = true

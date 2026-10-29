@@ -155,6 +155,8 @@ export async function savePatioRating(
         updated_at: new Date().toISOString(),
       });
       if (error) throw error;
+      // Aviso al dueño de mejor esfuerzo: la reseña ya quedó publicada.
+      void supabase.functions.invoke('send-review-notification', { body: { fonditaId: patioId } }).catch(() => {});
     }
   }
   map[patioId] = [...(map[patioId] ?? []), rating];

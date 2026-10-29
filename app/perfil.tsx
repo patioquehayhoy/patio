@@ -109,7 +109,7 @@ export default function PerfilScreen() {
             c={sc}
             icon="notifications-outline"
             title="Notificaciones"
-            sub="Reseñas nuevas y novedades"
+            sub="Reseñas nuevas"
             onPress={() => router.push({ pathname: '/avisos', params: { role: 'fondero' } })}
           />
           <SettingsRow

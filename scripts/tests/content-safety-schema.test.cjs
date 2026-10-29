@@ -5,7 +5,7 @@ const { test } = require('node:test');
 
 // Offline migration contract checks. These detect accidentally permissive
 // policy/grant changes; actual RLS behavior still requires a PostgreSQL rehearsal.
-const sql = fs.readFileSync(path.resolve(__dirname, '../../supabase/migrations/20260910_content_safety.sql'), 'utf8')
+const sql = fs.readFileSync(path.resolve(__dirname, '../../supabase/migrations/20260910000000_content_safety.sql'), 'utf8')
   .replace(/--[^\n]*/g, '').replace(/\s+/g, ' ').toLowerCase();
 
 test('reports cannot be moderated or read across accounts by the client', () => {

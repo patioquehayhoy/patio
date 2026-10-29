@@ -122,19 +122,14 @@ export default function AvisosScreen() {
           <SettingsGroup c={sc} label="Tu negocio">
             <SettingsRow c={sc} icon="chatbubble-ellipses-outline" title="Reseñas nuevas" sub="Cuando alguien opina sobre tu Patio" trailing={toggle('businessActivity', 'Reseñas nuevas')} />
           </SettingsGroup>
-        ) : <>
+        ) : (
+          // Solo se ofrece lo que el servidor de verdad envía. Promociones
+          // (specialNotices), Lugares nuevos (newPlaces) y Novedades
+          // (productUpdates) ya se guardan; vuelven aquí cuando exista su envío.
           <SettingsGroup c={sc} label="Tus lugares">
             <SettingsRow c={sc} icon="document-text-outline" title="Menú de hoy" sub="Cuando un lugar que guardaste publica" trailing={toggle('patioPublications', 'Menú de hoy')} />
-            <SettingsRow c={sc} icon="megaphone-outline" title="Promociones" sub="Avisos especiales de tus lugares" divider trailing={toggle('specialNotices', 'Promociones')} />
           </SettingsGroup>
-          <SettingsGroup c={sc} label="Cerca de ti">
-            <SettingsRow c={sc} icon="storefront-outline" title="Lugares nuevos" sub="Cuando abre un lugar cerca" trailing={toggle('newPlaces', 'Lugares nuevos')} />
-          </SettingsGroup>
-        </>}
-
-        {signedIn && <SettingsGroup c={sc} label="Patio">
-          <SettingsRow c={sc} icon="sparkles-outline" title="Novedades de Patio" sub="Funciones nuevas, de vez en cuando" trailing={toggle('productUpdates', 'Novedades de Patio')} />
-        </SettingsGroup>}
+        )}
       </ScrollView>
     </View>
   );

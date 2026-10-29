@@ -14,10 +14,12 @@ export async function reportContent(targetType: ReportTarget, targetId: string, 
   if (!UUID.test(targetId) || !['review', 'profile', 'patio', 'collection'].includes(targetType) ||
       !['spam', 'abuse', 'inaccurate', 'other'].includes(reason)) throw new Error('Este contenido no está disponible.');
   const reporterId = await requireUserId();
-  const { error } = await supabase.from('content_reports').insert({
+  const { data, error } = await supabase.from('content_reports').insert({
     reporter_id: reporterId, target_type: targetType, target_id: targetId, reason, details: details.trim().slice(0, 500),
-  });
+  }).select('id').single();
   if (error) throw new Error('No pudimos enviar el reporte. Inténtalo de nuevo.');
+  // Aviso a soporte de mejor esfuerzo: el reporte ya quedó guardado.
+  void supabase.functions.invoke('notify-content-report', { body: { reportId: data.id } }).catch(() => {});
 }
 
 export async function blockUser(userId: string) {

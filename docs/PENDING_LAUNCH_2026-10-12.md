@@ -16,15 +16,15 @@
 >   funciones `send-review-notification` y `notify-content-report` activas.
 > - [ ] Entrar a Patio con `quehayhoy.patio@gmail.com` en un teléfono con
 >   notificaciones para recibir avisos de reportes.
-> - Nunca `db push --include-all`: correría `20260816_add_categorias_multitag` y
->   su rollback `20260817`, locales y ausentes del historial remoto.
 >
 > *Técnico*
 > - [ ] Cobro: RevenueCat, productos en tiendas y cuotas en servidor.
 > - [ ] Versión firmada para tiendas (depende de tipografía).
 > - [ ] Envío de Promociones (requiere panel Pro) y Lugares nuevos (requiere
 >   ubicación del Foodie); Novedades requiere un envío manual. Ocultos hasta existir.
-> - [ ] Conciliar `20260816`/`20260817` con el historial remoto.
+> - [x] Historial de migraciones conciliado: `20260816` registrada (la columna
+>   `categorias` ya existía) y el rollback `20260817` movido a `supabase/rollbacks/`.
+>   `db push --dry-run`: «Remote database is up to date».
 >
 > *Diseño y producto*
 > - [ ] Onboardings nuevos.

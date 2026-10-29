@@ -38,7 +38,7 @@
 >
 > *Cuentas y accesos*
 > - [ ] Cuenta de revisión para Apple y Google.
-> - [ ] Permiso de escritura en GitHub.
+> - [x] Escritura en GitHub: push de `c577059` aceptado (2026-10-29).
 > - [ ] Google Maps Android: facturación y clave restringida.
 > - [ ] Revocar la clave antigua de Anthropic.
 >

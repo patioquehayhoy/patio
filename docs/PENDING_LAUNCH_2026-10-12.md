@@ -12,9 +12,8 @@
 > **Pendientes vigentes — 2026-10-29 (sustituye listas anteriores de esta sección):**
 >
 > *Producción (Alejandro)*
-> - [ ] Run de `20261029100000_review_and_report_alerts.sql` en el editor SQL y
->   luego `supabase migration repair --status applied 20261029100000`. Sin esto,
->   los avisos de reseña y reporte (funciones ya desplegadas) no envían.
+> - [x] `20261029100000_review_and_report_alerts.sql` aplicada y registrada;
+>   funciones `send-review-notification` y `notify-content-report` activas.
 > - [ ] Entrar a Patio con `quehayhoy.patio@gmail.com` en un teléfono con
 >   notificaciones para recibir avisos de reportes.
 > - Nunca `db push --include-all`: correría `20260816_add_categorias_multitag` y

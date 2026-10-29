@@ -9,24 +9,50 @@
 > decisión sobre FCM/push Android en `FIREBASE_DECISION_2026-10-28.md`.
 > Los cortes anteriores se conservan como historial y no describen el estado actual.
 
-> **Pendientes de producto — 2026-10-28 (sesión con Alejandro, actualizado noche):**
-> - [x] Migraciones `20261028120000_notification_categories` y
->   `20261028130000_public_profiles` aplicadas en producción y registradas.
-> - [ ] Envío real de notificaciones: hoy el servidor solo manda «Menú de hoy».
->   Promociones, Lugares nuevos, Novedades y Reseñas nuevas solo se guardan.
-> - [ ] Promociones del plan Pro: panel/flyer para avisar «acabamos de abrir» o
->   una promoción a quien guardó el lugar. Nunca se desarrolló.
-> - [ ] Reportes: se guardan en `content_reports`, sin aviso ni panel. Propuesta:
->   correo a soporte por cada reporte nuevo. Requisito de tiendas.
-> - [ ] Onboardings nuevos: siguiente ronda completa (referentes → propuesta → construir).
-> - [ ] Decidir con Jev: misma cuenta Foodie/negocio y qué gana un negocio del
->   lado Foodie. Ver [tipos de usuario](USER_TYPES.md).
-> - [ ] QA física de los cambios locales del 28 (manifiesto en iPhone chico,
->   Ayuda, Planes, Notificaciones, reseña por giro).
-> - [x] Privacidad → modelo Instagram: perfil público, solo «Cuentas bloqueadas».
-> - [x] Planes por rol; Café; etiquetas de reseña por giro; mapa de usuarios.
-> - Decisión vigente: filtro de lista compartido entre Mapa y Guardados (2026-08-20);
->   Alejandro preguntó si separarlo; queda compartido hasta que confirme.
+> **Pendientes vigentes — 2026-10-29 (sustituye listas anteriores de esta sección):**
+>
+> *Producción (Alejandro)*
+> - [ ] Run de `20261029100000_review_and_report_alerts.sql` en el editor SQL y
+>   luego `supabase migration repair --status applied 20261029100000`. Sin esto,
+>   los avisos de reseña y reporte (funciones ya desplegadas) no envían.
+> - [ ] Entrar a Patio con `quehayhoy.patio@gmail.com` en un teléfono con
+>   notificaciones para recibir avisos de reportes.
+> - Nunca `db push --include-all`: correría `20260816_add_categorias_multitag` y
+>   su rollback `20260817`, locales y ausentes del historial remoto.
+>
+> *Técnico*
+> - [ ] Cobro: RevenueCat, productos en tiendas y cuotas en servidor.
+> - [ ] Versión firmada para tiendas (depende de tipografía).
+> - [ ] Envío de Promociones (requiere panel Pro) y Lugares nuevos (requiere
+>   ubicación del Foodie); Novedades requiere un envío manual. Ocultos hasta existir.
+> - [ ] Conciliar `20260816`/`20260817` con el historial remoto.
+>
+> *Diseño y producto*
+> - [ ] Onboardings nuevos.
+> - [ ] Panel o flyer de promociones del plan Pro.
+> - [ ] Tipografía: licencia de Monument/Neue Montreal o Plus Jakarta Sans.
+>
+> *Pruebas*
+> - [ ] Prueba física de los cambios del 28–29 (manifiesto en iPhone chico,
+>   Ayuda, Planes, Notificaciones, reseña por giro, avisos push).
+> - [ ] TestFlight y prueba cerrada de Play (12 participantes, 14 días).
+>
+> *Cuentas y accesos*
+> - [ ] Cuenta de revisión para Apple y Google.
+> - [ ] Permiso de escritura en GitHub.
+> - [ ] Google Maps Android: facturación y clave restringida.
+> - [ ] Revocar la clave antigua de Anthropic.
+>
+> *Legal*
+> - [ ] URL pública del aviso de privacidad, con domicilio.
+>
+> *Decisiones*
+> - [ ] Jev: misma cuenta Foodie/negocio y qué gana un negocio del lado Foodie.
+> - [ ] Filtro de lista Mapa/Guardados: compartido o separado.
+>
+> *Mañana (2026-10-29)*
+> - [ ] Grok como agente auxiliar: solo revisión e investigación, sin escribir en
+>   el repo, para no repetir el choque con Codex.
 
 > **Referencia obligatoria de infraestructura — 2026-10-27:**
 > [inventario de credenciales comprobado](CREDENTIALS_INVENTORY_2026-10-27.md).

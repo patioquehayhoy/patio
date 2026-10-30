@@ -130,9 +130,6 @@ function RootStack() {
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
     PlusJakartaSans_800ExtraBold,
-    'Monument-Black': require('../assets/fonts/prueba/Monument-Black.otf'),
-    'NeueMontreal-Regular': require('../assets/fonts/prueba/NeueMontreal-Regular.otf'),
-    'NeueMontreal-Semibold': require('../assets/fonts/prueba/NeueMontreal-Semibold.otf'),
     ...MaterialCommunityIcons.font,
     ...PatioGiros.font,
   });

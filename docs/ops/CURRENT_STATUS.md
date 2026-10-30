@@ -18,9 +18,19 @@ Actualizado: 2026-10-30
 ## Bloqueado por acceso o prueba externa
 
 - Push Android: requiere instalar el APK preview en un teléfono Android real para verificar entrega y apertura.
-- Supabase: instalar/revisar plantillas de correo desde el dashboard propietario.
+- Supabase: instalar y revisar plantillas de correo desde el dashboard propietario.
 - Anthropic: revisar y revocar la clave legada desde la consola que la creó.
 - Soporte: conectar el correo de soporte y comprobar la bandeja.
+- Tiendas: confirmar política de privacidad y ruta pública de eliminación de cuenta.
+
+## Producto y diseño pendientes
+
+- Planes, cuotas y compras Pro.
+- Avisos y promociones para negocios.
+- Persistencia del giro cuando se elige “Otro”.
+- Tipografía licenciada definitiva.
+- Paleta, espaciado, tarjetas y estados de carga/error.
+- Capturas, icono y materiales de tienda.
 
 ## Nota de seguridad
 

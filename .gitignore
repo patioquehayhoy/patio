@@ -52,3 +52,4 @@ app-example
 # Figma Make exports — referencia de diseño, no ejecutamos npm install ahí
 design-source/**/node_modules/
 design-source/**/dist/
+design-source/fuentes-prueba/paquetes/

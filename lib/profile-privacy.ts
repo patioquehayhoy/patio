@@ -103,3 +103,26 @@ export async function declineFollowRequest(followerId: string): Promise<void> {
     .eq('follower_id', followerId).eq('followed_id', userId);
   if (error) throw error;
 }
+
+export type FollowListPerson = { userId: string; name: string; handle?: string; avatarUrl?: string };
+
+/** Seguidores o seguidos aceptados; la base no entrega la lista de un perfil privado ajeno. */
+export async function getFollowList(targetId: string, kind: 'seguidores' | 'siguiendo'): Promise<FollowListPerson[]> {
+  if (!/^[0-9a-f-]{36}$/i.test(targetId)) return [];
+  const mine = kind === 'seguidores' ? 'followed_id' : 'follower_id';
+  const theirs = kind === 'seguidores' ? 'follower_id' : 'followed_id';
+  const { data, error } = await supabase.from('profile_follows').select(`${theirs},created_at`)
+    .eq(mine, targetId).eq('status', 'accepted').order('created_at', { ascending: false });
+  if (error) throw error;
+  const ids = (data ?? []).map((row: any) => row[theirs] as string);
+  if (!ids.length) return [];
+  const { data: profiles, error: profileError } = await supabase.from('user_profiles')
+    .select('user_id,display_name,handle,avatar_url').in('user_id', ids);
+  if (profileError) throw profileError;
+  const byId = new Map((profiles ?? []).map((profile: any) => [profile.user_id, profile]));
+  return ids.flatMap((id) => {
+    const profile: any = byId.get(id);
+    const name = profile?.display_name?.trim();
+    return name ? [{ userId: id, name, handle: profile.handle || undefined, avatarUrl: profile.avatar_url || undefined }] : [];
+  });
+}

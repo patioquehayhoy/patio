@@ -132,16 +132,26 @@ export default function FoodieProfile() {
             {/* Como Instagram: los números del perfil se ven aunque sea privado. */}
             <View style={s.stats} accessibilityRole="summary">
               {([
-                [counts.reviews, counts.reviews === 1 ? 'reseña' : 'reseñas'],
-                [counts.likes, 'me gusta'],
-                [counts.followers, counts.followers === 1 ? 'seguidor' : 'seguidores'],
-                [counts.following, 'siguiendo'],
-              ] as const).map(([value, label]) => (
-                <View key={label} style={s.stat} accessible accessibilityLabel={`${value} ${label}`}>
+                [counts.reviews, counts.reviews === 1 ? 'reseña' : 'reseñas', null],
+                [counts.likes, 'me gusta', null],
+                [counts.followers, counts.followers === 1 ? 'seguidor' : 'seguidores', 'seguidores'],
+                [counts.following, 'siguiendo', 'siguiendo'],
+              ] as const).map(([value, label, list]) => {
+                const content = <>
                   <Text style={[s.statValue, { color: theme.text }]}>{value}</Text>
                   <Text style={[s.statLabel, { color: theme.textSecondary }]}>{label}</Text>
-                </View>
-              ))}
+                </>;
+                // Como Instagram: tocar seguidores o siguiendo abre la lista,
+                // salvo en un perfil privado que todavía no sigues.
+                return list && !locked && value > 0 ? (
+                  <TouchableOpacity key={label} style={s.stat} accessibilityRole="button" accessibilityLabel={`${value} ${label}. Ver lista`}
+                    onPress={() => router.push({ pathname: '/foodie/seguidores', params: { id: profile.user_id, tipo: list } })}>
+                    {content}
+                  </TouchableOpacity>
+                ) : (
+                  <View key={label} style={s.stat} accessible accessibilityLabel={`${value} ${label}`}>{content}</View>
+                );
+              })}
             </View>
             {!!profile.bio && <Text style={[s.bio, { color: theme.textSecondary }]}>{noWidow(profile.bio)}</Text>}
             {!own && <TouchableOpacity accessibilityRole="button" accessibilityLabel={follow === 'accepted' ? 'Dejar de seguir perfil' : follow === 'pending' ? 'Retirar solicitud para seguir' : 'Seguir perfil'} accessibilityState={{ disabled: saving, busy: saving, selected: follow !== 'none' }} disabled={saving} style={[s.follow, { backgroundColor: follow !== 'none' ? theme.surface : theme.accent, borderColor: theme.border, opacity: saving ? 0.6 : 1 }]} onPress={toggleFollow}><Text style={{ color: follow !== 'none' ? theme.text : '#FFFFFF', fontWeight: '700' }}>{followLabel}</Text></TouchableOpacity>}

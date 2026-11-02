@@ -90,6 +90,8 @@ errores) y la validación en línea de Luke Wroblewski.
   semana) y lo que más gusta. Solo el dueño lo ve; nunca dice quién guardó,
   como los guardados de Instagram.
 - Cada platillo muestra su número de «me gusta» junto al corazón, para todos.
+- En un perfil, tocar «seguidores» o «siguiendo» abre la lista (como
+  Instagram). En uno privado que no sigues, no se abre.
 - Filtro por giro en el mapa: siempre la lista completa de giros
   (`lib/patio-categories.ts`); en Guardados, solo los giros que guardaste.
 - Un solo nombre por giro en alta, edición, filtros y mapa («Tacos», «Café»).

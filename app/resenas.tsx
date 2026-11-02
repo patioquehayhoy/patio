@@ -59,7 +59,8 @@ export default function ResenasScreen() {
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [reply, setReply] = useState('');
   const [demo, setDemo] = useState<PatioStatsSnapshot | null>(null);
-  // Tablero arriba de la actividad: guardados y «me gusta», y lo que más gusta.
+  // Tablero arriba de la actividad: seguidores (quienes lo guardaron), «me
+  // gusta» en platillos y lo que más gusta. Solo el dueño lo ve.
   const [insights, setInsights] = useState<BusinessInsights | null>(null);
   const [topDishes, setTopDishes] = useState<DishLikeCount[]>([]);
   const load = useCallback(() => {
@@ -273,7 +274,7 @@ export default function ResenasScreen() {
           <View style={[s.insights, { backgroundColor: c.surface, borderColor: c.border }]}>
             <View style={s.insightRow}>
               {([
-                [insights.saves, insights.saves === 1 ? 'guardado' : 'guardados', insights.savesWeek],
+                [insights.saves, insights.saves === 1 ? 'seguidor' : 'seguidores', insights.savesWeek],
                 [insights.dishLikes, 'me gusta en platillos', insights.dishLikesWeek],
               ] as const).map(([value, label, week]) => (
                 <View key={label} style={s.insight} accessible accessibilityLabel={`${value} ${label}${week ? `, ${week} esta semana` : ''}`}>

@@ -11,6 +11,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AgentSpinner } from '@/components/agent-spinner';
 import { PAYMENT_ORDER, PaymentIcon } from '@/components/payment-icon';
+import { ANDROID_ICONS, TintIcon } from '@/components/tint-icon';
 import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { ContentSafetyMenu } from '@/components/content-safety-menu';
 import { SaveToListSheet } from '@/components/save-to-list-sheet';
@@ -324,8 +325,8 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
     getLikedDishNames(patio.id).then(setLikedDishNames).catch(() => {});
   }, [patio?.id]);
 
-  // Cuántos «me gusta» tiene cada platillo, visible para todos como en una
-  // foto; el dueño los ve en su ficha sin poder darse «me gusta» a sí mismo.
+  // Cuántos «me gusta» tiene cada platillo: solo el dueño ve el número, en su
+  // Mi Patio y en Actividad. Para los demás, el corazón sin conteo.
   const [dishLikeCounts, setDishLikeCounts] = useState<Record<string, number>>({});
   useEffect(() => {
     if (!patio?.id) return;
@@ -674,7 +675,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
           <View style={s.titleRow}>
             <Text style={s.title} allowFontScaling={true}>{noWidow(patio.name)}</Text>
             {patio.isVerifiedBusiness && <View style={s.verifiedMark} accessible accessibilityLabel="Negocio verificado">
-              <SymbolView name="checkmark.seal.fill" size={25} weight="medium" tintColor={theme.accent} fallback={<Ionicons name="checkmark-circle" size={25} color={theme.accent} />} />
+              <SymbolView name="checkmark.seal.fill" size={25} weight="medium" tintColor={theme.accent} fallback={<TintIcon source={ANDROID_ICONS.verified} size={25} color={theme.accent} />} />
             </View>}
           </View>
           <View style={s.summaryRow}>
@@ -721,11 +722,10 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
                             onPress={() => handleToggleDishLike(item.name)}
                             activeOpacity={0.7}
                             accessibilityRole="button"
-                            accessibilityLabel={`${dishLiked ? `Quitar me gusta a ${item.name}` : `Me gusta ${item.name}`}${dishLikes ? `, ${dishLikes} me gusta` : ''}`}
+                            accessibilityLabel={dishLiked ? `Quitar me gusta a ${item.name}` : `Me gusta ${item.name}`}
                             accessibilityState={{ selected: dishLiked }}
                             style={s.dishLikeCount}>
                             <Ionicons name={dishLiked ? 'heart' : 'heart-outline'} size={17} color={dishLiked ? theme.accent : theme.textMute} />
-                            {!!dishLikes && <Text style={[s.dishLikeCountText, dishLiked && { color: theme.accent }]}>{dishLikes}</Text>}
                           </TouchableOpacity>
                         )}
                       </View>
@@ -986,7 +986,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
                                   ) : <Text style={s.reviewThreadAuthor} numberOfLines={1}>{reply.mine ? 'Tú' : reply.author}</Text>}
                                   {reply.patio && (
                                     <View style={s.reviewThreadSeal}>
-                                      <SymbolView name="checkmark.seal.fill" size={13} weight="medium" tintColor={theme.accent} fallback={<Ionicons name="checkmark-circle" size={13} color={theme.accent} />} />
+                                      <SymbolView name="checkmark.seal.fill" size={13} weight="medium" tintColor={theme.accent} fallback={<TintIcon source={ANDROID_ICONS.verified} size={13} color={theme.accent} />} />
                                     </View>
                                   )}
                                 </View>
@@ -1059,7 +1059,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
                                         accessibilityRole="button"
                                         accessibilityLabel={sendingComment ? 'Publicando respuesta' : 'Publicar respuesta'}
                                         accessibilityState={{ disabled: !replyDraft.trim() || sendingComment, busy: sendingComment }}>
-                                        <SymbolView name="paperplane.fill" size={15} weight="semibold" tintColor="#FFFFFF" fallback={<Ionicons name="send" size={15} color="#FFFFFF" />} />
+                                        <SymbolView name="paperplane.fill" size={15} weight="semibold" tintColor="#FFFFFF" fallback={<TintIcon source={ANDROID_ICONS.send} size={15} color="#FFFFFF" />} />
                                       </TouchableOpacity>
                                     </View>
                                   )}
@@ -1080,7 +1080,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
                             accessibilityRole="button"
                             accessibilityLabel={sendingComment ? 'Publicando comentario' : 'Publicar comentario'}
                             accessibilityState={{ disabled: !replyDraft.trim() || sendingComment, busy: sendingComment }}>
-                            <SymbolView name="paperplane.fill" size={15} weight="semibold" tintColor="#FFFFFF" fallback={<Ionicons name="send" size={15} color="#FFFFFF" />} />
+                            <SymbolView name="paperplane.fill" size={15} weight="semibold" tintColor="#FFFFFF" fallback={<TintIcon source={ANDROID_ICONS.send} size={15} color="#FFFFFF" />} />
                           </TouchableOpacity>
                         </View>
                       )}

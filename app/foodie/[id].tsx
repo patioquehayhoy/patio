@@ -133,7 +133,6 @@ export default function FoodieProfile() {
             <View style={s.stats} accessibilityRole="summary">
               {([
                 [counts.reviews, counts.reviews === 1 ? 'reseña' : 'reseñas', null],
-                [counts.likes, 'me gusta', null],
                 [counts.followers, counts.followers === 1 ? 'seguidor' : 'seguidores', 'seguidores'],
                 [counts.following, 'siguiendo', 'siguiendo'],
               ] as const).map(([value, label, list]) => {

@@ -1,7 +1,8 @@
 import { supabase } from '@/lib/supabase';
 
-// Números públicos del negocio. En Patio, guardar un lugar es seguirlo: el
-// conteo se llama «guardados», igual que el botón que lo produce.
+// Números públicos del negocio. En Patio, guardar un lugar es seguirlo: quien
+// lo guarda cuenta como seguidor (decisión de Parco, 2026-11-02). Los «me
+// gusta» no se muestran como número público; solo el dueño los ve.
 export type BusinessStats = { saves: number; dishLikes: number; reviews: number };
 
 export async function getBusinessStats(negocioId: string): Promise<BusinessStats | null> {
@@ -12,13 +13,10 @@ export async function getBusinessStats(negocioId: string): Promise<BusinessStats
   return { saves: Number(row?.saves ?? 0), dishLikes: Number(row?.dish_likes ?? 0), reviews: Number(row?.reviews ?? 0) };
 }
 
-/** «128 guardados · 42 me gusta»; solo lo que ya tiene número. */
+/** «128 seguidores»; nada mientras no tenga. */
 export function businessStatsLabel(stats: BusinessStats | null): string {
-  if (!stats) return '';
-  return [
-    stats.saves ? `${stats.saves} ${stats.saves === 1 ? 'guardado' : 'guardados'}` : '',
-    stats.dishLikes ? `${stats.dishLikes} me gusta` : '',
-  ].filter(Boolean).join(' · ');
+  if (!stats?.saves) return '';
+  return `${stats.saves} ${stats.saves === 1 ? 'seguidor' : 'seguidores'}`;
 }
 
 // Tablero del dueño: totales y los últimos 7 días. Solo responde al dueño.

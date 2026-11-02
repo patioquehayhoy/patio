@@ -4,6 +4,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AccountSettings } from '@/components/account-settings';
+import { getBusinessStats } from '@/lib/business-stats';
 import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { bottomTabClearance } from '@/lib/layout-metrics';
 import { SettingsGroup, SettingsRow, settingsColors } from '@/components/settings-list';
@@ -29,6 +30,8 @@ export default function PerfilScreen() {
   const [address, setAddress] = useState('');
   const [hasMenu, setHasMenu] = useState<boolean | null>(null);
   const [fonditaName, setFonditaName] = useState('');
+  // Seguidores del negocio: quienes lo guardaron (solo el número).
+  const [followers, setFollowers] = useState<number | null>(null);
 
   useFocusEffect(useCallback(() => {
     let active = true;
@@ -36,6 +39,7 @@ export default function PerfilScreen() {
     setHasMenu(null);
     setFonditaName(getFonditaName());
     const id = getFonditaId();
+    if (id) getBusinessStats(id).then((stats) => { if (active && stats) setFollowers(stats.saves); }).catch(() => {});
     if (id) {
       // Un borrador en memoria nunca confirma que el menú sea público.
       void supabase.from('menus').select('secciones').eq('negocio_id', id)
@@ -64,8 +68,13 @@ export default function PerfilScreen() {
             "Editar mi negocio", que es donde realmente pertenece. */}
         <View style={s.identity}>
           <Text style={[s.fonditaName, { color: c.text }]}>
-            {fonditaName || 'Tu fondita'}
+            {fonditaName || 'Tu negocio'}
           </Text>
+          {followers !== null && (
+            <Text style={[s.followers, { color: c.text }]} accessibilityLabel={`${followers} ${followers === 1 ? 'seguidor' : 'seguidores'}`}>
+              <Text style={s.followersValue}>{followers}</Text> {followers === 1 ? 'seguidor' : 'seguidores'}
+            </Text>
+          )}
           <View style={s.statusRow}>
             <View style={[s.statusDot, { backgroundColor: hasMenu ? c.accent : c.textMute }]} />
             <Text style={[s.statusText, { color: hasMenu ? c.accent : c.textSecondary }]}>
@@ -102,6 +111,8 @@ export default function PerfilScreen() {
 const s = StyleSheet.create({
   root: { flex: 1 },
   identity: { marginBottom: 8 },
+  followers: { marginTop: 6, fontSize: 14, lineHeight: 19, fontWeight: '400' },
+  followersValue: { fontWeight: '700' },
   fonditaName: { ...Type.screen },
   statusRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8, minHeight: 20 },
   statusDot: { width: 7, height: 7, borderRadius: 4 },

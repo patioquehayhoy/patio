@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AccountSettings } from '@/components/account-settings';
 import { hasUnseenFoodieActivity } from '@/lib/activity-feed';
-import { getFollowRequests, getMyProfilePrivacy, setProfilePrivate } from '@/lib/profile-privacy';
+import { getFollowRequests, getMyProfilePrivacy, getProfileStats, setProfilePrivate } from '@/lib/profile-privacy';
 import { ToggleSwitch } from '@/components/toggle-switch';
 import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { bottomTabClearance } from '@/lib/layout-metrics';
@@ -43,11 +43,16 @@ export default function CuentaScreen() {
   const [hasNews, setHasNews] = useState(false);
   // Perfil privado, como Instagram: null mientras no hay perfil de Foodie.
   const [isPrivate, setIsPrivate] = useState<boolean | null>(null);
+  const [follow, setFollow] = useState<{ followers: number; following: number } | null>(null);
   const [savingPrivacy, setSavingPrivacy] = useState(false);
   useFocusEffect(useCallback(() => {
     let active = true;
     hasUnseenFoodieActivity().then((value) => { if (active) setHasNews(value); }).catch(() => {});
     getMyProfilePrivacy().then((value) => { if (active) setIsPrivate(value); }).catch(() => {});
+    supabase.auth.getUser().then(({ data }) => {
+      if (!data.user) return;
+      getProfileStats(data.user.id).then((stats) => { if (active) setFollow({ followers: stats.followers, following: stats.following }); }).catch(() => {});
+    }).catch(() => {});
     return () => { active = false; };
   }, []));
 
@@ -90,7 +95,7 @@ export default function CuentaScreen() {
           {/* Un solo nivel: quién eres arriba, ajustes abajo. */}
           <SettingsGroup c={sc} label="Perfil">
             <SettingsRow c={sc} icon="person-outline" title={hasSession ? 'Editar perfil' : 'Iniciar sesión'} sub={hasSession ? 'Nombre, foto y descripción' : 'Sincroniza listas y reseñas'} onPress={() => router.push(hasSession ? '/perfil-comunidad' : '/comunidad-acceso')} />
-            {userId && <SettingsRow c={sc} icon="at-outline" title="Ver mi perfil" divider onPress={() => router.push({ pathname: '/foodie/[id]', params: { id: userId } })} />}
+            {userId && <SettingsRow c={sc} icon="at-outline" title="Ver mi perfil" sub={follow ? `${follow.followers} ${follow.followers === 1 ? 'seguidor' : 'seguidores'} · ${follow.following} siguiendo` : undefined} divider onPress={() => router.push({ pathname: '/foodie/[id]', params: { id: userId } })} />}
             {isPrivate !== null && <SettingsRow
               c={sc}
               icon={isPrivate ? 'lock-closed-outline' : 'lock-open-outline'}

@@ -1,5 +1,6 @@
 /** Geometry shared by floating navigation and its scrollable content. */
-export const BOTTOM_TAB_HEIGHT = 48;
+// Con nombre bajo cada ícono (Apple HIG: las pestañas llevan título).
+export const BOTTOM_TAB_HEIGHT = 56;
 export const BOTTOM_ACTION_OFFSET = 8;
 export const CONTENT_CONTROL_GAP = 16;
 

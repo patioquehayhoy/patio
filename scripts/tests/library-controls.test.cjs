@@ -74,6 +74,7 @@ function fixture(file, overrides = {}) {
     '@/components/pin-icon': { PinIcon: 'PinIcon' },
     '@/components/place-icon': { PlaceIcon: 'Icon' },
     '@/components/payment-icon': { PaymentIcon: 'PaymentIcon' },
+    '@/components/tint-icon': { TintIcon: 'TintIcon', ANDROID_ICONS: { pin: 'pin.png', pinOff: 'pin-off.png' } },
     'expo-blur': { BlurView: 'BlurView' },
     '@/components/bottom-content-fade': { BottomContentFade: 'BottomContentFade' },
     'expo-linear-gradient': { LinearGradient: 'LinearGradient' },
@@ -796,8 +797,9 @@ test('pin and unpin use thumbtacks on native symbols and fallback, never a saved
   for (const remove of [false, true]) {
     const tree = f.render(f.exports.PinIcon, { remove, size: 22, color: '#111214' });
     assert.equal(tree.props.name, remove ? 'pin.slash' : 'pin');
-    assert.equal(tree.props.fallback.props.name, remove ? 'pin-off-outline' : 'pin-outline');
-    assert.equal(tree.props.fallback.type, 'MaterialIcon');
+    // Android usa el mismo dibujo de chincheta, nunca un marcador de guardado.
+    assert.equal(tree.props.fallback.props.source, remove ? 'pin-off.png' : 'pin.png');
+    assert.equal(tree.props.fallback.type, 'TintIcon');
   }
 });
 

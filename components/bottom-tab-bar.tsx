@@ -2,7 +2,7 @@ import { router, usePathname } from 'expo-router';
 import { BlurView } from 'expo-blur';
 import { BottomContentFade } from '@/components/bottom-content-fade';
 import { NewMenuSheet } from '@/components/new-menu-sheet';
-import { Animated, Image, Keyboard, StyleSheet, TouchableOpacity, View, type ImageSourcePropType } from 'react-native';
+import { Animated, Image, Keyboard, StyleSheet, Text, TouchableOpacity, View, type ImageSourcePropType } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useMemo, useState } from 'react';
@@ -43,7 +43,7 @@ const FOODIE_TABS: Tab[] = [
 const FONDERO_TABS: Tab[] = [
   { path: '/historial', label: 'Menús',     icon: 'book-outline', selectedIcon: 'book' },
   { path: '/resenas',   label: 'Actividad', icon: 'heart-outline',      selectedIcon: 'heart' },
-  { path: '+',          label: 'Nuevo menú', icon: 'add-circle-outline', selectedIcon: 'add-circle' },
+  { path: '+',          label: 'Publicar', icon: 'add-circle-outline', selectedIcon: 'add-circle' },
   { path: '/mi-patio',  label: 'Mi Patio',  icon: 'storefront-outline', selectedIcon: 'storefront', image: MI_PATIO_IMAGE },
   { path: '/perfil',    label: 'Perfil',    icon: 'person-outline',     selectedIcon: 'person' },
 ];
@@ -108,7 +108,7 @@ export function BottomTabBar({ variant = 'fondero', fade = true }: { variant?: '
             <TouchableOpacity
               key={path}
               accessibilityRole={path === '+' ? 'button' : 'tab'}
-              accessibilityLabel={label}
+              accessibilityLabel={path === '+' ? 'Publicar menú' : label}
               accessibilityState={path === '+' ? undefined : { selected: active }}
               accessibilityValue={hasNews ? { text: 'Novedades' } : undefined}
               style={styles.tab}
@@ -118,9 +118,10 @@ export function BottomTabBar({ variant = 'fondero', fade = true }: { variant?: '
               <View style={styles.icon} pointerEvents="none">
                 {image
                   ? <Image source={active ? image.on : image.off} style={[styles.image, { tintColor: active ? theme.accent : theme.textSecondary }]} />
-                  : <Ionicons name={active ? selectedIcon : icon} size={path === '+' ? 26 : 22} color={active ? theme.accent : theme.textSecondary} />}
+                  : <Ionicons name={active ? selectedIcon : icon} size={path === '+' ? 24 : 22} color={active ? theme.accent : theme.textSecondary} />}
                 {hasNews && <View style={styles.dot} />}
               </View>
+              <Text style={[styles.label, { color: active ? theme.accent : theme.textSecondary }]} numberOfLines={1} maxFontSizeMultiplier={1.15}>{label}</Text>
             </TouchableOpacity>
           );
         })}
@@ -137,7 +138,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
     gap: 4,
     paddingVertical: 4,
     paddingHorizontal: 6,
-    borderRadius: 25,
+    borderRadius: 28,
     height: BOTTOM_TAB_HEIGHT,
     backgroundColor: t.glass,
     borderColor: t.isDark ? t.border : 'rgba(255,255,255,0.18)',
@@ -146,13 +147,15 @@ const makeStyles = (t: Theme) => StyleSheet.create({
     ...floatingSurfaceShadow(t.isDark),
   },
   tab: {
-    width: 49,
-    height: 40,
+    width: 58,
+    height: 48,
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 1,
   },
   icon: { width: 28, height: 24, alignItems: 'center', justifyContent: 'center' },
   image: { width: 22, height: 22 },
+  label: { fontSize: 10, lineHeight: 12, fontWeight: '600' },
   dot: { position: 'absolute', top: -1, right: -2, width: 7, height: 7, borderRadius: 4, backgroundColor: t.accent, borderColor: t.surface, borderWidth: StyleSheet.hairlineWidth },
 });

@@ -79,8 +79,10 @@
 > *Siguiente sesión*
 > - [ ] Cobro: decidir RevenueCat, tiendas directas o Stripe web (recomendación:
 >   lanzar gratis y cobrar en una actualización).
-> - [ ] Grok como agente auxiliar: solo revisión e investigación, sin escribir en
->   el repo, para no repetir el choque con Codex.
+> - [ ] Grok como agente revisor: reglas listas en `AGENTS.md` (solo escribe
+>   en `docs/reviews/`). Falta que Parco instale Grok Build
+>   (`curl -fsSL https://x.ai/cli/install.sh | bash`), inicie sesión y le
+>   dé su primera revisión.
 > - [x] Barra de negocio según Ley de Jakob: `Menús · Actividad · + · Mi Patio · Perfil`.
 > - [x] Perfil modelo Instagram en los dos roles, con Ajustes detrás del engrane.
 > - [ ] QA físico: «+» desde las 4 pestañas, Mi Patio, Ajustes y los dos

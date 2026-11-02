@@ -22,8 +22,8 @@ const ACCOUNT: Topic = { id: 'cuenta', icon: 'key-outline', title: 'Mi cuenta', 
   { title: 'Quiero eliminar mi cuenta', answer: 'En Perfil, al final, toca Eliminar cuenta. Se borran tu cuenta y lo que guardaste en ella.' },
 ] };
 const NOTICES: Topic = { id: 'avisos', icon: 'notifications-outline', title: 'Avisos', hint: 'No llegan o llegan de más', askFrequency: true, reasons: [
-  { title: 'No me llegan avisos', answer: 'Revisa en Perfil → Avisos que estén activos y que tu teléfono los permita para Patio.' },
-  { title: 'Me llegan demasiados', answer: 'Puedes apagarlos en Perfil → Avisos.' },
+  { title: 'No me llegan avisos', answer: 'Revisa en Perfil → Notificaciones que estén activas y que tu teléfono las permita para Patio.' },
+  { title: 'Me llegan demasiados', answer: 'Puedes apagarlas en Perfil → Notificaciones.' },
 ] };
 const SAFETY: Topic = { id: 'seguridad', icon: 'shield-checkmark-outline', title: 'Reseñas y seguridad', hint: 'Reportar contenido o a alguien', reasons: [
   { title: 'Una reseña es ofensiva o falsa', answer: 'Repórtala desde el menú de la reseña. La revisamos y la quitamos si rompe las reglas de Patio.' },
@@ -48,7 +48,7 @@ const FONDERO_TOPICS: Topic[] = [
     { title: 'Mi menú no se ve publicado', answer: 'Lo de hoy se ve mientras estás abierto. Revisa tu horario en Perfil → Editar mi negocio.' },
   ] },
   { id: 'negocio', icon: 'storefront-outline', title: 'Mi negocio', hint: 'Nombre, horario y ubicación', askFrequency: true, reasons: [
-    { title: 'Cambiar nombre, horario o ubicación', answer: 'Todo se edita en Perfil → Editar mi negocio. Para la ubicación puedes usar dónde estás o escribir la dirección.' },
+    { title: 'Cambiar nombre, horario o ubicación', answer: 'Todo se edita en Perfil → Editar mi negocio. El nombre se puede cambiar una vez cada 15 días; para la ubicación puedes usar dónde estás o escribir la dirección.' },
     { title: 'Cambiar mi tipo de lugar', answer: 'Cuéntanos a qué tipo cambias y por qué. Lo revisamos para que tu lugar aparezca donde la gente lo busca.' },
     { title: 'No aparezco en el mapa', answer: 'Apareces cuando tienes lo de hoy publicado y estás abierto. Revisa tu horario y tu ubicación en Editar mi negocio.' },
   ] },

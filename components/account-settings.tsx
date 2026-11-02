@@ -1,4 +1,3 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
@@ -8,7 +7,7 @@ import { AccountDeletionRow } from '@/components/account-deletion-row';
 import { SettingsGroup, SettingsRow, settingsColors } from '@/components/settings-list';
 import { ToggleSwitch } from '@/components/toggle-switch';
 import { signOutAccount } from '@/lib/account-session';
-import { USER_ROLE_KEY } from '@/lib/entry-flow';
+import { saveUserRole } from '@/lib/entry-flow';
 import { supabase } from '@/lib/supabase';
 import { useTheme } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
@@ -38,7 +37,7 @@ export function AccountSettings({ role }: { role: 'foodie' | 'fondero' }) {
   };
 
   const switchToFoodie = async () => {
-    await AsyncStorage.setItem(USER_ROLE_KEY, 'foodie').catch(() => {});
+    await saveUserRole('foodie').catch(() => {});
     router.replace('/explorar');
   };
 

@@ -123,6 +123,9 @@ export function useFonderoProfileController() {
     !pagosEfectivo && !pagosTrans && !pagosTarjeta ? 'cómo cobras' : null,
     semanal.every((dia) => dia.cerrado) ? 'los días que abres' : null,
   ].filter((item): item is string => !!item);
+  const missingLabel = missing.length
+    ? `${missing.length > 1 || missing[0].startsWith('los ') ? 'Faltan' : 'Falta'} ${missing.length > 1 ? `${missing.slice(0, -1).join(', ')} y ${missing[missing.length - 1]}` : missing[0]}`
+    : null;
   const isDirty =
     nombre !== savedValues.nombre ||
     descripcion !== savedValues.descripcion ||
@@ -441,6 +444,7 @@ export function useFonderoProfileController() {
     handleSignOut,
     isDirty,
     missing,
+    missingLabel,
     nameError,
     nameLockedUntil,
     isSaving,

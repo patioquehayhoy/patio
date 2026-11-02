@@ -20,6 +20,9 @@ Registro operativo para mantener la preparación SOC 2 / ISO/IEC 27001 / ISO/IEC
 | OPS-02 | Gestión de incidentes | registro y procedimiento | por incidente | soporte | pendiente de activar |
 | OPS-03 | Revisión de accesos | export/revisión de miembros | mensual | propietario | pendiente externo |
 | OPS-04 | Evidencia de release | salida de `npm run check` | cada release | ingeniería | disponible |
+| MOD-01 | Filtrar contenido ofensivo antes de publicarlo (Apple 1.2) | revisión en servidor de reseñas, perfiles y listas | cada release | ingeniería | pendiente de decisión |
+| DATA-01 | Reglas del negocio en el servidor: nombre cada 15 días, giro fijo, nombre único | trigger e índice en `fonditas` | por migración | ingeniería | pendiente de decisión |
+| PRIV-05 | Recordatorios locales se apagan al cerrar sesión o eliminar la cuenta | `lib/account-session.ts` + prueba | cada release | ingeniería | cubierto por pruebas |
 
 ## Regla de evidencia
 

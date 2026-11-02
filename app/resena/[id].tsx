@@ -200,7 +200,7 @@ export default function ResenaScreen() {
       <View style={[s.ctaWrap, { paddingBottom: insets.bottom + 20 }]}>
         <LinearGradient colors={[`${theme.bg}00`, theme.bg]} style={s.ctaFade} pointerEvents="none" />
         <TouchableOpacity style={[s.cta, (stars === 0 || saving) && s.ctaDisabled]} onPress={submit} disabled={stars === 0 || saving} activeOpacity={0.86} accessibilityRole="button" accessibilityState={{ disabled: stars === 0 || saving, busy: saving }} accessibilityLabel={saving ? 'Publicando reseña' : stars === 0 ? 'Elige las estrellas' : 'Publicar reseña'}>
-          <Text style={s.ctaText} allowFontScaling={true}>{saving ? 'Publicando…' : stars === 0 ? 'Elige las estrellas' : 'Publicar reseña'}</Text>
+          <Text style={s.ctaText} allowFontScaling={true}>{noWidow(saving ? 'Publicando…' : stars === 0 ? 'Elige las estrellas' : 'Publicar reseña')}</Text>
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>

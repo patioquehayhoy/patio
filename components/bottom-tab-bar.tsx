@@ -96,9 +96,9 @@ export function BottomTabBar({ variant = 'fondero' }: { variant?: 'foodie' | 'fo
           return (
             <TouchableOpacity
               key={path}
-              accessibilityRole="tab"
+              accessibilityRole={path === '+' ? 'button' : 'tab'}
               accessibilityLabel={label}
-              accessibilityState={{ selected: active }}
+              accessibilityState={path === '+' ? undefined : { selected: active }}
               accessibilityValue={hasNews ? { text: 'Novedades' } : undefined}
               style={styles.tab}
               activeOpacity={0.7}

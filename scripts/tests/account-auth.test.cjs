@@ -45,6 +45,22 @@ function fixture(supabase = {}) {
 const userId = 'a992e8c0-290e-4e17-a65f-bfd89d6e849c';
 const targetId = 'b992e8c0-290e-4e17-a65f-bfd89d6e849c';
 
+test('logout turns off the phone reminders so they stop after leaving the account', async () => {
+  const query = { eq() { return this; }, then(resolve) { return Promise.resolve({ error: null }).then(resolve); } };
+  const f = fixture({
+    from() { return { delete: () => query }; },
+    auth: {
+      getSession: async () => ({ data: { session: { user: { id: userId } } } }),
+      signOut: async () => ({ error: null }),
+    },
+  });
+  await f.storage.setItem('patio.reminder.publish', '1');
+  await f.storage.setItem('patio.reminder.lunch', '1');
+  await f.load('lib/account-session.ts').signOutAccount();
+  assert.equal(f.values.has('patio.reminder.publish'), false);
+  assert.equal(f.values.has('patio.reminder.lunch'), false);
+});
+
 test('logout removes only this installation push token before ending Auth', async () => {
   const events = [];
   const filters = [];

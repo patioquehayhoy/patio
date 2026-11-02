@@ -3,7 +3,9 @@
 > **Borrador para revisión legal (2026-11-01).** Los campos entre corchetes
 > faltan: nombre completo del responsable y domicilio. Basado en lo que la app
 > recoge hoy (verificado contra el código); si cambia lo que recogemos, este
-> aviso se actualiza antes de publicar ese cambio.
+> aviso se actualiza antes de publicar ese cambio. Para la revisión legal: se
+> redactó contra la nueva LFPDPPP (DOF 20 de marzo de 2025), cuya autoridad es
+> la Secretaría Anticorrupción y Buen Gobierno.
 
 Última actualización: [FECHA DE PUBLICACIÓN]
 
@@ -54,10 +56,11 @@ ofrecemos planes de pago, el cobro lo procesa la tienda de aplicaciones
 7. Responder tus solicitudes de soporte.
 
 **Finalidades adicionales** (puedes negarte sin perder el servicio):
-- Avisarte de novedades de Patio, solo si activas esa opción.
+- Avisarte de novedades o promociones de Patio. Hoy no enviamos este tipo de
+  avisos; cuando existan, solo te llegarán si los activas en Perfil →
+  Notificaciones, y ahí mismo podrás apagarlos.
 
-Si no quieres que usemos tus datos para la finalidad adicional, apágala en
-Perfil → Notificaciones o escríbenos al correo de contacto.
+También puedes negarte escribiendo al correo de contacto.
 
 ## 4. Con quién compartimos tus datos
 
@@ -70,6 +73,9 @@ operar Patio y que los tratan por nuestra cuenta:
 | Anthropic | Leer la foto de tu menú, ayudarte a dar de alta tu negocio y entender búsquedas |
 | Expo | Entregar notificaciones a tu teléfono |
 | Apple y Google | Notificaciones del sistema, mapas y, en su caso, cobro de suscripciones |
+
+Algunos de estos proveedores tratan los datos fuera de México, por ejemplo en
+Estados Unidos, siempre por nuestra cuenta y para las finalidades de este aviso.
 
 Lo que publicas a propósito (perfil, listas públicas, reseñas, la ficha y los
 menús de tu negocio) puede verlo cualquier persona que use Patio.
@@ -88,6 +94,10 @@ los 15 días hábiles siguientes.
 **Eliminar tu cuenta:** desde la app en Perfil → Eliminar cuenta, o siguiendo
 [estas instrucciones](ELIMINAR_CUENTA.md). Se borran tu cuenta y los datos
 ligados a ella.
+
+Si consideras que no atendimos bien tu solicitud, puedes acudir ante la
+Secretaría Anticorrupción y Buen Gobierno, autoridad en protección de datos
+personales.
 
 ## 6. Cuánto tiempo los conservamos
 

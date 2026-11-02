@@ -86,7 +86,7 @@ export default function PerfilScreen() {
     handleSaveAll,
     handleSignOut,
     isDirty,
-    missing,
+    missingLabel,
     nameError,
     nameLockedUntil,
     isSaving,
@@ -111,7 +111,7 @@ export default function PerfilScreen() {
     tipoNegocio,
     ubicacion,
   } = useFonderoProfileController();
-  const blockedBy = !savedFlash && missing.length ? `Falta ${missing.join(' y ')}` : null;
+  const blockedBy = !savedFlash ? missingLabel : null;
   const saveLabel = isSaving ? 'Guardando…' : savedFlash ? 'Guardado' : blockedBy ?? 'Guardar cambios';
 
   return (

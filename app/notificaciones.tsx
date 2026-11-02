@@ -59,9 +59,7 @@ export default function NotificacionesScreen() {
           <Ionicons name="chevron-back" size={21} color={theme.text} />
         </TouchableOpacity>
         <Text accessibilityRole="header" style={[s.navTitle, { color: theme.text }]}>Actividad</Text>
-        <TouchableOpacity style={s.navButton} onPress={() => router.push({ pathname: '/avisos', params: { role: 'foodie' } })} accessibilityRole="button" accessibilityLabel="Elegir qué notificaciones recibir">
-          <Ionicons name="settings-outline" size={20} color={theme.text} />
-        </TouchableOpacity>
+        <View style={s.navButton} />
       </View>
       <ScrollView
         refreshControl={<RefreshControl refreshing={pull.refreshing} onRefresh={pull.onRefresh} tintColor={theme.textSecondary} />}

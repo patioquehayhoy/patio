@@ -419,7 +419,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
               accessibilityRole="button"
               accessibilityLabel={publishing ? 'Publicando menú' : menuEmpty ? 'Falta un platillo' : 'Publicar menú'}
               accessibilityState={{ disabled: publishing || menuEmpty, busy: publishing }}>
-              <Text style={s.publishText}>{publishing ? 'Publicando…' : menuEmpty ? 'Falta un platillo' : 'Publicar menú'}</Text>
+              <Text style={s.publishText}>{noWidow(publishing ? 'Publicando…' : menuEmpty ? 'Falta un platillo' : 'Publicar menú')}</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>

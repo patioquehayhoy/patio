@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 
 import { requestSystemNotificationPermission } from '@/lib/community-notifications';
+import { cancelScheduledReminders, REMINDER_STORAGE_KEYS } from '@/lib/reminder-cleanup';
 
 // Recordatorios que programa el propio teléfono: funcionan sin cuenta y sin
 // servidor. «Publicar» avisa al negocio a las 10 solo los días que aún no
@@ -9,8 +10,8 @@ import { requestSystemNotificationPermission } from '@/lib/community-notificatio
 export type ReminderKind = 'publish' | 'lunch';
 
 const STORAGE_KEY: Record<ReminderKind, string> = {
-  publish: 'patio.reminder.publish',
-  lunch: 'patio.reminder.lunch',
+  publish: REMINDER_STORAGE_KEYS[0],
+  lunch: REMINDER_STORAGE_KEYS[1],
 };
 const PUBLISH_HOUR = 10;
 const LUNCH_HOUR = 13;
@@ -30,14 +31,6 @@ export async function getReminder(kind: ReminderKind): Promise<boolean> {
   return (await AsyncStorage.getItem(STORAGE_KEY[kind]).catch(() => null)) === '1';
 }
 
-async function cancel(prefix: string) {
-  const N = notifications();
-  if (!N) return;
-  const scheduled = await N.getAllScheduledNotificationsAsync();
-  await Promise.all(scheduled
-    .filter((item) => item.identifier.startsWith(prefix))
-    .map((item) => N.cancelScheduledNotificationAsync(item.identifier)));
-}
 
 /** Devuelve false si el teléfono no dio permiso; en ese caso queda apagado. */
 export async function setReminder(kind: ReminderKind, enabled: boolean, publishedToday = false): Promise<boolean> {
@@ -51,7 +44,7 @@ export async function setReminder(kind: ReminderKind, enabled: boolean, publishe
 async function syncLunchReminder() {
   const N = notifications();
   if (!N) return;
-  await cancel('lunch-reminder');
+  await cancelScheduledReminders(['lunch-reminder']);
   if (!await getReminder('lunch')) return;
   await N.scheduleNotificationAsync({
     identifier: 'lunch-reminder',
@@ -64,7 +57,7 @@ async function syncLunchReminder() {
 export async function syncPublishReminder(publishedToday: boolean) {
   const N = notifications();
   if (!N) return;
-  await cancel('publish-reminder');
+  await cancelScheduledReminders(['publish-reminder']);
   if (!await getReminder('publish')) return;
   const now = new Date();
   for (let day = 0; day < PUBLISH_DAYS_AHEAD; day++) {

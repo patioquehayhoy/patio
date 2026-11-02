@@ -263,10 +263,10 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
   } = usePatioDetailController(id);
   const recentRecordedId = useRef<string | null>(null);
   useEffect(() => {
-    if (!patio || recentRecordedId.current === patio.id) return;
+    if (own || !patio || recentRecordedId.current === patio.id) return;
     recentRecordedId.current = patio.id;
     void recordRecentPatio(patio, 'opened').catch(() => {});
-  }, [patio]);
+  }, [own, patio]);
   const [hiddenAuthors, setHiddenAuthors] = useState<string[]>([]);
   const reviews = useMemo(() => fetchedReviews.filter((review) => !hiddenAuthors.includes(review.userId)), [fetchedReviews, hiddenAuthors]);
   useEffect(() => { setHiddenAuthors([]); }, [patioId]);
@@ -543,7 +543,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
                           )}
                         </View>
                         {!!item.price && <Text style={s.groupItemPrice} allowFontScaling={true}>{item.price}</Text>}
-                        <TouchableOpacity
+                        {!own && <TouchableOpacity
                           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                           onPress={() => handleToggleDishLike(item.name)}
                           activeOpacity={0.7}
@@ -552,7 +552,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
                           accessibilityState={{ selected: dishLiked }}
                           style={s.dishLikeBtn}>
                           <Ionicons name={dishLiked ? 'heart' : 'heart-outline'} size={17} color={dishLiked ? theme.accent : theme.textMute} />
-                        </TouchableOpacity>
+                        </TouchableOpacity>}
                       </View>
                     );
                   })}
@@ -751,7 +751,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
                   return (
                     <>
                       <View style={s.reviewActions}>
-                        <TouchableOpacity
+                        {(!own || replyCount > 0) && <TouchableOpacity
                           style={s.reviewAction}
                           hitSlop={4}
                           onPress={() => {
@@ -768,7 +768,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
                           accessibilityState={{ expanded: replyCount > 0 ? (expandedThreads[reviewKey] ?? false) : undefined }}>
                           <Ionicons name="chatbubble-outline" size={16} color={theme.textSecondary} />
                           {!!replyCount && <Text style={s.reviewActionText}>{replyCount}</Text>}
-                        </TouchableOpacity>
+                        </TouchableOpacity>}
                         <TouchableOpacity
                           style={s.reviewAction}
                           hitSlop={4}
@@ -814,6 +814,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
                               </View>
                               <View style={s.reviewThreadActions}>
                                 {!!reply.timeLabel && <Text style={s.reviewThreadTime}>{reply.timeLabel}</Text>}
+                                {!own && <>
                                 <TouchableOpacity
                                   style={s.reviewThreadTextAction}
                                   hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
@@ -841,6 +842,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
                                   accessibilityLabel={`Responder a ${reply.mine ? 'tu comentario' : reply.author}`}>
                                   <Text style={s.reviewThreadTextActionLabel}>Responder</Text>
                                 </TouchableOpacity>
+                                </>}
                               </View>
                             </View>
                           );
@@ -884,7 +886,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
                           </View>
                         );
                       })()}
-                      {((expandedThreads[reviewKey] ?? false) || replyingTo === reviewKey) && replyingToComment?.reviewKey !== reviewKey && (
+                      {!own && ((expandedThreads[reviewKey] ?? false) || replyingTo === reviewKey) && replyingToComment?.reviewKey !== reviewKey && (
                         <View style={s.reviewReplyRow}>
                           <TextInput value={replyDraft} onChangeText={setReplyDraft} placeholder="Escribe un comentario" placeholderTextColor={theme.textMute} style={s.reviewReplyInput} maxLength={280} />
                           <TouchableOpacity

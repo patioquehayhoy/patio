@@ -3,6 +3,7 @@ import { withLocalAccountTransition } from './account-storage';
 import { clearDeletedAccountSession, supabase } from './supabase';
 import { withSessionLock } from './session-queue';
 import { detachPushDevice } from './push-device-session';
+import { cancelScheduledReminders, REMINDER_STORAGE_KEYS } from './reminder-cleanup';
 
 export async function signOutAccount(): Promise<void> {
   return withSessionLock(() => withLocalAccountTransition(async (activate) => {
@@ -14,7 +15,8 @@ export async function signOutAccount(): Promise<void> {
     const { error } = await supabase.auth.signOut({ scope: 'local' });
     if (error) throw error;
     await activate(null);
-    await AsyncStorage.multiRemove(['@patio_user_role', '@patio_community_return_to']);
+    await AsyncStorage.multiRemove(['@patio_user_role', '@patio_community_return_to', ...REMINDER_STORAGE_KEYS]);
+    await cancelScheduledReminders();
   }));
 }
 
@@ -41,5 +43,7 @@ export async function deleteAccount(expectedUserId: string): Promise<void> {
       ? await supabase.auth.signOut({ scope: 'local' }) : { error: null };
     if (signOutError) await clearDeletedAccountSession();
     await erase(expectedUserId);
+    await AsyncStorage.multiRemove(REMINDER_STORAGE_KEYS).catch(() => {});
+    await cancelScheduledReminders();
   }));
 }

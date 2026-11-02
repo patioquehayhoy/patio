@@ -1,9 +1,11 @@
-import { router, Stack } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { router, Stack, useFocusEffect } from 'expo-router';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AccountSettings } from '@/components/account-settings';
+import { hasUnseenReviewLikes } from '@/lib/activity-feed';
 import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { bottomTabClearance } from '@/lib/layout-metrics';
 import { SettingsGroup, SettingsRow, settingsColors } from '@/components/settings-list';
@@ -18,6 +20,8 @@ function makeStyles(t: Theme) {
     content: { paddingBottom: 120 },
 
     body: { paddingHorizontal: 18, paddingTop: 20 },
+    newsRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+    newsDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: t.accent },
   });
 }
 
@@ -31,6 +35,14 @@ export default function CuentaScreen() {
   const { hasSession } = useFoodieAccountController();
   const [userId, setUserId] = useState<string | null>(null);
   useEffect(() => { supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id ?? null)).catch(() => {}); }, []);
+  // El punto de la pestaña Perfil lleva a algún lado: el mismo punto marca la
+  // fila de Actividad, que es donde está lo nuevo.
+  const [hasNews, setHasNews] = useState(false);
+  useFocusEffect(useCallback(() => {
+    let active = true;
+    hasUnseenReviewLikes().then((value) => { if (active) setHasNews(value); }).catch(() => {});
+    return () => { active = false; };
+  }, []));
 
   return (
     <View style={[s.root, { paddingTop: insets.top }]}>
@@ -44,7 +56,20 @@ export default function CuentaScreen() {
           <SettingsGroup c={sc} label="Perfil">
             <SettingsRow c={sc} icon="person-outline" title={hasSession ? 'Editar perfil' : 'Iniciar sesión'} sub={hasSession ? 'Nombre, foto y descripción' : 'Sincroniza listas y reseñas'} onPress={() => router.push(hasSession ? '/perfil-comunidad' : '/comunidad-acceso')} />
             {userId && <SettingsRow c={sc} icon="at-outline" title="Ver perfil público" divider onPress={() => router.push({ pathname: '/foodie/[id]', params: { id: userId } })} />}
-            {userId && <SettingsRow c={sc} icon="heart-outline" title="Actividad" sub="Me gusta en tus reseñas" divider onPress={() => router.push('/notificaciones')} />}
+            {userId && <SettingsRow
+              c={sc}
+              icon="heart-outline"
+              title="Actividad"
+              sub={hasNews ? 'Hay novedades en tus reseñas' : 'Me gusta en tus reseñas'}
+              divider
+              onPress={() => router.push('/notificaciones')}
+              trailing={hasNews ? (
+                <View style={s.newsRow}>
+                  <View style={s.newsDot} />
+                  <Ionicons name="chevron-forward" size={16} color={theme.textMute} />
+                </View>
+              ) : undefined}
+            />}
           </SettingsGroup>
 
           {/* Publicar un negocio vive en Plan: se elige como plan, no como atajo. */}

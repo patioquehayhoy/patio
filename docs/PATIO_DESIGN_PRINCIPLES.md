@@ -54,6 +54,10 @@ errores) y la validación en línea de Luke Wroblewski.
   escribir. Dos negocios pueden llamarse igual; la colonia los distingue.
 - El nombre de quien reseña o comenta abre su perfil: así se encuentra a la
   gente para seguirla.
+- Números públicos como Instagram: el perfil muestra reseñas, «me gusta»
+  recibidos, seguidores y siguiendo; el negocio muestra guardados y «me gusta»
+  de sus platillos. En Patio guardar un lugar es seguirlo, por eso el número
+  se llama como el botón: «guardados». Solo totales; quién guardó es privado.
 - Bloquear vive en el ••• de perfiles y reseñas; «Cuentas bloqueadas» solo
   aparece en Perfil cuando bloqueaste a alguien.
 

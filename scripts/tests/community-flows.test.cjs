@@ -66,7 +66,7 @@ function screenFixture(kind, { signedIn = true, failRead = false, missing = fals
     '@/components/content-safety-menu': { ContentSafetyMenu: 'ContentSafetyMenu' },
     // Seguir pasa por lib/profile-privacy (perfil privado y solicitudes).
     '@/lib/profile-privacy': {
-      getFollowCounts: async () => { if (failRead) throw new Error('Network failed'); return { followers: 0, following: 0 }; },
+      getProfileStats: async () => { if (failRead) throw new Error('Network failed'); return { reviews: 0, likes: 0, followers: 0, following: 0 }; },
       getFollowStatus: async () => 'none',
       followProfile: async (target) => { writes.push(['profile_follows', { followed_id: target }]); if (failWrite) throw new Error('Offline'); return 'accepted'; },
       unfollowProfile: async () => { writes.push(['profile_follows', 'delete']); if (failWrite) throw new Error('Offline'); },

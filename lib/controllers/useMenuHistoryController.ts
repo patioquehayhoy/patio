@@ -85,7 +85,7 @@ export function useMenuHistoryController() {
         const { data, error } = await supabase
           .from('menus')
           .select('fecha,secciones')
-          .eq('fondita_id', id)
+          .eq('negocio_id', id)
           .order('fecha', { ascending: false })
           .limit(20);
         authoritative = !error;
@@ -152,7 +152,7 @@ export function useMenuHistoryController() {
     try {
       const id = getFonditaId();
       if (id && fechas.length) {
-        const { error } = await supabase.from('menus').delete().eq('fondita_id', id).in('fecha', fechas);
+        const { error } = await supabase.from('menus').delete().eq('negocio_id', id).in('fecha', fechas);
         if (error) throw error;
       }
       await deleteLocalMenus(ids);

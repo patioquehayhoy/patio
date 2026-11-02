@@ -38,7 +38,7 @@ export default function PerfilScreen() {
     const id = getFonditaId();
     if (id) {
       // Un borrador en memoria nunca confirma que el menú sea público.
-      void supabase.from('menus').select('secciones').eq('fondita_id', id)
+      void supabase.from('menus').select('secciones').eq('negocio_id', id)
         .eq('fecha', localMenuDate()).maybeSingle()
         .then(({ data, error }) => {
           if (!active || error) return;

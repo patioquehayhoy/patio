@@ -39,7 +39,7 @@ export default function PublicCollection() {
       if (!id) { setState('missing'); return; }
       const [collection, rows, auth] = await Promise.all([
         supabase.from('collections').select('id,title,description,owner_id').eq('id', id).maybeSingle(),
-        supabase.from('collection_places').select('fondita_id,sort_order,fonditas(id,nombre,categorias)').eq('collection_id', id).order('sort_order'),
+        supabase.from('collection_places').select('negocio_id,sort_order,negocios(id,nombre,categorias)').eq('collection_id', id).order('sort_order'),
         supabase.auth.getUser(),
       ]);
       if (request !== requestRef.current) return;
@@ -56,7 +56,7 @@ export default function PublicCollection() {
       if (request !== requestRef.current) return;
       setItem(collection.data);
       setPlaces((rows.data ?? []).flatMap((row): Place[] => {
-        const place = Array.isArray(row.fonditas) ? row.fonditas[0] : row.fonditas;
+        const place = Array.isArray(row.negocios) ? row.negocios[0] : row.negocios;
         return place ? [place as Place] : [];
       }));
       setOwn(user?.id === collection.data.owner_id);

@@ -193,7 +193,7 @@ export async function saveSavedPatioMeta(meta: SavedPatioMeta) {
     const { data: auth } = await supabase.auth.getUser();
     if (!auth.user || auth.user.is_anonymous) return;
     const { error } = await supabase.from('saved_patios').upsert({
-      user_id: auth.user.id, fondita_id: meta.patioId, note: meta.note?.trim() || null,
+      user_id: auth.user.id, negocio_id: meta.patioId, note: meta.note?.trim() || null,
       status: meta.status ?? null, personal_rating: meta.rating ?? null, updated_at: new Date().toISOString(),
     });
     if (error) throw error;
@@ -213,7 +213,7 @@ async function publishCollectionUnlocked(collection: PatioCollection): Promise<P
   const { data, error } = await supabase.rpc('publish_collection', {
     p_collection_id: pending.remoteId, p_title: pending.title,
     p_description: pending.description, p_visibility: collection.visibility,
-    p_fondita_ids: [...new Set(pending.patioIds.filter((id) => uuidPattern.test(id)))],
+    p_negocio_ids: [...new Set(pending.patioIds.filter((id) => uuidPattern.test(id)))],
   });
   if (error) throw isContentRejected(error) ? new Error(CONTENT_REJECTED_MESSAGE) : error;
   if (data !== pending.remoteId) throw new Error('No se pudo confirmar la publicación de la lista.');
@@ -232,7 +232,7 @@ export async function syncLocalLibraryToCloud() {
     if (authError || !auth.user || auth.user.is_anonymous) return;
     const ids = (await getFavoritePatioIds()).filter((id) => uuidPattern.test(id));
     if (ids.length) {
-      const { error } = await supabase.from('saved_patios').upsert(ids.map((fondita_id) => ({ user_id: auth.user!.id, fondita_id })));
+      const { error } = await supabase.from('saved_patios').upsert(ids.map((negocio_id) => ({ user_id: auth.user!.id, negocio_id })));
       if (error) throw error;
     }
     for (const collection of await readCollections()) {

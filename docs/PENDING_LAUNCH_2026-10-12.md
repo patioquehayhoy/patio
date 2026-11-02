@@ -34,10 +34,12 @@
 > *Auditoría 2026-11-01* (`docs/APP_AUDIT_2026-11-01.md`)
 > - [x] Comentarios guardados, filtro de contenido, perfil privado, avisos de
 >   comunidad, reglas de nombre y giro, y sin columna de teléfono (código listo).
-> - [ ] **Publicar en producción (Parco):** `npx supabase db push` (cinco
->   migraciones del 1 nov; responder «Y») y `npx supabase functions deploy
->   send-community-notification notify-content-report --use-api`. Al
->   2026-11-01 noche seguían sin aplicarse (verificado con `migration list`).
+> - [ ] **Publicar en producción (Parco):** `npx supabase db push` (siete
+>   migraciones del 1 nov, incluye `fonditas` → `negocios`; responder «Y») y
+>   `npx supabase functions deploy send-community-notification
+>   notify-content-report send-publication-notifications
+>   send-review-notification --use-api`. Ensayadas completas con
+>   `npm run db:rehearse` (Postgres embebido, 34 migraciones, 23 escenarios).
 > - [ ] Ícono de Mi Patio y etiquetas de la barra: Jev prefiere el ojo y con
 >   etiquetas (`docs/research/jev-icono-2026-11-01.json`); Parco decide.
 > - [ ] Resúmenes diarios (likes, te guardaron, me gusta en platillos) y hora

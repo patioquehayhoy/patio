@@ -41,10 +41,10 @@ Deno.serve(async (req) => {
       if (!comment) return json({ delivered: 0, deduplicated: true });
 
       const { data: review, error: reviewError } = await admin.from('reviews')
-        .select('user_id,fondita_id').eq('id', comment.review_id).maybeSingle();
+        .select('user_id,negocio_id').eq('id', comment.review_id).maybeSingle();
       if (reviewError) throw reviewError;
       if (!review) return json({ delivered: 0 });
-      const { data: fondita } = await admin.from('fonditas').select('nombre,owner_id').eq('id', review.fondita_id).maybeSingle();
+      const { data: fondita } = await admin.from('negocios').select('nombre,owner_id').eq('id', review.negocio_id).maybeSingle();
       const author = fondita?.owner_id === user.id ? (fondita.nombre?.trim() || 'El Patio') : await displayName(admin, user.id);
 
       let parentAuthor: string | null = null;
@@ -57,14 +57,14 @@ Deno.serve(async (req) => {
         delivered += await sendExpoPush(admin, await pushTargets(admin, [parentAuthor], PREFERENCE, true), {
           title: `${author} te respondió`,
           body: snippet(comment.body),
-          data: { type: 'review_comment', patioId: review.fondita_id },
+          data: { type: 'review_comment', patioId: review.negocio_id },
         });
       }
       if (review.user_id !== user.id && review.user_id !== parentAuthor) {
         delivered += await sendExpoPush(admin, await pushTargets(admin, [review.user_id], PREFERENCE, true), {
           title: `${author} comentó tu reseña`,
           body: snippet(comment.body),
-          data: { type: 'review_comment', patioId: review.fondita_id },
+          data: { type: 'review_comment', patioId: review.negocio_id },
         });
       }
       return json({ delivered });
@@ -73,11 +73,11 @@ Deno.serve(async (req) => {
     if (body.kind === 'business_reply') {
       if (typeof body.reviewId !== 'string' || !UUID.test(body.reviewId)) return json({ error: 'Valid reviewId is required' }, 400);
       const { data: target, error: targetError } = await admin.from('reviews')
-        .select('fondita_id').eq('id', body.reviewId).maybeSingle();
+        .select('negocio_id').eq('id', body.reviewId).maybeSingle();
       if (targetError) throw targetError;
       if (!target) return json({ delivered: 0 });
-      const { data: fondita, error: fonditaError } = await admin.from('fonditas')
-        .select('nombre,owner_id').eq('id', target.fondita_id).maybeSingle();
+      const { data: fondita, error: fonditaError } = await admin.from('negocios')
+        .select('nombre,owner_id').eq('id', target.negocio_id).maybeSingle();
       if (fonditaError) throw fonditaError;
       if (!fondita || fondita.owner_id !== user.id) return json({ error: 'This Patio does not belong to the current user' }, 403);
 
@@ -92,7 +92,7 @@ Deno.serve(async (req) => {
       const delivered = await sendExpoPush(admin, await pushTargets(admin, [review.user_id], PREFERENCE, true), {
         title: `${fondita.nombre?.trim() || 'El Patio'} respondió tu reseña`,
         body: snippet(review.business_reply ?? ''),
-        data: { type: 'business_reply', patioId: target.fondita_id },
+        data: { type: 'business_reply', patioId: target.negocio_id },
       });
       return json({ delivered });
     }

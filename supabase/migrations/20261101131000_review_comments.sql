@@ -98,8 +98,8 @@ with check (
   and (
     exists (select 1 from public.user_profiles p where p.user_id = auth.uid() and p.setup_completed)
     or exists (
-      select 1 from public.reviews r join public.fonditas f on f.id = r.fondita_id
-      where r.id = review_id and f.owner_id = auth.uid()
+      select 1 from public.reviews r join public.negocios n on n.id = r.negocio_id
+      where r.id = review_id and n.owner_id = auth.uid()
     )
   )
 );

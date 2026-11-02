@@ -11,7 +11,7 @@ const SEEN_KEY = '@patio_activity_seen_at';
 // Actividad. Mismo lenguaje visual que el punto de "falta publicar hoy" del
 // "+" en historial.tsx — un punto simple, sin número, sobre el ícono.
 async function getLatestAt(table: 'reviews' | 'dish_likes', fonditaId: string): Promise<number> {
-  const query = supabase.from(table).select('created_at').eq('fondita_id', fonditaId);
+  const query = supabase.from(table).select('created_at').eq('negocio_id', fonditaId);
   const { data } = await (table === 'reviews' ? query.eq('status', 'published') : query)
     .order('created_at', { ascending: false })
     .limit(1)

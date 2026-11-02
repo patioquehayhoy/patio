@@ -63,10 +63,10 @@ export async function toggleDishLike(fonditaId: string, dishName: string): Promi
       const canonical = canonicalDishName(dishName);
       if (wasLiked) {
         await supabase.from('dish_likes').delete()
-          .eq('fondita_id', fonditaId).eq('user_id', user.user.id).eq('dish_name', canonical);
+          .eq('negocio_id', fonditaId).eq('user_id', user.user.id).eq('dish_name', canonical);
       } else {
         await supabase.from('dish_likes').upsert({
-          fondita_id: fonditaId,
+          negocio_id: fonditaId,
           user_id: user.user.id,
           dish_name: canonical,
           dish_name_display: dishName.trim(),
@@ -94,7 +94,7 @@ export async function getDishLikeEvents(fonditaId: string): Promise<DishLikeEven
   const { data, error } = await supabase
     .from('dish_likes')
     .select('user_id,dish_name,dish_name_display,created_at')
-    .eq('fondita_id', fonditaId)
+    .eq('negocio_id', fonditaId)
     .order('created_at', { ascending: false });
   if (error || !data?.length) return [];
 
@@ -140,7 +140,7 @@ export async function getDishLikeDetail(fonditaId: string, dishName: string): Pr
   const { data, error } = await supabase
     .from('dish_likes')
     .select('user_id,created_at')
-    .eq('fondita_id', fonditaId)
+    .eq('negocio_id', fonditaId)
     .eq('dish_name', canonical)
     .order('created_at', { ascending: false });
   if (error || !data?.length) return { dishName, authors: [] };

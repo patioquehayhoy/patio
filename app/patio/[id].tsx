@@ -20,6 +20,7 @@ import { canonicalDishName } from '@/lib/menu-store';
 import { getLikedReviewIds, getReviewLikeCounts, toggleReviewLike } from '@/lib/review-likes';
 import { CommentSignInRequiredError, commentTimeLabel, deleteReviewComment, getReviewComments, isRealReviewId, postReviewComment, setCommentLike } from '@/lib/review-comments';
 import { reportContent, writeErrorMessage, type ReportReason } from '@/lib/content-safety';
+import { businessStatsLabel, getBusinessStats, type BusinessStats } from '@/lib/business-stats';
 import { formatHHMM12 } from '@/lib/horario';
 import { MAP_STYLE_DARK, MAP_STYLE_LIGHT } from '@/lib/map-style';
 import { Radius, Spacing, useTheme, type Theme, Type } from '@/lib/theme';
@@ -139,6 +140,7 @@ function makeStyles(t: Theme) {
     verifiedMark: { width: 28, height: 28, alignItems: 'center', justifyContent: 'center' },
     summaryRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 16 },
     summaryPrice: { maxWidth: '50%', marginLeft: 'auto' },
+    statsLine: { marginTop: -8, marginBottom: 16, fontSize: 13, lineHeight: 18, fontWeight: '400', color: t.textSecondary },
     payments: { flexDirection: 'row', alignItems: 'center', gap: 8 },
     paymentIconBox: { width: 20, height: 20, alignItems: 'center', justifyContent: 'center' },
     // ── Menú agrupado ──
@@ -249,6 +251,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
   const [replyingToComment, setReplyingToComment] = useState<{ reviewKey: string; parentId: string; author: string } | null>(null);
   const [replyDraft, setReplyDraft] = useState('');
   const [sendingComment, setSendingComment] = useState(false);
+  const [businessStats, setBusinessStats] = useState<BusinessStats | null>(null);
   const [saveSheetVisible, setSaveSheetVisible] = useState(false);
   const pullDismissed = useRef(false);
   const heroPullY = useRef(new Animated.Value(0)).current;
@@ -447,6 +450,15 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
     }).catch(() => {});
     return () => { active = false; };
   }, [reviews, patio?.id, patio?.name]);
+
+  // Guardados y «me gusta» del lugar; se vuelven a contar cuando la persona
+  // lo guarda o lo quita, para que el número no se quede atrás.
+  useEffect(() => {
+    if (!patio?.id) return;
+    let active = true;
+    getBusinessStats(patio.id).then((stats) => { if (active) setBusinessStats(stats); }).catch(() => {});
+    return () => { active = false; };
+  }, [patio?.id, isSaved]);
 
   const appendReply = (reviewKey: string, reply: ReviewThreadReply) => {
     setReviewReplies((current) => ({ ...current, [reviewKey]: [...(current[reviewKey] ?? []), reply] }));
@@ -660,6 +672,9 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
             <PatioCardLocation area={patio.area} distanceLabel={distance} variant="detail" style={{ flex: 1 }} />
             <PatioCardPrice patio={patio} compact={false} style={s.summaryPrice} />
           </View>
+          {!!businessStatsLabel(businessStats) && (
+            <Text style={s.statsLine} allowFontScaling={true}>{noWidow(businessStatsLabel(businessStats))}</Text>
+          )}
           {/* Menú del día — agrupado por sección (atenuado si ya se acabó) */}
           <View style={soldOut && s.menuSoldWrap}>
             <View style={soldOut ? { opacity: 0.42 } : undefined}>

@@ -35,7 +35,7 @@ export async function getReviewComments(reviewIds: string[], patio: { id: string
   if (!ids.length) return [];
   const [{ data: session }, { data: owner }, { data: rows, error }] = await Promise.all([
     supabase.auth.getSession(),
-    supabase.from('fonditas').select('owner_id').eq('id', patio.id).maybeSingle(),
+    supabase.from('negocios').select('owner_id').eq('id', patio.id).maybeSingle(),
     supabase.from('review_comments')
       .select('id,review_id,parent_id,user_id,body,created_at')
       .in('review_id', ids)
@@ -157,7 +157,7 @@ export async function getMyCommentEvents(): Promise<MyCommentEvent[]> {
   ].filter((row) => (seen.has(row.id) ? false : (seen.add(row.id), true)));
   if (!rows.length) return [];
   const [{ data: reviews }, { data: profiles }] = await Promise.all([
-    supabase.from('reviews').select('id,fondita_id,fonditas(nombre,owner_id)').in('id', [...new Set(rows.map((row) => row.review_id))]),
+    supabase.from('reviews').select('id,negocio_id,negocios(nombre,owner_id)').in('id', [...new Set(rows.map((row) => row.review_id))]),
     supabase.from('user_profiles').select('user_id,display_name,avatar_url').in('user_id', [...new Set(rows.map((row) => row.user_id))]),
   ]);
   const reviewsById = new Map((reviews ?? []).map((review: any) => [review.id, review]));
@@ -165,9 +165,9 @@ export async function getMyCommentEvents(): Promise<MyCommentEvent[]> {
   return rows.flatMap((row) => {
     const review: any = reviewsById.get(row.review_id);
     if (!review) return [];
-    const byPatio = review.fonditas?.owner_id === row.user_id;
+    const byPatio = review.negocios?.owner_id === row.user_id;
     const profile: any = profilesById.get(row.user_id);
-    const author = byPatio ? review.fonditas?.nombre?.trim() : profile?.display_name?.trim();
+    const author = byPatio ? review.negocios?.nombre?.trim() : profile?.display_name?.trim();
     if (!author) return [];
     return [{
       id: row.id,
@@ -175,8 +175,8 @@ export async function getMyCommentEvents(): Promise<MyCommentEvent[]> {
       author,
       avatarUrl: byPatio ? undefined : profile?.avatar_url || undefined,
       body: row.body,
-      fonditaId: review.fondita_id,
-      fonditaName: review.fonditas?.nombre ?? 'un Patio',
+      fonditaId: review.negocio_id,
+      fonditaName: review.negocios?.nombre ?? 'un Patio',
       createdAt: row.created_at,
     }];
   }).sort((a, b) => b.createdAt.localeCompare(a.createdAt));

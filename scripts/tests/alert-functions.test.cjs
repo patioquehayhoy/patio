@@ -67,7 +67,7 @@ test('a new review notifies the business owner once', async () => {
   const sent = [];
   const admin = makeAdmin({
     reviews: { stars: 4 },
-    fonditas: { nombre: 'Cocina Lupita', owner_id: owner },
+    negocios: { nombre: 'Cocina Lupita', owner_id: owner },
     push_devices: [{ id: 'd1', user_id: owner, expo_push_token: 'ExponentPushToken[x]' }],
     notification_preferences: [],
   });
@@ -95,7 +95,7 @@ test('a review already notified sends nothing', async () => {
 test('an owner who turned off reviews is not notified', async () => {
   const admin = makeAdmin({
     reviews: { stars: 5 },
-    fonditas: { nombre: 'Cocina Lupita', owner_id: owner },
+    negocios: { nombre: 'Cocina Lupita', owner_id: owner },
     push_devices: [{ id: 'd1', user_id: owner, expo_push_token: 'ExponentPushToken[x]' }],
     notification_preferences: [{ user_id: owner, business_activity: false }],
   });
@@ -136,8 +136,8 @@ test('a comment notifies the review author once, never the commenter', async () 
   const sent = [];
   const admin = makeAdmin({
     review_comments: { review_id: 'r1', parent_id: null, body: 'Yo también pedí el caldo y estaba buenísimo.' },
-    reviews: { user_id: reviewAuthor, fondita_id: patio },
-    fonditas: { nombre: 'Cocina Lupita', owner_id: owner },
+    reviews: { user_id: reviewAuthor, negocio_id: patio },
+    negocios: { nombre: 'Cocina Lupita', owner_id: owner },
     user_profiles: { display_name: 'Ana P.' },
     push_devices: [{ id: 'd3', user_id: reviewAuthor, expo_push_token: 'ExponentPushToken[a]' }],
     notification_preferences: [],
@@ -156,8 +156,8 @@ test('a comment by the business signs with the Patio name', async () => {
   const sent = [];
   const admin = makeAdmin({
     review_comments: { review_id: 'r1', parent_id: null, body: 'Gracias por venir.' },
-    reviews: { user_id: reviewAuthor, fondita_id: patio },
-    fonditas: { nombre: 'Cocina Lupita', owner_id: reviewer },
+    reviews: { user_id: reviewAuthor, negocio_id: patio },
+    negocios: { nombre: 'Cocina Lupita', owner_id: reviewer },
     push_devices: [{ id: 'd3', user_id: reviewAuthor, expo_push_token: 'ExponentPushToken[a]' }],
     notification_preferences: [],
   });
@@ -169,8 +169,8 @@ test('a comment by the business signs with the Patio name', async () => {
 test('people who turned off community alerts get no comment push', async () => {
   const admin = makeAdmin({
     review_comments: { review_id: 'r1', parent_id: null, body: 'Hola' },
-    reviews: { user_id: reviewAuthor, fondita_id: patio },
-    fonditas: { nombre: 'Cocina Lupita', owner_id: owner },
+    reviews: { user_id: reviewAuthor, negocio_id: patio },
+    negocios: { nombre: 'Cocina Lupita', owner_id: owner },
     user_profiles: { display_name: 'Ana P.' },
     push_devices: [{ id: 'd3', user_id: reviewAuthor, expo_push_token: 'ExponentPushToken[a]' }],
     notification_preferences: [{ user_id: reviewAuthor, social_activity: false }],
@@ -180,7 +180,7 @@ test('people who turned off community alerts get no comment push', async () => {
 });
 
 test('only the business owner can announce its reply to a review', async () => {
-  const admin = makeAdmin({ reviews: { fondita_id: patio }, fonditas: { nombre: 'Cocina Lupita', owner_id: owner } });
+  const admin = makeAdmin({ reviews: { negocio_id: patio }, negocios: { nombre: 'Cocina Lupita', owner_id: owner } });
   const handler = loadEdge('send-community-notification', admin, async () => { throw new Error('must not call Expo'); });
   assert.equal((await handler(post({ kind: 'business_reply', reviewId: comment }))).status, 403);
 });

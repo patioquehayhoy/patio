@@ -56,11 +56,19 @@ export async function unfollowProfile(targetId: string): Promise<void> {
   if (error) throw error;
 }
 
-export async function getFollowCounts(targetId: string): Promise<{ followers: number; following: number }> {
-  const { data, error } = await supabase.rpc('profile_follow_counts', { target: targetId });
+export type ProfileStats = { reviews: number; likes: number; followers: number; following: number };
+
+/** Números del perfil, públicos como en Instagram aunque la cuenta sea privada. */
+export async function getProfileStats(targetId: string): Promise<ProfileStats> {
+  const { data, error } = await supabase.rpc('profile_stats', { target: targetId });
   if (error) throw error;
   const row = Array.isArray(data) ? data[0] : data;
-  return { followers: Number(row?.followers ?? 0), following: Number(row?.following ?? 0) };
+  return {
+    reviews: Number(row?.reviews ?? 0),
+    likes: Number(row?.likes ?? 0),
+    followers: Number(row?.followers ?? 0),
+    following: Number(row?.following ?? 0),
+  };
 }
 
 export async function getFollowRequests(): Promise<FollowRequest[]> {

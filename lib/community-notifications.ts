@@ -159,11 +159,11 @@ export async function syncSavedPatioNotificationSubscriptions(savedPatioIds: str
     : [];
   const { data: current, error: readError } = await supabase
     .from('patio_follows')
-    .select('fondita_id')
+    .select('negocio_id')
     .eq('user_id', userId);
   if (readError) throw readError;
 
-  const currentIds = (current ?? []).map((row) => row.fondita_id as string);
+  const currentIds = (current ?? []).map((row) => row.negocio_id as string);
   const toRemove = currentIds.filter((id) => !desired.includes(id));
   const toAdd = desired.filter((id) => !currentIds.includes(id));
 
@@ -172,18 +172,18 @@ export async function syncSavedPatioNotificationSubscriptions(savedPatioIds: str
       .from('patio_follows')
       .delete()
       .eq('user_id', userId)
-      .in('fondita_id', toRemove);
+      .in('negocio_id', toRemove);
     if (error) throw error;
   }
   if (toAdd.length) {
     const { error } = await supabase.from('patio_follows').upsert(
       toAdd.map((fonditaId) => ({
         user_id: userId,
-        fondita_id: fonditaId,
+        negocio_id: fonditaId,
         notifications_enabled: true,
         updated_at: new Date().toISOString(),
       })),
-      { onConflict: 'user_id,fondita_id' },
+      { onConflict: 'user_id,negocio_id' },
     );
     if (error) throw error;
   }

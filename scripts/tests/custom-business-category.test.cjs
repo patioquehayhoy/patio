@@ -11,7 +11,7 @@ test('Otro persists the written category alongside selected tags instead of conv
     '@/lib/horario': { deserialize: () => null },
     '@/lib/user-store': { getFonditaId: () => 'own-business' },
     '@/lib/supabase': { supabase: { from: (table) => {
-      assert.equal(table, 'fonditas');
+      assert.equal(table, 'negocios');
       return { update: (value) => { payload = value; return { eq: async (field, id) => {
         assert.equal(field, 'id'); assert.equal(id, 'own-business'); return { error: null };
       } }; } };

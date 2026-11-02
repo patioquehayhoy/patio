@@ -14,9 +14,11 @@ const moderationTerms = [...read('20261101130000_content_moderation.sql').matchA
 const comments = flat(read('20261101131000_review_comments.sql'));
 const privacy = flat(read('20261101132000_private_profiles.sql'));
 const identity = flat(read('20261101133000_identity_rules.sql'));
+const rename = flat(read('20261101121000_rename_fonditas_to_negocios.sql'));
+const stats = flat(read('20261101134000_business_stats.sql'));
 
 test('every public text goes through the content filter on the server', () => {
-  for (const table of ['reviews', 'user_profiles', 'collections', 'collection_places', 'fonditas', 'menus', 'cartas']) {
+  for (const table of ['reviews', 'user_profiles', 'collections', 'collection_places', 'negocios', 'menus', 'cartas']) {
     assert.match(moderation, new RegExp(`before insert or update on public\\.${table} for each row`), table);
   }
   assert.match(comments, /perform public\.moderation_assert\(new\.body\)/);
@@ -40,7 +42,7 @@ test('comments are readable with their review, written only by people with a pro
   assert.match(comments, /as restrictive for select to authenticated using \(not public\.is_blocked_by\(auth\.uid\(\), user_id\)\)/);
   assert.match(comments, /for insert to authenticated with check \( user_id = auth\.uid\(\)/);
   assert.match(comments, /not public\.is_blocked_by\(r\.user_id, auth\.uid\(\)\)/);
-  assert.match(comments, /f\.owner_id = auth\.uid\(\)/);
+  assert.match(comments, /n\.owner_id = auth\.uid\(\)/);
   assert.doesNotMatch(comments, /on public\.review_comments for (all|update)/);
   assert.match(comments, /target_type in \('review', 'profile', 'patio', 'collection', 'comment'\)/);
   assert.match(comments, /social_activity boolean not null default true/);
@@ -74,6 +76,23 @@ function loadTs(relative) {
   new Function('require', 'module', 'exports', code)(() => ({ supabase: {} }), module, module.exports);
   return module.exports;
 }
+
+test('the business table is called negocios and every function was rewritten', () => {
+  assert.match(rename, /alter table public\.fonditas rename to negocios/);
+  for (const table of ['menus', 'cartas', 'menu_sections', 'reviews', 'dish_likes', 'saved_patios', 'collection_places', 'patio_follows', 'publication_events']) {
+    assert.match(rename, new RegExp(`alter table public\\.${table} rename column fondita_id to negocio_id`), table);
+  }
+  for (const fn of ['delete_owned_patios_before_account', 'reply_to_review', 'publish_collection']) assert.match(rename, new RegExp(`function public\\.${fn}`), fn);
+  assert.match(rename, /grant execute on function public\.publish_collection\(uuid, text, text, text, uuid\[\]\) to authenticated/);
+  // Solo el nombre provisional heredado («Mi Fondita») sigue como dato.
+  for (const sql of [moderation, comments, privacy, identity, stats]) assert.doesNotMatch(sql, /fondita_|fonditas\b|fondita\(/);
+});
+
+test('public numbers expose totals only, never who saved or liked', () => {
+  assert.match(privacy, /returns table \(reviews bigint, likes bigint, followers bigint, following bigint\)/);
+  assert.match(stats, /returns table \(saves bigint, dish_likes bigint, reviews bigint\)/);
+  assert.match(stats, /security definer/);
+});
 
 test('the name lock date is shown before typing, from the two most recent changes', () => {
   const { nameLockEnd } = loadTs('lib/name-changes.ts');

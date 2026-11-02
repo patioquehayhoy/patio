@@ -22,7 +22,7 @@ function fixture({ daily = [], permanent = [], failDaily = false } = {}) {
     query.then = (resolve, reject) => {
       if (table === 'menus' && failDaily) return Promise.reject(new Error('Offline')).then(resolve, reject);
       const id = request.clauses.find(([method, field]) => method === 'eq' && field === 'id')?.[2];
-      return Promise.resolve({ data: table === 'fonditas' ? (single ? rows.find((row) => row.id === id) : rows) : table === 'menus' ? daily : permanent, error: null }).then(resolve, reject);
+      return Promise.resolve({ data: table === 'negocios' ? (single ? rows.find((row) => row.id === id) : rows) : table === 'menus' ? daily : permanent, error: null }).then(resolve, reject);
     };
     return query;
   } };
@@ -59,11 +59,11 @@ const menu = (name) => ({ secciones: [{ nombre: 'Comida', platillos: [{ nombre: 
 test('map and saved distinguish today publications from empty, older and permanent menus', async () => {
   const f = fixture({
     daily: [
-      { fondita_id: 'today', fecha: '2026-09-14', secciones: menu('Mole de hoy') },
-      { fondita_id: 'empty', fecha: '2026-09-14', secciones: { secciones: [null, { nombre: 'Vacío', platillos: [{ nombre: '   ' }] }] } },
-      { fondita_id: 'old', fecha: '2026-09-13', secciones: menu('Mole de ayer') },
+      { negocio_id: 'today', fecha: '2026-09-14', secciones: menu('Mole de hoy') },
+      { negocio_id: 'empty', fecha: '2026-09-14', secciones: { secciones: [null, { nombre: 'Vacío', platillos: [{ nombre: '   ' }] }] } },
+      { negocio_id: 'old', fecha: '2026-09-13', secciones: menu('Mole de ayer') },
     ],
-    permanent: ['today', 'permanent', 'empty'].map((id) => ({ fondita_id: id, secciones: menu('Tacos de carta') })),
+    permanent: ['today', 'permanent', 'empty'].map((id) => ({ negocio_id: id, secciones: menu('Tacos de carta') })),
   });
   const { fetchPublicFonditas, fetchFonditaById } = f.load('lib/patios.ts');
   const places = await fetchPublicFonditas();
@@ -85,7 +85,7 @@ test('map and saved distinguish today publications from empty, older and permane
 });
 
 test('an unavailable today-menu read preserves places and permanent content without a false today claim', async () => {
-  const f = fixture({ failDaily: true, permanent: [{ fondita_id: 'permanent', secciones: menu('Tacos de carta') }] });
+  const f = fixture({ failDaily: true, permanent: [{ negocio_id: 'permanent', secciones: menu('Tacos de carta') }] });
   const { fetchPublicFonditas, fetchFonditaById } = f.load('lib/patios.ts');
   const places = await fetchPublicFonditas();
   assert.equal(places.length, 4);

@@ -22,7 +22,7 @@ export async function upsertFondita(_email: string): Promise<string | null> {
   if (authError) throw authError;
   if (!user || user.is_anonymous) throw new Error('Inicia sesión para crear tu Patio.');
   const { data: existing, error: readError } = await supabase
-    .from('fonditas')
+    .from('negocios')
     .select('id')
     .eq('owner_id', user.id)
     .maybeSingle();
@@ -35,7 +35,7 @@ export async function upsertFondita(_email: string): Promise<string | null> {
   }
 
   const { data, error } = await supabase
-    .from('fonditas')
+    .from('negocios')
     .insert({ owner_id: user.id, nombre: '' })
     .select('id')
     .single();
@@ -54,8 +54,8 @@ export async function saveMenuHoy(fonditaId: string, data: MenuData): Promise<vo
   const { error } = await supabase
     .from('menus')
     .upsert(
-      { fondita_id: fonditaId, secciones: data, fecha },
-      { onConflict: 'fondita_id,fecha' }
+      { negocio_id: fonditaId, secciones: data, fecha },
+      { onConflict: 'negocio_id,fecha' }
     );
   if (error) throw error;
   debugLog('[db] saveMenuHoy OK');
@@ -66,7 +66,7 @@ export async function deleteMenuHoy(fonditaId: string): Promise<void> {
     throw new Error('No se pudo identificar tu Patio para retirar el menú.');
   }
   const fecha = hoy();
-  const { error } = await supabase.from('menus').delete().eq('fondita_id', fonditaId).eq('fecha', fecha);
+  const { error } = await supabase.from('menus').delete().eq('negocio_id', fonditaId).eq('fecha', fecha);
   if (error) throw error;
 }
 
@@ -80,7 +80,7 @@ export async function loadMenuHoy(fonditaId: string): Promise<MenuData | null> {
   const { data, error } = await supabase
     .from('menus')
     .select('secciones')
-    .eq('fondita_id', fonditaId)
+    .eq('negocio_id', fonditaId)
     .eq('fecha', fecha)
     .maybeSingle();
 
@@ -93,7 +93,7 @@ export async function deleteCarta(fonditaId: string): Promise<void> {
   if (!isUuid(fonditaId)) {
     throw new Error('No se pudo identificar tu Patio para retirar la carta.');
   }
-  const { error } = await supabase.from('cartas').delete().eq('fondita_id', fonditaId);
+  const { error } = await supabase.from('cartas').delete().eq('negocio_id', fonditaId);
   if (error) throw error;
 }
 
@@ -105,8 +105,8 @@ export async function saveCarta(fonditaId: string, data: MenuData): Promise<void
   const { error } = await supabase
     .from('cartas')
     .upsert(
-      { fondita_id: fonditaId, secciones: data },
-      { onConflict: 'fondita_id' }
+      { negocio_id: fonditaId, secciones: data },
+      { onConflict: 'negocio_id' }
     );
   if (error) throw error;
   debugLog('[db] saveCarta OK');
@@ -121,7 +121,7 @@ export async function loadCarta(fonditaId: string): Promise<MenuData | null> {
   const { data, error } = await supabase
     .from('cartas')
     .select('secciones')
-    .eq('fondita_id', fonditaId)
+    .eq('negocio_id', fonditaId)
     .maybeSingle();
 
   if (error) { console.error('[db] loadCarta error:', error); return null; }

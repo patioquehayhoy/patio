@@ -197,7 +197,7 @@ export function useFonderoProfileController() {
         setEmail(user.email);
 
         const selectResult = await supabase
-          .from('fonditas')
+          .from('negocios')
           .select(FONDITA_SELECT)
           .eq('owner_id', user.id)
           .maybeSingle();
@@ -209,7 +209,7 @@ export function useFonderoProfileController() {
 
         if (!fondita) {
           const insertResult = await supabase
-            .from('fonditas')
+            .from('negocios')
             .insert({ owner_id: user.id, nombre: '' })
             .select(FONDITA_SELECT)
             .single();
@@ -265,8 +265,8 @@ export function useFonderoProfileController() {
         });
 
         const since = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString();
-        const { data: changes } = await supabase.from('fondita_name_history').select('changed_at')
-          .eq('fondita_id', fondita.id).gte('changed_at', since);
+        const { data: changes } = await supabase.from('negocio_name_history').select('changed_at')
+          .eq('negocio_id', fondita.id).gte('changed_at', since);
         if (active) {
           const recent = (changes ?? []).map((row: any) => row.changed_at as string);
           setNameChanges(recent);
@@ -342,7 +342,7 @@ export function useFonderoProfileController() {
       if (Object.keys(payload).length > 0) {
         if (!fonditaId && !__DEV__) throw new Error('No hay un negocio activo.');
         if (fonditaId) {
-          const { error } = await supabase.from('fonditas').update(payload).eq('id', fonditaId).select('id').single();
+          const { error } = await supabase.from('negocios').update(payload).eq('id', fonditaId).select('id').single();
           if (error && isNameChangeLimited(error)) {
             setNameError(NAME_CHANGE_LIMIT_MESSAGE);
             return;
@@ -419,7 +419,7 @@ export function useFonderoProfileController() {
       }
       const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
       const { latitude, longitude } = pos.coords;
-      const { error } = await supabase.from('fonditas').update({ latitude, longitude }).eq('id', fonditaId);
+      const { error } = await supabase.from('negocios').update({ latitude, longitude }).eq('id', fonditaId);
       if (error) throw error;
       setLocationSaved(true);
     } catch {

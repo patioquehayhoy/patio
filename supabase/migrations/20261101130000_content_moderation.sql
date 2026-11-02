@@ -117,7 +117,7 @@ begin
 end;
 $$;
 
-create or replace function public.moderate_fonditas() returns trigger
+create or replace function public.moderate_negocios() returns trigger
 language plpgsql security definer set search_path = public as $$
 begin
   if tg_op = 'INSERT' or new.nombre is distinct from old.nombre or new.descripcion is distinct from old.descripcion then
@@ -154,9 +154,9 @@ drop trigger if exists moderate_collection_places on public.collection_places;
 create trigger moderate_collection_places before insert or update on public.collection_places
 for each row execute function public.moderate_collection_places();
 
-drop trigger if exists moderate_fonditas on public.fonditas;
-create trigger moderate_fonditas before insert or update on public.fonditas
-for each row execute function public.moderate_fonditas();
+drop trigger if exists moderate_negocios on public.negocios;
+create trigger moderate_negocios before insert or update on public.negocios
+for each row execute function public.moderate_negocios();
 
 drop trigger if exists moderate_menus on public.menus;
 create trigger moderate_menus before insert or update on public.menus

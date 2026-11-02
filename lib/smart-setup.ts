@@ -111,14 +111,14 @@ export async function saveSmartSetup(result: SmartSetupResult): Promise<void> {
   payload.pagos_efectivo = result.pagos.efectivo;
   payload.pagos_transferencia = result.pagos.transferencia;
   payload.pagos_tarjeta = result.pagos.tarjeta;
-  const { error } = await supabase.from('fonditas').update(payload).eq('id', id);
+  const { error } = await supabase.from('negocios').update(payload).eq('id', id);
   if (error) {
     // Si el proyecto de Supabase todavía no tiene la columna `categorias`
     // (migración 20260816 sin aplicar), reintenta sin ella para no bloquear
     // el alta completa por un solo campo nuevo.
     if (/categorias/i.test(error.message ?? '')) {
       const { categorias: _categorias, ...fallbackPayload } = payload;
-      const retry = await supabase.from('fonditas').update(fallbackPayload).eq('id', id);
+      const retry = await supabase.from('negocios').update(fallbackPayload).eq('id', id);
       if (retry.error) throw retry.error;
       return;
     }

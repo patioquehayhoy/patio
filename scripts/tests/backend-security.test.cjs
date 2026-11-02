@@ -194,7 +194,7 @@ function publicationAdmin({ menuExists = true, ownsPatio = true, targetCount = 0
           single() { return query; }, maybeSingle() { return query; },
           then(resolve) {
             const values = {
-              fonditas: { id: userId, nombre: 'Patio prueba', owner_id: ownsPatio ? userId : 'someone-else' },
+              negocios: { id: userId, nombre: 'Patio prueba', owner_id: ownsPatio ? userId : 'someone-else' },
               menus: menuExists ? { secciones: { secciones: [] } } : null,
               publication_events: inserted ? { id: 'event-1' } : null,
               patio_follows: targets.map(({ user_id }) => ({ user_id })),

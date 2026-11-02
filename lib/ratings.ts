@@ -44,7 +44,7 @@ export async function getPatioRating(patioId: string): Promise<PatioRating | nul
   const { data } = await supabase
     .from('reviews')
     .select('stars,reasons,note,created_at')
-    .eq('fondita_id', patioId)
+    .eq('negocio_id', patioId)
     .eq('user_id', user.user.id)
     .eq('status', 'published')
     .order('created_at', { ascending: false })
@@ -70,7 +70,7 @@ export async function getPublicPatioReviews(patioId: string): Promise<PublicPati
     supabase
       .from('reviews')
       .select('id,user_id,stars,reasons,note,created_at,updated_at,business_reply,business_replied_at')
-      .eq('fondita_id', patioId)
+      .eq('negocio_id', patioId)
       .eq('status', 'published')
       .order('created_at', { ascending: false }),
   ]);
@@ -149,7 +149,7 @@ export async function savePatioRating(
     if (user.user) {
       const { error } = await supabase.from('reviews').insert({
         user_id: user.user.id,
-        fondita_id: patioId,
+        negocio_id: patioId,
         stars: data.stars,
         reasons: data.reasons ?? [],
         note: data.note?.trim() || null,

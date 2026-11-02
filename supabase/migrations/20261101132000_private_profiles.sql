@@ -25,19 +25,23 @@ as $$
 $$;
 grant execute on function public.can_view_profile_content(uuid) to anon, authenticated;
 
--- Conteos visibles para todos, como Instagram, aunque la lista sea privada.
-create or replace function public.profile_follow_counts(target uuid)
-returns table (followers bigint, following bigint)
+-- Números del perfil, visibles para todos como en Instagram aunque la cuenta
+-- sea privada: reseñas, «me gusta» que recibieron, seguidores y seguidos.
+create or replace function public.profile_stats(target uuid)
+returns table (reviews bigint, likes bigint, followers bigint, following bigint)
 language sql
 stable
 security definer
 set search_path = public
 as $$
   select
+    (select count(*) from public.reviews r where r.user_id = target and r.status = 'published'),
+    (select count(*) from public.review_likes l join public.reviews r on r.id = l.review_id
+      where r.user_id = target and r.status = 'published' and l.user_id <> target),
     (select count(*) from public.profile_follows where followed_id = target and status = 'accepted'),
     (select count(*) from public.profile_follows where follower_id = target and status = 'accepted');
 $$;
-grant execute on function public.profile_follow_counts(uuid) to anon, authenticated;
+grant execute on function public.profile_stats(uuid) to anon, authenticated;
 
 -- La identidad del perfil se ve siempre; lo que se protege es el contenido.
 drop policy if exists "profiles readable when public or own" on public.user_profiles;

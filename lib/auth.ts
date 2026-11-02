@@ -13,7 +13,7 @@ export async function initializeSignedInUser(session: Session): Promise<{ needsS
   const id = await upsertFondita(email);
   if (!id) throw new Error('No pudimos recuperar tu negocio. Inténtalo de nuevo.');
   setFonditaId(id);
-  const { data, error } = await supabase.from('fonditas').select('nombre').eq('id', id).maybeSingle();
+  const { data, error } = await supabase.from('negocios').select('nombre').eq('id', id).maybeSingle();
   if (error) throw error;
   return { needsSetup: !data?.nombre?.trim() };
 }

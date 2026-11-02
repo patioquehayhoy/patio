@@ -106,11 +106,11 @@ export async function getMyReviewLikeEvents(): Promise<MyReviewLikeEvent[]> {
 
   const { data: myReviews } = await supabase
     .from('reviews')
-    .select('id,fondita_id,fonditas(nombre)')
+    .select('id,negocio_id,negocios(nombre)')
     .eq('user_id', user.user.id);
   if (!myReviews?.length) return [];
   const reviewIds = myReviews.map((row: any) => row.id);
-  const fonditaByReview = new Map(myReviews.map((row: any) => [row.id, { id: row.fondita_id, name: row.fonditas?.nombre ?? 'un Patio' }]));
+  const fonditaByReview = new Map(myReviews.map((row: any) => [row.id, { id: row.negocio_id, name: row.negocios?.nombre ?? 'un Patio' }]));
 
   const { data: likes } = await supabase
     .from('review_likes')

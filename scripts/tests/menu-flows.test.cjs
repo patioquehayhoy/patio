@@ -269,7 +269,7 @@ test('production search supports accents, exact place names, and cached dishes d
 });
 
 test('search does not revive an old permanent-menu dish when a current menu is loaded', async () => {
-  const f = fixture({ overrides: { '@/lib/supabase': { supabase: { from: (table) => queryBuilder({ data: table === 'cartas' ? [{ fondita_id: 'one', secciones: menu('Pozole viejo') }] : [] }) } } } });
+  const f = fixture({ overrides: { '@/lib/supabase': { supabase: { from: (table) => queryBuilder({ data: table === 'cartas' ? [{ negocio_id: 'one', secciones: menu('Pozole viejo') }] : [] }) } } } });
   const { searchLiveMenus } = f.load('lib/menu.ts');
   assert.deepEqual(await searchLiveMenus('Pozole viejo', [patio]), []);
 });

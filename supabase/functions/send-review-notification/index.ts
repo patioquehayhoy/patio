@@ -18,13 +18,13 @@ Deno.serve(async (req) => {
     // Reclamar el aviso es atómico: una segunda llamada no encuentra la fila.
     const { data: review, error: reviewError } = await admin.from('reviews')
       .update({ owner_notified_at: new Date().toISOString() })
-      .eq('user_id', user.id).eq('fondita_id', body.fonditaId).eq('status', 'published')
+      .eq('user_id', user.id).eq('negocio_id', body.fonditaId).eq('status', 'published')
       .is('owner_notified_at', null).gte('created_at', since)
       .select('stars').maybeSingle();
     if (reviewError) throw reviewError;
     if (!review) return json({ delivered: 0, deduplicated: true });
 
-    const { data: fondita, error: fonditaError } = await admin.from('fonditas')
+    const { data: fondita, error: fonditaError } = await admin.from('negocios')
       .select('nombre,owner_id').eq('id', body.fonditaId).maybeSingle();
     if (fonditaError) throw fonditaError;
     if (!fondita?.owner_id || fondita.owner_id === user.id) return json({ delivered: 0 });

@@ -47,7 +47,7 @@ Deno.serve(async (req) => {
     const kind = body.kind ?? 'menu_published';
 
     const { data: fondita, error: fonditaError } = await admin
-      .from('fonditas')
+      .from('negocios')
       .select('id,nombre,owner_id')
       .eq('id', body.fonditaId)
       .maybeSingle();
@@ -62,14 +62,14 @@ Deno.serve(async (req) => {
     const part = (type: string) => dateParts.find((value) => value.type === type)?.value;
     const menuDate = `${part('year')}-${part('month')}-${part('day')}`;
     const { data: menu, error: menuError } = await admin.from('menus')
-      .select('secciones').eq('fondita_id', fondita.id).eq('fecha', menuDate).maybeSingle();
+      .select('secciones').eq('negocio_id', fondita.id).eq('fecha', menuDate).maybeSingle();
     if (menuError) throw menuError;
     if (!menu) return json({ error: 'Publish today\'s menu before announcing it' }, 409);
 
     const { data: existing, error: existingError } = await admin
       .from('publication_events')
       .select('id')
-      .eq('fondita_id', fondita.id)
+      .eq('negocio_id', fondita.id)
       .eq('menu_date', menuDate)
       .eq('kind', kind)
       .maybeSingle();
@@ -81,7 +81,7 @@ Deno.serve(async (req) => {
     const { data: event, error: eventError } = await admin
       .from('publication_events')
       .insert({
-        fondita_id: fondita.id,
+        negocio_id: fondita.id,
         menu_date: menuDate,
         kind,
         created_by: user.id,
@@ -94,7 +94,7 @@ Deno.serve(async (req) => {
     const { data: follows, error: followsError } = await admin
       .from('patio_follows')
       .select('user_id')
-      .eq('fondita_id', fondita.id)
+      .eq('negocio_id', fondita.id)
       .eq('notifications_enabled', true);
     if (followsError) throw followsError;
     const followerIds = [...new Set((follows ?? []).map((follow) => follow.user_id))];

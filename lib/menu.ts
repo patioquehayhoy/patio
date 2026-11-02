@@ -41,7 +41,7 @@ export async function fetchMenuForFondita(fonditaId: string): Promise<PatioMenuS
   const { data: menuHoy } = await supabase
     .from('menus')
     .select('secciones')
-    .eq('fondita_id', fonditaId)
+    .eq('negocio_id', fonditaId)
     .eq('fecha', localMenuDate())
     .maybeSingle();
 
@@ -51,7 +51,7 @@ export async function fetchMenuForFondita(fonditaId: string): Promise<PatioMenuS
   const { data: carta } = await supabase
     .from('cartas')
     .select('secciones')
-    .eq('fondita_id', fonditaId)
+    .eq('negocio_id', fonditaId)
     .maybeSingle();
 
   const permanent = normalizeMenuData(carta?.secciones);
@@ -185,19 +185,19 @@ export async function searchLiveMenus(query: string, patios: Patio[]): Promise<P
   }
 
   const [cartas, menus] = await Promise.allSettled([
-    supabase.from('cartas').select('fondita_id, secciones').filter('secciones::text', 'ilike', `%${query}%`),
-    supabase.from('menus').select('fondita_id, secciones').eq('fecha', localMenuDate()).filter('secciones::text', 'ilike', `%${query}%`),
+    supabase.from('cartas').select('negocio_id, secciones').filter('secciones::text', 'ilike', `%${query}%`),
+    supabase.from('menus').select('negocio_id, secciones').eq('fecha', localMenuDate()).filter('secciones::text', 'ilike', `%${query}%`),
   ]);
   // El menú de hoy tiene prioridad sobre una coincidencia duplicada de carta.
   if (menus.status === 'fulfilled') {
-    for (const row of menus.value.data ?? []) addResults(row.fondita_id, row.secciones as MenuData);
+    for (const row of menus.value.data ?? []) addResults(row.negocio_id, row.secciones as MenuData);
   }
   if (cartas.status === 'fulfilled') {
     for (const row of cartas.value.data ?? []) {
       // Una carta antigua no debe volver a ofrecer un platillo que no figura
       // en el menú vigente ya cargado con la ficha del negocio.
-      if (patioMap.get(row.fondita_id)?.menu.length) continue;
-      addResults(row.fondita_id, row.secciones as MenuData);
+      if (patioMap.get(row.negocio_id)?.menu.length) continue;
+      addResults(row.negocio_id, row.secciones as MenuData);
     }
   }
 

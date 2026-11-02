@@ -318,19 +318,19 @@ async function fetchPublicMenus(ids: string[]): Promise<Map<string, { menu: Pati
   if (!ids.length) return result;
   const today = localMenuDate();
   const [daily, permanent] = await Promise.allSettled([
-    supabase.from('menus').select('fondita_id, fecha, secciones').in('fondita_id', ids).eq('fecha', today),
-    supabase.from('cartas').select('fondita_id, secciones').in('fondita_id', ids),
+    supabase.from('menus').select('negocio_id, fecha, secciones').in('negocio_id', ids).eq('fecha', today),
+    supabase.from('cartas').select('negocio_id, secciones').in('negocio_id', ids),
   ]);
   if (permanent.status === 'fulfilled' && !permanent.value.error) {
     for (const row of permanent.value.data ?? []) {
-      result.set(row.fondita_id, { menu: publicMenuSections(row.secciones), hasTodayMenu: false });
+      result.set(row.negocio_id, { menu: publicMenuSections(row.secciones), hasTodayMenu: false });
     }
   }
   if (daily.status === 'fulfilled' && !daily.value.error) {
     for (const row of daily.value.data ?? []) {
       if (row.fecha !== today) continue;
       const menu = publicMenuSections(row.secciones);
-      if (menu.length) result.set(row.fondita_id, { menu, hasTodayMenu: true });
+      if (menu.length) result.set(row.negocio_id, { menu, hasTodayMenu: true });
     }
   }
   return result;
@@ -342,7 +342,7 @@ export async function fetchPublicFonditas(options: { throwOnError?: boolean } = 
   // sin la columna para no tumbar el mapa de Foodie mientras se aplica.
   let data: Record<string, unknown>[] | null = null;
   const withCategorias = await supabase
-    .from('fonditas')
+    .from('negocios')
     .select(`${FONDITAS_BASE_COLUMNS}, categorias`)
     .not('nombre', 'is', null)
     .neq('nombre', 'Mi Fondita');
@@ -350,7 +350,7 @@ export async function fetchPublicFonditas(options: { throwOnError?: boolean } = 
     data = withCategorias.data as Record<string, unknown>[];
   } else {
     const withoutCategorias = await supabase
-      .from('fonditas')
+      .from('negocios')
       .select(FONDITAS_BASE_COLUMNS)
       .not('nombre', 'is', null)
       .neq('nombre', 'Mi Fondita');
@@ -400,15 +400,15 @@ export async function fetchFonditaById(id: string, options: { throwOnError?: boo
   // Intenta con `categorias` (migración 20260816) + ubicación; va degradando
   // el select si alguna columna todavía no existe en el proyecto, para no
   // romper la ficha del negocio mientras se aplica la migración.
-  const withLocAndCategorias = await supabase.from('fonditas').select(`${base}, categorias, latitude, longitude`).eq('id', id).maybeSingle();
+  const withLocAndCategorias = await supabase.from('negocios').select(`${base}, categorias, latitude, longitude`).eq('id', id).maybeSingle();
   if (!withLocAndCategorias.error && withLocAndCategorias.data) {
     row = withLocAndCategorias.data as Record<string, unknown>;
   } else {
-    const withLoc = await supabase.from('fonditas').select(`${base}, latitude, longitude`).eq('id', id).maybeSingle();
+    const withLoc = await supabase.from('negocios').select(`${base}, latitude, longitude`).eq('id', id).maybeSingle();
     if (!withLoc.error && withLoc.data) {
       row = withLoc.data as Record<string, unknown>;
     } else {
-      const noLoc = await supabase.from('fonditas').select(base).eq('id', id).maybeSingle();
+      const noLoc = await supabase.from('negocios').select(base).eq('id', id).maybeSingle();
       if (noLoc.error) { if (options.throwOnError) throw noLoc.error; return null; }
       if (!noLoc.data) return null;
       row = noLoc.data as Record<string, unknown>;

@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ContentSafetyMenu } from '@/components/content-safety-menu';
 import { supabase } from '@/lib/supabase';
-import { followProfile, getFollowCounts, getFollowStatus, unfollowProfile, type FollowStatus } from '@/lib/profile-privacy';
+import { followProfile, getFollowStatus, getProfileStats, unfollowProfile, type FollowStatus, type ProfileStats } from '@/lib/profile-privacy';
 import { useTheme, Type } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
 
@@ -23,7 +23,7 @@ export default function FoodieProfile() {
   const [lists, setLists] = useState<PublicCollection[]>([]);
   const [follow, setFollow] = useState<FollowStatus>('none');
   const [own, setOwn] = useState(false);
-  const [counts, setCounts] = useState({ followers: 0, following: 0 });
+  const [counts, setCounts] = useState<ProfileStats>({ reviews: 0, likes: 0, followers: 0, following: 0 });
   const [state, setState] = useState<LoadState>('loading');
   const [saving, setSaving] = useState(false);
   const requestRef = useRef(0);
@@ -44,7 +44,7 @@ export default function FoodieProfile() {
         supabase.from('user_profiles').select('user_id,display_name,handle,avatar_url,bio,visibility').eq('user_id', id).maybeSingle(),
         supabase.from('collections').select('id,title,description').eq('owner_id', id).eq('visibility', 'public'),
         supabase.auth.getUser(),
-        getFollowCounts(id),
+        getProfileStats(id),
         getFollowStatus(id),
       ]);
       if (request !== requestRef.current) return;
@@ -129,7 +129,20 @@ export default function FoodieProfile() {
             {profile.avatar_url ? <Image source={{ uri: profile.avatar_url }} style={s.avatar} /> : <View style={[s.avatar, { backgroundColor: theme.surface, alignItems: 'center', justifyContent: 'center' }]}><Ionicons name="person" size={30} color={theme.textMute} /></View>}
             <Text style={[s.name, { color: theme.text }]}>{noWidow(profile.display_name || 'Foodie')}</Text>
             {!!profile.handle && <Text style={[s.handle, { color: theme.textSecondary }]}>@{profile.handle}</Text>}
-            <Text style={[s.handle, { color: theme.textSecondary }]}>{noWidow(`${counts.followers} seguidores · ${counts.following} siguiendo`)}</Text>
+            {/* Como Instagram: los números del perfil se ven aunque sea privado. */}
+            <View style={s.stats} accessibilityRole="summary">
+              {([
+                [counts.reviews, counts.reviews === 1 ? 'reseña' : 'reseñas'],
+                [counts.likes, 'me gusta'],
+                [counts.followers, counts.followers === 1 ? 'seguidor' : 'seguidores'],
+                [counts.following, 'siguiendo'],
+              ] as const).map(([value, label]) => (
+                <View key={label} style={s.stat} accessible accessibilityLabel={`${value} ${label}`}>
+                  <Text style={[s.statValue, { color: theme.text }]}>{value}</Text>
+                  <Text style={[s.statLabel, { color: theme.textSecondary }]}>{label}</Text>
+                </View>
+              ))}
+            </View>
             {!!profile.bio && <Text style={[s.bio, { color: theme.textSecondary }]}>{noWidow(profile.bio)}</Text>}
             {!own && <TouchableOpacity accessibilityRole="button" accessibilityLabel={follow === 'accepted' ? 'Dejar de seguir perfil' : follow === 'pending' ? 'Retirar solicitud para seguir' : 'Seguir perfil'} accessibilityState={{ disabled: saving, busy: saving, selected: follow !== 'none' }} disabled={saving} style={[s.follow, { backgroundColor: follow !== 'none' ? theme.surface : theme.accent, borderColor: theme.border, opacity: saving ? 0.6 : 1 }]} onPress={toggleFollow}><Text style={{ color: follow !== 'none' ? theme.text : '#FFFFFF', fontWeight: '700' }}>{followLabel}</Text></TouchableOpacity>}
           </View>
@@ -166,5 +179,9 @@ const s = StyleSheet.create({
   row: { minHeight: 70, borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center' },
   listName: { fontSize: 16, fontWeight: '700' },
   desc: { fontSize: 12, marginTop: 3 },
+  stats: { flexDirection: 'row', justifyContent: 'center', gap: 24, marginTop: 16 },
+  stat: { alignItems: 'center', minWidth: 56 },
+  statValue: { fontSize: 18, fontWeight: '700', fontVariant: ['tabular-nums'] },
+  statLabel: { fontSize: 12, marginTop: 2 },
   locked: { alignItems: 'center', marginTop: 24, paddingVertical: 24, paddingHorizontal: 16, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth },
 });

@@ -2,7 +2,7 @@ import { router, usePathname } from 'expo-router';
 import { BlurView } from 'expo-blur';
 import { BottomContentFade } from '@/components/bottom-content-fade';
 import { NewMenuSheet } from '@/components/new-menu-sheet';
-import { Animated, Keyboard, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Animated, Image, Keyboard, StyleSheet, TouchableOpacity, View, type ImageSourcePropType } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useMemo, useState } from 'react';
@@ -23,6 +23,15 @@ type Tab = {
   label: string;
   icon: keyof typeof Ionicons.glyphMap;
   selectedIcon: keyof typeof Ionicons.glyphMap;
+  /** Ícono propio (PNG teñible) en lugar de Ionicons. */
+  image?: { off: ImageSourcePropType; on: ImageSourcePropType };
+};
+
+// Mi Patio: puestito con piso, a propósito ambiguo entre puesto y local.
+// Fuente en assets/icons/mi-patio*.svg (retícula de Ionicons, trazo 32).
+const MI_PATIO_IMAGE = {
+  off: require('../assets/icons/mi-patio.png'),
+  on: require('../assets/icons/mi-patio-filled.png'),
 };
 
 const FOODIE_TABS: Tab[] = [
@@ -35,7 +44,7 @@ const FONDERO_TABS: Tab[] = [
   { path: '/historial', label: 'Menús',     icon: 'book-outline', selectedIcon: 'book' },
   { path: '/resenas',   label: 'Actividad', icon: 'heart-outline',      selectedIcon: 'heart' },
   { path: '+',          label: 'Nuevo menú', icon: 'add-circle-outline', selectedIcon: 'add-circle' },
-  { path: '/mi-patio',  label: 'Mi Patio',  icon: 'storefront-outline', selectedIcon: 'storefront' },
+  { path: '/mi-patio',  label: 'Mi Patio',  icon: 'storefront-outline', selectedIcon: 'storefront', image: MI_PATIO_IMAGE },
   { path: '/perfil',    label: 'Perfil',    icon: 'person-outline',     selectedIcon: 'person' },
 ];
 
@@ -79,7 +88,7 @@ export function BottomTabBar({ variant = 'fondero', fade = true }: { variant?: '
           style={StyleSheet.absoluteFill}
           pointerEvents="none"
         />
-        {tabs.map(({ path, label, icon, selectedIcon }) => {
+        {tabs.map(({ path, label, icon, selectedIcon, image }) => {
           const active = pathname === path || (variant === 'foodie' && path === '/cuenta' && pathname === '/notificaciones');
           const hasNews = hasUnseen && !active && (
             (variant === 'fondero' && path === '/resenas') ||
@@ -107,7 +116,9 @@ export function BottomTabBar({ variant = 'fondero', fade = true }: { variant?: '
               hitSlop={{ top: 4, bottom: 4, left: 0, right: 0 }}
               onPress={onTabPress}>
               <View style={styles.icon} pointerEvents="none">
-                <Ionicons name={active ? selectedIcon : icon} size={path === '+' ? 26 : 22} color={active ? theme.accent : theme.textSecondary} />
+                {image
+                  ? <Image source={active ? image.on : image.off} style={[styles.image, { tintColor: active ? theme.accent : theme.textSecondary }]} />
+                  : <Ionicons name={active ? selectedIcon : icon} size={path === '+' ? 26 : 22} color={active ? theme.accent : theme.textSecondary} />}
                 {hasNews && <View style={styles.dot} />}
               </View>
             </TouchableOpacity>
@@ -142,5 +153,6 @@ const makeStyles = (t: Theme) => StyleSheet.create({
     justifyContent: 'center',
   },
   icon: { width: 28, height: 24, alignItems: 'center', justifyContent: 'center' },
+  image: { width: 22, height: 22 },
   dot: { position: 'absolute', top: -1, right: -2, width: 7, height: 7, borderRadius: 4, backgroundColor: t.accent, borderColor: t.surface, borderWidth: StyleSheet.hairlineWidth },
 });

@@ -40,8 +40,8 @@
 >   notify-content-report send-publication-notifications
 >   send-review-notification --use-api`. Ensayadas completas con
 >   `npm run db:rehearse` (Postgres embebido, 34 migraciones, 23 escenarios).
-> - [ ] Ícono de Mi Patio: Parco se inclina por el puestito con piso
->   (`artifacts/mi-patio-puestito.png`); falta elegir variante y ponerlo.
+> - [x] Ícono de Mi Patio: puestito con piso (elegido por Parco 2026-11-02),
+>   `assets/icons/mi-patio*.svg|png`. Falta verlo en el teléfono.
 > - [ ] Publicar el tablero del negocio: `npx supabase db push`
 >   (`20261102100000_business_insights`, ensayada con `npm run db:rehearse`).
 > - [ ] Listas en Menús: Parco duda de su utilidad; decidir si se quitan

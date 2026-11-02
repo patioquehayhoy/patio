@@ -1145,7 +1145,7 @@ export default function ExplorarScreen() {
           <FoodieLoading />
         </View>
       )}
-      {showNavigation && <BottomTabBar variant="foodie" />}
+      {showNavigation && <BottomTabBar variant="foodie" fade={false} />}
     </View>
   );
 }

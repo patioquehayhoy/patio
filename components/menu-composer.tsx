@@ -122,7 +122,23 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
       requestAnimationFrame(() => ref.focus());
     }
   };
-  const focusKey = (key: string) => inputRefs.current[key]?.focus();
+  // Un nombre que no se está editando se muestra en una línea; para enfocarlo
+  // primero vuelve a ser campo y el foco cae al montarse.
+  const focusKey = (key: string) => {
+    const ref = inputRefs.current[key];
+    if (ref) { ref.focus(); return; }
+    pendingFocus.current = key;
+    if (key.startsWith('n-')) setEditingName(key.slice(2));
+  };
+  // Nombre largo: completo mientras se escribe, en una línea con «…» al salir,
+  // como el campo de un chat. El precio propio aparece solo si se pide o si ya
+  // tiene valor, igual que la descripción («+ precio», «+ descripción»).
+  const [editingName, setEditingName] = useState<string | null>(null);
+  const [priceOpen, setPriceOpen] = useState<Record<string, boolean>>({});
+  const openPrice = (dishId: string) => {
+    pendingFocus.current = `p-${dishId}`;
+    setPriceOpen((current) => ({ ...current, [dishId]: true }));
+  };
 
   const addDishFocused = (section: Seccion) => {
     pendingFocus.current = `n-${addDish(section)}`;
@@ -246,31 +262,49 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                             </View>
                           )}
                           <View style={s.dishMainRow}>
-                            <TextInput
-                              ref={registerInput(`n-${dish.id}`)}
-                              style={s.dishName}
-                              value={dish.nombre}
-                              onChangeText={nombre => patchDish(section.id, dish.id, { nombre })}
-                              placeholder="Platillo"
-                              placeholderTextColor={c.textMute}
-                              returnKeyType="next"
-                              blurOnSubmit={false}
-                              onSubmitEditing={() => submitDishName(dish)}
-                            />
-                            <View style={s.inlinePrice}>
-                              <Text style={s.currency}>$</Text>
+                            {editingName === dish.id || !dish.nombre ? (
                               <TextInput
-                                ref={registerInput(`p-${dish.id}`)}
-                                style={s.dishPrice}
-                                value={dish.precio}
-                                onChangeText={precio => patchDish(section.id, dish.id, { precio: precio.replace(/[^0-9.]/g, '') })}
-                                placeholder="Precio"
+                                ref={registerInput(`n-${dish.id}`)}
+                                style={s.dishName}
+                                value={dish.nombre}
+                                onChangeText={nombre => patchDish(section.id, dish.id, { nombre })}
+                                onFocus={() => setEditingName(dish.id)}
+                                onBlur={() => setEditingName((current) => current === dish.id ? null : current)}
+                                placeholder="Platillo"
                                 placeholderTextColor={c.textMute}
-                                keyboardType="decimal-pad"
-                                selectTextOnFocus
-                                accessibilityLabel={`Precio de ${dish.nombre || 'platillo'}`}
+                                multiline
+                                scrollEnabled={false}
+                                returnKeyType="next"
+                                submitBehavior="submit"
+                                onSubmitEditing={() => submitDishName(dish)}
                               />
-                            </View>
+                            ) : (
+                              <TouchableOpacity
+                                style={s.dishNameButton}
+                                onPress={() => focusKey(`n-${dish.id}`)}
+                                activeOpacity={0.6}
+                                accessibilityRole="button"
+                                accessibilityLabel={`${dish.nombre}. Editar platillo`}>
+                                <Text style={s.dishName} numberOfLines={1} ellipsizeMode="tail">{dish.nombre}</Text>
+                              </TouchableOpacity>
+                            )}
+                            {(!!dish.precio || priceOpen[dish.id]) && (
+                              <View style={s.inlinePrice}>
+                                <Text style={s.currency}>$</Text>
+                                <TextInput
+                                  ref={registerInput(`p-${dish.id}`)}
+                                  style={s.dishPrice}
+                                  value={dish.precio}
+                                  onChangeText={precio => patchDish(section.id, dish.id, { precio: precio.replace(/[^0-9.]/g, '') })}
+                                  onBlur={() => { if (!dish.precio) setPriceOpen((current) => ({ ...current, [dish.id]: false })); }}
+                                  placeholder="0"
+                                  placeholderTextColor={c.textMute}
+                                  keyboardType="decimal-pad"
+                                  selectTextOnFocus
+                                  accessibilityLabel={`Precio de ${dish.nombre || 'platillo'}`}
+                                />
+                              </View>
+                            )}
                             <TouchableOpacity
                               style={s.removeDish}
                               hitSlop={{ top: 7, bottom: 7, left: 7, right: 7 }}
@@ -295,18 +329,33 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                                 onSubmitEditing={() => submitDishDetail(section, dishIndex)}
                               />
                             </View>
-                          ) : (
-                            <TouchableOpacity
-                              hitSlop={{ top: 6, bottom: 6, left: 4, right: 4 }}
-                              onPress={() => {
-                                revealDetails(dish.id);
-                                pendingFocus.current = `d-${dish.id}`;
-                              }}
-                              activeOpacity={0.7}
-                              accessibilityRole="button"
-                              accessibilityLabel="Agregar descripción">
-                              <Text style={s.addDetail}>+ descripción</Text>
-                            </TouchableOpacity>
+                          ) : null}
+                          {(!showDetails || !(dish.precio || priceOpen[dish.id])) && (
+                            <View style={s.addRow}>
+                              {!showDetails && (
+                                <TouchableOpacity
+                                  hitSlop={{ top: 6, bottom: 6, left: 4, right: 4 }}
+                                  onPress={() => {
+                                    revealDetails(dish.id);
+                                    pendingFocus.current = `d-${dish.id}`;
+                                  }}
+                                  activeOpacity={0.7}
+                                  accessibilityRole="button"
+                                  accessibilityLabel={`Agregar descripción a ${dish.nombre || 'platillo'}`}>
+                                  <Text style={s.addDetail}>+ descripción</Text>
+                                </TouchableOpacity>
+                              )}
+                              {!(dish.precio || priceOpen[dish.id]) && (
+                                <TouchableOpacity
+                                  hitSlop={{ top: 6, bottom: 6, left: 4, right: 4 }}
+                                  onPress={() => openPrice(dish.id)}
+                                  activeOpacity={0.7}
+                                  accessibilityRole="button"
+                                  accessibilityLabel={`Agregar precio a ${dish.nombre || 'platillo'}`}>
+                                  <Text style={s.addDetail}>+ precio</Text>
+                                </TouchableOpacity>
+                              )}
+                            </View>
                           )}
                         </View>
                       );
@@ -454,13 +503,16 @@ function makeStyles(c: FonderoColors) {
     dishDivider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: c.border },
     reviewNote: { marginBottom: 3, flexDirection: 'row', alignItems: 'center', gap: 4 },
     reviewNoteText: { flex: 1, fontSize: 11, lineHeight: 15, fontWeight: '300', color: c.accent },
-    dishMainRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+    dishMainRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
+    dishNameButton: { flex: 1, minWidth: 0 },
+    addRow: { flexDirection: 'row', alignItems: 'center', gap: 16 },
     dishName: { flex: 1, paddingVertical: 3, fontSize: 16, lineHeight: 21, fontWeight: '700', color: c.text },
-    removeDish: { width: 30, height: 30, alignItems: 'flex-end', justifyContent: 'center' },
+    removeDish: { width: 30, height: 30, marginTop: -1, alignItems: 'flex-end', justifyContent: 'center' },
     addDetail: { paddingTop: 3, fontSize: 12, fontWeight: '300', color: c.textSecondary },
     detailRow: { marginTop: 2, flexDirection: 'row', alignItems: 'center' },
     description: { flex: 1, paddingVertical: 3, fontSize: 13, fontWeight: '300', color: c.textSecondary },
-    inlinePrice: { minWidth: 68, height: 36, paddingHorizontal: 8, borderRadius: 11, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', backgroundColor: c.iconBg },
+    // Alineados al centro de la primera línea del nombre, aunque crezca.
+    inlinePrice: { minWidth: 68, height: 36, marginTop: -4, paddingHorizontal: 8, borderRadius: 11, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', backgroundColor: c.iconBg },
     dishPrice: { width: 52, paddingVertical: 3, textAlign: 'right', fontSize: 15, fontWeight: '700', color: c.text },
     addDish: { minHeight: 44, marginLeft: 30, flexDirection: 'row', alignItems: 'center', gap: 8 },
     addDishText: { fontSize: 13, fontWeight: '700', color: c.accent },

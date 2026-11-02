@@ -67,8 +67,19 @@ errores) y la validación en línea de Luke Wroblewski.
   más aparece la barra de letras a la derecha. Menús conserva el orden por
   fecha porque es un historial.
 - Las listas se ordenan A–Z (las fijadas primero) en todas las hojas.
-- El botón de listas es una carpeta (`folder-outline`) en Guardados y en
-  Menús, igual que «Añadir a lista» y «Mover».
+- Botón de listas: en Guardados, `list-outline`; en Menús, carpeta. Parco
+  duda de que las listas de Menús sirvan al negocio: pendiente decidir si se
+  quitan.
+- El mapa llega hasta el borde: la barra flotante no lleva degradado encima
+  del mapa (sí sobre listas que pasan por debajo).
+
+## Captura de menú (2026-11-01)
+
+- El nombre de un platillo se ve completo mientras se escribe (el campo crece,
+  como en un chat) y queda en una línea con «…» al pasar al siguiente.
+- Precio propio y descripción son opcionales y se piden igual: «+ precio» y
+  «+ descripción». Una fila sin precio no muestra campo de precio; el precio
+  del día sigue arriba, sin cambios.
 - Filtro por giro en el mapa: siempre la lista completa de giros
   (`lib/patio-categories.ts`); en Guardados, solo los giros que guardaste.
 - Un solo nombre por giro en alta, edición, filtros y mapa («Tacos», «Café»).

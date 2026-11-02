@@ -39,7 +39,7 @@ const FONDERO_TABS: Tab[] = [
   { path: '/perfil',    label: 'Perfil',    icon: 'person-outline',     selectedIcon: 'person' },
 ];
 
-export function BottomTabBar({ variant = 'fondero' }: { variant?: 'foodie' | 'fondero' } = {}) {
+export function BottomTabBar({ variant = 'fondero', fade = true }: { variant?: 'foodie' | 'fondero'; fade?: boolean } = {}) {
   const pathname = usePathname();
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
@@ -69,7 +69,9 @@ export function BottomTabBar({ variant = 'fondero' }: { variant?: 'foodie' | 'fo
   const tabs = variant === 'foodie' ? FOODIE_TABS : FONDERO_TABS;
   return (
     <Animated.View pointerEvents="box-none" style={[styles.wrap, { bottom: bottomTabOffset(insets.bottom) }, translateY ? { transform: [{ translateY }] } : null]}>
-      <BottomContentFade height={BOTTOM_TAB_HEIGHT + bottomTabOffset(insets.bottom) + 16} bottom={-bottomTabOffset(insets.bottom)} />
+      {/* Desvanece listas que pasan bajo la barra. Sobre el mapa no va: el mapa
+          llega hasta el borde, como en Apple Maps. */}
+      {fade && <BottomContentFade height={BOTTOM_TAB_HEIGHT + bottomTabOffset(insets.bottom) + 16} bottom={-bottomTabOffset(insets.bottom)} />}
       <View style={styles.pill} accessibilityRole="tablist">
         <BlurView
           intensity={isDark ? 16 : 20}

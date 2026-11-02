@@ -460,10 +460,10 @@ export const DEMO_PATIOS: Patio[] = [
 
 // Laboratorio local de densidad. Usa únicamente la gramática normal de lugares:
 // sirve para estresar el mapa sin introducir todavía reparto, zonas o tianguis.
-// Mismas 9 categorías atómicas reales que PATIO_CATEGORIES en lib/patios.ts —
+// Mismas categorías atómicas reales que PATIO_CATEGORIES en lib/patio-categories.ts —
 // nunca inventar otras aquí, o los chips de categoría del mapa se contaminan.
 const DENSITY_CATEGORIES = [
-  'Fondita', 'Taquería', 'Antojitos', 'Elotes', 'Botanas',
+  'Fondita', 'Tacos', 'Antojitos', 'Elotes', 'Botanas',
   'Postres', 'Café', 'Mariscos', 'Bebidas', 'Jugos y fruta', 'Restaurante',
 ];
 
@@ -474,7 +474,7 @@ function seededUnit(seed: number): number {
 
 // Nombres y colonias verosímiles: el mapa de prueba debe verse como en vivo.
 const DENSITY_NAME_KINDS: Record<string, string> = {
-  Fondita: 'Fonda', Taquería: 'Tacos', Antojitos: 'Antojitos', Elotes: 'Elotes', Botanas: 'Botanas',
+  Fondita: 'Fonda', Tacos: 'Tacos', Antojitos: 'Antojitos', Elotes: 'Elotes', Botanas: 'Botanas',
   Postres: 'Postres', 'Café': 'Café', Mariscos: 'Mariscos', Bebidas: 'Bebidas', 'Jugos y fruta': 'Jugos', Restaurante: 'Cocina',
 };
 const DENSITY_OWNERS = ['Doña Mary', 'Don Chucho', 'La Güera', 'El Güero', 'Lupita', 'Don Beto', 'La Esquina', 'Doña Toña', 'El Chino', 'Carmelita', 'La Abuela', 'Don Pepe', 'Marisol', 'El Paisa', 'Las Tías', 'Don Rafa', 'La Morena'];

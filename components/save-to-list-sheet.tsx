@@ -157,9 +157,10 @@ export function SaveToListSheet({ visible, patioIds, patioName, onDismiss, mode 
   };
   const moveSelection = resolveLibraryMoveSelection({ collections, activeCollectionIds: chosenSourceIds, selectedPatioIds: patioIds });
   const sourceNames = collections.filter((item) => chosenSourceIds.includes(item.id)).map((item) => item.title).join(', ');
-  const choices = mode !== 'move' ? collections : choosingSource
-    ? collections.filter((item) => moveSelection.candidateSourceCollectionIds.includes(item.id))
-    : collections.filter((item) => !chosenSourceIds.includes(item.id));
+  const byTitle = [...collections].sort((a, b) => a.title.localeCompare(b.title, 'es'));
+  const choices = mode !== 'move' ? byTitle : choosingSource
+    ? byTitle.filter((item) => moveSelection.candidateSourceCollectionIds.includes(item.id))
+    : byTitle.filter((item) => !chosenSourceIds.includes(item.id));
   const canContinue = chosenSourceIds.length > 0 && moveSelection.canMove && !moveSelection.requiresSourceChoice;
   const canConfirm = canContinue && !!destinationId;
   const canReturnToSource = mode === 'move' && !sourceCollectionIds.length && !choosingSource;

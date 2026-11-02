@@ -52,6 +52,22 @@ errores) y la validación en línea de Luke Wroblewski.
   quién sigues, solo para quien apruebas. Las solicitudes viven en Actividad.
 - Nombres (negocio y persona): dos cambios cada 14 días, dicho antes de
   escribir. Dos negocios pueden llamarse igual; la colonia los distingue.
+- El nombre de quien reseña o comenta abre su perfil: así se encuentra a la
+  gente para seguirla.
+- Bloquear vive en el ••• de perfiles y reseñas; «Cuentas bloqueadas» solo
+  aparece en Perfil cuando bloqueaste a alguien.
+
+## Bibliotecas: Guardados y Menús (2026-11-01)
+
+- Orden por defecto A–Z, como la biblioteca de Apple Music; con 20 lugares o
+  más aparece la barra de letras a la derecha. Menús conserva el orden por
+  fecha porque es un historial.
+- Las listas se ordenan A–Z (las fijadas primero) en todas las hojas.
+- El botón de listas es una carpeta (`folder-outline`) en Guardados y en
+  Menús, igual que «Añadir a lista» y «Mover».
+- Filtro por giro en el mapa: siempre la lista completa de giros
+  (`lib/patio-categories.ts`); en Guardados, solo los giros que guardaste.
+- Un solo nombre por giro en alta, edición, filtros y mapa («Tacos», «Café»).
 
 ## Navigation Rules — Ley de Jakob (2026-11-01)
 

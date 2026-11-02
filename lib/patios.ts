@@ -94,7 +94,7 @@ export const MOCK_PATIOS: Patio[] = [
   {
     id: 'cochitacos',
     name: 'Cochitacos',
-    categories: ['Taquería'],
+    categories: ['Tacos'],
     area: 'Irrigación',
     price: '$100-120',
     address: 'Presa Las Vírgenes 101',
@@ -124,7 +124,7 @@ export const MOCK_PATIOS: Patio[] = [
   {
     id: 'cintora-taqueria',
     name: 'Cíntora Taquería',
-    categories: ['Taquería'],
+    categories: ['Tacos'],
     area: 'Irrigación',
     price: '$',
     address: 'Calz. Legaria 800A',
@@ -182,7 +182,7 @@ export const MOCK_PATIOS: Patio[] = [
   {
     id: 'aaattaco',
     name: 'AAATTACO',
-    categories: ['Taquería'],
+    categories: ['Tacos'],
     area: 'Irrigación',
     price: '$',
     address: 'Av. Irrigación 126',
@@ -245,13 +245,9 @@ export const MOCK_PATIOS: Patio[] = [
   },
 ];
 
-// Taxonomía real: las mismas 9 etiquetas atómicas que un Fondero puede elegir
-// al darse de alta (ver BUSINESS_TYPES en app/patio-smart.tsx), modelo
-// multi-tag estilo Google Places/Yelp — un lugar puede traer varias a la vez.
-// Único origen de verdad — los datos demo/densidad (lib/demo.ts) deben usar
-// exactamente estas etiquetas, nunca inventar otras, o los chips de categoría
-// del mapa se contaminan.
-export const PATIO_CATEGORIES = ['Fondita', 'Taquería', 'Antojitos', 'Elotes', 'Botanas', 'Postres', 'Café', 'Mariscos', 'Bebidas', 'Jugos y fruta', 'Restaurante'];
+// Taxonomía de giros: lib/patio-categories.ts (sin dependencias, la usan el
+// mapa y los filtros).
+export { PATIO_CATEGORIES } from './patio-categories';
 
 // Fallback para filas de Supabase que todavía no tienen `categorias` (text[])
 // poblado: deriva etiquetas atómicas desde el `tipo_negocio` legacy (single
@@ -261,7 +257,7 @@ export const PATIO_CATEGORIES = ['Fondita', 'Taquería', 'Antojitos', 'Elotes', 
 function tipoLabels(tipo: string | null): string[] {
   const map: Record<string, string[]> = {
     fondita: ['Fondita'],
-    taqueria: ['Taquería'],
+    taqueria: ['Tacos'],
     reposteria: ['Postres'],
     mariscos: ['Mariscos'],
     antojitos: ['Antojitos'],
@@ -279,7 +275,7 @@ function tipoLabels(tipo: string | null): string[] {
 // Combina la columna nueva `categorias` (si ya trae datos) con el fallback
 // derivado de `tipo_negocio`, para no romper filas que aún no se migraron.
 // Etiquetas viejas guardadas en Supabase que hoy se muestran con otro nombre.
-const LEGACY_CATEGORY_LABELS: Record<string, string> = { 'Repostería': 'Postres', 'Cafetería': 'Café' };
+const LEGACY_CATEGORY_LABELS: Record<string, string> = { 'Repostería': 'Postres', 'Cafetería': 'Café', 'Taquería': 'Tacos' };
 
 function categoriasFromRow(categorias: unknown, tipoNegocio: string | null): string[] {
   const fromColumn = Array.isArray(categorias) ? categorias.filter((c): c is string => typeof c === 'string' && c.length > 0) : [];

@@ -218,7 +218,7 @@ export default function HistorialScreen() {
                 accessibilityRole="button"
                 accessibilityLabel={activeListIds.length ? `Listas, ${activeListIds.length} activas` : 'Listas'}
                 activeOpacity={0.75}>
-                <Ionicons name="bookmarks-outline" size={20} color={c.text} />
+                <Ionicons name="folder-outline" size={20} color={c.text} />
                 {activeListIds.length > 0 && (
                   <View style={[s.listsBadge, { backgroundColor: c.accent }]}>
                     <Text style={s.listsBadgeText}>{activeListIds.length}</Text>

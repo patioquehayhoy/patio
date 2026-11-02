@@ -105,7 +105,7 @@ export default function SavePlaceScreen() {
         <Text style={[s.heroBody, { color: theme.textSecondary }]}>{noWidow('Elige una o varias. El lugar queda guardado aunque no elijas ninguna.')}</Text>
 
         {loading ? <FoodieLoading label="Cargando listas" /> : loadError ? <TouchableOpacity accessibilityRole="button" accessibilityLabel="Reintentar carga de listas" style={s.retry} onPress={reload}><Text style={{ color: theme.text }}>{noWidow('No pudimos cargar tus listas. Reintentar.')}</Text></TouchableOpacity> : <View style={[s.listCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          {collections.map((collection, index) => {
+          {[...collections].sort((a, b) => a.title.localeCompare(b.title, 'es')).map((collection, index) => {
             const selected = collection.patioIds.includes(patioId);
             return (
               <LibraryListRow key={collection.id} title={collection.title} count={collection.patioIds.length} unit="lugar" checked={selected} disabled={busy} divider={index > 0}

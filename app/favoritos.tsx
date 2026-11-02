@@ -255,7 +255,9 @@ export default function FavoritosScreen() {
   // Pedido de Alejandro 2026-08-30: para su propio uso (~40 guardados) el
   // orden por default sin decisiones no basta, así que además de un buen
   // default se expone el control.
-  const [sortMode, setSortMode] = useState<PatioSortMode>('recent');
+  // Por defecto A–Z, como la biblioteca de Apple Music; con 20 o más lugares
+  // aparece la barra de letras a la derecha.
+  const [sortMode, setSortMode] = useState<PatioSortMode>('az');
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const changedPreference = useRef({ view: false, sort: false });
   const preferenceWrites = useRef(Promise.resolve());

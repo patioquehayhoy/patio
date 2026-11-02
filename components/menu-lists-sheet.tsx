@@ -92,7 +92,8 @@ export function MenuListsSheet({ visible, onClose, mode, collections, onCollecti
     { text: 'Cancelar', style: 'cancel' }, { text: 'Eliminar', style: 'destructive', onPress: () => { void run(async () => { await deleteMenuCollection(collection.id); onCollectionRemoved(collection.id); }); } },
   ]);
   const moveSelection = resolveLibraryMoveSelection({ collections: collections.map((item) => ({ ...item, patioIds: item.fechas })), activeCollectionIds: sourceIds, selectedPatioIds: targetFechas });
-  const choices = mode !== 'move' ? collections : choosingSource ? collections.filter((item) => moveSelection.candidateSourceCollectionIds.includes(item.id)) : collections.filter((item) => !sourceIds.includes(item.id));
+  const byTitle = [...collections].sort((a, b) => a.title.localeCompare(b.title, 'es'));
+  const choices = mode !== 'move' ? byTitle : choosingSource ? byTitle.filter((item) => moveSelection.candidateSourceCollectionIds.includes(item.id)) : byTitle.filter((item) => !sourceIds.includes(item.id));
   const canContinue = sourceIds.length > 0 && moveSelection.canMove && !moveSelection.requiresSourceChoice;
   const move = () => { if (!destinationId || !canContinue) return; void run(async () => {
     const updated = await moveMenusToCollection(targetFechas, sourceIds, destinationId);

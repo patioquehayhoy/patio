@@ -17,6 +17,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useFonderoProfileController } from '@/lib/controllers/useFonderoProfileController';
 import { sanitizeNombreInput } from '@/lib/fondita-name';
+import { BUSINESS_TYPE_LABELS, type BusinessType } from '@/lib/smart-setup';
 import { noWidow } from '@/lib/typography';
 import { useTheme, type Theme } from '@/lib/theme';
 import { GlassIconButton } from '@/components/glass-button';
@@ -26,20 +27,6 @@ import { SettingsGroup, SettingsRow, settingsColors } from '@/components/setting
 
 const MAX_DESCRIPCION = 80;
 const MAX_UBICACION   = 80;
-const BUSINESS_TYPES = [
-  ['fondita', 'Fondita'],
-  ['taqueria', 'Tacos'],
-  ['antojitos', 'Antojitos'],
-  ['elotes', 'Elotes'],
-  ['reposteria', 'Postres'],
-  ['cafeteria', 'Café'],
-  ['mariscos', 'Mariscos'],
-  ['bebidas', 'Bebidas'],
-  ['jugos', 'Jugos y fruta'],
-  ['restaurante', 'Restaurante'],
-  ['otro', 'Otro'],
-] as const;
-
 function makeStyles(theme: Theme) {
   const t = theme;
   return StyleSheet.create({
@@ -160,8 +147,8 @@ export default function PerfilScreen() {
               style={s.lockedRow}
               onPress={() => router.push({ pathname: '/soporte', params: { role: 'fondero' } })}
               accessibilityRole="button"
-              accessibilityLabel={`Tipo de lugar, ${BUSINESS_TYPES.find(([id]) => id === tipoNegocio)?.[1] ?? 'Otro'}. Pedir un cambio a soporte`}>
-              <Text style={s.fieldValue}>{BUSINESS_TYPES.find(([id]) => id === tipoNegocio)?.[1] ?? 'Otro'}</Text>
+              accessibilityLabel={`Tipo de lugar, ${BUSINESS_TYPE_LABELS[tipoNegocio as BusinessType] ?? 'Otro'}. Pedir un cambio a soporte`}>
+              <Text style={s.fieldValue}>{BUSINESS_TYPE_LABELS[tipoNegocio as BusinessType] ?? 'Otro'}</Text>
               <Text style={s.lockedHint}>{noWidow('Pedir cambio')}</Text>
             </TouchableOpacity>
             <View style={s.fieldDivider} />

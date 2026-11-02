@@ -41,7 +41,12 @@ type ReviewThreadReply = {
   timeLabel?: string;
   /** Guardado en Supabase (no demo ni respuesta oficial). */
   real?: boolean;
+  userId?: string;
 };
+
+// Solo las cuentas reales tienen perfil que abrir (no las de demostración).
+const isAccountId = (id?: string) => !!id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+const openProfile = (id: string) => router.push({ pathname: '/foodie/[id]', params: { id } });
 
 const SYNTHETIC_THREAD_NAMES = ['Mariana L.', 'Diego M.', 'Sofía R.', 'Carlos N.', 'Pilar N.', 'Jorge A.'];
 const SYNTHETIC_THREAD_COMMENTS = {
@@ -428,6 +433,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
             parentId: comment.parentId,
             timeLabel: commentTimeLabel(comment.createdAt),
             real: true,
+            userId: comment.userId,
           }));
           next[key] = [...(next[key] ?? []).filter((reply) => !reply.real), ...saved];
         }
@@ -856,7 +862,11 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
                 key={`${review.userId}-${review.timestamp}`}
                 style={[s.reviewCard, index > 0 && s.reviewCardGap]}>
                 <View style={s.reviewAuthorRow}>
-                  <Text style={s.reviewAuthor}>{review.isMine ? 'Tu reseña' : review.author}</Text>
+                  {!review.isMine && isAccountId(review.userId) ? (
+                    <TouchableOpacity style={{ flex: 1 }} onPress={() => openProfile(review.userId)} accessibilityRole="link" accessibilityLabel={`Ver perfil de ${review.author}`} hitSlop={{ top: 6, bottom: 6 }}>
+                      <Text style={s.reviewAuthor}>{review.author}</Text>
+                    </TouchableOpacity>
+                  ) : <Text style={s.reviewAuthor}>{review.isMine ? 'Tu reseña' : review.author}</Text>}
                   <Text style={s.reviewDate}>
                     {new Date(review.timestamp).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' })}
                   </Text>
@@ -937,7 +947,11 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
                             <View key={reply.id} style={s.reviewThreadItem}>
                               <View style={s.reviewThreadBubble}>
                                 <View style={s.reviewThreadHead}>
-                                  <Text style={s.reviewThreadAuthor} numberOfLines={1}>{reply.mine ? 'Tú' : reply.author}</Text>
+                                  {reply.real && !reply.mine && !reply.patio && isAccountId(reply.userId) ? (
+                                    <TouchableOpacity onPress={() => openProfile(reply.userId!)} accessibilityRole="link" accessibilityLabel={`Ver perfil de ${reply.author}`} hitSlop={{ top: 6, bottom: 6 }}>
+                                      <Text style={s.reviewThreadAuthor} numberOfLines={1}>{reply.author}</Text>
+                                    </TouchableOpacity>
+                                  ) : <Text style={s.reviewThreadAuthor} numberOfLines={1}>{reply.mine ? 'Tú' : reply.author}</Text>}
                                   {reply.patio && (
                                     <View style={s.reviewThreadSeal}>
                                       <SymbolView name="checkmark.seal.fill" size={13} weight="medium" tintColor={theme.accent} fallback={<Ionicons name="checkmark-circle" size={13} color={theme.accent} />} />

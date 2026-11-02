@@ -75,7 +75,7 @@ const STEP_BY_STAGE: Record<Exclude<Stage, 'finish'>, number> = {
 // Iconos únicos dentro de este arreglo, sin repetir entre entradas.
 const BUSINESS_TYPES: { id: BusinessType; label: string }[] = [
   { id: 'fondita', label: BUSINESS_TYPE_LABELS.fondita },
-  { id: 'taqueria', label: 'Tacos' },
+  { id: 'taqueria', label: BUSINESS_TYPE_LABELS.taqueria },
   { id: 'antojitos', label: BUSINESS_TYPE_LABELS.antojitos },
   { id: 'elotes', label: BUSINESS_TYPE_LABELS.elotes },
   { id: 'botanas', label: BUSINESS_TYPE_LABELS.botanas },

@@ -43,7 +43,7 @@ export type BusinessType =
 // 'elotes' aquí es SOLO "Elotes" (ya no compuesto) — Botanas es su propio tag.
 export const BUSINESS_TYPE_LABELS: Record<BusinessType, string> = {
   fondita: 'Fondita',
-  taqueria: 'Taquería',
+  taqueria: 'Tacos',
   reposteria: 'Postres',
   mariscos: 'Mariscos',
   antojitos: 'Antojitos',

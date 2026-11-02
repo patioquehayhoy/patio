@@ -27,6 +27,7 @@ import { useTabBarScroll } from '@/lib/tab-bar-visibility';
 import { noWidow } from '@/lib/typography';
 import { Radius, useTheme, type Theme, Type } from '@/lib/theme';
 import { createCollection, getCollections, type PatioCollection } from '@/lib/collections';
+import { PATIO_CATEGORIES } from '@/lib/patio-categories';
 import type { Patio } from '@/lib/patios';
 import { bottomTabClearance } from '@/lib/layout-metrics';
 import { floatingSurfaceShadow, sheetSurfaceTint } from '@/lib/surface-styles';
@@ -872,7 +873,7 @@ export default function ExplorarScreen() {
             filters={filters}
             onChange={setFilters}
             collections={collections}
-            categories={[...new Set(allPatios.flatMap((patio) => patio.categories))].sort((a, b) => a.localeCompare(b, 'es'))}
+            categories={[...new Set([...PATIO_CATEGORIES, ...allPatios.flatMap((patio) => patio.categories)])].sort((a, b) => a.localeCompare(b, 'es'))}
             additionalFilter={activeSavedCategories.length ? { label: activeSavedCategories.join(' · '), onClear: clearSavedMapFilter } : undefined}
             onCollectionCreated={(c) => setCollections((prev) => [c, ...prev])}
             onCollectionUpdated={(c) => setCollections((prev) => prev.map((item) => item.id === c.id ? c : item))}

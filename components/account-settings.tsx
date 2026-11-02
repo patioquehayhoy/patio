@@ -7,6 +7,7 @@ import { AccountDeletionRow } from '@/components/account-deletion-row';
 import { SettingsGroup, SettingsRow, settingsColors } from '@/components/settings-list';
 import { ToggleSwitch } from '@/components/toggle-switch';
 import { signOutAccount } from '@/lib/account-session';
+import { getBlockedUsers } from '@/lib/content-safety';
 import { saveUserRole } from '@/lib/entry-flow';
 import { supabase } from '@/lib/supabase';
 import { useTheme } from '@/lib/theme';
@@ -20,10 +21,18 @@ export function AccountSettings({ role }: { role: 'foodie' | 'fondero' }) {
   const { theme, toggleTheme } = useTheme();
   const sc = settingsColors(theme);
   const [hasSession, setHasSession] = useState(false);
+  // Bloquear vive en el menú ••• de cada perfil y reseña (Apple 1.2). La lista
+  // para desbloquear solo aparece cuando hay alguien bloqueado.
+  const [blockedCount, setBlockedCount] = useState(0);
 
   useFocusEffect(useCallback(() => {
     let active = true;
-    supabase.auth.getSession().then(({ data }) => { if (active) setHasSession(!!data.session); }).catch(() => {});
+    supabase.auth.getSession().then(({ data }) => {
+      if (!active) return;
+      setHasSession(!!data.session);
+      if (data.session) getBlockedUsers().then((list) => { if (active) setBlockedCount(list.length); }).catch(() => {});
+      else setBlockedCount(0);
+    }).catch(() => {});
     return () => { active = false; };
   }, []));
 
@@ -59,10 +68,10 @@ export function AccountSettings({ role }: { role: 'foodie' | 'fondero' }) {
         <SettingsRow c={sc} icon="sparkles-outline" title="Nuestro manifiesto" divider onPress={() => router.push('/manifiesto')} />
       </SettingsGroup>
 
-      {(fondero || hasSession || __DEV__) && <SettingsGroup c={sc} label="Cuenta">
+      {(fondero || hasSession) && <SettingsGroup c={sc} label="Cuenta">
         {fondero && <SettingsRow c={sc} icon="repeat-outline" title="Cambiar a modo Foodie" onPress={switchToFoodie} />}
-        {(hasSession || __DEV__) && <SettingsRow c={sc} icon="ban-outline" title="Cuentas bloqueadas" divider={fondero} onPress={() => router.push('/privacidad')} />}
-        {(hasSession || fondero) && <SettingsRow c={sc} icon="log-out-outline" title="Cerrar sesión" divider={fondero || hasSession || __DEV__} onPress={signOut} />}
+        {blockedCount > 0 && <SettingsRow c={sc} icon="ban-outline" title="Cuentas bloqueadas" sub={`${blockedCount}`} divider={fondero} onPress={() => router.push('/privacidad')} />}
+        {(hasSession || fondero) && <SettingsRow c={sc} icon="log-out-outline" title="Cerrar sesión" divider={fondero || blockedCount > 0} onPress={signOut} />}
         {hasSession && <AccountDeletionRow c={sc} />}
       </SettingsGroup>}
 

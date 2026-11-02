@@ -1,8 +1,6 @@
 import { router } from 'expo-router';
 import { BlurView } from 'expo-blur';
 
-import { HintSheet } from '@/components/hint-sheet';
-import { useRef } from 'react';
 import {
   ActivityIndicator,
   ScrollView,
@@ -19,7 +17,7 @@ import { useFonderoProfileController } from '@/lib/controllers/useFonderoProfile
 import { sanitizeNombreInput } from '@/lib/fondita-name';
 import { BUSINESS_TYPE_LABELS, type BusinessType } from '@/lib/smart-setup';
 import { noWidow } from '@/lib/typography';
-import { useTheme, type Theme } from '@/lib/theme';
+import { Type, useTheme, type Theme } from '@/lib/theme';
 import { GlassIconButton } from '@/components/glass-button';
 import { BusinessPaymentSelector } from '@/components/business-payment-selector';
 import { BusinessScheduleEditor } from '@/components/business-schedule-editor';
@@ -33,6 +31,7 @@ function makeStyles(theme: Theme) {
     container:          { flex: 1, backgroundColor: t.bg },
     scroll:             { flex: 1 },
     scrollContent:      { paddingHorizontal: 20, paddingBottom: 120 },
+    pageTitle:          { ...Type.title, color: t.text, marginTop: 16 },
     // Barra Guardar fija abajo (glass)
     saveBar:            { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 20, paddingTop: 12, overflow: 'hidden' },
     saveBarBorder:      { position: 'absolute', top: 0, left: 0, right: 0, height: StyleSheet.hairlineWidth, backgroundColor: t.border },
@@ -64,7 +63,6 @@ export default function PerfilScreen() {
   const s = makeStyles(theme);
   const sc = settingsColors(theme);
   const insets = useSafeAreaInsets();
-  const nombreInputRef     = useRef<TextInput>(null);
   const {
     descripcion,
     email,
@@ -80,7 +78,6 @@ export default function PerfilScreen() {
     savedFlash,
     isSavingLocation,
     locationSaved,
-    markPerfilHintDone,
     nombre,
     pagosEfectivo,
     pagosTarjeta,
@@ -94,7 +91,6 @@ export default function PerfilScreen() {
     setPagosTransState,
     setSemanal,
     setUbicacion,
-    showPerfilHint,
     tipoNegocio,
     ubicacion,
   } = useFonderoProfileController();
@@ -107,6 +103,8 @@ export default function PerfilScreen() {
         <GlassIconButton icon="chevron-back" accessibilityLabel="Volver" onPress={handleBack} />
       </View>
       <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+        <Text style={s.pageTitle} accessibilityRole="header">{noWidow('Editar mi negocio')}</Text>
+        <Text style={s.fieldNoteText}>{noWidow('Nombre, dirección, horario y formas de pago que verá la gente en Patio.')}</Text>
 
         {/* ── IDENTIDAD ── */}
         <View style={s.block}>
@@ -114,7 +112,6 @@ export default function PerfilScreen() {
           <View style={s.fieldCard}>
             <Text style={s.fieldLabel} allowFontScaling={true}>Nombre</Text>
             <TextInput
-              ref={nombreInputRef}
               style={s.fieldValue}
               value={nombre}
               onChangeText={(v) => setNombre(sanitizeNombreInput(v))}
@@ -256,18 +253,6 @@ export default function PerfilScreen() {
         </View>
       )}
 
-      <HintSheet
-        visible={showPerfilHint}
-        icon="storefront"
-        title="Ponle nombre a tu negocio"
-        body="Nombre, ubicación, horario y formas de pago. Eso es todo para aparecer en Patio."
-        primaryLabel="Empezar"
-        onPrimary={() => {
-          markPerfilHintDone();
-          setTimeout(() => nombreInputRef.current?.focus(), 300);
-        }}
-        onDismiss={markPerfilHintDone}
-      />
     </View>
   );
 }

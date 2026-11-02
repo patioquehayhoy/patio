@@ -10,7 +10,6 @@ import MapView, { Marker } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AgentSpinner } from '@/components/agent-spinner';
-import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { ContentSafetyMenu } from '@/components/content-safety-menu';
 import { SaveToListSheet } from '@/components/save-to-list-sheet';
 import { PatioCardLocation, PatioCardPrice } from '@/components/patio-card-info';
@@ -26,7 +25,6 @@ import { noWidow } from '@/lib/typography';
 import { useKnownLocation } from '@/lib/use-known-location';
 import { patioDistance } from '@/lib/patio-sort';
 import { formatDistance } from '@/lib/geo';
-import { bottomTabClearance } from '@/lib/layout-metrics';
 
 type ReviewThreadReply = {
   id: string;
@@ -222,9 +220,8 @@ export default function PatioDetailScreen() {
   return <PatioDetailView id={id} />;
 }
 
-// `own`: la ficha del propio negocio como pestaña «Mi Patio». Es la misma
-// ficha que ve la gente, sin regresar, guardar, reportar ni reseñar, y con la
-// barra del negocio.
+// `own`: la ficha del propio negocio («Ver mi ficha» en Perfil). Es la misma
+// ficha que ve la gente, sin guardar, reportar ni reseñar.
 export function PatioDetailView({ id, own = false }: { id?: string; own?: boolean }) {
   const { theme } = useTheme();
   const s = makeStyles(theme);
@@ -420,13 +417,10 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
     return (
       <View style={[s.container, { paddingTop: insets.top + 8 }]}>
         <Stack.Screen options={{ headerShown: false }} />
-        {!own && (
-          <View style={{ paddingHorizontal: 20 }}>
-            <GlassIcon name="chevron-back" size={22} onPress={handleBack} label="Regresar" />
-          </View>
-        )}
+        <View style={{ paddingHorizontal: 20 }}>
+          <GlassIcon name="chevron-back" size={22} onPress={handleBack} label="Regresar" />
+        </View>
         <AgentSpinner color={theme.text} size={22} style={{ alignSelf: 'center', marginTop: 80 }} />
-        {own && <BottomTabBar variant="fondero" />}
       </View>
     );
   }
@@ -436,10 +430,9 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
       <View style={[s.container, { paddingTop: insets.top + 8 }]}>
         <Stack.Screen options={{ headerShown: false }} />
         <View style={{ paddingHorizontal: 20 }}>
-          {!own && <GlassIcon name="chevron-back" size={22} onPress={handleBack} label="Regresar" />}
+          <GlassIcon name="chevron-back" size={22} onPress={handleBack} label="Regresar" />
           <Text style={[s.title, { marginTop: 24 }]}>{noWidow(own ? 'Tu Patio aparecerá aquí' : 'No encontrado')}</Text>
         </View>
-        {own && <BottomTabBar variant="fondero" />}
       </View>
     );
   }
@@ -460,7 +453,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
       />
       <Animated.ScrollView
         contentInsetAdjustmentBehavior="never"
-        contentContainerStyle={[s.scrollContent, own && { paddingBottom: bottomTabClearance(insets.bottom) }]}
+        contentContainerStyle={s.scrollContent}
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={16}
         onScroll={Animated.event(
@@ -470,7 +463,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
             listener: (event: any) => {
               const y = event.nativeEvent.contentOffset.y;
               if (y >= 0) pullDismissed.current = false;
-              if (!own && y < -PULL_TO_DISMISS_THRESHOLD && !pullDismissed.current) {
+              if (y < -PULL_TO_DISMISS_THRESHOLD && !pullDismissed.current) {
                 pullDismissed.current = true;
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
                 handleBack();
@@ -493,7 +486,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
             </View>
           )}
           <View style={[s.heroNav, { top: insets.top + 8 }]}>
-            {own ? <View /> : <GlassIcon name="chevron-back" size={20} onPress={handleBack} label="Regresar" />}
+            <GlassIcon name="chevron-back" size={20} onPress={handleBack} label="Regresar" />
             <View style={{ flexDirection: 'row', gap: 8 }}>
               {!own && patioId && <ContentSafetyMenu targetType="patio" targetId={patioId} />}
               <GlassIcon name="share-outline" size={17} onPress={handleShare} label="Compartir" />
@@ -930,7 +923,6 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
         patioName={patio.name}
         onDismiss={() => setSaveSheetVisible(false)}
       />
-      {own && <BottomTabBar variant="fondero" />}
 
     </View>
   );

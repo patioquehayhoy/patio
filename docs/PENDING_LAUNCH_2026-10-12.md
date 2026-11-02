@@ -52,8 +52,8 @@
 >   `docs/research/jev-patio-2026-11-01.json`): misma cuenta (65–76 %),
 >   lanzar gratis con plan opcional después (95–99 %), beneficio más valorado
 >   «aparecer antes en el mapa» (81–95 %).
-> - [ ] Barra de negocio: Jev prefiere 4 botones sin «Mi Patio» (56–70 %) sobre 5
->   (28–42 %); el «+» arriba queda descartado (2–10 %). Parco decide.
+> - [x] Barra de negocio: Jev prefiere 4 botones (56–70 %) sobre 5 (28–42 %);
+>   «Mi Patio» pasó a «Ver mi ficha» dentro de Perfil.
 > - [ ] Perfiles solo públicos: comodidad baja (1.8 de 4) y 53 % echaría de menos
 >   el perfil privado. Reconsiderar una opción de perfil privado.
 > - [ ] Filtro de lista Mapa/Guardados: compartido o separado.
@@ -63,9 +63,9 @@
 >   lanzar gratis y cobrar en una actualización).
 > - [ ] Grok como agente auxiliar: solo revisión e investigación, sin escribir en
 >   el repo, para no repetir el choque con Codex.
-> - [x] Barra de negocio según Ley de Jakob: `Menús · Actividad · + · Mi Patio · Perfil`.
-> - [ ] QA físico de la barra nueva: «+» abre el sheet desde las 4 pestañas y
->   «Mi Patio» muestra la ficha pública propia.
+> - [x] Barra de negocio según Ley de Jakob: `Menús · Actividad · + · Perfil`.
+> - [x] Perfil modelo Instagram en los dos roles, con Ajustes detrás del engrane.
+> - [ ] QA físico: «+» abre el sheet desde las 3 pestañas, «Ver mi ficha» y Ajustes.
 > - [x] Jalar para actualizar en Guardados, Menús, Actividad y Notificaciones.
 
 > **Referencia obligatoria de infraestructura — 2026-10-27:**

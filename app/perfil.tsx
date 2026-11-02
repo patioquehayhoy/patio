@@ -1,16 +1,12 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Ionicons } from '@expo/vector-icons';
 import { router, Stack, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { bottomTabClearance } from '@/lib/layout-metrics';
-import { AccountDeletionRow } from '@/components/account-deletion-row';
-import { signOutAccount } from '@/lib/account-session';
 import { SettingsGroup, SettingsRow, settingsColors } from '@/components/settings-list';
-import { ToggleSwitch } from '@/components/toggle-switch';
-import { USER_ROLE_KEY } from '@/lib/entry-flow';
 import { fonderoPalette } from '@/lib/fondero-palette';
 import {
   getFonditaDireccion,
@@ -27,20 +23,18 @@ import { noWidow } from '@/lib/typography';
 
 export default function PerfilScreen() {
   const insets = useSafeAreaInsets();
-  const { theme, toggleTheme } = useTheme();
+  const { theme } = useTheme();
   const c = fonderoPalette(theme.isDark);
   const { onScroll } = useTabBarScroll();
   const [address, setAddress] = useState('');
   const [hasMenu, setHasMenu] = useState<boolean | null>(null);
   const [fonditaName, setFonditaName] = useState('');
-  const [hasSession, setHasSession] = useState(false);
 
   useFocusEffect(useCallback(() => {
     let active = true;
     setAddress(getFonditaDireccion());
     setHasMenu(null);
     setFonditaName(getFonditaName());
-    supabase.auth.getSession().then(({ data }) => { if (active) setHasSession(!!data.session); }).catch(() => {});
     const id = getFonditaId();
     if (id) {
       // Un borrador en memoria nunca confirma que el menú sea público.
@@ -54,20 +48,6 @@ export default function PerfilScreen() {
     } else setHasMenu(false);
     return () => { active = false; };
   }, []));
-
-  const signOut = async () => {
-    try {
-      await signOutAccount();
-      router.replace('/');
-    } catch {
-      Alert.alert(noWidow('No pudimos cerrar sesión'), noWidow('Inténtalo de nuevo. Tus datos siguen guardados.'));
-    }
-  };
-
-  const exploreAsClient = async () => {
-    await AsyncStorage.setItem(USER_ROLE_KEY, 'foodie').catch(() => {});
-    router.replace('/explorar');
-  };
 
   const sc = settingsColors(theme);
 
@@ -83,6 +63,9 @@ export default function PerfilScreen() {
             tipos de información distintos. La dirección vive en la fila
             "Editar mi negocio", que es donde realmente pertenece. */}
         <View style={s.identity}>
+          <TouchableOpacity style={s.gear} onPress={() => router.push({ pathname: '/ajustes', params: { role: 'fondero' } })} accessibilityRole="button" accessibilityLabel="Ajustes" hitSlop={8}>
+            <Ionicons name="settings-outline" size={22} color={c.text} />
+          </TouchableOpacity>
           <Text style={[s.fonditaName, { color: c.text }]}>
             {fonditaName || 'Tu fondita'}
           </Text>
@@ -100,18 +83,14 @@ export default function PerfilScreen() {
             puerta al otro lado en tinta neutra y cerrar sesión. Sin
             botonzote — editar el negocio es una acción ocasional, no LA
             acción. */}
-        <SettingsGroup c={sc} label="Negocio">
-          <SettingsRow c={sc} icon="create-outline" title="Editar mi negocio" sub={address || undefined} onPress={() => router.push('/perfil-editar')} />
+        {/* Modelo Instagram: Perfil es tu negocio tal como se publica; lo que
+            se configura una vez vive en Ajustes, detrás del engrane. */}
+        <SettingsGroup c={sc}>
+          <SettingsRow c={sc} icon="storefront-outline" title="Ver mi ficha" sub="Así te ve la gente" accent onPress={() => router.push('/mi-patio')} />
         </SettingsGroup>
 
-        <SettingsGroup c={sc} label="Preferencias">
-          <SettingsRow
-            c={sc}
-            icon="notifications-outline"
-            title="Notificaciones"
-            sub="Reseñas nuevas"
-            onPress={() => router.push({ pathname: '/avisos', params: { role: 'fondero' } })}
-          />
+        <SettingsGroup c={sc} label="Negocio">
+          <SettingsRow c={sc} icon="create-outline" title="Editar mi negocio" sub={address || undefined} onPress={() => router.push('/perfil-editar')} />
           <SettingsRow
             c={sc}
             icon="rocket-outline"
@@ -120,25 +99,6 @@ export default function PerfilScreen() {
             divider
             onPress={() => router.push({ pathname: '/plan', params: { role: 'fondero' } })}
           />
-          <SettingsRow
-            c={sc}
-            icon="moon-outline"
-            title="Modo oscuro"
-            divider
-            trailing={<ToggleSwitch accessibilityLabel="Modo oscuro" value={theme.isDark} onValueChange={toggleTheme} activeColor={c.accent} />}
-          />
-        </SettingsGroup>
-
-        <SettingsGroup c={sc} label="Ayuda">
-          <SettingsRow c={sc} icon="sparkles-outline" title="Nuestro manifiesto" onPress={() => router.push('/manifiesto')} />
-          <SettingsRow c={sc} icon="chatbubble-outline" title="Ayuda y soporte" divider onPress={() => router.push({ pathname: '/soporte', params: { role: 'fondero' } })} />
-        </SettingsGroup>
-
-        <SettingsGroup c={sc} label="Cuenta">
-          <SettingsRow c={sc} icon="repeat-outline" title="Cambiar a modo Foodie" onPress={exploreAsClient} />
-          {(hasSession || __DEV__) && <SettingsRow c={sc} icon="ban-outline" title="Cuentas bloqueadas" divider onPress={() => router.push('/privacidad')} />}
-          <SettingsRow c={sc} icon="log-out-outline" title="Cerrar sesión" divider onPress={signOut} />
-          {hasSession && <AccountDeletionRow c={sc} />}
         </SettingsGroup>
       </ScrollView>
       <BottomTabBar variant="fondero" />
@@ -149,6 +109,7 @@ export default function PerfilScreen() {
 const s = StyleSheet.create({
   root: { flex: 1 },
   identity: { marginBottom: 8 },
+  gear: { alignSelf: 'flex-end', width: 44, height: 44, alignItems: 'center', justifyContent: 'center', marginTop: -Spacing.lg, marginRight: -10 },
   fonditaName: { ...Type.screen },
   statusRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8, minHeight: 20 },
   statusDot: { width: 7, height: 7, borderRadius: 4 },

@@ -35,7 +35,6 @@ const FONDERO_TABS: Tab[] = [
   { path: '/historial', label: 'Menús',     icon: 'book-outline', selectedIcon: 'book' },
   { path: '/resenas',   label: 'Actividad', icon: 'heart-outline',      selectedIcon: 'heart' },
   { path: '+',          label: 'Nuevo menú', icon: 'add-circle-outline', selectedIcon: 'add-circle' },
-  { path: '/mi-patio',  label: 'Mi Patio',  icon: 'storefront-outline', selectedIcon: 'storefront' },
   { path: '/perfil',    label: 'Perfil',    icon: 'person-outline',     selectedIcon: 'person' },
 ];
 

@@ -1,42 +1,35 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, Stack } from 'expo-router';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useEffect, useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { bottomTabClearance } from '@/lib/layout-metrics';
-import { AccountDeletionRow } from '@/components/account-deletion-row';
-import Constants from 'expo-constants';
 import { SettingsGroup, SettingsRow, settingsColors } from '@/components/settings-list';
-import { ToggleSwitch } from '@/components/toggle-switch';
 import { useFoodieAccountController } from '@/lib/controllers/useFoodieAccountController';
 import { useTabBarScroll } from '@/lib/tab-bar-visibility';
 import { useTheme, type Theme } from '@/lib/theme';
 import { supabase } from '@/lib/supabase';
-import { noWidow } from '@/lib/typography';
 
 function makeStyles(t: Theme) {
   return StyleSheet.create({
     root: { flex: 1, backgroundColor: t.bg },
     content: { paddingBottom: 120 },
 
-    body: { paddingHorizontal: 18, paddingTop: 20 },
-
-    // Footer marca
-    footer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 20 },
-    footerText: { fontSize: 11, fontWeight: '400', letterSpacing: 0.5, textTransform: 'uppercase', color: t.textMute },
+    body: { paddingHorizontal: 18, paddingTop: 4 },
+    gear: { alignSelf: 'flex-end', width: 44, height: 44, alignItems: 'center', justifyContent: 'center', marginRight: -10 },
   });
 }
 
 
 export default function CuentaScreen() {
-  const { theme, toggleTheme } = useTheme();
+  const { theme } = useTheme();
   const s = makeStyles(theme);
   const sc = settingsColors(theme);
   const insets = useSafeAreaInsets();
   const { onScroll } = useTabBarScroll();
-  const { handleSignOut, hasSession } = useFoodieAccountController();
+  const { hasSession } = useFoodieAccountController();
   const [userId, setUserId] = useState<string | null>(null);
   useEffect(() => { supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id ?? null)).catch(() => {}); }, []);
 
@@ -48,40 +41,21 @@ export default function CuentaScreen() {
             Instagram). El back solo existe en pantallas hijas. La identidad
             de la pestaña ya la da la tab bar; no se repite aquí arriba. */}
         <View style={s.body}>
+          <TouchableOpacity style={s.gear} onPress={() => router.push({ pathname: '/ajustes', params: { role: 'foodie' } })} accessibilityRole="button" accessibilityLabel="Ajustes" hitSlop={8}>
+            <Ionicons name="settings-outline" size={22} color={theme.text} />
+          </TouchableOpacity>
+          {/* Modelo Instagram: aquí vive quién eres y lo que pasa con lo que
+              publicas; lo que se configura una vez vive en Ajustes. */}
           <SettingsGroup c={sc} label="Perfil">
             <SettingsRow c={sc} icon="person-outline" title={hasSession ? 'Editar perfil' : 'Iniciar sesión'} sub={hasSession ? 'Nombre, foto y descripción' : 'Sincroniza listas y reseñas'} onPress={() => router.push(hasSession ? '/perfil-comunidad' : '/comunidad-acceso')} />
             {userId && <SettingsRow c={sc} icon="at-outline" title="Ver perfil público" divider onPress={() => router.push({ pathname: '/foodie/[id]', params: { id: userId } })} />}
-          </SettingsGroup>
-
-          <SettingsGroup c={sc} label="Preferencias">
-            {/* Una sola entrada, como Instagram: la actividad y, desde ahí, qué recibir. */}
-            <SettingsRow
-              c={sc}
-              icon="notifications-outline"
-              title="Notificaciones"
-              sub={userId ? 'Tu actividad y qué recibir' : 'Elige qué recibir'}
-              onPress={() => userId ? router.push('/notificaciones') : router.push({ pathname: '/avisos', params: { role: 'foodie' } })}
-            />
-            <SettingsRow c={sc} icon="rocket-outline" title="Plan" sub="Foodie, Creador o Negocio" divider onPress={() => router.push({ pathname: '/plan', params: { role: 'foodie' } })} />
-            <SettingsRow c={sc} icon={theme.isDark ? 'moon' : 'sunny-outline'} title="Apariencia" sub={theme.isDark ? 'Oscura' : 'Clara'} divider trailing={<ToggleSwitch value={theme.isDark} onValueChange={toggleTheme} accessibilityLabel="Modo oscuro" />} />
-          </SettingsGroup>
-
-          <SettingsGroup c={sc} label="Ayuda">
-            <SettingsRow c={sc} icon="sparkles-outline" title="Nuestro manifiesto" onPress={() => router.push('/manifiesto')} />
-            <SettingsRow c={sc} icon="chatbubble-outline" title="Ayuda y soporte" divider onPress={() => router.push({ pathname: '/soporte', params: { role: 'foodie' } })} />
+            {userId && <SettingsRow c={sc} icon="heart-outline" title="Actividad" sub="Me gusta en tus reseñas" divider onPress={() => router.push('/notificaciones')} />}
           </SettingsGroup>
 
           {/* Publicar un negocio vive en Plan: se elige como plan, no como atajo. */}
-          {(hasSession || __DEV__) && <SettingsGroup c={sc} label="Sesión">
-            <SettingsRow c={sc} icon="ban-outline" title="Cuentas bloqueadas" onPress={() => router.push('/privacidad')} />
-            <SettingsRow c={sc} icon="log-out-outline" title="Cerrar sesión" divider onPress={handleSignOut} />
-            {hasSession && <AccountDeletionRow c={sc} />}
-          </SettingsGroup>}
-
-          <View style={s.footer}>
-            <Ionicons name="ellipse" size={6} color={theme.textMute} />
-            <Text style={s.footerText} allowFontScaling={true}>{noWidow(`Patio · v${Constants.expoConfig?.version ?? '1.0.0'} · CDMX`)}</Text>
-          </View>
+          <SettingsGroup c={sc}>
+            <SettingsRow c={sc} icon="rocket-outline" title="Plan" sub="Foodie, Creador o Negocio" onPress={() => router.push({ pathname: '/plan', params: { role: 'foodie' } })} />
+          </SettingsGroup>
         </View>
       </ScrollView>
       <BottomTabBar variant="foodie" />

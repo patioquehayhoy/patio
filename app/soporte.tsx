@@ -35,8 +35,8 @@ const FOODIE_TOPICS: Topic[] = [
     { title: 'No encuentro un lugar', answer: 'Busca por su nombre o por un platillo. Un lugar aparece en el mapa cuando tiene lo de hoy publicado y está abierto.' },
     { title: 'Un lugar tiene datos incorrectos', answer: 'En la ficha del lugar toca ••• → Reportar contenido → Información incorrecta. Lo revisamos con el negocio.' },
   ] },
-  { id: 'listas', icon: 'bookmark-outline', title: 'Guardados y listas', hint: 'Guardar, organizar y compartir', askFrequency: true, reasons: [
-    { title: 'No veo lo que guardé', answer: 'Entra con el mismo correo que usaste antes: tus guardados y listas viven en tu cuenta.' },
+  { id: 'listas', icon: 'bookmark-outline', title: 'Lugares y listas', hint: 'Seguir, organizar y compartir', askFrequency: true, reasons: [
+    { title: 'No veo los lugares que sigo', answer: 'Entra con el mismo correo que usaste antes: los lugares que sigues y tus listas viven en tu cuenta.' },
     { title: 'No puedo compartir una lista', answer: 'Abre la lista y toca compartir. Necesitas haber iniciado sesión para generar el enlace.' },
   ] },
   SAFETY, NOTICES, ACCOUNT,

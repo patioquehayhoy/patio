@@ -149,8 +149,8 @@ export default function AvisosScreen() {
           // aquí cuando exista su envío. Promociones viene apagado (4.5.4).
           <>
             <SettingsGroup c={sc} label="Tus lugares">
-              <SettingsRow c={sc} icon="document-text-outline" title="Menú de hoy" sub="Cuando un lugar que guardaste publica" trailing={toggle('patioPublications', 'Menú de hoy')} />
-              <SettingsRow c={sc} icon="megaphone-outline" title="Promociones" sub="Avisos especiales de lugares que guardaste" divider trailing={toggle('specialNotices', 'Promociones')} />
+              <SettingsRow c={sc} icon="document-text-outline" title="Menú de hoy" sub="Cuando un lugar que sigues publica" trailing={toggle('patioPublications', 'Menú de hoy')} />
+              <SettingsRow c={sc} icon="megaphone-outline" title="Promociones" sub="Avisos especiales de lugares que sigues" divider trailing={toggle('specialNotices', 'Promociones')} />
             </SettingsGroup>
             <SettingsGroup c={sc} label="Tu comunidad">
               <SettingsRow c={sc} icon="chatbubble-ellipses-outline" title="Comentarios y seguidores" sub="Cuando comentan tus reseñas, te responden o te quieren seguir" trailing={toggle('socialActivity', 'Comentarios y seguidores')} />

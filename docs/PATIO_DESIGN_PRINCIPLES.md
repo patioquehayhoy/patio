@@ -54,10 +54,14 @@ errores) y la validación en línea de Luke Wroblewski.
   escribir. Dos negocios pueden llamarse igual; la colonia los distingue.
 - El nombre de quien reseña o comenta abre su perfil: así se encuentra a la
   gente para seguirla.
+- Seguir, como Instagram (2026-11-02): personas, lugares y listas se siguen;
+  «Guardar» ya no se usa para lugares. La ficha lleva «Seguir» (naranja) y
+  «Siguiendo» (abre Agregar a una lista y Dejar de seguir). La pestaña del
+  Foodie se llama «Siguiendo».
 - Números públicos como Instagram: el perfil muestra reseñas, «me gusta»
-  recibidos, seguidores y siguiendo; el negocio muestra guardados y «me gusta»
-  de sus platillos. En Patio guardar un lugar es seguirlo, por eso el número
-  se llama como el botón: «guardados». Solo totales; quién guardó es privado.
+  recibidos, seguidores y siguiendo (personas y lugares); el negocio muestra
+  seguidores. Tocar el número abre quién sigue, también en un lugar. En un
+  perfil privado que no sigues, los lugares que sigue no se muestran.
 - Bloquear vive en el ••• de perfiles y reseñas; «Cuentas bloqueadas» solo
   aparece en Perfil cuando bloqueaste a alguien.
 
@@ -86,9 +90,8 @@ errores) y la validación en línea de Luke Wroblewski.
 
 ## Tablero del negocio (2026-11-02)
 
-- Actividad abre con guardados y «me gusta» en platillos (total y esta
-  semana) y lo que más gusta. Solo el dueño lo ve; nunca dice quién guardó,
-  como los guardados de Instagram.
+- Actividad abre con seguidores y «me gusta» en platillos (total y esta
+  semana) y lo que más gusta. Tocar seguidores abre quién te sigue.
 - Cada platillo muestra su número de «me gusta» junto al corazón, para todos.
 - En un perfil, tocar «seguidores» o «siguiendo» abre la lista (como
   Instagram). En uno privado que no sigues, no se abre.

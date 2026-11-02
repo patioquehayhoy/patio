@@ -61,7 +61,7 @@ export default function ResenasScreen() {
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [reply, setReply] = useState('');
   const [demo, setDemo] = useState<PatioStatsSnapshot | null>(null);
-  // Tablero arriba de la actividad: seguidores (quienes lo guardaron), «me
+  // Tablero arriba de la actividad: seguidores (tocar abre quién te sigue), «me
   // gusta» en platillos y lo que más gusta. Solo el dueño lo ve.
   const [insights, setInsights] = useState<BusinessInsights | null>(null);
   const [topDishes, setTopDishes] = useState<DishLikeCount[]>([]);
@@ -288,11 +288,15 @@ export default function ResenasScreen() {
                 [insights.saves, insights.saves === 1 ? 'seguidor' : 'seguidores', insights.savesWeek],
                 [insights.dishLikes, 'me gusta en platillos', insights.dishLikesWeek],
               ] as const).map(([value, label, week]) => (
-                <View key={label} style={s.insight} accessible accessibilityLabel={`${value} ${label}${week ? `, ${week} esta semana` : ''}`}>
+                <TouchableOpacity key={label} style={s.insight} activeOpacity={0.7}
+                  disabled={label === 'me gusta en platillos' || !getFonditaId()}
+                  onPress={() => router.push({ pathname: '/foodie/seguidores', params: { patio: getFonditaId() } })}
+                  accessibilityRole={label === 'me gusta en platillos' ? undefined : 'button'}
+                  accessibilityLabel={`${value} ${label}${week ? `, ${week} esta semana` : ''}`}>
                   <Text style={[s.insightValue, { color: c.text }]}>{value}</Text>
                   <Text style={[s.insightLabel, { color: c.textSecondary }]}>{noWidow(label)}</Text>
                   {!!week && <Text style={[s.insightWeek, { color: c.accent }]}>{noWidow(`+${week} esta semana`)}</Text>}
-                </View>
+                </TouchableOpacity>
               ))}
             </View>
             {!!topDishes.length && (

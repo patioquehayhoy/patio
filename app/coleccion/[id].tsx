@@ -147,7 +147,7 @@ export default function CollectionDetail() {
           multiline
           style={[s.description, { color: theme.textSecondary }]}
         />
-        <Text style={[s.count, { color: theme.textSecondary }]}>{patios.length} {patios.length === 1 ? 'lugar guardado' : 'lugares guardados'}</Text>
+        <Text style={[s.count, { color: theme.textSecondary }]}>{patios.length} {patios.length === 1 ? 'lugar' : 'lugares'}</Text>
 
         {!!patios.length && (
           <View style={s.actions}>

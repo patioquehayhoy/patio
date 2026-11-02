@@ -9,6 +9,7 @@ import { Alert, Animated, Share, StyleSheet, Text, TextInput, TouchableOpacity, 
 import MapView, { Marker } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { ActionSheet } from '@/components/action-sheet';
 import { AgentSpinner } from '@/components/agent-spinner';
 import { PAYMENT_ORDER, PaymentIcon } from '@/components/payment-icon';
 import { ANDROID_ICONS, TintIcon } from '@/components/tint-icon';
@@ -137,7 +138,12 @@ function makeStyles(t: Theme) {
     verifiedMark: { width: 28, height: 28, alignItems: 'center', justifyContent: 'center' },
     summaryRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 16 },
     summaryPrice: { maxWidth: '50%', marginLeft: 'auto' },
-    statsLine: { marginTop: -8, marginBottom: 16, fontSize: 13, lineHeight: 18, fontWeight: '400', color: t.textSecondary },
+    followRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: -8, marginBottom: 16 },
+    followersLink: { minHeight: 44, justifyContent: 'center' },
+    followersText: { fontSize: 14, lineHeight: 19, fontWeight: '700', color: t.text },
+    followButton: { height: 40, paddingHorizontal: 20, borderRadius: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4 },
+    followingButton: { backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
+    followText: { fontSize: 16, fontWeight: '700' },
     notice: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginBottom: 16, padding: 12, borderRadius: 14, backgroundColor: t.accentSoft },
     noticeText: { flex: 1, minWidth: 0, fontSize: 15, lineHeight: 20, fontWeight: '400', color: t.text },
     featuredLabel: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 2 },
@@ -317,9 +323,13 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
   const activeBadge = earnedBadges.find((badge) => badge.id === activeBadgeId) ?? null;
   const reviewedToday = !!userReview && new Date(userReview.timestamp).toDateString() === new Date().toDateString();
 
-  const handleSavePress = async () => {
-    if (!isSaved) await handleToggleSaved();
-    setSaveSheetVisible(true);
+  // Seguir, como Instagram: «Seguir» sigue de un toque; «Siguiendo» abre
+  // agregar a una lista o dejar de seguir.
+  const followAnchor = useRef<View>(null);
+  const [followMenu, setFollowMenu] = useState(false);
+  const handleFollowPress = () => {
+    if (isSaved) setFollowMenu(true);
+    else void handleToggleSaved();
   };
 
   // Like por platillo: micro-señal de compromiso de fricción casi cero,
@@ -489,8 +499,8 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
     return () => { active = false; };
   }, [reviews, patio?.id, patio?.name]);
 
-  // Guardados y «me gusta» del lugar; se vuelven a contar cuando la persona
-  // lo guarda o lo quita, para que el número no se quede atrás.
+  // Seguidores y «me gusta» del lugar; se vuelven a contar cuando la persona
+  // lo sigue o deja de seguir, para que el número no se quede atrás.
   useEffect(() => {
     if (!patio?.id) return;
     let active = true;
@@ -686,14 +696,6 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
             <View style={{ flexDirection: 'row', gap: 8 }}>
               {!own && patioId && <ContentSafetyMenu targetType="patio" targetId={patioId} />}
               <GlassIcon name="share-outline" size={17} onPress={handleShare} label="Compartir" />
-              {!own && <GlassIcon
-                name={isSaved ? 'bookmark' : 'bookmark-outline'}
-                size={17}
-                onPress={handleSavePress}
-                color={isSaved ? theme.accent : theme.text}
-                label={isSaved ? 'Guardado' : 'Guardar'}
-                selected={isSaved}
-              />}
             </View>
           </View>
         </View>
@@ -710,9 +712,34 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
             <PatioCardLocation area={patio.area} distanceLabel={distance} variant="detail" style={{ flex: 1 }} />
             <PatioCardPrice patio={patio} compact={false} style={s.summaryPrice} />
           </View>
-          {!!businessStatsLabel(businessStats) && (
-            <Text style={s.statsLine} allowFontScaling={true}>{noWidow(businessStatsLabel(businessStats))}</Text>
-          )}
+          <View style={s.followRow}>
+            {!!businessStatsLabel(businessStats) && (
+              <TouchableOpacity
+                style={s.followersLink}
+                activeOpacity={0.7}
+                disabled={!/^[0-9a-f-]{36}$/i.test(patio.id)}
+                onPress={() => router.push({ pathname: '/foodie/seguidores', params: { patio: patio.id } })}
+                accessibilityRole="button"
+                accessibilityLabel={`${businessStatsLabel(businessStats)}, ver quién lo sigue`}>
+                <Text style={s.followersText} allowFontScaling={true}>{noWidow(businessStatsLabel(businessStats))}</Text>
+              </TouchableOpacity>
+            )}
+            <View style={{ flex: 1 }} />
+            {!own && (
+              <View ref={followAnchor} collapsable={false}>
+                <TouchableOpacity
+                  style={[s.followButton, isSaved ? s.followingButton : { backgroundColor: theme.accent }]}
+                  activeOpacity={0.85}
+                  onPress={handleFollowPress}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: isSaved }}
+                  accessibilityLabel={isSaved ? `Siguiendo a ${patio.name}` : `Seguir a ${patio.name}`}>
+                  <Text style={[s.followText, { color: isSaved ? theme.text : '#FFFFFF' }]} allowFontScaling={true}>{isSaved ? 'Siguiendo' : 'Seguir'}</Text>
+                  {isSaved && <Ionicons name="chevron-down" size={14} color={theme.text} />}
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
           {!!highlights.notice && (
             <View style={s.notice} accessible accessibilityLabel={`Aviso de ${patio.name}: ${highlights.notice.body}`}>
               <Ionicons name="megaphone-outline" size={18} color={theme.accent} />
@@ -1149,6 +1176,15 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
 
         </View>
       </Animated.ScrollView>
+      <ActionSheet
+        visible={followMenu}
+        anchorRef={followAnchor}
+        onDismiss={() => setFollowMenu(false)}
+        options={[
+          { label: 'Agregar a una lista', icon: 'list-outline', afterDismiss: true, onPress: () => setSaveSheetVisible(true) },
+          { label: 'Dejar de seguir', icon: 'person-remove-outline', destructive: true, onPress: () => { void handleToggleSaved(); } },
+        ]}
+      />
       <SaveToListSheet
         visible={saveSheetVisible}
         patioIds={[patio.id]}

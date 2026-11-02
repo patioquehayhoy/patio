@@ -24,9 +24,10 @@ Aquí solo se describe lo que existe en la app.
 - **Viene a:** decidir dónde comer y recordar sus lugares.
 - **Llega:** entra con correo y código.
 - **Costo:** $0.
-- **Puede:** listas (privadas, con enlace o públicas), compartirlas, reseñar,
-  seguir perfiles, notificaciones de sus lugares (menú de hoy y, si las activa,
-  promociones). Perfil público, como Instagram.
+- **Puede:** seguir lugares, personas y listas; armar listas (privadas, con
+  enlace o públicas) y compartirlas; reseñar; avisos de los lugares que sigue
+  (menú de hoy y, si las activa, promociones). Perfil público, como Instagram:
+  sus seguidores, a quién sigue y qué lugares sigue.
 - **Nunca ve:** precios, sus menús, estadísticas de negocio. En Perfil solo
   tiene una puerta: «¿Tienes un negocio?».
 
@@ -45,8 +46,8 @@ Aquí solo se describe lo que existe en la app.
 - **Llega:** Perfil → «¿Tienes un negocio?», o la intro «Publicar lo que preparo».
 - **Costo:** $0.
 - **Puede:** perfil público, menú a mano sin límite, 20 lecturas con foto al día,
-  compartir su menú como imagen, aviso a quien lo guarda cuando publica, recibir
-  y responder reseñas, guardados y «me gusta» de sus platillos.
+  compartir su menú como imagen, aviso a sus seguidores cuando publica, recibir
+  y responder reseñas, quién lo sigue y «me gusta» de sus platillos.
 - **Nunca ve:** lugares guardados ni listas de Foodie.
 
 ### Negocio Pro

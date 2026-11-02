@@ -47,7 +47,7 @@ function mergeGuestLibrary(account: [string, string][], guest: readonly [string,
     const guestValue: unknown = JSON.parse(raw);
     const accountRaw = merged.get(key);
     const accountValue: unknown = accountRaw ? JSON.parse(accountRaw) : [];
-    if (!Array.isArray(guestValue) || !Array.isArray(accountValue)) throw new Error('No pudimos recuperar tus guardados.');
+    if (!Array.isArray(guestValue) || !Array.isArray(accountValue)) throw new Error('No pudimos recuperar los lugares que sigues.');
     if (key === 'patio:saved-meta:v1') {
       const byPatio = new Map(accountValue.map((item) => [item.patioId, item]));
       for (const item of guestValue) {

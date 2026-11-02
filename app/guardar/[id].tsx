@@ -95,14 +95,14 @@ export default function SavePlaceScreen() {
         <TouchableOpacity style={s.navButton} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Cerrar">
           <Ionicons name="close" size={21} color={theme.text} />
         </TouchableOpacity>
-        <Text style={[s.navTitle, { color: theme.text }]}>{noWidow('Guardar en')}</Text>
+        <Text style={[s.navTitle, { color: theme.text }]}>{noWidow('Agregar a lista')}</Text>
         <TouchableOpacity style={s.navButton} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Listo">
           <Text style={[s.done, { color: theme.accent }]}>Listo</Text>
         </TouchableOpacity>
       </View>
 
       <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: insets.bottom + 36 }}>
-        <Text style={[s.heroBody, { color: theme.textSecondary }]}>{noWidow('Elige una o varias. El lugar queda guardado aunque no elijas ninguna.')}</Text>
+        <Text style={[s.heroBody, { color: theme.textSecondary }]}>{noWidow('Elige una o varias. Sigues el lugar aunque no elijas ninguna.')}</Text>
 
         {loading ? <FoodieLoading label="Cargando listas" /> : loadError ? <TouchableOpacity accessibilityRole="button" accessibilityLabel="Reintentar carga de listas" style={s.retry} onPress={reload}><Text style={{ color: theme.text }}>{noWidow('No pudimos cargar tus listas. Reintentar.')}</Text></TouchableOpacity> : <View style={[s.listCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           {[...collections].sort((a, b) => a.title.localeCompare(b.title, 'es')).map((collection, index) => {

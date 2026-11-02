@@ -1,8 +1,9 @@
+import type { FollowListPerson } from '@/lib/profile-privacy';
 import { supabase } from '@/lib/supabase';
 
-// Números públicos del negocio. En Patio, guardar un lugar es seguirlo: quien
-// lo guarda cuenta como seguidor (decisión de Parco, 2026-11-02). Los «me
-// gusta» no se muestran como número público; solo el dueño los ve.
+// Números públicos del negocio. Seguir un lugar es la fila de saved_patios;
+// quién lo sigue es público, como en Instagram (decisión de Parco,
+// 2026-11-02). Los «me gusta» no se muestran como número público.
 export type BusinessStats = { saves: number; dishLikes: number; reviews: number };
 
 export async function getBusinessStats(negocioId: string): Promise<BusinessStats | null> {
@@ -13,9 +14,9 @@ export async function getBusinessStats(negocioId: string): Promise<BusinessStats
   return { saves: Number(row?.saves ?? 0), dishLikes: Number(row?.dish_likes ?? 0), reviews: Number(row?.reviews ?? 0) };
 }
 
-/** «128 seguidores»; nada mientras no tenga. */
+/** «128 seguidores»; «0 seguidores» también, como Instagram. */
 export function businessStatsLabel(stats: BusinessStats | null): string {
-  if (!stats?.saves) return '';
+  if (!stats) return '';
   return `${stats.saves} ${stats.saves === 1 ? 'seguidor' : 'seguidores'}`;
 }
 
@@ -43,4 +44,14 @@ export async function getDishLikeCounts(negocioId: string): Promise<DishLikeCoun
   const { data, error } = await supabase.rpc('business_dish_like_counts', { target: negocioId });
   if (error) throw error;
   return ((data ?? []) as any[]).map((row) => ({ dishName: row.dish_name, displayName: row.display_name, likes: Number(row.likes ?? 0) }));
+}
+
+/** Quién sigue a un lugar, del más reciente al más antiguo (público, como Instagram). */
+export async function getPatioFollowers(negocioId: string): Promise<FollowListPerson[]> {
+  if (!/^[0-9a-f-]{36}$/i.test(negocioId)) return [];
+  const { data, error } = await supabase.rpc('patio_followers', { target: negocioId });
+  if (error) throw error;
+  return ((data ?? []) as any[]).map((row) => ({
+    userId: row.user_id, name: row.display_name, handle: row.handle || undefined, avatarUrl: row.avatar_url || undefined,
+  }));
 }

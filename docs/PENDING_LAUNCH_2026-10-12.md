@@ -10,7 +10,10 @@ Propuesta completa en [PLANES_CREADORES_Y_RED](PLANES_CREADORES_Y_RED_2026-11-02
   Fundadores con beneficios reales, Pro oculto hasta existir.
 - [x] Pro construido (2026-11-02): lecturas por plan, avisos especiales,
   platillo destacado, día y hora con más interés, webhook de RevenueCat.
-- [ ] Alejandro: `npx supabase db push --yes` y
+- [x] Seguir en lugar de Guardar (2026-11-02): botón «Seguir» en la ficha,
+  pestaña «Siguiendo», lista de seguidores de cada lugar y lugares que sigue
+  cada perfil (migración `20261102130000_patio_followers.sql`).
+- [ ] Alejandro: `npx supabase db push --yes` (aplica las dos migraciones) y
   `npx supabase functions deploy send-special-notice revenuecat-webhook`.
 - [ ] Dar Pro a los Fundadores con el SQL de [billing](BILLING_SETUP_2026-10-26.md).
 - [ ] QA en el cel con una cuenta Pro: aviso especial (llega y se ve en la

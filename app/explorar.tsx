@@ -982,7 +982,7 @@ export default function ExplorarScreen() {
             accessibilityLabel={isFiltering ? (sheetDetent === 'medium' ? 'Expandir resultados' : 'Reducir resultados') : 'Ocultar lugares'}
             accessibilityValue={{ text: isFiltering
               ? `${filteredMatches.length} resultado${filteredMatches.length !== 1 ? 's' : ''}${aiMode && aiNote ? `. ${aiNote}` : ''}`
-              : sheetMode === 'saved' ? 'Guardados' : 'Cerca de ti' }}
+              : sheetMode === 'saved' ? 'Siguiendo' : 'Cerca de ti' }}
             accessibilityState={isFiltering ? { expanded: sheetDetent === 'large' } : undefined}
             onAccessibilityTap={activateSheetHandle}
             accessibilityActions={[{ name: 'activate' }]}
@@ -1002,7 +1002,7 @@ export default function ExplorarScreen() {
                     : 'Sin resultados'}
                 </Text>
               ) : (
-                <Text style={s.listTitle} allowFontScaling={true}>{sheetMode === 'saved' ? 'GUARDADOS' : 'CERCA DE TI'}</Text>
+                <Text style={s.listTitle} allowFontScaling={true}>{sheetMode === 'saved' ? 'SIGUIENDO' : 'CERCA DE TI'}</Text>
               )}
             </View>
 
@@ -1096,9 +1096,9 @@ export default function ExplorarScreen() {
                 <View style={s.emptyIconCircle}>
                   <Ionicons name="bookmark-outline" size={32} color={theme.accent} />
                 </View>
-                <Text style={s.emptyEyebrow} allowFontScaling={true}>Guardados</Text>
-                <Text style={s.emptyTitle} allowFontScaling={true}>{noWidow('Todavía no has guardado patios.')}</Text>
-                <Text style={s.emptySub} allowFontScaling={true}>{noWidow('Toca un punto o un lugar cercano y usa el corazón para guardarlo aquí.')}</Text>
+                <Text style={s.emptyEyebrow} allowFontScaling={true}>Siguiendo</Text>
+                <Text style={s.emptyTitle} allowFontScaling={true}>{noWidow('Todavía no sigues ningún lugar.')}</Text>
+                <Text style={s.emptySub} allowFontScaling={true}>{noWidow('Abre un lugar y toca Seguir para verlo aquí.')}</Text>
               </View>
             ) : (
               listPatios.map((patio) => {

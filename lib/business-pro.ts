@@ -29,7 +29,7 @@ export async function sendSpecialNotice(negocioId: string, text: string): Promis
   throw new Error('No pudimos enviar el aviso. Inténtalo de nuevo.');
 }
 
-/** El día y la hora con más guardados y «me gusta» de los últimos 90 días. */
+/** El día y la hora con más seguidores nuevos y «me gusta» de los últimos 90 días. */
 export async function getPeakTime(negocioId: string): Promise<{ day: string; hour: number } | null> {
   if (!UUID.test(negocioId)) return null;
   const { data, error } = await supabase.rpc('business_peak_times', { target: negocioId });

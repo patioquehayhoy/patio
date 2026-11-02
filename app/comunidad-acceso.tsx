@@ -89,7 +89,7 @@ export default function ComunidadAccesoScreen() {
           <Text style={s.body}>
             {noWidow(sent
               ? `Mandamos un código y un enlace a ${email}. Escribe el código para entrar.`
-              : 'Tu correo sincroniza guardados y reseñas. Sin contraseña.')}
+              : 'Tu correo sincroniza a quién sigues y tus reseñas. Sin contraseña.')}
           </Text>
 
           {!sent ? (

@@ -193,7 +193,7 @@ export function SaveToListSheet({ visible, patioIds, patioName, onDismiss, mode 
             }} style={s.headerIcon}>
               <Ionicons name={creating || canReturnToSource ? 'chevron-back' : 'add'} size={21} color={theme.text} />
             </TouchableOpacity>}
-            <Text accessibilityRole="header" style={s.context} numberOfLines={1}>{noWidow(creating ? 'Nueva lista' : mode === 'move' ? choosingSource ? 'Origen' : 'Destino' : patioIds.length > 1 ? `${patioIds.length} lugares` : patioName || 'Guardar en lista')}</Text>
+            <Text accessibilityRole="header" style={s.context} numberOfLines={1}>{noWidow(creating ? 'Nueva lista' : mode === 'move' ? choosingSource ? 'Origen' : 'Destino' : patioIds.length > 1 ? `${patioIds.length} lugares` : patioName || 'Agregar a lista')}</Text>
             {canReturnToSource && !creating && <TouchableOpacity disabled={busy} accessibilityRole="button" accessibilityLabel="Nueva lista" onPress={() => setCreating(true)} style={s.headerIcon}><Ionicons name="add" size={21} color={theme.text} /></TouchableOpacity>}
             <TouchableOpacity accessibilityRole="button" accessibilityState={{ disabled: busy }} onPress={dismiss} disabled={busy} style={s.closeButton}><Text style={s.closeText}>{mode === 'move' ? 'Cancelar' : 'Listo'}</Text></TouchableOpacity>
           </View>

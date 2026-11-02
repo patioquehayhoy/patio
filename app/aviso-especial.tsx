@@ -58,7 +58,7 @@ export default function AvisoEspecialScreen() {
       </View>
       <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={[s.content, { paddingBottom: insets.bottom + 24 }]}>
         <Text style={[s.help, { color: theme.textSecondary }]}>
-          {noWidow('Llega a quien guardó tu Patio y activó Promociones, y se ve en tu ficha durante 24 horas.')}
+          {noWidow('Llega a tus seguidores que activaron Promociones y se ve en tu ficha durante 24 horas.')}
         </Text>
         <Text style={[s.label, { color: theme.textSecondary }]}>Tu aviso</Text>
         <View style={[s.field, { backgroundColor: theme.surface, borderColor: theme.border }]}>

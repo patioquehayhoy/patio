@@ -1,6 +1,6 @@
 import { router, Stack, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AccountSettings } from '@/components/account-settings';
@@ -30,7 +30,7 @@ export default function PerfilScreen() {
   const [address, setAddress] = useState('');
   const [hasMenu, setHasMenu] = useState<boolean | null>(null);
   const [fonditaName, setFonditaName] = useState('');
-  // Seguidores del negocio: quienes lo guardaron (solo el número).
+  // Seguidores del negocio; tocar el número abre quién lo sigue.
   const [followers, setFollowers] = useState<number | null>(null);
 
   useFocusEffect(useCallback(() => {
@@ -71,9 +71,13 @@ export default function PerfilScreen() {
             {fonditaName || 'Tu negocio'}
           </Text>
           {followers !== null && (
-            <Text style={[s.followers, { color: c.text }]} accessibilityLabel={`${followers} ${followers === 1 ? 'seguidor' : 'seguidores'}`}>
-              <Text style={s.followersValue}>{followers}</Text> {followers === 1 ? 'seguidor' : 'seguidores'}
-            </Text>
+            <TouchableOpacity activeOpacity={0.7} disabled={!getFonditaId()} accessibilityRole="button"
+              accessibilityLabel={`${followers} ${followers === 1 ? 'seguidor' : 'seguidores'}, ver quién te sigue`}
+              onPress={() => router.push({ pathname: '/foodie/seguidores', params: { patio: getFonditaId() } })}>
+              <Text style={[s.followers, { color: c.text }]}>
+                <Text style={s.followersValue}>{followers}</Text> {followers === 1 ? 'seguidor' : 'seguidores'}
+              </Text>
+            </TouchableOpacity>
           )}
           <View style={s.statusRow}>
             <View style={[s.statusDot, { backgroundColor: hasMenu ? c.accent : c.textMute }]} />

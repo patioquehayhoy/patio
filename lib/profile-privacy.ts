@@ -126,3 +126,13 @@ export async function getFollowList(targetId: string, kind: 'seguidores' | 'sigu
     return name ? [{ userId: id, name, handle: profile.handle || undefined, avatarUrl: profile.avatar_url || undefined }] : [];
   });
 }
+
+export type FollowedPlace = { id: string; name: string };
+
+/** Lugares que sigue un perfil; vacío si es privado y no lo sigues. */
+export async function getFollowedPlaces(targetId: string): Promise<FollowedPlace[]> {
+  if (!/^[0-9a-f-]{36}$/i.test(targetId)) return [];
+  const { data, error } = await supabase.rpc('profile_followed_places', { target: targetId });
+  if (error) throw error;
+  return ((data ?? []) as any[]).map((row) => ({ id: row.negocio_id, name: row.nombre }));
+}

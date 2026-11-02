@@ -169,7 +169,7 @@ async function readSavedMeta(): Promise<SavedPatioMeta[]> {
   const raw = await AsyncStorage.getItem(META_KEY);
   if (!raw) return [];
   const parsed: unknown = JSON.parse(raw);
-  if (!Array.isArray(parsed)) throw new Error('No se pudieron recuperar tus lugares guardados.');
+  if (!Array.isArray(parsed)) throw new Error('No se pudieron recuperar los lugares que sigues.');
   return parsed.filter((item): item is SavedPatioMeta => item && typeof item.patioId === 'string');
 }
 

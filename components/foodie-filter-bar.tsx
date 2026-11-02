@@ -451,7 +451,7 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
     if (!ids.length || deleteListsPending.current) return;
     Alert.alert(
       noWidow(ids.length === 1 ? 'Eliminar lista' : `Eliminar ${ids.length} listas`),
-      noWidow('Los lugares seguirán en Guardados. Las listas se eliminarán definitivamente.'),
+      noWidow('Seguirás estos lugares. Las listas se eliminarán definitivamente.'),
       [
         { text: 'Cancelar', style: 'cancel' },
         { text: 'Eliminar', style: 'destructive', onPress: async () => {
@@ -647,7 +647,7 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
         style={[s.organizer, s.organizerCompact, { backgroundColor: pillBg }]}
         activeOpacity={0.7}
         accessibilityRole="button"
-        accessibilityLabel="Organizar Guardados"
+        accessibilityLabel="Organizar Siguiendo"
         accessibilityState={{ expanded: organizerVisible }}
         accessibilityHint="Ordenar, cambiar vista y seleccionar lugares">
         {floating && <View style={s.pillBlurClip}>

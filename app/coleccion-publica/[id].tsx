@@ -129,9 +129,9 @@ export default function PublicCollection() {
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}>
           <Text style={[s.title, { color: theme.text }]}>{noWidow(item.title)}</Text>
           {!!item.description && <Text style={[s.desc, { color: theme.textSecondary }]}>{noWidow(item.description)}</Text>}
-          <TouchableOpacity accessibilityRole="button" accessibilityLabel={saved ? 'Quitar lista de Guardados' : 'Guardar lista'} accessibilityState={{ disabled: saving, busy: saving, selected: saved }} disabled={saving} style={[s.button, { backgroundColor: theme.accent, opacity: saving ? 0.6 : 1 }]} onPress={save}>
+          <TouchableOpacity accessibilityRole="button" accessibilityLabel={saved ? 'Dejar de seguir lista' : 'Seguir lista'} accessibilityState={{ disabled: saving, busy: saving, selected: saved }} disabled={saving} style={[s.button, { backgroundColor: theme.accent, opacity: saving ? 0.6 : 1 }]} onPress={save}>
             <Ionicons name={saved ? 'bookmark' : 'bookmark-outline'} size={17} color="#FFFFFF" />
-            <Text style={{ color: '#FFFFFF', fontWeight: '700' }}>{noWidow(saved ? 'Lista guardada' : 'Guardar lista')}</Text>
+            <Text style={{ color: '#FFFFFF', fontWeight: '700' }}>{noWidow(saved ? 'Siguiendo' : 'Seguir lista')}</Text>
           </TouchableOpacity>
           <TouchableOpacity accessibilityRole="button" style={[s.row, { borderColor: theme.border }]} onPress={() => router.push({ pathname: '/foodie/[id]', params: { id: item.owner_id } })}><Text style={{ color: theme.textSecondary }}>{noWidow('Ver perfil del curador')}</Text><Ionicons name="chevron-forward" size={16} color={theme.textMute} /></TouchableOpacity>
           {places.map((place) => <TouchableOpacity key={place.id} accessibilityRole="button" accessibilityLabel={`Abrir ${place.nombre}`} style={[s.row, { borderColor: theme.border }]} onPress={() => router.push(`/patio/${place.id}`)}>

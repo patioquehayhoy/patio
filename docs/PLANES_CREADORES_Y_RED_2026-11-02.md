@@ -44,7 +44,7 @@ mensual al lado, tabla para comparar, texto alineado a la izquierda):
 
 | Plan | Precio | Qué suma |
 |---|---|---|
-| Gratis | $0 siempre | Perfil público, menú a mano sin límite, 20 lecturas con foto al día, compartir como imagen, aviso a quien te guarda, reseñas y respuesta, guardados y «me gusta» |
+| Gratis | $0 siempre | Perfil público, menú a mano sin límite, 20 lecturas con foto al día, compartir como imagen, aviso a tus seguidores, reseñas y respuesta, quién te sigue y «me gusta» |
 | Pro | $99/mes · $990/año | Todo lo de Gratis, más 60 lecturas con foto al día, 8 avisos especiales al mes, platillo destacado en la ficha, día y hora con más interés |
 | Fundador | Por invitación | 6 meses de Pro, alta en persona, línea directa con el equipo |
 

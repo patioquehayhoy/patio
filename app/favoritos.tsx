@@ -147,12 +147,12 @@ export default function FavoritosScreen() {
   const removeSelected = () => {
     const ids = Array.from(selectedIds);
     Alert.alert(
-      'Quitar de Guardados',
-      `Se ${ids.length === 1 ? 'quitará 1 lugar' : `quitarán ${ids.length} lugares`} de Guardados.`,
+      'Dejar de seguir',
+      `Dejarás de seguir ${ids.length === 1 ? '1 lugar' : `${ids.length} lugares`}.`,
       [
         { text: 'Cancelar', style: 'cancel' },
         {
-          text: 'Quitar',
+          text: 'Dejar de seguir',
           style: 'destructive',
           onPress: async () => {
             if (selectedActionPending.current) return;
@@ -331,8 +331,8 @@ export default function FavoritosScreen() {
                 <SearchField
                   value={searchQuery}
                   onChangeText={setSearchQuery}
-                  placeholder="Buscar en Guardados"
-                  accessibilityLabel="Buscar en Guardados"
+                  placeholder="Buscar en Siguiendo"
+                  accessibilityLabel="Buscar en Siguiendo"
                   style={s.searchWrap}
                 />
                 <FoodieFilterBar
@@ -403,16 +403,16 @@ export default function FavoritosScreen() {
             <TouchableOpacity onPress={exitSelecting} style={s.selectToggle} accessibilityRole="button" accessibilityLabel="Cancelar selección"><Text style={s.selectToggleText}>Cancelar</Text></TouchableOpacity>
           </>}
         </View>}
-        {loadError && patios.length > 0 && <TouchableOpacity style={s.resetButton} onPress={reload} accessibilityRole="button" accessibilityLabel="Reintentar actualización de Guardados"><Text style={s.resetText}>{noWidow('No pudimos actualizar. Reintentar')}</Text></TouchableOpacity>}
-        {loading && patios.length === 0 ? <View style={{ minHeight: 240 }}><FoodieLoading label="Cargando guardados" /></View> : loadError && patios.length === 0 ? <View style={s.empty}>
-          <Text style={s.emptyTitle}>{noWidow('No pudimos cargar Guardados')}</Text>
+        {loadError && patios.length > 0 && <TouchableOpacity style={s.resetButton} onPress={reload} accessibilityRole="button" accessibilityLabel="Reintentar actualización"><Text style={s.resetText}>{noWidow('No pudimos actualizar. Reintentar')}</Text></TouchableOpacity>}
+        {loading && patios.length === 0 ? <View style={{ minHeight: 240 }}><FoodieLoading label="Cargando lugares que sigues" /></View> : loadError && patios.length === 0 ? <View style={s.empty}>
+          <Text style={s.emptyTitle}>{noWidow('No pudimos cargar los lugares que sigues')}</Text>
           <TouchableOpacity style={s.cta} onPress={reload} accessibilityRole="button" accessibilityLabel="Reintentar"><Text style={s.ctaText}>Reintentar</Text></TouchableOpacity>
         </View> : patios.length === 0 ? (
           <View style={s.empty}>
             <View style={s.emptyIcon}>
               <Ionicons name="bookmark-outline" size={32} color={theme.textSecondary} />
             </View>
-            <Text style={s.emptyTitle} allowFontScaling={true}>{noWidow('Sin guardados')}</Text>
+            <Text style={s.emptyTitle} allowFontScaling={true}>{noWidow('Todavía no sigues ningún lugar')}</Text>
             <TouchableOpacity style={s.cta} onPress={() => router.replace('/explorar')} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel="Buscar algo rico">
               <Text style={s.ctaText} allowFontScaling={true}>{noWidow('Buscar algo rico')}</Text>
             </TouchableOpacity>
@@ -428,8 +428,8 @@ export default function FavoritosScreen() {
               <View style={[s.filterEmptyCard, viewMode === 'grid' && { width: '100%' }]}>
                 <Ionicons name={normalizedQuery ? 'search-outline' : 'options-outline'} size={22} color={theme.textSecondary} />
                 <Text style={s.filterEmptyText} allowFontScaling={true}>{noWidow(normalizedQuery ? 'No encontramos lugares con esa búsqueda.' : 'Ningún lugar coincide con tu selección.')}</Text>
-                <TouchableOpacity style={s.resetButton} onPress={() => normalizedQuery ? setSearchQuery('') : setFilters(EMPTY_FOODIE_FILTERS)} accessibilityRole="button" accessibilityLabel={normalizedQuery ? 'Borrar búsqueda' : 'Ver todos los guardados'}>
-                  <Text style={s.resetText}>{noWidow(normalizedQuery ? 'Borrar búsqueda' : 'Ver todos los guardados')}</Text>
+                <TouchableOpacity style={s.resetButton} onPress={() => normalizedQuery ? setSearchQuery('') : setFilters(EMPTY_FOODIE_FILTERS)} accessibilityRole="button" accessibilityLabel={normalizedQuery ? 'Borrar búsqueda' : 'Ver todos'}>
+                  <Text style={s.resetText}>{noWidow(normalizedQuery ? 'Borrar búsqueda' : 'Ver todos')}</Text>
                 </TouchableOpacity>
               </View>
             )}
@@ -448,7 +448,7 @@ export default function FavoritosScreen() {
             setSaveSheetVisible(true);
           } },
           { label: 'Compartir', icon: 'share-outline', disabled: !selectedIds.size, onPress: shareSelected },
-          { label: 'Quitar', icon: 'trash-outline', disabled: !selectedIds.size, onPress: removeSelected },
+          { label: 'Dejar de seguir', icon: 'person-remove-outline', disabled: !selectedIds.size, onPress: removeSelected },
         ]} />
       </View> : <BottomTabBar variant="foodie" />}
       <SaveToListSheet

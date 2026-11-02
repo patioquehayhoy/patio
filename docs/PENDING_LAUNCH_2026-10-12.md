@@ -1,5 +1,17 @@
 # Pendientes y roadmap de lanzamiento — actualizado 2026-11-02
 
+## Planes, creadores y red (2026-11-02)
+
+Propuesta completa en [PLANES_CREADORES_Y_RED](PLANES_CREADORES_Y_RED_2026-11-02.md).
+
+- [ ] Alejandro decide: Creador sin cobro (programa por invitación), quitar Plan
+  del Perfil Foodie, ancla y precio por día en Pro.
+- [ ] Creadores Fundadores: elegir 5–10 creadores de la colonia piloto y
+  escribirles antes de abrir.
+- [ ] Top de lugares por defecto en cada perfil (favoritos de sus
+  calificaciones y guardados) y bloque «De quienes sigues» en el mapa.
+- [ ] Van Westendorp con los negocios Fundadores antes de fijar precios en tienda.
+
 ## Experiencia del negocio — pendientes de paneles (2026-11-02)
 
 - [ ] Ver en dispositivo Menús sin tour y Editar mi negocio con ayuda integrada;

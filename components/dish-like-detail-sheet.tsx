@@ -1,7 +1,7 @@
 import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import { useEffect, useRef, useState } from 'react';
-import { Animated, Modal, PanResponder, StyleSheet, Text, TouchableWithoutFeedback, useWindowDimensions, View } from 'react-native';
+import { Animated, Modal, PanResponder, ScrollView, StyleSheet, Text, TouchableWithoutFeedback, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AvatarCircle } from '@/components/avatar-circle';
@@ -84,6 +84,9 @@ export function DishLikeDetailSheet({ visible, onClose, dishName, authors }: {
             <Text style={[s.title, { color: c.text }]} numberOfLines={1}>{noWidow(dishName)}</Text>
             <Text style={[s.subtitle, { color: c.textSecondary }]}>{authors.length === 1 ? '1 like en total' : `${authors.length} likes en total`}</Text>
           </View>
+          {/* La lista crece con los likes; el panel tiene tope de 70 % y la
+              lista hace scroll dentro en vez de cortarse. */}
+          <ScrollView style={s.list} showsVerticalScrollIndicator={false}>
           {authors.map((author, index) => (
             <View key={`${author.name}-${index}`} style={[s.row, index > 0 && { borderTopColor: c.border, borderTopWidth: StyleSheet.hairlineWidth }]}>
               <AvatarCircle name={author.name} avatarUrl={author.avatarUrl} backgroundColor={c.iconBg} textColor={c.textSecondary} size={34} />
@@ -93,6 +96,7 @@ export function DishLikeDetailSheet({ visible, onClose, dishName, authors }: {
               </View>
             </View>
           ))}
+          </ScrollView>
         </Animated.View>
       </View>
     </Modal>
@@ -108,6 +112,7 @@ const s = StyleSheet.create({
   header: { paddingHorizontal: 20, paddingTop: 14, paddingBottom: 12 },
   title: { fontSize: 17, lineHeight: 22, fontWeight: '700' },
   subtitle: { marginTop: 2, fontSize: 13, fontWeight: '400' },
+  list: { flexShrink: 1 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 20, paddingVertical: 12 },
   rowBody: { flex: 1, minWidth: 0 },
   rowText: { fontSize: 15, fontWeight: '700' },

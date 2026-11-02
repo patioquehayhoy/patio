@@ -1,4 +1,22 @@
-# Pendientes y roadmap de lanzamiento — actualizado 2026-10-26
+# Pendientes y roadmap de lanzamiento — actualizado 2026-11-02
+
+## Experiencia del negocio — pendientes de paneles (2026-11-02)
+
+- [ ] Ver en dispositivo Menús sin tour y Editar mi negocio con ayuda integrada;
+  comprobar letra grande, oscuro, teclado y guardar/volver.
+- [ ] Validar visualmente el cambio con Alejandro. La
+  [comparación entregada](../artifacts/patio-paneles-antes-despues.png) es
+  ilustrativa y todavía no tiene aprobación explícita.
+- [ ] Decidir si se conservan las listas de Menús antes de crear una biblioteca
+  dedicada. La propuesta de migración queda condicionada a esa decisión.
+- [ ] Si se conservan: comparar administración en pantalla y selección en panel
+  corto, protegiendo selección, errores y cambios sin guardar.
+- [ ] Revisar perfil público como pantalla propia y retorno al mapa/enlaces.
+- [x] Lista de likes de platillo: ya hace scroll dentro del panel (2026-11-02).
+- [ ] Revisar el acabado de Nuevo menú y los paneles restantes.
+
+Alcance y evidencia: [auditoría](design/SURFACE_AUDIT_2026-11-01.md).
+Estos puntos son de UX; no sustituyen los pendientes técnicos/de operación abajo.
 
 > **Cierre vigente 2026-10-28:** Expo transferido a `patio-quehayhoy`, con UUID
 > y firmas conservados; acceso temporal Parco retirado. Auth usa 8 dígitos y

@@ -1,5 +1,27 @@
 # HANDOFF
 
+## Continuidad 2026-11-02 — paneles del negocio (Codex)
+
+Leer primero el [heads-up actualizado](HEADS_UP_2026-10-12.md): contiene
+también los avances posteriores de onboarding y escala visual.
+
+Entregado: retirada del tour modal de Historial, explicación en su estado
+vacío, título y ayuda dentro de Editar mi negocio. Comparativa
+[antes/después](../artifacts/patio-paneles-antes-despues.png), reconstruida
+desde código y mostrada en Finder; no son capturas reales. Guardado en
+`a4b0058`, junto con el trabajo previo de Codex. Sin verificación de push aquí.
+
+El corte original pasó TypeScript/lint y 231 pruebas. Falta QA visual real;
+no extrapolar ese resultado a los cambios posteriores. El usuario no ha
+aprobado visualmente la comparación ni un rediseño completo de paneles.
+
+Siguiente: decidir si las listas de Menús se conservan (duda del usuario
+registrada en heads-up) antes de migrarlas; después validar una propuesta
+acotada. Inventario y alcance en
+[SURFACE_AUDIT_2026-11-01](design/SURFACE_AUDIT_2026-11-01.md).
+La implementación posterior `fc771da` completa el onboarding existente;
+no reponer el tour ni reconstruir el alta a partir de la imagen ilustrativa.
+
 > **Cierre 2026-10-29:** avisos push de reseña (al dueño) y reporte (a soporte)
 > activos en producción; migraciones al día. Mañana: cobro, Grok como revisor,
 > aviso de privacidad. Ver [heads-up](HEADS_UP_2026-10-12.md#cierre-del-2026-10-29-madrugada--para-retomar-mañana).

@@ -4,6 +4,18 @@ Solicitud: revisar las «cards que salen desde abajo», empezando por negocio.
 Inventario basado en componentes y sus llamadas reales; no es una aprobación
 visual en teléfono. Primera intervención limitada a Menús y Editar mi negocio.
 
+## Actualización de continuidad — 2026-11-02
+
+Comparación entregada: [PNG](../../artifacts/patio-paneles-antes-despues.png)
+y [HTML](../../artifacts/patio-paneles-antes-despues.html). Reconstrucción del
+antes/después con texto y estructura del código; iconos, escala y tipografía
+aproximados. No es captura del teléfono ni aprobación visual. Se reveló en Finder.
+
+El trabajo quedó en `a4b0058`. La siguiente propuesta de biblioteca está
+**condicionada**: el usuario cuestionó si necesita listas de Menús; primero
+resolver si se conservan. No migrarlas automáticamente. El onboarding fue
+completado después en `fc771da`; el recorrido ilustrado aquí es histórico.
+
 ## Criterio
 
 - Menú junto al botón: elegir una acción breve sobre un objeto.

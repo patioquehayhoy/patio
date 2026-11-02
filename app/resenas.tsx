@@ -17,6 +17,7 @@ import { dateLabel, defaultHistoryTitle, useMenuHistoryController } from '@/lib/
 import { getFonditaId, getFonditaName } from '@/lib/menu-store';
 import { getPublicPatioReviews, replyToReview, type PublicPatioReview } from '@/lib/ratings';
 import { writeErrorMessage } from '@/lib/content-safety';
+import { getBusinessInsights, getDishLikeCounts, type BusinessInsights, type DishLikeCount } from '@/lib/business-stats';
 import { getDemoPatioStats, type PatioStatsSnapshot } from '@/lib/patio-stats';
 import { useTabBarScroll } from '@/lib/tab-bar-visibility';
 import { useTheme } from '@/lib/theme';
@@ -58,6 +59,9 @@ export default function ResenasScreen() {
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [reply, setReply] = useState('');
   const [demo, setDemo] = useState<PatioStatsSnapshot | null>(null);
+  // Tablero arriba de la actividad: guardados y «me gusta», y lo que más gusta.
+  const [insights, setInsights] = useState<BusinessInsights | null>(null);
+  const [topDishes, setTopDishes] = useState<DishLikeCount[]>([]);
   const load = useCallback(() => {
     const fonditaId = getFonditaId();
     const demoSeed = fonditaId || getFonditaName() || 'patio-demo';
@@ -66,11 +70,15 @@ export default function ResenasScreen() {
     if (!fonditaId) {
       setReviews([]);
       setDishLikes([]);
+      setInsights(null);
+      setTopDishes([]);
       return Promise.resolve();
     }
     return Promise.all([
       getPublicPatioReviews(fonditaId).then(setReviews).catch(() => setReviews([])),
       getDishLikeEvents(fonditaId).then(setDishLikes).catch(() => setDishLikes([])),
+      getBusinessInsights(fonditaId).then(setInsights).catch(() => setInsights(null)),
+      getDishLikeCounts(fonditaId).then((counts) => setTopDishes(counts.slice(0, 3))).catch(() => setTopDishes([])),
     ]);
   }, []);
   useFocusEffect(useCallback(() => { void load(); }, [load]));
@@ -261,6 +269,34 @@ export default function ResenasScreen() {
     <View style={[s.root, { backgroundColor: c.bg, paddingTop: insets.top }]}>
       <Stack.Screen options={{ headerShown: false }} />
       <ScrollView refreshControl={<RefreshControl refreshing={pull.refreshing} onRefresh={pull.onRefresh} tintColor={theme.textSecondary} />} onScroll={onScroll} scrollEventThrottle={16} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 24, paddingBottom: bottomTabClearance(insets.bottom) }} showsVerticalScrollIndicator={false}>
+        {insights && (
+          <View style={[s.insights, { backgroundColor: c.surface, borderColor: c.border }]}>
+            <View style={s.insightRow}>
+              {([
+                [insights.saves, insights.saves === 1 ? 'guardado' : 'guardados', insights.savesWeek],
+                [insights.dishLikes, 'me gusta en platillos', insights.dishLikesWeek],
+              ] as const).map(([value, label, week]) => (
+                <View key={label} style={s.insight} accessible accessibilityLabel={`${value} ${label}${week ? `, ${week} esta semana` : ''}`}>
+                  <Text style={[s.insightValue, { color: c.text }]}>{value}</Text>
+                  <Text style={[s.insightLabel, { color: c.textSecondary }]}>{noWidow(label)}</Text>
+                  {!!week && <Text style={[s.insightWeek, { color: c.accent }]}>{noWidow(`+${week} esta semana`)}</Text>}
+                </View>
+              ))}
+            </View>
+            {!!topDishes.length && (
+              <View style={[s.topDishes, { borderTopColor: c.border }]}>
+                <Text style={[s.groupLabel, { color: c.textSecondary }]}>{noWidow('Lo que más gusta')}</Text>
+                {topDishes.map((dish) => (
+                  <View key={dish.dishName} style={s.topDish} accessible accessibilityLabel={`${dish.displayName}, ${dish.likes} me gusta`}>
+                    <Text style={[s.topDishName, { color: c.text }]} numberOfLines={1}>{dish.displayName}</Text>
+                    <Ionicons name="heart" size={13} color={c.accent} />
+                    <Text style={[s.topDishCount, { color: c.textSecondary }]}>{dish.likes}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+          </View>
+        )}
         {groups.length ? (
           groups.map((group, groupIndex) => (
             <View key={group.key} style={{ marginTop: groupIndex === 0 ? 0 : 24 }}>
@@ -296,6 +332,16 @@ const s = StyleSheet.create({
   groupLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase' },
 
   list: { borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
+  insights: { borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, padding: 16, marginBottom: 24 },
+  insightRow: { flexDirection: 'row', gap: 16 },
+  insight: { flex: 1, minWidth: 0 },
+  insightValue: { fontSize: 24, fontWeight: '700', fontVariant: ['tabular-nums'] },
+  insightLabel: { marginTop: 2, fontSize: 13, lineHeight: 18, fontWeight: '400' },
+  insightWeek: { marginTop: 4, fontSize: 12, fontWeight: '600' },
+  topDishes: { marginTop: 16, paddingTop: 12, borderTopWidth: StyleSheet.hairlineWidth, gap: 8 },
+  topDish: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  topDishName: { flex: 1, minWidth: 0, fontSize: 14, fontWeight: '600' },
+  topDishCount: { fontSize: 13, fontWeight: '500', fontVariant: ['tabular-nums'] },
   // Fila estilo actividad de Instagram: avatar circular al frente, texto a
   // la derecha — nombre en bold seguido de la acción, hora a la derecha.
   row: { flexDirection: 'row', gap: 12, paddingHorizontal: 16, paddingVertical: 14 },

@@ -21,7 +21,7 @@ import { canonicalDishName } from '@/lib/menu-store';
 import { getLikedReviewIds, getReviewLikeCounts, toggleReviewLike } from '@/lib/review-likes';
 import { CommentSignInRequiredError, commentTimeLabel, deleteReviewComment, getReviewComments, isRealReviewId, postReviewComment, setCommentLike } from '@/lib/review-comments';
 import { reportContent, writeErrorMessage, type ReportReason } from '@/lib/content-safety';
-import { businessStatsLabel, getBusinessStats, type BusinessStats } from '@/lib/business-stats';
+import { businessStatsLabel, getBusinessStats, getDishLikeCounts, type BusinessStats } from '@/lib/business-stats';
 import { formatHHMM12 } from '@/lib/horario';
 import { MAP_STYLE_DARK, MAP_STYLE_LIGHT } from '@/lib/map-style';
 import { Radius, Spacing, useTheme, type Theme, Type } from '@/lib/theme';
@@ -153,7 +153,8 @@ function makeStyles(t: Theme) {
     groupItemName: { flex: 1, fontSize: 16, fontWeight: '600', color: t.text, lineHeight: 21 },
     groupItemDescription: { marginTop: 3, fontSize: 13, lineHeight: 18, fontWeight: '400', color: t.textSecondary },
     groupItemPrice: { fontSize: 15, lineHeight: 21, fontWeight: '700', color: t.text },
-    dishLikeBtn: { width: 21, height: 21, alignItems: 'center', justifyContent: 'center' },
+    dishLikeCount: { minWidth: 21, height: 21, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 3 },
+    dishLikeCountText: { fontSize: 12, fontWeight: '500', color: t.textSecondary, fontVariant: ['tabular-nums'] },
     groupDashed: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.border, marginTop: 4 },
     reviewSection: { paddingTop: 28, marginBottom: 22 },
     reviewsSummary: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
@@ -323,16 +324,29 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
     getLikedDishNames(patio.id).then(setLikedDishNames).catch(() => {});
   }, [patio?.id]);
 
+  // Cuántos «me gusta» tiene cada platillo, visible para todos como en una
+  // foto; el dueño los ve en su ficha sin poder darse «me gusta» a sí mismo.
+  const [dishLikeCounts, setDishLikeCounts] = useState<Record<string, number>>({});
+  useEffect(() => {
+    if (!patio?.id) return;
+    let active = true;
+    getDishLikeCounts(patio.id).then((counts) => {
+      if (active) setDishLikeCounts(Object.fromEntries(counts.map((dish) => [dish.dishName, dish.likes])));
+    }).catch(() => {});
+    return () => { active = false; };
+  }, [patio?.id]);
+
   const handleToggleDishLike = async (dishName: string) => {
     if (!patio?.id) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     const nowLiked = await toggleDishLike(patio.id, dishName);
+    const key = canonicalDishName(dishName);
     setLikedDishNames((current) => {
       const next = new Set(current);
-      const key = canonicalDishName(dishName);
       if (nowLiked) next.add(key); else next.delete(key);
       return next;
     });
+    setDishLikeCounts((current) => ({ ...current, [key]: Math.max(0, (current[key] ?? 0) + (nowLiked ? 1 : -1)) }));
   };
 
   useEffect(() => {
@@ -684,6 +698,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
                   )}
                   {section.items.map((item) => {
                     const dishLiked = likedDishNames.has(canonicalDishName(item.name));
+                    const dishLikes = dishLikeCounts[canonicalDishName(item.name)] ?? 0;
                     return (
                       <View key={`${section.section}-${item.name}`} style={s.groupItem}>
                         <View style={{ flex: 1 }}>
@@ -693,16 +708,26 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
                           )}
                         </View>
                         {!!item.price && <Text style={s.groupItemPrice} allowFontScaling={true}>{item.price}</Text>}
-                        {!own && <TouchableOpacity
-                          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                          onPress={() => handleToggleDishLike(item.name)}
-                          activeOpacity={0.7}
-                          accessibilityRole="button"
-                          accessibilityLabel={dishLiked ? `Quitar like a ${item.name}` : `Dar like a ${item.name}`}
-                          accessibilityState={{ selected: dishLiked }}
-                          style={s.dishLikeBtn}>
-                          <Ionicons name={dishLiked ? 'heart' : 'heart-outline'} size={17} color={dishLiked ? theme.accent : theme.textMute} />
-                        </TouchableOpacity>}
+                        {own ? (
+                          !!dishLikes && (
+                            <View style={s.dishLikeCount} accessible accessibilityLabel={`${dishLikes} me gusta`}>
+                              <Ionicons name="heart" size={13} color={theme.accent} />
+                              <Text style={s.dishLikeCountText}>{dishLikes}</Text>
+                            </View>
+                          )
+                        ) : (
+                          <TouchableOpacity
+                            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                            onPress={() => handleToggleDishLike(item.name)}
+                            activeOpacity={0.7}
+                            accessibilityRole="button"
+                            accessibilityLabel={`${dishLiked ? `Quitar me gusta a ${item.name}` : `Me gusta ${item.name}`}${dishLikes ? `, ${dishLikes} me gusta` : ''}`}
+                            accessibilityState={{ selected: dishLiked }}
+                            style={s.dishLikeCount}>
+                            <Ionicons name={dishLiked ? 'heart' : 'heart-outline'} size={17} color={dishLiked ? theme.accent : theme.textMute} />
+                            {!!dishLikes && <Text style={[s.dishLikeCountText, dishLiked && { color: theme.accent }]}>{dishLikes}</Text>}
+                          </TouchableOpacity>
+                        )}
                       </View>
                     );
                   })}

@@ -77,9 +77,19 @@ errores) y la validación en línea de Luke Wroblewski.
 
 - El nombre de un platillo se ve completo mientras se escribe (el campo crece,
   como en un chat) y queda en una línea con «…» al pasar al siguiente.
-- Precio propio y descripción son opcionales y se piden igual: «+ precio» y
-  «+ descripción». Una fila sin precio no muestra campo de precio; el precio
-  del día sigue arriba, sin cambios.
+- Precio propio y descripción son opcionales y se piden igual: «Agregar
+  precio» y «Agregar descripción». El campo de precio nace donde estaba su
+  enlace, sin brincar al otro lado; los cambios del renglón se animan 200 ms.
+  El precio del día sigue arriba, sin cambios.
+- Al publicar: un solo paso. Se ve el póster de lo publicado con «Publicado»
+  arriba, «Editar» junto al menú, «Compartir como imagen» y «Listo».
+
+## Tablero del negocio (2026-11-02)
+
+- Actividad abre con guardados y «me gusta» en platillos (total y esta
+  semana) y lo que más gusta. Solo el dueño lo ve; nunca dice quién guardó,
+  como los guardados de Instagram.
+- Cada platillo muestra su número de «me gusta» junto al corazón, para todos.
 - Filtro por giro en el mapa: siempre la lista completa de giros
   (`lib/patio-categories.ts`); en Guardados, solo los giros que guardaste.
 - Un solo nombre por giro en alta, edición, filtros y mapa («Tacos», «Café»).

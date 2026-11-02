@@ -94,6 +94,13 @@ test('public numbers expose totals only, never who saved or liked', () => {
   assert.match(stats, /security definer/);
 });
 
+test('the owner dashboard answers only to the owner and never lists who saved', () => {
+  const insights = flat(read('20261102100000_business_insights.sql'));
+  assert.match(insights, /n\.owner_id = auth\.uid\(\)/);
+  assert.match(insights, /revoke all on function public\.business_insights\(uuid\) from public, anon/);
+  assert.doesNotMatch(insights, /select s\.user_id|array_agg\(s\.user_id/);
+});
+
 test('the name lock date is shown before typing, from the two most recent changes', () => {
   const { nameLockEnd } = loadTs('lib/name-changes.ts');
   const now = Date.parse('2026-11-10T12:00:00Z');

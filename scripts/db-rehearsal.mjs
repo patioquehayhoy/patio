@@ -189,6 +189,15 @@ await check('conteos públicos del negocio: guardados y me gusta', async () => {
   if (peek.rows.length) throw new Error('saves of others are readable');
 });
 
+await check('tablero del negocio: solo el dueño ve guardados y me gusta de la semana', async () => {
+  await as(ids.ana, `insert into public.dish_likes (user_id, ${fk}, dish_name, dish_name_display) values ($1, $2, 'POZOLE', 'Pozole')`, [ids.ana, business]);
+  await as(ids.luis, `insert into public.dish_likes (user_id, ${fk}, dish_name, dish_name_display) values ($1, $2, 'POZOLE', 'Pozole')`, [ids.luis, business]);
+  const mine = (await as(ids.owner, `select * from public.business_insights($1)`, [business])).rows[0];
+  if (Number(mine.saves) !== 2 || Number(mine.saves_week) !== 2 || Number(mine.dish_likes) !== 2) throw new Error(JSON.stringify(mine));
+  await rejects(as(ids.luis, `select * from public.business_insights($1)`, [business]), /not authorized/);
+  const dishes = (await as(null, `select * from public.business_dish_like_counts($1)`, [business])).rows;
+  if (dishes[0].display_name !== 'Pozole' || Number(dishes[0].likes) !== 2) throw new Error(JSON.stringify(dishes));
+});
 await check('el negocio responde una reseña (función reescrita) y el filtro la revisa', async () => {
   await rejects(as(ids.owner, `select public.reply_to_review($1, 'cállate pendejo')`, [reviewId]), /CONTENT_REJECTED/);
   await as(ids.owner, `select public.reply_to_review($1, 'Gracias por venir')`, [reviewId]);

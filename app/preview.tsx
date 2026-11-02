@@ -1,7 +1,7 @@
-import { Stack } from 'expo-router';
+import { router, Stack } from 'expo-router';
 import * as Sharing from 'expo-sharing';
-import { useRef, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Animated, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { captureRef } from 'react-native-view-shot';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -18,6 +18,13 @@ import { noWidow } from '@/lib/typography';
 const LIGHT = { bg: '#F8F8F5', card: '#FFFFFF', ink: '#111214', inkSoft: '#4A4A47', mute: '#8A8A85', sep: 'rgba(17,18,20,0.06)', accent: '#F2612F' };
 
 export default function PreviewScreen() {
+  return <MenuPoster />;
+}
+
+// Recién publicado: la misma pantalla del póster con la confirmación arriba.
+// Un solo paso: ves lo que publicaste, lo compartes, y «Editar» queda junto
+// al menú que estás viendo.
+export function MenuPoster({ justPublished = false }: { justPublished?: boolean }) {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
   const c = fonderoPalette(theme.isDark);
@@ -26,6 +33,12 @@ export default function PreviewScreen() {
   const posterRef = useRef<View>(null);
   const [sharing, setSharing] = useState(false);
   const [newMenuSheetVisible, setNewMenuSheetVisible] = useState(false);
+  const checkScale = useRef(new Animated.Value(justPublished ? 0.6 : 1)).current;
+  useEffect(() => {
+    if (!justPublished) return;
+    Animated.spring(checkScale, { toValue: 1, useNativeDriver: true, stiffness: 360, damping: 22, mass: 0.8 }).start();
+  }, [checkScale, justPublished]);
+  const editMenu = () => router.replace({ pathname: '/menu-editar', params: { reuse: '1' } });
 
   const sharePoster = async () => {
     if (sharing || !posterRef.current) return;
@@ -70,8 +83,19 @@ export default function PreviewScreen() {
       {/* Top bar */}
       <View style={[s.top, { top: insets.top + 6 }]}>
         <GlassIconButton icon="chevron-back" accessibilityLabel="Volver" onPress={handleBack} />
-        <Text style={s.topTitle} allowFontScaling={true}>Póster</Text>
-        <View style={s.navBtn} />
+        {justPublished ? (
+          <View style={s.publishedTitle} accessibilityRole="header" accessibilityLabel="Menú publicado">
+            <Animated.View style={[s.publishedCheck, { transform: [{ scale: checkScale }] }]}>
+              <Ionicons name="checkmark" size={13} color="#FFFFFF" />
+            </Animated.View>
+            <Text style={s.topTitle} allowFontScaling={true}>Publicado</Text>
+          </View>
+        ) : <Text style={s.topTitle} allowFontScaling={true}>Póster</Text>}
+        {justPublished ? (
+          <TouchableOpacity style={s.editButton} onPress={editMenu} activeOpacity={0.7} accessibilityRole="button" accessibilityLabel="Editar menú">
+            <Text style={s.editText} allowFontScaling={true}>Editar</Text>
+          </TouchableOpacity>
+        ) : <View style={s.navBtn} />}
       </View>
 
       {/* Póster editorial, scrolleable si el menú real es largo. */}
@@ -126,16 +150,22 @@ export default function PreviewScreen() {
           <Ionicons name="share-outline" size={18} color="#FFFFFF" />
           <Text style={s.ctaText} allowFontScaling={true}>{sharing ? 'Preparando…' : 'Compartir como imagen'}</Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={s.shareLink}
-          onPress={handleOpenProfile}
-          disabled={!patioId}
-          activeOpacity={0.72}
-          accessibilityRole="button"
-          accessibilityLabel="Ver en mi perfil"
-          accessibilityState={{ disabled: !patioId }}>
-          <Text style={[s.shareLinkText, { color: c.textSecondary }]} allowFontScaling={true}>{noWidow('Ver en mi perfil')}</Text>
-        </TouchableOpacity>
+        {justPublished ? (
+          <TouchableOpacity style={s.shareLink} onPress={handleBack} activeOpacity={0.72} accessibilityRole="button" accessibilityLabel="Listo">
+            <Text style={[s.shareLinkText, { color: c.textSecondary }]} allowFontScaling={true}>Listo</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            style={s.shareLink}
+            onPress={handleOpenProfile}
+            disabled={!patioId}
+            activeOpacity={0.72}
+            accessibilityRole="button"
+            accessibilityLabel="Ver en mi perfil"
+            accessibilityState={{ disabled: !patioId }}>
+            <Text style={[s.shareLinkText, { color: c.textSecondary }]} allowFontScaling={true}>{noWidow('Ver en mi perfil')}</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
@@ -155,6 +185,10 @@ function makeStyles(c: FonderoColors) {
   // solo existe para centrar el título.
   navBtn: { width: 44, height: 44 },
   topTitle: { fontSize: 14, fontWeight: '600', color: c.text },
+  publishedTitle: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  publishedCheck: { width: 20, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: c.accent },
+  editButton: { minWidth: 44, minHeight: 44, alignItems: 'flex-end', justifyContent: 'center' },
+  editText: { fontSize: 15, fontWeight: '600', color: c.accent },
 
   posterWrap: { alignItems: 'center', paddingHorizontal: 22 },
   poster: { width: 330, borderRadius: 26, backgroundColor: LIGHT.bg, overflow: 'hidden', shadowColor: '#000', shadowOffset: { width: 0, height: 24 }, shadowOpacity: 0.24, shadowRadius: 34, elevation: 12 },

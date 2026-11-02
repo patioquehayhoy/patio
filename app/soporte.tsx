@@ -49,6 +49,7 @@ const FONDERO_TOPICS: Topic[] = [
   ] },
   { id: 'negocio', icon: 'storefront-outline', title: 'Mi negocio', hint: 'Nombre, horario y ubicación', askFrequency: true, reasons: [
     { title: 'Cambiar nombre, horario o ubicación', answer: 'Todo se edita en Perfil → Editar mi negocio. Para la ubicación puedes usar dónde estás o escribir la dirección.' },
+    { title: 'Cambiar mi tipo de lugar', answer: 'Cuéntanos a qué tipo cambias y por qué. Lo revisamos para que tu lugar aparezca donde la gente lo busca.' },
     { title: 'No aparezco en el mapa', answer: 'Apareces cuando tienes lo de hoy publicado y estás abierto. Revisa tu horario y tu ubicación en Editar mi negocio.' },
   ] },
   SAFETY, NOTICES, ACCOUNT,

@@ -1,9 +1,9 @@
-import { Ionicons } from '@expo/vector-icons';
 import { router, Stack } from 'expo-router';
-import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { useEffect, useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { AccountSettings } from '@/components/account-settings';
 import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { bottomTabClearance } from '@/lib/layout-metrics';
 import { SettingsGroup, SettingsRow, settingsColors } from '@/components/settings-list';
@@ -17,8 +17,7 @@ function makeStyles(t: Theme) {
     root: { flex: 1, backgroundColor: t.bg },
     content: { paddingBottom: 120 },
 
-    body: { paddingHorizontal: 18, paddingTop: 4 },
-    gear: { alignSelf: 'flex-end', width: 44, height: 44, alignItems: 'center', justifyContent: 'center', marginRight: -10 },
+    body: { paddingHorizontal: 18, paddingTop: 20 },
   });
 }
 
@@ -41,11 +40,7 @@ export default function CuentaScreen() {
             Instagram). El back solo existe en pantallas hijas. La identidad
             de la pestaña ya la da la tab bar; no se repite aquí arriba. */}
         <View style={s.body}>
-          <TouchableOpacity style={s.gear} onPress={() => router.push({ pathname: '/ajustes', params: { role: 'foodie' } })} accessibilityRole="button" accessibilityLabel="Ajustes" hitSlop={8}>
-            <Ionicons name="settings-outline" size={22} color={theme.text} />
-          </TouchableOpacity>
-          {/* Modelo Instagram: aquí vive quién eres y lo que pasa con lo que
-              publicas; lo que se configura una vez vive en Ajustes. */}
+          {/* Un solo nivel: quién eres arriba, ajustes abajo. */}
           <SettingsGroup c={sc} label="Perfil">
             <SettingsRow c={sc} icon="person-outline" title={hasSession ? 'Editar perfil' : 'Iniciar sesión'} sub={hasSession ? 'Nombre, foto y descripción' : 'Sincroniza listas y reseñas'} onPress={() => router.push(hasSession ? '/perfil-comunidad' : '/comunidad-acceso')} />
             {userId && <SettingsRow c={sc} icon="at-outline" title="Ver perfil público" divider onPress={() => router.push({ pathname: '/foodie/[id]', params: { id: userId } })} />}
@@ -56,6 +51,8 @@ export default function CuentaScreen() {
           <SettingsGroup c={sc}>
             <SettingsRow c={sc} icon="rocket-outline" title="Plan" sub="Foodie, Creador o Negocio" onPress={() => router.push({ pathname: '/plan', params: { role: 'foodie' } })} />
           </SettingsGroup>
+
+          <AccountSettings role="foodie" />
         </View>
       </ScrollView>
       <BottomTabBar variant="foodie" />

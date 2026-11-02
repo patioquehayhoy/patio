@@ -38,11 +38,14 @@ igual (Jakob Nielsen, Nielsen Norman Group). Por eso:
   no crea en el día a día, así que su barra no lleva «+».
 - Deslizar desde el borde izquierdo regresa; no se desactiva.
 - Jalar hacia abajo actualiza toda lista que viene del servidor.
-- Perfil sigue el modelo Instagram: muestra quién eres y lo que publicas (el
-  negocio ve su ficha en la pestaña Mi Patio; el Foodie entra a su perfil
-  público y su Actividad). Ajustes vive detrás del engrane arriba a la derecha, compartido
-  por los dos roles (`app/ajustes.tsx`): Notificaciones, Apariencia, Ayuda y,
-  al final, Cuenta con Cuentas bloqueadas, Cerrar sesión y Eliminar.
+- Perfil en un solo nivel, como Claude y la mayoría de apps: quién eres
+  arriba (negocio: nombre, estado de hoy, Editar mi negocio y Plan; Foodie:
+  perfil, perfil público, Actividad y Plan) y abajo los ajustes compartidos
+  (`components/account-settings.tsx`): Preferencias, Ayuda y, al final,
+  Cuenta con Cuentas bloqueadas, Cerrar sesión y Eliminar. Nunca ajustes
+  dentro de ajustes ni un engrane que esconda otra pantalla de ajustes.
+- El giro del negocio se elige en el alta y en Editar solo se muestra; el
+  cambio se pide a soporte (protege mapa, reseñas por giro y datos).
 
 ## Layout Rules
 

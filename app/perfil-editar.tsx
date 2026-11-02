@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { BlurView } from 'expo-blur';
 
 import { HintSheet } from '@/components/hint-sheet';
@@ -54,11 +55,8 @@ function makeStyles(theme: Theme) {
     fieldLabel:         { fontSize: 11, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', color: t.textMute, marginBottom: 4 },
     fieldValue:         { fontSize: 16, fontWeight: '400', color: t.text, paddingVertical: 0, paddingHorizontal: 0, backgroundColor: 'transparent' },
     fieldDivider:       { height: StyleSheet.hairlineWidth, backgroundColor: t.border, marginVertical: 12 },
-    typeRow:            { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingTop: 8, paddingBottom: 2 },
-    typeChip:           { maxWidth: '100%', minHeight: 40, paddingVertical: 6, paddingHorizontal: 12, borderRadius: 17, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, alignItems: 'center', justifyContent: 'center' },
-    typeChipSelected:   { backgroundColor: t.accent, borderColor: t.accent },
-    typeChipText:       { flexShrink: 1, fontSize: 12, fontWeight: '600', color: t.textSecondary },
-    typeChipTextSelected:{ color: '#fff' },
+    lockedRow:          { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, minHeight: 32 },
+    lockedHint:         { fontSize: 13, fontWeight: '400', color: t.textSecondary },
     locationBtn:        { flexDirection: 'row', alignItems: 'center', gap: 4, paddingTop: 12, paddingBottom: 2, alignSelf: 'flex-start' },
     locationBtnText:    { fontSize: 13, fontWeight: '400', color: t.textSecondary },
     // Sections
@@ -100,7 +98,6 @@ export default function PerfilScreen() {
     setPagosEfectivoState,
     setPagosTarjetaState,
     setPagosTransState,
-    setTipoNegocioState,
     setSemanal,
     setUbicacion,
     showPerfilHint,
@@ -134,23 +131,18 @@ export default function PerfilScreen() {
             />
             <View style={s.fieldDivider} />
             <Text style={s.fieldLabel} allowFontScaling={true}>{noWidow('Tipo de lugar')}</Text>
-            <View style={s.typeRow}>
-              {BUSINESS_TYPES.map(([id, label]) => {
-                const selected = tipoNegocio === id;
-                return (
-                  <TouchableOpacity
-                    key={id}
-                    accessibilityRole="radio"
-                    accessibilityLabel={label}
-                    accessibilityState={{ selected }}
-                    hitSlop={{ top: 5, bottom: 5, left: 3, right: 3 }}
-                    onPress={() => setTipoNegocioState(id)}
-                    style={[s.typeChip, selected && s.typeChipSelected]}>
-                    <Text style={[s.typeChipText, selected && s.typeChipTextSelected]}>{label}</Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
+            {/* El giro se elige en el alta y aquí solo se muestra: cambiarlo
+                mueve dónde aparece el lugar y rompe la lectura de sus
+                reseñas por giro. Como en Uber Eats y Rappi, el cambio se pide
+                a soporte y se revisa. */}
+            <TouchableOpacity
+              style={s.lockedRow}
+              onPress={() => router.push({ pathname: '/soporte', params: { role: 'fondero' } })}
+              accessibilityRole="button"
+              accessibilityLabel={`Tipo de lugar, ${BUSINESS_TYPES.find(([id]) => id === tipoNegocio)?.[1] ?? 'Otro'}. Pedir un cambio a soporte`}>
+              <Text style={s.fieldValue}>{BUSINESS_TYPES.find(([id]) => id === tipoNegocio)?.[1] ?? 'Otro'}</Text>
+              <Text style={s.lockedHint}>{noWidow('Pedir cambio')}</Text>
+            </TouchableOpacity>
             <View style={s.fieldDivider} />
             <Text style={s.fieldLabel} allowFontScaling={true}>Descripción</Text>
             <TextInput

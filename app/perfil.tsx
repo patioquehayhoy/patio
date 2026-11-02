@@ -1,9 +1,9 @@
-import { Ionicons } from '@expo/vector-icons';
 import { router, Stack, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { AccountSettings } from '@/components/account-settings';
 import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { bottomTabClearance } from '@/lib/layout-metrics';
 import { SettingsGroup, SettingsRow, settingsColors } from '@/components/settings-list';
@@ -63,9 +63,6 @@ export default function PerfilScreen() {
             tipos de información distintos. La dirección vive en la fila
             "Editar mi negocio", que es donde realmente pertenece. */}
         <View style={s.identity}>
-          <TouchableOpacity style={s.gear} onPress={() => router.push({ pathname: '/ajustes', params: { role: 'fondero' } })} accessibilityRole="button" accessibilityLabel="Ajustes" hitSlop={8}>
-            <Ionicons name="settings-outline" size={22} color={c.text} />
-          </TouchableOpacity>
           <Text style={[s.fonditaName, { color: c.text }]}>
             {fonditaName || 'Tu fondita'}
           </Text>
@@ -83,8 +80,6 @@ export default function PerfilScreen() {
             puerta al otro lado en tinta neutra y cerrar sesión. Sin
             botonzote — editar el negocio es una acción ocasional, no LA
             acción. */}
-        {/* Cómo te ve la gente vive en la pestaña Mi Patio; lo que se
-            configura una vez vive en Ajustes, detrás del engrane. */}
         <SettingsGroup c={sc} label="Negocio">
           <SettingsRow c={sc} icon="create-outline" title="Editar mi negocio" sub={address || undefined} onPress={() => router.push('/perfil-editar')} />
           <SettingsRow
@@ -96,6 +91,8 @@ export default function PerfilScreen() {
             onPress={() => router.push({ pathname: '/plan', params: { role: 'fondero' } })}
           />
         </SettingsGroup>
+
+        <AccountSettings role="fondero" />
       </ScrollView>
       <BottomTabBar variant="fondero" />
     </View>
@@ -105,7 +102,6 @@ export default function PerfilScreen() {
 const s = StyleSheet.create({
   root: { flex: 1 },
   identity: { marginBottom: 8 },
-  gear: { alignSelf: 'flex-end', width: 44, height: 44, alignItems: 'center', justifyContent: 'center', marginTop: -Spacing.lg, marginRight: -10 },
   fonditaName: { ...Type.screen },
   statusRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8, minHeight: 20 },
   statusDot: { width: 7, height: 7, borderRadius: 4 },

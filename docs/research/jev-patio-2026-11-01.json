@@ -1,0 +1,270 @@
+{
+ "app": "Una app mexicana de celular para saber qué preparan hoy las fondas y lugares de comida cercanos. La gente ve en un mapa el menú del día de cada lugar, guarda sus lugares favoritos en listas y deja reseñas. Los dueños de fondas toman una foto de su menú del día y la app lo pasa en limpio y lo publica.",
+ "elecciones": {
+  "barra": [
+   {
+    "orden": [
+     "b",
+     "a",
+     "c"
+    ],
+    "respuesta": {
+     "elige": {
+      "type": "choice",
+      "choice": "b",
+      "confidence": 0.34,
+      "probabilities": {
+       "b": 0.56,
+       "a": 0.42,
+       "c": 0.02
+      }
+     }
+    }
+   },
+   {
+    "orden": [
+     "c",
+     "b",
+     "a"
+    ],
+    "respuesta": {
+     "elige": {
+      "type": "choice",
+      "choice": "b",
+      "confidence": 0.4,
+      "probabilities": {
+       "c": 0.1,
+       "b": 0.6,
+       "a": 0.3
+      }
+     }
+    }
+   },
+   {
+    "orden": [
+     "b",
+     "c",
+     "a"
+    ],
+    "respuesta": {
+     "elige": {
+      "type": "choice",
+      "choice": "b",
+      "confidence": 0.55,
+      "probabilities": {
+       "b": 0.7,
+       "c": 0.02,
+       "a": 0.28
+      }
+     }
+    }
+   }
+  ],
+  "cuenta": [
+   {
+    "orden": [
+     "b",
+     "a"
+    ],
+    "respuesta": {
+     "elige": {
+      "type": "choice",
+      "choice": "a",
+      "confidence": 0.52,
+      "probabilities": {
+       "b": 0.24,
+       "a": 0.76
+      }
+     }
+    }
+   },
+   {
+    "orden": [
+     "b",
+     "a"
+    ],
+    "respuesta": {
+     "elige": {
+      "type": "choice",
+      "choice": "a",
+      "confidence": 0.52,
+      "probabilities": {
+       "b": 0.24,
+       "a": 0.76
+      }
+     }
+    }
+   },
+   {
+    "orden": [
+     "a",
+     "b"
+    ],
+    "respuesta": {
+     "elige": {
+      "type": "choice",
+      "choice": "a",
+      "confidence": 0.3,
+      "probabilities": {
+       "a": 0.65,
+       "b": 0.35
+      }
+     }
+    }
+   }
+  ],
+  "beneficio": [
+   {
+    "orden": [
+     "b",
+     "d",
+     "a",
+     "c"
+    ],
+    "respuesta": {
+     "elige": {
+      "type": "choice",
+      "choice": "b",
+      "confidence": 0.75,
+      "probabilities": {
+       "b": 0.81,
+       "d": 0.01,
+       "a": 0.12,
+       "c": 0.06
+      }
+     }
+    }
+   },
+   {
+    "orden": [
+     "a",
+     "b",
+     "c",
+     "d"
+    ],
+    "respuesta": {
+     "elige": {
+      "type": "choice",
+      "choice": "b",
+      "confidence": 0.93,
+      "probabilities": {
+       "a": 0.03,
+       "b": 0.95,
+       "c": 0.01,
+       "d": 0.01
+      }
+     }
+    }
+   },
+   {
+    "orden": [
+     "b",
+     "c",
+     "d",
+     "a"
+    ],
+    "respuesta": {
+     "elige": {
+      "type": "choice",
+      "choice": "b",
+      "confidence": 0.76,
+      "probabilities": {
+       "b": 0.82,
+       "c": 0.03,
+       "d": 0.01,
+       "a": 0.14
+      }
+     }
+    }
+   }
+  ],
+  "cobro": [
+   {
+    "orden": [
+     "c",
+     "a",
+     "b"
+    ],
+    "respuesta": {
+     "elige": {
+      "type": "choice",
+      "choice": "a",
+      "confidence": 0.96,
+      "probabilities": {
+       "c": 0.0,
+       "a": 0.97,
+       "b": 0.03
+      }
+     }
+    }
+   },
+   {
+    "orden": [
+     "a",
+     "c",
+     "b"
+    ],
+    "respuesta": {
+     "elige": {
+      "type": "choice",
+      "choice": "a",
+      "confidence": 0.92,
+      "probabilities": {
+       "a": 0.95,
+       "c": 0.0,
+       "b": 0.05
+      }
+     }
+    }
+   },
+   {
+    "orden": [
+     "c",
+     "b",
+     "a"
+    ],
+    "respuesta": {
+     "elige": {
+      "type": "choice",
+      "choice": "a",
+      "confidence": 0.98,
+      "probabilities": {
+       "c": 0.0,
+       "b": 0.01,
+       "a": 0.99
+      }
+     }
+    }
+   }
+  ]
+ },
+ "perfil_publico": {
+  "comodo": {
+   "type": "score",
+   "score": 1.8,
+   "confidence": 0.32,
+   "legend": {
+    "0": "Nada.",
+    "1": "Poco.",
+    "2": "A medias.",
+    "3": "Bastante.",
+    "4": "Del todo."
+   },
+   "probabilities": {
+    "0": 0.0,
+    "1": 0.42,
+    "2": 0.35,
+    "3": 0.22,
+    "4": 0.01
+   }
+  },
+  "le_preocupa": {
+   "type": "noul",
+   "noul": 0.42
+  },
+  "pide_privado": {
+   "type": "noul",
+   "noul": 0.53
+  }
+ }
+}

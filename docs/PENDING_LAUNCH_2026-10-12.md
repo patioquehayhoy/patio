@@ -48,7 +48,14 @@
 > - [ ] Completar nombre y domicilio, revisión legal y publicarlos en una URL pública.
 >
 > *Decisiones*
-> - [ ] Jev: misma cuenta Foodie/negocio y qué gana un negocio del lado Foodie.
+> - [x] Jev consultado 2026-11-01 (asesoría, no aprobación; registro en
+>   `docs/research/jev-patio-2026-11-01.json`): misma cuenta (65–76 %),
+>   lanzar gratis con plan opcional después (95–99 %), beneficio más valorado
+>   «aparecer antes en el mapa» (81–95 %).
+> - [ ] Barra de negocio: Jev prefiere 4 botones sin «Mi Patio» (56–70 %) sobre 5
+>   (28–42 %); el «+» arriba queda descartado (2–10 %). Parco decide.
+> - [ ] Perfiles solo públicos: comodidad baja (1.8 de 4) y 53 % echaría de menos
+>   el perfil privado. Reconsiderar una opción de perfil privado.
 > - [ ] Filtro de lista Mapa/Guardados: compartido o separado.
 >
 > *Siguiente sesión*

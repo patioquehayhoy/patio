@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { emptyMenu, useFonderoMenuDraftController } from '@/lib/controllers/useFonderoMenuDraftController';
+import { cleanMenu, emptyMenu, useFonderoMenuDraftController } from '@/lib/controllers/useFonderoMenuDraftController';
 import { fonderoPalette, type FonderoColors } from '@/lib/fondero-palette';
 import type { MenuData, Platillo, Seccion } from '@/lib/menu-store';
 import { useTheme } from '@/lib/theme';
@@ -61,6 +61,8 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
     toggleCollapsed,
     toggleSectionActions,
   } = useFonderoMenuDraftController(initialData, source);
+  // El botón dice qué falta en vez de fallar al tocarlo.
+  const menuEmpty = !cleanMenu(data).secciones.length;
 
   // Palomita al salir del campo de nombre — mismo ícono que el check de
   // "Guardado" del botón Guardar (abajo), pero sin su auto-ocultado por
@@ -410,14 +412,14 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
               <Text style={s.saveText}>{savedFlash ? 'Guardado' : 'Guardar'}</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={s.publishButton}
+              style={[s.publishButton, menuEmpty && { opacity: 0.4 }]}
               onPress={publish}
-              disabled={publishing}
+              disabled={publishing || menuEmpty}
               activeOpacity={0.86}
               accessibilityRole="button"
-              accessibilityLabel={publishing ? 'Publicando menú' : 'Publicar menú'}
-              accessibilityState={{ disabled: publishing, busy: publishing }}>
-              <Text style={s.publishText}>{publishing ? 'Publicando…' : 'Publicar menú'}</Text>
+              accessibilityLabel={publishing ? 'Publicando menú' : menuEmpty ? 'Falta un platillo' : 'Publicar menú'}
+              accessibilityState={{ disabled: publishing || menuEmpty, busy: publishing }}>
+              <Text style={s.publishText}>{publishing ? 'Publicando…' : menuEmpty ? 'Falta un platillo' : 'Publicar menú'}</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>

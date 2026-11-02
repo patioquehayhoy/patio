@@ -4,6 +4,7 @@ import { BlurView } from 'expo-blur';
 import { HintSheet } from '@/components/hint-sheet';
 import { useRef } from 'react';
 import {
+  ActivityIndicator,
   ScrollView,
   StyleSheet,
   Text,
@@ -49,6 +50,9 @@ function makeStyles(theme: Theme) {
     saveBar:            { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 20, paddingTop: 12, overflow: 'hidden' },
     saveBarBorder:      { position: 'absolute', top: 0, left: 0, right: 0, height: StyleSheet.hairlineWidth, backgroundColor: t.border },
     saveBtn:            { height: 52, borderRadius: 26, flexDirection: 'row', backgroundColor: t.accent, alignItems: 'center', justifyContent: 'center' },
+    saveBtnIdle:        { backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
+    fieldNote:          { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6 },
+    fieldNoteText:      { marginTop: 6, fontSize: 13, lineHeight: 18, fontWeight: '400', color: t.textSecondary },
     saveBtnText:        { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
     // Card de campos
     fieldCard:          { backgroundColor: t.surface, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, paddingHorizontal: 16, paddingVertical: 14 },
@@ -82,6 +86,9 @@ export default function PerfilScreen() {
     handleSaveAll,
     handleSignOut,
     isDirty,
+    missing,
+    nameError,
+    nameLockedUntil,
     isSaving,
     savedFlash,
     isSavingLocation,
@@ -104,6 +111,8 @@ export default function PerfilScreen() {
     tipoNegocio,
     ubicacion,
   } = useFonderoProfileController();
+  const blockedBy = !savedFlash && missing.length ? `Falta ${missing.join(' y ')}` : null;
+  const saveLabel = isSaving ? 'Guardando…' : savedFlash ? 'Guardado' : blockedBy ?? 'Guardar cambios';
 
   return (
     <View style={[s.container, { paddingTop: insets.top + 8 }]}>
@@ -126,9 +135,21 @@ export default function PerfilScreen() {
               placeholderTextColor={theme.textSecondary}
               selectionColor={theme.accent}
               autoCapitalize="words"
-              editable={ready}
+              editable={ready && !nameLockedUntil}
               returnKeyType="next"
+              accessibilityHint={nameLockedUntil ? 'El nombre no se puede cambiar todavía' : undefined}
             />
+            {/* La regla se dice antes de escribir, no al tocar Guardar. */}
+            {nameError ? (
+              <View style={s.fieldNote}>
+                <Ionicons name="alert-circle" size={14} color={theme.accent} />
+                <Text style={[s.fieldNoteText, { marginTop: 0, flexShrink: 1, color: theme.text }]} accessibilityLiveRegion="polite">{noWidow(nameError)}</Text>
+              </View>
+            ) : (
+              <Text style={s.fieldNoteText}>{noWidow(nameLockedUntil
+                ? `Podrás cambiarlo a partir del ${nameLockedUntil.toLocaleDateString('es-MX', { day: 'numeric', month: 'long' })}.`
+                : 'Puedes cambiarlo una vez cada 15 días.')}</Text>
+            )}
             <View style={s.fieldDivider} />
             <Text style={s.fieldLabel} allowFontScaling={true}>{noWidow('Tipo de lugar')}</Text>
             {/* El giro se elige en el alta y aquí solo se muestra: cambiarlo
@@ -229,17 +250,20 @@ export default function PerfilScreen() {
         <View style={[s.saveBar, { paddingBottom: insets.bottom || 16 }]}>
           <BlurView intensity={40} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
           <View style={s.saveBarBorder} />
+          {/* Un estado por momento: falta algo (gris, dice qué), listo
+              (naranja), guardando, guardado (hasta que vuelvas a editar). */}
           <TouchableOpacity
-            style={[s.saveBtn, isSaving && { opacity: 0.6 }]}
+            style={[s.saveBtn, (blockedBy || savedFlash) && s.saveBtnIdle]}
             onPress={handleSaveAll}
-            disabled={isSaving || savedFlash}
+            disabled={isSaving || savedFlash || !!blockedBy}
             activeOpacity={0.85}
             accessibilityRole="button"
-            accessibilityLabel={isSaving ? 'Guardando cambios' : savedFlash ? 'Guardado' : 'Guardar cambios'}
-            accessibilityState={{ disabled: isSaving || savedFlash, busy: isSaving }}>
-            {savedFlash && <Ionicons name="checkmark" size={16} color="#fff" style={{ marginRight: 6 }} />}
-            <Text style={s.saveBtnText} allowFontScaling={true}>
-              {isSaving ? 'Guardando…' : savedFlash ? 'Guardado' : 'Guardar cambios'}
+            accessibilityLabel={saveLabel}
+            accessibilityState={{ disabled: isSaving || savedFlash || !!blockedBy, busy: isSaving }}>
+            {isSaving && <ActivityIndicator size="small" color="#fff" style={{ marginRight: 8 }} />}
+            {savedFlash && <Ionicons name="checkmark" size={16} color={theme.text} style={{ marginRight: 6 }} />}
+            <Text style={[s.saveBtnText, (blockedBy || savedFlash) && { color: theme.textSecondary }, savedFlash && { color: theme.text }]} allowFontScaling={true}>
+              {noWidow(saveLabel)}
             </Text>
           </TouchableOpacity>
         </View>

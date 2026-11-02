@@ -25,6 +25,19 @@ Use this file as the shared product and UI reference for Patio. Prefer these rul
   - closed state: `chevron.right`
   - open state: `chevron.down`
 
+## Estados de botón y validación (2026-11-01)
+
+Base: heurísticas 1 y 5 de Nielsen (estado visible del sistema, prevención de
+errores) y la validación en línea de Luke Wroblewski.
+
+- Las reglas se dicen antes de actuar, junto al campo (p. ej. «Puedes cambiarlo
+  una vez cada 15 días»), nunca solo en una alerta después de tocar Guardar.
+- La acción principal muestra un estado por momento: falta algo (apagado, dice
+  qué: «Falta el nombre», «Elige las estrellas», «Falta un platillo»), listo,
+  en curso («Guardando…» con indicador) y hecho («Guardado», que se queda hasta
+  que la persona vuelve a editar, nunca se va por tiempo).
+- Un error de un campo se muestra debajo de ese campo, no en una alerta.
+
 ## Navigation Rules — Ley de Jakob (2026-11-01)
 
 La gente pasa casi todo su tiempo en otras apps y espera que Patio funcione

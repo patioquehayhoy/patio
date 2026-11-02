@@ -55,6 +55,13 @@ type SavedProfileValues = {
 
 const FONDITA_SELECT = 'id, nombre, nombre_updated_at, descripcion, direccion, direccion_visible, horario, horario_semanal, pagos_efectivo, pagos_transferencia, pagos_tarjeta, tipo_negocio, latitude, longitude';
 
+const NAME_CHANGE_DAYS = 15;
+
+function nameLockEnd(updatedAt: string): Date | null {
+  const end = new Date(new Date(updatedAt).getTime() + NAME_CHANGE_DAYS * 24 * 60 * 60 * 1000);
+  return end.getTime() > Date.now() ? end : null;
+}
+
 function initialSemanal() {
   return getFonditaHorarioSemanal() ?? migrarStringLegacy(getFonditaHorario()) ?? horarioDefault();
 }
@@ -95,6 +102,10 @@ export function useFonderoProfileController() {
   const [showPerfilHint, setShowPerfilHint] = useState(false);
   const fonditaIdRef = useRef<string | null>(getFonditaId());
   const nombreUpdatedAtRef = useRef<string | null>(null);
+  // Fecha desde la que se puede volver a cambiar el nombre; se avisa antes de
+  // escribir, no después de tocar Guardar.
+  const [nameLockedUntil, setNameLockedUntil] = useState<Date | null>(null);
+  const [nameError, setNameError] = useState<string | null>(null);
 
   const horarioResumen = useMemo(() => resumenHorario(semanal), [semanal]);
   const semanalJSON = useMemo(() => JSON.stringify(serialize(semanal)), [semanal]);
@@ -105,6 +116,13 @@ export function useFonderoProfileController() {
   ), [seleccion, semanal]);
   const apertura = diaActivo && !diaActivo.cerrado && diaActivo.abre ? hhmmToDate(diaActivo.abre) : null;
   const cierre = diaActivo && !diaActivo.cerrado && diaActivo.cierra ? hhmmToDate(diaActivo.cierra) : null;
+  // Lo que falta para poder guardar, en palabras: el botón lo dice en vez de
+  // fallar al tocarlo (NN/g: prevención de errores y estado visible).
+  const missing = [
+    nombre.trim().length < 2 ? 'el nombre' : null,
+    !pagosEfectivo && !pagosTrans && !pagosTarjeta ? 'cómo cobras' : null,
+    semanal.every((dia) => dia.cerrado) ? 'los días que abres' : null,
+  ].filter((item): item is string => !!item);
   const isDirty =
     nombre !== savedValues.nombre ||
     descripcion !== savedValues.descripcion ||
@@ -114,6 +132,8 @@ export function useFonderoProfileController() {
     pagosTrans !== savedValues.pagosTrans ||
     pagosTarjeta !== savedValues.pagosTarjeta ||
     tipoNegocio !== savedValues.tipoNegocio;
+  useEffect(() => { if (isDirty) setSavedFlash(false); }, [isDirty]);
+  useEffect(() => { setNameError(null); }, [nombre]);
 
   const aplicarHora = useCallback((campo: 'abre' | 'cierra', value: string) => {
     const target = new Set(seleccion);
@@ -246,7 +266,10 @@ export function useFonderoProfileController() {
           tipoNegocio: nextTipoNegocio,
         });
 
-        if (fondita.nombre_updated_at) nombreUpdatedAtRef.current = fondita.nombre_updated_at;
+        if (fondita.nombre_updated_at) {
+          nombreUpdatedAtRef.current = fondita.nombre_updated_at;
+          setNameLockedUntil(nameLockEnd(fondita.nombre_updated_at));
+        }
         if (fondita.latitude != null && fondita.longitude != null) setLocationSaved(true);
       } catch {
         if (active) Alert.alert(noWidow('No pudimos cargar tu negocio'), noWidow('Revisa tu conexión y vuelve a abrir el perfil.'));
@@ -271,26 +294,18 @@ export function useFonderoProfileController() {
   }, [isDirty]);
 
   const handleSaveAll = useCallback(async () => {
-    if (isSaving) return;
-    if (nombre.trim().length < 2 || nombre.trim().length > 80) {
-      Alert.alert(noWidow('Revisa el nombre'), noWidow('Usa entre 2 y 80 caracteres para el nombre de tu negocio.'));
-      return;
-    }
+    if (isSaving || missing.length) return;
     setIsSaving(true);
     try {
       const fonditaId = fonditaIdRef.current;
       const newSaved = { ...savedValues };
       const payload: Record<string, unknown> = {};
-      let nameNotice: string | null = null;
+      let nameTaken = false;
 
       if (nombre !== savedValues.nombre) {
-        const lastUpdated = nombreUpdatedAtRef.current;
-        const blocked = lastUpdated && (Date.now() - new Date(lastUpdated).getTime()) / (1000 * 60 * 60 * 24) < 15;
-        if (blocked) {
-          const fechaDisponible = new Date(new Date(lastUpdated).getTime() + 15 * 24 * 60 * 60 * 1000);
-          nameNotice = `Podrás cambiar el nombre el ${fechaDisponible.toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })}.`;
-        } else if (!(await nombreDisponible(nombre, fonditaId ?? undefined))) {
-          nameNotice = 'Ya hay un negocio con ese nombre en Patio. Elige otro.';
+        if (!(await nombreDisponible(nombre, fonditaId ?? undefined))) {
+          nameTaken = true;
+          setNameError('Ya hay un negocio con ese nombre en Patio. Elige otro.');
         } else {
           payload.nombre = nombre.trim();
           payload.nombre_updated_at = new Date().toISOString();
@@ -336,7 +351,9 @@ export function useFonderoProfileController() {
         }
         if ('nombre' in payload) {
           setFonditaName(nombre.trim());
+          setNombre(nombre.trim());
           nombreUpdatedAtRef.current = new Date().toISOString();
+          setNameLockedUntil(nameLockEnd(nombreUpdatedAtRef.current));
         }
         if ('descripcion' in payload) setFonditaDescription(descripcion.trim());
         if ('direccion' in payload) setFonditaDireccion(ubicacion.trim());
@@ -351,11 +368,10 @@ export function useFonderoProfileController() {
       }
 
       setSavedValues(newSaved);
-      if (nameNotice) Alert.alert(noWidow('Revisa el nombre'), noWidow(nameNotice));
-      if (!Object.keys(payload).length) return;
+      if (nameTaken || !Object.keys(payload).length) return;
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      // «Guardado» se queda hasta que la persona vuelve a editar, no se va solo.
       setSavedFlash(true);
-      setTimeout(() => setSavedFlash(false), 1600);
     } catch {
       Alert.alert(noWidow('No pudimos guardar los cambios'), noWidow('Revisa tu conexión e inténtalo de nuevo. Tus cambios siguen aquí.'));
     } finally {
@@ -365,6 +381,7 @@ export function useFonderoProfileController() {
     descripcion,
     horarioResumen,
     isSaving,
+    missing.length,
     nombre,
     pagosEfectivo,
     pagosTarjeta,
@@ -423,6 +440,9 @@ export function useFonderoProfileController() {
     handleSaveAll,
     handleSignOut,
     isDirty,
+    missing,
+    nameError,
+    nameLockedUntil,
     isSaving,
     savedFlash,
     isSavingLocation,

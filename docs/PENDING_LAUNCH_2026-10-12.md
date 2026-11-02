@@ -56,8 +56,9 @@
 >   lanzar gratis y cobrar en una actualización).
 > - [ ] Grok como agente auxiliar: solo revisión e investigación, sin escribir en
 >   el repo, para no repetir el choque con Codex.
-> - [ ] Barra inferior según Ley de Jakob: decidir el destino que acompaña a
->   «+ Nuevo menú» al centro en la barra de negocio (ver propuesta 2026-11-01).
+> - [x] Barra de negocio según Ley de Jakob: `Menús · Actividad · + · Mi Patio · Perfil`.
+> - [ ] QA físico de la barra nueva: «+» abre el sheet desde las 4 pestañas y
+>   «Mi Patio» muestra la ficha pública propia.
 > - [x] Jalar para actualizar en Guardados, Menús, Actividad y Notificaciones.
 
 > **Referencia obligatoria de infraestructura — 2026-10-27:**

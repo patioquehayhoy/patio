@@ -17,13 +17,11 @@ import { bottomActionClearance, bottomTabClearance } from '@/lib/layout-metrics'
 import { SelectionActions } from '@/components/selection-actions';
 import { FoodieLoading } from '@/components/foodie-loading';
 import { MenuListsSheet } from '@/components/menu-lists-sheet';
-import { GlassIconButton } from '@/components/glass-button';
 import { NewMenuSheet } from '@/components/new-menu-sheet';
 import { FONDERO_TOUR_SEEN_KEY, FonderoWelcomeTour } from '@/components/fondero-welcome-tour';
 import { cleanMenu, publishMenuNow } from '@/lib/controllers/useFonderoMenuDraftController';
 import { dateLabel, defaultHistoryTitle, useMenuHistoryController, type PublishedMenu } from '@/lib/controllers/useMenuHistoryController';
 import { fonderoPalette } from '@/lib/fondero-palette';
-import { localMenuDate } from '@/lib/menu-date';
 import { getMenuCollections, type MenuCollection } from '@/lib/menu-collections';
 import { useTabBarScroll } from '@/lib/tab-bar-visibility';
 import { Radius, useTheme, Type } from '@/lib/theme';
@@ -66,8 +64,6 @@ export default function HistorialScreen() {
   const [activeListIds, setActiveListIds] = useState<string[]>([]);
   const [sheetMode, setSheetMode] = useState<'filter' | 'assign' | 'move' | null>(null);
   const [assignFechas, setAssignFechas] = useState<string[]>([]);
-  const todayFecha = localMenuDate();
-  const pendingToday = !menus.some((menu) => menu.published && menu.fecha === todayFecha);
 
   useFocusEffect(useCallback(() => {
     getMenuCollections().then(setCollections).catch(() => Alert.alert(noWidow('No pudimos cargar las listas'), noWidow('Inténtalo de nuevo.')));
@@ -192,10 +188,6 @@ export default function HistorialScreen() {
           </View>
         ) : (
           <View style={s.headerRow}>
-            <View>
-              <GlassIconButton icon="add" iconSize={22} onPress={() => setNewMenuSheetVisible(true)} accessibilityLabel={pendingToday ? 'Nuevo menú, pendiente publicar hoy' : 'Nuevo menú'} />
-              {pendingToday && <View pointerEvents="none" style={[s.createBadge, { backgroundColor: c.accent, borderColor: c.bg }]} />}
-            </View>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               {streak > 0 && (
                 <TouchableOpacity
@@ -312,8 +304,7 @@ export default function HistorialScreen() {
 
 const s = StyleSheet.create({
   root: { flex: 1 },
-  headerRow: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  createBadge: { position: 'absolute', top: 2, right: 2, width: 9, height: 9, borderRadius: 4.5, borderWidth: 1.5 },
+  headerRow: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end' },
   streakPill: { minHeight: 40, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 12 },
   streakText: { fontSize: 13, fontWeight: '700' },
   listsBtn: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth, overflow: 'visible' },

@@ -1,6 +1,7 @@
 import { router, usePathname } from 'expo-router';
 import { BlurView } from 'expo-blur';
 import { BottomContentFade } from '@/components/bottom-content-fade';
+import { NewMenuSheet } from '@/components/new-menu-sheet';
 import { Animated, Keyboard, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -13,11 +14,12 @@ import { useTabBarTranslate } from '@/lib/tab-bar-visibility';
 import { BOTTOM_TAB_HEIGHT, bottomTabOffset } from '@/lib/layout-metrics';
 import { floatingSurfaceShadow } from '@/lib/surface-styles';
 
-// Destinos raíz por tarea. Crear un menú es una acción dentro de Menús,
-// no una sección que compita permanentemente con el resto de la app.
+// Destinos raíz por tarea, con la Ley de Jakob (Nielsen): inicio a la
+// izquierda, Perfil a la derecha y la acción de crear al centro, como en las
+// apps que la gente ya usa. «+» abre el sheet de nuevo menú; no es una ruta.
 
 type Tab = {
-  path: string;
+  path: string; // '+' = crear menú
   label: string;
   icon: keyof typeof Ionicons.glyphMap;
   selectedIcon: keyof typeof Ionicons.glyphMap;
@@ -32,6 +34,8 @@ const FOODIE_TABS: Tab[] = [
 const FONDERO_TABS: Tab[] = [
   { path: '/historial', label: 'Menús',     icon: 'book-outline', selectedIcon: 'book' },
   { path: '/resenas',   label: 'Actividad', icon: 'heart-outline',      selectedIcon: 'heart' },
+  { path: '+',          label: 'Nuevo menú', icon: 'add-circle-outline', selectedIcon: 'add-circle' },
+  { path: '/mi-patio',  label: 'Mi Patio',  icon: 'storefront-outline', selectedIcon: 'storefront' },
   { path: '/perfil',    label: 'Perfil',    icon: 'person-outline',     selectedIcon: 'person' },
 ];
 
@@ -50,6 +54,7 @@ export function BottomTabBar({ variant = 'fondero' }: { variant?: 'foodie' | 'fo
   // a revisar. Se recalcula cada vez que se aterriza en cualquier pantalla
   // Fondero; se limpia cuando resenas.tsx marca la visita (markActivitySeen).
   const [hasUnseen, setHasUnseen] = useState(false);
+  const [newMenuVisible, setNewMenuVisible] = useState(false);
   useEffect(() => {
     if (variant === 'fondero') {
       hasUnseenActivity(getFonditaId()).then(setHasUnseen).catch(() => {});
@@ -80,6 +85,7 @@ export function BottomTabBar({ variant = 'fondero' }: { variant?: 'foodie' | 'fo
           );
           const onTabPress = () => {
             Keyboard.dismiss();
+            if (path === '+') { setNewMenuVisible(true); return; }
             // Reemplazar la ruta activa puede remontar la pantalla en Expo Router
             // y reiniciar scroll, búsqueda y controles locales. Un segundo toque
             // sobre el tab seleccionado conserva exactamente el estado visible.
@@ -99,13 +105,14 @@ export function BottomTabBar({ variant = 'fondero' }: { variant?: 'foodie' | 'fo
               hitSlop={{ top: 4, bottom: 4, left: 0, right: 0 }}
               onPress={onTabPress}>
               <View style={styles.icon} pointerEvents="none">
-                <Ionicons name={active ? selectedIcon : icon} size={22} color={active ? theme.accent : theme.textSecondary} />
+                <Ionicons name={active ? selectedIcon : icon} size={path === '+' ? 26 : 22} color={active ? theme.accent : theme.textSecondary} />
                 {hasNews && <View style={styles.dot} />}
               </View>
             </TouchableOpacity>
           );
         })}
       </View>
+      {variant === 'fondero' && <NewMenuSheet visible={newMenuVisible} onClose={() => setNewMenuVisible(false)} />}
     </Animated.View>
   );
 }

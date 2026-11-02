@@ -10,6 +10,7 @@ import MapView, { Marker } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AgentSpinner } from '@/components/agent-spinner';
+import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { ContentSafetyMenu } from '@/components/content-safety-menu';
 import { SaveToListSheet } from '@/components/save-to-list-sheet';
 import { PatioCardLocation, PatioCardPrice } from '@/components/patio-card-info';
@@ -25,6 +26,7 @@ import { noWidow } from '@/lib/typography';
 import { useKnownLocation } from '@/lib/use-known-location';
 import { patioDistance } from '@/lib/patio-sort';
 import { formatDistance } from '@/lib/geo';
+import { bottomTabClearance } from '@/lib/layout-metrics';
 
 type ReviewThreadReply = {
   id: string;
@@ -217,6 +219,13 @@ function makeStyles(t: Theme) {
 
 export default function PatioDetailScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
+  return <PatioDetailView id={id} />;
+}
+
+// `own`: la ficha del propio negocio como pestaña «Mi Patio». Es la misma
+// ficha que ve la gente, sin regresar, guardar, reportar ni reseñar, y con la
+// barra del negocio.
+export function PatioDetailView({ id, own = false }: { id?: string; own?: boolean }) {
   const { theme } = useTheme();
   const s = makeStyles(theme);
   const insets = useSafeAreaInsets();
@@ -411,10 +420,13 @@ export default function PatioDetailScreen() {
     return (
       <View style={[s.container, { paddingTop: insets.top + 8 }]}>
         <Stack.Screen options={{ headerShown: false }} />
-        <View style={{ paddingHorizontal: 20 }}>
-          <GlassIcon name="chevron-back" size={22} onPress={handleBack} label="Regresar" />
-        </View>
+        {!own && (
+          <View style={{ paddingHorizontal: 20 }}>
+            <GlassIcon name="chevron-back" size={22} onPress={handleBack} label="Regresar" />
+          </View>
+        )}
         <AgentSpinner color={theme.text} size={22} style={{ alignSelf: 'center', marginTop: 80 }} />
+        {own && <BottomTabBar variant="fondero" />}
       </View>
     );
   }
@@ -424,9 +436,10 @@ export default function PatioDetailScreen() {
       <View style={[s.container, { paddingTop: insets.top + 8 }]}>
         <Stack.Screen options={{ headerShown: false }} />
         <View style={{ paddingHorizontal: 20 }}>
-          <GlassIcon name="chevron-back" size={22} onPress={handleBack} label="Regresar" />
-          <Text style={[s.title, { marginTop: 24 }]}>{noWidow('No encontrado')}</Text>
+          {!own && <GlassIcon name="chevron-back" size={22} onPress={handleBack} label="Regresar" />}
+          <Text style={[s.title, { marginTop: 24 }]}>{noWidow(own ? 'Tu Patio aparecerá aquí' : 'No encontrado')}</Text>
         </View>
+        {own && <BottomTabBar variant="fondero" />}
       </View>
     );
   }
@@ -447,7 +460,7 @@ export default function PatioDetailScreen() {
       />
       <Animated.ScrollView
         contentInsetAdjustmentBehavior="never"
-        contentContainerStyle={s.scrollContent}
+        contentContainerStyle={[s.scrollContent, own && { paddingBottom: bottomTabClearance(insets.bottom) }]}
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={16}
         onScroll={Animated.event(
@@ -457,7 +470,7 @@ export default function PatioDetailScreen() {
             listener: (event: any) => {
               const y = event.nativeEvent.contentOffset.y;
               if (y >= 0) pullDismissed.current = false;
-              if (y < -PULL_TO_DISMISS_THRESHOLD && !pullDismissed.current) {
+              if (!own && y < -PULL_TO_DISMISS_THRESHOLD && !pullDismissed.current) {
                 pullDismissed.current = true;
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
                 handleBack();
@@ -480,18 +493,18 @@ export default function PatioDetailScreen() {
             </View>
           )}
           <View style={[s.heroNav, { top: insets.top + 8 }]}>
-            <GlassIcon name="chevron-back" size={20} onPress={handleBack} label="Regresar" />
+            {own ? <View /> : <GlassIcon name="chevron-back" size={20} onPress={handleBack} label="Regresar" />}
             <View style={{ flexDirection: 'row', gap: 8 }}>
-              {patioId && <ContentSafetyMenu targetType="patio" targetId={patioId} />}
+              {!own && patioId && <ContentSafetyMenu targetType="patio" targetId={patioId} />}
               <GlassIcon name="share-outline" size={17} onPress={handleShare} label="Compartir" />
-              <GlassIcon
+              {!own && <GlassIcon
                 name={isSaved ? 'bookmark' : 'bookmark-outline'}
                 size={17}
                 onPress={handleSavePress}
                 color={isSaved ? theme.accent : theme.text}
                 label={isSaved ? 'Guardado' : 'Guardar'}
                 selected={isSaved}
-              />
+              />}
             </View>
           </View>
         </View>
@@ -667,10 +680,10 @@ export default function PatioDetailScreen() {
               <View>
                 <Text style={s.reviewsTitle}>Reseñas</Text>
               </View>
-              <TouchableOpacity style={[s.reviewPrompt, reviewedToday && { opacity: 0.55 }]} onPress={reviewedToday ? undefined : () => handleStarPress(0)} disabled={reviewedToday} activeOpacity={0.8} accessibilityRole="button" accessibilityLabel={reviewedToday ? 'Ya reseñaste hoy' : userReview ? 'Registrar otra visita' : 'Reseñar este Patio'}>
+              {!own && <TouchableOpacity style={[s.reviewPrompt, reviewedToday && { opacity: 0.55 }]} onPress={reviewedToday ? undefined : () => handleStarPress(0)} disabled={reviewedToday} activeOpacity={0.8} accessibilityRole="button" accessibilityLabel={reviewedToday ? 'Ya reseñaste hoy' : userReview ? 'Registrar otra visita' : 'Reseñar este Patio'}>
                 <Ionicons name={reviewedToday ? 'checkmark-circle-outline' : userReview ? 'add-circle-outline' : 'star-outline'} size={16} color={theme.accent} />
                 <Text style={s.reviewPromptText}>{reviewedToday ? 'Reseña de hoy' : userReview ? 'Otra visita' : 'Reseñar'}</Text>
-              </TouchableOpacity>
+              </TouchableOpacity>}
             </View>
             {!!reviews.length && (
               <View style={s.ratingOverview}>
@@ -917,6 +930,7 @@ export default function PatioDetailScreen() {
         patioName={patio.name}
         onDismiss={() => setSaveSheetVisible(false)}
       />
+      {own && <BottomTabBar variant="fondero" />}
 
     </View>
   );

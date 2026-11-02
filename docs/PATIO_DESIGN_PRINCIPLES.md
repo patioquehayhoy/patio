@@ -25,6 +25,20 @@ Use this file as the shared product and UI reference for Patio. Prefer these rul
   - closed state: `chevron.right`
   - open state: `chevron.down`
 
+## Navigation Rules — Ley de Jakob (2026-11-01)
+
+La gente pasa casi todo su tiempo en otras apps y espera que Patio funcione
+igual (Jakob Nielsen, Nielsen Norman Group). Por eso:
+
+- Barra inferior con 5 destinos como máximo.
+- Inicio a la izquierda y Perfil a la derecha.
+- Crear va al centro de la barra, nunca escondido arriba en una pantalla.
+  Negocio: `Menús · Actividad · + · Mi Patio · Perfil`. Foodie no crea en el
+  día a día, así que su barra no lleva «+».
+- Deslizar desde el borde izquierdo regresa; no se desactiva.
+- Jalar hacia abajo actualiza toda lista que viene del servidor.
+- Ajustes viven dentro de Perfil, nunca como pestaña propia.
+
 ## Layout Rules
 
 - Add generous vertical breathing room between action groups.

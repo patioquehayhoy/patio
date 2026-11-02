@@ -191,10 +191,10 @@ export function SaveToListSheet({ visible, patioIds, patioName, onDismiss, mode 
               else if (canReturnToSource) { setChoosingSource(true); setDestinationId(null); }
               else setCreating(true);
             }} style={s.headerIcon}>
-              <Ionicons name={creating || canReturnToSource ? 'chevron-back' : 'add'} size={20} color={theme.text} />
+              <Ionicons name={creating || canReturnToSource ? 'chevron-back' : 'add'} size={21} color={theme.text} />
             </TouchableOpacity>}
             <Text accessibilityRole="header" style={s.context} numberOfLines={1}>{noWidow(creating ? 'Nueva lista' : mode === 'move' ? choosingSource ? 'Origen' : 'Destino' : patioIds.length > 1 ? `${patioIds.length} lugares` : patioName || 'Guardar en lista')}</Text>
-            {canReturnToSource && !creating && <TouchableOpacity disabled={busy} accessibilityRole="button" accessibilityLabel="Nueva lista" onPress={() => setCreating(true)} style={s.headerIcon}><Ionicons name="add" size={20} color={theme.text} /></TouchableOpacity>}
+            {canReturnToSource && !creating && <TouchableOpacity disabled={busy} accessibilityRole="button" accessibilityLabel="Nueva lista" onPress={() => setCreating(true)} style={s.headerIcon}><Ionicons name="add" size={21} color={theme.text} /></TouchableOpacity>}
             <TouchableOpacity accessibilityRole="button" accessibilityState={{ disabled: busy }} onPress={dismiss} disabled={busy} style={s.closeButton}><Text style={s.closeText}>{mode === 'move' ? 'Cancelar' : 'Listo'}</Text></TouchableOpacity>
           </View>
         </View>
@@ -244,21 +244,20 @@ function makeStyles(t: Theme) {
     headerIcon: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
     context: { flex: 1, minWidth: 0, fontSize: 15, lineHeight: 20, fontWeight: '500', color: t.text },
     closeButton: { minWidth: 44, height: 44, paddingHorizontal: 4, alignItems: 'center', justifyContent: 'center' },
-    closeText: { fontSize: 15, fontWeight: '500', color: t.accent },
+    closeText: { fontSize: 16, fontWeight: '700', color: t.accent },
     list: { flexGrow: 0, flexShrink: 1, maxHeight: 310, marginTop: 8, borderRadius: 14, backgroundColor: t.surface },
     row: { minHeight: 52, paddingVertical: 6, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 12 },
     divider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border },
-    iconSlot: { width: 22, alignItems: 'center', justifyContent: 'center' },
     rowCopy: { flex: 1, minWidth: 0, justifyContent: 'center' },
     rowTitle: { fontSize: 15, lineHeight: 20, fontWeight: '500', color: t.text },
     rowMeta: { minWidth: 64, fontSize: 13, lineHeight: 18, color: t.textSecondary, textAlign: 'right', fontVariant: ['tabular-nums'] },
     input: { flex: 1, minWidth: 0, height: 44, paddingVertical: 0, fontSize: 16, fontWeight: '400', color: t.text },
     createButton: { minWidth: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
     createText: { fontSize: 15, fontWeight: '500', color: t.accent },
-    confirmButton: { minHeight: 50, borderRadius: 25, marginTop: 8, paddingHorizontal: 20, paddingVertical: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: t.accent },
+    confirmButton: { minHeight: 54, borderRadius: 27, marginTop: 8, paddingHorizontal: 20, paddingVertical: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: t.accent },
     confirmText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF', textAlign: 'center' },
-    disabled: { opacity: 0.35 },
-    moveHint: { paddingHorizontal: 8, paddingTop: 6, fontSize: 12.5, lineHeight: 17, fontWeight: '400', color: t.textSecondary },
+    disabled: { opacity: 0.4 },
+    moveHint: { paddingHorizontal: 8, paddingTop: 6, fontSize: 13, lineHeight: 18, fontWeight: '400', color: t.textSecondary },
     empty: { minHeight: 52, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16, paddingVertical: 12 },
   });
 }

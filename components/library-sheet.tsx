@@ -32,7 +32,7 @@ function sheetStyles(t: Theme) {
     panelActions: { minWidth: 44, maxWidth: '100%', minHeight: 44, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 4, flexShrink: 0 },
     headerIcon: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
     headerTextAction: { minWidth: 44, minHeight: 44, paddingHorizontal: 8, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-    panelClear: { fontSize: 15, lineHeight: 20, fontWeight: '600', color: t.text },
+    panelClear: { fontSize: 16, lineHeight: 20, fontWeight: '700', color: t.text },
   });
 }
 
@@ -180,8 +180,8 @@ export function LibrarySheet({ visible, onClose, title, viewKey: viewKeyProp, on
                   setLeadingMeasures((current) => current[viewKey] === width ? current : { ...current, [viewKey]: width });
                 }}>
                   {leadingAction ?? (onBack
-                    ? <TouchableOpacity onPress={onBack} style={s.backButton} accessibilityRole="button" accessibilityLabel="Volver"><Ionicons name="chevron-back" size={20} color={theme.text} /></TouchableOpacity>
-                    : !hideClose && <TouchableOpacity style={s.headerIcon} accessibilityRole="button" accessibilityLabel="Cerrar" accessibilityState={{ disabled: !!dismissDisabled }} disabled={dismissDisabled} onPress={() => dismissRef.current()}><Ionicons name="close" size={20} color={theme.textSecondary} /></TouchableOpacity>)}
+                    ? <TouchableOpacity onPress={onBack} style={s.backButton} accessibilityRole="button" accessibilityLabel="Volver"><Ionicons name="chevron-back" size={21} color={theme.text} /></TouchableOpacity>
+                    : !hideClose && <TouchableOpacity style={s.headerIcon} accessibilityRole="button" accessibilityLabel="Cerrar" accessibilityState={{ disabled: !!dismissDisabled }} disabled={dismissDisabled} onPress={() => dismissRef.current()}><Ionicons name="close" size={21} color={theme.textSecondary} /></TouchableOpacity>)}
                 </View>
                 {!separateTitle && <View pointerEvents="none" accessibilityElementsHidden={!controlsMeasured} style={[s.titleSlot, { left: sideWidth, right: sideWidth }, !controlsMeasured && { opacity: 0 }]}>{!hideTitle && <Text accessibilityRole="header" accessibilityLiveRegion="polite" style={s.panelTitle}>{noWidow(title)}</Text>}</View>}
                 <View style={[s.panelActions, { marginLeft: 'auto', justifyContent: 'flex-end' }]} onLayout={(event) => {

@@ -96,7 +96,7 @@ export default function SoporteScreen() {
         <Text style={[s.rowTitle, { color: theme.text }]}>{noWidow(title)}</Text>
         {hint && <Text style={[s.rowHint, { color: theme.textSecondary }]}>{noWidow(hint)}</Text>}
       </View>
-      <Ionicons name="chevron-forward" size={17} color={theme.textMute} />
+      <Ionicons name="chevron-forward" size={16} color={theme.textMute} />
     </TouchableOpacity>
   );
 
@@ -188,7 +188,7 @@ export default function SoporteScreen() {
           )}
           <View style={{ flex: 1 }} />
           <TouchableOpacity
-            style={[s.send, { backgroundColor: theme.accent }, !canSend && { opacity: 0.35 }]}
+            style={[s.send, { backgroundColor: theme.accent }, !canSend && { opacity: 0.4 }]}
             disabled={!canSend}
             accessibilityRole="button"
             accessibilityState={{ disabled: !canSend }}
@@ -205,8 +205,8 @@ const s = StyleSheet.create({
   root: { flex: 1 },
   nav: { height: 52, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   back: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  navTitle: { flex: 1, textAlign: 'center', fontSize: 15, fontWeight: '600' },
-  content: { paddingHorizontal: 22, paddingTop: 16 },
+  navTitle: { flex: 1, textAlign: 'center', fontSize: 17, lineHeight: 22, fontWeight: '700' },
+  content: { paddingHorizontal: 20, paddingTop: 16 },
   groupLabel: { ...Type.label, marginTop: 24, marginBottom: 8, marginLeft: 4 },
   chips: { flexDirection: 'row', gap: 8 },
   chip: { minHeight: 40, paddingHorizontal: 16, borderRadius: 100, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
@@ -214,18 +214,18 @@ const s = StyleSheet.create({
   list: { borderRadius: Radius.card, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
   row: { minHeight: 64, paddingHorizontal: 14, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', gap: 8 },
   icon: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  rowTitle: { fontSize: 15, lineHeight: 20, fontWeight: '600' },
+  rowTitle: { fontSize: 15, lineHeight: 20, fontWeight: '700' },
   rowHint: { marginTop: 2, fontSize: 13, lineHeight: 17, fontWeight: '400' },
   credits: { marginTop: 24, fontSize: 12, fontWeight: '400', textAlign: 'center' },
   answer: { padding: 16, borderRadius: Radius.card, borderWidth: StyleSheet.hairlineWidth },
-  answerTitle: { fontSize: 17, lineHeight: 22, fontWeight: '600' },
+  answerTitle: { fontSize: 17, lineHeight: 22, fontWeight: '700' },
   answerBody: { marginTop: 4, fontSize: 15, lineHeight: 20, fontWeight: '400' },
   addComment: { minHeight: 48, marginTop: 8, flexDirection: 'row', alignItems: 'center', gap: 8 },
   addCommentText: { fontSize: 15, fontWeight: '400' },
   field: { minHeight: 160, marginTop: 16, padding: 16, borderRadius: Radius.card, borderWidth: StyleSheet.hairlineWidth },
   input: { minHeight: 110, fontSize: 15, lineHeight: 20, textAlignVertical: 'top' },
   counter: { alignSelf: 'flex-end', fontSize: 11 },
-  send: { minHeight: 52, marginTop: 8, paddingVertical: 12, paddingHorizontal: 16, borderRadius: 26, alignItems: 'center', justifyContent: 'center' },
+  send: { minHeight: 54, marginTop: 8, paddingVertical: 12, paddingHorizontal: 16, borderRadius: 27, alignItems: 'center', justifyContent: 'center' },
   outline: { borderWidth: 1.5 },
-  sendText: { fontSize: 15, fontWeight: '700' },
+  sendText: { fontSize: 16, fontWeight: '700' },
 });

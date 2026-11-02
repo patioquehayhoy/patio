@@ -156,6 +156,6 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   },
   icon: { width: 28, height: 24, alignItems: 'center', justifyContent: 'center' },
   image: { width: 22, height: 22 },
-  label: { fontSize: 10, lineHeight: 12, fontWeight: '600' },
+  label: { fontSize: 10, lineHeight: 12, fontWeight: '700' },
   dot: { position: 'absolute', top: -1, right: -2, width: 7, height: 7, borderRadius: 4, backgroundColor: t.accent, borderColor: t.surface, borderWidth: StyleSheet.hairlineWidth },
 });

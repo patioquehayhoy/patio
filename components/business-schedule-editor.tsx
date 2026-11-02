@@ -156,7 +156,7 @@ export function BusinessScheduleEditor({ colors, value, onChange, isDark = false
             <TouchableOpacity
               key={preset.label}
               onPress={() => applyPreset(preset.days)}
-              activeOpacity={0.72}
+              activeOpacity={0.7}
               accessibilityRole="button"
               accessibilityLabel={preset.label}
               accessibilityState={{ selected: active }}
@@ -188,7 +188,7 @@ export function BusinessScheduleEditor({ colors, value, onChange, isDark = false
               accessibilityRole="checkbox"
               accessibilityState={{ checked: open }}
               onPress={() => toggleDay(item.id)}
-              activeOpacity={0.72}
+              activeOpacity={0.7}
               style={[s.dayDot, { backgroundColor: open ? colors.accent : colors.surface, borderColor: open ? colors.accent : colors.border }]}>
               <Text style={[s.dayDotText, { color: open ? '#fff' : colors.textSecondary }]} maxFontSizeMultiplier={1.2}>
                 {item.short}
@@ -214,7 +214,7 @@ export function BusinessScheduleEditor({ colors, value, onChange, isDark = false
                   <TouchableOpacity
                     accessibilityLabel={`${field === 'abre' ? 'Apertura' : 'Cierre'} de ${item.label}`}
                     accessibilityRole="button"
-                    activeOpacity={0.72}
+                    activeOpacity={0.7}
                     onPress={() => {
                       void Haptics.selectionAsync();
                       setActivePicker({ dia: item.id, field });
@@ -304,15 +304,15 @@ export function BusinessScheduleEditor({ colors, value, onChange, isDark = false
 const s = StyleSheet.create({
   presets: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 8 },
   preset: { minHeight: 44, paddingHorizontal: 18, borderRadius: 22, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
-  presetText: { fontSize: 13, lineHeight: 18, fontWeight: '600', textAlign: 'center' },
+  presetText: { fontSize: 13, lineHeight: 18, fontWeight: '700', textAlign: 'center' },
   sectionHeading: { marginTop: 22, marginBottom: 8, minHeight: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   sectionLabel: { fontSize: 10, lineHeight: 13, fontWeight: '700', letterSpacing: 0.9 },
-  selectionStatus: { fontSize: 12, lineHeight: 16, fontWeight: '600' },
+  selectionStatus: { fontSize: 12, lineHeight: 16, fontWeight: '700' },
   dayDots: { flexDirection: 'row', justifyContent: 'space-between' },
   dayDot: { width: 44, height: 44, borderRadius: 22, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   dayDotText: { fontSize: 12, fontWeight: '700', letterSpacing: 0.2 },
   scheduleCard: { marginTop: 20, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 16, overflow: 'hidden' },
-  columnLabel: { fontSize: 9, lineHeight: 12, fontWeight: '700', letterSpacing: 0.8 },
+  columnLabel: { fontSize: 10, lineHeight: 12, fontWeight: '700', letterSpacing: 0.8 },
   scheduleRow: { minHeight: 112, paddingVertical: 14 },
   scheduleDay: { fontSize: 15, lineHeight: 20, fontWeight: '700', textAlign: 'center' },
   timeLabels: { marginTop: 9, flexDirection: 'row', alignItems: 'center' },
@@ -324,6 +324,6 @@ const s = StyleSheet.create({
   compactTimeText: { fontSize: 17, lineHeight: 22, fontWeight: '500', textAlign: 'center' },
   pickerOverlay: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   pickerSurface: { width: 320, minHeight: 236, borderRadius: 34, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 28, shadowOffset: { width: 0, height: 14 }, elevation: 18 },
-  pickerTitle: { position: 'absolute', top: 18, left: 24, right: 24, zIndex: 1, fontSize: 10, lineHeight: 13, fontWeight: '700', letterSpacing: 0.9, textAlign: 'center' },
+  pickerTitle: { position: 'absolute', top: 18, left: 24, right: 24, zIndex: 1, fontSize: 11, lineHeight: 14, fontWeight: '700', letterSpacing: 0.8, textAlign: 'center' },
   pickerWheel: { width: 288, height: 190, marginTop: 24, alignSelf: 'center' },
 });

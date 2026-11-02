@@ -156,7 +156,7 @@ function makeStyles(t: Theme) {
     searchPill: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, height: 50, borderRadius: 18, overflow: 'hidden', backgroundColor: t.isDark ? 'rgba(20,21,24,0.55)' : 'rgba(255,255,255,0.78)', borderWidth: StyleSheet.hairlineWidth, borderColor: btnBorder, ...floatingSurfaceShadow(t.isDark) },
     bottomControls: { flexDirection: 'row', alignItems: 'stretch', gap: 8 },
     aiProButton: { minHeight: 44, minWidth: 44, paddingHorizontal: 8, borderRadius: 16, flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: t.accentSoft },
-    aiProText: { fontSize: 10.5, fontWeight: '800', color: t.accent, letterSpacing: 0.3 },
+    aiProText: { fontSize: 11, fontWeight: '700', color: t.accent, letterSpacing: 0.3 },
     // Edge-to-edge (sin margen lateral): mismo criterio que el sheet de
     // Filtros/Listas de FoodieFilterBar — ancho completo, borde solo arriba
     // (decisión 2026-08-20). Las esquinas inferiores siguen redondeándose en
@@ -167,13 +167,10 @@ function makeStyles(t: Theme) {
     grabber: { alignSelf: 'center', width: 36, height: 4, borderRadius: 2, backgroundColor: t.isDark ? 'rgba(255,255,255,0.16)' : 'rgba(0,0,0,0.10)', marginTop: 7 },
     sheetHeader: { minHeight: 44 },
     grabberTouch: { height: 20, alignItems: 'center', justifyContent: 'flex-start' },
-    price: { fontSize: 24, lineHeight: 30, fontWeight: '400', color: t.text },
     listHeader: { paddingHorizontal: 20, paddingTop: 4, paddingBottom: 6, flexDirection: 'row', alignItems: 'center' },
-    listTitle: { fontSize: 12.5, fontWeight: '600', color: t.textSecondary },
+    listTitle: { fontSize: 13, fontWeight: '700', color: t.textSecondary },
     aiNoteRow: { paddingHorizontal: 20, paddingBottom: 8, flexDirection: 'row', alignItems: 'center', gap: 4 },
-    aiNoteText: { fontSize: 12.5, fontWeight: '300', color: t.textSecondary, flexShrink: 1 },
-    listFilter: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, minHeight: 30, borderRadius: 15, backgroundColor: t.accentLight },
-    listFilterText: { fontSize: 12, fontWeight: '900', color: t.accent },
+    aiNoteText: { fontSize: 13, fontWeight: '300', color: t.textSecondary, flexShrink: 1 },
     listContent: { paddingBottom: SHEET_LIST_BOTTOM_PADDING },
     // Solo en modo filtrado el sheet tiene una altura acotada de verdad
     // (`top`/`bottom` explícitos, ver JSX) — ahí SÍ hace falta `flex: 1`
@@ -189,19 +186,12 @@ function makeStyles(t: Theme) {
     patioRow: { minHeight: 60, marginHorizontal: 16, paddingVertical: 12, flexDirection: 'row', alignItems: 'flex-start', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.border },
     resultIcon: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
     patioInfo: { flex: 1, minWidth: 0 },
-    patioName: { fontSize: 16, lineHeight: 21, fontWeight: '700', color: t.text },
-    patioMetaLine: { marginTop: 2, minWidth: 0, flexDirection: 'row', alignItems: 'center' },
-    patioMeta: { flex: 1, minWidth: 0, fontSize: 13, lineHeight: 18, fontWeight: '300', color: t.text },
-    patioDistance: { marginLeft: 6, flexShrink: 0, fontSize: 13, lineHeight: 18, fontWeight: '300', color: t.textSecondary, fontVariant: ['tabular-nums'] },
-    patioRight: { width: 76, flexShrink: 0, alignItems: 'flex-end', gap: 4 },
-    patioPrice: { fontSize: 14, fontWeight: '300', color: t.textSecondary },
-    patioOpen: { fontSize: 11.5, fontWeight: '700', color: t.textSecondary },
     emptyResults: { paddingHorizontal: 28, paddingVertical: 36, alignItems: 'center' },
     emptyIconCircle: { width: 88, height: 88, borderRadius: 44, backgroundColor: t.accentSoft, alignItems: 'center', justifyContent: 'center', marginBottom: 24 },
-    emptyEyebrow: { fontSize: 11, fontWeight: '900', letterSpacing: 0.8, textTransform: 'uppercase', color: t.accent, marginBottom: 10 },
+    emptyEyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase', color: t.accent, marginBottom: 10 },
     emptyTitle: { ...Type.title, color: t.text, textAlign: 'center', marginBottom: 12 },
     emptySub: { fontSize: 15, fontWeight: '400', lineHeight: 21, color: t.textSecondary, textAlign: 'center', marginBottom: 28, maxWidth: 300 },
-    emptyPruebaLabel: { fontSize: 11, fontWeight: '900', letterSpacing: 0.8, textTransform: 'uppercase', color: t.textSecondary, marginBottom: 14 },
+    emptyPruebaLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase', color: t.textSecondary, marginBottom: 14 },
     emptyPills: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center' },
     emptyPill: { paddingHorizontal: 16, paddingVertical: 9, borderRadius: 100, backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
     emptyPillText: { fontSize: 14, fontWeight: '400', color: t.text },
@@ -894,7 +884,7 @@ export default function ExplorarScreen() {
             { opacity: idleLayerOpacity },
           ]}>
           <View style={s.bottomControls}>
-            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Buscar comida o un lugar" activeOpacity={0.82} onPress={openSearch} style={[s.searchPill, { flex: 1 }]}>
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Buscar comida o un lugar" activeOpacity={0.85} onPress={openSearch} style={[s.searchPill, { flex: 1 }]}>
               <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
               <Ionicons name="search-outline" size={21} color={theme.textSecondary} />
               <Text style={{ fontSize: 16, fontWeight: '400', color: theme.textSecondary }}>
@@ -1060,7 +1050,7 @@ export default function ExplorarScreen() {
                       <Text style={s.emptyPruebaLabel} allowFontScaling={true}>{noWidow('CERCA DE TI')}</Text>
                       <View style={s.emptyPills}>
                         {emptyResultsSuggestions.map((q) => (
-                          <TouchableOpacity key={q} onPress={() => { cancelLocation(); manualMapPosition.current = false; reopenSheet(); searchFor(q); }} activeOpacity={0.8} style={s.emptyPill} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }} accessibilityRole="button" accessibilityLabel={`Buscar ${q}`}>
+                          <TouchableOpacity key={q} onPress={() => { cancelLocation(); manualMapPosition.current = false; reopenSheet(); searchFor(q); }} activeOpacity={0.85} style={s.emptyPill} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }} accessibilityRole="button" accessibilityLabel={`Buscar ${q}`}>
                             <Text style={s.emptyPillText} allowFontScaling={true}>{q}</Text>
                           </TouchableOpacity>
                         ))}
@@ -1094,7 +1084,7 @@ export default function ExplorarScreen() {
                         setPressedPinId(match.patio.id);
                       }}
                       onPressOut={() => setPressedPinId((id) => (id === match.patio.id ? null : id))}
-                      activeOpacity={0.76}>
+                      activeOpacity={0.7}>
                       <View style={s.resultIcon}>
                         <PatioIdentityIcon patio={match.patio} />
                       </View>
@@ -1124,7 +1114,7 @@ export default function ExplorarScreen() {
                     key={patio.id}
                     style={s.patioRow}
                     onPress={() => router.push(`/patio/${patio.id}`)}
-                    activeOpacity={0.76}>
+                    activeOpacity={0.7}>
                     <View style={s.resultIcon}>
                       <PatioIdentityIcon patio={patio} />
                     </View>

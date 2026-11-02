@@ -128,6 +128,39 @@ igual (Jakob Nielsen, Nielsen Norman Group). Por eso:
 - Prefer centered, contained controls over full-width controls when the action is secondary or optional.
 - Avoid jumpy layouts. If content switches between variants, stabilize height or width so the screen does not visibly shift.
 
+## Escala homologada (2026-11-02)
+
+Una medida por función en toda la app. Si algo no cabe, cambia el contenido,
+no la medida.
+
+- **Confirmación:** cápsula de 54 de alto, radio 27, texto 16/700. La acción
+  que la acompaña usa la misma cápsula.
+- **Estados:** falta algo → superficie con borde fino y texto gris que dice
+  qué falta; listo → naranja; en curso → naranja con indicador; desactivado
+  sin explicación → opacidad 0.4. Al tocar: 0.7 en controles, 0.85 en botones
+  con fondo.
+- **Barra de navegación:** 52 de alto; volver es una caja de 44 a 14 del borde
+  (en pantallas con margen de 20 la barra lleva `marginHorizontal: -6`),
+  chevron de 21 en color de texto, etiqueta «Volver». Íconos de barra y de
+  encabezado de sheet: 21. Título 17/22/700; acciones de texto («Listo»,
+  «Editar», «Limpiar») 16/700.
+- **Vidrio:** `GlassIconButton` en su tamaño por defecto (40, ícono 20); sobre
+  la foto de la ficha, círculo de 44.
+- **Texto (Neue Montreal: 600 o más se dibuja Semibold, lo demás Regular):**
+  17 títulos de barra y sheet · 16 botones · 15 cuerpo · 14 filas y notas ·
+  13 secundario · 12 metadatos y horas · 11 etiquetas en mayúsculas (700,
+  espaciado 0.8) · 10 solo en la barra de pestañas. Sin medios puntos. Pesos en
+  código: 400 y 700 (300 y 500 solo donde ya existían).
+- **Marca (Monument):** de 20 en adelante y siempre por `Type`; sin
+  `fontWeight`. Títulos de vacío y de celebración secundaria: `Type.section`.
+- **Radios:** 14 campos, opciones y controles compactos · 18 tarjetas, listas
+  agrupadas y diálogos · 28 sheets · mitad de la altura en cápsulas y círculos.
+- **Márgenes:** 20 pantallas · 16 bibliotecas y sheet del mapa · 22 póster ·
+  24 alta y acceso · 28 entrada de marca.
+- **Vacío de pantalla completa:** ícono de 32 en caja de 68 (radio 20), título
+  `Type.section`, texto 15/21 y una acción.
+- **Color:** el naranja sale de la paleta (`Colors.accent`, `t.accent`).
+
 ## Visual Style
 
 - Use light, clean backgrounds with subtle warmth.

@@ -92,7 +92,7 @@ export const Type = {
   title:       { fontFamily: Fonts.brand, fontSize: 26, lineHeight: 32, letterSpacing: 0 },
   section:     { fontFamily: Fonts.brand, fontSize: 21, lineHeight: 26, letterSpacing: 0 },
   // Neue Montreal: el peso lo resuelve components/app-text (600+ → Semibold).
-  headline:    { fontSize: 17, lineHeight: 22, fontWeight: '600' },
+  headline:    { fontSize: 17, lineHeight: 22, fontWeight: '700' },
   body:        { fontSize: 15, lineHeight: 20, fontWeight: '400' },
   subhead:     { fontSize: 13, lineHeight: 17, fontWeight: '400' },
   caption:     { fontSize: 12, lineHeight: 16, fontWeight: '400' },

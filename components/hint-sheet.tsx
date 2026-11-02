@@ -54,19 +54,19 @@ export function HintSheet({ visible, icon, title, body, primaryLabel, onPrimary,
           <View style={StyleSheet.absoluteFillObject} />
         </TouchableWithoutFeedback>
         <Animated.View style={[s.sheet, { paddingBottom: insets.bottom + 32, transform: [{ translateY: slideY }] }]}>
-          <TouchableOpacity style={s.closeBtn} onPress={dismiss} activeOpacity={0.76} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} accessibilityRole="button" accessibilityLabel="Cerrar">
-            <Ionicons name="close" size={20} color={theme.text} />
+          <TouchableOpacity style={s.closeBtn} onPress={dismiss} activeOpacity={0.7} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} accessibilityRole="button" accessibilityLabel="Cerrar">
+            <Ionicons name="close" size={21} color={theme.text} />
           </TouchableOpacity>
           <View style={s.iconBadge}>
             <Ionicons name={icon} size={28} color={theme.accent} />
           </View>
           <Text style={s.title} allowFontScaling={true}>{noWidow(title)}</Text>
           <Text style={s.body} allowFontScaling={true}>{noWidow(body)}</Text>
-          <TouchableOpacity style={s.primaryBtn} onPress={handlePrimary} activeOpacity={0.86} accessibilityRole="button" accessibilityLabel={primaryLabel}>
+          <TouchableOpacity style={s.primaryBtn} onPress={handlePrimary} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel={primaryLabel}>
             <Text style={s.primaryText} allowFontScaling={true}>{primaryLabel}</Text>
           </TouchableOpacity>
           {!!secondaryLabel && (
-            <TouchableOpacity style={s.secondaryBtn} onPress={handleSecondary} activeOpacity={0.76} accessibilityRole="button" accessibilityLabel={secondaryLabel}>
+            <TouchableOpacity style={s.secondaryBtn} onPress={handleSecondary} activeOpacity={0.7} accessibilityRole="button" accessibilityLabel={secondaryLabel}>
               <Text style={s.secondaryText} allowFontScaling={true}>{secondaryLabel}</Text>
             </TouchableOpacity>
           )}
@@ -84,9 +84,9 @@ function makeStyles(t: Theme) {
     iconBadge:    { alignSelf: 'center', width: 56, height: 56, borderRadius: 16, backgroundColor: t.accentSoft, alignItems: 'center', justifyContent: 'center', marginBottom: 16, marginTop: 12 },
     title:        { ...Type.title, textAlign: 'center', color: t.text, marginBottom: 10 },
     body:         { fontSize: 15, fontWeight: '400', textAlign: 'center', color: t.textSecondary, lineHeight: 22, marginBottom: 28 },
-    primaryBtn:   { minHeight: 56, borderRadius: 16, backgroundColor: t.text, alignItems: 'center', justifyContent: 'center' },
-    primaryText:  { fontSize: 16, fontWeight: '900', color: t.bg },
-    secondaryBtn: { marginTop: 10, minHeight: 48, borderRadius: 16, borderWidth: 1.5, borderColor: t.border, alignItems: 'center', justifyContent: 'center' },
+    primaryBtn:   { minHeight: 54, borderRadius: 27, backgroundColor: t.text, alignItems: 'center', justifyContent: 'center' },
+    primaryText:  { fontSize: 16, fontWeight: '700', color: t.bg },
+    secondaryBtn: { marginTop: 10, minHeight: 54, borderRadius: 27, borderWidth: 1.5, borderColor: t.border, alignItems: 'center', justifyContent: 'center' },
     secondaryText:{ fontSize: 15, fontWeight: '400', color: t.text },
   });
 }

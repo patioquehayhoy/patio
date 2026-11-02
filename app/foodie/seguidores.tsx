@@ -89,7 +89,7 @@ const s = StyleSheet.create({
   navButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   segmented: { flexDirection: 'row', borderRadius: 14, borderWidth: 1, overflow: 'hidden' },
   segment: { minWidth: 104, minHeight: 34, paddingHorizontal: 12, alignItems: 'center', justifyContent: 'center' },
-  segmentText: { fontSize: 13, fontWeight: '600' },
+  segmentText: { fontSize: 13, fontWeight: '700' },
   row: { minHeight: 64, flexDirection: 'row', alignItems: 'center', gap: 12 },
   name: { fontSize: 15, fontWeight: '700' },
   handle: { marginTop: 2, fontSize: 13, fontWeight: '400' },

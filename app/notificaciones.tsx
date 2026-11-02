@@ -13,7 +13,7 @@ import { getDemoReviewLikeEvents, getMyReviewLikeEvents, type MyReviewLikeEvent 
 import { commentTimeLabel, getMyCommentEvents, type MyCommentEvent } from '@/lib/review-comments';
 import { acceptFollowRequest, declineFollowRequest, getFollowRequests, type FollowRequest } from '@/lib/profile-privacy';
 import { useTabBarScroll } from '@/lib/tab-bar-visibility';
-import { useTheme, type Theme } from '@/lib/theme';
+import { Type, useTheme, type Theme } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
 
 // Espejo de app/resenas.tsx (Actividad, Fondero) del lado Foodie: la misma
@@ -203,22 +203,22 @@ function makeStyles(t: Theme) {
     root: { flex: 1, backgroundColor: t.bg },
     nav: { height: 52, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
     navButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-    navTitle: { fontSize: 15, fontWeight: '600' },
+    navTitle: { fontSize: 17, lineHeight: 22, fontWeight: '700' },
     groupLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase' },
 
-    list: { borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
+    list: { borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
     row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 14 },
     rowBody: { flex: 1, minWidth: 0 },
-    rowText: { fontSize: 13.5, lineHeight: 18, fontWeight: '400' },
+    rowText: { fontSize: 14, lineHeight: 20, fontWeight: '400' },
     rowAuthor: { fontWeight: '700' },
-    rowTime: { marginTop: 3, fontSize: 11.5, fontWeight: '400' },
+    rowTime: { marginTop: 3, fontSize: 12, fontWeight: '400' },
     requestPrimary: { minHeight: 32, paddingHorizontal: 12, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
     requestPrimaryText: { fontSize: 13, fontWeight: '700' },
     requestSecondary: { minHeight: 32, paddingHorizontal: 12, borderRadius: 14, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
     requestSecondaryText: { fontSize: 13, fontWeight: '700' },
 
-    empty: { marginTop: 34, padding: 24, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center' },
-    emptyTitle: { marginTop: 14, fontSize: 20, fontWeight: '800' },
+    empty: { marginTop: 34, padding: 24, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center' },
+    emptyTitle: { marginTop: 14, ...Type.section, textAlign: 'center' },
     emptyBody: { maxWidth: 270, marginTop: 7, textAlign: 'center', fontSize: 14, lineHeight: 20 },
   });
 }

@@ -40,6 +40,6 @@ const s = StyleSheet.create({
   title: { fontSize: 17, lineHeight: 23, fontWeight: '700', textAlign: 'center' },
   input: { minHeight: 48, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, padding: 12, fontSize: 16 },
   actions: { flexDirection: 'row', gap: 8 },
-  button: { flex: 1, minHeight: 48, paddingVertical: 12, paddingHorizontal: 8, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
-  label: { fontSize: 15, fontWeight: '700', textAlign: 'center' },
+  button: { flex: 1, minHeight: 54, paddingVertical: 12, paddingHorizontal: 8, borderRadius: 27, alignItems: 'center', justifyContent: 'center' },
+  label: { fontSize: 16, fontWeight: '700', textAlign: 'center' },
 });

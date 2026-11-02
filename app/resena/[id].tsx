@@ -22,7 +22,7 @@ function makeStyles(t: Theme) {
     navBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
     navHint: { fontSize: 14, fontWeight: '400', color: t.textSecondary },
 
-    content: { paddingHorizontal: 22, paddingTop: 8, paddingBottom: 140 },
+    content: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 140 },
     title: { ...Type.title, color: t.text, marginBottom: 4 },
     subtitle: { fontSize: 13, fontWeight: '400', color: t.textSecondary, marginBottom: 22 },
 
@@ -43,7 +43,7 @@ function makeStyles(t: Theme) {
     noteInput: { fontSize: 14, lineHeight: 20, color: t.text, minHeight: 64, padding: 0, textAlignVertical: 'top' },
 
     photoRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 14, backgroundColor: t.isDark ? 'rgba(255,255,255,0.04)' : 'rgba(17,18,20,0.04)', borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
-    photoText: { fontSize: 12.5, color: t.textSecondary, flex: 1 },
+    photoText: { fontSize: 13, color: t.textSecondary, flex: 1 },
     photoThumb: { width: 56, height: 56, borderRadius: 12 },
 
     ctaWrap: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 20, paddingTop: 14 },
@@ -152,7 +152,7 @@ export default function ResenaScreen() {
           {[1, 2, 3, 4, 5].map((n) => {
             const active = n <= stars;
             return (
-              <TouchableOpacity key={n} activeOpacity={0.8} onPress={() => pressStar(n)} accessibilityRole="button" accessibilityLabel={`${n} ${n === 1 ? 'estrella' : 'estrellas'}`} accessibilityState={{ selected: active }}>
+              <TouchableOpacity key={n} activeOpacity={0.85} onPress={() => pressStar(n)} accessibilityRole="button" accessibilityLabel={`${n} ${n === 1 ? 'estrella' : 'estrellas'}`} accessibilityState={{ selected: active }}>
                 <Animated.View style={[s.star, active ? s.starOn : s.starOff, { transform: [{ scale: starAnims[n - 1] }] }]}>
                   <Ionicons name={active ? 'star' : 'star-outline'} size={22} color={active ? theme.accent : (theme.isDark ? 'rgba(255,255,255,0.25)' : 'rgba(17,18,20,0.2)')} />
                 </Animated.View>
@@ -166,7 +166,7 @@ export default function ResenaScreen() {
           {TAGS.map((t) => {
             const on = selected.includes(t);
             return (
-              <TouchableOpacity key={t} activeOpacity={0.8} onPress={() => toggleTag(t)} style={[s.tag, on ? s.tagOn : s.tagOff]} hitSlop={{ top: 6, bottom: 6, left: 4, right: 4 }} accessibilityRole="button" accessibilityState={{ selected: on }}>
+              <TouchableOpacity key={t} activeOpacity={0.85} onPress={() => toggleTag(t)} style={[s.tag, on ? s.tagOn : s.tagOff]} hitSlop={{ top: 6, bottom: 6, left: 4, right: 4 }} accessibilityRole="button" accessibilityState={{ selected: on }}>
                 <Text style={[s.tagText, on && s.tagTextOn]} allowFontScaling={true}>{t}</Text>
               </TouchableOpacity>
             );
@@ -187,7 +187,7 @@ export default function ResenaScreen() {
           />
         </View>
 
-        <TouchableOpacity style={s.photoRow} activeOpacity={0.8} onPress={pickPhoto} accessibilityRole="button" accessibilityLabel={photoUri ? 'Cambiar foto de la reseña' : 'Agregar foto opcional a la reseña'}>
+        <TouchableOpacity style={s.photoRow} activeOpacity={0.85} onPress={pickPhoto} accessibilityRole="button" accessibilityLabel={photoUri ? 'Cambiar foto de la reseña' : 'Agregar foto opcional a la reseña'}>
           {photoUri
             ? <Image source={{ uri: photoUri }} style={s.photoThumb} />
             : <Ionicons name="camera-outline" size={16} color={theme.accent} />}
@@ -200,7 +200,7 @@ export default function ResenaScreen() {
 
       <View style={[s.ctaWrap, { paddingBottom: insets.bottom + 20 }]}>
         <LinearGradient colors={[`${theme.bg}00`, theme.bg]} style={s.ctaFade} pointerEvents="none" />
-        <TouchableOpacity style={[s.cta, (stars === 0 || saving) && s.ctaDisabled]} onPress={submit} disabled={stars === 0 || saving} activeOpacity={0.86} accessibilityRole="button" accessibilityState={{ disabled: stars === 0 || saving, busy: saving }} accessibilityLabel={saving ? 'Publicando reseña' : stars === 0 ? 'Elige las estrellas' : 'Publicar reseña'}>
+        <TouchableOpacity style={[s.cta, (stars === 0 || saving) && s.ctaDisabled]} onPress={submit} disabled={stars === 0 || saving} activeOpacity={0.85} accessibilityRole="button" accessibilityState={{ disabled: stars === 0 || saving, busy: saving }} accessibilityLabel={saving ? 'Publicando reseña' : stars === 0 ? 'Elige las estrellas' : 'Publicar reseña'}>
           <Text style={s.ctaText} allowFontScaling={true}>{noWidow(saving ? 'Publicando…' : stars === 0 ? 'Elige las estrellas' : 'Publicar reseña')}</Text>
         </TouchableOpacity>
       </View>

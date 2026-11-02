@@ -120,17 +120,17 @@ function makeStyles(t: Theme) {
     hero: { height: HERO_HEIGHT, backgroundColor: 'transparent', overflow: 'hidden' },
     heroImgMuted: { opacity: 0.55 },
     soldBanner: { position: 'absolute', alignSelf: 'center', top: HERO_HEIGHT * 0.5, flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, paddingVertical: 9, borderRadius: 100, backgroundColor: t.accent, shadowColor: t.accent, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 16, elevation: 6, zIndex: 15 },
-    soldBannerText: { fontSize: 12, fontWeight: '900', letterSpacing: 1, textTransform: 'uppercase', color: '#fff' },
+    soldBannerText: { fontSize: 12, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase', color: '#fff' },
     heroGradient: { ...StyleSheet.absoluteFillObject },
     heroNav: { position: 'absolute', left: Spacing.lg, right: Spacing.lg, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', zIndex: 20 },
     glassIcon: { width: 44, height: 44, borderRadius: 22, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth, borderColor: t.isDark ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.85)', shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.2, shadowRadius: 16, elevation: 4 },
     // ── Card traslapada ──
     card: { marginTop: -28, backgroundColor: t.bg, borderTopLeftRadius: Radius.sheet, borderTopRightRadius: Radius.sheet, paddingHorizontal: 20, paddingTop: 22 },
-    schedule: { marginBottom: 16, borderRadius: 16, overflow: 'hidden', backgroundColor: t.surface },
+    schedule: { marginBottom: 16, borderRadius: 18, overflow: 'hidden', backgroundColor: t.surface },
     scheduleRow: { minHeight: 38, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
     scheduleDivider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border },
-    scheduleDay: { fontSize: 12.5, fontWeight: '600', color: t.text },
-    scheduleHours: { fontSize: 12.5, color: t.textSecondary },
+    scheduleDay: { fontSize: 13, fontWeight: '700', color: t.text },
+    scheduleHours: { fontSize: 13, color: t.textSecondary },
     titleRow: { marginBottom: 6, flexDirection: 'row', alignItems: 'flex-start', gap: 6 },
     title: { ...Type.screen, flex: 1, minWidth: 0, color: t.text },
     verifiedMark: { width: 28, height: 28, alignItems: 'center', justifyContent: 'center' },
@@ -142,16 +142,16 @@ function makeStyles(t: Theme) {
     // ── Menú agrupado ──
     menuSoldWrap: { position: 'relative', borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, borderRadius: 18, padding: 16, marginBottom: 16, backgroundColor: t.surface },
     agotadoBadge: { position: 'absolute', right: 14, bottom: 14, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 10, backgroundColor: t.text },
-    agotadoBadgeText: { fontSize: 10.5, fontWeight: '900', letterSpacing: 1, textTransform: 'uppercase', color: t.bg },
+    agotadoBadgeText: { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase', color: t.bg },
     mananaCard: { padding: 16, borderRadius: 18, backgroundColor: t.accentSoft, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(242,97,47,0.2)', marginBottom: 16 },
     mananaHead: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 8 },
-    mananaEyebrow: { fontSize: 11, fontWeight: '900', letterSpacing: 1, textTransform: 'uppercase', color: t.accent },
+    mananaEyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase', color: t.accent },
     mananaBody: { fontSize: 14, fontWeight: '400', lineHeight: 20, color: t.text },
     group: { marginBottom: 22 },
     groupHead: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 },
-    groupTitle: { fontSize: 12.5, lineHeight: 17, fontWeight: '700', letterSpacing: 0.55, textTransform: 'uppercase', color: t.accent },
+    groupTitle: { fontSize: 13, lineHeight: 18, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase', color: t.accent },
     groupItem: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 12 },
-    groupItemName: { flex: 1, fontSize: 16, fontWeight: '600', color: t.text, lineHeight: 21 },
+    groupItemName: { flex: 1, fontSize: 16, fontWeight: '700', color: t.text, lineHeight: 21 },
     groupItemDescription: { marginTop: 3, fontSize: 13, lineHeight: 18, fontWeight: '400', color: t.textSecondary },
     groupItemPrice: { fontSize: 15, lineHeight: 21, fontWeight: '700', color: t.text },
     dishLikeCount: { minWidth: 21, height: 21, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 3 },
@@ -164,38 +164,38 @@ function makeStyles(t: Theme) {
     ratingScore: { width: 84, minHeight: 88, alignItems: 'center', justifyContent: 'center' },
     ratingAverage: { ...Type.number, color: t.text },
     ratingStars: { flexDirection: 'row', gap: 1, marginTop: 3 },
-    ratingAll: { marginTop: 5, fontSize: 11.5, fontWeight: '600', color: t.textSecondary },
+    ratingAll: { marginTop: 5, fontSize: 12, fontWeight: '700', color: t.textSecondary },
     ratingBars: { flex: 1, gap: 4 },
     ratingBarRow: { minHeight: 17, flexDirection: 'row', alignItems: 'center', gap: 4, opacity: 0.62 },
     ratingBarRowActive: { opacity: 1 },
-    ratingBarLabel: { width: 10, fontSize: 10.5, fontWeight: '600', color: t.textSecondary, textAlign: 'right' },
+    ratingBarLabel: { width: 10, fontSize: 11, fontWeight: '700', color: t.textSecondary, textAlign: 'right' },
     ratingTrack: { flex: 1, height: 4, borderRadius: 2, overflow: 'hidden', backgroundColor: t.border },
     ratingFill: { height: 4, borderRadius: 2, backgroundColor: t.accent },
-    ratingCount: { width: 15, fontSize: 10.5, color: t.textMute, textAlign: 'right' },
+    ratingCount: { width: 15, fontSize: 11, color: t.textMute, textAlign: 'right' },
     reviewCard: { paddingHorizontal: 16, paddingTop: 11, paddingBottom: 4, borderRadius: 18, backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
     reviewCardGap: { marginTop: 10 },
     reviewAuthorRow: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: 8, marginBottom: 8 },
     reviewAuthor: { flex: 1, fontSize: 14, fontWeight: '700', color: t.text },
-    reviewDate: { fontSize: 11.5, color: t.textMute },
+    reviewDate: { fontSize: 12, color: t.textMute },
     reviewStars: { flexDirection: 'row', gap: 4, marginBottom: 10 },
     reviewReasons: { flexDirection: 'row', flexWrap: 'wrap', gap: 4, marginBottom: 10 },
     reviewReason: { paddingHorizontal: 9, paddingVertical: 5, borderRadius: 100, backgroundColor: t.accentSoft },
-    reviewReasonText: { fontSize: 11, fontWeight: '600', color: t.textSecondary },
+    reviewReasonText: { fontSize: 11, fontWeight: '700', color: t.textSecondary },
     reviewNote: { fontSize: 14, lineHeight: 20, color: t.text },
     businessReply: { marginTop: 14, paddingTop: 12, paddingLeft: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border, borderLeftWidth: 2, borderLeftColor: t.accent },
     reviewActions: { height: 36, marginTop: 9, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
     reviewAction: { minWidth: 44, height: 36, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4 },
-    reviewActionText: { fontSize: 12.5, fontWeight: '700', color: t.textSecondary },
+    reviewActionText: { fontSize: 13, fontWeight: '700', color: t.textSecondary },
     reviewThread: { marginTop: 6, gap: 4, paddingLeft: 10, borderLeftWidth: StyleSheet.hairlineWidth, borderLeftColor: t.border },
     reviewThreadItem: { alignItems: 'flex-start' },
     reviewThreadChildren: { marginLeft: 18, paddingLeft: 9, borderLeftWidth: StyleSheet.hairlineWidth, borderLeftColor: t.border, gap: 4 },
     reviewThreadBubble: { maxWidth: '94%', paddingHorizontal: 11, paddingVertical: 8, borderRadius: 15, backgroundColor: t.bg },
     reviewThreadHead: { width: '100%', flexDirection: 'row', alignItems: 'center', gap: 4 },
-    reviewThreadAuthor: { flex: 1, minWidth: 0, fontSize: 12, lineHeight: 16, fontWeight: '800', color: t.text },
+    reviewThreadAuthor: { flex: 1, minWidth: 0, fontSize: 12, lineHeight: 16, fontWeight: '700', color: t.text },
     reviewThreadSeal: { width: 16, height: 16, flexShrink: 0, alignItems: 'center', justifyContent: 'center' },
-    reviewThreadText: { marginTop: 2, fontSize: 12.5, lineHeight: 17, color: t.textSecondary },
+    reviewThreadText: { marginTop: 2, fontSize: 13, lineHeight: 18, color: t.textSecondary },
     reviewThreadActions: { height: 29, paddingLeft: 7, flexDirection: 'row', alignItems: 'center', gap: 4 },
-    reviewThreadTime: { paddingHorizontal: 4, fontSize: 10.5, color: t.textMute },
+    reviewThreadTime: { paddingHorizontal: 4, fontSize: 11, color: t.textMute },
     reviewThreadTextAction: { height: 28, paddingHorizontal: 5, justifyContent: 'center' },
     reviewThreadTextActionLabel: { fontSize: 11, fontWeight: '700', color: t.textSecondary },
     reviewReplyRow: { marginTop: 8, paddingTop: 9, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border, flexDirection: 'row', alignItems: 'center', gap: 8 },
@@ -215,10 +215,10 @@ function makeStyles(t: Theme) {
     factColumn: { flex: 1, minWidth: 0, minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 4 },
     factColumnCenter: { justifyContent: 'center' },
     factColumnRight: { justifyContent: 'flex-end' },
-    historyMetaText: { fontSize: 11.5, color: t.textMute, flexShrink: 1 },
+    historyMetaText: { fontSize: 12, color: t.textMute, flexShrink: 1 },
     badgeInline: { height: 48, alignItems: 'flex-start', justifyContent: 'center', paddingHorizontal: 12 },
-    badgeInlineTitle: { fontSize: 12.5, fontWeight: '800', color: t.text, textAlign: 'left' },
-    badgeInlineText: { marginTop: 1, fontSize: 11.5, lineHeight: 15, color: t.textSecondary, textAlign: 'left' },
+    badgeInlineTitle: { fontSize: 13, fontWeight: '700', color: t.text, textAlign: 'left' },
+    badgeInlineText: { marginTop: 1, fontSize: 12, lineHeight: 16, color: t.textSecondary, textAlign: 'left' },
     mapPanel: { height: 92, borderRadius: 18, backgroundColor: t.isDark ? '#191A1B' : '#D8D6D0', overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
     mapView: { ...StyleSheet.absoluteFillObject },
     mapMarker: { width: 26, height: 26, borderRadius: 13, backgroundColor: '#111214', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.82)', alignItems: 'center', justifyContent: 'center', shadowColor: '#FFFFFF', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.24, shadowRadius: 6, elevation: 4 },
@@ -567,7 +567,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
     <TouchableOpacity
       style={s.glassIcon}
       onPress={onPress}
-      activeOpacity={0.76}
+      activeOpacity={0.7}
       accessibilityRole="button"
       accessibilityLabel={label}
       accessibilityState={selected !== undefined ? { selected } : undefined}>
@@ -583,7 +583,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
         <Stack.Screen options={{ headerShown: false }} />
         {!own && (
           <View style={{ paddingHorizontal: 20 }}>
-            <GlassIcon name="chevron-back" size={22} onPress={handleBack} label="Regresar" />
+            <GlassIcon name="chevron-back" size={21} onPress={handleBack} label="Volver" />
           </View>
         )}
         <AgentSpinner color={theme.text} size={22} style={{ alignSelf: 'center', marginTop: 80 }} />
@@ -597,7 +597,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
       <View style={[s.container, { paddingTop: insets.top + 8 }]}>
         <Stack.Screen options={{ headerShown: false }} />
         <View style={{ paddingHorizontal: 20 }}>
-          {!own && <GlassIcon name="chevron-back" size={22} onPress={handleBack} label="Regresar" />}
+          {!own && <GlassIcon name="chevron-back" size={21} onPress={handleBack} label="Volver" />}
           <Text style={[s.title, { marginTop: 24 }]}>{noWidow(own ? 'Tu Patio aparecerá aquí' : 'No encontrado')}</Text>
         </View>
         {own && <BottomTabBar variant="fondero" />}
@@ -654,7 +654,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
             </View>
           )}
           <View style={[s.heroNav, { top: insets.top + 8 }]}>
-            {own ? <View /> : <GlassIcon name="chevron-back" size={20} onPress={handleBack} label="Regresar" />}
+            {own ? <View /> : <GlassIcon name="chevron-back" size={21} onPress={handleBack} label="Volver" />}
             <View style={{ flexDirection: 'row', gap: 8 }}>
               {!own && patioId && <ContentSafetyMenu targetType="patio" targetId={patioId} />}
               <GlassIcon name="share-outline" size={17} onPress={handleShare} label="Compartir" />
@@ -818,7 +818,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
                 accessibilityRole="button"
                 style={s.mapPanel}
                 onPress={handleComoLlegar}
-                activeOpacity={0.86}>
+                activeOpacity={0.85}>
                 <MapView
                   customMapStyle={theme.isDark ? MAP_STYLE_DARK : MAP_STYLE_LIGHT}
                   initialRegion={{ latitude: patio.latitude, longitude: patio.longitude, latitudeDelta: 0.006, longitudeDelta: 0.006 }}
@@ -851,7 +851,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
               <View>
                 <Text style={s.reviewsTitle}>Reseñas</Text>
               </View>
-              {!own && <TouchableOpacity style={[s.reviewPrompt, reviewedToday && { opacity: 0.55 }]} onPress={reviewedToday ? undefined : () => handleStarPress(0)} disabled={reviewedToday} activeOpacity={0.8} accessibilityRole="button" accessibilityLabel={reviewedToday ? 'Ya reseñaste hoy' : userReview ? 'Registrar otra visita' : 'Reseñar este Patio'}>
+              {!own && <TouchableOpacity style={[s.reviewPrompt, reviewedToday && { opacity: 0.55 }]} onPress={reviewedToday ? undefined : () => handleStarPress(0)} disabled={reviewedToday} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel={reviewedToday ? 'Ya reseñaste hoy' : userReview ? 'Registrar otra visita' : 'Reseñar este Patio'}>
                 <Ionicons name={reviewedToday ? 'checkmark-circle-outline' : userReview ? 'add-circle-outline' : 'star-outline'} size={16} color={theme.accent} />
                 <Text style={s.reviewPromptText}>{reviewedToday ? 'Reseña de hoy' : userReview ? 'Otra visita' : 'Reseñar'}</Text>
               </TouchableOpacity>}

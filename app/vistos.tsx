@@ -20,9 +20,8 @@ function makeStyles(t: Theme) {
     // Header editorial
 
     // Lista
-    list: { paddingHorizontal: 18, gap: 8, marginTop: 16 },
+    list: { paddingHorizontal: 20, gap: 8, marginTop: 16 },
     card: { flexDirection: 'row', gap: 8, backgroundColor: t.surface, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, padding: 12 },
-    body: { flex: 1, minWidth: 0, justifyContent: 'center' },
     // Empty
     empty: { minHeight: 520, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 28 },
     emptyIcon: { width: 68, height: 68, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, backgroundColor: t.surface, alignItems: 'center', justifyContent: 'center', marginBottom: 18 },
@@ -75,14 +74,14 @@ export default function VistosScreen() {
             </View>
             <Text style={s.emptyTitle} allowFontScaling={true}>{noWidow('Aún no has visto nada')}</Text>
             <Text style={s.emptyText} allowFontScaling={true}>{noWidow('Cuando abras una cocina en el mapa, aparece aquí para volver rápido.')}</Text>
-            <TouchableOpacity style={s.cta} onPress={() => router.replace('/explorar')} activeOpacity={0.82} accessibilityRole="button" accessibilityLabel="Ver qué hay hoy">
+            <TouchableOpacity style={s.cta} onPress={() => router.replace('/explorar')} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel="Ver qué hay hoy">
               <Text style={s.ctaText} allowFontScaling={true}>{noWidow('Ver qué hay hoy')}</Text>
             </TouchableOpacity>
           </View>
         ) : (
           <View style={s.list}>
             {patios.map((patio) => <TouchableOpacity key={patio.id} style={s.card}
-              onPress={() => router.push(`/patio/${patio.id}`)} activeOpacity={0.82}
+              onPress={() => router.push(`/patio/${patio.id}`)} activeOpacity={0.85}
               accessibilityRole="button" accessibilityLabel={patioCardAccessibilityLabel(patio)}>
               <PatioIdentityIcon patio={patio} />
               <PatioCardInfo patio={patio} />

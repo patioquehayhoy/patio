@@ -55,7 +55,7 @@ function fixture(file, overrides = {}) {
       Gesture: { Pinch: () => { const g = { runOnJS: () => g, onStart: () => g, onUpdate: () => g }; return g; } },
     },
     'react-native-safe-area-context': { useSafeAreaInsets: () => ({ bottom: 34 }), SafeAreaView: 'SafeAreaView' },
-    '@/lib/theme': { Radius: { card: 18 }, useTheme: () => ({ theme: { isDark: false } }) },
+    '@/lib/theme': { Radius: { card: 18 }, Type: new Proxy({}, { get: () => ({}) }), useTheme: () => ({ theme: { isDark: false } }) },
     '@/lib/fondero-palette': { fonderoPalette: () => ({ text: '#111', textSecondary: '#555' }) },
     '@/lib/sheet-motion': { SHEET_DISMISS_MS: 190, SHEET_SPRING: {} },
     '@/lib/tab-bar-visibility': { useTabBarScroll: () => ({ hide: () => { tabBar.push('hide'); }, reveal: () => { tabBar.push('reveal'); } }) },

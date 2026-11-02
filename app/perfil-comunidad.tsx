@@ -107,7 +107,7 @@ export default function CommunityProfileScreen() {
   return (
     <KeyboardAvoidingView style={[s.root, { backgroundColor: theme.bg, paddingTop: insets.top }]} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <Stack.Screen options={{ headerShown: false }} />
-      <TouchableOpacity style={s.back} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Regresar"><Ionicons name="chevron-back" size={21} color={theme.text} /></TouchableOpacity>
+      <TouchableOpacity style={s.back} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Volver"><Ionicons name="chevron-back" size={21} color={theme.text} /></TouchableOpacity>
       <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={[s.content, { paddingBottom: insets.bottom + 24 }]}>
         <TouchableOpacity
           style={[s.avatar, { backgroundColor: theme.surface, borderColor: theme.border }]}
@@ -146,7 +146,7 @@ export default function CommunityProfileScreen() {
 
 const s = StyleSheet.create({
   root: { flex: 1 },
-  back: { width: 44, height: 44, marginLeft: 12, alignItems: 'center', justifyContent: 'center' },
+  back: { width: 44, height: 44, marginLeft: 14, marginVertical: 4, alignItems: 'center', justifyContent: 'center' },
   content: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: 24, paddingTop: 16 },
   avatar: { width: 68, height: 68, borderRadius: 34, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center', marginBottom: 24 },
   avatarImage: { width: 68, height: 68, borderRadius: 34 },

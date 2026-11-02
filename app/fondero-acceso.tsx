@@ -25,6 +25,7 @@ import { LOGIN_CALLBACK_URL } from '@/lib/auth';
 import { isValidEmail } from '@/lib/auth-links';
 import { completeOnboarding, saveUserRole } from '@/lib/entry-flow';
 import { supabase } from '@/lib/supabase';
+import { Colors } from '@/lib/colors';
 import { Fonts, Type } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
 
@@ -143,7 +144,7 @@ export default function FonderoAccesoScreen() {
         activeOpacity={0.7}
         accessibilityRole="button"
         accessibilityLabel="Volver">
-        <Ionicons name="chevron-back" size={20} color={DARK.text} />
+        <Ionicons name="chevron-back" size={21} color={DARK.text} />
       </TouchableOpacity>
 
       {/* Logo en el centro EXACTO de la pantalla (overlay fuera del teclado);
@@ -194,7 +195,7 @@ export default function FonderoAccesoScreen() {
                     accessibilityRole="button"
                     accessibilityLabel="Enviar enlace"
                     accessibilityState={{ disabled: loading, busy: loading }}
-                    activeOpacity={0.86}>
+                    activeOpacity={0.85}>
                     {loading
                       ? <AgentSpinner variant="dots" size={18} color="#FFFFFF" />
                       : <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />}
@@ -254,14 +255,14 @@ const s = StyleSheet.create({
   // Idéntico a la entrada (index.tsx): mismo tamaño y misma ancla de centro.
   logo: { width: 230, height: 86 },
   pairBelow: { position: 'absolute', top: '100%', left: 0, right: 0, alignItems: 'center', marginTop: 14 },
-  claim: { fontSize: 15, fontWeight: '900', fontFamily: Fonts.brand, textAlign: 'center', color: '#F8F8F5' },
-  tagline: { fontSize: 15, fontWeight: '400', fontFamily: Fonts.brand, textAlign: 'center', color: 'rgba(248,248,245,0.7)' },
+  claim: { fontSize: 15, fontFamily: Fonts.brand, textAlign: 'center', color: '#F8F8F5' },
+  tagline: { fontSize: 15, fontFamily: Fonts.brand, textAlign: 'center', color: 'rgba(248,248,245,0.7)' },
 
   actionArea: { alignItems: 'center' },
   title: { ...Type.title, color: '#F8F8F5', textAlign: 'center', marginBottom: 8 },
   sub: { fontSize: 14, fontWeight: '400', lineHeight: 20, color: 'rgba(248,248,245,0.7)', textAlign: 'center', marginBottom: 18, maxWidth: 320 },
   sentLead: { marginBottom: 4 },
-  emailHi: { maxWidth: 320, fontSize: 14, fontWeight: '900', color: '#F8F8F5', textAlign: 'center' },
+  emailHi: { maxWidth: 320, fontSize: 14, fontWeight: '700', color: '#F8F8F5', textAlign: 'center' },
   sentHint: { marginTop: 8, maxWidth: 320, fontSize: 14, fontWeight: '400', lineHeight: 20, color: 'rgba(248,248,245,0.7)', textAlign: 'center' },
 
   field: { alignSelf: 'stretch', borderRadius: 14, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.18)' },
@@ -269,8 +270,8 @@ const s = StyleSheet.create({
   input: { flex: 1, minHeight: 46, fontSize: 16, fontWeight: '400', color: '#F8F8F5', paddingVertical: 0 },
   // Única acción prominente de esta pantalla (regla homologada 2026-08-16
   // en CLAUDE.md) — mismo tratamiento que su gemela Foodie en comunidad-acceso.tsx.
-  sendBtn: { width: 44, height: 44, borderRadius: 12, backgroundColor: '#F2612F', alignItems: 'center', justifyContent: 'center' },
-  sendBtnOff: { opacity: 0.5 },
+  sendBtn: { width: 44, height: 44, borderRadius: 12, backgroundColor: Colors.accent, alignItems: 'center', justifyContent: 'center' },
+  sendBtnOff: { opacity: 0.4 },
   errorText: { marginTop: 10, fontSize: 13, fontWeight: '400', color: '#FF8A8E', textAlign: 'center' },
 
   changeLink: { marginTop: 6 },
@@ -278,5 +279,5 @@ const s = StyleSheet.create({
 
   footer: { alignItems: 'center', paddingTop: 22 },
   footerText: { fontSize: 13, fontWeight: '400', color: 'rgba(248,248,245,0.45)' },
-  footerAccent: { fontWeight: '900', color: 'rgba(248,248,245,0.7)' },
+  footerAccent: { fontWeight: '700', color: 'rgba(248,248,245,0.7)' },
 });

@@ -32,6 +32,6 @@ const s = StyleSheet.create({
   root: { flex: 1, paddingHorizontal: 20 },
   nav: { height: 52, marginHorizontal: -6, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   back: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  navTitle: { fontSize: 15, fontWeight: '600' },
+  navTitle: { fontSize: 17, lineHeight: 22, fontWeight: '700' },
   footnote: { marginTop: 8, fontSize: 13, lineHeight: 18 },
 });

@@ -20,7 +20,7 @@ import { writeErrorMessage } from '@/lib/content-safety';
 import { getBusinessInsights, getDishLikeCounts, type BusinessInsights, type DishLikeCount } from '@/lib/business-stats';
 import { getDemoPatioStats, type PatioStatsSnapshot } from '@/lib/patio-stats';
 import { useTabBarScroll } from '@/lib/tab-bar-visibility';
-import { useTheme } from '@/lib/theme';
+import { Type, useTheme } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
 
 // Una reseña trae texto y calificación propios — a diferencia de un "like"
@@ -332,38 +332,38 @@ const s = StyleSheet.create({
   root: { flex: 1 },
   groupLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase' },
 
-  list: { borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
+  list: { borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
   insights: { borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, padding: 16, marginBottom: 24 },
   insightRow: { flexDirection: 'row', gap: 16 },
   insight: { flex: 1, minWidth: 0 },
-  insightValue: { fontSize: 24, fontWeight: '700', fontVariant: ['tabular-nums'] },
+  insightValue: { ...Type.section, fontVariant: ['tabular-nums'] },
   insightLabel: { marginTop: 2, fontSize: 13, lineHeight: 18, fontWeight: '400' },
-  insightWeek: { marginTop: 4, fontSize: 12, fontWeight: '600' },
+  insightWeek: { marginTop: 4, fontSize: 12, fontWeight: '700' },
   topDishes: { marginTop: 16, paddingTop: 12, borderTopWidth: StyleSheet.hairlineWidth, gap: 8 },
   topDish: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  topDishName: { flex: 1, minWidth: 0, fontSize: 14, fontWeight: '600' },
+  topDishName: { flex: 1, minWidth: 0, fontSize: 14, fontWeight: '700' },
   topDishCount: { fontSize: 13, fontWeight: '500', fontVariant: ['tabular-nums'] },
   // Fila estilo actividad de Instagram: avatar circular al frente, texto a
   // la derecha — nombre en bold seguido de la acción, hora a la derecha.
   row: { flexDirection: 'row', gap: 12, paddingHorizontal: 16, paddingVertical: 14 },
   rowBody: { flex: 1, minWidth: 0 },
   rowHead: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
-  rowText: { flex: 1, fontSize: 13.5, lineHeight: 18, fontWeight: '400' },
+  rowText: { flex: 1, fontSize: 14, lineHeight: 20, fontWeight: '400' },
   rowAuthor: { fontWeight: '700' },
-  rowTime: { fontSize: 11.5, fontWeight: '400' },
+  rowTime: { fontSize: 12, fontWeight: '400' },
   starsRow: { flexDirection: 'row', gap: 4, marginTop: 6 },
   tagsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 4, marginTop: 8 },
   tag: { paddingHorizontal: 9, paddingVertical: 4, borderRadius: 100 },
   tagText: { fontSize: 11, fontWeight: '500' },
-  reviewNote: { marginTop: 8, fontSize: 13.5, lineHeight: 19, fontWeight: '400' },
+  reviewNote: { marginTop: 8, fontSize: 14, lineHeight: 20, fontWeight: '400' },
   replyButton: { minHeight: 44, marginTop: 7, flexDirection: 'row', alignItems: 'center', gap: 4 },
   replyAction: { fontSize: 13, fontWeight: '700' },
   replyBox: { marginTop: 12, paddingLeft: 12, borderLeftWidth: 2 },
-  replyLabel: { fontSize: 10, fontWeight: '800', letterSpacing: 0.8 },
+  replyLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, lineHeight: 14 },
   replyComposer: { marginTop: 12, padding: 12, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth },
   replyInput: { minHeight: 70, fontSize: 14, lineHeight: 19, textAlignVertical: 'top' },
 
-  empty: { marginTop: 34, padding: 24, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center' },
-  emptyTitle: { marginTop: 14, fontSize: 20, fontWeight: '800' },
+  empty: { marginTop: 34, padding: 24, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center' },
+  emptyTitle: { marginTop: 14, ...Type.section, textAlign: 'center' },
   emptyBody: { maxWidth: 270, marginTop: 7, textAlign: 'center', fontSize: 14, lineHeight: 20 },
 });

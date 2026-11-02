@@ -120,7 +120,7 @@ export default function CollectionDetail() {
 
   if (!item || loadState !== 'ready') return <View style={[s.root, { backgroundColor: theme.bg, paddingTop: insets.top }]}>
     <Stack.Screen options={{ headerShown: false }} />
-    <TouchableOpacity style={s.navButton} accessibilityRole="button" accessibilityLabel="Volver" onPress={() => router.canGoBack() ? router.back() : router.replace('/favoritos')}><Ionicons name="chevron-back" size={23} color={theme.text} /></TouchableOpacity>
+    <View style={s.nav}><TouchableOpacity style={s.navButton} accessibilityRole="button" accessibilityLabel="Volver" onPress={() => router.canGoBack() ? router.back() : router.replace('/favoritos')}><Ionicons name="chevron-back" size={21} color={theme.text} /></TouchableOpacity></View>
     {loadState === 'loading' ? <FoodieLoading label="Cargando lista" /> : <View style={s.empty}>
       <Text style={[s.emptyTitle, { color: theme.text }]}>{noWidow(loadState === 'error' ? 'No pudimos cargar la lista' : 'Esta lista no está disponible')}</Text>
       {loadState === 'error' && <TouchableOpacity style={s.explore} accessibilityRole="button" accessibilityLabel="Reintentar" onPress={() => { void load(); }}><Text style={{ color: theme.text }}>Reintentar</Text></TouchableOpacity>}
@@ -131,7 +131,7 @@ export default function CollectionDetail() {
       <Stack.Screen options={{ headerShown: false }} />
       <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: insets.bottom + 42 }}>
         <View style={s.nav}>
-          <TouchableOpacity accessibilityRole="button" accessibilityLabel="Volver" style={s.navButton} onPress={() => router.back()}><Ionicons name="chevron-back" size={23} color={theme.text} /></TouchableOpacity>
+          <TouchableOpacity accessibilityRole="button" accessibilityLabel="Volver" style={s.navButton} onPress={() => router.back()}><Ionicons name="chevron-back" size={21} color={theme.text} /></TouchableOpacity>
           <TouchableOpacity ref={moreRef} accessibilityRole="button" accessibilityLabel="Acciones de la lista" style={s.navButton} onPress={() => { Haptics.selectionAsync().catch(() => {}); setActionsOpen(true); }}><Ionicons name="ellipsis-horizontal" size={21} color={theme.text} /></TouchableOpacity>
         </View>
 
@@ -163,7 +163,7 @@ export default function CollectionDetail() {
 
         {!!patios.length && <Text style={[s.section, { color: theme.textSecondary }]}>{noWidow('EN ESTA LISTA')}</Text>}
         <View style={[s.list, patios.length > 0 && { borderTopColor: theme.border, borderTopWidth: StyleSheet.hairlineWidth }]}>
-          {patios.map((patio) => <TouchableOpacity key={patio.id} accessibilityRole="button" accessibilityLabel={patioCardAccessibilityLabel(patio)} style={[s.row, { borderBottomColor: theme.border }]} activeOpacity={0.72} onPress={() => router.push(`/patio/${patio.id}`)}>
+          {patios.map((patio) => <TouchableOpacity key={patio.id} accessibilityRole="button" accessibilityLabel={patioCardAccessibilityLabel(patio)} style={[s.row, { borderBottomColor: theme.border }]} activeOpacity={0.7} onPress={() => router.push(`/patio/${patio.id}`)}>
             <PatioIdentityIcon patio={patio} />
             <PatioCardInfo patio={patio} />
             <Ionicons name="chevron-forward" size={16} color={theme.textMute} />
@@ -172,7 +172,7 @@ export default function CollectionDetail() {
 
         {!patios.length && (
           <View style={s.empty}>
-            <View style={[s.emptyIcon, { backgroundColor: theme.surface }]}><Ionicons name="bookmark-outline" size={27} color={theme.textSecondary} /></View>
+            <View style={[s.emptyIcon, { backgroundColor: theme.surface }]}><Ionicons name="bookmark-outline" size={32} color={theme.textSecondary} /></View>
             <Text style={[s.emptyTitle, { color: theme.text }]}>{noWidow('Esta lista está esperando')}</Text>
             <Text style={[s.emptyText, { color: theme.textSecondary }]}>{noWidow('Cuando guardes un lugar, podrás añadirlo aquí.')}</Text>
             <TouchableOpacity accessibilityRole="button" accessibilityLabel="Explorar lugares" style={[s.explore, { borderColor: theme.border }]} onPress={() => router.replace('/explorar')}><Text style={[s.exploreText, { color: theme.text }]}>{noWidow('Explorar lugares')}</Text></TouchableOpacity>
@@ -194,15 +194,15 @@ export default function CollectionDetail() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, paddingHorizontal: 20 }, nav: { height: 58, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  root: { flex: 1, paddingHorizontal: 20 }, nav: { height: 52, marginHorizontal: -6, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   navButton: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
   title: { ...Type.screen, padding: 0 },
-  description: { fontSize: 14.5, lineHeight: 20, marginTop: 8, padding: 0, minHeight: 24 }, count: { fontSize: 12.5, marginTop: 12 },
+  description: { fontSize: 15, lineHeight: 20, marginTop: 8, padding: 0, minHeight: 24 }, count: { fontSize: 13, marginTop: 12 },
   actions: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 24 }, primaryAction: { minHeight: 50, paddingVertical: 12, paddingHorizontal: 16, flex: 1, borderRadius: 25, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   primaryText: { flexShrink: 1, fontSize: 15, fontWeight: '700' }, shareButton: { width: 50, height: 50, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
-  section: { marginTop: 32, marginBottom: 9, fontSize: 10.5, fontWeight: '800', letterSpacing: 0.8 }, list: {},
-  row: { paddingVertical: 12, minHeight: 94, borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 8 }, rowBody: { flex: 1, minWidth: 0 },
-  empty: { alignItems: 'center', paddingTop: 76, paddingHorizontal: 28 }, emptyIcon: { width: 64, height: 64, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
-  emptyTitle: { ...Type.section, marginTop: 18 }, emptyText: { marginTop: 8, fontSize: 14, lineHeight: 20, textAlign: 'center' },
-  explore: { minHeight: 48, paddingVertical: 12, paddingHorizontal: 20, borderRadius: 15, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center', marginTop: 22 }, exploreText: { fontSize: 15, fontWeight: '700' },
+  section: { marginTop: 32, marginBottom: 9, fontSize: 11, fontWeight: '700', letterSpacing: 0.8 }, list: {},
+  row: { paddingVertical: 12, minHeight: 94, borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 8 }, 
+  empty: { alignItems: 'center', paddingTop: 76, paddingHorizontal: 28 }, emptyIcon: { width: 68, height: 68, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+  emptyTitle: { ...Type.section, marginTop: 18 }, emptyText: { marginTop: 8, fontSize: 15, lineHeight: 21, textAlign: 'center' },
+  explore: { minHeight: 48, paddingVertical: 12, paddingHorizontal: 20, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center', marginTop: 22 }, exploreText: { fontSize: 15, fontWeight: '700' },
 });

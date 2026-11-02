@@ -47,7 +47,6 @@ function makeStyles(t: Theme) {
     viewport: { flex: 1 },
     alphabetSection: { paddingHorizontal: 16 },
 
-    controlsClip: { overflow: 'hidden' },
     filterWrap: { paddingTop: 10, paddingBottom: 4, gap: 4 },
     searchWrap: { marginHorizontal: 16 },
     libraryHeader: { paddingHorizontal: 16, minHeight: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
@@ -55,8 +54,6 @@ function makeStyles(t: Theme) {
 
     // Selección rápida: link a la derecha, arriba del filtro — mismo lugar
     // donde iOS pone "Seleccionar" en Fotos/Archivos (esquina superior).
-    selectRow: { paddingHorizontal: 16, minHeight: 52, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 },
-    selectTitle: { flex: 1, fontSize: 16, fontWeight: '600', color: t.text },
     selectToggle: { minWidth: 44, minHeight: 44, justifyContent: 'center' },
     selectToggleText: { fontSize: 14, fontWeight: '700', color: t.textSecondary },
 
@@ -70,18 +67,9 @@ function makeStyles(t: Theme) {
     gridPrice: { flex: 1, minWidth: 0 },
     thumb: { width: 36, height: 36, flexShrink: 0, alignItems: 'center', justifyContent: 'center' },
     body: { flex: 1, minWidth: 0, justifyContent: 'flex-start' },
-    // Nombre + platillo de hoy son una sola unidad óptica (identidad +
-    // "descripción" del lugar, igual que título/artista en Apple Music —
-    // ver CLAUDE.md "Campos de texto agrupados"): 2px máximo entre ellos.
-    nameRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 2 },
     name: { flexShrink: 1, fontSize: 16, fontWeight: '700', color: t.text, lineHeight: 21 },
-    today: { fontSize: 13, lineHeight: 18, fontWeight: '300', color: t.text, marginBottom: 2 },
-    metaLine: { minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: 6 },
     distance: { flexShrink: 0, fontSize: 13, lineHeight: 18, fontWeight: '300', color: t.textSecondary, fontVariant: ['tabular-nums'] },
     price: { flexShrink: 0, fontSize: 14, fontWeight: '300', color: t.textSecondary },
-    metaRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', columnGap: 8, rowGap: 2 },
-    metaArea: { flexDirection: 'row', alignItems: 'center', gap: 3, minWidth: 0, flexShrink: 1 },
-    metaAreaText: { fontSize: 12, lineHeight: 17, fontWeight: '300', color: t.textSecondary, flexShrink: 1 },
 
     // Sin resultados de filtro: misma tarjeta que una fila, para no
     // introducir un cuarto tratamiento visual solo para este estado.
@@ -94,22 +82,8 @@ function makeStyles(t: Theme) {
     empty: { minHeight: 520, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 28 },
     emptyIcon: { width: 68, height: 68, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, backgroundColor: t.surface, alignItems: 'center', justifyContent: 'center', marginBottom: 18 },
     emptyTitle: { ...Type.section, color: t.text, textAlign: 'center' },
-    emptyText: { marginTop: 10, fontSize: 15, lineHeight: 21, fontWeight: '400', color: t.textSecondary, textAlign: 'center' },
     cta: { marginTop: 26, height: 54, paddingHorizontal: 24, borderRadius: 27, backgroundColor: t.accent, alignItems: 'center', justifyContent: 'center' },
     ctaText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
-
-    // Barra de acciones en lote — reemplaza la tab bar mientras se
-    // selecciona, mismo lenguaje de vidrio que el resto de panels flotantes.
-    actionBar: {
-      position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 20, paddingTop: 14, overflow: 'hidden',
-      borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.isDark ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.18)',
-      backgroundColor: t.isDark ? 'rgba(17,18,20,0.4)' : 'rgba(248,248,245,0.4)',
-      shadowColor: '#000', shadowOffset: { width: 0, height: -8 }, shadowOpacity: t.isDark ? 0.20 : 0.08, shadowRadius: 32,
-    },
-    actionButtons: { flexDirection: 'row', gap: 8 },
-    actionBtn: { flex: 1, minHeight: 48, alignItems: 'center', justifyContent: 'center', gap: 4 },
-    actionBtnDisabled: { opacity: 0.35 },
-    actionBtnText: { fontSize: 12, fontWeight: '600' },
   });
 }
 
@@ -329,7 +303,7 @@ export default function FavoritosScreen() {
         style={[viewMode === 'grid' ? [s.gridCard, { width: gridWidth }] : s.card, viewMode === 'grid' && selecting && isSelected && s.cardSelected]}
         onPress={() => { if (selecting) toggleSelect(patio.id); else { if (normalizedQuery) void recordRecentPatio(patio, 'searched').catch(() => {}); router.push(`/patio/${patio.id}`); } }}
         onLongPress={() => { if (!selecting) { setSelecting(true); toggleSelect(patio.id); } }}
-        activeOpacity={0.82}
+        activeOpacity={0.85}
         accessibilityRole={selecting ? 'checkbox' : 'button'}
         accessibilityState={selecting ? { checked: isSelected } : undefined}
         accessibilityLabel={selecting ? `${isSelected ? 'Quitar de la selección' : 'Seleccionar'} ${patio.name}` : patioCardAccessibilityLabel(patio, { distanceLabel: distance, personalRating: metaById[patio.id]?.rating, includePersonalRating: true })}>
@@ -439,7 +413,7 @@ export default function FavoritosScreen() {
               <Ionicons name="bookmark-outline" size={32} color={theme.textSecondary} />
             </View>
             <Text style={s.emptyTitle} allowFontScaling={true}>{noWidow('Sin guardados')}</Text>
-            <TouchableOpacity style={s.cta} onPress={() => router.replace('/explorar')} activeOpacity={0.82} accessibilityRole="button" accessibilityLabel="Buscar algo rico">
+            <TouchableOpacity style={s.cta} onPress={() => router.replace('/explorar')} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel="Buscar algo rico">
               <Text style={s.ctaText} allowFontScaling={true}>{noWidow('Buscar algo rico')}</Text>
             </TouchableOpacity>
           </View>

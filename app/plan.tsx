@@ -43,7 +43,7 @@ function PlanCard({ t, name, tagline, price, was, unit, badge, highlight, action
     {action && <TouchableOpacity disabled={action.disabled} onPress={action.onPress} accessibilityRole="button"
       accessibilityState={{ disabled: !!action.disabled }}
       style={[s.cta, action.tone === 'accent' && { backgroundColor: t.accent }, action.tone === 'ink' && { backgroundColor: t.text },
-        action.tone === 'outline' && { borderWidth: 1.5, borderColor: t.border }, action.disabled && { opacity: 0.5 }]}>
+        action.tone === 'outline' && { borderWidth: 1.5, borderColor: t.border }, action.disabled && { opacity: 0.4 }]}>
       <Text style={[s.ctaText, { color: action.tone === 'accent' ? '#fff' : action.tone === 'ink' ? t.bg : t.text }]}>{noWidow(action.label)}</Text>
     </TouchableOpacity>}
     <View style={s.benefits}>{shown.map((benefit) => <View key={benefit} style={s.benefit}>
@@ -119,7 +119,7 @@ export default function Plan() {
 
   return <View style={[s.root, { backgroundColor: theme.bg, paddingTop: insets.top }]}>
     <Stack.Screen options={{ headerShown: false }} />
-    <View style={s.nav}><TouchableOpacity style={s.back} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Volver"><Ionicons name="chevron-back" size={22} color={theme.text} /></TouchableOpacity></View>
+    <View style={s.nav}><TouchableOpacity style={s.back} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Volver"><Ionicons name="chevron-back" size={21} color={theme.text} /></TouchableOpacity></View>
     <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[s.content, { paddingBottom: insets.bottom + 40 }]}>
       <Text accessibilityRole="header" style={[s.title, { color: theme.text }]}>{noWidow('Elige tu plan')}</Text>
       <Text style={[s.title, { color: theme.accent }]}>{noWidow(`y ahorra ${ANNUAL_SAVING}% al año`)}</Text>
@@ -163,7 +163,7 @@ export default function Plan() {
         onPress={() => void (__DEV__ ? handleDevFondero() : handleFonderoAccess())}>
         <Ionicons name="storefront-outline" size={20} color={theme.textSecondary} />
         <Text style={[s.businessText, { color: theme.text }]}>{noWidow('¿Tienes un negocio? Regístralo gratis')}</Text>
-        <Ionicons name="chevron-forward" size={17} color={theme.textMute} />
+        <Ionicons name="chevron-forward" size={16} color={theme.textMute} />
       </TouchableOpacity>}
 
       {available && <View style={s.footer}>
@@ -182,7 +182,7 @@ export default function Plan() {
 }
 const s = StyleSheet.create({
   root: { flex: 1 },
-  nav: { minHeight: 52, paddingHorizontal: 12 },
+  nav: { minHeight: 52, paddingHorizontal: 14 },
   back: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   content: { paddingHorizontal: 20, paddingTop: 0 },
   title: { ...Type.title, textAlign: 'center' },
@@ -196,8 +196,8 @@ const s = StyleSheet.create({
   was: { fontSize: 17, textDecorationLine: 'line-through' },
   price: { ...Type.number },
   unit: { fontSize: 14 },
-  cta: { minHeight: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', marginTop: 16 },
-  ctaText: { fontSize: 15, fontWeight: '700' },
+  cta: { minHeight: 54, borderRadius: 27, alignItems: 'center', justifyContent: 'center', marginTop: 16 },
+  ctaText: { fontSize: 16, fontWeight: '700' },
   benefits: { marginTop: 16, gap: 8 },
   benefit: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
   benefitText: { flex: 1, minWidth: 0, fontSize: 15, lineHeight: 20 },
@@ -214,7 +214,7 @@ const s = StyleSheet.create({
   cell: { fontSize: 14, fontWeight: '500' },
   footer: { marginTop: 24, alignItems: 'center' },
   businessRow: { marginTop: 32, minHeight: 56, paddingHorizontal: 16, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 8 },
-  businessText: { flex: 1, fontSize: 15, fontWeight: '600' },
+  businessText: { flex: 1, fontSize: 15, fontWeight: '700' },
   link: { minHeight: 44, alignItems: 'center', justifyContent: 'center' },
   linkText: { fontSize: 14 },
   legal: { marginTop: 8, fontSize: 13, lineHeight: 18, textAlign: 'center' },

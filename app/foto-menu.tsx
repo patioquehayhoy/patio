@@ -10,7 +10,7 @@ import { AgentSpinner } from '@/components/agent-spinner';
 import { MenuComposer } from '@/components/menu-composer';
 import { useFotoMenuController } from '@/lib/controllers/useFotoMenuController';
 import { fonderoPalette } from '@/lib/fondero-palette';
-import { useTheme, type Theme } from '@/lib/theme';
+import { Type, useTheme, type Theme } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
 
 // Cámara mínima de Patio: conserva captura nativa mediante expo-camera, pero
@@ -219,7 +219,7 @@ function makeStyles(theme: Theme) {
   return StyleSheet.create({
     root: { flex: 1, backgroundColor: c.bg },
     center: { alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 },
-    processingTitle: { marginTop: 18, fontSize: 20, fontWeight: '900', color: c.text },
+    processingTitle: { marginTop: 18, ...Type.section, color: c.text },
     processingBody: { maxWidth: 280, marginTop: 7, textAlign: 'center', fontSize: 13, lineHeight: 19, fontWeight: '400', color: c.textSecondary },
     cancelBtn: { marginTop: 28, minHeight: 44, paddingHorizontal: 20, alignItems: 'center', justifyContent: 'center' },
     cancelText: { fontSize: 15, fontWeight: '400', color: c.textSecondary },
@@ -238,6 +238,6 @@ function makeStyles(theme: Theme) {
     cameraBottom: { minHeight: 122, paddingBottom: 10, alignItems: 'center', justifyContent: 'center' },
     shutterOuter: { width: 76, height: 76, borderRadius: 38, borderWidth: 3, borderColor: '#fff', alignItems: 'center', justifyContent: 'center' },
     shutterInner: { width: 62, height: 62, borderRadius: 31, backgroundColor: '#fff' },
-    shutterOff: { opacity: 0.45 },
+    shutterOff: { opacity: 0.4 },
   });
 }

@@ -106,10 +106,10 @@ const s = StyleSheet.create({
   handleArea: { height: 28, alignItems: 'center', justifyContent: 'center' },
   grabber: { width: 36, height: 5, borderRadius: 3, backgroundColor: 'rgba(128,128,128,0.4)' },
   header: { paddingHorizontal: 20, paddingTop: 14, paddingBottom: 12 },
-  title: { fontSize: 18, fontWeight: '800' },
+  title: { fontSize: 17, lineHeight: 22, fontWeight: '700' },
   subtitle: { marginTop: 2, fontSize: 13, fontWeight: '400' },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 20, paddingVertical: 12 },
   rowBody: { flex: 1, minWidth: 0 },
-  rowText: { fontSize: 14.5, fontWeight: '600' },
-  rowSubtext: { marginTop: 1, fontSize: 12.5, fontWeight: '400' },
+  rowText: { fontSize: 15, fontWeight: '700' },
+  rowSubtext: { marginTop: 1, fontSize: 13, fontWeight: '400' },
 });

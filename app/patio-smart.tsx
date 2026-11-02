@@ -127,7 +127,7 @@ function ContinueButton({ colors, disabled, loading, onPress }: {
       accessibilityState={{ disabled: disabled || loading, busy: loading }}
       disabled={disabled || loading}
       onPress={onPress}
-      activeOpacity={0.78}
+      activeOpacity={0.7}
       style={[s.continueButton, { backgroundColor: colors.accent }, (disabled || loading) && s.disabled]}>
       {loading
         ? <ActivityIndicator size="small" color="#FFFFFF" />
@@ -285,9 +285,9 @@ export default function PatioSmartScreen() {
           accessibilityLabel="Volver"
           hitSlop={{ top: 2, bottom: 2, left: 2, right: 2 }}
           onPress={() => setStage('payments')}
-          activeOpacity={0.72}
+          activeOpacity={0.7}
           style={[s.finishBack, { top: insets.top + 8 }]}>
-          <Ionicons name="chevron-back" size={20} color={colors.accent} />
+          <Ionicons name="chevron-back" size={21} color={colors.accent} />
         </TouchableOpacity>
 
         <View style={s.finishIdentity} pointerEvents="none">
@@ -310,7 +310,7 @@ export default function PatioSmartScreen() {
               cancela, entra a Menús; nunca se queda atorado aquí. */}
           <TouchableOpacity
             onPress={() => setFirstMenuVisible(true)}
-            activeOpacity={0.82}
+            activeOpacity={0.85}
             style={s.finishButton}
             accessibilityRole="button"
             accessibilityLabel="Crear mi primer menú">
@@ -320,7 +320,7 @@ export default function PatioSmartScreen() {
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => setStage('name')}
-            activeOpacity={0.68}
+            activeOpacity={0.7}
             style={s.finishEdit}
             accessibilityRole="button"
             accessibilityLabel="Editar datos">
@@ -349,7 +349,7 @@ export default function PatioSmartScreen() {
           onPress={goBack}
           activeOpacity={0.7}
           style={[s.close, { backgroundColor: colors.surface }]}>
-          <Ionicons name={stage === 'name' ? 'close' : 'chevron-back'} size={20} color={colors.accent} />
+          <Ionicons name={stage === 'name' ? 'close' : 'chevron-back'} size={21} color={colors.accent} />
         </TouchableOpacity>
         <View style={s.progress} accessibilityLabel={`Paso ${stepIndex + 1} de 5`}>
           {[0, 1, 2, 3, 4].map((step) => (
@@ -488,7 +488,7 @@ export default function PatioSmartScreen() {
               accessibilityLabel={hasCoordinates ? 'Actualizar ubicación del negocio' : 'Usar mi ubicación actual'}
               accessibilityState={{ disabled: locating, busy: locating }}
               disabled={locating}
-              activeOpacity={0.72}
+              activeOpacity={0.7}
               style={[s.locationAction, { backgroundColor: colors.surface, borderColor: colors.border }]}>
               <View style={[s.locationIcon, { backgroundColor: colors.iconBg }]}>
                 {locating
@@ -587,34 +587,34 @@ const s = StyleSheet.create({
   headerBlock: { alignItems: 'center', paddingHorizontal: 10 },
   title: { ...Type.screen, maxWidth: 340, textAlign: 'center' },
   subtitle: { maxWidth: 330, marginTop: 10, fontSize: 16, lineHeight: 22, fontWeight: '400', textAlign: 'center' },
-  field: { marginTop: 30, minHeight: 76, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 16, paddingTop: 11, paddingBottom: 10 },
-  fieldLabel: { fontSize: 10, lineHeight: 14, fontWeight: '700', letterSpacing: 0.8 },
+  field: { marginTop: 30, minHeight: 76, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 16, paddingTop: 11, paddingBottom: 10 },
+  fieldLabel: { fontSize: 11, lineHeight: 14, fontWeight: '700', letterSpacing: 0.8 },
   fieldInput: { flex: 1, minHeight: 36, padding: 0, fontSize: 19, lineHeight: 25, fontWeight: '500' },
   addressField: { marginTop: 12 },
   otroField: { marginTop: 12 },
-  continueButton: { minWidth: 154, minHeight: 48, alignSelf: 'center', marginTop: 26, paddingHorizontal: 26, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
-  continueText: { fontSize: 15, fontWeight: '700' },
-  disabled: { opacity: 0.2 },
-  locationAction: { minHeight: 76, marginTop: 28, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 8 },
+  continueButton: { minWidth: 154, minHeight: 54, alignSelf: 'center', marginTop: 26, paddingHorizontal: 26, borderRadius: 27, alignItems: 'center', justifyContent: 'center' },
+  continueText: { fontSize: 16, fontWeight: '700' },
+  disabled: { opacity: 0.4 },
+  locationAction: { minHeight: 76, marginTop: 28, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 8 },
   locationIcon: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   locationCopy: { flex: 1, minWidth: 0 },
   typeGrid: { marginTop: 26, gap: 8 },
-  typeOption: { minHeight: 52, borderRadius: 15, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 8 },
-  typeOptionLocked: { opacity: 0.35 },
-  typeLabel: { flex: 1, fontSize: 14, fontWeight: '600' },
-  locationTitle: { fontSize: 15, lineHeight: 19, fontWeight: '600' },
+  typeOption: { minHeight: 52, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 8 },
+  typeOptionLocked: { opacity: 0.4 },
+  typeLabel: { flex: 1, fontSize: 14, fontWeight: '700' },
+  locationTitle: { fontSize: 15, lineHeight: 19, fontWeight: '700' },
   locationHint: { marginTop: 3, fontSize: 12, lineHeight: 16, fontWeight: '400' },
   scheduleEditor: { marginTop: 24 },
   paymentEditor: { marginTop: 30 },
   finishRoot: { flex: 1, backgroundColor: '#0B0B0C' },
-  finishBack: { position: 'absolute', left: 16, width: 42, height: 42, borderRadius: 21, backgroundColor: 'rgba(0,0,0,0.28)', alignItems: 'center', justifyContent: 'center', zIndex: 2 },
+  finishBack: { position: 'absolute', left: 16, width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(0,0,0,0.28)', alignItems: 'center', justifyContent: 'center', zIndex: 2 },
   finishIdentity: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 28 },
   finishName: { ...Type.celebration, maxWidth: 350, color: '#fff', textAlign: 'center', textShadowColor: 'rgba(0,0,0,0.28)', textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 16 },
   finishContent: { position: 'absolute', left: 26, right: 26, bottom: 0, alignItems: 'center' },
-  finishTitle: { color: '#fff', fontSize: 25, lineHeight: 31, fontWeight: '700', textAlign: 'center' },
+  finishTitle: { color: '#fff', ...Type.section, textAlign: 'center' },
   finishBody: { maxWidth: 340, color: 'rgba(255,255,255,0.74)', marginTop: 8, fontSize: 15, lineHeight: 21, fontWeight: '400', textAlign: 'center' },
-  finishButton: { minHeight: 50, marginTop: 22, paddingHorizontal: 24, borderRadius: 25, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' },
-  finishButtonText: { color: '#111214', fontSize: 15, fontWeight: '700' },
+  finishButton: { minHeight: 54, marginTop: 22, paddingHorizontal: 24, borderRadius: 27, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' },
+  finishButtonText: { color: '#111214', fontSize: 16, fontWeight: '700' },
   finishEdit: { minHeight: 42, paddingHorizontal: 18, alignItems: 'center', justifyContent: 'center' },
   finishEditText: { color: 'rgba(255,255,255,0.62)', fontSize: 13, fontWeight: '400' },
 });

@@ -96,8 +96,8 @@ function styles(t: Theme) {
     organizer: { minHeight: 40, paddingHorizontal: 6, paddingVertical: 4, borderRadius: 16, flexDirection: 'row', alignItems: 'center', gap: 4, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, backgroundColor: t.glass },
     organizerCompact: { flexShrink: 0, width: 40, paddingHorizontal: 0, justifyContent: 'center' },
     headerTextAction: { minWidth: 44, minHeight: 44, paddingHorizontal: 8, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-    headerActionText: { fontSize: 15, lineHeight: 20, fontWeight: '600', color: t.text },
-    organizerText: { flexShrink: 1, minWidth: 0, fontSize: 13, fontWeight: '600', color: t.text },
+    headerActionText: { fontSize: 16, lineHeight: 20, fontWeight: '700', color: t.text },
+    organizerText: { flexShrink: 1, minWidth: 0, fontSize: 13, fontWeight: '700', color: t.text },
     controlIcon: { width: 20, height: 20, alignItems: 'center', justifyContent: 'center' },
     activeCount: { position: 'absolute', top: -5, right: -3, minWidth: 18, height: 18, paddingHorizontal: 4, borderRadius: 9, overflow: 'hidden', backgroundColor: t.text, color: t.bg, textAlign: 'center', fontSize: 10, lineHeight: 18, fontWeight: '700', fontVariant: ['tabular-nums'] },
     choiceRow: { minHeight: 48 },
@@ -106,7 +106,6 @@ function styles(t: Theme) {
     availabilityRow: { minHeight: 52, paddingHorizontal: 16, paddingVertical: 6, flexDirection: 'row', alignItems: 'center', gap: 12 },
     checkSlot: { width: 22, flexShrink: 0, alignItems: 'center' },
     disclosureChevron: { width: 16, height: 24, flexShrink: 0, alignItems: 'center', justifyContent: 'center' },
-    backButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', marginLeft: -12 },
     // Recorta el BlurView a la cápsula sin recortar también el badge — el
     // badge vive fuera de los bordes del pill (top/right negativos) y con
     // `overflow: hidden` en el propio TouchableOpacity se cercenaba a una
@@ -117,48 +116,27 @@ function styles(t: Theme) {
     // solo esquinas superiores redondeadas) — el tratamiento flotante con
     // margen en las 4 puntas se sentía como una tarjeta encimada, no como el
     // sheet nativo que cubre el ancho completo (decisión 2026-08-20).
-    kav: { flex: 1 },
-    backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.16)' },
     // Vidrio real (ley de CLAUDE.md "Glass y superficies flotantes": todo
     // panel flotante usa BlurView, nunca fondo sólido) — antes era
     // `backgroundColor: t.surface` opaco, violación real detectada en
     // auditoría 2026-08-23. intensity 20/16 y tinte según la tabla.
     sheet: { position: 'absolute', left: 0, right: 0, bottom: 0, borderTopLeftRadius: 28, borderTopRightRadius: 28, overflow: 'hidden', borderTopWidth: StyleSheet.hairlineWidth, borderColor: border },
-    sheetTint: { ...StyleSheet.absoluteFillObject, backgroundColor: t.isDark ? 'rgba(20,21,24,0.72)' : 'rgba(255,255,255,0.70)' },
-    grabberTouch: { alignItems: 'center', flexShrink: 0 },
-    grabber: { width: 36, height: 4, borderRadius: 2, marginTop: 8, marginBottom: 12, backgroundColor: t.isDark ? 'rgba(255,255,255,0.16)' : 'rgba(0,0,0,0.10)' },
-    headerIcon: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-    panelHeader: { width: '100%', minHeight: 44, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 8 },
-    panelHeading: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center' },
-    panelActions: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-    panelTitle: { flexShrink: 1, fontSize: 17, fontWeight: '700', color: t.text },
-    panelClear: { fontSize: 14, fontWeight: '600', color: t.text },
     section: { paddingTop: 12 },
     group: { marginHorizontal: 16, borderRadius: 14, backgroundColor: t.surface, overflow: 'hidden' },
     rowDivider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border },
     rowCopy: { flex: 1, minWidth: 0 },
-    rowDetail: { fontSize: 13, lineHeight: 18, color: t.textSecondary, marginTop: 2 },
     emptyLists: { paddingHorizontal: 24, paddingVertical: 24, gap: 8, alignItems: 'center' },
     emptyTitle: { fontSize: 17, fontWeight: '700', color: t.text },
     emptyDetail: { fontSize: 14, lineHeight: 20, color: t.textSecondary, textAlign: 'center' },
     sectionLabel: { paddingHorizontal: 20, paddingBottom: 8, fontSize: 11, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase', color: t.textMute },
     option: { minHeight: 52, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 12 },
     optionText: { flex: 1, fontSize: 15, fontWeight: '500', color: t.text },
-    // Fila de una lista real (a diferencia de "Nueva lista"): el toggle
-    // ocupa la mayoría de la fila, "···" vive aparte para no competir con
-    // el gesto principal (unir/quitar del mapa).
-    listRowMain: { flex: 1, minWidth: 0, minHeight: 52, paddingVertical: 6, flexDirection: 'row', alignItems: 'center', gap: 12 },
-    listTrailing: { flexDirection: 'row', alignItems: 'center', gap: 4, flexShrink: 0 },
     listCount: { minWidth: 64, fontSize: 13, lineHeight: 18, color: t.textSecondary, textAlign: 'right', fontVariant: ['tabular-nums'] },
-    // Homologado con navButton de coleccion/[id].tsx: ícono suelto, sin
-    // caja de fondo — corregido 2026-08-24, había ido en la dirección
-    // contraria (le había puesto caja en vez de quitársela a los otros).
-    listRowMore: { width: 36, height: 44, alignItems: 'center', justifyContent: 'center' },
     createInput: { flex: 1, fontSize: 16, fontWeight: '400', color: t.text, padding: 0 },
     createBtn: { minWidth: 44, minHeight: 44, paddingHorizontal: 8, alignItems: 'center', justifyContent: 'center' },
-    createBtnDisabled: { opacity: 0.35 },
-    createBtnText: { fontSize: 15, fontWeight: '600', color: t.accent },
-    confirmMoveButton: { minHeight: 50, borderRadius: 25, backgroundColor: t.accent, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 20, paddingVertical: 12 },
+    createBtnDisabled: { opacity: 0.4 },
+    createBtnText: { fontSize: 16, fontWeight: '700', color: t.accent },
+    confirmMoveButton: { minHeight: 54, borderRadius: 27, backgroundColor: t.accent, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 20, paddingVertical: 12 },
     confirmMoveText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF', textAlign: 'center' },
     // Menú de acciones por lista — anclado junto al botón "···" (mismo
     // componente visual que components/action-sheet.tsx), dentro del MISMO
@@ -170,23 +148,6 @@ function styles(t: Theme) {
     inlineRow: { minHeight: 46, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
     divider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border },
     inlineRowText: { flex: 1, fontSize: 15, fontWeight: '500', paddingVertical: 8 },
-    // Diálogo de renombrar en Android (Alert.prompt no existe ahí) — mismo
-    // lenguaje visual de tarjeta flotante glass que el resto del archivo,
-    // pero centrado y de tamaño fijo (patrón alert de Archivos/Recordatorios/
-    // Fotos de Apple): un diálogo así nunca puede quedar tapado por el
-    // teclado sin importar cuántas listas existan, porque no vive dentro de
-    // un ScrollView — ver nota en startRename.
-    renameBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40 },
-    renameCard: { width: '100%', maxWidth: 320, borderRadius: 18, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: border },
-    renameCardTint: { ...StyleSheet.absoluteFillObject, backgroundColor: t.isDark ? 'rgba(28,29,32,0.86)' : 'rgba(255,255,255,0.86)' },
-    renameTitle: { fontSize: 15, fontWeight: '700', color: t.text, textAlign: 'center', paddingTop: 18, paddingHorizontal: 16 },
-    renameInput: { marginTop: 14, marginHorizontal: 16, height: 40, borderRadius: 10, paddingHorizontal: 12, fontSize: 15, color: t.text, backgroundColor: t.isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' },
-    renameActions: { flexDirection: 'row', marginTop: 16, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border },
-    renameActionBtn: { flex: 1, height: 46, alignItems: 'center', justifyContent: 'center' },
-    renameActionDivider: { borderLeftWidth: StyleSheet.hairlineWidth, borderLeftColor: t.border },
-    renameActionText: { fontSize: 15.5, fontWeight: '600', color: t.text },
-    renameActionTextPrimary: { fontWeight: '700', color: t.accent },
-
     // Ruleta de hora del filtro "Abierto" — misma receta visual que el
     // picker compacto de components/business-schedule-editor.tsx.
     pickerOverlay: { flex: 1, alignItems: 'center', justifyContent: 'center' },
@@ -202,7 +163,7 @@ function styles(t: Theme) {
     // separaba nada de verdad (bug real reportado 2026-09-16, se veía
     // pegado a los chips de día sin importar cuánto se subiera). Ahora es
     // un hijo normal del flujo, con su propio marginBottom real.
-    pickerTitle: { fontSize: 10.5, lineHeight: 13, fontWeight: '700', letterSpacing: 0.8, textAlign: 'center', color: t.textSecondary, marginBottom: 16 },
+    pickerTitle: { fontSize: 11, lineHeight: 14, fontWeight: '700', letterSpacing: 0.8, textAlign: 'center', color: t.textSecondary, marginBottom: 16 },
     // Fila de 7 días, orden fijo Lun–Dom (mismo que el editor de horario del
     // Fondero) — las 7 abreviaturas miden casi lo mismo entre sí, así que
     // caben parejas en una sola línea sin recortarse ni descuadrarse.

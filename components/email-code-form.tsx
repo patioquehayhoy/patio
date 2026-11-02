@@ -4,6 +4,7 @@ import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-nativ
 import { AgentSpinner } from './agent-spinner';
 import { EMAIL_CODE_LENGTH, verifyEmailCode } from '@/lib/auth-email-code';
 import { signedInDestination } from '@/lib/auth-destination';
+import { Colors } from '@/lib/colors';
 import { withSessionLock } from '@/lib/session-queue';
 import { noWidow } from '@/lib/typography';
 
@@ -80,10 +81,10 @@ export function EmailCodeForm({ email, role, onResend }: {
 const s = StyleSheet.create({
   form: { alignSelf: 'stretch', marginTop: 16 },
   label: { fontSize: 13, color: '#fff', marginBottom: 6 },
-  input: { minHeight: 52, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.3)', paddingHorizontal: 16, fontSize: 22, color: '#fff', backgroundColor: 'rgba(0,0,0,0.28)' },
-  button: { minHeight: 52, borderRadius: 26, marginTop: 10, backgroundColor: '#F2612F', alignItems: 'center', justifyContent: 'center' },
-  buttonText: { color: '#fff', fontWeight: '700', fontSize: 15 },
-  disabled: { opacity: 0.5 },
+  input: { minHeight: 54, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.3)', paddingHorizontal: 16, fontSize: 22, color: '#fff', backgroundColor: 'rgba(0,0,0,0.28)' },
+  button: { minHeight: 54, borderRadius: 27, marginTop: 10, backgroundColor: Colors.accent, alignItems: 'center', justifyContent: 'center' },
+  buttonText: { color: '#fff', fontWeight: '700', fontSize: 16 },
+  disabled: { opacity: 0.4 },
   error: { color: '#FF8A8E', marginTop: 8, fontSize: 13 },
   resend: { minHeight: 44, alignItems: 'center', justifyContent: 'center' },
   hint: { color: 'rgba(255,255,255,0.76)', fontSize: 13 },

@@ -114,7 +114,7 @@ export default function FoodieProfile() {
       <Stack.Screen options={{ headerShown: false }} />
       <View style={s.nav}>
         <TouchableOpacity style={s.navButton} accessibilityRole="button" accessibilityLabel="Volver" onPress={back}>
-          <Ionicons name="chevron-back" size={22} color={theme.text} />
+          <Ionicons name="chevron-back" size={21} color={theme.text} />
         </TouchableOpacity>
         {profile && !own && <ContentSafetyMenu targetType="profile" targetId={profile.user_id} authorId={profile.user_id} onBlocked={blocked} />}
       </View>
@@ -174,8 +174,8 @@ export default function FoodieProfile() {
 
 const s = StyleSheet.create({
   root: { flex: 1, paddingHorizontal: 20 },
-  nav: { height: 50, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  navButton: { minWidth: 44, minHeight: 44, justifyContent: 'center' },
+  nav: { height: 52, marginHorizontal: -6, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  navButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   feedback: { alignItems: 'center', marginTop: 40 },
   retry: { minHeight: 44, justifyContent: 'center', marginTop: 16 },
   head: { alignItems: 'center', paddingVertical: 20 },
@@ -190,7 +190,7 @@ const s = StyleSheet.create({
   desc: { fontSize: 12, marginTop: 3 },
   stats: { flexDirection: 'row', justifyContent: 'center', gap: 24, marginTop: 16 },
   stat: { alignItems: 'center', minWidth: 56 },
-  statValue: { fontSize: 18, fontWeight: '700', fontVariant: ['tabular-nums'] },
+  statValue: { fontSize: 17, fontWeight: '700', fontVariant: ['tabular-nums'], lineHeight: 22 },
   statLabel: { fontSize: 12, marginTop: 2 },
   locked: { alignItems: 'center', marginTop: 24, paddingVertical: 24, paddingHorizontal: 16, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth },
 });

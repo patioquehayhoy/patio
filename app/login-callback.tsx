@@ -64,6 +64,6 @@ export default function LoginCallback() {
 const s = StyleSheet.create({
   root: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
   message: { marginTop: 24, fontSize: 15, textAlign: 'center', lineHeight: 22 },
-  button: { minHeight: 52, borderRadius: 26, marginTop: 24, paddingHorizontal: 24, justifyContent: 'center' },
-  buttonText: { color: '#FFFFFF', fontSize: 15, fontWeight: '700' },
+  button: { minHeight: 54, borderRadius: 27, marginTop: 24, paddingHorizontal: 24, justifyContent: 'center' },
+  buttonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
 });

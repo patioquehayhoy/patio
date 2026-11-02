@@ -3,6 +3,7 @@ import * as Haptics from 'expo-haptics';
 import { Stack } from 'expo-router';
 import { useMemo, useRef, useState } from 'react';
 import {
+  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -170,7 +171,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
       <Stack.Screen options={{ headerShown: false }} />
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <View style={[s.nav, { paddingTop: insets.top + 6 }]}>
-          <GlassIconButton icon="close" accessibilityLabel="Cerrar" onPress={onBack} size={40} iconSize={19} />
+          <GlassIconButton icon="close" accessibilityLabel="Cerrar" onPress={onBack} />
           {/* Título del menú de hoy, como el de una nota: en blanco muestra el
               placeholder de siempre, y en cuanto el fondero le pone nombre
               (aquí mismo, sin salir a Menús) ese nombre se queda — ley
@@ -203,11 +204,9 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                 Haptics.selectionAsync().catch(() => {});
                 setNombreSaved(false);
               }}
-              size={40}
-              iconSize={18}
             />
           ) : source === 'foto' && onRetake ? (
-            <GlassIconButton icon="camera-outline" accessibilityLabel="Tomar otra foto" onPress={onRetake} size={40} iconSize={18} />
+            <GlassIconButton icon="camera-outline" accessibilityLabel="Tomar otra foto" onPress={onRetake} />
           ) : <View style={s.navButton} />}
         </View>
 
@@ -285,7 +284,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                               <TouchableOpacity
                                 style={s.dishNameButton}
                                 onPress={() => focusKey(`n-${dish.id}`)}
-                                activeOpacity={0.6}
+                                activeOpacity={0.7}
                                 accessibilityRole="button"
                                 accessibilityLabel={`${dish.nombre}. Editar platillo`}>
                                 <Text style={s.dishName} numberOfLines={1} ellipsizeMode="tail">{dish.nombre}</Text>
@@ -451,25 +450,26 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
               lleva el peso. Nada ocupa todo el ancho. */}
           <View style={s.actionsBlock}>
             <TouchableOpacity
-              style={[s.saveButton, publishing && { opacity: 0.5 }]}
+              style={[s.saveButton, publishing && { opacity: 0.4 }]}
               disabled={publishing}
               accessibilityState={{ disabled: publishing }}
               onPress={saveDraft}
-              activeOpacity={0.8}
+              activeOpacity={0.85}
               accessibilityRole="button"
               accessibilityLabel={savedFlash ? 'Guardado' : 'Guardar borrador'}>
-              <Ionicons name="checkmark" size={18} color={c.text} style={{ opacity: savedFlash ? 1 : 0 }} />
+              <Ionicons name="checkmark" size={16} color={c.text} style={{ opacity: savedFlash ? 1 : 0 }} />
               <Text style={s.saveText}>{savedFlash ? 'Guardado' : 'Guardar'}</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[s.publishButton, menuEmpty && { opacity: 0.4 }]}
+              style={[s.publishButton, menuEmpty && s.publishIdle]}
               onPress={publish}
               disabled={publishing || menuEmpty}
-              activeOpacity={0.86}
+              activeOpacity={0.85}
               accessibilityRole="button"
               accessibilityLabel={publishing ? 'Publicando menú' : menuEmpty ? 'Falta un platillo' : 'Publicar menú'}
               accessibilityState={{ disabled: publishing || menuEmpty, busy: publishing }}>
-              <Text style={s.publishText}>{noWidow(publishing ? 'Publicando…' : menuEmpty ? 'Falta un platillo' : 'Publicar menú')}</Text>
+              {publishing && <ActivityIndicator size="small" color="#fff" />}
+              <Text style={[s.publishText, menuEmpty && { color: c.textSecondary }]}>{noWidow(publishing ? 'Publicando…' : menuEmpty ? 'Falta un platillo' : 'Publicar menú')}</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -490,7 +490,7 @@ function makeStyles(c: FonderoColors) {
     root: { flex: 1, backgroundColor: c.bg },
     nav: { minHeight: 54, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
     navButton: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-    navTitle: { flex: 1, textAlign: 'left', paddingHorizontal: 8, fontSize: 16, fontWeight: '700', color: c.textSecondary },
+    navTitle: { flex: 1, textAlign: 'left', paddingHorizontal: 8, fontSize: 17, fontWeight: '700', color: c.textSecondary },
     dayPriceField: { minWidth: 78, height: 40, paddingHorizontal: 10, borderRadius: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', backgroundColor: c.iconBg },
     dayPriceCurrency: { fontSize: 15, fontWeight: '700', color: c.textSecondary },
     dayPriceInput: { minWidth: 56, height: 44, paddingVertical: 0, paddingLeft: 2, textAlign: 'right', fontSize: 17, fontWeight: '700', color: c.text },
@@ -525,9 +525,12 @@ function makeStyles(c: FonderoColors) {
     chip: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingLeft: 10, paddingRight: 14, minHeight: 36, borderRadius: 100, backgroundColor: c.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: c.border },
     chipText: { fontSize: 12, fontWeight: '700', letterSpacing: 0.6, color: c.text },
     actionsBlock: { marginTop: 24, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: 8 },
-    saveButton: { minHeight: 50, borderRadius: 25, paddingVertical: 12, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: c.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: c.border },
-    saveText: { minWidth: 76, textAlign: 'center', fontSize: 15, fontWeight: '700', color: c.text },
-    publishButton: { minHeight: 50, borderRadius: 25, paddingVertical: 12, paddingHorizontal: 32, alignItems: 'center', justifyContent: 'center', backgroundColor: c.accent },
-    publishText: { fontSize: 15, fontWeight: '700', color: '#fff' },
+    saveButton: { minHeight: 54, borderRadius: 27, paddingVertical: 12, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: c.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: c.border },
+    saveText: { minWidth: 76, textAlign: 'center', fontSize: 16, fontWeight: '700', color: c.text },
+    publishButton: { minHeight: 54, borderRadius: 27, paddingVertical: 12, paddingHorizontal: 32, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: c.accent },
+    // Mismos estados que Guardar en Editar mi negocio: falta algo (gris, dice
+    // qué), listo (naranja), publicando (naranja con indicador).
+    publishIdle: { backgroundColor: c.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: c.border },
+    publishText: { fontSize: 16, fontWeight: '700', color: '#fff' },
   });
 }

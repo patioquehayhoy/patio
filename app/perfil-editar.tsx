@@ -36,7 +36,7 @@ function makeStyles(theme: Theme) {
     // Barra Guardar fija abajo (glass)
     saveBar:            { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 20, paddingTop: 12, overflow: 'hidden' },
     saveBarBorder:      { position: 'absolute', top: 0, left: 0, right: 0, height: StyleSheet.hairlineWidth, backgroundColor: t.border },
-    saveBtn:            { height: 52, borderRadius: 26, flexDirection: 'row', backgroundColor: t.accent, alignItems: 'center', justifyContent: 'center' },
+    saveBtn:            { height: 54, borderRadius: 27, flexDirection: 'row', backgroundColor: t.accent, alignItems: 'center', justifyContent: 'center' },
     saveBtnIdle:        { backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
     fieldNote:          { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6 },
     fieldNoteText:      { marginTop: 6, fontSize: 13, lineHeight: 18, fontWeight: '400', color: t.textSecondary },
@@ -52,7 +52,7 @@ function makeStyles(theme: Theme) {
     locationBtnText:    { fontSize: 13, fontWeight: '400', color: t.textSecondary },
     // Sections
     block:              { paddingTop: 24 },
-    blockLabel:         { fontSize: 11, fontWeight: '900', color: t.textSecondary, marginBottom: 8, paddingLeft: 2 },
+    blockLabel:         { fontSize: 11, fontWeight: '700', color: t.textSecondary, marginBottom: 8, paddingLeft: 2, letterSpacing: 0.8 },
     blockHelp:          { marginTop: -2, marginBottom: 14, paddingLeft: 2, fontSize: 13, lineHeight: 18, fontWeight: '400', color: t.textSecondary },
   });
 }
@@ -104,7 +104,7 @@ export default function PerfilScreen() {
   return (
     <View style={[s.container, { paddingTop: insets.top + 8 }]}>
       <View style={{ marginLeft: 14, marginBottom: 4 }}>
-        <GlassIconButton icon="chevron-back" accessibilityLabel="Volver" onPress={handleBack} size={38} iconSize={19} />
+        <GlassIconButton icon="chevron-back" accessibilityLabel="Volver" onPress={handleBack} />
       </View>
       <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
 

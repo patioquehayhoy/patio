@@ -114,7 +114,7 @@ export default function PublicCollection() {
     <View style={[s.root, { backgroundColor: theme.bg, paddingTop: insets.top }]}>
       <Stack.Screen options={{ headerShown: false }} />
       <View style={s.nav}>
-        <TouchableOpacity style={s.navButton} accessibilityRole="button" accessibilityLabel="Volver" onPress={back}><Ionicons name="chevron-back" size={22} color={theme.text} /></TouchableOpacity>
+        <TouchableOpacity style={s.navButton} accessibilityRole="button" accessibilityLabel="Volver" onPress={back}><Ionicons name="chevron-back" size={21} color={theme.text} /></TouchableOpacity>
         {item && <View style={s.navActions}>
           <TouchableOpacity style={s.navButton} accessibilityRole="button" accessibilityLabel="Compartir lista" onPress={share}><Ionicons name="share-outline" size={21} color={theme.text} /></TouchableOpacity>
           {!own && <ContentSafetyMenu targetType="collection" targetId={item.id} authorId={item.owner_id} onBlocked={blocked} />}
@@ -147,15 +147,15 @@ export default function PublicCollection() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, paddingHorizontal: 22 },
-  nav: { height: 56, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  navButton: { minWidth: 44, minHeight: 44, justifyContent: 'center' },
+  root: { flex: 1, paddingHorizontal: 20 },
+  nav: { height: 52, marginHorizontal: -6, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  navButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   navActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   feedback: { alignItems: 'center', marginTop: 40 },
   retry: { minHeight: 44, justifyContent: 'center', marginTop: 16 },
   title: { ...Type.screen, marginTop: 24 },
   desc: { fontSize: 15, lineHeight: 22, marginTop: 10 },
-  button: { minHeight: 48, paddingVertical: 12, borderRadius: 24, alignSelf: 'flex-start', paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 26 },
+  button: { minHeight: 54, paddingVertical: 12, borderRadius: 27, alignSelf: 'flex-start', paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 26 },
   placeIcon: { width: 36, height: 36, flexShrink: 0, alignItems: 'center', justifyContent: 'center' },
   placeName: { flex: 1, minWidth: 0, fontSize: 16, lineHeight: 21, fontWeight: '700' },
   row: { gap: 12, paddingVertical: 12, minHeight: 60, borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },

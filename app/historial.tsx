@@ -153,7 +153,7 @@ export default function HistorialScreen() {
         style={[s.card, { borderColor: c.border }]}
         onPress={() => (selecting ? toggleSelect(key) : reuse(menu))}
         onLongPress={() => { if (!selecting) { Haptics.selectionAsync().catch(() => {}); setSelecting(true); toggleSelect(key); } }}
-        activeOpacity={0.82}
+        activeOpacity={0.85}
         accessibilityRole="button"
         accessibilityLabel={selecting ? `${isSelected ? 'Quitar de la selección' : 'Seleccionar'} menú de ${dateLabel(menu.fecha)}` : `Usar menú de ${dateLabel(menu.fecha)}`}>
         {selecting && (
@@ -170,7 +170,7 @@ export default function HistorialScreen() {
             accessibilityLabel="Acciones del menú"
             style={s.iconBtn}
             onPress={() => setActionsFor(menu)}
-            activeOpacity={0.72}>
+            activeOpacity={0.7}>
             <Ionicons name="ellipsis-horizontal" size={17} color={c.textSecondary} />
           </TouchableOpacity>
         )}
@@ -200,7 +200,7 @@ export default function HistorialScreen() {
               {streak > 0 && (
                 <TouchableOpacity
                   style={[s.streakPill, { borderColor: c.border, backgroundColor: c.surface }]}
-                  activeOpacity={0.75}
+                  activeOpacity={0.7}
                   accessibilityRole="button"
                   accessibilityLabel={`Racha de ${streak} ${streak === 1 ? 'día' : 'días'} seguidos publicando menú. Toca para más información`}
                   onPress={() => Alert.alert(
@@ -217,7 +217,7 @@ export default function HistorialScreen() {
                 onPress={() => setSheetMode('filter')}
                 accessibilityRole="button"
                 accessibilityLabel={activeListIds.length ? `Listas, ${activeListIds.length} activas` : 'Listas'}
-                activeOpacity={0.75}>
+                activeOpacity={0.7}>
                 <Ionicons name="folder-outline" size={20} color={c.text} />
                 {activeListIds.length > 0 && (
                   <View style={[s.listsBadge, { backgroundColor: c.accent }]}>
@@ -238,7 +238,7 @@ export default function HistorialScreen() {
             </View>
             <Text style={[s.emptyTitle, { color: c.text }]}>{noWidow('Publica tu primer menú')}</Text>
             <Text style={[s.emptyBody, { color: c.textSecondary }]}>{noWidow('Cuando publiques uno aparecerá aquí para volver a usarlo.')}</Text>
-            <TouchableOpacity style={[s.cta, { backgroundColor: c.accent }]} onPress={() => setNewMenuSheetVisible(true)} activeOpacity={0.82} accessibilityRole="button" accessibilityLabel="Nuevo menú">
+            <TouchableOpacity style={[s.cta, { backgroundColor: c.accent }]} onPress={() => setNewMenuSheetVisible(true)} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel="Nuevo menú">
               <Text style={s.ctaText}>{noWidow('Nuevo menú')}</Text>
             </TouchableOpacity>
           </View>
@@ -341,7 +341,7 @@ const s = StyleSheet.create({
   // real de sección ("Esta semana") unos px arriba (pedido Alejandro
   // 2026-08-30, fundamentos HIG de grouping/jerarquía).
   summary: { fontSize: 16, lineHeight: 21, fontWeight: '700' },
-  date: { marginTop: 2, fontSize: 12.5, fontWeight: '400' },
+  date: { marginTop: 2, fontSize: 13, fontWeight: '400' },
   // Homologado con navButton de coleccion/[id].tsx: ícono suelto, sin caja
   // de fondo, círculo completo — mismo botón "···" en toda la app.
   iconBtn: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },

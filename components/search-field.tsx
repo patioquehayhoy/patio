@@ -21,7 +21,7 @@ export function SearchField({ inputRef, style, onClear, onCancel, trailingAction
   return <View style={[s.field, { height, backgroundColor: theme.glass, borderColor: theme.border }, style]}>
     <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} pointerEvents="none" />
     {onCancel ? <TouchableOpacity style={s.control} onPress={onCancel} accessibilityRole="button" accessibilityLabel="Cerrar búsqueda">
-      <Ionicons name="chevron-back" size={22} color={theme.text} />
+      <Ionicons name="chevron-back" size={21} color={theme.text} />
     </TouchableOpacity> : <View style={s.control} pointerEvents="none"><Ionicons name="search-outline" size={21} color={theme.textSecondary} /></View>}
     <TextInput
       ref={inputRef}

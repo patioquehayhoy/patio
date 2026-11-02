@@ -77,9 +77,9 @@ export function CollapsingHeader({
           {/* Izquierda: back (si hay) */}
           <View style={styles.sideLeft}>
             {onBack ? (
-              <TouchableOpacity onPress={onBack} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} activeOpacity={0.7} accessibilityRole="button" accessibilityLabel="Regresar">
+              <TouchableOpacity onPress={onBack} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} activeOpacity={0.7} accessibilityRole="button" accessibilityLabel="Volver">
                 <CircleBtn c={c}>
-                  <Ionicons name="chevron-back" size={20} color={c.text} />
+                  <Ionicons name="chevron-back" size={21} color={c.text} />
                 </CircleBtn>
               </TouchableOpacity>
             ) : null}
@@ -166,10 +166,10 @@ const styles = StyleSheet.create({
   sideLeft: { minWidth: 60, alignItems: 'flex-start', justifyContent: 'center' },
   sideRight: { minWidth: 60, flexDirection: 'row', gap: 8, alignItems: 'center', justifyContent: 'flex-end' },
   // Animated.Text no pasa por app-text: lleva la familia explícita.
-  compactTitle: { flex: 1, textAlign: 'center', fontSize: 16, fontFamily: Fonts.textSemibold },
+  compactTitle: { flex: 1, textAlign: 'center', fontSize: 17, fontFamily: Fonts.textSemibold },
   circleBtn: { width: 44, height: 44, borderRadius: 22, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
 
-  bigWrap: { paddingHorizontal: 22 },
+  bigWrap: { paddingHorizontal: 20 },
   eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 8 },
   bigTitle: { ...Type.screen },
   subtitle: { fontSize: 14, fontWeight: '400', lineHeight: 20, marginTop: 6 },

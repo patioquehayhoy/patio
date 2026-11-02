@@ -176,6 +176,6 @@ const s = StyleSheet.create({
   root: { flex: 1 },
   nav: { height: 52, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   back: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  navTitle: { fontSize: 15, fontWeight: '600' },
-  content: { paddingHorizontal: 18, paddingTop: 16 },
+  navTitle: { fontSize: 17, lineHeight: 22, fontWeight: '700' },
+  content: { paddingHorizontal: 20, paddingTop: 16 },
 });

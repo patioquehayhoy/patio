@@ -64,11 +64,11 @@ export function MenuPoster({ justPublished = false }: { justPublished?: boolean 
       <View style={[s.root, s.emptyRoot, { paddingTop: insets.top + 32, paddingBottom: insets.bottom + 24 }]}>
         <Stack.Screen options={{ headerShown: false }} />
         <View style={s.emptyIcon}>
-          <Ionicons name="document-text-outline" size={28} color={c.accent} />
+          <Ionicons name="document-text-outline" size={32} color={c.accent} />
         </View>
         <Text style={s.emptyTitle}>{noWidow('Primero publica lo de hoy')}</Text>
         <Text style={s.emptyBody}>{noWidow('Cuando tu menú esté listo, aquí aparecerá publicado.')}</Text>
-        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Crear menú" style={s.emptyButton} onPress={() => setNewMenuSheetVisible(true)} activeOpacity={0.84}>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Crear menú" style={s.emptyButton} onPress={() => setNewMenuSheetVisible(true)} activeOpacity={0.85}>
           <Text style={s.emptyButtonText}>{noWidow('Crear menú')}</Text>
         </TouchableOpacity>
         <NewMenuSheet visible={newMenuSheetVisible} onClose={() => setNewMenuSheetVisible(false)} replaceOnNavigate />
@@ -143,7 +143,7 @@ export function MenuPoster({ justPublished = false }: { justPublished?: boolean 
           style={s.cta}
           onPress={sharePoster}
           disabled={sharing}
-          activeOpacity={0.86}
+          activeOpacity={0.85}
           accessibilityRole="button"
           accessibilityLabel={sharing ? 'Preparando imagen' : 'Compartir como imagen'}
           accessibilityState={{ disabled: sharing, busy: sharing }}>
@@ -151,7 +151,7 @@ export function MenuPoster({ justPublished = false }: { justPublished?: boolean 
           <Text style={s.ctaText} allowFontScaling={true}>{sharing ? 'Preparando…' : 'Compartir como imagen'}</Text>
         </TouchableOpacity>
         {justPublished ? (
-          <TouchableOpacity style={s.shareLink} onPress={handleBack} activeOpacity={0.72} accessibilityRole="button" accessibilityLabel="Listo">
+          <TouchableOpacity style={s.shareLink} onPress={handleBack} activeOpacity={0.7} accessibilityRole="button" accessibilityLabel="Listo">
             <Text style={[s.shareLinkText, { color: c.textSecondary }]} allowFontScaling={true}>Listo</Text>
           </TouchableOpacity>
         ) : (
@@ -159,7 +159,7 @@ export function MenuPoster({ justPublished = false }: { justPublished?: boolean 
             style={s.shareLink}
             onPress={handleOpenProfile}
             disabled={!patioId}
-            activeOpacity={0.72}
+            activeOpacity={0.7}
             accessibilityRole="button"
             accessibilityLabel="Ver en mi perfil"
             accessibilityState={{ disabled: !patioId }}>
@@ -175,20 +175,20 @@ function makeStyles(c: FonderoColors) {
   return StyleSheet.create({
   root: { flex: 1, backgroundColor: c.bg },
   emptyRoot: { paddingHorizontal: 28, alignItems: 'center', justifyContent: 'center' },
-  emptyIcon: { width: 58, height: 58, borderRadius: 20, backgroundColor: c.iconBg, alignItems: 'center', justifyContent: 'center' },
-  emptyTitle: { ...Type.title, marginTop: 18, color: c.text, textAlign: 'center' },
-  emptyBody: { maxWidth: 310, marginTop: 9, fontSize: 14, lineHeight: 20, fontWeight: '400', color: c.textSecondary, textAlign: 'center' },
-  emptyButton: { width: '100%', maxWidth: 330, minHeight: 56, marginTop: 24, borderRadius: 28, backgroundColor: c.accent, alignItems: 'center', justifyContent: 'center' },
+  emptyIcon: { width: 68, height: 68, borderRadius: 20, backgroundColor: c.iconBg, alignItems: 'center', justifyContent: 'center' },
+  emptyTitle: { ...Type.section, marginTop: 18, color: c.text, textAlign: 'center' },
+  emptyBody: { maxWidth: 310, marginTop: 9, fontSize: 15, lineHeight: 21, fontWeight: '400', color: c.textSecondary, textAlign: 'center' },
+  emptyButton: { width: '100%', maxWidth: 330, minHeight: 54, marginTop: 24, borderRadius: 27, backgroundColor: c.accent, alignItems: 'center', justifyContent: 'center' },
   emptyButtonText: { color: '#fff', fontSize: 16, fontWeight: '700' },
   top: { position: 'absolute', left: 16, right: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', zIndex: 20 },
   // Espaciador de la top bar: mismo ancho que el botón de volver, SIN fondo —
   // solo existe para centrar el título.
   navBtn: { width: 44, height: 44 },
-  topTitle: { fontSize: 14, fontWeight: '600', color: c.text },
+  topTitle: { fontSize: 17, fontWeight: '700', color: c.text, lineHeight: 22 },
   publishedTitle: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   publishedCheck: { width: 20, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: c.accent },
   editButton: { minWidth: 44, minHeight: 44, alignItems: 'flex-end', justifyContent: 'center' },
-  editText: { fontSize: 15, fontWeight: '600', color: c.accent },
+  editText: { fontSize: 16, fontWeight: '700', color: c.accent },
 
   posterWrap: { alignItems: 'center', paddingHorizontal: 22 },
   poster: { width: 330, borderRadius: 26, backgroundColor: LIGHT.bg, overflow: 'hidden', shadowColor: '#000', shadowOffset: { width: 0, height: 24 }, shadowOpacity: 0.24, shadowRadius: 34, elevation: 12 },
@@ -202,10 +202,10 @@ function makeStyles(c: FonderoColors) {
   // grupos, nunca dentro de ellos.
   menuCard: { marginHorizontal: 18, padding: 18, borderRadius: 18, backgroundColor: LIGHT.card, borderWidth: StyleSheet.hairlineWidth, borderColor: LIGHT.sep },
   menuSection: { marginTop: 10 },
-  menuSectionTitle: { marginBottom: 2, fontSize: 10, fontWeight: '800', letterSpacing: 1, color: LIGHT.accent, textTransform: 'uppercase' },
+  menuSectionTitle: { marginBottom: 2, fontSize: 11, fontWeight: '700', letterSpacing: 0.8, color: LIGHT.accent, textTransform: 'uppercase', lineHeight: 14 },
   menuRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', paddingVertical: 5, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: LIGHT.sep },
   menuRowName: { fontSize: 14, lineHeight: 18, fontWeight: '500', color: LIGHT.ink, marginRight: 10 },
-  menuRowDescription: { marginTop: 1, fontSize: 11.5, lineHeight: 15, color: LIGHT.inkSoft },
+  menuRowDescription: { marginTop: 1, fontSize: 12, lineHeight: 16, color: LIGHT.inkSoft },
   menuRowPrice: { fontSize: 13, fontWeight: '400', color: LIGHT.inkSoft },
 
   posterFoot: { paddingHorizontal: 22, paddingTop: 16, paddingBottom: 18 },
@@ -214,8 +214,8 @@ function makeStyles(c: FonderoColors) {
 
   ctaWrap: { paddingHorizontal: 22, paddingTop: 12 },
   cta: { height: 54, borderRadius: 27, backgroundColor: c.accent, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
-  ctaText: { fontSize: 15, fontWeight: '700', color: '#FFFFFF' },
+  ctaText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
   shareLink: { minHeight: 44, marginTop: 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
-  shareLinkText: { fontSize: 13.5, fontWeight: '500' },
+  shareLinkText: { fontSize: 14, fontWeight: '500' },
   });
 }

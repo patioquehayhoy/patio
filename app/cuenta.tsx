@@ -22,7 +22,7 @@ function makeStyles(t: Theme) {
     root: { flex: 1, backgroundColor: t.bg },
     content: { paddingBottom: 120 },
 
-    body: { paddingHorizontal: 18, paddingTop: 20 },
+    body: { paddingHorizontal: 20, paddingTop: 20 },
     newsRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
     newsDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: t.accent },
   });

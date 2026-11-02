@@ -59,7 +59,7 @@ export function FonderoWelcomeTour({ visible, onDone, onPublish }: { visible: bo
             style={[s.primary, { backgroundColor: last ? c.accent : c.text }]}
             onPress={() => (last ? finish(true) : setStep(step + 1))}
             accessibilityRole="button"
-            activeOpacity={0.84}>
+            activeOpacity={0.85}>
             <Text style={[s.primaryText, { color: last ? '#fff' : c.bg }]}>{last ? 'Publicar mi primer menú' : 'Siguiente'}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={s.secondary} onPress={() => finish(false)} accessibilityRole="button" activeOpacity={0.7}>
@@ -80,8 +80,8 @@ const s = StyleSheet.create({
   dots: { flexDirection: 'row', gap: 6, marginTop: 22, marginBottom: 22 },
   dot: { width: 6, height: 6, borderRadius: 3 },
   dotCurrent: { width: 18 },
-  primary: { minHeight: 52, borderRadius: 26, alignItems: 'center', justifyContent: 'center' },
-  primaryText: { fontSize: 16, fontWeight: '600' },
+  primary: { minHeight: 54, borderRadius: 27, alignItems: 'center', justifyContent: 'center' },
+  primaryText: { fontSize: 16, fontWeight: '700' },
   secondary: { minHeight: 44, alignItems: 'center', justifyContent: 'center', marginTop: 4 },
   secondaryText: { fontSize: 15 },
 });

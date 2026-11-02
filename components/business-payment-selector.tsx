@@ -36,7 +36,7 @@ export function BusinessPaymentSelector({ colors, value, onChange }: Props) {
             accessibilityState={{ checked: active }}
             accessibilityLabel={`${option.label}: ${active ? 'aceptado' : 'no aceptado'}`}
             onPress={() => onChange({ ...value, [option.key]: !active })}
-            activeOpacity={0.72}
+            activeOpacity={0.7}
             style={[s.row, { backgroundColor: colors.surface, borderColor: active ? colors.accent : colors.border }]}>
             <View style={[s.icon, { backgroundColor: colors.bg }]}>
               <PaymentIcon method={option.label} size={20} color={active ? colors.accent : colors.textSecondary} />
@@ -52,7 +52,7 @@ export function BusinessPaymentSelector({ colors, value, onChange }: Props) {
 
 const s = StyleSheet.create({
   list: { gap: 8 },
-  row: { minHeight: 62, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 8 },
+  row: { minHeight: 62, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 8 },
   icon: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  label: { flex: 1, fontSize: 16, lineHeight: 20, fontWeight: '600' },
+  label: { flex: 1, fontSize: 16, lineHeight: 20, fontWeight: '700' },
 });

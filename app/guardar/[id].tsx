@@ -114,7 +114,7 @@ export default function SavePlaceScreen() {
           })}
           <View style={[s.newRow, collections.length > 0 && { borderTopColor: theme.border, borderTopWidth: StyleSheet.hairlineWidth }]}>
             <View style={[s.listGlyph, { backgroundColor: theme.bg }]}>
-              <Ionicons name="add" size={20} color={theme.textSecondary} />
+              <Ionicons name="add" size={18} color={theme.textSecondary} />
             </View>
             <TextInput
               value={newTitle}
@@ -191,7 +191,7 @@ export default function SavePlaceScreen() {
           accessibilityLabel="Escribir una reseña"
           onPress={() => router.push({ pathname: '/resena/[id]', params: { id: patioId } })}>
           <View style={[s.listGlyph, { backgroundColor: theme.accentSoft }]}>
-            <Ionicons name="chatbubble-outline" size={17} color={theme.accent} />
+            <Ionicons name="chatbubble-outline" size={18} color={theme.accent} />
           </View>
           <View style={{ flex: 1 }}>
             <Text style={[s.listTitle, { color: theme.text }]}>{noWidow('Escribir una reseña')}</Text>
@@ -206,27 +206,27 @@ export default function SavePlaceScreen() {
 
 const s = StyleSheet.create({
   root: { flex: 1, paddingHorizontal: 20 },
-  nav: { height: 56, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  nav: { height: 52, marginHorizontal: -6, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   navButton: { minWidth: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   navTitle: { fontSize: 17, fontWeight: '700' },
   done: { fontSize: 16, fontWeight: '700' },
   heroBody: { marginTop: 7, maxWidth: 340, fontSize: 14, lineHeight: 20 },
-  listCard: { marginTop: 22, borderRadius: 22, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
+  listCard: { marginTop: 22, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
   listGlyph: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   listTitle: { fontSize: 15, lineHeight: 19, fontWeight: '700' },
-  listMeta: { marginTop: 2, fontSize: 12.5, lineHeight: 16 },
+  listMeta: { marginTop: 2, fontSize: 13, lineHeight: 18 },
   newRow: { minHeight: 60, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 8 },
   newInput: { flex: 1, minWidth: 0, minHeight: 52, paddingVertical: 12, fontSize: 15 },
   createButton: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 4 },
   retry: { minHeight: 44, paddingVertical: 12, justifyContent: 'center' },
   create: { fontSize: 14, fontWeight: '700' },
-  sectionLabel: { marginTop: 28, marginBottom: 9, paddingHorizontal: 5, fontSize: 10.5, fontWeight: '700', letterSpacing: 0.8 },
-  privateCard: { borderRadius: 24, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden', padding: 15 },
+  sectionLabel: { marginTop: 28, marginBottom: 9, paddingHorizontal: 5, fontSize: 11, fontWeight: '700', letterSpacing: 0.8 },
+  privateCard: { borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden', padding: 15 },
   statusRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   statusChip: { minHeight: 44, paddingVertical: 10, paddingHorizontal: 13, borderRadius: 22, flexDirection: 'row', alignItems: 'center', gap: 4 },
-  statusText: { fontSize: 13, fontWeight: '600' },
-  note: { minHeight: 88, marginTop: 13, padding: 13, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, fontSize: 14, lineHeight: 20, textAlignVertical: 'top' },
+  statusText: { fontSize: 13, fontWeight: '700' },
+  note: { minHeight: 88, marginTop: 13, padding: 13, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, fontSize: 14, lineHeight: 20, textAlignVertical: 'top' },
   ratingRow: { minHeight: 48, marginTop: 6, flexDirection: 'row', flexWrap: 'wrap', gap: 12, alignItems: 'center', justifyContent: 'space-between' },
-  ratingLabel: { fontSize: 13.5 },
-  publicRow: { minHeight: 68, paddingHorizontal: 14, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 8 },
+  ratingLabel: { fontSize: 14 },
+  publicRow: { minHeight: 68, paddingHorizontal: 14, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 8 },
 });

@@ -74,7 +74,7 @@ export default function EntradaScreen() {
       <View style={[s.content, { paddingBottom: insets.bottom + 18 }]}>
         {/* Acciones abajo */}
         <View style={s.actions}>
-          <TouchableOpacity style={s.ctaGlass} onPress={handleStart} activeOpacity={0.86} accessibilityRole="button" accessibilityLabel="Entrar a Patio">
+          <TouchableOpacity style={s.ctaGlass} onPress={handleStart} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel="Entrar a Patio">
             <BlurView intensity={16} tint="dark" style={s.ctaGlassInner}>
               <Text style={s.ctaGlassText} allowFontScaling={true}>{noWidow('Entrar a Patio')}</Text>
             </BlurView>
@@ -109,13 +109,13 @@ const s = StyleSheet.create({
   brandOverlay: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center' },
   logo: { width: 230, height: 86 },
   pairBelow: { position: 'absolute', top: '100%', left: 0, right: 0, alignItems: 'center', marginTop: 14 },
-  claim: { fontSize: 15, fontWeight: '900', fontFamily: Fonts.brand, textAlign: 'center', color: '#F8F8F5' },
-  tagline: { fontSize: 15, fontWeight: '400', fontFamily: Fonts.brand, textAlign: 'center', color: 'rgba(248,248,245,0.7)' },
+  claim: { fontSize: 15, fontFamily: Fonts.brand, textAlign: 'center', color: '#F8F8F5' },
+  tagline: { fontSize: 15, fontFamily: Fonts.brand, textAlign: 'center', color: 'rgba(248,248,245,0.7)' },
   actions: { alignItems: 'center', gap: 4 },
   ctaGlass: { alignSelf: 'stretch', borderRadius: 14, overflow: 'hidden' },
   ctaGlassInner: { minHeight: 52, paddingVertical: 12, alignItems: 'center', justifyContent: 'center' },
-  ctaGlassText: { fontSize: 16, fontWeight: '900', color: '#FFFFFF' },
-  devVersion: { marginTop: 6, fontSize: 10, fontWeight: '900', letterSpacing: 0.8, color: 'rgba(248,248,245,0.35)' },
+  ctaGlassText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
+  devVersion: { marginTop: 6, fontSize: 10, fontWeight: '700', letterSpacing: 0.8, color: 'rgba(248,248,245,0.35)' },
   devBar: { flexDirection: 'row', gap: 8, marginTop: 8 },
   devBtn: { paddingHorizontal: 14, height: 32, borderRadius: 100, backgroundColor: 'rgba(255,255,255,0.10)', alignItems: 'center', justifyContent: 'center' },
   devBtnText: { fontSize: 12, fontWeight: '400', color: 'rgba(248,248,245,0.7)' },

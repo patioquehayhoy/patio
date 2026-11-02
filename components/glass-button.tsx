@@ -32,7 +32,7 @@ export function GlassIconButton({
       accessibilityLabel={accessibilityLabel}
       onPress={onPress}
       hitSlop={hitSlopFor(size)}
-      activeOpacity={0.72}
+      activeOpacity={0.7}
       style={{ width: size, height: size, borderRadius: size / 2, overflow: 'hidden', backgroundColor: theme.surface }}>
       <BlurView
         intensity={theme.isDark ? 16 : 20}

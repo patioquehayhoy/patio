@@ -28,9 +28,11 @@ import { noWidow } from '@/lib/typography';
 // composición real del action sheet nativo; el lenguaje visual (glass,
 // tipografía de marca) es 100% Patio, nunca chrome de iOS literal — mismo
 // criterio que ya usa components/action-sheet.tsx.
-export function NewMenuSheet({ visible, onClose, replaceOnNavigate }: {
+export function NewMenuSheet({ visible, onClose, onCancel, replaceOnNavigate }: {
   visible: boolean;
   onClose: () => void;
+  /** Solo al cancelar (no al elegir una opción): p. ej. salir del alta a Menús. */
+  onCancel?: () => void;
   replaceOnNavigate?: boolean;
 }) {
   const { theme } = useTheme();
@@ -104,12 +106,12 @@ export function NewMenuSheet({ visible, onClose, replaceOnNavigate }: {
   ];
 
   return (
-    <Modal transparent visible={rendered} animationType="none" onDismiss={finishDismiss} onRequestClose={onClose} statusBarTranslucent>
+    <Modal transparent visible={rendered} animationType="none" onDismiss={finishDismiss} onRequestClose={() => { onCancel?.(); onClose(); }} statusBarTranslucent>
       <View style={{ flex: 1 }}>
         <Animated.View style={[StyleSheet.absoluteFillObject, { opacity: backdropOpacity }]}>
-          <TouchableOpacity activeOpacity={1} style={s.backdrop} onPress={onClose} accessibilityRole="button" accessibilityLabel="Cerrar" />
+          <TouchableOpacity activeOpacity={1} style={s.backdrop} onPress={() => { onCancel?.(); onClose(); }} accessibilityRole="button" accessibilityLabel="Cerrar" />
         </Animated.View>
-        <Animated.View accessibilityViewIsModal onAccessibilityEscape={onClose} onLayout={(event) => setContentHeight(event.nativeEvent.layout.height)} style={[s.wrap, { paddingBottom: bottomPadding, transform: [{ translateY }] }]}>
+        <Animated.View accessibilityViewIsModal onAccessibilityEscape={() => { onCancel?.(); onClose(); }} onLayout={(event) => setContentHeight(event.nativeEvent.layout.height)} style={[s.wrap, { paddingBottom: bottomPadding, transform: [{ translateY }] }]}>
           <View style={s.group}>
             <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
             <View pointerEvents="none" style={[s.groupTint, { backgroundColor: theme.isDark ? 'rgba(20,21,24,0.72)' : 'rgba(255,255,255,0.70)' }]} />
@@ -125,7 +127,7 @@ export function NewMenuSheet({ visible, onClose, replaceOnNavigate }: {
               </TouchableOpacity>
             ))}
           </View>
-          <TouchableOpacity onPress={onClose} style={s.cancelGroup} accessibilityRole="button" accessibilityLabel="Cancelar">
+          <TouchableOpacity onPress={() => { onCancel?.(); onClose(); }} style={s.cancelGroup} accessibilityRole="button" accessibilityLabel="Cancelar">
             <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
             <View pointerEvents="none" style={[s.groupTint, { backgroundColor: theme.isDark ? 'rgba(20,21,24,0.72)' : 'rgba(255,255,255,0.70)' }]} />
             <Text style={[s.cancelText, { color: c.text }]}>Cancelar</Text>

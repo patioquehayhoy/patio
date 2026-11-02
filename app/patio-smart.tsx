@@ -3,7 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Location from 'expo-location';
-import { router, Stack } from 'expo-router';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -20,6 +20,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BusinessPaymentSelector } from '@/components/business-payment-selector';
+import { NewMenuSheet } from '@/components/new-menu-sheet';
 import { BusinessScheduleEditor } from '@/components/business-schedule-editor';
 import { saveUserRole } from '@/lib/entry-flow';
 import { fonderoPalette, type FonderoColors } from '@/lib/fondero-palette';
@@ -141,6 +142,10 @@ export default function PatioSmartScreen() {
   const insets = useSafeAreaInsets();
   const [stage, setStage] = useState<Stage>('name');
   const [loading, setLoading] = useState(false);
+  const [firstMenuVisible, setFirstMenuVisible] = useState(false);
+  // En desarrollo, «Ver alta del negocio» recorre el alta sin guardar nada.
+  const { preview } = useLocalSearchParams<{ preview?: string }>();
+  const isPreview = __DEV__ && preview === '1';
   const [locating, setLocating] = useState(false);
   const [result, setResult] = useState<SmartSetupResult>(INITIAL_RESULT);
 
@@ -240,7 +245,7 @@ export default function PatioSmartScreen() {
 
     setLoading(true);
     try {
-      await persistSetup();
+      if (!isPreview) await persistSetup();
       setStage('finish');
     } catch (err) {
       if (isContentRejected(err)) {
@@ -301,8 +306,10 @@ export default function PatioSmartScreen() {
           <Text style={s.finishBody} lineBreakStrategyIOS="push-out" maxFontSizeMultiplier={1.6}>
             {noWidow('Toma una foto del menú o agrégalo en unos cuantos pasos.')}
           </Text>
+          {/* Del alta directo al primer menú: foto, Fotos o escribirlo. Si se
+              cancela, entra a Menús; nunca se queda atorado aquí. */}
           <TouchableOpacity
-            onPress={() => router.replace({ pathname: '/historial', params: { bienvenida: '1' } })}
+            onPress={() => setFirstMenuVisible(true)}
             activeOpacity={0.82}
             style={s.finishButton}
             accessibilityRole="button"
@@ -320,6 +327,12 @@ export default function PatioSmartScreen() {
             <Text style={s.finishEditText} numberOfLines={1} maxFontSizeMultiplier={1.3}>{noWidow('Editar datos')}</Text>
           </TouchableOpacity>
         </View>
+        <NewMenuSheet
+          visible={firstMenuVisible}
+          onClose={() => setFirstMenuVisible(false)}
+          onCancel={() => router.replace('/historial')}
+          replaceOnNavigate
+        />
       </View>
     );
   }

@@ -1,5 +1,13 @@
 # Onboardings de Patio — propuesta 2026-11-02
 
+> **Actualización (mismo día):** la propuesta de abajo se dibujó desde cero.
+> El flujo ya estaba especificado (`docs/PATIO_SYSTEM_MAP.md`, 19 jul) y
+> diseñado (Figma Make). Lo que se hizo fue completarlo: el negocio pasa de la
+> celebración del alta directo a su primer menú; el Foodie recibe el ofrecimiento
+> de avisos al guardar su primer lugar (la pantalla de campana se quitó el 28 de
+> julio a propósito). En desarrollo, Perfil → «Ver bienvenida otra vez» y «Ver
+> alta del negocio» recorren todo con botones reales.
+
 Primer pendiente de diseño (Parco, 2026-11-02). Imagen de la propuesta:
 `artifacts/onboardings-propuesta.png`. Pendiente de aprobación antes de
 construir.

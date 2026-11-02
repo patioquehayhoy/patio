@@ -8,7 +8,8 @@ import { SettingsGroup, SettingsRow, settingsColors } from '@/components/setting
 import { ToggleSwitch } from '@/components/toggle-switch';
 import { signOutAccount } from '@/lib/account-session';
 import { getBlockedUsers } from '@/lib/content-safety';
-import { saveUserRole } from '@/lib/entry-flow';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { ONBOARDING_DONE_KEY, saveUserRole } from '@/lib/entry-flow';
 import { supabase } from '@/lib/supabase';
 import { useTheme } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
@@ -73,6 +74,14 @@ export function AccountSettings({ role }: { role: 'foodie' | 'fondero' }) {
         {blockedCount > 0 && <SettingsRow c={sc} icon="ban-outline" title="Cuentas bloqueadas" sub={`${blockedCount}`} divider={fondero} onPress={() => router.push('/privacidad')} />}
         {(hasSession || fondero) && <SettingsRow c={sc} icon="log-out-outline" title="Cerrar sesión" divider={fondero || blockedCount > 0} onPress={signOut} />}
         {hasSession && <AccountDeletionRow c={sc} />}
+      </SettingsGroup>}
+
+      {/* Solo en desarrollo: recorrer la bienvenida y el alta con botones reales. */}
+      {__DEV__ && <SettingsGroup c={sc} label="Desarrollo">
+        <SettingsRow c={sc} icon="play-circle-outline" title="Ver bienvenida otra vez" onPress={() => {
+          void AsyncStorage.removeItem(ONBOARDING_DONE_KEY).catch(() => {}).then(() => router.replace('/entrada'));
+        }} />
+        {fondero && <SettingsRow c={sc} icon="storefront-outline" title="Ver alta del negocio" sub="Sin guardar cambios" divider onPress={() => router.push({ pathname: '/patio-smart', params: { preview: '1' } })} />}
       </SettingsGroup>}
 
       <Text style={[s.footer, { color: theme.textMute }]} allowFontScaling={true}>

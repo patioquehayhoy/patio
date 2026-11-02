@@ -6,6 +6,7 @@ import * as Haptics from 'expo-haptics';
 
 import { syncSavedPatioNotificationSubscriptions } from '@/lib/community-notifications';
 import { getFavoritePatioIds, toggleFavoritePatio } from '@/lib/favorites';
+import { offerLunchReminderOnce } from '@/lib/first-save-offer';
 import {
   DIA_CORTO,
   formatHHMM12,
@@ -227,6 +228,7 @@ export function usePatioDetailController(id: PatioParam) {
     if (!patio) return;
     const next = await toggleFavoritePatio(patio.id);
     setIsSaved(next.includes(patio.id));
+    if (next.includes(patio.id)) void offerLunchReminderOnce();
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     syncSavedPatioNotificationSubscriptions(next).catch(() => {});
   }, [patio]);

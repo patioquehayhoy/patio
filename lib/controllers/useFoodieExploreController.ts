@@ -6,6 +6,7 @@ import type { Region } from 'react-native-maps';
 import { noWidow } from '@/lib/typography';
 import { fetchAiSearchIntent } from '@/lib/aiSearch';
 import { getFavoritePatioIds, toggleFavoritePatio } from '@/lib/favorites';
+import { offerLunchReminderOnce } from '@/lib/first-save-offer';
 import { estaAbiertoAhora } from '@/lib/horario';
 import { searchLiveMenus } from '@/lib/menu';
 import { fetchPublicFonditas, type Patio, type PatioDishMatch } from '@/lib/patios';
@@ -314,6 +315,7 @@ export function useFoodieExploreController() {
     try {
       const next = await toggleFavoritePatio(selectedId);
       setSavedIds(next);
+      if (next.includes(selectedId)) void offerLunchReminderOnce();
     } catch {
       Alert.alert(noWidow('No se pudo guardar el lugar'), noWidow('Inténtalo otra vez.'));
     }

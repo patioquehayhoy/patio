@@ -74,9 +74,8 @@ export function useMenuHistoryController() {
   const [draftName, setDraftName] = useState('');
   const [loading, setLoading] = useState(true);
 
-  useFocusEffect(useCallback(() => {
-    let active = true;
-    const load = async () => {
+  const load = useCallback(async (isActive: () => boolean = () => true) => {
+    try {
       await seedDemoHistory();
       const locales = await getLocalMenus();
       const id = getFonditaId();
@@ -97,22 +96,25 @@ export function useMenuHistoryController() {
       }
 
       const merged = mergeMenuHistory(locales, remotos, authoritative);
-      if (active) {
+      if (isActive()) {
         setMenus(merged);
         setLoading(false);
       }
-    };
-
-    void load().catch(() => {
-      if (active) {
+    } catch {
+      if (isActive()) {
         setLoading(false);
         Alert.alert(noWidow('No se pudo cargar el historial'), noWidow('Revisa tu conexión e inténtalo otra vez.'));
       }
-    });
+    }
+  }, []);
+
+  useFocusEffect(useCallback(() => {
+    let active = true;
+    void load(() => active);
     return () => {
       active = false;
     };
-  }, []));
+  }, [load]));
 
   const reuse = useCallback((menu: PublishedMenu) => {
     setMenuData({ ...menu.secciones, localDraftId: menu.published ? undefined : menu.id });
@@ -189,6 +191,7 @@ export function useMenuHistoryController() {
   const streak = useMemo(() => computeStreak(menus.filter((menu) => menu.published).map((menu) => menu.fecha)), [menus]);
 
   return {
+    refresh: () => load(),
     closeRename,
     deleteMenu,
     deleteMenus,

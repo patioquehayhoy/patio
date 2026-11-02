@@ -1,4 +1,5 @@
 import { BottomContentFade } from '@/components/bottom-content-fade';
+import { usePullRefresh } from '@/lib/use-pull-refresh';
 import { patioDistance, patioMinimumPrice, sortPatiosByMetric, type PatioSortMode } from '@/lib/patio-sort';
 import { FoodieLoading } from '@/components/foodie-loading';
 import { useScrollEdges } from '@/lib/use-scroll-edges';
@@ -8,7 +9,7 @@ import * as Haptics from 'expo-haptics';
 import * as Location from 'expo-location';
 import { router, Stack, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, ScrollView, Share, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { Alert, RefreshControl, ScrollView, Share, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BottomTabBar } from '@/components/bottom-tab-bar';
@@ -124,7 +125,8 @@ export default function FavoritosScreen() {
   const sectionOffsets = useRef<Record<string, number>>({});
   const [activeLetter, setActiveLetter] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const { patios, metaById, removeLocally, loading, loadError, reload } = useFavoritePatiosController();
+  const { patios, metaById, removeLocally, loading, loadError, reload, refresh } = useFavoritePatiosController();
+  const pull = usePullRefresh(refresh);
   const [here, setHere] = useKnownLocation();
 
 
@@ -396,7 +398,7 @@ export default function FavoritosScreen() {
           </>
         )}
       <View style={s.viewport}>
-      <ScrollView onLayout={edges.onLayout} onContentSizeChange={edges.onContentSizeChange} ref={scrollRef} contentContainerStyle={[s.content, { paddingBottom: selecting ? bottomActionClearance(insets.bottom, selectionBarHeight) : bottomTabClearance(insets.bottom) }]} showsVerticalScrollIndicator indicatorStyle={theme.isDark ? 'white' : 'black'}
+      <ScrollView refreshControl={<RefreshControl refreshing={pull.refreshing} onRefresh={pull.onRefresh} tintColor={theme.textSecondary} />} onLayout={edges.onLayout} onContentSizeChange={edges.onContentSizeChange} ref={scrollRef} contentContainerStyle={[s.content, { paddingBottom: selecting ? bottomActionClearance(insets.bottom, selectionBarHeight) : bottomTabClearance(insets.bottom) }]} showsVerticalScrollIndicator indicatorStyle={theme.isDark ? 'white' : 'black'}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
         scrollEventThrottle={16}

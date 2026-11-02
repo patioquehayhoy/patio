@@ -1,11 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Stack, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, RefreshControl, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AvatarCircle } from '@/components/avatar-circle';
 import { BottomTabBar } from '@/components/bottom-tab-bar';
+import { usePullRefresh } from '@/lib/use-pull-refresh';
 import { bottomTabClearance } from '@/lib/layout-metrics';
 import { DishLikeDetailSheet, type DishLikeAuthor } from '@/components/dish-like-detail-sheet';
 import { LikeAvatarStack } from '@/components/like-avatar-stack';
@@ -64,12 +65,15 @@ export default function ResenasScreen() {
     if (!fonditaId) {
       setReviews([]);
       setDishLikes([]);
-      return;
+      return Promise.resolve();
     }
-    getPublicPatioReviews(fonditaId).then(setReviews).catch(() => setReviews([]));
-    getDishLikeEvents(fonditaId).then(setDishLikes).catch(() => setDishLikes([]));
+    return Promise.all([
+      getPublicPatioReviews(fonditaId).then(setReviews).catch(() => setReviews([])),
+      getDishLikeEvents(fonditaId).then(setDishLikes).catch(() => setDishLikes([])),
+    ]);
   }, []);
-  useFocusEffect(load);
+  useFocusEffect(useCallback(() => { void load(); }, [load]));
+  const pull = usePullRefresh(load);
   const sendReply = async (item: ActivityItem) => {
     if (!item.reviewId || !reply.trim()) return;
     try {
@@ -255,7 +259,7 @@ export default function ResenasScreen() {
   return (
     <View style={[s.root, { backgroundColor: c.bg, paddingTop: insets.top }]}>
       <Stack.Screen options={{ headerShown: false }} />
-      <ScrollView onScroll={onScroll} scrollEventThrottle={16} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 24, paddingBottom: bottomTabClearance(insets.bottom) }} showsVerticalScrollIndicator={false}>
+      <ScrollView refreshControl={<RefreshControl refreshing={pull.refreshing} onRefresh={pull.onRefresh} tintColor={theme.textSecondary} />} onScroll={onScroll} scrollEventThrottle={16} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 24, paddingBottom: bottomTabClearance(insets.bottom) }} showsVerticalScrollIndicator={false}>
         {groups.length ? (
           groups.map((group, groupIndex) => (
             <View key={group.key} style={{ marginTop: groupIndex === 0 ? 0 : 24 }}>

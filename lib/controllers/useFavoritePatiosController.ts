@@ -19,23 +19,34 @@ export function useFavoritePatiosController() {
   // calificación (pedido de Alejandro 2026-08-30).
   const [metaById, setMetaById] = useState<Record<string, SavedPatioMeta>>({});
 
+  const load = useCallback(async (isMounted: () => boolean = () => true) => {
+    setLoading(true); setLoadError(false);
+    try {
+      const [ids, metas] = await Promise.all([getFavoritePatioIds(), getAllSavedPatioMeta()]);
+      if (!isMounted()) return;
+      const remote = await Promise.all(ids.map((id) => fetchFonditaById(id, { throwOnError: true })));
+      const real = remote.filter((patio): patio is Patio => patio !== null);
+      if (isMounted()) {
+        setPatios(real);
+        setMetaById(metas);
+      }
+    } catch {
+      if (isMounted()) setLoadError(true);
+    } finally {
+      if (isMounted()) setLoading(false);
+    }
+  }, []);
+
   useFocusEffect(
     useCallback(() => {
       let mounted = true;
-      setLoading(true); setLoadError(false);
-      Promise.all([getFavoritePatioIds(), getAllSavedPatioMeta()]).then(async ([ids, metas]) => {
-        if (!mounted) return;
-        const remote = await Promise.all(ids.map((id) => fetchFonditaById(id, { throwOnError: true })));
-        const real = remote.filter((patio): patio is Patio => patio !== null);
-        if (mounted) {
-          setPatios(real);
-          setMetaById(metas);
-        }
-      }).catch(() => { if (mounted) setLoadError(true); }).finally(() => { if (mounted) setLoading(false); });
+      void load(() => mounted);
       return () => {
         mounted = false;
       };
-    }, [retry])
+      // `retry` vuelve a disparar la carga desde «Reintentar».
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [load, retry])
   );
 
   const withMenu = useMemo(() => patios.filter((patio) => todayDish(patio) !== null).length, [patios]);
@@ -51,6 +62,7 @@ export function useFavoritePatiosController() {
     loading,
     loadError,
     reload: () => setRetry((current) => current + 1),
+    refresh: () => load(),
     patios,
     metaById,
     withMenu,

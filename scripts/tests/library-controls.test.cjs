@@ -117,6 +117,7 @@ function fixture(file, overrides = {}) {
     '@/components/rename-dialog': { RenameDialog: 'RenameDialog' },
     '@/components/scroll-edge-fade': { ScrollEdgeFade: 'ScrollEdgeFade' },
     '@/lib/use-scroll-edges': { useScrollEdges: () => ({ top: false, bottom: false, onScroll() {}, onLayout() {}, onContentSizeChange() {} }) },
+    '@/lib/use-pull-refresh': { usePullRefresh: () => ({ refreshing: false, onRefresh() {} }) },
     '@/lib/use-known-location': { useKnownLocation: () => [null, () => {}] },
     '@/components/selection-actions': { SelectionActions: 'SelectionActions' },
     '@/components/patio-card-info': { PatioCardInfo: 'PatioCardInfo', PatioCardPrice: 'PatioCardPrice' },

@@ -1,11 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, Stack, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AvatarCircle } from '@/components/avatar-circle';
 import { BottomTabBar } from '@/components/bottom-tab-bar';
+import { usePullRefresh } from '@/lib/use-pull-refresh';
 import { bottomTabClearance } from '@/lib/layout-metrics';
 import { formatLikeAuthors, markReviewLikesSeen } from '@/lib/activity-feed';
 import { getDemoReviewLikeEvents, getMyReviewLikeEvents, type MyReviewLikeEvent } from '@/lib/review-likes';
@@ -25,11 +26,12 @@ export default function NotificacionesScreen() {
   const [events, setEvents] = useState<MyReviewLikeEvent[]>([]);
   const load = useCallback(() => {
     markReviewLikesSeen().catch(() => {});
-    getMyReviewLikeEvents()
+    return getMyReviewLikeEvents()
       .then((real) => setEvents(real.length ? real : getDemoReviewLikeEvents('foodie-demo')))
       .catch(() => setEvents(getDemoReviewLikeEvents('foodie-demo')));
   }, []);
-  useFocusEffect(load);
+  useFocusEffect(useCallback(() => { void load(); }, [load]));
+  const pull = usePullRefresh(load);
 
   // Mismo agrupado por periodo que ya usan Menús y Actividad — mismas
   // etiquetas, mismos cortes de días, misma regla de ocultar el label si
@@ -62,6 +64,7 @@ export default function NotificacionesScreen() {
         </TouchableOpacity>
       </View>
       <ScrollView
+        refreshControl={<RefreshControl refreshing={pull.refreshing} onRefresh={pull.onRefresh} tintColor={theme.textSecondary} />}
         contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: bottomTabClearance(insets.bottom) }}
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={16}

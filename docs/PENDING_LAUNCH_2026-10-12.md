@@ -4,8 +4,13 @@
 
 Propuesta completa en [PLANES_CREADORES_Y_RED](PLANES_CREADORES_Y_RED_2026-11-02.md).
 
-- [ ] Alejandro decide: Creador sin cobro (programa por invitación), quitar Plan
-  del Perfil Foodie, ancla y precio por día en Pro.
+**Lado difícil hoy:** el negocio que publica su menú diario.
+
+- [x] Planes decididos y aplicados: solo el negocio tiene planes, Gratis y
+  Fundadores con beneficios reales, Pro oculto hasta existir.
+- [ ] Construir Pro antes de encender el cobro: lecturas por plan en el
+  servidor, avisos especiales, estadísticas por horario y colonia, platillo
+  destacado.
 - [ ] Creadores Fundadores: elegir 5–10 creadores de la colonia piloto y
   escribirles antes de abrir.
 - [ ] Top de lugares por defecto en cada perfil (favoritos de sus

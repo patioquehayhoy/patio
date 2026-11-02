@@ -913,26 +913,22 @@ export default function ExplorarScreen() {
               onSubmitEditing={() => { cancelLocation(); manualMapPosition.current = false; reopenSheet(); handleSubmitSearch(); }}
               onFocus={reopenSheet}
               onCancel={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {}); closeSearch(); }}
-              trailingAction={
+              // La búsqueda con IA sigue en prueba: solo existe en desarrollo.
+              trailingAction={__DEV__ ? (
               <TouchableOpacity
                 style={[s.aiProButton, aiMode && { backgroundColor: theme.accent }]}
                 onPress={() => {
-                  if (__DEV__) {
-                    setAiMode((active) => !active);
-                    requestAnimationFrame(() => searchInputRef.current?.focus());
-                  } else {
-                    Keyboard.dismiss();
-                    router.push({ pathname: '/plan', params: { role: 'foodie' } });
-                  }
+                  setAiMode((active) => !active);
+                  requestAnimationFrame(() => searchInputRef.current?.focus());
                 }}
                 hitSlop={{ top: 7, bottom: 7, left: 6, right: 6 }}
                 accessibilityRole="button"
                 accessibilityState={{ selected: aiMode }}
-                accessibilityLabel="Conocer búsqueda con inteligencia artificial de Patio Pro">
+                accessibilityLabel="Búsqueda con inteligencia artificial">
                 <Ionicons name="sparkles" size={13} color={aiMode ? theme.bg : theme.accent} />
                 <Text style={[s.aiProText, aiMode && { color: theme.bg }]}>IA</Text>
               </TouchableOpacity>
-              }
+              ) : undefined}
             />
           </View>
         </View>

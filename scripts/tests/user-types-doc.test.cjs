@@ -24,9 +24,9 @@ function section(title) {
 }
 
 test('user types doc matches the plan catalog', () => {
-  for (const [title, plan] of [['Creador', PLANS.creator], ['Negocio Pro', PLANS.pro]]) {
-    assert.match(section(title), new RegExp(`\\${mxn(plan.monthly)}/mes · \\${mxn(plan.annual)}/año`), `${title} price`);
-  }
+  assert.match(section('Negocio Pro'), new RegExp(`\\${mxn(PLANS.pro.monthly)}/mes · \\${mxn(PLANS.pro.annual)}/año`), 'Pro price');
+  // Solo el negocio tiene planes: el Foodie y el Creador nunca pagan en el arranque.
+  assert.deepEqual(Object.keys(PLANS), ['free', 'pro']);
   assert.match(section('Negocio Gratis'), new RegExp(`${PLANS.free.photoReads} lecturas con foto`));
   assert.match(section('Negocio Pro'), new RegExp(`${PLANS.pro.photoReads} lecturas con foto`));
   assert.match(section('Negocio Pro'), new RegExp(`${PLANS.pro.specialNotices} avisos especiales`));

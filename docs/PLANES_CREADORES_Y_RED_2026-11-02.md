@@ -3,8 +3,8 @@
 Visión de conjunto para decidir cobro, creadores y feed de una vez, siguiendo
 *The Cold Start Problem* (Andrew Chen). Base:
 [cold start y monetización](NETWORK_COLD_START_AND_MONETIZATION.md) y
-[tipos de usuario](USER_TYPES.md). Nada de esto cambia precios en código hasta
-que Alejandro lo apruebe.
+[tipos de usuario](USER_TYPES.md). Alejandro delegó la decisión (2026-11-02) con
+una condición: la app nunca ofrece un plan o herramienta que no exista.
 
 ## 0. El lado difícil (revisar en cada decisión)
 
@@ -44,9 +44,14 @@ mensual al lado, tabla para comparar, texto alineado a la izquierda):
 
 | Plan | Precio | Qué suma |
 |---|---|---|
-| Gratis | $0 siempre | Perfil público, menú a mano sin límite, 10 lecturas con foto al mes, compartir, reseñas |
-| Pro | $99/mes · $990/año | Todo lo de Gratis, más 60 lecturas con foto, 8 avisos especiales, platillo destacado y estadísticas |
-| Fundador | Por invitación | 6 meses de Pro sin costo, primeros 100 negocios por colonia, sello numerado |
+| Gratis (visible) | $0 siempre | Perfil público, menú a mano sin límite, 20 lecturas con foto al día, compartir como imagen, aviso a quien te guarda, reseñas y respuesta, guardados y «me gusta» |
+| Fundador (visible) | Por invitación | Primeros negocios de cada colonia, alta en persona, línea directa con el equipo |
+| Pro (oculto) | $99/mes · $990/año | Todo lo de Gratis, más 60 lecturas con foto al día, 8 avisos especiales, estadísticas por horario y colonia, platillo destacado |
+
+Pro solo aparece cuando el cobro se enciende, y el cobro solo se enciende
+cuando cada beneficio de Pro existe y el servidor aplica su cupo. Hoy el
+límite real de lecturas es 20 al día para todos. Los Fundadores recibirán 6
+meses de Pro cuando exista; el sello Fundador tampoco existe todavía.
 
 - La comparación con la comida corrida va implícita en el número: $99 al mes
   es lo que cuesta una comida corrida, y el anual se muestra como $83 al mes.
@@ -119,13 +124,17 @@ de escape:
 Saaaaaaabes.» al Foodie (13:00) y «X publicó lo de hoy» cuando un lugar
 guardado publica.
 
-## Decisiones pendientes de Alejandro
+## Decisiones (2026-11-02, aplicadas en la app)
 
-- [x] Planes según *The Cold Start Problem* (2026-11-02).
+- [x] Planes según *The Cold Start Problem*.
 - [x] Comparación con la comida corrida implícita en el precio, sin texto.
-- [ ] Creador sin cobro, por invitación.
-- [ ] Foodie sin cobro en arranque; Patio+ y listas para suscriptores después.
-- [ ] Quitar «Plan» del Perfil Foodie.
-- [ ] Cambiar «Ver quién te guarda» por estadísticas sin nombres.
-- [ ] Sin tercer nivel de negocio por ahora.
+- [x] Creador sin cobro, por invitación directa; sello, listas destacadas y
+  estadísticas no se ofrecen hasta construirse. Plan Creador eliminado del código.
+- [x] Foodie sin cobro en arranque; Patio+ y listas para suscriptores después.
+- [x] «Plan» sale del Perfil Foodie; en su lugar, «¿Tienes un negocio?».
+- [x] El botón «IA» del buscador solo existe en desarrollo (llevaba a un plan
+  Foodie que no existe).
+- [x] «Ver quién te guarda» → estadísticas por horario y colonia, sin nombres.
+- [x] Sin tercer nivel de negocio por ahora.
+- [x] Pantalla de planes: Gratis + Fundadores con beneficios reales; Pro oculto.
 - [ ] Van Westendorp con los Fundadores antes de fijar precios en tienda.

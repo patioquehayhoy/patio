@@ -1,21 +1,21 @@
 import { Ionicons } from '@expo/vector-icons';
-import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { router, Stack } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import type { PurchasesPackage } from 'react-native-purchases';
 import { Alert, Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { billingAvailable, loadPlanPackages, purchasePlan, restorePlan, subscriptionLegalUrls } from '@/lib/billing';
-import { useFoodieAccountController } from '@/lib/controllers/useFoodieAccountController';
 import { PLANS, type BillingPeriod } from '@/lib/plans';
 import { useTheme, Type, type Theme } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
 
 const SUPPORT_EMAIL = 'quehayhoy.patio@gmail.com';
-const FOUNDER_BENEFITS = ['6 meses de Pro sin costo', 'Para los primeros 100 negocios de cada colonia', 'Sello numerado al publicar 4 semanas seguidas'];
+// Solo lo que hoy se cumple a mano; nada que dependa de Pro.
+const FOUNDER_BENEFITS = ['Para los primeros negocios de cada colonia', 'Damos de alta tu negocio y tu menú contigo, en persona', 'Línea directa con el equipo de Patio'];
 const PREVIEW = 3;
 const mxn = (value: number) => `$${value.toLocaleString('es-MX')}`;
-// Ahorro real del anual frente a 12 meses; es el mismo en Pro y Creador.
+// Ahorro real del anual frente a 12 meses.
 const ANNUAL_SAVING = Math.round((1 - PLANS.pro.annual / (PLANS.pro.monthly * 12)) * 100);
 
 type Action = { label: string; onPress: () => void; tone: 'accent' | 'ink' | 'outline'; disabled?: boolean };
@@ -58,13 +58,10 @@ function PlanCard({ t, name, tagline, price, was, unit, badge, highlight, action
 }
 
 export default function Plan() {
-  const { role = 'foodie' } = useLocalSearchParams<{ role?: 'foodie' | 'fondero' }>();
-  const business = role === 'fondero';
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
-  const { handleDevFondero, handleFonderoAccess } = useFoodieAccountController();
-  const free = business ? PLANS.free : PLANS.foodie;
-  const paidId = business ? 'pro' : 'creator';
+  const free = PLANS.free;
+  const paidId = 'pro';
   const paid = PLANS[paidId];
   // El plan de pago incluye todo lo del gratuito.
   const paidBenefits = [...paid.benefits, ...free.benefits.filter((item) => !/lecturas con foto/i.test(item))];
@@ -100,12 +97,12 @@ export default function Plan() {
   } : undefined;
   const openMail = (subject: string) => void Linking.openURL(`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(subject)}`)
     .catch(() => Alert.alert(noWidow('No pudimos abrir el correo'), noWidow(`Puedes escribirnos a ${SUPPORT_EMAIL}.`)));
-  const tagline = business ? 'Para publicar todos los días' : 'Para quien recomienda dónde comer';
+  const tagline = 'Para publicar todos los días';
   type Cell = boolean | string;
   const reads = (item: string) => /lecturas con foto/i.test(item);
   const rows: { label: string; free: Cell; paid: Cell }[] = [
     ...free.benefits.map((item) => reads(item)
-      ? { label: 'Lecturas con foto al mes', free: String(PLANS.free.photoReads), paid: String(PLANS.pro.photoReads) }
+      ? { label: 'Lecturas con foto al día', free: String(PLANS.free.photoReads), paid: String(PLANS.pro.photoReads) }
       : { label: item, free: true, paid: true }),
     ...paid.benefits.filter((item) => !reads(item)).map((item) => {
       const count = /^(\d+)\s(.+)$/.exec(item);
@@ -121,31 +118,34 @@ export default function Plan() {
     <Stack.Screen options={{ headerShown: false }} />
     <View style={s.nav}><TouchableOpacity style={s.back} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Volver"><Ionicons name="chevron-back" size={21} color={theme.text} /></TouchableOpacity></View>
     <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[s.content, { paddingBottom: insets.bottom + 40 }]}>
-      <Text accessibilityRole="header" style={[s.title, { color: theme.text }]}>{noWidow('Elige tu plan')}</Text>
-      <Text style={[s.title, { color: theme.accent }]}>{noWidow(`y ahorra ${ANNUAL_SAVING}% al año`)}</Text>
+      {/* Pro aparece solo con el cobro encendido: nunca se muestra un plan
+          que todavía no se puede contratar. */}
+      <Text accessibilityRole="header" style={[s.title, { color: theme.text }]}>{noWidow(available ? 'Elige tu plan' : 'Tu plan')}</Text>
+      {available && <Text style={[s.title, { color: theme.accent }]}>{noWidow(`y ahorra ${ANNUAL_SAVING}% al año`)}</Text>}
 
-      <PlanCard t={theme} name={free.name} tagline={business ? 'Para empezar a publicar' : 'Para descubrir qué hay hoy'}
+      <PlanCard t={theme} name={free.name} badge="Tu plan" tagline="Todo para publicar lo de hoy"
         price="$0" unit="siempre" benefits={free.benefits} />
-      <PlanCard t={theme} highlight name={`${paid.name} anual`} badge={`−${ANNUAL_SAVING}%`} tagline={tagline}
+      {available && <><PlanCard t={theme} highlight name={`${paid.name} anual`} badge={`−${ANNUAL_SAVING}%`} tagline={tagline}
         was={packages.annual ? undefined : mxn(paid.monthly)} price={packages.annual?.product.priceString ?? mxn(Math.round(paid.annual / 12))}
         unit={packages.annual ? 'al año' : `/mes · ${mxn(paid.annual)} al año`}
         action={subscribe('annual', 'accent')} benefits={paidBenefits} />
       <PlanCard t={theme} name={`${paid.name} mensual`} tagline={tagline}
         price={packages.monthly?.product.priceString ?? mxn(paid.monthly)} unit="/mes"
-        action={subscribe('monthly', 'outline')} benefits={paidBenefits} />
+        action={subscribe('monthly', 'outline')} benefits={paidBenefits} /></>}
 
-      {business && <View style={[s.special, { backgroundColor: theme.accentLight }]}>
+      <View style={[s.special, { backgroundColor: theme.accentLight }]}>
         <View style={s.cardHead}>
           <Text accessibilityRole="header" style={[s.planName, { color: theme.text }]}>Fundadores</Text>
           <View style={[s.badge, { backgroundColor: theme.surface }]}><Text style={[s.badgeText, { color: theme.accent }]}>Por invitación</Text></View>
         </View>
         <Text style={[s.specialBody, { color: theme.text }]}>{noWidow(FOUNDER_BENEFITS.join(' · '))}</Text>
-        <TouchableOpacity accessibilityRole="button" style={[s.cta, { backgroundColor: theme.text }]} onPress={() => openMail('Patio · Fundadores')}>
-          <Text style={[s.ctaText, { color: theme.bg }]}>Pedir invitación</Text>
+        {/* Sin Pro a la vista, la invitación es la única acción: va en naranja. */}
+        <TouchableOpacity accessibilityRole="button" style={[s.cta, { backgroundColor: available ? theme.text : theme.accent }]} onPress={() => openMail('Patio · Fundadores')}>
+          <Text style={[s.ctaText, { color: available ? theme.bg : '#fff' }]}>Pedir invitación</Text>
         </TouchableOpacity>
-      </View>}
+      </View>
 
-      <Text style={[s.compareTitle, { color: theme.text }]}>{noWidow('Comparar planes')}</Text>
+      {available && <><Text style={[s.compareTitle, { color: theme.text }]}>{noWidow('Comparar planes')}</Text>
       <View style={[s.tableHead, { borderBottomColor: theme.sep }]}>
         <View style={{ flex: 1 }} />
         <Text style={[s.col, s.colHead, { color: theme.textSecondary }]}>{free.name}</Text>
@@ -155,16 +155,7 @@ export default function Plan() {
         <Text style={[s.rowText, { color: theme.text }]}>{noWidow(row.label)}</Text>
         <View style={s.col}>{cell(row.free, false)}</View>
         <View style={s.col}>{cell(row.paid, true)}</View>
-      </View>)}
-
-      {/* Cada lado ve solo sus planes, como Uber One o DashPass; la puerta al
-          otro lado es un renglón discreto, no una tarjeta de precio. */}
-      {!business && <TouchableOpacity style={[s.businessRow, { borderColor: theme.border }]} accessibilityRole="button"
-        onPress={() => void (__DEV__ ? handleDevFondero() : handleFonderoAccess())}>
-        <Ionicons name="storefront-outline" size={20} color={theme.textSecondary} />
-        <Text style={[s.businessText, { color: theme.text }]}>{noWidow('¿Tienes un negocio? Regístralo gratis')}</Text>
-        <Ionicons name="chevron-forward" size={16} color={theme.textMute} />
-      </TouchableOpacity>}
+      </View>)}</>}
 
       {available && <View style={s.footer}>
         <TouchableOpacity disabled={busy !== null} onPress={() => act('restore')} accessibilityRole="button" style={s.link}>
@@ -213,8 +204,6 @@ const s = StyleSheet.create({
   rowText: { flex: 1, minWidth: 0, fontSize: 14, lineHeight: 19, paddingRight: 8 },
   cell: { fontSize: 14, fontWeight: '500' },
   footer: { marginTop: 24, alignItems: 'flex-start' },
-  businessRow: { marginTop: 32, minHeight: 56, paddingHorizontal: 16, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 8 },
-  businessText: { flex: 1, fontSize: 15, fontWeight: '700' },
   link: { minHeight: 44, justifyContent: 'center' },
   linkText: { fontSize: 14 },
   legal: { marginTop: 8, fontSize: 13, lineHeight: 18 },

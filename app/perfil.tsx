@@ -97,7 +97,7 @@ export default function PerfilScreen() {
             title="Plan"
             sub="Patio Gratis para negocios"
             divider
-            onPress={() => router.push({ pathname: '/plan', params: { role: 'fondero' } })}
+            onPress={() => router.push('/plan')}
           />
         </SettingsGroup>
 

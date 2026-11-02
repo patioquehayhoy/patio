@@ -35,7 +35,7 @@ export default function CuentaScreen() {
   const sc = settingsColors(theme);
   const insets = useSafeAreaInsets();
   const { onScroll } = useTabBarScroll();
-  const { hasSession } = useFoodieAccountController();
+  const { handleDevFondero, handleFonderoAccess, hasSession } = useFoodieAccountController();
   const [userId, setUserId] = useState<string | null>(null);
   useEffect(() => { supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id ?? null)).catch(() => {}); }, []);
   // El punto de la pestaña Perfil lleva a algún lado: el mismo punto marca la
@@ -120,9 +120,9 @@ export default function CuentaScreen() {
             />}
           </SettingsGroup>
 
-          {/* Publicar un negocio vive en Plan: se elige como plan, no como atajo. */}
+          {/* El Foodie no tiene planes: la única puerta es registrar un negocio. */}
           <SettingsGroup c={sc}>
-            <SettingsRow c={sc} icon="rocket-outline" title="Plan" sub="Foodie, Creador o Negocio" onPress={() => router.push({ pathname: '/plan', params: { role: 'foodie' } })} />
+            <SettingsRow c={sc} icon="storefront-outline" title="¿Tienes un negocio?" sub="Publica tu menú gratis" onPress={() => void (__DEV__ ? handleDevFondero() : handleFonderoAccess())} />
           </SettingsGroup>
 
           <AccountSettings role="foodie" />

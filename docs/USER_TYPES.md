@@ -1,12 +1,15 @@
-# Tipos de usuario — mapa vigente (2026-10-28)
+# Tipos de usuario — mapa vigente (2026-11-02)
 
 Precios y beneficios salen de `lib/plans.ts`; si cambian ahí, cambian aquí.
 `scripts/tests/user-types-doc.test.cjs` falla si este documento se desfasa.
 Contexto de negocio: [cold start y monetización](NETWORK_COLD_START_AND_MONETIZATION.md).
 
 Cada tipo se define por lo que viene a hacer, no por su lista de funciones
-(working backwards). Cada lado ve solo sus planes, como Uber One o DashPass;
-la puerta al otro lado es un renglón discreto, nunca una tarjeta de precio.
+(working backwards). Solo el negocio tiene planes; el Foodie y el Creador no
+pagan mientras la red arranca ([decisión](PLANES_CREADORES_Y_RED_2026-11-02.md)).
+Aquí solo se describe lo que existe en la app.
+
+**Lado difícil hoy:** el negocio que publica su menú diario.
 
 ## Lado Foodie
 
@@ -23,39 +26,44 @@ la puerta al otro lado es un renglón discreto, nunca una tarjeta de precio.
 - **Costo:** $0.
 - **Puede:** listas (privadas, con enlace o públicas), compartirlas, reseñar,
   seguir perfiles, notificaciones de sus lugares. Perfil público, como Instagram.
-- **Nunca ve:** sus menús, estadísticas de negocio.
+- **Nunca ve:** precios, sus menús, estadísticas de negocio. En Perfil solo
+  tiene una puerta: «¿Tienes un negocio?».
 
 ### Creador
 - **Viene a:** recomendar a su audiencia y que sus recomendaciones rindan.
-- **Llega:** suscripción desde Planes.
-- **Costo:** $199/mes · $1,990/año.
-- **Puede:** lo de Foodie + listas destacadas, estadísticas de sus listas,
-  sello de Creador, enlace de invitación.
-- **Nunca ve:** planes de negocio dentro de su pantalla de planes.
+- **Llega:** por invitación directa de Alejandro (Creadores Fundadores).
+- **Costo:** $0.
+- **Puede hoy:** lo mismo que un Foodie (listas públicas, compartirlas, seguidores).
+- **Todavía no existe:** sello, listas destacadas ni estadísticas de enlace; no
+  se ofrecen en la app hasta construirse.
 
 ## Lado Negocio
 
 ### Negocio Gratis
 - **Viene a:** que la gente de cerca sepa qué preparó hoy.
-- **Llega:** Planes → «¿Tienes un negocio?», o la intro «Publicar lo que preparo».
+- **Llega:** Perfil → «¿Tienes un negocio?», o la intro «Publicar lo que preparo».
 - **Costo:** $0.
-- **Puede:** perfil público, menú a mano sin límite, 10 lecturas con foto al mes,
-  compartir su menú, recibir y responder reseñas.
+- **Puede:** perfil público, menú a mano sin límite, 20 lecturas con foto al día,
+  compartir su menú como imagen, aviso a quien lo guarda cuando publica, recibir
+  y responder reseñas, guardados y «me gusta» de sus platillos.
 - **Nunca ve:** lugares guardados ni listas de Foodie.
 
 ### Negocio Pro
 - **Viene a:** publicar todos los días y traer de vuelta a quien ya lo conoce.
-- **Llega:** suscripción desde Planes, del lado negocio.
+- **Llega:** suscripción desde Planes, del lado negocio. **Oculto** hasta que
+  existan sus beneficios y el cobro esté encendido.
 - **Costo:** $99/mes · $990/año.
-- **Puede:** lo de Gratis + 60 lecturas con foto al mes, 8 avisos especiales
-  (promociones) al mes, ver quién lo guarda, platillo destacado.
-- **Nunca ve:** el plan Creador.
+- **Tendrá:** lo de Gratis + 60 lecturas con foto al día, 8 avisos especiales
+  (promociones) al mes, estadísticas por horario y colonia (sin nombres),
+  platillo destacado.
 
 ### Fundador
 - **Viene a:** arrancar Patio en su colonia y que se le reconozca.
-- **Llega:** por invitación, primeros 100 negocios por colonia.
-- **Costo:** 6 meses de Pro sin costo.
-- **Puede:** lo de Pro; sello numerado al publicar 4 semanas seguidas.
+- **Llega:** por invitación («Pedir invitación» en Planes), primeros negocios
+  de cada colonia.
+- **Costo:** $0.
+- **Recibe hoy:** alta del negocio y del menú en persona y línea directa con el
+  equipo. Cuando Pro exista, 6 meses sin costo; el sello Fundador aún no existe.
 
 ## Reglas
 
@@ -70,5 +78,4 @@ la puerta al otro lado es un renglón discreto, nunca una tarjeta de precio.
 
 - Quien ya es Foodie y registra un negocio: ¿misma cuenta y correo, o aparte?
   Pendiente de Jev. Hoy usa la misma cuenta.
-- Qué gana un negocio en el lado Foodie (p. ej. beneficios de Creador).
 - Avisos especiales (promociones) de Pro: panel o flyer, nunca desarrollado.

@@ -1,5 +1,6 @@
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PlaceIcon } from '@/components/place-icon';
+import { PaymentIcon } from '@/components/payment-icon';
 import { LibraryListRow } from '@/components/library-list-row';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
@@ -814,7 +815,7 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
               return <TouchableOpacity key={group.field} style={[s.availabilityRow, index > 0 && s.rowDivider]} disabled={disabled}
                 accessibilityRole="button" accessibilityLabel={group.title} accessibilityValue={{ text: summary }} accessibilityState={{ disabled }}
                 onPress={() => { Haptics.selectionAsync().catch(() => {}); setFilterDetail(group.field); }}>
-                <View style={s.checkSlot}><PlaceIcon name={group.icon} size={20} color={theme.textSecondary} /></View>
+                <View style={s.checkSlot}>{group.field === 'payments' ? <PaymentIcon method="Tarjeta" size={20} color={theme.textSecondary} /> : <PlaceIcon name={group.icon} size={20} color={theme.textSecondary} />}</View>
                 <Text style={s.disclosureLabel}>{noWidow(group.title)}</Text>
                 <Text numberOfLines={2} style={s.disclosureValue}>{noWidow(summary)}</Text>
                 <View style={s.disclosureChevron}><Ionicons name="chevron-forward" size={16} color={theme.textMute} /></View>

@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { SymbolView, type SFSymbol } from 'expo-symbols';
+import { SymbolView } from 'expo-symbols';
 import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -10,6 +10,7 @@ import MapView, { Marker } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AgentSpinner } from '@/components/agent-spinner';
+import { PAYMENT_ORDER, PaymentIcon } from '@/components/payment-icon';
 import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { ContentSafetyMenu } from '@/components/content-safety-menu';
 import { SaveToListSheet } from '@/components/save-to-list-sheet';
@@ -89,12 +90,6 @@ function syntheticThreadFor(userId: string, patioName: string, stars: number): R
 const HERO_HEIGHT = 300;
 const PULL_TO_DISMISS_THRESHOLD = 93;
 const DAYS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-const PAYMENT_ORDER = ['Efectivo', 'Tarjeta', 'Transferencia'];
-const PAYMENT_SYMBOLS: Record<string, { symbol: SFSymbol; fallback: keyof typeof Ionicons.glyphMap; size: number }> = {
-  Efectivo: { symbol: 'banknote', fallback: 'cash-outline', size: 18 },
-  Tarjeta: { symbol: 'creditcard', fallback: 'card-outline', size: 17 },
-  Transferencia: { symbol: 'arrow.left.arrow.right', fallback: 'swap-horizontal-outline', size: 15.5 },
-};
 
 // Fotos botánicas para el hero. Se elige una de forma determinística por id
 // para que cada lugar conserve siempre la misma y la galería se vea variada.
@@ -766,14 +761,11 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
                 {!!patio.payments.length && (
                   <View style={[s.factColumn, s.factColumnCenter]} accessible accessibilityLabel={`Acepta ${patio.payments.join(', ')}`}>
                   <View style={s.payments}>
-                    {PAYMENT_ORDER.filter((payment) => patio.payments.includes(payment)).map((payment) => {
-                      const icon = PAYMENT_SYMBOLS[payment];
-                      return (
-                        <View key={payment} style={s.paymentIconBox}>
-                          <SymbolView name={icon.symbol} size={icon.size} weight="regular" tintColor={theme.textMute} fallback={<Ionicons name={icon.fallback} size={icon.size} color={theme.textMute} />} />
-                        </View>
-                      );
-                    })}
+                    {PAYMENT_ORDER.filter((payment) => patio.payments.includes(payment)).map((payment) => (
+                      <View key={payment} style={s.paymentIconBox}>
+                        <PaymentIcon method={payment} size={18} color={theme.textMute} />
+                      </View>
+                    ))}
                   </View>
                   </View>
                 )}

@@ -1,4 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
+
+import { PaymentIcon, type PaymentMethod } from '@/components/payment-icon';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import type { ScheduleEditorColors } from '@/components/business-schedule-editor';
@@ -15,10 +17,11 @@ type Props = {
   onChange: (value: BusinessPayments) => void;
 };
 
-const OPTIONS: { key: keyof BusinessPayments; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
-  { key: 'efectivo', label: 'Efectivo', icon: 'cash-outline' },
-  { key: 'transferencia', label: 'Transferencia', icon: 'swap-horizontal-outline' },
-  { key: 'tarjeta', label: 'Tarjeta', icon: 'card-outline' },
+// Mismo orden y mismos dibujos que la ficha del negocio.
+const OPTIONS: { key: keyof BusinessPayments; label: PaymentMethod }[] = [
+  { key: 'efectivo', label: 'Efectivo' },
+  { key: 'tarjeta', label: 'Tarjeta' },
+  { key: 'transferencia', label: 'Transferencia' },
 ];
 
 export function BusinessPaymentSelector({ colors, value, onChange }: Props) {
@@ -36,7 +39,7 @@ export function BusinessPaymentSelector({ colors, value, onChange }: Props) {
             activeOpacity={0.72}
             style={[s.row, { backgroundColor: colors.surface, borderColor: active ? colors.accent : colors.border }]}>
             <View style={[s.icon, { backgroundColor: colors.bg }]}>
-              <Ionicons name={option.icon} size={19} color={active ? colors.accent : colors.textSecondary} />
+              <PaymentIcon method={option.label} size={20} color={active ? colors.accent : colors.textSecondary} />
             </View>
             <Text style={[s.label, { color: colors.text }]} maxFontSizeMultiplier={1.4}>{option.label}</Text>
             <Ionicons name={active ? 'checkmark-circle' : 'ellipse-outline'} size={22} color={active ? colors.accent : colors.textMute} />

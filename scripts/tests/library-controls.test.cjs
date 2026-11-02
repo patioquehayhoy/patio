@@ -73,6 +73,7 @@ function fixture(file, overrides = {}) {
     'expo-symbols': { SymbolView: 'SymbolView' },
     '@/components/pin-icon': { PinIcon: 'PinIcon' },
     '@/components/place-icon': { PlaceIcon: 'Icon' },
+    '@/components/payment-icon': { PaymentIcon: 'PaymentIcon' },
     'expo-blur': { BlurView: 'BlurView' },
     '@/components/bottom-content-fade': { BottomContentFade: 'BottomContentFade' },
     'expo-linear-gradient': { LinearGradient: 'LinearGradient' },

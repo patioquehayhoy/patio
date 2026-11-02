@@ -33,14 +33,14 @@ igual (Jakob Nielsen, Nielsen Norman Group). Por eso:
 - Barra inferior con 5 destinos como máximo.
 - Inicio a la izquierda y Perfil a la derecha.
 - Crear va al centro de la barra, nunca escondido arriba en una pantalla.
-  Negocio: `Menús · Actividad · + · Perfil` (4 botones: Jev eligió menos
-  botones sobre una quinta pestaña). Foodie no crea en el día a día, así que su
-  barra no lleva «+».
+  Negocio: `Menús · Actividad · + · Mi Patio · Perfil`: cinco para que el «+»
+  quede al centro exacto (Parco eligió esto sobre los 4 que prefería Jev). Foodie
+  no crea en el día a día, así que su barra no lleva «+».
 - Deslizar desde el borde izquierdo regresa; no se desactiva.
 - Jalar hacia abajo actualiza toda lista que viene del servidor.
 - Perfil sigue el modelo Instagram: muestra quién eres y lo que publicas (el
-  negocio entra a «Ver mi ficha»; el Foodie a su perfil público y su
-  Actividad). Ajustes vive detrás del engrane arriba a la derecha, compartido
+  negocio ve su ficha en la pestaña Mi Patio; el Foodie entra a su perfil
+  público y su Actividad). Ajustes vive detrás del engrane arriba a la derecha, compartido
   por los dos roles (`app/ajustes.tsx`): Notificaciones, Apariencia, Ayuda y,
   al final, Cuenta con Cuentas bloqueadas, Cerrar sesión y Eliminar.
 

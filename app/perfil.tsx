@@ -83,12 +83,8 @@ export default function PerfilScreen() {
             puerta al otro lado en tinta neutra y cerrar sesión. Sin
             botonzote — editar el negocio es una acción ocasional, no LA
             acción. */}
-        {/* Modelo Instagram: Perfil es tu negocio tal como se publica; lo que
-            se configura una vez vive en Ajustes, detrás del engrane. */}
-        <SettingsGroup c={sc}>
-          <SettingsRow c={sc} icon="storefront-outline" title="Ver mi ficha" sub="Así te ve la gente" accent onPress={() => router.push('/mi-patio')} />
-        </SettingsGroup>
-
+        {/* Cómo te ve la gente vive en la pestaña Mi Patio; lo que se
+            configura una vez vive en Ajustes, detrás del engrane. */}
         <SettingsGroup c={sc} label="Negocio">
           <SettingsRow c={sc} icon="create-outline" title="Editar mi negocio" sub={address || undefined} onPress={() => router.push('/perfil-editar')} />
           <SettingsRow

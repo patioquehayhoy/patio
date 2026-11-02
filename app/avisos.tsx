@@ -15,6 +15,7 @@ import {
   syncSavedPatioNotificationSubscriptions,
 } from '@/lib/community-notifications';
 import { getFavoritePatioIds } from '@/lib/favorites';
+import { getReminder, setReminder } from '@/lib/local-reminders';
 import { useTheme } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
 
@@ -29,6 +30,8 @@ export default function AvisosScreen() {
   const [signedIn, setSignedIn] = useState(true);
   const [preview, setPreview] = useState(false);
   const [updating, setUpdating] = useState<keyof NotificationPreferences | 'reminder' | null>(null);
+  const [reminder, setReminderOn] = useState(false);
+  const reminderKind = fondero ? 'publish' : 'lunch';
   const [remote, setRemote] = useState<NotificationPreferences>({
     patioPublications: false,
     businessActivity: true,
@@ -39,6 +42,7 @@ export default function AvisosScreen() {
 
   useFocusEffect(useCallback(() => {
     let active = true;
+    getReminder(reminderKind).then((on) => { if (active) setReminderOn(on); }).catch(() => {});
     getSystemNotificationStatus().then((status) => {
       if (!active) return;
       setSystem(status);
@@ -58,7 +62,7 @@ export default function AvisosScreen() {
         else setSignedIn(false);
       });
     return () => { active = false; };
-  }, []));
+  }, [reminderKind]));
 
   const updateRemote = async (patch: Partial<NotificationPreferences>) => {
     const key = Object.keys(patch)[0] as keyof NotificationPreferences;
@@ -81,6 +85,21 @@ export default function AvisosScreen() {
       } else {
         Alert.alert(noWidow('No pudimos guardar el cambio'), noWidow('Revisa tu conexión e inténtalo otra vez.'));
       }
+    } finally {
+      setUpdating(null);
+    }
+  };
+
+  const updateReminder = async (value: boolean) => {
+    setReminderOn(value);
+    setUpdating('reminder');
+    try {
+      const granted = await setReminder(reminderKind, value);
+      if (!granted) setReminderOn(false);
+      setSystem(await getSystemNotificationStatus());
+    } catch {
+      setReminderOn(!value);
+      Alert.alert(noWidow('No pudimos guardar el cambio'), noWidow('Inténtalo otra vez.'));
     } finally {
       setUpdating(null);
     }
@@ -109,12 +128,12 @@ export default function AvisosScreen() {
 
         {!signedIn ? (
           // Sin cuenta no hay a quién avisar: en vez de interruptores muertos, la entrada.
-          <SettingsGroup c={sc}>
+          <SettingsGroup c={sc} label={fondero ? 'Tu negocio' : 'Tus lugares'}>
             <SettingsRow
               c={sc}
-              icon="notifications-outline"
-              title="Elige qué recibir"
-              sub="Entra a tu cuenta para recibir notificaciones de tus lugares"
+              icon="person-circle-outline"
+              title="Entra a tu cuenta"
+              sub={fondero ? 'Para saber cuando alguien opina sobre tu Patio' : 'Para saber cuando tus lugares publican'}
               onPress={() => fondero ? router.push('/fondero-acceso') : router.push({ pathname: '/comunidad-acceso', params: { returnTo: '/avisos' } })}
             />
           </SettingsGroup>
@@ -123,13 +142,24 @@ export default function AvisosScreen() {
             <SettingsRow c={sc} icon="chatbubble-ellipses-outline" title="Reseñas nuevas" sub="Cuando alguien opina sobre tu Patio" trailing={toggle('businessActivity', 'Reseñas nuevas')} />
           </SettingsGroup>
         ) : (
-          // Solo se ofrece lo que el servidor de verdad envía. Promociones
+          // Solo se ofrece lo que de verdad se envía. Promociones
           // (specialNotices), Lugares nuevos (newPlaces) y Novedades
           // (productUpdates) ya se guardan; vuelven aquí cuando exista su envío.
           <SettingsGroup c={sc} label="Tus lugares">
             <SettingsRow c={sc} icon="document-text-outline" title="Menú de hoy" sub="Cuando un lugar que guardaste publica" trailing={toggle('patioPublications', 'Menú de hoy')} />
           </SettingsGroup>
         )}
+
+        {/* Los programa el teléfono: funcionan con o sin cuenta. */}
+        <SettingsGroup c={sc} label="Recordatorios">
+          <SettingsRow
+            c={sc}
+            icon={fondero ? 'camera-outline' : 'restaurant-outline'}
+            title={fondero ? 'Publicar el menú' : 'Hora de comer'}
+            sub={fondero ? 'A las 10 de la mañana, si aún no publicas' : 'A la 1 de la tarde, para ver qué hay hoy'}
+            trailing={<ToggleSwitch value={reminder} disabled={updating === 'reminder'} accessibilityLabel={fondero ? 'Publicar el menú' : 'Hora de comer'} onValueChange={updateReminder} />}
+          />
+        </SettingsGroup>
       </ScrollView>
     </View>
   );

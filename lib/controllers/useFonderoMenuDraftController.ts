@@ -22,6 +22,7 @@ import {
   type Seccion,
 } from '@/lib/menu-store';
 import { noWidow } from '@/lib/typography';
+import { syncPublishReminder } from '@/lib/local-reminders';
 import { getFonditaId } from '@/lib/user-store';
 
 const blankDish = (): Platillo => ({
@@ -53,6 +54,7 @@ export async function publishMenuNow(data: MenuData, opts: { source?: 'foto' | '
   if (fonditaId) {
     // Solo el guardado remoto confirma que el menú está publicado.
     await saveMenuHoy(fonditaId, clean);
+    syncPublishReminder(true).catch(() => {});
     announceMenuPublication(fonditaId).catch((error) => {
       if (__DEV__) console.warn('[push] no se pudo anunciar la publicación', error);
     });

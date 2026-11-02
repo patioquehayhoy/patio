@@ -1,11 +1,11 @@
 # Patio — Logo Mark Brief
 
-**Estado:** exploración, no aprobado para producción  
-**Objetivo:** definir el símbolo de Patio antes de probar cambios en la app.
+**Estado:** aplicación del logo existente  
+**Objetivo:** documentar el símbolo oficial de Patio y sus usos, sin rediseñarlo ni derivar nuevos símbolos.
 
 ## Decisión de alcance
 
-Este documento no cambia la interfaz, la tipografía ni el logotipo actual. Sirve para explorar un símbolo independiente y validar si aporta algo real. Si las pruebas no mejoran el producto, se conserva la identidad actual con ajustes mínimos.
+Este documento no cambia la interfaz, la tipografía ni el logotipo actual. El logo existente de Patio es la única marca oficial. El trabajo consiste en definir sus versiones, proporciones, tamaños, fondos y aplicaciones.
 
 ## Qué debe comunicar
 
@@ -23,23 +23,10 @@ La referencia base combina tres cualidades:
 2. **Personalidad editorial:** composición con aire, una forma protagonista y contraste controlado.
 3. **Materialidad local:** guiños sutiles a patio, azulejo, papel, menú impreso, sombra y señalética; nunca una ilustración literal de comida.
 
-## Rutas de símbolo a explorar
+## Reglas del mark oficial
 
-### A — Umbral / patio abierto
-
-Una forma que sugiera entrada, marco o espacio abierto. Debe funcionar como ícono pequeño y conservar buena lectura en una sola tinta.
-
-### B — Punto de encuentro
-
-Dos o tres formas simples que se aproximan y forman un centro. Debe comunicar comunidad y descubrimiento sin parecer pin de mapa ni burbuja de chat.
-
-### C — Azulejo / módulo vivo
-
-Un módulo geométrico con una pequeña irregularidad o apertura. Debe sentirse local y distintivo, sin volverse ornamental ni artesanal en exceso.
-
-## Reglas del mark
-
-- Símbolo independiente del nombre “Patio”.
+- Usar únicamente el símbolo y wordmark oficiales de Patio.
+- No redibujar, reinterpretar ni derivar nuevos símbolos.
 - Debe funcionar en app icon, favicon, avatar, sello y una tinta.
 - Silueta reconocible a 16–24 px.
 - Geometría amable, con curvas o esquinas suavizadas.
@@ -56,14 +43,14 @@ Un módulo geométrico con una pequeña irregularidad o apertura. Debe sentirse 
 
 ## Validación propuesta
 
-Antes de tocar la app se compararán tres rutas en:
+Antes de tocar la app se compararán usos del mark oficial en:
 
 - ícono de app;
 - avatar de negocio/usuario;
 - encabezado de Descubre;
 - tarjeta de un negocio.
 
-Se evaluará: reconocimiento, escalabilidad, afinidad con Patio, diferenciación y si mejora la interfaz actual. Solo una ruta aprobada pasa a producción.
+Se evaluará: reconocimiento, escalabilidad, contraste, consistencia y si mejora la interfaz actual. Solo los usos aprobados pasan a producción.
 
 ## Referencias de lenguaje
 
@@ -76,4 +63,4 @@ Estas referencias orientan el criterio; no se copiarán formas, colores ni compo
 
 ## Siguiente paso
 
-Crear tres tableros de exploración del símbolo (A, B y C), separados de producción, y revisarlos antes de generar/exportar cualquier logo definitivo.
+Auditar el archivo maestro del logo actual y crear un tablero de usos: app icon, favicon, avatar, fondos claros/oscuros, monocromo, área de seguridad y tamaños mínimos.

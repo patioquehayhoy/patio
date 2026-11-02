@@ -26,6 +26,8 @@ import { getMenuCollections, type MenuCollection } from '@/lib/menu-collections'
 import { useTabBarScroll } from '@/lib/tab-bar-visibility';
 import { Radius, useTheme, Type } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
+import { syncPublishReminder } from '@/lib/local-reminders';
+import { localMenuDate } from '@/lib/menu-date';
 
 // Menús es, a propósito, la misma pantalla que Guardados (app/favoritos.tsx)
 // — decisión de Alejandro 2026-08-24: "organizar tus cosas" (lugares
@@ -68,6 +70,12 @@ export default function HistorialScreen() {
   useFocusEffect(useCallback(() => {
     getMenuCollections().then(setCollections).catch(() => Alert.alert(noWidow('No pudimos cargar las listas'), noWidow('Inténtalo de nuevo.')));
   }, []));
+
+  // El recordatorio de las 10 se salta hoy en cuanto el menú de hoy existe.
+  const publishedToday = menus.some((menu) => menu.published && menu.fecha === localMenuDate());
+  useEffect(() => {
+    if (!loading) syncPublishReminder(publishedToday).catch(() => {});
+  }, [loading, publishedToday]);
 
   const visibleMenus = activeListIds.length === 0 ? menus : menus.filter((menu) => (
     activeListIds.some((id) => collections.find((collection) => collection.id === id)?.fechas.includes(menu.id))

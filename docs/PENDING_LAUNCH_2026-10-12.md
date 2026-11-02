@@ -53,7 +53,7 @@
 >   lanzar gratis con plan opcional después (95–99 %), beneficio más valorado
 >   «aparecer antes en el mapa» (81–95 %).
 > - [x] Barra de negocio: Jev prefiere 4 botones (56–70 %) sobre 5 (28–42 %);
->   «Mi Patio» pasó a «Ver mi ficha» dentro de Perfil.
+>   Parco eligió 5 para conservar Mi Patio y el «+» al centro exacto.
 > - [ ] Perfiles solo públicos: comodidad baja (1.8 de 4) y 53 % echaría de menos
 >   el perfil privado. Reconsiderar una opción de perfil privado.
 > - [ ] Filtro de lista Mapa/Guardados: compartido o separado.
@@ -63,9 +63,14 @@
 >   lanzar gratis y cobrar en una actualización).
 > - [ ] Grok como agente auxiliar: solo revisión e investigación, sin escribir en
 >   el repo, para no repetir el choque con Codex.
-> - [x] Barra de negocio según Ley de Jakob: `Menús · Actividad · + · Perfil`.
+> - [x] Barra de negocio según Ley de Jakob: `Menús · Actividad · + · Mi Patio · Perfil`.
 > - [x] Perfil modelo Instagram en los dos roles, con Ajustes detrás del engrane.
-> - [ ] QA físico: «+» abre el sheet desde las 3 pestañas, «Ver mi ficha» y Ajustes.
+> - [ ] QA físico: «+» desde las 4 pestañas, Mi Patio, Ajustes y los dos
+>   recordatorios (10:00 negocio, se salta el día ya publicado; 13:00 Foodie).
+> - [ ] Avisos por servidor que faltan, en orden: respuestas y me gusta a tu
+>   reseña (Foodie); te guardaron / me gusta a tus platillos (negocio);
+>   Novedades de Patio (opt-in, envío manual); Promociones (plan Pro);
+>   Lugares nuevos (requiere guardar una zona).
 > - [x] Jalar para actualizar en Guardados, Menús, Actividad y Notificaciones.
 
 > **Referencia obligatoria de infraestructura — 2026-10-27:**

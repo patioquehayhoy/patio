@@ -42,7 +42,7 @@ function isUuid(value: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 }
 
-async function requestSystemNotificationPermission(): Promise<boolean> {
+export async function requestSystemNotificationPermission(): Promise<boolean> {
   const Notifications = notificationsModule();
   if (!Notifications || Platform.OS === 'web') return false;
   // Android 13 only presents permission after a channel exists; the push

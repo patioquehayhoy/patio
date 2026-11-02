@@ -74,13 +74,13 @@ La colección de 140 assets no funciona como un solo patrón cerrado. Su valor e
 
 ### Traducción propuesta para Patio
 
-Patio podría tener una familia modular basada en una unidad propia derivada del logo existente o de un detalle geométrico del mismo. Esa unidad se probaría en tres densidades:
+La familia modular de Patio no sustituirá ni derivará el logo oficial. Si se crea un sistema de patrones, deberá ser un recurso gráfico independiente y respetar el logo como elemento fijo. Ese recurso se probaría en tres densidades:
 
 1. **Micro:** textura o detalle para fondos y tarjetas.
 2. **Media:** marco, separador o recurso editorial.
 3. **Hero:** composición protagonista para campañas, anuncios y materiales de negocios.
 
-La familia debe conservar la lectura del logo y no convertirse en un segundo logotipo. Primero se documenta la regla; después se generan las aplicaciones.
+La familia debe convivir con el logo sin convertirse en un segundo logotipo. Primero se documenta la regla; después se generan las aplicaciones.
 
 ## 6. Fotografía y materialidad
 

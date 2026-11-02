@@ -43,7 +43,9 @@
 > - [ ] Revocar la clave antigua de Anthropic.
 >
 > *Legal*
-> - [ ] URL pública del aviso de privacidad, con domicilio.
+> - [x] Borradores en `docs/legal/`: aviso de privacidad, términos y página de
+>   eliminación de cuenta (2026-11-01), basados en los datos que la app recoge hoy.
+> - [ ] Completar nombre y domicilio, revisión legal y publicarlos en una URL pública.
 >
 > *Decisiones*
 > - [ ] Jev: misma cuenta Foodie/negocio y qué gana un negocio del lado Foodie.
@@ -54,7 +56,9 @@
 >   lanzar gratis y cobrar en una actualización).
 > - [ ] Grok como agente auxiliar: solo revisión e investigación, sin escribir en
 >   el repo, para no repetir el choque con Codex.
-> - [ ] Redactar aviso de privacidad y condiciones (solo falta el domicilio).
+> - [ ] Barra inferior según Ley de Jakob: decidir el destino que acompaña a
+>   «+ Nuevo menú» al centro en la barra de negocio (ver propuesta 2026-11-01).
+> - [x] Jalar para actualizar en Guardados, Menús, Actividad y Notificaciones.
 
 > **Referencia obligatoria de infraestructura — 2026-10-27:**
 > [inventario de credenciales comprobado](CREDENTIALS_INVENTORY_2026-10-27.md).

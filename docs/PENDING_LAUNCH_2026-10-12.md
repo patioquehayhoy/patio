@@ -27,7 +27,8 @@
 >   `db push --dry-run`: «Remote database is up to date».
 >
 > *Diseño y producto*
-> - [ ] Onboardings nuevos.
+> - [ ] **Onboardings (primer pendiente de diseño):** propuesta en
+>   `docs/design/ONBOARDING_PROPOSAL_2026-11-02.md`; falta aprobación de Parco.
 > - [ ] Panel o flyer de promociones del plan Pro.
 > - [ ] Tipografía: licencia de Monument/Neue Montreal o Plus Jakarta Sans.
 >

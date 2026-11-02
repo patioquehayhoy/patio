@@ -44,14 +44,14 @@ mensual al lado, tabla para comparar, texto alineado a la izquierda):
 
 | Plan | Precio | Qué suma |
 |---|---|---|
-| Gratis (visible) | $0 siempre | Perfil público, menú a mano sin límite, 20 lecturas con foto al día, compartir como imagen, aviso a quien te guarda, reseñas y respuesta, guardados y «me gusta» |
-| Fundador (visible) | Por invitación | Primeros negocios de cada colonia, alta en persona, línea directa con el equipo |
-| Pro (oculto) | $99/mes · $990/año | Todo lo de Gratis, más 60 lecturas con foto al día, 8 avisos especiales, estadísticas por horario y colonia, platillo destacado |
+| Gratis | $0 siempre | Perfil público, menú a mano sin límite, 20 lecturas con foto al día, compartir como imagen, aviso a quien te guarda, reseñas y respuesta, guardados y «me gusta» |
+| Pro | $99/mes · $990/año | Todo lo de Gratis, más 60 lecturas con foto al día, 8 avisos especiales al mes, platillo destacado en la ficha, día y hora con más interés |
+| Fundador | Por invitación | 6 meses de Pro, alta en persona, línea directa con el equipo |
 
-Pro solo aparece cuando el cobro se enciende, y el cobro solo se enciende
-cuando cada beneficio de Pro existe y el servidor aplica su cupo. Hoy el
-límite real de lecturas es 20 al día para todos. Los Fundadores recibirán 6
-meses de Pro cuando exista; el sello Fundador tampoco existe todavía.
+Pro está construido (2026-11-02, ver [billing](BILLING_SETUP_2026-10-26.md)).
+Se ofrece a la venta cuando el cobro se encienda; mientras, los Fundadores lo
+reciben a mano y lo ven como «Tu plan». El sello Fundador no existe todavía y
+no se promete.
 
 - La comparación con la comida corrida va implícita en el número: $99 al mes
   es lo que cuesta una comida corrida, y el anual se muestra como $83 al mes.
@@ -66,7 +66,10 @@ meses de Pro cuando exista; el sello Fundador tampoco existe todavía.
 
 ## 3. ¿Cobrarle al Foodie por ver listas de creadores?
 
-No en arranque. Razones:
+No en arranque, y tampoco se pierde la oportunidad: un plan mayor para el
+Foodie (Patio+) llega en velocidad de escape, cuando haya suficiente red para
+que valga la pena pagarlo. Venderlo hoy obligaría a prometer funciones que no
+existen o a cerrar contenido que trae gente. Razones:
 
 1. Las listas son el canal por el que llega gente nueva (un enlace que
    alguien comparte). Una barrera en la primera visita corta ese ciclo.
@@ -134,7 +137,11 @@ guardado publica.
 - [x] «Plan» sale del Perfil Foodie; en su lugar, «¿Tienes un negocio?».
 - [x] El botón «IA» del buscador solo existe en desarrollo (llevaba a un plan
   Foodie que no existe).
-- [x] «Ver quién te guarda» → estadísticas por horario y colonia, sin nombres.
+- [x] «Ver quién te guarda» → día y hora con más interés, sin nombres (la
+  colonia de quien guarda no se registra, así que no se promete).
+- [x] Pro construido: lecturas por plan, avisos especiales, platillo destacado,
+  día y hora con más interés, webhook de la tienda y Pro a mano para Fundadores.
 - [x] Sin tercer nivel de negocio por ahora.
 - [x] Pantalla de planes: Gratis + Fundadores con beneficios reales; Pro oculto.
 - [ ] Van Westendorp con los Fundadores antes de fijar precios en tienda.
+- [ ] Jev revisa la decisión de Patio+ para Foodie (después, no en arranque).

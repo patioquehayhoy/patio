@@ -23,6 +23,7 @@ import { getLikedReviewIds, getReviewLikeCounts, toggleReviewLike } from '@/lib/
 import { CommentSignInRequiredError, commentTimeLabel, deleteReviewComment, getReviewComments, isRealReviewId, postReviewComment, setCommentLike } from '@/lib/review-comments';
 import { reportContent, writeErrorMessage, type ReportReason } from '@/lib/content-safety';
 import { businessStatsLabel, getBusinessStats, getDishLikeCounts, type BusinessStats } from '@/lib/business-stats';
+import { getPatioHighlights, getProStatus, setFeaturedDish, type PatioHighlights } from '@/lib/business-pro';
 import { formatHHMM12 } from '@/lib/horario';
 import { MAP_STYLE_DARK, MAP_STYLE_LIGHT } from '@/lib/map-style';
 import { Radius, Spacing, useTheme, type Theme, Type } from '@/lib/theme';
@@ -137,6 +138,10 @@ function makeStyles(t: Theme) {
     summaryRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 16 },
     summaryPrice: { maxWidth: '50%', marginLeft: 'auto' },
     statsLine: { marginTop: -8, marginBottom: 16, fontSize: 13, lineHeight: 18, fontWeight: '400', color: t.textSecondary },
+    notice: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginBottom: 16, padding: 12, borderRadius: 14, backgroundColor: t.accentSoft },
+    noticeText: { flex: 1, minWidth: 0, fontSize: 15, lineHeight: 20, fontWeight: '400', color: t.text },
+    featuredLabel: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 2 },
+    featuredLabelText: { fontSize: 11, lineHeight: 14, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase', color: t.accent },
     payments: { flexDirection: 'row', alignItems: 'center', gap: 8 },
     paymentIconBox: { width: 20, height: 20, alignItems: 'center', justifyContent: 'center' },
     // ── Menú agrupado ──
@@ -336,6 +341,29 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
     }).catch(() => {});
     return () => { active = false; };
   }, [patio?.id]);
+
+  // Pro: aviso especial de las últimas 24 horas y platillo destacado. En Mi
+  // Patio, con Pro, la estrella de cada platillo elige cuál se destaca.
+  const [highlights, setHighlights] = useState<PatioHighlights>({ featuredDish: null, notice: null });
+  const [ownPro, setOwnPro] = useState(false);
+  useEffect(() => {
+    if (!patio?.id) return;
+    let active = true;
+    getPatioHighlights(patio.id).then((value) => { if (active) setHighlights(value); }).catch(() => {});
+    if (own) getProStatus(patio.id).then((status) => { if (active) setOwnPro(!!status?.proUntil); }).catch(() => {});
+    return () => { active = false; };
+  }, [own, patio?.id]);
+  const handleFeatureDish = async (dishName: string) => {
+    if (!patio?.id) return;
+    const next = highlights.featuredDish === canonicalDishName(dishName) ? null : dishName;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    try {
+      await setFeaturedDish(patio.id, next);
+      setHighlights((current) => ({ ...current, featuredDish: next ? canonicalDishName(next) : null }));
+    } catch (error) {
+      Alert.alert(noWidow('No se pudo destacar'), noWidow(error instanceof Error ? error.message : 'Inténtalo de nuevo.'));
+    }
+  };
 
   const handleToggleDishLike = async (dishName: string) => {
     if (!patio?.id) return;
@@ -685,6 +713,12 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
           {!!businessStatsLabel(businessStats) && (
             <Text style={s.statsLine} allowFontScaling={true}>{noWidow(businessStatsLabel(businessStats))}</Text>
           )}
+          {!!highlights.notice && (
+            <View style={s.notice} accessible accessibilityLabel={`Aviso de ${patio.name}: ${highlights.notice.body}`}>
+              <Ionicons name="megaphone-outline" size={18} color={theme.accent} />
+              <Text style={s.noticeText} allowFontScaling={true}>{noWidow(highlights.notice.body)}</Text>
+            </View>
+          )}
           {/* Menú del día — agrupado por sección (atenuado si ya se acabó) */}
           <View style={soldOut && s.menuSoldWrap}>
             <View style={soldOut ? { opacity: 0.42 } : undefined}>
@@ -700,15 +734,34 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
                   {section.items.map((item) => {
                     const dishLiked = likedDishNames.has(canonicalDishName(item.name));
                     const dishLikes = dishLikeCounts[canonicalDishName(item.name)] ?? 0;
+                    const featured = highlights.featuredDish === canonicalDishName(item.name);
                     return (
                       <View key={`${section.section}-${item.name}`} style={s.groupItem}>
                         <View style={{ flex: 1 }}>
+                          {featured && (
+                            <View style={s.featuredLabel}>
+                              <Ionicons name="star" size={11} color={theme.accent} />
+                              <Text style={s.featuredLabelText} allowFontScaling={true}>Recomendado</Text>
+                            </View>
+                          )}
                           <Text style={s.groupItemName} allowFontScaling={true}>{item.name}</Text>
                           {!!item.description && (
                             <Text style={s.groupItemDescription} allowFontScaling={true}>{noWidow(item.description)}</Text>
                           )}
                         </View>
                         {!!item.price && <Text style={s.groupItemPrice} allowFontScaling={true}>{item.price}</Text>}
+                        {own && ownPro && (
+                          <TouchableOpacity
+                            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                            onPress={() => handleFeatureDish(item.name)}
+                            activeOpacity={0.7}
+                            accessibilityRole="button"
+                            accessibilityLabel={featured ? `Quitar ${item.name} como recomendado` : `Recomendar ${item.name}`}
+                            accessibilityState={{ selected: featured }}
+                            style={s.dishLikeCount}>
+                            <Ionicons name={featured ? 'star' : 'star-outline'} size={17} color={featured ? theme.accent : theme.textMute} />
+                          </TouchableOpacity>
+                        )}
                         {own ? (
                           !!dishLikes && (
                             <View style={s.dishLikeCount} accessible accessibilityLabel={`${dishLikes} me gusta`}>

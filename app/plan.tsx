@@ -5,14 +5,15 @@ import type { PurchasesPackage } from 'react-native-purchases';
 import { Alert, Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { getProStatus } from '@/lib/business-pro';
+import { getFonditaId } from '@/lib/menu-store';
 import { billingAvailable, loadPlanPackages, purchasePlan, restorePlan, subscriptionLegalUrls } from '@/lib/billing';
 import { PLANS, type BillingPeriod } from '@/lib/plans';
 import { useTheme, Type, type Theme } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
 
 const SUPPORT_EMAIL = 'quehayhoy.patio@gmail.com';
-// Solo lo que hoy se cumple a mano; nada que dependa de Pro.
-const FOUNDER_BENEFITS = ['Para los primeros negocios de cada colonia', 'Damos de alta tu negocio y tu menú contigo, en persona', 'Línea directa con el equipo de Patio'];
+const FOUNDER_BENEFITS = ['6 meses de Pro sin costo', 'Para los primeros negocios de cada colonia', 'Damos de alta tu negocio y tu menú contigo, en persona', 'Línea directa con el equipo de Patio'];
 const PREVIEW = 3;
 const mxn = (value: number) => `$${value.toLocaleString('es-MX')}`;
 // Ahorro real del anual frente a 12 meses.
@@ -70,6 +71,13 @@ export default function Plan() {
   const pending = useRef(false);
   const [notice, setNotice] = useState('');
   const available = billingAvailable();
+  // Pro activo (Fundador o tienda): se muestra como tu plan aunque el cobro esté apagado.
+  const [proUntil, setProUntil] = useState<Date | null>(null);
+  useEffect(() => {
+    const id = getFonditaId();
+    if (id) void getProStatus(id).then((status) => setProUntil(status?.proUntil ?? null)).catch(() => {});
+  }, []);
+  const showPro = available || !!proUntil;
   useEffect(() => {
     let mounted = true;
     setPackages({});
@@ -118,13 +126,16 @@ export default function Plan() {
     <Stack.Screen options={{ headerShown: false }} />
     <View style={s.nav}><TouchableOpacity style={s.back} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Volver"><Ionicons name="chevron-back" size={21} color={theme.text} /></TouchableOpacity></View>
     <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[s.content, { paddingBottom: insets.bottom + 40 }]}>
-      {/* Pro aparece solo con el cobro encendido: nunca se muestra un plan
-          que todavía no se puede contratar. */}
+      {/* Pro se ofrece solo con el cobro encendido; con Pro activo se muestra
+          como tu plan. */}
       <Text accessibilityRole="header" style={[s.title, { color: theme.text }]}>{noWidow(available ? 'Elige tu plan' : 'Tu plan')}</Text>
       {available && <Text style={[s.title, { color: theme.accent }]}>{noWidow(`y ahorra ${ANNUAL_SAVING}% al año`)}</Text>}
 
-      <PlanCard t={theme} name={free.name} badge="Tu plan" tagline="Todo para publicar lo de hoy"
+      <PlanCard t={theme} name={free.name} badge={proUntil ? undefined : 'Tu plan'} tagline="Todo para publicar lo de hoy"
         price="$0" unit="siempre" benefits={free.benefits} />
+      {!available && proUntil && <PlanCard t={theme} highlight name={paid.name} badge="Tu plan"
+        tagline={`Activo hasta el ${proUntil.toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })}`}
+        price={mxn(paid.monthly)} unit="/mes" benefits={paidBenefits} />}
       {available && <><PlanCard t={theme} highlight name={`${paid.name} anual`} badge={`−${ANNUAL_SAVING}%`} tagline={tagline}
         was={packages.annual ? undefined : mxn(paid.monthly)} price={packages.annual?.product.priceString ?? mxn(Math.round(paid.annual / 12))}
         unit={packages.annual ? 'al año' : `/mes · ${mxn(paid.annual)} al año`}
@@ -145,7 +156,7 @@ export default function Plan() {
         </TouchableOpacity>
       </View>
 
-      {available && <><Text style={[s.compareTitle, { color: theme.text }]}>{noWidow('Comparar planes')}</Text>
+      {showPro && <><Text style={[s.compareTitle, { color: theme.text }]}>{noWidow('Comparar planes')}</Text>
       <View style={[s.tableHead, { borderBottomColor: theme.sep }]}>
         <View style={{ flex: 1 }} />
         <Text style={[s.col, s.colHead, { color: theme.textSecondary }]}>{free.name}</Text>

@@ -26,3 +26,9 @@ verify_jwt = true
 
 [functions.send-community-notification]
 verify_jwt = true
+
+[functions.send-special-notice]
+verify_jwt = true
+
+[functions.revenuecat-webhook]
+verify_jwt = false

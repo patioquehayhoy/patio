@@ -144,12 +144,13 @@ export default function AvisosScreen() {
             <SettingsRow c={sc} icon="chatbubble-ellipses-outline" title="Respuestas" sub="Cuando alguien responde lo que comentaste" divider trailing={toggle('socialActivity', 'Respuestas')} />
           </SettingsGroup>
         ) : (
-          // Solo se ofrece lo que de verdad se envía. Promociones
-          // (specialNotices), Lugares nuevos (newPlaces) y Novedades
-          // (productUpdates) ya se guardan; vuelven aquí cuando exista su envío.
+          // Solo se ofrece lo que de verdad se envía. Lugares nuevos
+          // (newPlaces) y Novedades (productUpdates) ya se guardan; vuelven
+          // aquí cuando exista su envío. Promociones viene apagado (4.5.4).
           <>
             <SettingsGroup c={sc} label="Tus lugares">
               <SettingsRow c={sc} icon="document-text-outline" title="Menú de hoy" sub="Cuando un lugar que guardaste publica" trailing={toggle('patioPublications', 'Menú de hoy')} />
+              <SettingsRow c={sc} icon="megaphone-outline" title="Promociones" sub="Avisos especiales de lugares que guardaste" divider trailing={toggle('specialNotices', 'Promociones')} />
             </SettingsGroup>
             <SettingsGroup c={sc} label="Tu comunidad">
               <SettingsRow c={sc} icon="chatbubble-ellipses-outline" title="Comentarios y seguidores" sub="Cuando comentan tus reseñas, te responden o te quieren seguir" trailing={toggle('socialActivity', 'Comentarios y seguidores')} />

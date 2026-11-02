@@ -25,7 +25,8 @@ Aquí solo se describe lo que existe en la app.
 - **Llega:** entra con correo y código.
 - **Costo:** $0.
 - **Puede:** listas (privadas, con enlace o públicas), compartirlas, reseñar,
-  seguir perfiles, notificaciones de sus lugares. Perfil público, como Instagram.
+  seguir perfiles, notificaciones de sus lugares (menú de hoy y, si las activa,
+  promociones). Perfil público, como Instagram.
 - **Nunca ve:** precios, sus menús, estadísticas de negocio. En Perfil solo
   tiene una puerta: «¿Tienes un negocio?».
 
@@ -50,20 +51,21 @@ Aquí solo se describe lo que existe en la app.
 
 ### Negocio Pro
 - **Viene a:** publicar todos los días y traer de vuelta a quien ya lo conoce.
-- **Llega:** suscripción desde Planes, del lado negocio. **Oculto** hasta que
-  existan sus beneficios y el cobro esté encendido.
+- **Llega:** suscripción desde Planes (se ofrece cuando el cobro esté
+  encendido) o como Fundador.
 - **Costo:** $99/mes · $990/año.
-- **Tendrá:** lo de Gratis + 60 lecturas con foto al día, 8 avisos especiales
-  (promociones) al mes, estadísticas por horario y colonia (sin nombres),
-  platillo destacado.
+- **Puede:** lo de Gratis + 60 lecturas con foto al día, 8 avisos especiales
+  (promociones) al mes, platillo destacado en su ficha, día y hora con más
+  interés (sin nombres). Todo vive en Actividad y en Mi Patio.
 
 ### Fundador
 - **Viene a:** arrancar Patio en su colonia y que se le reconozca.
 - **Llega:** por invitación («Pedir invitación» en Planes), primeros negocios
   de cada colonia.
 - **Costo:** $0.
-- **Recibe hoy:** alta del negocio y del menú en persona y línea directa con el
-  equipo. Cuando Pro exista, 6 meses sin costo; el sello Fundador aún no existe.
+- **Recibe:** 6 meses de Pro (se otorga a mano, ver
+  [billing](BILLING_SETUP_2026-10-26.md)), alta del negocio y del menú en
+  persona y línea directa con el equipo. El sello Fundador aún no existe.
 
 ## Reglas
 
@@ -78,4 +80,3 @@ Aquí solo se describe lo que existe en la app.
 
 - Quien ya es Foodie y registra un negocio: ¿misma cuenta y correo, o aparte?
   Pendiente de Jev. Hoy usa la misma cuenta.
-- Avisos especiales (promociones) de Pro: panel o flyer, nunca desarrollado.

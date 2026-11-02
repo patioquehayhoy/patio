@@ -8,9 +8,14 @@ Propuesta completa en [PLANES_CREADORES_Y_RED](PLANES_CREADORES_Y_RED_2026-11-02
 
 - [x] Planes decididos y aplicados: solo el negocio tiene planes, Gratis y
   Fundadores con beneficios reales, Pro oculto hasta existir.
-- [ ] Construir Pro antes de encender el cobro: lecturas por plan en el
-  servidor, avisos especiales, estadísticas por horario y colonia, platillo
-  destacado.
+- [x] Pro construido (2026-11-02): lecturas por plan, avisos especiales,
+  platillo destacado, día y hora con más interés, webhook de RevenueCat.
+- [ ] Alejandro: `npx supabase db push --yes` y
+  `npx supabase functions deploy send-special-notice revenuecat-webhook`.
+- [ ] Dar Pro a los Fundadores con el SQL de [billing](BILLING_SETUP_2026-10-26.md).
+- [ ] QA en el cel con una cuenta Pro: aviso especial (llega y se ve en la
+  ficha 24 h), estrella de platillo destacado en Mi Patio, «Cuándo hay más
+  interés» en Actividad, Promociones en Notificaciones del Foodie.
 - [ ] Creadores Fundadores: elegir 5–10 creadores de la colonia piloto y
   escribirles antes de abrir.
 - [ ] Top de lugares por defecto en cada perfil (favoritos de sus

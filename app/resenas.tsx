@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Stack, useFocusEffect } from 'expo-router';
+import { router, Stack, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Alert, RefreshControl, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -18,6 +18,8 @@ import { getFonditaId, getFonditaName } from '@/lib/menu-store';
 import { getPublicPatioReviews, replyToReview, type PublicPatioReview } from '@/lib/ratings';
 import { writeErrorMessage } from '@/lib/content-safety';
 import { getBusinessInsights, getDishLikeCounts, type BusinessInsights, type DishLikeCount } from '@/lib/business-stats';
+import { getPeakTime, getProStatus, type ProStatus } from '@/lib/business-pro';
+import { PLANS } from '@/lib/plans';
 import { getDemoPatioStats, type PatioStatsSnapshot } from '@/lib/patio-stats';
 import { useTabBarScroll } from '@/lib/tab-bar-visibility';
 import { Type, useTheme } from '@/lib/theme';
@@ -63,6 +65,9 @@ export default function ResenasScreen() {
   // gusta» en platillos y lo que más gusta. Solo el dueño lo ve.
   const [insights, setInsights] = useState<BusinessInsights | null>(null);
   const [topDishes, setTopDishes] = useState<DishLikeCount[]>([]);
+  // Pro: cuándo hay más interés, avisos especiales y platillo destacado.
+  const [pro, setPro] = useState<ProStatus | null>(null);
+  const [peak, setPeak] = useState<{ day: string; hour: number } | null>(null);
   const load = useCallback(() => {
     const fonditaId = getFonditaId();
     const demoSeed = fonditaId || getFonditaName() || 'patio-demo';
@@ -73,6 +78,8 @@ export default function ResenasScreen() {
       setDishLikes([]);
       setInsights(null);
       setTopDishes([]);
+      setPro(null);
+      setPeak(null);
       return Promise.resolve();
     }
     return Promise.all([
@@ -80,6 +87,10 @@ export default function ResenasScreen() {
       getDishLikeEvents(fonditaId).then(setDishLikes).catch(() => setDishLikes([])),
       getBusinessInsights(fonditaId).then(setInsights).catch(() => setInsights(null)),
       getDishLikeCounts(fonditaId).then((counts) => setTopDishes(counts.slice(0, 3))).catch(() => setTopDishes([])),
+      getProStatus(fonditaId).then(async (status) => {
+        setPro(status?.proUntil ? status : null);
+        setPeak(status?.proUntil ? await getPeakTime(fonditaId).catch(() => null) : null);
+      }).catch(() => { setPro(null); setPeak(null); }),
     ]);
   }, []);
   useFocusEffect(useCallback(() => { void load(); }, [load]));
@@ -296,6 +307,32 @@ export default function ResenasScreen() {
                 ))}
               </View>
             )}
+            {!!peak && (
+              <View style={[s.topDishes, { borderTopColor: c.border }]}>
+                <Text style={[s.groupLabel, { color: c.textSecondary }]}>{noWidow('Cuándo hay más interés')}</Text>
+                <Text style={[s.topDishName, { color: c.text }]}>{noWidow(`Los ${peak.day} de ${peak.hour} a ${peak.hour + 1} h`)}</Text>
+              </View>
+            )}
+          </View>
+        )}
+        {!!pro && (
+          <View style={[s.list, { borderColor: c.border, marginBottom: 24 }]}>
+            <TouchableOpacity style={s.proRow} activeOpacity={0.7} onPress={() => router.push('/aviso-especial')} accessibilityRole="button">
+              <Ionicons name="megaphone-outline" size={21} color={c.text} />
+              <View style={s.rowBody}>
+                <Text style={[s.proTitle, { color: c.text }]}>Aviso especial</Text>
+                <Text style={[s.proSub, { color: c.textSecondary }]}>{noWidow(`Te quedan ${pro.noticesLeft} de ${PLANS.pro.specialNotices} este mes`)}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={16} color={c.textMute} />
+            </TouchableOpacity>
+            <TouchableOpacity style={[s.proRow, { borderTopColor: c.border, borderTopWidth: StyleSheet.hairlineWidth }]} activeOpacity={0.7} onPress={() => router.replace('/mi-patio')} accessibilityRole="button">
+              <Ionicons name="star-outline" size={21} color={c.text} />
+              <View style={s.rowBody}>
+                <Text style={[s.proTitle, { color: c.text }]}>Platillo destacado</Text>
+                <Text style={[s.proSub, { color: c.textSecondary }]}>{noWidow('Toca la estrella de un platillo en Mi Patio')}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={16} color={c.textMute} />
+            </TouchableOpacity>
           </View>
         )}
         {groups.length ? (
@@ -343,6 +380,9 @@ const s = StyleSheet.create({
   topDish: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   topDishName: { flex: 1, minWidth: 0, fontSize: 14, fontWeight: '700' },
   topDishCount: { fontSize: 13, fontWeight: '500', fontVariant: ['tabular-nums'] },
+  proRow: { minHeight: 64, flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 12 },
+  proTitle: { fontSize: 15, lineHeight: 20, fontWeight: '700' },
+  proSub: { marginTop: 2, fontSize: 13, lineHeight: 18, fontWeight: '400' },
   // Fila estilo actividad de Instagram: avatar circular al frente, texto a
   // la derecha — nombre en bold seguido de la acción, hora a la derecha.
   row: { flexDirection: 'row', gap: 12, paddingHorizontal: 16, paddingVertical: 14 },

@@ -9,6 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { fetchFonditaById, getPatioById, type Patio } from '@/lib/patios';
 import { publicPrice } from '@/lib/prices';
 import { savePatioRating } from '@/lib/ratings';
+import { writeErrorMessage } from '@/lib/content-safety';
 import { reviewTags } from '@/lib/review-tags';
 import { useTheme, type Theme, Type } from '@/lib/theme';
 import { supabase } from '@/lib/supabase';
@@ -124,8 +125,8 @@ export default function ResenaScreen() {
     try {
       await savePatioRating(cleanId, { stars, reasons: selected, note, photoUri });
       router.back();
-    } catch {
-      Alert.alert(noWidow('No pudimos publicar tu reseña'), noWidow('Revisa tu conexión e inténtalo otra vez.'));
+    } catch (error) {
+      Alert.alert(noWidow('No pudimos publicar tu reseña'), noWidow(writeErrorMessage(error, 'Revisa tu conexión e inténtalo otra vez.')));
     } finally {
       setSaving(false);
     }

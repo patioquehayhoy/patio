@@ -27,7 +27,7 @@ const NOTICES: Topic = { id: 'avisos', icon: 'notifications-outline', title: 'Av
 ] };
 const SAFETY: Topic = { id: 'seguridad', icon: 'shield-checkmark-outline', title: 'Reseñas y seguridad', hint: 'Reportar contenido o a alguien', reasons: [
   { title: 'Una reseña es ofensiva o falsa', answer: 'Repórtala desde el menú de la reseña. La revisamos y la quitamos si rompe las reglas de Patio.' },
-  { title: 'Alguien me molesta', answer: 'Desde el menú de su perfil o de su reseña puedes reportar o bloquear su cuenta; dejarás de ver su contenido.' },
+  { title: 'Alguien me molesta', answer: 'Desde el menú de su perfil, su reseña o su comentario puedes reportarlo; desde su perfil o su reseña, bloquear su cuenta. También puedes hacer tu perfil privado en Perfil.' },
 ] };
 const FOODIE_TOPICS: Topic[] = [
   { id: 'mapa', icon: 'map-outline', title: 'Mapa y búsqueda', hint: 'Encontrar lugares y lo de hoy', askFrequency: true, reasons: [

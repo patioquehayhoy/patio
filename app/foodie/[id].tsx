@@ -6,10 +6,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ContentSafetyMenu } from '@/components/content-safety-menu';
 import { supabase } from '@/lib/supabase';
+import { followProfile, getFollowCounts, getFollowStatus, unfollowProfile, type FollowStatus } from '@/lib/profile-privacy';
 import { useTheme, Type } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
 
-type Profile = { user_id: string; display_name: string; handle?: string; avatar_url?: string; bio?: string };
+type Profile = { user_id: string; display_name: string; handle?: string; avatar_url?: string; bio?: string; visibility?: string };
 type PublicCollection = { id: string; title: string; description: string };
 type LoadState = 'loading' | 'ready' | 'missing' | 'error';
 
@@ -20,7 +21,7 @@ export default function FoodieProfile() {
   const ins = useSafeAreaInsets();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [lists, setLists] = useState<PublicCollection[]>([]);
-  const [following, setFollowing] = useState(false);
+  const [follow, setFollow] = useState<FollowStatus>('none');
   const [own, setOwn] = useState(false);
   const [counts, setCounts] = useState({ followers: 0, following: 0 });
   const [state, setState] = useState<LoadState>('loading');
@@ -33,34 +34,28 @@ export default function FoodieProfile() {
     setState('loading');
     setProfile(null);
     setLists([]);
-    setFollowing(false);
+    setFollow('none');
     setOwn(false);
     try {
       if (!id) { setState('missing'); return; }
-      const [person, collections, auth, followers, followingCount] = await Promise.all([
-        supabase.from('user_profiles').select('user_id,display_name,handle,avatar_url,bio').eq('user_id', id).maybeSingle(),
+      // Las listas de un perfil privado solo llegan si ya lo sigues: el
+      // servidor las filtra; aquí solo se explica por qué no se ven.
+      const [person, collections, auth, followCounts, relation] = await Promise.all([
+        supabase.from('user_profiles').select('user_id,display_name,handle,avatar_url,bio,visibility').eq('user_id', id).maybeSingle(),
         supabase.from('collections').select('id,title,description').eq('owner_id', id).eq('visibility', 'public'),
         supabase.auth.getUser(),
-        supabase.from('profile_follows').select('*', { count: 'exact', head: true }).eq('followed_id', id),
-        supabase.from('profile_follows').select('*', { count: 'exact', head: true }).eq('follower_id', id),
+        getFollowCounts(id),
+        getFollowStatus(id),
       ]);
       if (request !== requestRef.current) return;
-      if (person.error || collections.error || followers.error || followingCount.error) throw new Error('Profile unavailable');
+      if (person.error || collections.error) throw new Error('Profile unavailable');
       if (!person.data) { setState('missing'); return; }
       const user = auth.data.user;
-      let follows = false;
-      if (user && !user.is_anonymous) {
-        const relation = await supabase.from('profile_follows').select('followed_id')
-          .eq('follower_id', user.id).eq('followed_id', id).maybeSingle();
-        if (relation.error) throw relation.error;
-        follows = !!relation.data;
-      }
-      if (request !== requestRef.current) return;
       setProfile(person.data);
       setLists(collections.data ?? []);
       setOwn(user?.id === id);
-      setFollowing(follows);
-      setCounts({ followers: followers.count ?? 0, following: followingCount.count ?? 0 });
+      setFollow(relation);
+      setCounts(followCounts);
       setState('ready');
     } catch {
       if (request === requestRef.current) setState('error');
@@ -72,7 +67,7 @@ export default function FoodieProfile() {
     return () => { requestRef.current += 1; };
   }, [load]));
 
-  const follow = async () => {
+  const toggleFollow = async () => {
     if (!profile || own || savingRef.current) return;
     savingRef.current = true;
     setSaving(true);
@@ -85,14 +80,22 @@ export default function FoodieProfile() {
         return;
       }
       if (error) throw error;
-      const next = !following;
-      const result = next
-        ? await supabase.from('profile_follows').upsert({ follower_id: data.user.id, followed_id: id }, { onConflict: 'follower_id,followed_id', ignoreDuplicates: true })
-        : await supabase.from('profile_follows').delete().eq('follower_id', data.user.id).eq('followed_id', id);
-      if (result.error) throw result.error;
-      if (request !== requestRef.current) return;
-      setFollowing(next);
-      setCounts((current) => ({ ...current, followers: Math.max(0, current.followers + (next ? 1 : -1)) }));
+      // Seguir, dejar de seguir o retirar la solicitud, como en Instagram.
+      if (follow === 'none') {
+        const next = await followProfile(id);
+        if (request !== requestRef.current) return;
+        setFollow(next);
+        if (next === 'accepted') {
+          setCounts((current) => ({ ...current, followers: current.followers + 1 }));
+          void load();
+        }
+      } else {
+        await unfollowProfile(id);
+        if (request !== requestRef.current) return;
+        if (follow === 'accepted') setCounts((current) => ({ ...current, followers: Math.max(0, current.followers - 1) }));
+        setFollow('none');
+        if (profile.visibility === 'private') setLists([]);
+      }
     } catch {
       if (request === requestRef.current) Alert.alert(noWidow('No se pudo actualizar'), noWidow('Revisa tu conexión e inténtalo otra vez.'));
     } finally {
@@ -102,7 +105,9 @@ export default function FoodieProfile() {
   };
 
   const back = () => { if (router.canGoBack()) router.back(); else router.replace('/explorar'); };
-  const blocked = () => { requestRef.current += 1; setProfile(null); setLists([]); setFollowing(false); setState('missing'); };
+  const blocked = () => { requestRef.current += 1; setProfile(null); setLists([]); setFollow('none'); setState('missing'); };
+  const locked = !!profile && profile.visibility === 'private' && !own && follow !== 'accepted';
+  const followLabel = follow === 'accepted' ? 'Siguiendo' : follow === 'pending' ? 'Solicitado' : 'Seguir';
 
   return (
     <View style={[s.root, { backgroundColor: theme.bg, paddingTop: ins.top }]}>
@@ -126,11 +131,19 @@ export default function FoodieProfile() {
             {!!profile.handle && <Text style={[s.handle, { color: theme.textSecondary }]}>@{profile.handle}</Text>}
             <Text style={[s.handle, { color: theme.textSecondary }]}>{noWidow(`${counts.followers} seguidores · ${counts.following} siguiendo`)}</Text>
             {!!profile.bio && <Text style={[s.bio, { color: theme.textSecondary }]}>{noWidow(profile.bio)}</Text>}
-            {!own && <TouchableOpacity accessibilityRole="button" accessibilityLabel={following ? 'Dejar de seguir perfil' : 'Seguir perfil'} accessibilityState={{ disabled: saving, busy: saving, selected: following }} disabled={saving} style={[s.follow, { backgroundColor: following ? theme.surface : theme.accent, borderColor: theme.border, opacity: saving ? 0.6 : 1 }]} onPress={follow}><Text style={{ color: following ? theme.text : '#FFFFFF', fontWeight: '700' }}>{following ? 'Siguiendo' : 'Seguir'}</Text></TouchableOpacity>}
+            {!own && <TouchableOpacity accessibilityRole="button" accessibilityLabel={follow === 'accepted' ? 'Dejar de seguir perfil' : follow === 'pending' ? 'Retirar solicitud para seguir' : 'Seguir perfil'} accessibilityState={{ disabled: saving, busy: saving, selected: follow !== 'none' }} disabled={saving} style={[s.follow, { backgroundColor: follow !== 'none' ? theme.surface : theme.accent, borderColor: theme.border, opacity: saving ? 0.6 : 1 }]} onPress={toggleFollow}><Text style={{ color: follow !== 'none' ? theme.text : '#FFFFFF', fontWeight: '700' }}>{followLabel}</Text></TouchableOpacity>}
           </View>
+          {locked ? (
+            <View style={[s.locked, { borderColor: theme.border }]}>
+              <Ionicons name="lock-closed-outline" size={22} color={theme.textSecondary} />
+              <Text style={[s.listName, { color: theme.text, marginTop: 8 }]}>{noWidow('Este perfil es privado')}</Text>
+              <Text style={[s.desc, { color: theme.textSecondary, textAlign: 'center' }]}>{noWidow(follow === 'pending' ? 'Cuando acepte tu solicitud, verás sus listas.' : 'Síguelo para ver sus listas.')}</Text>
+            </View>
+          ) : <>
           <Text style={[s.label, { color: theme.textSecondary }]}>COLECCIONES</Text>
           {lists.map((list) => <TouchableOpacity key={list.id} accessibilityRole="button" accessibilityLabel={`Abrir ${list.title}`} style={[s.row, { borderColor: theme.border }]} onPress={() => router.push({ pathname: '/coleccion-publica/[id]', params: { id: list.id } })}><View style={{ flex: 1 }}><Text style={[s.listName, { color: theme.text }]}>{noWidow(list.title)}</Text>{!!list.description && <Text style={[s.desc, { color: theme.textSecondary }]}>{noWidow(list.description)}</Text>}</View><Ionicons name="chevron-forward" size={17} color={theme.textMute} /></TouchableOpacity>)}
           {!lists.length && <Text style={[s.desc, { color: theme.textSecondary, marginTop: 16 }]}>{noWidow('Todavía no hay colecciones públicas.')}</Text>}
+          </>}
         </ScrollView>
       )}
     </View>
@@ -153,4 +166,5 @@ const s = StyleSheet.create({
   row: { minHeight: 70, borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center' },
   listName: { fontSize: 16, fontWeight: '700' },
   desc: { fontSize: 12, marginTop: 3 },
+  locked: { alignItems: 'center', marginTop: 24, paddingVertical: 24, paddingHorizontal: 16, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth },
 });

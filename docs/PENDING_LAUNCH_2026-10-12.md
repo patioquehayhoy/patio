@@ -32,14 +32,15 @@
 > - [ ] Tipografía: licencia de Monument/Neue Montreal o Plus Jakarta Sans.
 >
 > *Auditoría 2026-11-01* (`docs/APP_AUDIT_2026-11-01.md`)
-> - [ ] Comentarios en reseñas: hoy no se guardan; ocultarlos o construirlos.
-> - [ ] Filtro de contenido ofensivo (Apple 1.2): falta y puede frenar la tienda.
-> - [ ] Notificaciones nuevas por servidor, en el orden de la auditoría.
-> - [ ] Perfil privado: decidir.
-> - [ ] Reglas del negocio en el servidor (nombre, giro, nombre único).
-> - [ ] Etiquetas bajo los íconos de la barra: decidir.
-> - [ ] Teléfono heredado en un negocio de producción: borrar o declarar.
-> - [ ] `npx supabase db push` para registrar `20261101120000` (no cambia nada).
+> - [x] Comentarios guardados, filtro de contenido, perfil privado, avisos de
+>   comunidad, reglas de nombre y giro, y sin columna de teléfono (código listo).
+> - [ ] **Publicar en producción (Parco):** `npx supabase db push` (cinco
+>   migraciones del 1 nov) y `npx supabase functions deploy
+>   send-community-notification notify-content-report`.
+> - [ ] Ícono de Mi Patio y etiquetas de la barra: Jev prefiere el ojo y con
+>   etiquetas (`docs/research/jev-icono-2026-11-01.json`); Parco decide.
+> - [ ] Resúmenes diarios (likes, te guardaron, me gusta en platillos) y hora
+>   elegible de recordatorios.
 >
 > *Pruebas*
 > - [ ] Prueba física de los cambios del 28–29 (manifiesto en iPhone chico,

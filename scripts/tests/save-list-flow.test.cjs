@@ -108,6 +108,7 @@ function fixture({ patioIds = ['shared'], sourceCollectionIds = [] } = {}) {
     '@/lib/supabase': {},
     '@/lib/favorites': {},
     '@/lib/recent-patios': {},
+    '@/lib/content-safety': { isContentRejected: () => false, CONTENT_REJECTED_MESSAGE: '' },
     '@/lib/use-sheet-keyboard': { useSheetKeyboard: () => ({ viewportHeight: 844, keyboardInset: 0, keyboardVisible: false }) },
     '@/lib/theme': { useTheme: () => ({ theme: { isDark: false, text: '#111', accent: '#f60', border: '#eee' } }) },
     '@/lib/typography': { noWidow: (value) => value },

@@ -1,0 +1,399 @@
+{
+ "app": "Una app mexicana de celular donde los dueños de fondas publican su menú del día y la gente lo ve en un mapa. Abajo hay una barra de cinco botones para el dueño: Mis menús (ícono de libro), Actividad (ícono de corazón), un botón + al centro para crear el menú de hoy, un botón que abre la ficha de su fonda tal como la ven los clientes (nombre, menú de hoy, horario, reseñas y si está abierta), y Perfil (ícono de persona) con su cuenta y ajustes.",
+ "por_icono": {
+  "a": {
+   "entiende": {
+    "type": "score",
+    "score": 2.2,
+    "confidence": 0.06,
+    "legend": {
+     "0": "Nada.",
+     "1": "Poco.",
+     "2": "A medias.",
+     "3": "Bastante.",
+     "4": "Del todo."
+    },
+    "probabilities": {
+     "0": 0.08,
+     "1": 0.28,
+     "2": 0.17,
+     "3": 0.31,
+     "4": 0.16
+    }
+   },
+   "confunde_perfil": {
+    "type": "noul",
+    "noul": 0.09
+   },
+   "le_gusta": {
+    "type": "score",
+    "score": 2.33,
+    "confidence": 0.04,
+    "legend": {
+     "0": "Nada.",
+     "1": "Poco.",
+     "2": "A medias.",
+     "3": "Bastante.",
+     "4": "Del todo."
+    },
+    "probabilities": {
+     "0": 0.1,
+     "1": 0.23,
+     "2": 0.15,
+     "3": 0.28,
+     "4": 0.24
+    }
+   }
+  },
+  "b": {
+   "entiende": {
+    "type": "score",
+    "score": 1.12,
+    "confidence": 0.43,
+    "legend": {
+     "0": "Nada.",
+     "1": "Poco.",
+     "2": "A medias.",
+     "3": "Bastante.",
+     "4": "Del todo."
+    },
+    "probabilities": {
+     "0": 0.28,
+     "1": 0.46,
+     "2": 0.15,
+     "3": 0.08,
+     "4": 0.03
+    }
+   },
+   "confunde_perfil": {
+    "type": "noul",
+    "noul": 0.08
+   },
+   "le_gusta": {
+    "type": "score",
+    "score": 1.57,
+    "confidence": 0.07,
+    "legend": {
+     "0": "Nada.",
+     "1": "Poco.",
+     "2": "A medias.",
+     "3": "Bastante.",
+     "4": "Del todo."
+    },
+    "probabilities": {
+     "0": 0.27,
+     "1": 0.32,
+     "2": 0.12,
+     "3": 0.14,
+     "4": 0.15
+    }
+   }
+  },
+  "c": {
+   "entiende": {
+    "type": "score",
+    "score": 1.26,
+    "confidence": 0.57,
+    "legend": {
+     "0": "Nada.",
+     "1": "Poco.",
+     "2": "A medias.",
+     "3": "Bastante.",
+     "4": "Del todo."
+    },
+    "probabilities": {
+     "0": 0.14,
+     "1": 0.58,
+     "2": 0.19,
+     "3": 0.08,
+     "4": 0.01
+    }
+   },
+   "confunde_perfil": {
+    "type": "noul",
+    "noul": 0.1
+   },
+   "le_gusta": {
+    "type": "score",
+    "score": 1.66,
+    "confidence": 0.12,
+    "legend": {
+     "0": "Nada.",
+     "1": "Poco.",
+     "2": "A medias.",
+     "3": "Bastante.",
+     "4": "Del todo."
+    },
+    "probabilities": {
+     "0": 0.2,
+     "1": 0.37,
+     "2": 0.11,
+     "3": 0.22,
+     "4": 0.1
+    }
+   }
+  },
+  "d": {
+   "entiende": {
+    "type": "score",
+    "score": 2.62,
+    "confidence": 0.51,
+    "legend": {
+     "0": "Nada.",
+     "1": "Poco.",
+     "2": "A medias.",
+     "3": "Bastante.",
+     "4": "Del todo."
+    },
+    "probabilities": {
+     "0": 0.01,
+     "1": 0.13,
+     "2": 0.19,
+     "3": 0.56,
+     "4": 0.11
+    }
+   },
+   "confunde_perfil": {
+    "type": "noul",
+    "noul": 0.19
+   },
+   "le_gusta": {
+    "type": "score",
+    "score": 2.84,
+    "confidence": 0.44,
+    "legend": {
+     "0": "Nada.",
+     "1": "Poco.",
+     "2": "A medias.",
+     "3": "Bastante.",
+     "4": "Del todo."
+    },
+    "probabilities": {
+     "0": 0.01,
+     "1": 0.13,
+     "2": 0.12,
+     "3": 0.48,
+     "4": 0.26
+    }
+   }
+  },
+  "e": {
+   "entiende": {
+    "type": "score",
+    "score": 2.09,
+    "confidence": 0.12,
+    "legend": {
+     "0": "Nada.",
+     "1": "Poco.",
+     "2": "A medias.",
+     "3": "Bastante.",
+     "4": "Del todo."
+    },
+    "probabilities": {
+     "0": 0.03,
+     "1": 0.32,
+     "2": 0.26,
+     "3": 0.33,
+     "4": 0.06
+    }
+   },
+   "confunde_perfil": {
+    "type": "noul",
+    "noul": 0.11
+   },
+   "le_gusta": {
+    "type": "score",
+    "score": 1.86,
+    "confidence": 0.0,
+    "legend": {
+     "0": "Nada.",
+     "1": "Poco.",
+     "2": "A medias.",
+     "3": "Bastante.",
+     "4": "Del todo."
+    },
+    "probabilities": {
+     "0": 0.19,
+     "1": 0.31,
+     "2": 0.1,
+     "3": 0.24,
+     "4": 0.16
+    }
+   }
+  },
+  "f": {
+   "entiende": {
+    "type": "score",
+    "score": 1.98,
+    "confidence": 0.05,
+    "legend": {
+     "0": "Nada.",
+     "1": "Poco.",
+     "2": "A medias.",
+     "3": "Bastante.",
+     "4": "Del todo."
+    },
+    "probabilities": {
+     "0": 0.08,
+     "1": 0.32,
+     "2": 0.23,
+     "3": 0.28,
+     "4": 0.09
+    }
+   },
+   "confunde_perfil": {
+    "type": "noul",
+    "noul": 0.06
+   },
+   "le_gusta": {
+    "type": "score",
+    "score": 2.38,
+    "confidence": 0.11,
+    "legend": {
+     "0": "Nada.",
+     "1": "Poco.",
+     "2": "A medias.",
+     "3": "Bastante.",
+     "4": "Del todo."
+    },
+    "probabilities": {
+     "0": 0.08,
+     "1": 0.23,
+     "2": 0.14,
+     "3": 0.32,
+     "4": 0.23
+    }
+   }
+  }
+ },
+ "elecciones": [
+  {
+   "orden": [
+    "c",
+    "d",
+    "b",
+    "e",
+    "a",
+    "f"
+   ],
+   "respuesta": {
+    "elige": {
+     "type": "choice",
+     "choice": "d",
+     "confidence": 0.66,
+     "probabilities": {
+      "c": 0.0,
+      "d": 0.72,
+      "b": 0.0,
+      "e": 0.24,
+      "a": 0.03,
+      "f": 0.01
+     }
+    }
+   }
+  },
+  {
+   "orden": [
+    "b",
+    "d",
+    "c",
+    "e",
+    "a",
+    "f"
+   ],
+   "respuesta": {
+    "elige": {
+     "type": "choice",
+     "choice": "d",
+     "confidence": 0.54,
+     "probabilities": {
+      "b": 0.0,
+      "d": 0.62,
+      "c": 0.0,
+      "e": 0.34,
+      "a": 0.03,
+      "f": 0.01
+     }
+    }
+   }
+  },
+  {
+   "orden": [
+    "e",
+    "d",
+    "a",
+    "b",
+    "f",
+    "c"
+   ],
+   "respuesta": {
+    "elige": {
+     "type": "choice",
+     "choice": "d",
+     "confidence": 0.72,
+     "probabilities": {
+      "e": 0.11,
+      "d": 0.77,
+      "a": 0.1,
+      "b": 0.0,
+      "f": 0.02,
+      "c": 0.0
+     }
+    }
+   }
+  }
+ ],
+ "etiquetas": [
+  {
+   "orden": [
+    "a",
+    "b"
+   ],
+   "respuesta": {
+    "elige": {
+     "type": "choice",
+     "choice": "b",
+     "confidence": 0.58,
+     "probabilities": {
+      "a": 0.21,
+      "b": 0.79
+     }
+    }
+   }
+  },
+  {
+   "orden": [
+    "b",
+    "a"
+   ],
+   "respuesta": {
+    "elige": {
+     "type": "choice",
+     "choice": "b",
+     "confidence": 0.44,
+     "probabilities": {
+      "b": 0.72,
+      "a": 0.28
+     }
+    }
+   }
+  },
+  {
+   "orden": [
+    "b",
+    "a"
+   ],
+   "respuesta": {
+    "elige": {
+     "type": "choice",
+     "choice": "b",
+     "confidence": 0.56,
+     "probabilities": {
+      "b": 0.78,
+      "a": 0.22
+     }
+    }
+   }
+  }
+ ]
+}

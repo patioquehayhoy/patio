@@ -48,7 +48,7 @@ async function syncLunchReminder() {
   if (!await getReminder('lunch')) return;
   await N.scheduleNotificationAsync({
     identifier: 'lunch-reminder',
-    content: { title: '¿Qué hay hoy?', body: 'Saaaaaaabes.' },
+    content: { title: '¿Qué hay hoy?', body: 'Saaaaaaabes.', data: { route: '/explorar' } },
     trigger: { type: N.SchedulableTriggerInputTypes.DAILY, hour: LUNCH_HOUR, minute: 0, channelId: 'default' },
   });
 }
@@ -65,7 +65,7 @@ export async function syncPublishReminder(publishedToday: boolean) {
     if (day === 0 && (publishedToday || date <= now)) continue;
     await N.scheduleNotificationAsync({
       identifier: `publish-reminder-${day}`,
-      content: { title: '¿Ya publicaste lo de hoy?', body: 'Toma la foto de tu menú y queda publicado en un minuto.' },
+      content: { title: '¿Ya publicaste lo de hoy?', body: 'Toma la foto de tu menú y queda publicado en un minuto.', data: { route: '/historial' } },
       trigger: { type: N.SchedulableTriggerInputTypes.DATE, date, channelId: 'default' },
     });
   }

@@ -3,9 +3,9 @@ import { SymbolView, type SFSymbol } from 'expo-symbols';
 import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, Share, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Animated, Share, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -18,6 +18,8 @@ import { usePatioDetailController } from '@/lib/controllers/usePatioDetailContro
 import { getLikedDishNames, toggleDishLike } from '@/lib/dish-likes';
 import { canonicalDishName } from '@/lib/menu-store';
 import { getLikedReviewIds, getReviewLikeCounts, toggleReviewLike } from '@/lib/review-likes';
+import { CommentSignInRequiredError, commentTimeLabel, deleteReviewComment, getReviewComments, isRealReviewId, postReviewComment, setCommentLike } from '@/lib/review-comments';
+import { reportContent, writeErrorMessage, type ReportReason } from '@/lib/content-safety';
 import { formatHHMM12 } from '@/lib/horario';
 import { MAP_STYLE_DARK, MAP_STYLE_LIGHT } from '@/lib/map-style';
 import { Radius, Spacing, useTheme, type Theme, Type } from '@/lib/theme';
@@ -37,6 +39,8 @@ type ReviewThreadReply = {
   patio?: boolean;
   parentId?: string;
   timeLabel?: string;
+  /** Guardado en Supabase (no demo ni respuesta oficial). */
+  real?: boolean;
 };
 
 const SYNTHETIC_THREAD_NAMES = ['Mariana L.', 'Diego M.', 'Sofía R.', 'Carlos N.', 'Pilar N.', 'Jorge A.'];
@@ -239,6 +243,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyingToComment, setReplyingToComment] = useState<{ reviewKey: string; parentId: string; author: string } | null>(null);
   const [replyDraft, setReplyDraft] = useState('');
+  const [sendingComment, setSendingComment] = useState(false);
   const [saveSheetVisible, setSaveSheetVisible] = useState(false);
   const pullDismissed = useRef(false);
   const heroPullY = useRef(new Animated.Value(0)).current;
@@ -400,6 +405,135 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
       });
     }).catch(() => {});
   }, [reviews]);
+
+  // Comentarios guardados de las reseñas reales; se suman después de la
+  // respuesta oficial del negocio y reemplazan la carga anterior.
+  useEffect(() => {
+    const realReviews = reviews.filter((review) => isRealReviewId(review.reviewId));
+    if (!realReviews.length || !patio?.id) return;
+    let active = true;
+    getReviewComments(realReviews.map((review) => review.reviewId!), { id: patio.id, name: patio.name }).then((comments) => {
+      if (!active) return;
+      setReviewReplies((current) => {
+        const next = { ...current };
+        for (const review of realReviews) {
+          const key = `${review.userId}-${review.timestamp}`;
+          const saved = comments.filter((comment) => comment.reviewId === review.reviewId).map((comment): ReviewThreadReply => ({
+            id: comment.id,
+            author: comment.author,
+            body: comment.body,
+            likes: comment.likes,
+            mine: comment.mine,
+            patio: comment.byPatio,
+            parentId: comment.parentId,
+            timeLabel: commentTimeLabel(comment.createdAt),
+            real: true,
+          }));
+          next[key] = [...(next[key] ?? []).filter((reply) => !reply.real), ...saved];
+        }
+        return next;
+      });
+      setReplyLikes((current) => {
+        const next = { ...current };
+        for (const comment of comments) next[comment.id] = { count: comment.likes, mine: comment.liked };
+        return next;
+      });
+    }).catch(() => {});
+    return () => { active = false; };
+  }, [reviews, patio?.id, patio?.name]);
+
+  const appendReply = (reviewKey: string, reply: ReviewThreadReply) => {
+    setReviewReplies((current) => ({ ...current, [reviewKey]: [...(current[reviewKey] ?? []), reply] }));
+    setExpandedThreads((current) => ({ ...current, [reviewKey]: true }));
+    setReplyDraft('');
+    setReplyingTo(null);
+    setReplyingToComment(null);
+  };
+
+  const askToSignIn = () => router.push({ pathname: '/comunidad-acceso', params: { returnTo: `/patio/${patio?.id ?? ''}` } });
+
+  // Publica un comentario o una respuesta. Las reseñas de demostración y las
+  // locales no existen en el servidor: ahí el comentario se queda en el teléfono.
+  const sendComment = async (reviewId: string | undefined, reviewKey: string, parent?: ReviewThreadReply) => {
+    const body = replyDraft.trim();
+    if (!body || sendingComment) return;
+    if (!isRealReviewId(reviewId)) {
+      appendReply(reviewKey, { id: `${reviewKey}-mine-${Date.now()}`, author: 'Tú', body, likes: 0, mine: true, parentId: parent ? (parent.parentId ?? parent.id) : undefined });
+      return;
+    }
+    setSendingComment(true);
+    try {
+      const rootId = parent?.real ? (parent.parentId ?? parent.id) : undefined;
+      const saved = await postReviewComment(reviewId, body, rootId);
+      appendReply(reviewKey, {
+        id: saved.id,
+        author: own ? (patio?.name ?? 'Tu Patio') : 'Tú',
+        body,
+        likes: 0,
+        mine: true,
+        patio: own,
+        parentId: saved.parentId,
+        timeLabel: 'Ahora',
+        real: true,
+      });
+    } catch (error) {
+      if (error instanceof CommentSignInRequiredError) { askToSignIn(); return; }
+      if ((error as { code?: string })?.code === '42501') {
+        Alert.alert(noWidow('Completa tu perfil para comentar'), noWidow('Tu nombre aparece junto a lo que publicas en Patio.'), [
+          { text: 'Ahora no', style: 'cancel' },
+          { text: 'Completar', onPress: () => router.push('/perfil-comunidad') },
+        ]);
+        return;
+      }
+      Alert.alert(noWidow('No se publicó tu comentario'), noWidow(writeErrorMessage(error, 'Revisa tu conexión e inténtalo de nuevo.')));
+    } finally {
+      setSendingComment(false);
+    }
+  };
+
+  const toggleCommentReaction = (reply: ReviewThreadReply, reaction: { count: number; mine: boolean }) => {
+    const nextMine = !reaction.mine;
+    setReplyLikes((current) => ({ ...current, [reply.id]: { mine: nextMine, count: Math.max(0, reaction.count + (nextMine ? 1 : -1)) } }));
+    if (!reply.real) return;
+    setCommentLike(reply.id, nextMine).catch((error) => {
+      setReplyLikes((current) => ({ ...current, [reply.id]: reaction }));
+      if (error instanceof CommentSignInRequiredError) askToSignIn();
+    });
+  };
+
+  const removeComment = (reviewKey: string, reply: ReviewThreadReply) => {
+    Alert.alert(noWidow('¿Eliminar comentario?'), noWidow('Se borra para todos, con sus respuestas.'), [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Eliminar',
+        style: 'destructive',
+        onPress: () => {
+          deleteReviewComment(reply.id).then(() => {
+            setReviewReplies((current) => ({
+              ...current,
+              [reviewKey]: (current[reviewKey] ?? []).filter((item) => item.id !== reply.id && item.parentId !== reply.id),
+            }));
+          }).catch(() => Alert.alert(noWidow('No se eliminó'), noWidow('Revisa tu conexión e inténtalo de nuevo.')));
+        },
+      },
+    ]);
+  };
+
+  const reportComment = (reply: ReviewThreadReply) => {
+    const send = (reason: ReportReason) => {
+      reportContent('comment', reply.id, reason)
+        .then(() => Alert.alert(noWidow('Gracias por avisarnos'), noWidow('Revisaremos este comentario.')))
+        .catch((error: Error) => {
+          if (/Inicia sesión/.test(error.message)) askToSignIn();
+          else Alert.alert(noWidow('No se envió el reporte'), noWidow(error.message));
+        });
+    };
+    Alert.alert(noWidow('Reportar comentario'), noWidow('¿Qué tiene de malo?'), [
+      { text: 'Ofensivo o abuso', onPress: () => send('abuse') },
+      { text: 'Spam o publicidad', onPress: () => send('spam') },
+      { text: 'Cancelar', style: 'cancel' },
+    ]);
+  };
 
   const GlassIcon = ({ name, size = 17, onPress, color, label, selected }: { name: keyof typeof Ionicons.glyphMap; size?: number; onPress: () => void; color?: string; label: string; selected?: boolean }) => (
     <TouchableOpacity
@@ -751,7 +885,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
                   return (
                     <>
                       <View style={s.reviewActions}>
-                        {(!own || replyCount > 0) && <TouchableOpacity
+                        <TouchableOpacity
                           style={s.reviewAction}
                           hitSlop={4}
                           onPress={() => {
@@ -768,7 +902,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
                           accessibilityState={{ expanded: replyCount > 0 ? (expandedThreads[reviewKey] ?? false) : undefined }}>
                           <Ionicons name="chatbubble-outline" size={16} color={theme.textSecondary} />
                           {!!replyCount && <Text style={s.reviewActionText}>{replyCount}</Text>}
-                        </TouchableOpacity>}
+                        </TouchableOpacity>
                         <TouchableOpacity
                           style={s.reviewAction}
                           hitSlop={4}
@@ -814,23 +948,16 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
                               </View>
                               <View style={s.reviewThreadActions}>
                                 {!!reply.timeLabel && <Text style={s.reviewThreadTime}>{reply.timeLabel}</Text>}
-                                {!own && <>
                                 <TouchableOpacity
                                   style={s.reviewThreadTextAction}
                                   hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
-                                  onPress={() => setReplyLikes((current) => ({
-                                    ...current,
-                                    [reply.id]: {
-                                      mine: !reaction.mine,
-                                      count: Math.max(0, reaction.count + (reaction.mine ? -1 : 1)),
-                                    },
-                                  }))}
+                                  onPress={() => toggleCommentReaction(reply, reaction)}
                                   accessibilityRole="button"
                                   accessibilityLabel={`Me gusta el comentario de ${reply.mine ? 'ti' : reply.author}`}
                                   accessibilityState={{ selected: reaction.mine }}>
                                   <Text style={[s.reviewThreadTextActionLabel, reaction.mine && { color: theme.accent }]}>Me gusta{reaction.count ? ` · ${reaction.count}` : ''}</Text>
                                 </TouchableOpacity>
-                                <TouchableOpacity
+                                {(reply.real || !isRealReviewId(review.reviewId)) && <TouchableOpacity
                                   style={s.reviewThreadTextAction}
                                   hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
                                   onPress={() => {
@@ -841,8 +968,23 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
                                   accessibilityRole="button"
                                   accessibilityLabel={`Responder a ${reply.mine ? 'tu comentario' : reply.author}`}>
                                   <Text style={s.reviewThreadTextActionLabel}>Responder</Text>
-                                </TouchableOpacity>
-                                </>}
+                                </TouchableOpacity>}
+                                {reply.real && (reply.mine || review.isMine) && <TouchableOpacity
+                                  style={s.reviewThreadTextAction}
+                                  hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
+                                  onPress={() => removeComment(reviewKey, reply)}
+                                  accessibilityRole="button"
+                                  accessibilityLabel={reply.mine ? 'Eliminar tu comentario' : `Eliminar el comentario de ${reply.author}`}>
+                                  <Text style={s.reviewThreadTextActionLabel}>Eliminar</Text>
+                                </TouchableOpacity>}
+                                {reply.real && !reply.mine && <TouchableOpacity
+                                  style={s.reviewThreadTextAction}
+                                  hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
+                                  onPress={() => reportComment(reply)}
+                                  accessibilityRole="button"
+                                  accessibilityLabel={`Reportar el comentario de ${reply.author}`}>
+                                  <Text style={s.reviewThreadTextActionLabel}>Reportar</Text>
+                                </TouchableOpacity>}
                               </View>
                             </View>
                           );
@@ -864,18 +1006,13 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
                                     <View style={[s.reviewReplyRow, s.reviewInlineReplyRow]}>
                                       <TextInput value={replyDraft} onChangeText={setReplyDraft} placeholder={`Responder a ${replyingToComment.author}`} placeholderTextColor={theme.textMute} style={s.reviewReplyInput} maxLength={280} autoFocus />
                                       <TouchableOpacity
-                                        style={[s.reviewReplySend, !replyDraft.trim() && { opacity: 0.35 }]}
+                                        style={[s.reviewReplySend, (!replyDraft.trim() || sendingComment) && { opacity: 0.35 }]}
                                         hitSlop={3}
-                                        disabled={!replyDraft.trim()}
-                                        onPress={() => {
-                                          const next = replyDraft.trim();
-                                          const child: ReviewThreadReply = { id: `${reviewKey}-mine-${Date.now()}`, author: 'Tú', body: next, likes: 0, mine: true, parentId: reply.id };
-                                          setReviewReplies((current) => ({ ...current, [reviewKey]: [...(current[reviewKey] ?? []), child] }));
-                                          setReplyDraft('');
-                                          setReplyingToComment(null);
-                                        }}
+                                        disabled={!replyDraft.trim() || sendingComment}
+                                        onPress={() => { void sendComment(review.reviewId, reviewKey, reply); }}
                                         accessibilityRole="button"
-                                        accessibilityLabel="Publicar respuesta">
+                                        accessibilityLabel={sendingComment ? 'Publicando respuesta' : 'Publicar respuesta'}
+                                        accessibilityState={{ disabled: !replyDraft.trim() || sendingComment, busy: sendingComment }}>
                                         <SymbolView name="paperplane.fill" size={15} weight="semibold" tintColor="#FFFFFF" fallback={<Ionicons name="send" size={15} color="#FFFFFF" />} />
                                       </TouchableOpacity>
                                     </View>
@@ -886,29 +1023,17 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
                           </View>
                         );
                       })()}
-                      {!own && ((expandedThreads[reviewKey] ?? false) || replyingTo === reviewKey) && replyingToComment?.reviewKey !== reviewKey && (
+                      {((expandedThreads[reviewKey] ?? false) || replyingTo === reviewKey) && replyingToComment?.reviewKey !== reviewKey && (
                         <View style={s.reviewReplyRow}>
                           <TextInput value={replyDraft} onChangeText={setReplyDraft} placeholder="Escribe un comentario" placeholderTextColor={theme.textMute} style={s.reviewReplyInput} maxLength={280} />
                           <TouchableOpacity
-                            style={[s.reviewReplySend, !replyDraft.trim() && { opacity: 0.35 }]}
+                            style={[s.reviewReplySend, (!replyDraft.trim() || sendingComment) && { opacity: 0.35 }]}
                             hitSlop={3}
-                            disabled={!replyDraft.trim()}
-                            onPress={() => {
-                              const next = replyDraft.trim();
-                              const reply: ReviewThreadReply = {
-                                id: `${reviewKey}-mine-${Date.now()}`,
-                                author: 'Tú',
-                                body: next,
-                                likes: 0,
-                                mine: true,
-                              };
-                              setReviewReplies((current) => ({ ...current, [reviewKey]: [...(current[reviewKey] ?? []), reply] }));
-                              setExpandedThreads((current) => ({ ...current, [reviewKey]: true }));
-                              setReplyDraft('');
-                              setReplyingTo(null);
-                            }}
+                            disabled={!replyDraft.trim() || sendingComment}
+                            onPress={() => { void sendComment(review.reviewId, reviewKey); }}
                             accessibilityRole="button"
-                            accessibilityLabel="Publicar respuesta">
+                            accessibilityLabel={sendingComment ? 'Publicando comentario' : 'Publicar comentario'}
+                            accessibilityState={{ disabled: !replyDraft.trim() || sendingComment, busy: sendingComment }}>
                             <SymbolView name="paperplane.fill" size={15} weight="semibold" tintColor="#FFFFFF" fallback={<Ionicons name="send" size={15} color="#FFFFFF" />} />
                           </TouchableOpacity>
                         </View>

@@ -3,7 +3,7 @@ import { pushTargets, sendExpoPush } from '../_shared/expo-push.ts';
 import { corsHeaders, errorResponse, json, readJson } from '../_shared/http.ts';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const TARGETS: Record<string, string> = { review: 'una reseña', profile: 'un perfil', patio: 'un lugar', collection: 'una lista' };
+const TARGETS: Record<string, string> = { review: 'una reseña', profile: 'un perfil', patio: 'un lugar', collection: 'una lista', comment: 'un comentario' };
 const REASONS: Record<string, string> = { spam: 'Spam o publicidad', abuse: 'Abuso u ofensivo', inaccurate: 'Información incorrecta', other: 'Otro motivo' };
 
 // Avisa al equipo de soporte (cuentas en SUPPORT_ADMIN_USER_IDS) de un reporte

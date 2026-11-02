@@ -24,8 +24,8 @@ Al usar Patio aceptas estos términos y el [aviso de privacidad](AVISO_DE_PRIVAC
 
 ## 3. Lo que publicas
 
-- Eres responsable de tus reseñas, listas, fotos, perfil y, si tienes un
-  negocio, de su ficha y sus menús.
+- Eres responsable de tus reseñas, comentarios, listas, fotos, perfil y, si
+  tienes un negocio, de su ficha y sus menús.
 - Los precios y platillos los publica cada negocio. Patio no garantiza que
   estén disponibles ni que sean exactos en el momento de tu visita.
 - Nos das permiso de mostrar lo que publicas dentro de Patio y en los enlaces
@@ -39,13 +39,17 @@ No se permite publicar:
 - información de otras personas sin su permiso;
 - spam, publicidad no autorizada o suplantación de identidad.
 
-Puedes reportar contenido o bloquear cuentas con el botón ••• de cada reseña,
-perfil, lugar o lista. Podemos quitar contenido y suspender cuentas que rompan
-estas reglas.
+Patio revisa automáticamente los textos antes de publicarlos y rechaza insultos
+y lenguaje ofensivo. Puedes reportar contenido con el botón ••• de cada reseña,
+perfil, lugar o lista, o con «Reportar» en cada comentario, y bloquear cuentas
+desde su perfil o su reseña. Podemos quitar contenido y suspender cuentas que
+rompan estas reglas.
 
 ## 5. Negocios
 
 - Quien registra un negocio declara que lo representa.
+- El nombre del negocio se puede cambiar dos veces cada 14 días; el giro se
+  elige al registrarse y para cambiarlo se escribe a soporte.
 - La lectura automática de la foto del menú puede equivocarse: revisa el menú
   antes de publicarlo.
 - La ubicación, el horario y las formas de pago que publicas son públicas.

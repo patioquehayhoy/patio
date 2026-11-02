@@ -8,7 +8,6 @@ test('Otro persists the written category alongside selected tags instead of conv
   let payload;
   const deps = {
     '@/lib/edge-function-error': {},
-    '@/lib/fondita-name': { nombreDisponible: async () => true },
     '@/lib/horario': { deserialize: () => null },
     '@/lib/user-store': { getFonditaId: () => 'own-business' },
     '@/lib/supabase': { supabase: { from: (table) => {

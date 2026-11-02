@@ -38,6 +38,21 @@ errores) y la validación en línea de Luke Wroblewski.
   que la persona vuelve a editar, nunca se va por tiempo).
 - Un error de un campo se muestra debajo de ese campo, no en una alerta.
 
+## Comunidad y seguridad (2026-11-01)
+
+- Todo lo que se ve como acción funciona y se guarda. Los comentarios en
+  reseñas viven en Supabase; las reseñas de demostración son solo de desarrollo.
+- Comentarios como Instagram: respuestas de un solo nivel, «me gusta», eliminar
+  (autor del comentario o de la reseña) y «Reportar». El negocio comenta con su
+  nombre y sello en las reseñas de su Patio.
+- El servidor filtra insultos y lenguaje ofensivo en todo texto público
+  (`moderation_terms`); la jerga cotidiana y las palabras de comida no se
+  bloquean. La pantalla explica el rechazo con una frase, nunca como error de red.
+- Perfil privado como Instagram: nombre, foto y reseñas visibles; listas y a
+  quién sigues, solo para quien apruebas. Las solicitudes viven en Actividad.
+- Nombres (negocio y persona): dos cambios cada 14 días, dicho antes de
+  escribir. Dos negocios pueden llamarse igual; la colonia los distingue.
+
 ## Navigation Rules — Ley de Jakob (2026-11-01)
 
 La gente pasa casi todo su tiempo en otras apps y espera que Patio funcione

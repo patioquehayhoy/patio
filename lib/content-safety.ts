@@ -1,6 +1,6 @@
 import { supabase } from './supabase';
 
-export type ReportTarget = 'review' | 'profile' | 'patio' | 'collection';
+export type ReportTarget = 'review' | 'profile' | 'patio' | 'collection' | 'comment';
 export type ReportReason = 'spam' | 'abuse' | 'inaccurate' | 'other';
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -11,7 +11,7 @@ async function requireUserId() {
 }
 
 export async function reportContent(targetType: ReportTarget, targetId: string, reason: ReportReason, details = '') {
-  if (!UUID.test(targetId) || !['review', 'profile', 'patio', 'collection'].includes(targetType) ||
+  if (!UUID.test(targetId) || !['review', 'profile', 'patio', 'collection', 'comment'].includes(targetType) ||
       !['spam', 'abuse', 'inaccurate', 'other'].includes(reason)) throw new Error('Este contenido no está disponible.');
   const reporterId = await requireUserId();
   const { data, error } = await supabase.from('content_reports').insert({
@@ -43,4 +43,31 @@ export async function unblockUser(userId: string) {
   const blockerId = await requireUserId();
   const { error } = await supabase.from('blocked_users').delete().eq('blocker_id', blockerId).eq('blocked_user_id', userId);
   if (error) throw new Error('No pudimos desbloquear esta cuenta. Inténtalo de nuevo.');
+}
+
+// El servidor rechaza textos públicos con insultos o lenguaje ofensivo
+// (filtro de contenido, Apple 1.2) y cambios de nombre de más (dos cada 14
+// días). Las pantallas muestran estas frases en lugar de un error genérico.
+export const CONTENT_REJECTED_MESSAGE = 'Patio no permite insultos ni lenguaje ofensivo. Cambia esas palabras para publicar.';
+export const NAME_CHANGE_LIMIT_MESSAGE = 'Ya cambiaste el nombre dos veces en los últimos 14 días. Podrás cambiarlo de nuevo después.';
+
+function errorText(error: unknown): string {
+  if (!error || typeof error !== 'object') return String(error ?? '');
+  const { message, details, hint } = error as { message?: unknown; details?: unknown; hint?: unknown };
+  return [message, details, hint].filter((part) => typeof part === 'string').join(' ');
+}
+
+export function isContentRejected(error: unknown): boolean {
+  return errorText(error).includes('CONTENT_REJECTED');
+}
+
+export function isNameChangeLimited(error: unknown): boolean {
+  return errorText(error).includes('NAME_CHANGE_LIMIT');
+}
+
+/** Frase para la persona según lo que respondió el servidor, o `fallback`. */
+export function writeErrorMessage(error: unknown, fallback: string): string {
+  if (isContentRejected(error)) return CONTENT_REJECTED_MESSAGE;
+  if (isNameChangeLimited(error)) return NAME_CHANGE_LIMIT_MESSAGE;
+  return fallback;
 }

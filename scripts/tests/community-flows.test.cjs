@@ -64,6 +64,13 @@ function screenFixture(kind, { signedIn = true, failRead = false, missing = fals
     '@/lib/theme': { Fonts: {}, Type: new Proxy({}, { get: () => ({}) }), useTheme: () => ({ theme }) },
     '@/lib/typography': { noWidow: (value) => value },
     '@/components/content-safety-menu': { ContentSafetyMenu: 'ContentSafetyMenu' },
+    // Seguir pasa por lib/profile-privacy (perfil privado y solicitudes).
+    '@/lib/profile-privacy': {
+      getFollowCounts: async () => { if (failRead) throw new Error('Network failed'); return { followers: 0, following: 0 }; },
+      getFollowStatus: async () => 'none',
+      followProfile: async (target) => { writes.push(['profile_follows', { followed_id: target }]); if (failWrite) throw new Error('Offline'); return 'accepted'; },
+      unfollowProfile: async () => { writes.push(['profile_follows', 'delete']); if (failWrite) throw new Error('Offline'); },
+    },
   };
   const filename = path.resolve(__dirname, '../../app', kind === 'profile' ? 'foodie/[id].tsx' : 'coleccion-publica/[id].tsx');
   const output = ts.transpileModule(fs.readFileSync(filename, 'utf8'), {

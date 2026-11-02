@@ -16,6 +16,7 @@ import { fonderoPalette } from '@/lib/fondero-palette';
 import { dateLabel, defaultHistoryTitle, useMenuHistoryController } from '@/lib/controllers/useMenuHistoryController';
 import { getFonditaId, getFonditaName } from '@/lib/menu-store';
 import { getPublicPatioReviews, replyToReview, type PublicPatioReview } from '@/lib/ratings';
+import { writeErrorMessage } from '@/lib/content-safety';
 import { getDemoPatioStats, type PatioStatsSnapshot } from '@/lib/patio-stats';
 import { useTabBarScroll } from '@/lib/tab-bar-visibility';
 import { useTheme } from '@/lib/theme';
@@ -81,8 +82,8 @@ export default function ResenasScreen() {
       setReply('');
       setReplyingTo(null);
       load();
-    } catch {
-      Alert.alert(noWidow('No se pudo responder'), noWidow('Intenta nuevamente cuando tengas conexión.'));
+    } catch (error) {
+      Alert.alert(noWidow('No se pudo responder'), noWidow(writeErrorMessage(error, 'Intenta nuevamente cuando tengas conexión.')));
     }
   };
 

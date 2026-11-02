@@ -124,3 +124,96 @@ test('report alerts reject malformed ids before touching the database', async ()
   assert.equal((await handler(post({ reportId: 'nope' }))).status, 400);
   assert.equal(admin.calls.length, 0);
 });
+
+const reviewAuthor = '66666666-6666-4666-8666-666666666666';
+const comment = '77777777-7777-4777-8777-777777777777';
+const sendOk = (sent) => async (_, init) => {
+  sent.push(...JSON.parse(init.body));
+  return { ok: true, json: async () => ({ data: [{ status: 'ok' }] }) };
+};
+
+test('a comment notifies the review author once, never the commenter', async () => {
+  const sent = [];
+  const admin = makeAdmin({
+    review_comments: { review_id: 'r1', parent_id: null, body: 'Yo también pedí el caldo y estaba buenísimo.' },
+    reviews: { user_id: reviewAuthor, fondita_id: patio },
+    fonditas: { nombre: 'Cocina Lupita', owner_id: owner },
+    user_profiles: { display_name: 'Ana P.' },
+    push_devices: [{ id: 'd3', user_id: reviewAuthor, expo_push_token: 'ExponentPushToken[a]' }],
+    notification_preferences: [],
+  });
+  const handler = loadEdge('send-community-notification', admin, sendOk(sent));
+  const response = await handler(post({ kind: 'comment', commentId: comment }));
+  assert.equal((await response.json()).delivered, 1);
+  assert.equal(sent[0].title, 'Ana P. comentó tu reseña');
+  assert.equal(sent[0].data.patioId, patio);
+  const claim = admin.calls.find((call) => call.table === 'review_comments');
+  assert.ok(claim.ops.some(([op, column]) => op === 'is' && column === 'notified_at'), 'claims only unnotified comments');
+  assert.ok(claim.ops.some(([op, column, value]) => op === 'eq' && column === 'user_id' && value === reviewer), 'only the author can trigger it');
+});
+
+test('a comment by the business signs with the Patio name', async () => {
+  const sent = [];
+  const admin = makeAdmin({
+    review_comments: { review_id: 'r1', parent_id: null, body: 'Gracias por venir.' },
+    reviews: { user_id: reviewAuthor, fondita_id: patio },
+    fonditas: { nombre: 'Cocina Lupita', owner_id: reviewer },
+    push_devices: [{ id: 'd3', user_id: reviewAuthor, expo_push_token: 'ExponentPushToken[a]' }],
+    notification_preferences: [],
+  });
+  const handler = loadEdge('send-community-notification', admin, sendOk(sent));
+  await handler(post({ kind: 'comment', commentId: comment }));
+  assert.equal(sent[0].title, 'Cocina Lupita comentó tu reseña');
+});
+
+test('people who turned off community alerts get no comment push', async () => {
+  const admin = makeAdmin({
+    review_comments: { review_id: 'r1', parent_id: null, body: 'Hola' },
+    reviews: { user_id: reviewAuthor, fondita_id: patio },
+    fonditas: { nombre: 'Cocina Lupita', owner_id: owner },
+    user_profiles: { display_name: 'Ana P.' },
+    push_devices: [{ id: 'd3', user_id: reviewAuthor, expo_push_token: 'ExponentPushToken[a]' }],
+    notification_preferences: [{ user_id: reviewAuthor, social_activity: false }],
+  });
+  const handler = loadEdge('send-community-notification', admin, async () => { throw new Error('must not call Expo'); });
+  assert.equal((await (await handler(post({ kind: 'comment', commentId: comment }))).json()).delivered, 0);
+});
+
+test('only the business owner can announce its reply to a review', async () => {
+  const admin = makeAdmin({ reviews: { fondita_id: patio }, fonditas: { nombre: 'Cocina Lupita', owner_id: owner } });
+  const handler = loadEdge('send-community-notification', admin, async () => { throw new Error('must not call Expo'); });
+  assert.equal((await handler(post({ kind: 'business_reply', reviewId: comment }))).status, 403);
+});
+
+test('a follow request to a private profile asks for approval', async () => {
+  const sent = [];
+  const admin = makeAdmin({
+    profile_follows: { status: 'pending' },
+    user_profiles: { display_name: 'Luis R.' },
+    push_devices: [{ id: 'd4', user_id: reviewAuthor, expo_push_token: 'ExponentPushToken[l]' }],
+    notification_preferences: [],
+  });
+  const handler = loadEdge('send-community-notification', admin, sendOk(sent));
+  await handler(post({ kind: 'follow', followedId: reviewAuthor }));
+  assert.equal(sent[0].title, 'Quieren seguirte');
+  assert.equal(sent[0].data.type, 'follow_request');
+});
+
+test('community alerts reject unknown kinds and malformed ids', async () => {
+  const admin = makeAdmin({});
+  const handler = loadEdge('send-community-notification', admin, async () => { throw new Error('must not call Expo'); });
+  assert.equal((await handler(post({ kind: 'comment', commentId: 'nope' }))).status, 400);
+  assert.equal((await handler(post({ kind: 'spam' }))).status, 400);
+  assert.equal(admin.calls.length, 0);
+});
+
+test('reports on comments name the comment for support', async () => {
+  const sent = [];
+  const admin = makeAdmin({
+    content_reports: { target_type: 'comment', reason: 'spam' },
+    push_devices: [{ id: 'd2', user_id: support, expo_push_token: 'ExponentPushToken[s]' }],
+  });
+  const handler = loadEdge('notify-content-report', admin, sendOk(sent), { SUPPORT_ADMIN_USER_IDS: support });
+  await handler(post({ reportId: report }));
+  assert.equal(sent[0].body, 'Reportaron un comentario · Spam o publicidad');
+});

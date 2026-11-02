@@ -1,11 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, Stack, useFocusEffect } from 'expo-router';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AccountSettings } from '@/components/account-settings';
-import { hasUnseenReviewLikes } from '@/lib/activity-feed';
+import { hasUnseenFoodieActivity } from '@/lib/activity-feed';
+import { getFollowRequests, getMyProfilePrivacy, setProfilePrivate } from '@/lib/profile-privacy';
+import { ToggleSwitch } from '@/components/toggle-switch';
 import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { bottomTabClearance } from '@/lib/layout-metrics';
 import { SettingsGroup, SettingsRow, settingsColors } from '@/components/settings-list';
@@ -13,6 +15,7 @@ import { useFoodieAccountController } from '@/lib/controllers/useFoodieAccountCo
 import { useTabBarScroll } from '@/lib/tab-bar-visibility';
 import { useTheme, type Theme } from '@/lib/theme';
 import { supabase } from '@/lib/supabase';
+import { noWidow } from '@/lib/typography';
 
 function makeStyles(t: Theme) {
   return StyleSheet.create({
@@ -38,11 +41,43 @@ export default function CuentaScreen() {
   // El punto de la pestaña Perfil lleva a algún lado: el mismo punto marca la
   // fila de Actividad, que es donde está lo nuevo.
   const [hasNews, setHasNews] = useState(false);
+  // Perfil privado, como Instagram: null mientras no hay perfil de Foodie.
+  const [isPrivate, setIsPrivate] = useState<boolean | null>(null);
+  const [savingPrivacy, setSavingPrivacy] = useState(false);
   useFocusEffect(useCallback(() => {
     let active = true;
-    hasUnseenReviewLikes().then((value) => { if (active) setHasNews(value); }).catch(() => {});
+    hasUnseenFoodieActivity().then((value) => { if (active) setHasNews(value); }).catch(() => {});
+    getMyProfilePrivacy().then((value) => { if (active) setIsPrivate(value); }).catch(() => {});
     return () => { active = false; };
   }, []));
+
+  const applyPrivacy = async (next: boolean) => {
+    setSavingPrivacy(true);
+    setIsPrivate(next);
+    try {
+      await setProfilePrivate(next);
+    } catch {
+      setIsPrivate(!next);
+      Alert.alert(noWidow('No se guardó el cambio'), noWidow('Revisa tu conexión e inténtalo de nuevo.'));
+    } finally {
+      setSavingPrivacy(false);
+    }
+  };
+
+  // Al volver a público, las solicitudes pendientes se aceptan (Instagram).
+  const changePrivacy = async (next: boolean) => {
+    if (next) { void applyPrivacy(true); return; }
+    const pending = await getFollowRequests().catch(() => []);
+    if (!pending.length) { void applyPrivacy(false); return; }
+    Alert.alert(
+      noWidow('¿Cambiar a perfil público?'),
+      noWidow(`Se aceptarán ${pending.length === 1 ? 'la solicitud pendiente' : `las ${pending.length} solicitudes pendientes`}.`),
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Cambiar', onPress: () => { void applyPrivacy(false); } },
+      ],
+    );
+  };
 
   return (
     <View style={[s.root, { paddingTop: insets.top }]}>
@@ -55,12 +90,20 @@ export default function CuentaScreen() {
           {/* Un solo nivel: quién eres arriba, ajustes abajo. */}
           <SettingsGroup c={sc} label="Perfil">
             <SettingsRow c={sc} icon="person-outline" title={hasSession ? 'Editar perfil' : 'Iniciar sesión'} sub={hasSession ? 'Nombre, foto y descripción' : 'Sincroniza listas y reseñas'} onPress={() => router.push(hasSession ? '/perfil-comunidad' : '/comunidad-acceso')} />
-            {userId && <SettingsRow c={sc} icon="at-outline" title="Ver perfil público" divider onPress={() => router.push({ pathname: '/foodie/[id]', params: { id: userId } })} />}
+            {userId && <SettingsRow c={sc} icon="at-outline" title="Ver mi perfil" divider onPress={() => router.push({ pathname: '/foodie/[id]', params: { id: userId } })} />}
+            {isPrivate !== null && <SettingsRow
+              c={sc}
+              icon={isPrivate ? 'lock-closed-outline' : 'lock-open-outline'}
+              title="Perfil privado"
+              sub={isPrivate ? 'Solo quienes apruebas ven tus listas' : 'Cualquiera ve tus listas públicas'}
+              divider
+              trailing={<ToggleSwitch value={isPrivate} disabled={savingPrivacy} onValueChange={(value) => { void changePrivacy(value); }} accessibilityLabel="Perfil privado" />}
+            />}
             {userId && <SettingsRow
               c={sc}
               icon="heart-outline"
               title="Actividad"
-              sub={hasNews ? 'Hay novedades en tus reseñas' : 'Me gusta en tus reseñas'}
+              sub={hasNews ? 'Tienes novedades' : 'Comentarios, me gusta y seguidores'}
               divider
               onPress={() => router.push('/notificaciones')}
               trailing={hasNews ? (

@@ -48,7 +48,7 @@ export function AccountSettings({ role }: { role: 'foodie' | 'fondero' }) {
           c={sc}
           icon="notifications-outline"
           title="Notificaciones"
-          sub={fondero ? 'Reseñas y recordatorio de publicar' : 'Menú de hoy y hora de comer'}
+          sub={fondero ? 'Reseñas, respuestas y recordatorio' : 'Menú de hoy, comentarios y recordatorio'}
           onPress={() => router.push({ pathname: '/avisos', params: { role } })}
         />
         <SettingsRow c={sc} icon={theme.isDark ? 'moon' : 'sunny-outline'} title="Apariencia" sub={theme.isDark ? 'Oscura' : 'Clara'} divider trailing={<ToggleSwitch value={theme.isDark} onValueChange={toggleTheme} accessibilityLabel="Modo oscuro" />} />

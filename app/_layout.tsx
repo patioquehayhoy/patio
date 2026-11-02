@@ -7,6 +7,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { AppState, Platform } from 'react-native';
 import { supabase } from '@/lib/supabase';
+import { routeForNotification, type NotificationRoute } from '@/lib/notification-routes';
 import 'react-native-reanimated';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
@@ -29,13 +30,13 @@ const HERO_ASSETS = [
 function RootStack() {
   const { theme } = useTheme();
   const pathname = usePathname();
-  const [pendingPatioId, setPendingPatioId] = useState<string | null>(null);
+  const [pendingRoute, setPendingRoute] = useState<NotificationRoute | null>(null);
 
   useEffect(() => {
-    if (!pendingPatioId || ['/', '/index', '/warmup', '/login-callback'].includes(pathname)) return;
-    router.push({ pathname: '/patio/[id]', params: { id: pendingPatioId } });
-    setPendingPatioId(null);
-  }, [pathname, pendingPatioId]);
+    if (!pendingRoute || ['/', '/index', '/warmup', '/login-callback'].includes(pathname)) return;
+    router.push(pendingRoute as never);
+    setPendingRoute(null);
+  }, [pathname, pendingRoute]);
 
   useEffect(() => {
     if (Platform.OS === 'web') return;
@@ -61,10 +62,10 @@ function RootStack() {
     const openResponse = (response: import('expo-notifications').NotificationResponse | null) => {
       const identifier = response?.notification.request.identifier;
       if (!identifier || identifier === lastOpened) return;
-      const patioId = response?.notification.request.content.data?.patioId;
-      if (typeof patioId === 'string' && patioId) {
+      const route = routeForNotification(response?.notification.request.content.data);
+      if (route) {
         lastOpened = identifier;
-        setPendingPatioId(patioId);
+        setPendingRoute(route);
         Notifications?.clearLastNotificationResponseAsync().catch(() => {});
       }
     };

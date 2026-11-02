@@ -56,6 +56,34 @@ export async function hasUnseenReviewLikes(): Promise<boolean> {
   return latest > (seenRaw ? Number(seenRaw) : 0);
 }
 
+// Actividad del Foodie completa: «me gusta», comentarios y respuestas desde la
+// última visita, o solicitudes para seguirte sin responder. Es lo que enciende
+// el punto de la pestaña Perfil y de la fila Actividad.
+export async function hasUnseenFoodieActivity(): Promise<boolean> {
+  const { data: session } = await supabase.auth.getSession();
+  const me = session.session?.user.id;
+  if (!me) return false;
+  const [likes, requests, seenRaw, myReviews, myComments] = await Promise.all([
+    hasUnseenReviewLikes(),
+    supabase.from('profile_follows').select('follower_id', { count: 'exact', head: true }).eq('followed_id', me).eq('status', 'pending'),
+    AsyncStorage.getItem(FOODIE_SEEN_KEY),
+    supabase.from('reviews').select('id').eq('user_id', me),
+    supabase.from('review_comments').select('id').eq('user_id', me),
+  ]);
+  if (likes || (requests.count ?? 0) > 0) return true;
+  const seen = seenRaw ? Number(seenRaw) : 0;
+  const reviewIds = (myReviews.data ?? []).map((row: any) => row.id);
+  const commentIds = (myComments.data ?? []).map((row: any) => row.id);
+  const latest = async (column: 'review_id' | 'parent_id', ids: string[]) => {
+    if (!ids.length) return 0;
+    const { data } = await supabase.from('review_comments').select('created_at').in(column, ids).neq('user_id', me)
+      .order('created_at', { ascending: false }).limit(1).maybeSingle();
+    return data ? new Date((data as any).created_at).getTime() : 0;
+  };
+  const newest = Math.max(await latest('review_id', reviewIds), await latest('parent_id', commentIds));
+  return newest > seen;
+}
+
 export async function markReviewLikesSeen(): Promise<void> {
   await AsyncStorage.setItem(FOODIE_SEEN_KEY, String(Date.now()));
 }

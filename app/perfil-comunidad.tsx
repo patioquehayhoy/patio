@@ -12,6 +12,8 @@ import { supabase } from '@/lib/supabase';
 import { useTheme, Type } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
 import { safeReturnTo } from '@/lib/auth-links';
+import { writeErrorMessage } from '@/lib/content-safety';
+import { nameLockEnd } from '@/lib/name-changes';
 
 export default function CommunityProfileScreen() {
   const { theme } = useTheme();
@@ -23,16 +25,26 @@ export default function CommunityProfileScreen() {
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
   const [handle, setHandle] = useState('');
   const [bio, setBio] = useState('');
+  const [hasName, setHasName] = useState(false);
+  // Como Instagram: dos cambios de nombre cada 14 días. Se avisa antes de
+  // escribir; el servidor aplica la misma regla.
+  const [nameLockedUntil, setNameLockedUntil] = useState<Date | null>(null);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       setFirstName(data.user?.user_metadata?.first_name ?? '');
       setLastName(data.user?.user_metadata?.last_name ?? '');
+      setHasName(!!data.user?.user_metadata?.first_name);
       setAvatarUri(data.user?.user_metadata?.avatar_url ?? null);
-      if (data.user) supabase.from('user_profiles').select('handle,bio').eq('user_id', data.user.id).maybeSingle().then(({ data: profile }) => {
-        setHandle(profile?.handle ?? '');
-        setBio(profile?.bio ?? '');
-      });
+      if (data.user) {
+        supabase.from('user_profiles').select('handle,bio').eq('user_id', data.user.id).maybeSingle().then(({ data: profile }) => {
+          setHandle(profile?.handle ?? '');
+          setBio(profile?.bio ?? '');
+        });
+        const since = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString();
+        supabase.from('profile_name_history').select('changed_at').eq('user_id', data.user.id).gte('changed_at', since)
+          .then(({ data: changes }) => setNameLockedUntil(nameLockEnd((changes ?? []).map((row: any) => row.changed_at))));
+      }
     }).catch(() => {});
   }, []);
 
@@ -61,14 +73,9 @@ export default function CommunityProfileScreen() {
         avatarUrl = `${supabase.storage.from('avatars').getPublicUrl(path).data.publicUrl}?v=${Date.now()}`;
       }
       const lastChanged = auth.user.user_metadata?.name_changed_at;
-      const changedRecently = lastChanged && Date.now() - new Date(lastChanged).getTime() < 30 * 24 * 60 * 60 * 1000;
       const changingExisting = auth.user.user_metadata?.first_name && (
         auth.user.user_metadata.first_name !== firstName.trim() || auth.user.user_metadata.last_name !== lastName.trim()
       );
-      if (changingExisting && changedRecently) {
-        Alert.alert(noWidow('Tu nombre se cambió recientemente'), noWidow('Podrás volver a cambiarlo 30 días después del último ajuste.'));
-        return;
-      }
       const profile = {
         user_id: auth.user.id,
         first_name: firstName.trim(),
@@ -76,24 +83,18 @@ export default function CommunityProfileScreen() {
         display_name: `${firstName.trim()} ${lastName.trim().charAt(0)}.`,
         setup_completed: true,
         avatar_url: avatarUrl,
-        // Perfiles públicos, como Instagram: cada lista decide aparte quién la ve.
-        visibility: 'public',
+        // La visibilidad (perfil público o privado) se cambia en Perfil; aquí
+        // no se toca para no deshacer esa decisión al editar el nombre.
         handle: handle.trim().toLowerCase() || null,
         bio: bio.trim() || null,
       };
+      // El historial de nombres lo registra el servidor al cambiar el nombre.
       const { error } = await supabase.from('user_profiles').upsert(profile);
-      if (!error && changingExisting) {
-        await supabase.from('profile_name_history').insert({
-          user_id: auth.user.id,
-          first_name: profile.first_name,
-          last_name: profile.last_name,
-        });
-      }
       if (!error) {
         const { error: metadataError } = await supabase.auth.updateUser({ data: { first_name: profile.first_name, last_name: profile.last_name, profile_complete: true, avatar_url: avatarUrl, name_changed_at: changingExisting ? new Date().toISOString() : lastChanged } });
         if (metadataError) throw metadataError;
       }
-      if (error) { Alert.alert(noWidow('No pudimos guardar tu perfil'), noWidow('Inténtalo otra vez.')); return; }
+      if (error) { Alert.alert(noWidow('No pudimos guardar tu perfil'), noWidow(writeErrorMessage(error, 'Inténtalo otra vez.'))); return; }
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
       router.replace(safeReturnTo(returnTo) as never);
     } catch {
@@ -125,15 +126,18 @@ export default function CommunityProfileScreen() {
         <Text style={[s.title, { color: theme.text }]}>{noWidow('Tu perfil de Foodie.')}</Text>
         <Text style={[s.body, { color: theme.textSecondary }]}>{noWidow('Ayuda a que reseñas y recomendaciones tengan una persona real detrás. Tu correo nunca se muestra.')}</Text>
         <Text style={[s.label, { color: theme.textSecondary }]}>Nombre</Text>
-        <TextInput value={firstName} onChangeText={setFirstName} maxLength={40} accessibilityLabel="Nombre" autoComplete="given-name" autoCapitalize="words" placeholder="Tu nombre" placeholderTextColor={theme.textMute} style={[s.input, { color: theme.text, backgroundColor: theme.surface, borderColor: theme.border }]} />
+        <TextInput value={firstName} onChangeText={setFirstName} editable={!(hasName && nameLockedUntil)} maxLength={40} accessibilityLabel="Nombre" autoComplete="given-name" autoCapitalize="words" placeholder="Tu nombre" placeholderTextColor={theme.textMute} style={[s.input, { color: theme.text, backgroundColor: theme.surface, borderColor: theme.border }]} />
         <Text style={[s.label, { color: theme.textSecondary }]}>Primer apellido</Text>
-        <TextInput value={lastName} onChangeText={setLastName} maxLength={40} accessibilityLabel="Primer apellido" autoComplete="family-name" autoCapitalize="words" placeholder="Tu apellido" placeholderTextColor={theme.textMute} style={[s.input, { color: theme.text, backgroundColor: theme.surface, borderColor: theme.border }]} />
+        <TextInput value={lastName} onChangeText={setLastName} editable={!(hasName && nameLockedUntil)} maxLength={40} accessibilityLabel="Primer apellido" autoComplete="family-name" autoCapitalize="words" placeholder="Tu apellido" placeholderTextColor={theme.textMute} style={[s.input, s.lastInput, { color: theme.text, backgroundColor: theme.surface, borderColor: theme.border }]} />
+        {hasName && <Text style={[s.note, { color: theme.textSecondary }]}>{noWidow(nameLockedUntil
+          ? `Podrás cambiar tu nombre a partir del ${nameLockedUntil.toLocaleDateString('es-MX', { day: 'numeric', month: 'long' })}.`
+          : 'Puedes cambiar tu nombre dos veces cada 14 días.')}</Text>}
         <Text style={[s.label, { color: theme.textSecondary }]}>Usuario · opcional</Text>
         <TextInput value={handle} onChangeText={setHandle} maxLength={24} accessibilityLabel="Usuario, opcional" autoCorrect={false} autoCapitalize="none" placeholder="sin espacios ni arroba" placeholderTextColor={theme.textMute} style={[s.input, { color: theme.text, backgroundColor: theme.surface, borderColor: theme.border }]} />
         <Text style={[s.label, { color: theme.textSecondary }]}>Sobre ti · opcional</Text>
         <TextInput value={bio} onChangeText={setBio} multiline maxLength={160} accessibilityLabel="Sobre ti, opcional" placeholder="Algo sobre ti" placeholderTextColor={theme.textMute} style={[s.input, s.bio, { color: theme.text, backgroundColor: theme.surface, borderColor: theme.border }]} />
         <TouchableOpacity style={[s.button, { backgroundColor: theme.accent, opacity: busy ? 0.55 : 1 }]} disabled={busy} onPress={save} accessibilityRole="button" accessibilityState={{ disabled: busy, busy }} accessibilityLabel={busy ? 'Guardando perfil' : 'Continuar'}>
-          <Text style={[s.buttonText, { color: '#FFFFFF' }]}>{busy ? 'Guardando…' : 'Continuar'}</Text>
+          <Text style={[s.buttonText, { color: '#FFFFFF' }]}>{noWidow(busy ? 'Guardando…' : 'Continuar')}</Text>
         </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -151,6 +155,8 @@ const s = StyleSheet.create({
   label: { fontSize: 13, lineHeight: 18, fontWeight: '700', marginBottom: 6 },
   input: { minHeight: 54, borderRadius: 15, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 16, paddingVertical: 14, marginBottom: 16, fontSize: 16 },
   bio: { minHeight: 96, textAlignVertical: 'top' },
+  lastInput: { marginBottom: 6 },
+  note: { fontSize: 13, lineHeight: 18, marginBottom: 16 },
   button: { minHeight: 54, paddingVertical: 12, paddingHorizontal: 20, borderRadius: 27, alignItems: 'center', justifyContent: 'center', marginTop: 6 },
   buttonText: { fontSize: 16, fontWeight: '700' },
 });

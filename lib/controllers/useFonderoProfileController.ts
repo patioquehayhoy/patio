@@ -8,7 +8,8 @@ import { Alert } from 'react-native';
 import { FONDITA_ID_KEY } from '@/lib/db';
 import { signOutAccount } from '@/lib/account-session';
 import { noWidow } from '@/lib/typography';
-import { nombreDisponible } from '@/lib/fondita-name';
+import { isNameChangeLimited, NAME_CHANGE_LIMIT_MESSAGE, writeErrorMessage } from '@/lib/content-safety';
+import { nameLockEnd } from '@/lib/name-changes';
 import {
   deserialize,
   horarioDefault,
@@ -55,13 +56,6 @@ type SavedProfileValues = {
 
 const FONDITA_SELECT = 'id, nombre, nombre_updated_at, descripcion, direccion, direccion_visible, horario, horario_semanal, pagos_efectivo, pagos_transferencia, pagos_tarjeta, tipo_negocio, latitude, longitude';
 
-const NAME_CHANGE_DAYS = 15;
-
-function nameLockEnd(updatedAt: string): Date | null {
-  const end = new Date(new Date(updatedAt).getTime() + NAME_CHANGE_DAYS * 24 * 60 * 60 * 1000);
-  return end.getTime() > Date.now() ? end : null;
-}
-
 function initialSemanal() {
   return getFonditaHorarioSemanal() ?? migrarStringLegacy(getFonditaHorario()) ?? horarioDefault();
 }
@@ -101,7 +95,8 @@ export function useFonderoProfileController() {
   const [savedValues, setSavedValues] = useState<SavedProfileValues>(() => savedFromLocal(initialSchedule));
   const [showPerfilHint, setShowPerfilHint] = useState(false);
   const fonditaIdRef = useRef<string | null>(getFonditaId());
-  const nombreUpdatedAtRef = useRef<string | null>(null);
+  // Cambios de nombre de los últimos 14 días (dos como máximo, como Instagram).
+  const [nameChanges, setNameChanges] = useState<string[]>([]);
   // Fecha desde la que se puede volver a cambiar el nombre; se avisa antes de
   // escribir, no después de tocar Guardar.
   const [nameLockedUntil, setNameLockedUntil] = useState<Date | null>(null);
@@ -269,9 +264,13 @@ export function useFonderoProfileController() {
           tipoNegocio: nextTipoNegocio,
         });
 
-        if (fondita.nombre_updated_at) {
-          nombreUpdatedAtRef.current = fondita.nombre_updated_at;
-          setNameLockedUntil(nameLockEnd(fondita.nombre_updated_at));
+        const since = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString();
+        const { data: changes } = await supabase.from('fondita_name_history').select('changed_at')
+          .eq('fondita_id', fondita.id).gte('changed_at', since);
+        if (active) {
+          const recent = (changes ?? []).map((row: any) => row.changed_at as string);
+          setNameChanges(recent);
+          setNameLockedUntil(nameLockEnd(recent));
         }
         if (fondita.latitude != null && fondita.longitude != null) setLocationSaved(true);
       } catch {
@@ -303,17 +302,11 @@ export function useFonderoProfileController() {
       const fonditaId = fonditaIdRef.current;
       const newSaved = { ...savedValues };
       const payload: Record<string, unknown> = {};
-      let nameTaken = false;
-
+      // Como Instagram y Google Maps, dos negocios pueden llamarse igual; la
+      // colonia y la distancia los distinguen en el mapa.
       if (nombre !== savedValues.nombre) {
-        if (!(await nombreDisponible(nombre, fonditaId ?? undefined))) {
-          nameTaken = true;
-          setNameError('Ya hay un negocio con ese nombre en Patio. Elige otro.');
-        } else {
-          payload.nombre = nombre.trim();
-          payload.nombre_updated_at = new Date().toISOString();
-          newSaved.nombre = nombre.trim();
-        }
+        payload.nombre = nombre.trim();
+        newSaved.nombre = nombre.trim();
       }
 
       if (descripcion !== savedValues.descripcion) {
@@ -350,13 +343,18 @@ export function useFonderoProfileController() {
         if (!fonditaId && !__DEV__) throw new Error('No hay un negocio activo.');
         if (fonditaId) {
           const { error } = await supabase.from('fonditas').update(payload).eq('id', fonditaId).select('id').single();
+          if (error && isNameChangeLimited(error)) {
+            setNameError(NAME_CHANGE_LIMIT_MESSAGE);
+            return;
+          }
           if (error) throw error;
         }
         if ('nombre' in payload) {
           setFonditaName(nombre.trim());
           setNombre(nombre.trim());
-          nombreUpdatedAtRef.current = new Date().toISOString();
-          setNameLockedUntil(nameLockEnd(nombreUpdatedAtRef.current));
+          const recent = [...nameChanges, new Date().toISOString()];
+          setNameChanges(recent);
+          setNameLockedUntil(nameLockEnd(recent));
         }
         if ('descripcion' in payload) setFonditaDescription(descripcion.trim());
         if ('direccion' in payload) setFonditaDireccion(ubicacion.trim());
@@ -371,12 +369,12 @@ export function useFonderoProfileController() {
       }
 
       setSavedValues(newSaved);
-      if (nameTaken || !Object.keys(payload).length) return;
+      if (!Object.keys(payload).length) return;
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       // «Guardado» se queda hasta que la persona vuelve a editar, no se va solo.
       setSavedFlash(true);
-    } catch {
-      Alert.alert(noWidow('No pudimos guardar los cambios'), noWidow('Revisa tu conexión e inténtalo de nuevo. Tus cambios siguen aquí.'));
+    } catch (error) {
+      Alert.alert(noWidow('No pudimos guardar los cambios'), noWidow(writeErrorMessage(error, 'Revisa tu conexión e inténtalo de nuevo. Tus cambios siguen aquí.')));
     } finally {
       setIsSaving(false);
     }
@@ -385,6 +383,7 @@ export function useFonderoProfileController() {
     horarioResumen,
     isSaving,
     missing.length,
+    nameChanges,
     nombre,
     pagosEfectivo,
     pagosTarjeta,

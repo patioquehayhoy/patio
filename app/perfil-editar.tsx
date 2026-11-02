@@ -148,7 +148,7 @@ export default function PerfilScreen() {
             ) : (
               <Text style={s.fieldNoteText}>{noWidow(nameLockedUntil
                 ? `Podrás cambiarlo a partir del ${nameLockedUntil.toLocaleDateString('es-MX', { day: 'numeric', month: 'long' })}.`
-                : 'Puedes cambiarlo una vez cada 15 días.')}</Text>
+                : 'Puedes cambiarlo dos veces cada 14 días.')}</Text>
             )}
             <View style={s.fieldDivider} />
             <Text style={s.fieldLabel} allowFontScaling={true}>{noWidow('Tipo de lugar')}</Text>

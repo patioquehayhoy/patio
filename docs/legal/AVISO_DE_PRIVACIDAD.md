@@ -22,7 +22,8 @@ Patio. Contacto para todo lo relacionado con tus datos:
 - Correo electrónico, para crear tu cuenta y entrar con un código.
 - Nombre, apellido, nombre de usuario, foto de perfil y presentación, si los agregas.
 - Lugares que guardas, tus listas y su visibilidad, las cuentas que sigues y bloqueas.
-- Reseñas, calificaciones, etiquetas y los «me gusta» que das.
+- Reseñas, calificaciones, etiquetas, comentarios y los «me gusta» que das.
+- Si tu perfil es público o privado, y las solicitudes para seguirte que aceptas.
 - Reportes de contenido que envías.
 - Preferencias de notificaciones y el identificador de notificaciones de tu teléfono.
 
@@ -77,8 +78,10 @@ operar Patio y que los tratan por nuestra cuenta:
 Algunos de estos proveedores tratan los datos fuera de México, por ejemplo en
 Estados Unidos, siempre por nuestra cuenta y para las finalidades de este aviso.
 
-Lo que publicas a propósito (perfil, listas públicas, reseñas, la ficha y los
-menús de tu negocio) puede verlo cualquier persona que use Patio.
+Lo que publicas a propósito (perfil, reseñas, comentarios, la ficha y los menús
+de tu negocio) puede verlo cualquier persona que use Patio. Si tu perfil es
+privado, tus listas públicas y a quién sigues solo los ven las personas que
+apruebas; tu nombre, tu foto y tus reseñas siguen visibles.
 
 ## 5. Tus derechos (ARCO) y cómo ejercerlos
 

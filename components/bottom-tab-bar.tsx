@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useMemo, useState } from 'react';
 
-import { hasUnseenActivity, hasUnseenReviewLikes } from '@/lib/activity-feed';
+import { hasUnseenActivity, hasUnseenFoodieActivity } from '@/lib/activity-feed';
 import { getFonditaId } from '@/lib/menu-store';
 import { useTheme, type Theme } from '@/lib/theme';
 import { useTabBarTranslate } from '@/lib/tab-bar-visibility';
@@ -59,7 +59,7 @@ export function BottomTabBar({ variant = 'fondero' }: { variant?: 'foodie' | 'fo
     if (variant === 'fondero') {
       hasUnseenActivity(getFonditaId()).then(setHasUnseen).catch(() => {});
     } else {
-      hasUnseenReviewLikes().then(setHasUnseen).catch(() => {});
+      hasUnseenFoodieActivity().then(setHasUnseen).catch(() => {});
     }
   }, [variant, pathname]);
   // El COLOR de la barra sigue el tema real de la app (claro/oscuro), no el rol.

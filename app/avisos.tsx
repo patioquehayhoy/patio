@@ -38,6 +38,7 @@ export default function AvisosScreen() {
     productUpdates: false,
     specialNotices: false,
     newPlaces: false,
+    socialActivity: true,
   });
 
   useFocusEffect(useCallback(() => {
@@ -139,15 +140,21 @@ export default function AvisosScreen() {
           </SettingsGroup>
         ) : fondero ? (
           <SettingsGroup c={sc} label="Tu negocio">
-            <SettingsRow c={sc} icon="chatbubble-ellipses-outline" title="Reseñas nuevas" sub="Cuando alguien opina sobre tu Patio" trailing={toggle('businessActivity', 'Reseñas nuevas')} />
+            <SettingsRow c={sc} icon="star-outline" title="Reseñas nuevas" sub="Cuando alguien opina sobre tu Patio" trailing={toggle('businessActivity', 'Reseñas nuevas')} />
+            <SettingsRow c={sc} icon="chatbubble-ellipses-outline" title="Respuestas" sub="Cuando alguien responde lo que comentaste" divider trailing={toggle('socialActivity', 'Respuestas')} />
           </SettingsGroup>
         ) : (
           // Solo se ofrece lo que de verdad se envía. Promociones
           // (specialNotices), Lugares nuevos (newPlaces) y Novedades
           // (productUpdates) ya se guardan; vuelven aquí cuando exista su envío.
-          <SettingsGroup c={sc} label="Tus lugares">
-            <SettingsRow c={sc} icon="document-text-outline" title="Menú de hoy" sub="Cuando un lugar que guardaste publica" trailing={toggle('patioPublications', 'Menú de hoy')} />
-          </SettingsGroup>
+          <>
+            <SettingsGroup c={sc} label="Tus lugares">
+              <SettingsRow c={sc} icon="document-text-outline" title="Menú de hoy" sub="Cuando un lugar que guardaste publica" trailing={toggle('patioPublications', 'Menú de hoy')} />
+            </SettingsGroup>
+            <SettingsGroup c={sc} label="Tu comunidad">
+              <SettingsRow c={sc} icon="chatbubble-ellipses-outline" title="Comentarios y seguidores" sub="Cuando comentan tus reseñas, te responden o te quieren seguir" trailing={toggle('socialActivity', 'Comentarios y seguidores')} />
+            </SettingsGroup>
+          </>
         )}
 
         {/* Los programa el teléfono: funcionan con o sin cuenta. */}

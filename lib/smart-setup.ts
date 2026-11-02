@@ -1,15 +1,7 @@
 import { aiFunctionError } from '@/lib/edge-function-error';
-import { nombreDisponible } from '@/lib/fondita-name';
 import { deserialize, type HorarioSemanal } from '@/lib/horario';
 import { supabase } from '@/lib/supabase';
 import { getFonditaId } from '@/lib/user-store';
-
-export class NombreDuplicadoError extends Error {
-  constructor() {
-    super('Ya hay un negocio con ese nombre en Patio.');
-    this.name = 'NombreDuplicadoError';
-  }
-}
 
 export type SmartSetupResult = {
   nombre: string;
@@ -99,7 +91,6 @@ export function confirmedSchedule(result: SmartSetupResult): HorarioSemanal | nu
 export async function saveSmartSetup(result: SmartSetupResult): Promise<void> {
   const id = getFonditaId();
   if (!id) return;
-  if (!(await nombreDisponible(result.nombre, id))) throw new NombreDuplicadoError();
   const schedule = confirmedSchedule(result);
   const tipos = result.tipos.length ? result.tipos : [result.tipo];
   const payload: Record<string, unknown> = {

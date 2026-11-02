@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase';
 import { withStorageLock } from '@/lib/storage-queue';
 import { getFavoritePatioIds } from '@/lib/favorites';
 import { recordRecentPatio } from '@/lib/recent-patios';
+import { CONTENT_REJECTED_MESSAGE, isContentRejected } from '@/lib/content-safety';
 
 export type CollectionVisibility = 'private' | 'unlisted' | 'public';
 
@@ -214,7 +215,7 @@ async function publishCollectionUnlocked(collection: PatioCollection): Promise<P
     p_description: pending.description, p_visibility: collection.visibility,
     p_fondita_ids: [...new Set(pending.patioIds.filter((id) => uuidPattern.test(id)))],
   });
-  if (error) throw error;
+  if (error) throw isContentRejected(error) ? new Error(CONTENT_REJECTED_MESSAGE) : error;
   if (data !== pending.remoteId) throw new Error('No se pudo confirmar la publicación de la lista.');
   const published = { ...pending, visibility: collection.visibility };
   await writeCollections(current.map((item) => item.id === target.id ? published : item));

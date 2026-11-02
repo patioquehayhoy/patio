@@ -33,7 +33,8 @@ import {
   setPagosTrans,
   setTipoNegocio,
 } from '@/lib/menu-store';
-import { BUSINESS_TYPE_LABELS, confirmedSchedule, NombreDuplicadoError, saveSmartSetup, type BusinessType, type SmartSetupResult } from '@/lib/smart-setup';
+import { BUSINESS_TYPE_LABELS, confirmedSchedule, saveSmartSetup, type BusinessType, type SmartSetupResult } from '@/lib/smart-setup';
+import { CONTENT_REJECTED_MESSAGE, isContentRejected } from '@/lib/content-safety';
 import { useTheme, Type } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
 
@@ -242,8 +243,8 @@ export default function PatioSmartScreen() {
       await persistSetup();
       setStage('finish');
     } catch (err) {
-      if (err instanceof NombreDuplicadoError) {
-        Alert.alert(noWidow('Ese nombre ya existe'), noWidow('Ya hay un negocio con ese nombre en Patio. Elige otro.'));
+      if (isContentRejected(err)) {
+        Alert.alert(noWidow('Revisa el nombre'), noWidow(CONTENT_REJECTED_MESSAGE));
         setStage('name');
       } else {
         Alert.alert(noWidow('No pudimos guardarlo'), noWidow('Revisa tu conexión e inténtalo otra vez.'));

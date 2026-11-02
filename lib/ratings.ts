@@ -108,6 +108,8 @@ export async function replyToReview(reviewId: string, reply: string): Promise<vo
     reply_text: reply.trim(),
   });
   if (error) throw error;
+  // Aviso a quien escribió la reseña, de mejor esfuerzo: la respuesta ya quedó.
+  void supabase.functions.invoke('send-community-notification', { body: { kind: 'business_reply', reviewId } }).catch(() => {});
 }
 
 export type SaveRatingInput = {

@@ -182,7 +182,8 @@ export async function syncSavedPatioNotificationSubscriptions(savedPatioIds: str
         notifications_enabled: true,
         updated_at: new Date().toISOString(),
       })),
-      { onConflict: 'user_id,negocio_id' },
+      // Nunca pisa una fila existente: un «Silenciar» tocado al mismo tiempo gana.
+      { onConflict: 'user_id,negocio_id', ignoreDuplicates: true },
     );
     if (error) throw error;
   }

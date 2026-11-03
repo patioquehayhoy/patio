@@ -59,7 +59,9 @@ errores) y la validación en línea de Luke Wroblewski.
   «Activar avisos» (el botón muestra la campana tachada si está silenciado);
   Notificaciones → Menú de hoy → «Elegir lugares» para hacerlo de todos a la
   vez. Contra la fatiga de avisos: un aviso de menú por lugar al día y como
-  máximo tres al día por persona (servidor).
+  máximo tres al día por persona (servidor). Al tocar «Seguir» aparece una
+  barra flotante «Te avisaremos cuando publique · Silenciar»; se va cuando la
+  persona la cierra, silencia o se mueve por la ficha, nunca por tiempo.
 - Ficha del lugar (2026-11-02): nombre y «N seguidores» van sobre la foto,
   abajo a la izquierda, en blanco sobre el degradado (portada de artista en
   Spotify y Apple Music). En la tarjeta, ubicación y precio y luego una fila de

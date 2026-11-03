@@ -24,7 +24,9 @@ import { getLikedReviewIds, getReviewLikeCounts, toggleReviewLike } from '@/lib/
 import { CommentSignInRequiredError, commentTimeLabel, deleteReviewComment, getReviewComments, isRealReviewId, postReviewComment, setCommentLike } from '@/lib/review-comments';
 import { reportContent, writeErrorMessage, type ReportReason } from '@/lib/content-safety';
 import { businessStatsLabel, getBusinessStats, getDishLikeCounts, type BusinessStats } from '@/lib/business-stats';
-import { getMutedPatioIds, setPatioNotifications } from '@/lib/community-notifications';
+import { getMutedPatioIds, getRemoteNotificationPreferences, setPatioNotifications } from '@/lib/community-notifications';
+import { floatingSurfaceShadow, sheetSurfaceTint } from '@/lib/surface-styles';
+import { supabase } from '@/lib/supabase';
 import { getPatioHighlights, getProStatus, setFeaturedDish, type PatioHighlights } from '@/lib/business-pro';
 import { formatHHMM12 } from '@/lib/horario';
 import { MAP_STYLE_DARK, MAP_STYLE_LIGHT } from '@/lib/map-style';
@@ -144,6 +146,12 @@ function makeStyles(t: Theme) {
     followersText: { fontSize: 14, lineHeight: 19, fontWeight: '400', color: 'rgba(255,255,255,0.86)' },
     followersValue: { fontWeight: '700', color: '#FFFFFF' },
     actionRow: { flexDirection: 'row', gap: 8, marginBottom: 20 },
+    followToast: { position: 'absolute', left: 16, right: 16, borderRadius: 28 },
+    followToastInner: { minHeight: 56, paddingLeft: 16, paddingRight: 4, borderRadius: 28, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden', flexDirection: 'row', alignItems: 'center', gap: 8 },
+    followToastText: { flex: 1, minWidth: 0, fontSize: 14, lineHeight: 19, fontWeight: '400', color: t.text },
+    followToastAction: { minHeight: 44, paddingHorizontal: 8, justifyContent: 'center' },
+    followToastActionText: { fontSize: 14, fontWeight: '700', color: t.accent },
+    followToastClose: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
     actionCell: { flex: 1 },
     actionButton: { height: 44, borderRadius: 22, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
     actionButtonQuiet: { backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
@@ -351,10 +359,21 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
       Alert.alert(noWidow('No pudimos guardar el cambio'), noWidow('Entra a tu cuenta y revisa tu conexión.'));
     }
   };
-  const handleFollowPress = () => {
-    if (isSaved) setFollowMenu(true);
-    else void handleToggleSaved();
+  // Al seguir, una barra dice que llegarán avisos y deja silenciarlos ahí
+  // mismo, como YouTube al suscribirte. Se va cuando la persona la cierra,
+  // silencia o se mueve por la ficha; nunca por tiempo.
+  const [followToast, setFollowToast] = useState(false);
+  const toastScrollY = useRef<number | null>(null);
+  const handleFollowPress = async () => {
+    if (isSaved) { setFollowMenu(true); return; }
+    await handleToggleSaved();
+    const [{ data }, prefs] = await Promise.all([
+      supabase.auth.getSession(),
+      getRemoteNotificationPreferences().catch(() => null),
+    ]);
+    if (data.session && prefs?.patioPublications) { toastScrollY.current = null; setFollowToast(true); }
   };
+  useEffect(() => { if (!isSaved) setFollowToast(false); }, [isSaved]);
 
   // Like por platillo: micro-señal de compromiso de fricción casi cero,
   // independiente de la reseña completa (lib/dish-likes.ts).
@@ -692,6 +711,10 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
             useNativeDriver: true,
             listener: (event: any) => {
               const y = event.nativeEvent.contentOffset.y;
+              if (followToast) {
+                if (toastScrollY.current === null) toastScrollY.current = y;
+                else if (Math.abs(y - toastScrollY.current) > 48) setFollowToast(false);
+              }
               if (y >= 0) pullDismissed.current = false;
               if (!own && y < -PULL_TO_DISMISS_THRESHOLD && !pullDismissed.current) {
                 pullDismissed.current = true;
@@ -761,7 +784,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
                 <TouchableOpacity
                   style={[s.actionButton, isSaved ? s.actionButtonQuiet : { backgroundColor: theme.accent }]}
                   activeOpacity={0.85}
-                  onPress={handleFollowPress}
+                  onPress={() => { void handleFollowPress(); }}
                   accessibilityRole="button"
                   accessibilityState={{ selected: isSaved }}
                   accessibilityLabel={isSaved ? `Siguiendo a ${patio.name}` : `Seguir a ${patio.name}`}>
@@ -1219,6 +1242,21 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
 
         </View>
       </Animated.ScrollView>
+      {followToast && (
+        <View style={[s.followToast, { bottom: insets.bottom + 16 }, floatingSurfaceShadow(theme.isDark)]} accessibilityLiveRegion="polite">
+          <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={[s.followToastInner, { backgroundColor: sheetSurfaceTint(theme.isDark), borderColor: theme.isDark ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.18)' }]}>
+            <Ionicons name="notifications-outline" size={18} color={theme.text} />
+            <Text style={s.followToastText} allowFontScaling={true}>{noWidow('Te avisaremos cuando publique')}</Text>
+            <TouchableOpacity style={s.followToastAction} activeOpacity={0.7} accessibilityRole="button"
+              onPress={() => { setFollowToast(false); if (!muted) void toggleMuted(); }}>
+              <Text style={s.followToastActionText}>Silenciar</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={s.followToastClose} activeOpacity={0.7} accessibilityRole="button" accessibilityLabel="Cerrar" onPress={() => setFollowToast(false)}>
+              <Ionicons name="close" size={17} color={theme.textSecondary} />
+            </TouchableOpacity>
+          </BlurView>
+        </View>
+      )}
       <ActionSheet
         visible={followMenu}
         anchorRef={followAnchor}

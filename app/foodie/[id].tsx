@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ContentSafetyMenu } from '@/components/content-safety-menu';
 import { supabase } from '@/lib/supabase';
-import { followProfile, getFollowStatus, getProfileStats, unfollowProfile, type FollowStatus, type ProfileStats } from '@/lib/profile-privacy';
+import { followProfile, getFollowStatus, getProfileStats, getTopPlaces, unfollowProfile, type FollowStatus, type ProfileStats, type TopPlace } from '@/lib/profile-privacy';
 import { useTheme, Type } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
 
@@ -21,6 +21,9 @@ export default function FoodieProfile() {
   const ins = useSafeAreaInsets();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [lists, setLists] = useState<PublicCollection[]>([]);
+  // Sus lugares: lo primero que se quiere ver de alguien que recomienda
+  // dónde comer, aunque no haya armado ninguna lista.
+  const [places, setPlaces] = useState<TopPlace[]>([]);
   const [follow, setFollow] = useState<FollowStatus>('none');
   const [own, setOwn] = useState(false);
   const [counts, setCounts] = useState<ProfileStats>({ reviews: 0, likes: 0, followers: 0, following: 0 });
@@ -34,18 +37,20 @@ export default function FoodieProfile() {
     setState('loading');
     setProfile(null);
     setLists([]);
+    setPlaces([]);
     setFollow('none');
     setOwn(false);
     try {
       if (!id) { setState('missing'); return; }
       // Las listas de un perfil privado solo llegan si ya lo sigues: el
       // servidor las filtra; aquí solo se explica por qué no se ven.
-      const [person, collections, auth, followCounts, relation] = await Promise.all([
+      const [person, collections, auth, followCounts, relation, topPlaces] = await Promise.all([
         supabase.from('user_profiles').select('user_id,display_name,handle,avatar_url,bio,visibility').eq('user_id', id).maybeSingle(),
         supabase.from('collections').select('id,title,description').eq('owner_id', id).eq('visibility', 'public'),
         supabase.auth.getUser(),
         getProfileStats(id),
         getFollowStatus(id),
+        getTopPlaces(id).catch(() => [] as TopPlace[]),
       ]);
       if (request !== requestRef.current) return;
       if (person.error || collections.error) throw new Error('Profile unavailable');
@@ -53,6 +58,7 @@ export default function FoodieProfile() {
       const user = auth.data.user;
       setProfile(person.data);
       setLists(collections.data ?? []);
+      setPlaces(topPlaces);
       setOwn(user?.id === id);
       setFollow(relation);
       setCounts(followCounts);
@@ -162,9 +168,23 @@ export default function FoodieProfile() {
               <Text style={[s.desc, { color: theme.textSecondary, textAlign: 'center' }]}>{noWidow(follow === 'pending' ? 'Cuando acepte tu solicitud, verás sus listas.' : 'Síguelo para ver sus listas.')}</Text>
             </View>
           ) : <>
-          <Text style={[s.label, { color: theme.textSecondary }]}>COLECCIONES</Text>
+          {!!places.length && <>
+            <Text style={[s.label, { color: theme.textSecondary }]}>SUS LUGARES</Text>
+            {places.map((place, index) => <TouchableOpacity key={place.id} accessibilityRole="button"
+              accessibilityLabel={`${index + 1}. ${place.name}${place.stars ? `, ${place.stars} estrellas` : ''}`}
+              style={[s.placeRow, { borderColor: theme.border }]} onPress={() => router.push({ pathname: '/patio/[id]', params: { id: place.id } })}>
+              <Text style={[s.placeRank, { color: theme.textMute }]}>{index + 1}</Text>
+              <Text style={[s.listName, { flex: 1, minWidth: 0, color: theme.text }]} numberOfLines={1}>{place.name}</Text>
+              {!!place.stars && <View style={s.placeStars}>
+                <Ionicons name="star" size={13} color={theme.accent} />
+                <Text style={[s.placeStarsText, { color: theme.textSecondary }]}>{place.stars}</Text>
+              </View>}
+              <Ionicons name="chevron-forward" size={17} color={theme.textMute} />
+            </TouchableOpacity>)}
+          </>}
+          <Text style={[s.label, { color: theme.textSecondary }]}>LISTAS</Text>
           {lists.map((list) => <TouchableOpacity key={list.id} accessibilityRole="button" accessibilityLabel={`Abrir ${list.title}`} style={[s.row, { borderColor: theme.border }]} onPress={() => router.push({ pathname: '/coleccion-publica/[id]', params: { id: list.id } })}><View style={{ flex: 1 }}><Text style={[s.listName, { color: theme.text }]}>{noWidow(list.title)}</Text>{!!list.description && <Text style={[s.desc, { color: theme.textSecondary }]}>{noWidow(list.description)}</Text>}</View><Ionicons name="chevron-forward" size={17} color={theme.textMute} /></TouchableOpacity>)}
-          {!lists.length && <Text style={[s.desc, { color: theme.textSecondary, marginTop: 16 }]}>{noWidow('Todavía no hay colecciones públicas.')}</Text>}
+          {!lists.length && <Text style={[s.desc, { color: theme.textSecondary, marginTop: 16 }]}>{noWidow('Todavía no hay listas públicas.')}</Text>}
           </>}
         </ScrollView>
       )}
@@ -185,6 +205,10 @@ const s = StyleSheet.create({
   bio: { fontSize: 14, lineHeight: 20, textAlign: 'center', marginTop: 10, maxWidth: 300 },
   follow: { minHeight: 44, borderRadius: 22, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 24, paddingVertical: 10, justifyContent: 'center', marginTop: 16 },
   label: { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, marginTop: 18 },
+  placeRow: { minHeight: 52, borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  placeRank: { width: 20, fontSize: 15, fontWeight: '700', fontVariant: ['tabular-nums'] },
+  placeStars: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  placeStarsText: { fontSize: 13, fontWeight: '700', fontVariant: ['tabular-nums'] },
   row: { minHeight: 70, borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center' },
   listName: { fontSize: 16, fontWeight: '700' },
   desc: { fontSize: 12, marginTop: 3 },

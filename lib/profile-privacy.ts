@@ -136,3 +136,34 @@ export async function getFollowedPlaces(targetId: string): Promise<FollowedPlace
   if (error) throw error;
   return ((data ?? []) as any[]).map((row) => ({ id: row.negocio_id, name: row.nombre }));
 }
+
+export type TopPlace = { id: string; name: string; stars?: number };
+
+/**
+ * Sus lugares: los que mejor calificó (más estrellas, luego lo más reciente) y
+ * después los que sigue sin reseñar, hasta 10. Respeta el perfil privado: los
+ * lugares que sigue solo llegan si puedes ver su contenido.
+ */
+export async function getTopPlaces(targetId: string): Promise<TopPlace[]> {
+  if (!/^[0-9a-f-]{36}$/i.test(targetId)) return [];
+  const [reviews, followed] = await Promise.all([
+    supabase.from('reviews').select('negocio_id,stars,created_at,negocios(nombre)')
+      .eq('user_id', targetId).eq('status', 'published').order('created_at', { ascending: false }).limit(200),
+    getFollowedPlaces(targetId).catch(() => [] as FollowedPlace[]),
+  ]);
+  if (reviews.error) throw reviews.error;
+  const best = new Map<string, { name: string; stars: number; at: number }>();
+  for (const row of (reviews.data ?? []) as any[]) {
+    const place = Array.isArray(row.negocios) ? row.negocios[0] : row.negocios;
+    const name = place?.nombre?.trim();
+    if (!name) continue;
+    const at = new Date(row.created_at).getTime();
+    const current = best.get(row.negocio_id);
+    if (!current || row.stars > current.stars) best.set(row.negocio_id, { name, stars: row.stars, at: current ? Math.max(current.at, at) : at });
+  }
+  const reviewed = [...best.entries()]
+    .sort((a, b) => b[1].stars - a[1].stars || b[1].at - a[1].at)
+    .map(([id, place]): TopPlace => ({ id, name: place.name, stars: place.stars }));
+  const onlyFollowed = followed.filter((place) => !best.has(place.id)).map((place): TopPlace => ({ id: place.id, name: place.name }));
+  return [...reviewed, ...onlyFollowed].slice(0, 10);
+}

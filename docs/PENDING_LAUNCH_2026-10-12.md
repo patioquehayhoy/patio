@@ -41,8 +41,9 @@ Propuesta completa en [PLANES_CREADORES_Y_RED](PLANES_CREADORES_Y_RED_2026-11-02
   interés» en Actividad, Promociones en Notificaciones del Foodie.
 - [ ] Creadores Fundadores: elegir 5–10 creadores de la colonia piloto y
   escribirles antes de abrir.
-- [ ] Top de lugares por defecto en cada perfil (favoritos de sus
-  calificaciones y guardados) y bloque «De quienes sigues» en el mapa.
+- [x] «Sus lugares» en cada perfil (2026-11-02): hasta 10, primero los que
+  mejor calificó y luego los que sigue; respeta el perfil privado.
+- [ ] Bloque «De quienes sigues» en el mapa (sus listas y sus lugares).
 - [ ] Van Westendorp con los negocios Fundadores antes de fijar precios en tienda.
 - [ ] Piloto: medir qué parte de las vistas de una ficha termina en «Seguir»
   (vistas registradas + `saved_patios`). Si es baja, probar un «Seguir» más
@@ -87,8 +88,9 @@ Estos puntos son de UX; no sustituyen los pendientes técnicos/de operación aba
 > *Técnico*
 > - [ ] Cobro: RevenueCat, productos en tiendas y cuotas en servidor.
 > - [ ] Versión firmada para tiendas (depende de tipografía).
-> - [ ] Envío de Promociones (requiere panel Pro) y Lugares nuevos (requiere
->   ubicación del Foodie); Novedades requiere un envío manual. Ocultos hasta existir.
+> - [x] Envío de Promociones: avisos especiales de Pro (2026-11-02).
+> - [ ] Lugares nuevos (requiere ubicación del Foodie) y Novedades (envío
+>   manual): ocultos hasta existir.
 > - [x] Historial de migraciones conciliado: `20260816` registrada (la columna
 >   `categorias` ya existía) y el rollback `20260817` movido a `supabase/rollbacks/`.
 >   `db push --dry-run`: «Remote database is up to date».
@@ -140,8 +142,7 @@ Estos puntos son de UX; no sustituyen los pendientes técnicos/de operación aba
 >   «aparecer antes en el mapa» (81–95 %).
 > - [x] Barra de negocio: Jev prefiere 4 botones (56–70 %) sobre 5 (28–42 %);
 >   Parco eligió 5 para conservar Mi Patio y el «+» al centro exacto.
-> - [ ] Perfiles solo públicos: comodidad baja (1.8 de 4) y 53 % echaría de menos
->   el perfil privado. Reconsiderar una opción de perfil privado.
+> - [x] Perfil privado como Instagram (2026-11-01), como pidió la lectura de Jev.
 > - [ ] Filtro de lista Mapa/Guardados: compartido o separado.
 >
 > *Siguiente sesión*

@@ -71,9 +71,11 @@ errores) y la validación en línea de Luke Wroblewski.
     Se probó en dos columnas y con Monument los nombres cortos («Cocina
     Lupita») partían en dos líneas: el nombre necesita todo el ancho. Sin
     «Cómo llegar»: el mapa ya abre indicaciones.
-  - La descripción del negocio (Editar mi negocio, hasta 80) abre la
-    tarjeta como la bio de un perfil, 15/20 en color de texto, y debajo la
-    colonia y el precio.
+  - La descripción del negocio (Editar mi negocio, hasta 80) va sobre la
+    foto, entre el nombre y los seguidores, como la bio de Instagram: un
+    renglón y «más» si no cabe; al tocarla se ve completa. Dentro de la
+    tarjeta se veía ajena (Parco). La foto mide 320 para que nombre de dos
+    renglones y descripción abierta nunca toquen volver y compartir.
   - El estado del día vive en la tarjeta: «Se acabó por hoy» es el primer
     bloque y el menú solo se atenúa (sin caja ni etiqueta «Agotado»).
   - Ritmo en la retícula de 8: tarjeta 24 arriba; ubicación y precio → 24 →

@@ -93,7 +93,7 @@ function syntheticThreadFor(userId: string, patioName: string, stars: number): R
   return thread;
 }
 
-const HERO_HEIGHT = 300;
+const HERO_HEIGHT = 320;
 const TITLE_STEPS = [Type.screen, Type.title, Type.section] as const;
 const PULL_TO_DISMISS_THRESHOLD = 93;
 const DAYS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
@@ -141,9 +141,13 @@ function makeStyles(t: Theme) {
     heroMeta: { height: 32, marginTop: 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 16 },
     title: { color: '#FFFFFF', textShadowColor: 'rgba(0,0,0,0.25)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 8 },
     verifiedInline: { paddingLeft: 2 },
-    bio: { marginBottom: 8, fontSize: 15, lineHeight: 20, fontWeight: '400', color: t.text },
     summaryRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 24 },
     summaryPrice: { maxWidth: '50%', marginLeft: 'auto' },
+    heroBio: { marginTop: 4 },
+    heroBioRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 4 },
+    heroBioText: { fontSize: 15, lineHeight: 20, fontWeight: '400', color: '#FFFFFF', textShadowColor: 'rgba(0,0,0,0.25)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 6 },
+    heroBioMeasure: { position: 'absolute', left: 0, right: 0, opacity: 0 },
+    heroBioMore: { fontSize: 15, lineHeight: 20, fontWeight: '700', color: 'rgba(255,255,255,0.72)' },
     followersText: { fontSize: 14, lineHeight: 19, fontWeight: '400', color: 'rgba(255,255,255,0.86)' },
     followersValue: { fontWeight: '700', color: '#FFFFFF' },
     followToast: { position: 'absolute', left: 16, right: 16, borderRadius: 28 },
@@ -366,6 +370,12 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
   const [titleStep, setTitleStep] = useState(0);
   const [titleClamped, setTitleClamped] = useState(false);
   useEffect(() => { setTitleStep(0); setTitleClamped(false); }, [patio?.name]);
+  // Descripción del negocio sobre la foto, como la bio de Instagram: un
+  // renglón y «más» si no cabe; al tocarla se ve completa (hasta 80).
+  const description = patio?.reason.trim() ?? '';
+  const [descOpen, setDescOpen] = useState(false);
+  const [descTruncates, setDescTruncates] = useState(false);
+  useEffect(() => { setDescOpen(false); setDescTruncates(false); }, [description]);
   const [followToast, setFollowToast] = useState(false);
   const toastScrollY = useRef<number | null>(null);
   const handleFollowPress = async () => {
@@ -761,6 +771,25 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
                 <SymbolView name="checkmark.seal.fill" size={Math.round(TITLE_STEPS[titleStep].fontSize * 0.72)} weight="medium" tintColor="#FFFFFF" fallback={<TintIcon source={ANDROID_ICONS.verified} size={Math.round(TITLE_STEPS[titleStep].fontSize * 0.72)} color="#FFFFFF" />} />
               </View></>}
             </Text>
+            {!!description && (
+              <View style={s.heroBio}>
+                {/* Copia invisible a todo lo ancho: solo mide si cabe en un renglón. */}
+                <Text style={[s.heroBioText, s.heroBioMeasure]} onTextLayout={(event) => setDescTruncates(event.nativeEvent.lines.length > 1)}
+                  accessibilityElementsHidden importantForAccessibility="no-hide-descendants" allowFontScaling={true}>{description}</Text>
+                <TouchableOpacity
+                  style={s.heroBioRow}
+                  activeOpacity={0.7}
+                  disabled={!descTruncates}
+                  onPress={() => setDescOpen((open) => !open)}
+                  accessible
+                  accessibilityRole={descTruncates ? 'button' : 'text'}
+                  accessibilityLabel={description}
+                  accessibilityHint={descTruncates ? (descOpen ? 'Toca para verla en un renglón' : 'Toca para verla completa') : undefined}>
+                  <Text style={[s.heroBioText, { flexShrink: 1 }]} numberOfLines={descOpen ? undefined : 1} allowFontScaling={true}>{noWidow(description)}</Text>
+                  {descTruncates && !descOpen && <Text style={s.heroBioMore} allowFontScaling={true}>más</Text>}
+                </TouchableOpacity>
+              </View>
+            )}
             <View style={s.heroMeta}>
               {businessStats ? (
                 <TouchableOpacity
@@ -806,11 +835,6 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
 
         {/* Card traslapada */}
         <View style={s.card}>
-          {/* La descripción que escribe el negocio (Editar mi negocio, hasta 80
-              caracteres), como la bio de un perfil: arriba de dónde está. */}
-          {!!patio.reason.trim() && (
-            <Text style={s.bio} allowFontScaling={true}>{noWidow(patio.reason.trim())}</Text>
-          )}
           <View style={s.summaryRow}>
             <PatioCardLocation area={patio.area} distanceLabel={distance} variant="detail" style={{ flex: 1, marginTop: 0 }} />
             <PatioCardPrice patio={patio} compact={false} style={s.summaryPrice} />

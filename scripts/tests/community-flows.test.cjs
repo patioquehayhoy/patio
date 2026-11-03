@@ -68,6 +68,7 @@ function screenFixture(kind, { signedIn = true, failRead = false, missing = fals
     '@/lib/profile-privacy': {
       getProfileStats: async () => { if (failRead) throw new Error('Network failed'); return { reviews: 0, likes: 0, followers: 0, following: 0 }; },
       getFollowStatus: async () => 'none',
+      getTopPlaces: async () => [],
       followProfile: async (target) => { writes.push(['profile_follows', { followed_id: target }]); if (failWrite) throw new Error('Offline'); return 'accepted'; },
       unfollowProfile: async () => { writes.push(['profile_follows', 'delete']); if (failWrite) throw new Error('Offline'); },
     },

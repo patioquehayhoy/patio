@@ -6,6 +6,7 @@ import { ActivityIndicator, Alert, ScrollView, Share, StyleSheet, Text, Touchabl
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ContentSafetyMenu } from '@/components/content-safety-menu';
+import { followProfile, getFollowStatus, unfollowProfile, type FollowStatus } from '@/lib/profile-privacy';
 import { supabase } from '@/lib/supabase';
 import { useTheme, Type } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
@@ -21,7 +22,10 @@ export default function PublicCollection() {
   const insets = useSafeAreaInsets();
   const [item, setItem] = useState<Collection | null>(null);
   const [places, setPlaces] = useState<Place[]>([]);
-  const [saved, setSaved] = useState(false);
+  // Se sigue a la persona que armó la lista, como en Instagram se sigue la
+  // cuenta y no cada publicación: sus listas viven en su perfil.
+  const [ownerName, setOwnerName] = useState('');
+  const [follow, setFollow] = useState<FollowStatus>('none');
   const [own, setOwn] = useState(false);
   const [state, setState] = useState<LoadState>('loading');
   const [saving, setSaving] = useState(false);
@@ -33,7 +37,8 @@ export default function PublicCollection() {
     setState('loading');
     setItem(null);
     setPlaces([]);
-    setSaved(false);
+    setOwnerName('');
+    setFollow('none');
     setOwn(false);
     try {
       if (!id) { setState('missing'); return; }
@@ -46,21 +51,19 @@ export default function PublicCollection() {
       if (collection.error || rows.error) throw new Error('Collection unavailable');
       if (!collection.data) { setState('missing'); return; }
       const user = auth.data.user;
-      let isSaved = false;
-      if (user && !user.is_anonymous) {
-        const relation = await supabase.from('saved_collections').select('collection_id')
-          .eq('user_id', user.id).eq('collection_id', id).maybeSingle();
-        if (relation.error) throw relation.error;
-        isSaved = !!relation.data;
-      }
+      const [owner, relation] = await Promise.all([
+        supabase.from('user_profiles').select('display_name').eq('user_id', collection.data.owner_id).maybeSingle(),
+        getFollowStatus(collection.data.owner_id),
+      ]);
       if (request !== requestRef.current) return;
+      setOwnerName(owner.data?.display_name?.trim() ?? '');
+      setFollow(relation);
       setItem(collection.data);
       setPlaces((rows.data ?? []).flatMap((row): Place[] => {
         const place = Array.isArray(row.negocios) ? row.negocios[0] : row.negocios;
         return place ? [place as Place] : [];
       }));
       setOwn(user?.id === collection.data.owner_id);
-      setSaved(isSaved);
       setState('ready');
     } catch {
       if (request === requestRef.current) setState('error');
@@ -72,8 +75,8 @@ export default function PublicCollection() {
     return () => { requestRef.current += 1; };
   }, [load]));
 
-  const save = async () => {
-    if (!item || savingRef.current) return;
+  const toggleFollow = async () => {
+    if (!item || own || savingRef.current) return;
     savingRef.current = true;
     setSaving(true);
     const request = requestRef.current;
@@ -85,14 +88,15 @@ export default function PublicCollection() {
         return;
       }
       if (error) throw error;
-      const next = !saved;
-      const result = next
-        ? await supabase.from('saved_collections').upsert({ user_id: data.user.id, collection_id: item.id }, { onConflict: 'user_id,collection_id', ignoreDuplicates: true })
-        : await supabase.from('saved_collections').delete().eq('user_id', data.user.id).eq('collection_id', item.id);
-      if (result.error) throw result.error;
-      if (request === requestRef.current) setSaved(next);
+      if (follow === 'none') {
+        const next = await followProfile(item.owner_id);
+        if (request === requestRef.current) setFollow(next);
+      } else {
+        await unfollowProfile(item.owner_id);
+        if (request === requestRef.current) setFollow('none');
+      }
     } catch {
-      if (request === requestRef.current) Alert.alert(noWidow('No se pudo actualizar la lista'), noWidow('Revisa tu conexión e inténtalo otra vez.'));
+      if (request === requestRef.current) Alert.alert(noWidow('No se pudo actualizar'), noWidow('Revisa tu conexión e inténtalo otra vez.'));
     } finally {
       savingRef.current = false;
       setSaving(false);
@@ -108,7 +112,9 @@ export default function PublicCollection() {
     }
   };
   const back = () => { if (router.canGoBack()) router.back(); else router.replace('/explorar'); };
-  const blocked = () => { requestRef.current += 1; setItem(null); setPlaces([]); setSaved(false); setState('missing'); };
+  const blocked = () => { requestRef.current += 1; setItem(null); setPlaces([]); setFollow('none'); setState('missing'); };
+  const firstName = ownerName.split(/\s+/)[0] ?? '';
+  const followLabel = follow === 'accepted' ? 'Siguiendo' : follow === 'pending' ? 'Solicitado' : firstName ? `Seguir a ${firstName}` : 'Seguir';
 
   return (
     <View style={[s.root, { backgroundColor: theme.bg, paddingTop: insets.top }]}>
@@ -129,11 +135,10 @@ export default function PublicCollection() {
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}>
           <Text style={[s.title, { color: theme.text }]}>{noWidow(item.title)}</Text>
           {!!item.description && <Text style={[s.desc, { color: theme.textSecondary }]}>{noWidow(item.description)}</Text>}
-          <TouchableOpacity accessibilityRole="button" accessibilityLabel={saved ? 'Dejar de seguir lista' : 'Seguir lista'} accessibilityState={{ disabled: saving, busy: saving, selected: saved }} disabled={saving} style={[s.button, { backgroundColor: theme.accent, opacity: saving ? 0.6 : 1 }]} onPress={save}>
-            <Ionicons name={saved ? 'bookmark' : 'bookmark-outline'} size={17} color="#FFFFFF" />
-            <Text style={{ color: '#FFFFFF', fontWeight: '700' }}>{noWidow(saved ? 'Siguiendo' : 'Seguir lista')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity accessibilityRole="button" style={[s.row, { borderColor: theme.border }]} onPress={() => router.push({ pathname: '/foodie/[id]', params: { id: item.owner_id } })}><Text style={{ color: theme.textSecondary }}>{noWidow('Ver perfil del curador')}</Text><Ionicons name="chevron-forward" size={16} color={theme.textMute} /></TouchableOpacity>
+          {!own && <TouchableOpacity accessibilityRole="button" accessibilityLabel={follow === 'accepted' ? `Dejar de seguir a ${ownerName || 'esta persona'}` : follow === 'pending' ? 'Retirar solicitud para seguir' : `Seguir a ${ownerName || 'esta persona'}`} accessibilityState={{ disabled: saving, busy: saving, selected: follow !== 'none' }} disabled={saving} style={[s.button, follow === 'none' ? { backgroundColor: theme.accent } : { backgroundColor: theme.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: theme.border }, saving && { opacity: 0.6 }]} onPress={toggleFollow}>
+            <Text style={{ color: follow === 'none' ? '#FFFFFF' : theme.text, fontWeight: '700' }}>{noWidow(followLabel)}</Text>
+          </TouchableOpacity>}
+          <TouchableOpacity accessibilityRole="button" style={[s.row, { borderColor: theme.border }]} onPress={() => router.push({ pathname: '/foodie/[id]', params: { id: item.owner_id } })}><Text style={{ color: theme.textSecondary }}>{noWidow(ownerName ? `Ver perfil de ${ownerName}` : 'Ver perfil de quien la armó')}</Text><Ionicons name="chevron-forward" size={16} color={theme.textMute} /></TouchableOpacity>
           {places.map((place) => <TouchableOpacity key={place.id} accessibilityRole="button" accessibilityLabel={`Abrir ${place.nombre}`} style={[s.row, { borderColor: theme.border }]} onPress={() => router.push(`/patio/${place.id}`)}>
             <View style={s.placeIcon}><PlaceIcon size={18} color={theme.textSecondary} /></View>
             <Text numberOfLines={2} ellipsizeMode="tail" style={[s.placeName, { color: theme.text }]}>{noWidow(place.nombre)}</Text>

@@ -54,7 +54,9 @@ errores) y la validación en línea de Luke Wroblewski.
   escribir. Dos negocios pueden llamarse igual; la colonia los distingue.
 - El nombre de quien reseña o comenta abre su perfil: así se encuentra a la
   gente para seguirla.
-- Seguir, como Instagram (2026-11-02): personas, lugares y listas se siguen;
+- Seguir, como Instagram (2026-11-02): se siguen personas y lugares. Una lista
+  pública ofrece «Seguir a [nombre]», la persona que la armó, porque sus listas
+  viven en su perfil;
   «Guardar» ya no se usa para lugares. La ficha lleva «Seguir» (naranja) y
   «Siguiendo» (abre Agregar a una lista y Dejar de seguir). La pestaña del
   Foodie se llama «Siguiendo».

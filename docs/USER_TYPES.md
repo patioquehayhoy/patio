@@ -24,7 +24,7 @@ Aquí solo se describe lo que existe en la app.
 - **Viene a:** decidir dónde comer y recordar sus lugares.
 - **Llega:** entra con correo y código.
 - **Costo:** $0.
-- **Puede:** seguir lugares, personas y listas; armar listas (privadas, con
+- **Puede:** seguir lugares y personas (desde una lista pública, a quien la armó); armar listas (privadas, con
   enlace o públicas) y compartirlas; reseñar; avisos de los lugares que sigue
   (menú de hoy y, si las activa, promociones). Perfil público, como Instagram:
   sus seguidores, a quién sigue y qué lugares sigue.

@@ -54,6 +54,15 @@ errores) y la validación en línea de Luke Wroblewski.
   escribir. Dos negocios pueden llamarse igual; la colonia los distingue.
 - El nombre de quien reseña o comenta abre su perfil: así se encuentra a la
   gente para seguirla.
+- Ficha del lugar (2026-11-02): «N seguidores» va bajo el nombre, como dato
+  de identidad (Instagram, Spotify); debajo de ubicación y precio, una fila de
+  dos botones iguales de 44: «Seguir» (único naranja) y «Cómo llegar»
+  (contorno), como la fila de acciones de Apple Maps. Razones: proximidad
+  (el número describe al lugar, no al botón —
+  https://www.nngroup.com/articles/gestalt-proximity/), Fitts (blancos anchos
+  al alcance del pulgar — https://www.nngroup.com/articles/fitts-law/), Jakob
+  (la gente ya conoce esa fila — https://lawsofux.com/jakobs-law/) y un solo
+  acento (https://developer.apple.com/design/human-interface-guidelines/buttons).
 - Seguir, como Instagram (2026-11-02): se siguen personas y lugares. Una lista
   pública ofrece «Seguir a [nombre]», la persona que la armó, porque sus listas
   viven en su perfil.

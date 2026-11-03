@@ -1,5 +1,14 @@
 # HANDOFF
 
+## Continuidad 2026-11-02 noche — ficha y red (Claude)
+
+Leer primero el [heads-up](HEADS_UP_2026-10-12.md) (bloque «Cierre 2026-11-02
+noche»). Ficha del lugar cerrada con Parco; seguir lugares como Instagram con
+avisos por lugar; Pro construido y en producción; límites de texto. Falta que
+Alejandro aplique `20261102140000_text_limits` y redespliegue
+`send-publication-notifications`. Siguiente flujo: onboarding. Pruebas: 238 y
+`npm run db:rehearse` en verde.
+
 ## Continuidad 2026-11-02 — paneles del negocio (Codex)
 
 Leer primero el [heads-up actualizado](HEADS_UP_2026-10-12.md): contiene

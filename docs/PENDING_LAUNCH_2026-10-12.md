@@ -1,5 +1,13 @@
 # Pendientes y roadmap de lanzamiento — actualizado 2026-11-02
 
+## Siguiente (2026-11-02 noche)
+
+- [ ] **Onboarding:** concluir el flujo (prioridad; el alta del negocio es el
+  lado difícil).
+- [ ] QA en el cel de la ficha: Seguir/Siguiendo, barra de avisos, silenciar,
+  «Elegir lugares», lista de seguidores, descripción; precio del platillo con
+  «Siguiente»/«Listo».
+
 ## Planes, creadores y red (2026-11-02)
 
 Propuesta completa en [PLANES_CREADORES_Y_RED](PLANES_CREADORES_Y_RED_2026-11-02.md).

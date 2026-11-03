@@ -92,6 +92,13 @@ errores) y la validación en línea de Luke Wroblewski.
     «más» y «Seguir» no compitan por el mismo toque (objetivos de 44).
     Tamaños por rol: nombre `Type.screen`, descripción 15 blanca,
     seguidores 14 al 86 %, un solo naranja.
+  - Lugar de «Seguir» (2026-11-02, decisión de Claude con aval de Parco;
+    asesoría de Jev en `docs/research/jev-ficha-seguir-2026-11-02.json`):
+    seguidores a la izquierda y «Seguir» compacto a la derecha en la misma
+    línea. Jev la eligió entre cinco (51–61 %): un botón a todo lo ancho se
+    encuentra un poco mejor pero estorba el doble para llegar al menú; arriba
+    junto a compartir se ve más ordenado pero cuesta encontrarlo, sobre todo
+    a una persona mayor.
   - El estado del día vive en la tarjeta: «Se acabó por hoy» es el primer
     bloque y el menú solo se atenúa (sin caja ni etiqueta «Agotado»).
   - Ritmo en la retícula de 8: tarjeta 24 arriba; ubicación y precio → 24 →

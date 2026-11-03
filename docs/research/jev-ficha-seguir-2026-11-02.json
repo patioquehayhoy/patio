@@ -1,0 +1,750 @@
+{
+ "app": "Una app mexicana de celular para saber qué preparan hoy las fondas y lugares de comida cercanos. La gente ve en un mapa el menú del día de cada lugar, sigue sus lugares favoritos para que le avisen cuando publican y deja reseñas. Al abrir un lugar se ve su ficha: arriba una foto grande; sobre la parte de abajo de la foto, el nombre del lugar en letras grandes blancas y debajo una descripción corta que escribe el negocio. Debajo de la foto, en una tarjeta blanca, la colonia y el precio, y luego el menú del día con sus precios.",
+ "opciones": {
+  "a": "Justo debajo del nombre y la descripción, en una misma línea: «240 seguidores» a la izquierda y un botón pequeño naranja «Seguir» a la derecha.",
+  "b": "Justo debajo del nombre y la descripción, los dos juntos a la derecha: «240 seguidores» y enseguida un botón pequeño naranja «Seguir». A la izquierda de esa línea no hay nada.",
+  "c": "Justo debajo del nombre y la descripción: «240 seguidores», y debajo un botón naranja grande «Seguir» que ocupa todo el ancho de la pantalla.",
+  "d": "Arriba a la derecha de la foto, junto al botón de compartir, un botón pequeño naranja «Seguir». «240 seguidores» va debajo del nombre.",
+  "e": "«240 seguidores» debajo del nombre, sobre la foto. El botón «Seguir», pequeño y solo con contorno, va al principio de la tarjeta blanca, debajo de la foto."
+ },
+ "por_opcion": {
+  "oficina": {
+   "a": {
+    "encuentra": {
+     "type": "score",
+     "score": 3.47,
+     "confidence": 0.56,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.05,
+      "2": 0.04,
+      "3": 0.26,
+      "4": 0.64
+     }
+    },
+    "ordenada": {
+     "type": "score",
+     "score": 2.31,
+     "confidence": 0.24,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.29,
+      "2": 0.19,
+      "3": 0.4,
+      "4": 0.11
+     }
+    },
+    "estorba": {
+     "type": "score",
+     "score": 1.14,
+     "confidence": 0.48,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.25,
+      "1": 0.5,
+      "2": 0.13,
+      "3": 0.11,
+      "4": 0.01
+     }
+    }
+   },
+   "b": {
+    "encuentra": {
+     "type": "score",
+     "score": 3.25,
+     "confidence": 0.38,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.08,
+      "2": 0.07,
+      "3": 0.36,
+      "4": 0.49
+     }
+    },
+    "ordenada": {
+     "type": "score",
+     "score": 1.92,
+     "confidence": 0.24,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.43,
+      "2": 0.26,
+      "3": 0.28,
+      "4": 0.03
+     }
+    },
+    "estorba": {
+     "type": "score",
+     "score": 1.03,
+     "confidence": 0.53,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.27,
+      "1": 0.54,
+      "2": 0.1,
+      "3": 0.08,
+      "4": 0.01
+     }
+    }
+   },
+   "c": {
+    "encuentra": {
+     "type": "score",
+     "score": 3.56,
+     "confidence": 0.66,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.07,
+      "2": 0.04,
+      "3": 0.08,
+      "4": 0.8
+     }
+    },
+    "ordenada": {
+     "type": "score",
+     "score": 1.9,
+     "confidence": 0.22,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.02,
+      "1": 0.45,
+      "2": 0.21,
+      "3": 0.25,
+      "4": 0.07
+     }
+    },
+    "estorba": {
+     "type": "score",
+     "score": 2.0,
+     "confidence": 0.03,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.09,
+      "1": 0.34,
+      "2": 0.13,
+      "3": 0.36,
+      "4": 0.08
+     }
+    }
+   },
+   "d": {
+    "encuentra": {
+     "type": "score",
+     "score": 3.28,
+     "confidence": 0.41,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.08,
+      "2": 0.06,
+      "3": 0.35,
+      "4": 0.51
+     }
+    },
+    "ordenada": {
+     "type": "score",
+     "score": 2.55,
+     "confidence": 0.38,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.19,
+      "2": 0.19,
+      "3": 0.47,
+      "4": 0.14
+     }
+    },
+    "estorba": {
+     "type": "score",
+     "score": 0.56,
+     "confidence": 0.52,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.59,
+      "1": 0.31,
+      "2": 0.05,
+      "3": 0.04,
+      "4": 0.01
+     }
+    }
+   },
+   "e": {
+    "encuentra": {
+     "type": "score",
+     "score": 2.65,
+     "confidence": 0.4,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.19,
+      "2": 0.15,
+      "3": 0.47,
+      "4": 0.19
+     }
+    },
+    "ordenada": {
+     "type": "score",
+     "score": 2.09,
+     "confidence": 0.09,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.34,
+      "2": 0.27,
+      "3": 0.33,
+      "4": 0.05
+     }
+    },
+    "estorba": {
+     "type": "score",
+     "score": 1.4,
+     "confidence": 0.48,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.12,
+      "1": 0.55,
+      "2": 0.16,
+      "3": 0.16,
+      "4": 0.01
+     }
+    }
+   }
+  },
+  "senor": {
+   "a": {
+    "encuentra": {
+     "type": "score",
+     "score": 3.04,
+     "confidence": 0.39,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.11,
+      "2": 0.1,
+      "3": 0.4,
+      "4": 0.38
+     }
+    },
+    "ordenada": {
+     "type": "score",
+     "score": 2.2,
+     "confidence": 0.21,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.31,
+      "2": 0.22,
+      "3": 0.38,
+      "4": 0.08
+     }
+    },
+    "estorba": {
+     "type": "score",
+     "score": 1.08,
+     "confidence": 0.5,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.26,
+      "1": 0.52,
+      "2": 0.11,
+      "3": 0.1,
+      "4": 0.01
+     }
+    }
+   },
+   "b": {
+    "encuentra": {
+     "type": "score",
+     "score": 2.77,
+     "confidence": 0.32,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.19,
+      "2": 0.12,
+      "3": 0.39,
+      "4": 0.29
+     }
+    },
+    "ordenada": {
+     "type": "score",
+     "score": 1.83,
+     "confidence": 0.28,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.44,
+      "2": 0.28,
+      "3": 0.24,
+      "4": 0.03
+     }
+    },
+    "estorba": {
+     "type": "score",
+     "score": 1.12,
+     "confidence": 0.52,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.23,
+      "1": 0.55,
+      "2": 0.1,
+      "3": 0.11,
+      "4": 0.01
+     }
+    }
+   },
+   "c": {
+    "encuentra": {
+     "type": "score",
+     "score": 3.53,
+     "confidence": 0.62,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.07,
+      "2": 0.04,
+      "3": 0.13,
+      "4": 0.75
+     }
+    },
+    "ordenada": {
+     "type": "score",
+     "score": 1.86,
+     "confidence": 0.27,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.46,
+      "2": 0.23,
+      "3": 0.26,
+      "4": 0.04
+     }
+    },
+    "estorba": {
+     "type": "score",
+     "score": 1.97,
+     "confidence": 0.03,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.09,
+      "1": 0.35,
+      "2": 0.14,
+      "3": 0.33,
+      "4": 0.09
+     }
+    }
+   },
+   "d": {
+    "encuentra": {
+     "type": "score",
+     "score": 2.52,
+     "confidence": 0.29,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.24,
+      "2": 0.16,
+      "3": 0.41,
+      "4": 0.18
+     }
+    },
+    "ordenada": {
+     "type": "score",
+     "score": 2.3,
+     "confidence": 0.33,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.24,
+      "2": 0.26,
+      "3": 0.44,
+      "4": 0.06
+     }
+    },
+    "estorba": {
+     "type": "score",
+     "score": 0.78,
+     "confidence": 0.49,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.42,
+      "1": 0.46,
+      "2": 0.06,
+      "3": 0.05,
+      "4": 0.01
+     }
+    }
+   },
+   "e": {
+    "encuentra": {
+     "type": "score",
+     "score": 2.17,
+     "confidence": 0.17,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.34,
+      "2": 0.21,
+      "3": 0.36,
+      "4": 0.08
+     }
+    },
+    "ordenada": {
+     "type": "score",
+     "score": 1.95,
+     "confidence": 0.22,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.41,
+      "2": 0.26,
+      "3": 0.29,
+      "4": 0.03
+     }
+    },
+    "estorba": {
+     "type": "score",
+     "score": 1.6,
+     "confidence": 0.35,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.08,
+      "1": 0.49,
+      "2": 0.18,
+      "3": 0.23,
+      "4": 0.02
+     }
+    }
+   }
+  }
+ },
+ "elecciones": {
+  "oficina": [
+   {
+    "orden": [
+     "c",
+     "d",
+     "b",
+     "a",
+     "e"
+    ],
+    "respuesta": {
+     "elige": {
+      "type": "choice",
+      "choice": "a",
+      "confidence": 0.45,
+      "probabilities": {
+       "c": 0.04,
+       "d": 0.32,
+       "b": 0.04,
+       "a": 0.56,
+       "e": 0.04
+      }
+     }
+    }
+   },
+   {
+    "orden": [
+     "b",
+     "c",
+     "e",
+     "d",
+     "a"
+    ],
+    "respuesta": {
+     "elige": {
+      "type": "choice",
+      "choice": "a",
+      "confidence": 0.51,
+      "probabilities": {
+       "b": 0.04,
+       "c": 0.07,
+       "e": 0.01,
+       "d": 0.27,
+       "a": 0.61
+      }
+     }
+    }
+   },
+   {
+    "orden": [
+     "b",
+     "c",
+     "a",
+     "e",
+     "d"
+    ],
+    "respuesta": {
+     "elige": {
+      "type": "choice",
+      "choice": "a",
+      "confidence": 0.46,
+      "probabilities": {
+       "b": 0.03,
+       "c": 0.06,
+       "a": 0.57,
+       "e": 0.02,
+       "d": 0.32
+      }
+     }
+    }
+   }
+  ],
+  "senor": [
+   {
+    "orden": [
+     "a",
+     "b",
+     "c",
+     "d",
+     "e"
+    ],
+    "respuesta": {
+     "elige": {
+      "type": "choice",
+      "choice": "c",
+      "confidence": 0.45,
+      "probabilities": {
+       "a": 0.2,
+       "b": 0.07,
+       "c": 0.56,
+       "d": 0.14,
+       "e": 0.03
+      }
+     }
+    }
+   },
+   {
+    "orden": [
+     "b",
+     "d",
+     "a",
+     "c",
+     "e"
+    ],
+    "respuesta": {
+     "elige": {
+      "type": "choice",
+      "choice": "a",
+      "confidence": 0.46,
+      "probabilities": {
+       "b": 0.01,
+       "d": 0.04,
+       "a": 0.57,
+       "c": 0.36,
+       "e": 0.02
+      }
+     }
+    }
+   },
+   {
+    "orden": [
+     "b",
+     "d",
+     "c",
+     "e",
+     "a"
+    ],
+    "respuesta": {
+     "elige": {
+      "type": "choice",
+      "choice": "a",
+      "confidence": 0.39,
+      "probabilities": {
+       "b": 0.03,
+       "d": 0.08,
+       "c": 0.36,
+       "e": 0.02,
+       "a": 0.51
+      }
+     }
+    }
+   }
+  ]
+ }
+}

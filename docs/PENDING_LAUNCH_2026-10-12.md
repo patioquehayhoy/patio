@@ -30,6 +30,10 @@ Propuesta completa en [PLANES_CREADORES_Y_RED](PLANES_CREADORES_Y_RED_2026-11-02
 - [ ] Top de lugares por defecto en cada perfil (favoritos de sus
   calificaciones y guardados) y bloque «De quienes sigues» en el mapa.
 - [ ] Van Westendorp con los negocios Fundadores antes de fijar precios en tienda.
+- [ ] Piloto: medir qué parte de las vistas de una ficha termina en «Seguir»
+  (vistas registradas + `saved_patios`). Si es baja, probar un «Seguir» más
+  grande; la composición actual se eligió por principios y Jev la prefirió
+  (51–61 %; registro en `docs/research/jev-ficha-seguir-2026-11-02.json`).
 
 ## Experiencia del negocio — pendientes de paneles (2026-11-02)
 

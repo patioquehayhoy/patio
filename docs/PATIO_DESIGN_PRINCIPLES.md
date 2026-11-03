@@ -63,11 +63,13 @@ errores) y la validación en línea de Luke Wroblewski.
   barra flotante «Te avisaremos cuando publique · Silenciar»; se va cuando la
   persona la cierra, silencia o se mueve por la ficha, nunca por tiempo.
 - Ficha del lugar (2026-11-02, cerrado con Parco, revisado en simulador):
-  - Sobre la foto, abajo: el nombre (máximo dos líneas; si no cabe baja de
-    `Type.screen` a `Type.title` y luego a `Type.section`, nunca se encoge a
-    mano) con el sello pegado a la última palabra, y debajo «N seguidores» a
-    la izquierda y «Seguir» compacto a la derecha (encabezado de X, portada
-    de artista en Spotify). Sin «Cómo llegar»: el mapa ya abre indicaciones.
+  - Identidad sobre la foto, en dos columnas y la misma retícula de 20 que
+    volver y compartir (Apple Music: nombre a la izquierda, acción a la
+    derecha). Izquierda: el nombre (dos líneas en `Type.screen` o
+    `Type.title`, hasta tres en `Type.section`; nunca se encoge a mano) con
+    el sello pegado a la última palabra y, a 4 debajo, «N seguidores».
+    Derecha: «Seguir», centrado en la línea de los seguidores. Sin «Cómo
+    llegar»: el mapa ya abre indicaciones.
   - El estado del día vive en la tarjeta: «Se acabó por hoy» es el primer
     bloque y el menú solo se atenúa (sin caja ni etiqueta «Agotado»).
   - Ritmo en la retícula de 8: tarjeta 24 arriba; ubicación y precio → 24 →
@@ -175,9 +177,11 @@ no la medida.
   «Editar», «Limpiar») 16/700.
 - **Vidrio:** `GlassIconButton` en su tamaño por defecto (40, ícono 20); sobre
   la foto de la ficha, círculo de 44.
-- **Seguir compacto (ficha):** cápsula de 36 (radio 18), texto 15/700,
-  objetivo táctil de 44. «Seguir» en naranja; «Siguiendo ▾» en el mismo
-  vidrio que los botones de la foto.
+- **Seguir compacto (ficha):** cápsula de 120 × 36 (radio 18), texto 15/700,
+  objetivo táctil de 44. Mismo ancho en sus dos estados, como Instagram, para
+  que el nombre no se mueva al seguir. «Seguir» en naranja; «Siguiendo ▾» en
+  el mismo vidrio que los botones de la foto (campana tachada en lugar de ▾
+  si los avisos están silenciados).
 - **Texto (Neue Montreal: 600 o más se dibuja Semibold, lo demás Regular):**
   17 títulos de barra y sheet · 16 botones · 15 cuerpo · 14 filas y notas ·
   13 secundario · 12 metadatos y horas · 11 etiquetas en mayúsculas (700,

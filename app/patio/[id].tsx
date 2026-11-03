@@ -30,7 +30,7 @@ import { supabase } from '@/lib/supabase';
 import { getPatioHighlights, getProStatus, setFeaturedDish, type PatioHighlights } from '@/lib/business-pro';
 import { formatHHMM12 } from '@/lib/horario';
 import { MAP_STYLE_DARK, MAP_STYLE_LIGHT } from '@/lib/map-style';
-import { Radius, Spacing, useTheme, type Theme, Type } from '@/lib/theme';
+import { Radius, useTheme, type Theme, Type } from '@/lib/theme';
 import { recordRecentPatio } from '@/lib/recent-patios';
 import { noWidow } from '@/lib/typography';
 import { useKnownLocation } from '@/lib/use-known-location';
@@ -126,7 +126,7 @@ function makeStyles(t: Theme) {
     hero: { height: HERO_HEIGHT, backgroundColor: 'transparent', overflow: 'hidden' },
     heroImgMuted: { opacity: 0.55 },
     heroGradient: { ...StyleSheet.absoluteFillObject },
-    heroNav: { position: 'absolute', left: Spacing.lg, right: Spacing.lg, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', zIndex: 20 },
+    heroNav: { position: 'absolute', left: 20, right: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', zIndex: 20 },
     glassIcon: { width: 44, height: 44, borderRadius: 22, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth, borderColor: t.isDark ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.85)', shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.2, shadowRadius: 16, elevation: 4 },
     // ── Card traslapada ──
     card: { marginTop: -28, backgroundColor: t.bg, borderTopLeftRadius: Radius.sheet, borderTopRightRadius: Radius.sheet, paddingHorizontal: 20, paddingTop: 24 },
@@ -135,12 +135,13 @@ function makeStyles(t: Theme) {
     scheduleDivider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border },
     scheduleDay: { fontSize: 13, fontWeight: '700', color: t.text },
     scheduleHours: { fontSize: 13, color: t.textSecondary },
-    heroIdentity: { position: 'absolute', left: 20, right: 20, bottom: 44 },
+    heroIdentity: { position: 'absolute', left: 20, right: 20, bottom: 52, flexDirection: 'row', alignItems: 'flex-end', gap: 16 },
+    heroText: { flex: 1, minWidth: 0 },
+    followersLink: { alignSelf: 'flex-start', marginTop: 4 },
     title: { color: '#FFFFFF', textShadowColor: 'rgba(0,0,0,0.25)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 8 },
     verifiedInline: { paddingLeft: 2 },
     summaryRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 24 },
     summaryPrice: { maxWidth: '50%', marginLeft: 'auto' },
-    heroMeta: { minHeight: 36, marginTop: 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
     followersText: { fontSize: 14, lineHeight: 19, fontWeight: '400', color: 'rgba(255,255,255,0.86)' },
     followersValue: { fontWeight: '700', color: '#FFFFFF' },
     followToast: { position: 'absolute', left: 16, right: 16, borderRadius: 28 },
@@ -149,8 +150,12 @@ function makeStyles(t: Theme) {
     followToastAction: { minHeight: 44, paddingHorizontal: 8, justifyContent: 'center' },
     followToastActionText: { fontSize: 14, fontWeight: '700', color: t.accent },
     followToastClose: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-    followPill: { height: 36, paddingHorizontal: 16, borderRadius: 18, overflow: 'hidden', flexDirection: 'row', alignItems: 'center', gap: 4 },
-    followPillGlass: { paddingHorizontal: 14, borderWidth: StyleSheet.hairlineWidth, borderColor: t.isDark ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.85)' },
+    // Centrada en la línea de seguidores (19 de alto): baja la mitad de la diferencia.
+    followPillSlot: { marginBottom: (19 - 36) / 2 },
+    // Ancho fijo en sus dos estados, como el botón de Instagram: al seguir no
+    // cambia de tamaño ni mueve el nombre.
+    followPill: { width: 120, height: 36, borderRadius: 18, overflow: 'hidden', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4 },
+    followPillGlass: { borderWidth: StyleSheet.hairlineWidth, borderColor: t.isDark ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.85)' },
     followPillText: { fontSize: 15, fontWeight: '700' },
     notice: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginBottom: 24, padding: 12, borderRadius: 14, backgroundColor: t.accentSoft },
     noticeText: { flex: 1, minWidth: 0, fontSize: 15, lineHeight: 20, fontWeight: '400', color: t.text },
@@ -354,11 +359,13 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
   // Al seguir, una barra dice que llegarán avisos y deja silenciarlos ahí
   // mismo, como YouTube al suscribirte. Se va cuando la persona la cierra,
   // silencia o se mueve por la ficha; nunca por tiempo.
-  // Nombre sobre la foto: dos líneas como máximo. Si no cabe en Type.screen
-  // baja a Type.title y luego a Type.section, que conservan el interlineado de
-  // la fuente de marca (encogerla a mano lo abre y corta acentos).
+  // Nombre sobre la foto: dos líneas en Type.screen o Type.title y hasta tres
+  // en Type.section, que conservan el interlineado de la fuente de marca
+  // (encogerla a mano lo abre y corta acentos). Nunca se corta con «…» salvo
+  // un nombre que no quepa ni así; entonces el sello no va pegado al texto.
   const [titleStep, setTitleStep] = useState(0);
-  useEffect(() => { setTitleStep(0); }, [patio?.name]);
+  const [titleClamped, setTitleClamped] = useState(false);
+  useEffect(() => { setTitleStep(0); setTitleClamped(false); }, [patio?.name]);
   const [followToast, setFollowToast] = useState(false);
   const toastScrollY = useRef<number | null>(null);
   const handleFollowPress = async () => {
@@ -729,30 +736,34 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
             locations={[0, 0.62, 1]}
             style={s.heroGradient}
           />
-          {/* Identidad sobre la foto, como el encabezado de un perfil en X o la
-              portada de un artista en Spotify: nombre (dos líneas como máximo;
-              si no cabe, se reduce) y debajo los seguidores a la izquierda y
-              «Seguir» compacto a la derecha. El estado del día vive en la
-              tarjeta, no en la foto. */}
+          {/* Identidad sobre la foto en dos columnas, la misma retícula de 20 que
+              los botones de arriba (X, Apple Music): a la izquierda el nombre
+              (que baja de tamaño si es largo) con el sello y, pegado debajo, «N
+              seguidores»; a la derecha «Seguir», centrado en la línea de los
+              seguidores. El estado del día vive en la tarjeta, no en la foto. */}
           <View style={s.heroIdentity}>
-            <Text
-              accessibilityRole="header"
-              accessibilityLabel={patio.isVerifiedBusiness ? `${patio.name}, negocio verificado` : patio.name}
-              style={[s.title, TITLE_STEPS[titleStep]]}
-              numberOfLines={titleStep === TITLE_STEPS.length - 1 ? 2 : undefined}
-              onTextLayout={(event) => {
-                if (event.nativeEvent.lines.length > 2 && titleStep < TITLE_STEPS.length - 1) setTitleStep(titleStep + 1);
-              }}
-              allowFontScaling={true}>
-              {noWidow(patio.name)}
-              {/* El sello va pegado a la última palabra, como en X o Instagram. */}
-              {patio.isVerifiedBusiness && <>{'\u00A0'}<View style={s.verifiedInline}>
-                <SymbolView name="checkmark.seal.fill" size={Math.round(TITLE_STEPS[titleStep].fontSize * 0.72)} weight="medium" tintColor="#FFFFFF" fallback={<TintIcon source={ANDROID_ICONS.verified} size={Math.round(TITLE_STEPS[titleStep].fontSize * 0.72)} color="#FFFFFF" />} />
-              </View></>}
-            </Text>
-            <View style={s.heroMeta}>
-              {businessStats ? (
+            <View style={s.heroText}>
+              <Text
+                accessibilityRole="header"
+                accessibilityLabel={patio.isVerifiedBusiness ? `${patio.name}, negocio verificado` : patio.name}
+                style={[s.title, TITLE_STEPS[titleStep]]}
+                numberOfLines={titleClamped ? 3 : undefined}
+                onTextLayout={(event) => {
+                  const last = titleStep === TITLE_STEPS.length - 1;
+                  if (event.nativeEvent.lines.length <= (last ? 3 : 2)) return;
+                  if (!last) setTitleStep(titleStep + 1);
+                  else if (!titleClamped) setTitleClamped(true);
+                }}
+                allowFontScaling={true}>
+                {noWidow(patio.name)}
+                {/* El sello va pegado a la última palabra, como en X o Instagram. */}
+                {patio.isVerifiedBusiness && !titleClamped && <>{'\u00A0'}<View style={s.verifiedInline}>
+                  <SymbolView name="checkmark.seal.fill" size={Math.round(TITLE_STEPS[titleStep].fontSize * 0.72)} weight="medium" tintColor="#FFFFFF" fallback={<TintIcon source={ANDROID_ICONS.verified} size={Math.round(TITLE_STEPS[titleStep].fontSize * 0.72)} color="#FFFFFF" />} />
+                </View></>}
+              </Text>
+              {!!businessStats && (
                 <TouchableOpacity
+                  style={s.followersLink}
                   activeOpacity={0.7}
                   hitSlop={{ top: 10, bottom: 10 }}
                   disabled={!/^[0-9a-f-]{36}$/i.test(patio.id)}
@@ -763,26 +774,25 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
                     <Text style={s.followersValue}>{businessStats.saves}</Text> {businessStats.saves === 1 ? 'seguidor' : 'seguidores'}
                   </Text>
                 </TouchableOpacity>
-              ) : <View />}
-              {!own && (
-                <View ref={followAnchor} collapsable={false}>
-                  <TouchableOpacity
-                    style={[s.followPill, isSaved ? s.followPillGlass : { backgroundColor: theme.accent }]}
-                    activeOpacity={isSaved ? 0.7 : 0.85}
-                    hitSlop={{ top: 4, bottom: 4 }}
-                    onPress={() => { void handleFollowPress(); }}
-                    accessibilityRole="button"
-                    accessibilityState={{ selected: isSaved }}
-                    accessibilityLabel={isSaved ? `Siguiendo a ${patio.name}${muted ? ', avisos silenciados' : ''}` : `Seguir a ${patio.name}`}>
-                    {isSaved && <BlurView intensity={theme.isDark ? 24 : 40} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />}
-                    {isSaved && <View style={[StyleSheet.absoluteFillObject, { backgroundColor: theme.glass }]} />}
-                    {isSaved && muted && <Ionicons name="notifications-off-outline" size={14} color={theme.textSecondary} />}
-                    <Text style={[s.followPillText, { color: isSaved ? theme.text : '#FFFFFF' }]} allowFontScaling={true}>{isSaved ? 'Siguiendo' : 'Seguir'}</Text>
-                    {isSaved && <Ionicons name="chevron-down" size={14} color={theme.text} />}
-                  </TouchableOpacity>
-                </View>
               )}
             </View>
+            {!own && (
+              <View ref={followAnchor} collapsable={false} style={s.followPillSlot}>
+                <TouchableOpacity
+                  style={[s.followPill, isSaved ? s.followPillGlass : { backgroundColor: theme.accent }]}
+                  activeOpacity={isSaved ? 0.7 : 0.85}
+                  hitSlop={{ top: 4, bottom: 4 }}
+                  onPress={() => { void handleFollowPress(); }}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: isSaved }}
+                  accessibilityLabel={isSaved ? `Siguiendo a ${patio.name}${muted ? ', avisos silenciados' : ''}` : `Seguir a ${patio.name}`}>
+                  {isSaved && <BlurView intensity={theme.isDark ? 24 : 40} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />}
+                  {isSaved && <View style={[StyleSheet.absoluteFillObject, { backgroundColor: theme.glass }]} />}
+                  <Text style={[s.followPillText, { color: isSaved ? theme.text : '#FFFFFF' }]} numberOfLines={1} adjustsFontSizeToFit allowFontScaling={true}>{isSaved ? 'Siguiendo' : 'Seguir'}</Text>
+                  {isSaved && <Ionicons name={muted ? 'notifications-off-outline' : 'chevron-down'} size={14} color={muted ? theme.textSecondary : theme.text} />}
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
           <View style={[s.heroNav, { top: insets.top + 8 }]}>
             {own ? <View /> : <GlassIcon name="chevron-back" size={21} onPress={handleBack} label="Volver" />}

@@ -141,6 +141,7 @@ function makeStyles(t: Theme) {
     heroMeta: { height: 32, marginTop: 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 16 },
     title: { color: '#FFFFFF', textShadowColor: 'rgba(0,0,0,0.25)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 8 },
     verifiedInline: { paddingLeft: 2 },
+    bio: { marginBottom: 8, fontSize: 15, lineHeight: 20, fontWeight: '400', color: t.text },
     summaryRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 24 },
     summaryPrice: { maxWidth: '50%', marginLeft: 'auto' },
     followersText: { fontSize: 14, lineHeight: 19, fontWeight: '400', color: 'rgba(255,255,255,0.86)' },
@@ -805,6 +806,11 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
 
         {/* Card traslapada */}
         <View style={s.card}>
+          {/* La descripción que escribe el negocio (Editar mi negocio, hasta 80
+              caracteres), como la bio de un perfil: arriba de dónde está. */}
+          {!!patio.reason.trim() && (
+            <Text style={s.bio} allowFontScaling={true}>{noWidow(patio.reason.trim())}</Text>
+          )}
           <View style={s.summaryRow}>
             <PatioCardLocation area={patio.area} distanceLabel={distance} variant="detail" style={{ flex: 1, marginTop: 0 }} />
             <PatioCardPrice patio={patio} compact={false} style={s.summaryPrice} />

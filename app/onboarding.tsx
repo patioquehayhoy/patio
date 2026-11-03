@@ -186,7 +186,8 @@ export default function OnboardingScreen() {
               </TouchableOpacity>
               <TouchableOpacity accessibilityRole="button" accessibilityLabel="Publicar lo que preparo" accessibilityState={{ disabled: routing }} disabled={routing} style={s.roleButton} onPress={() => chooseRole('fondero')} activeOpacity={0.85}>
                 <BlurView intensity={24} tint="dark" style={s.roleButtonInner}>
-                  <View style={s.roleIcon}><Ionicons name="storefront-outline" size={19} color="#FF6A3D" /></View>
+                  {/* Mismos íconos que la barra de cada lado: Mapa y Publicar. */}
+                  <View style={s.roleIcon}><Ionicons name="add-circle-outline" size={19} color="#FF6A3D" /></View>
                   <View style={s.roleCopy}>
                     <Text style={s.roleTitle}>{noWidow('Publicar lo que preparo')}</Text>
                     <Text style={s.roleHint}>{noWidow('Crear el perfil de tu negocio')}</Text>

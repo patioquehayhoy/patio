@@ -30,10 +30,9 @@ Propuesta completa en [PLANES_CREADORES_Y_RED](PLANES_CREADORES_Y_RED_2026-11-02
 - [x] Aplicadas en producción (verificado 2026-11-02 con `db push --dry-run`):
   Pro y seguidores; funciones `send-special-notice` y `revenuecat-webhook`
   activas.
-- [ ] Alejandro: `npx supabase db push --yes` (falta solo
-  `20261102140000_text_limits`) y
-  `npx supabase functions deploy send-publication-notifications` (el tope
-  de 3 avisos al día es posterior al último despliegue).
+- [x] Alejandro aplicó `20261102140000_text_limits` y redesplegó
+  `send-publication-notifications` (verificado 2026-11-02: base al día,
+  función versión 6).
 - [x] Todas las migraciones nuevas ensayadas con `npm run db:rehearse`,
   con escenarios de Pro, seguidores, avisos especiales y límites de texto.
 - [ ] Dar Pro a los Fundadores con el SQL de [billing](BILLING_SETUP_2026-10-26.md).

@@ -74,8 +74,22 @@ errores) y la validación en línea de Luke Wroblewski.
   - La descripción del negocio (Editar mi negocio, hasta 80) va sobre la
     foto, entre el nombre y los seguidores, como la bio de Instagram: un
     renglón y «más» si no cabe; al tocarla se ve completa. Dentro de la
-    tarjeta se veía ajena (Parco). La foto mide 320 para que nombre de dos
-    renglones y descripción abierta nunca toquen volver y compartir.
+    tarjeta se veía ajena (Parco). La foto mide 320 y crece sola si un
+    nombre de dos renglones con la descripción abierta no cabe debajo de
+    volver y compartir.
+  - Jerarquía y grupos de la identidad (auditada 2026-11-02): dos grupos,
+    «quién es» (nombre → 2 → descripción) y «tu relación» (seguidores y
+    Seguir), separados por 16, el doble o más de lo que separa a cada
+    elemento dentro de su grupo. Razones: proximidad de Gestalt
+    (https://www.nngroup.com/articles/gestalt-proximity/); Apple, agrupar lo
+    relacionado y dar aire entre grupos
+    (https://developer.apple.com/design/human-interface-guidelines/layout);
+    Jorge de Buen, *Manual de diseño editorial*: un texto queda más cerca de
+    lo que describe que del bloque siguiente, y los blancos entre bloques se
+    miden con el interlineado (aquí 20 del texto → 16 entre grupos); y que
+    «más» y «Seguir» no compitan por el mismo toque (objetivos de 44).
+    Tamaños por rol: nombre `Type.screen`, descripción 15 blanca,
+    seguidores 14 al 86 %, un solo naranja.
   - El estado del día vive en la tarjeta: «Se acabó por hoy» es el primer
     bloque y el menú solo se atenúa (sin caja ni etiqueta «Agotado»).
   - Ritmo en la retícula de 8: tarjeta 24 arriba; ubicación y precio → 24 →

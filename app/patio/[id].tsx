@@ -138,12 +138,13 @@ function makeStyles(t: Theme) {
     heroIdentity: { position: 'absolute', left: 20, right: 20, bottom: 44 },
     // A 4 del nombre: la cápsula nunca toca los rasgos descendentes del nombre.
     followersLink: { flexShrink: 1 },
-    heroMeta: { height: 32, marginTop: 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 16 },
+    // Entre grupos 16 (identidad → seguidores y Seguir); dentro del grupo 2.
+    heroMeta: { height: 32, marginTop: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 16 },
     title: { color: '#FFFFFF', textShadowColor: 'rgba(0,0,0,0.25)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 8 },
     verifiedInline: { paddingLeft: 2 },
     summaryRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 24 },
     summaryPrice: { maxWidth: '50%', marginLeft: 'auto' },
-    heroBio: { marginTop: 4 },
+    heroBio: { marginTop: 2 },
     heroBioRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 4 },
     heroBioText: { fontSize: 15, lineHeight: 20, fontWeight: '400', color: '#FFFFFF', textShadowColor: 'rgba(0,0,0,0.25)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 6 },
     heroBioMeasure: { position: 'absolute', left: 0, right: 0, opacity: 0 },
@@ -376,6 +377,10 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
   const [descOpen, setDescOpen] = useState(false);
   const [descTruncates, setDescTruncates] = useState(false);
   useEffect(() => { setDescOpen(false); setDescTruncates(false); }, [description]);
+  // La foto crece si la identidad (nombre largo + descripción abierta) no cabe
+  // debajo de volver y compartir: nunca se enciman.
+  const [identityHeight, setIdentityHeight] = useState(0);
+  const heroHeight = Math.max(HERO_HEIGHT, insets.top + 8 + 44 + 16 + identityHeight + 44);
   const [followToast, setFollowToast] = useState(false);
   const toastScrollY = useRef<number | null>(null);
   const handleFollowPress = async () => {
@@ -740,7 +745,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
         )}>
 
         {/* Hero con foto botánica real + degradado que la funde con la card */}
-        <View style={s.hero}>
+        <View style={[s.hero, { height: heroHeight }]}>
           <LinearGradient
             colors={['rgba(0,0,0,0.02)', 'rgba(0,0,0,0.08)', 'rgba(0,0,0,0.48)']}
             locations={[0, 0.62, 1]}
@@ -752,7 +757,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
               «N seguidores» a la izquierda y «Seguir» a la derecha, como el
               encabezado de un perfil en X. El estado del día vive en la
               tarjeta, no en la foto. */}
-          <View style={s.heroIdentity}>
+          <View style={s.heroIdentity} onLayout={(event) => setIdentityHeight(event.nativeEvent.layout.height)}>
             <Text
               accessibilityRole="header"
               accessibilityLabel={patio.isVerifiedBusiness ? `${patio.name}, negocio verificado` : patio.name}

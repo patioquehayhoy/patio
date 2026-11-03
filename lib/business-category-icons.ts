@@ -3,11 +3,12 @@ import type { BusinessType } from './smart-setup';
 
 /** Giros use Ionicons, the same family as navigation and actions. Giros Ionicons
  * lacks are composed from real Ionicons parts in the PatioGiros font. */
-export type PatioGiroGlyph = 'patio-jugos' | 'patio-tacos' | 'patio-elotes' | 'patio-postres' | 'patio-botanas';
+export type PatioGiroGlyph = 'patio-jugos' | 'patio-tacos' | 'patio-elotes' | 'patio-postres' | 'patio-botanas' | 'patio-fondita';
 export type CategoryIcon = keyof typeof Ionicons.glyphMap | PatioGiroGlyph;
 
 export const BUSINESS_CATEGORY_ICONS = {
-  fondita: 'storefront-outline',
+  // Olla de comida corrida: la tiendita es la identidad de Mi Patio.
+  fondita: 'patio-fondita',
   taqueria: 'patio-tacos',
   antojitos: 'fast-food-outline',
   elotes: 'patio-elotes',
@@ -33,15 +34,15 @@ const KEYWORDS: [RegExp, CategoryIcon][] = [
   [/marisco|pescad/, 'fish-outline'],
   [/bebida|bar\b|antro|cantina/, 'wine-outline'],
   [/restaurante/, 'restaurant-outline'],
-  [/fond|cocina|caser/, 'storefront-outline'],
+  [/fond|cocina|caser/, 'patio-fondita'],
 ];
 
 export function businessCategoryIcon(category: string, context: 'onboarding' | 'map' = 'onboarding'): CategoryIcon {
   const value = category.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
   const exact = Object.hasOwn(BUSINESS_CATEGORY_ICONS, value) ? BUSINESS_CATEGORY_ICONS[value as BusinessType] : null;
   const icon = exact ?? KEYWORDS.find(([pattern]) => pattern.test(value))?.[1] ?? 'ellipsis-horizontal';
-  // On the map a generic place is a pin, not a storefront or cutlery.
-  if (context === 'map' && (icon === 'storefront-outline' || icon === 'restaurant-outline' || icon === 'ellipsis-horizontal')) return 'location-outline';
+  // On the map a generic place is a pin, not cutlery.
+  if (context === 'map' && (icon === 'restaurant-outline' || icon === 'ellipsis-horizontal')) return 'location-outline';
   return icon;
 }
 

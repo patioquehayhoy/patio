@@ -10,6 +10,8 @@ test('Otro persists the written category alongside selected tags instead of conv
     '@/lib/edge-function-error': {},
     '@/lib/horario': { deserialize: () => null },
     '@/lib/user-store': { getFonditaId: () => 'own-business' },
+    '@/lib/fondita-name': { sanitizeNombreInput: (value) => value.slice(0, 30) },
+    '@/lib/text-limits': { TEXT_LIMITS: { address: 80 } },
     '@/lib/supabase': { supabase: { from: (table) => {
       assert.equal(table, 'negocios');
       return { update: (value) => { payload = value; return { eq: async (field, id) => {

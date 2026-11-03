@@ -2,6 +2,8 @@ import { aiFunctionError } from '@/lib/edge-function-error';
 import { deserialize, type HorarioSemanal } from '@/lib/horario';
 import { supabase } from '@/lib/supabase';
 import { getFonditaId } from '@/lib/user-store';
+import { sanitizeNombreInput } from '@/lib/fondita-name';
+import { TEXT_LIMITS } from '@/lib/text-limits';
 
 export type SmartSetupResult = {
   nombre: string;
@@ -94,7 +96,8 @@ export async function saveSmartSetup(result: SmartSetupResult): Promise<void> {
   const schedule = confirmedSchedule(result);
   const tipos = result.tipos.length ? result.tipos : [result.tipo];
   const payload: Record<string, unknown> = {
-    nombre: result.nombre.trim(),
+    // Lo leído por la IA pasa por las mismas reglas que lo escrito a mano.
+    nombre: sanitizeNombreInput(result.nombre).trim(),
     // Tag primario, por compatibilidad (perfil de visión, secciones sugeridas).
     tipo_negocio: tipos[0],
     // Multi-tag real (migración 20260816). Si el proyecto de Supabase todavía
@@ -102,7 +105,7 @@ export async function saveSmartSetup(result: SmartSetupResult): Promise<void> {
     // desconocida — por eso se intenta aparte y se degrada sin bloquear el alta.
     categorias: tipos.map((id) => categoryLabel(id, result.otroGiro)),
   };
-  if (result.direccion.trim()) payload.direccion = result.direccion.trim();
+  if (result.direccion.trim()) payload.direccion = result.direccion.trim().slice(0, TEXT_LIMITS.address);
   if (Number.isFinite(result.latitude) && Number.isFinite(result.longitude)) {
     payload.latitude = result.latitude;
     payload.longitude = result.longitude;

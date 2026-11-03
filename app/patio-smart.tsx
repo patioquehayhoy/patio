@@ -38,6 +38,7 @@ import { BUSINESS_TYPE_LABELS, confirmedSchedule, saveSmartSetup, type BusinessT
 import { CONTENT_REJECTED_MESSAGE, isContentRejected } from '@/lib/content-safety';
 import { useTheme, Type } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
+import { TEXT_LIMITS } from '@/lib/text-limits';
 
 type Stage = 'name' | 'category' | 'location' | 'schedule' | 'payments' | 'finish';
 
@@ -511,7 +512,7 @@ export default function PatioSmartScreen() {
               <TextInput
                 accessibilityLabel="Dirección del negocio"
                 value={result.direccion}
-                onChangeText={(direccion) => update({ direccion, latitude: null, longitude: null })}
+                onChangeText={(direccion) => update({ direccion: direccion.slice(0, TEXT_LIMITS.address), latitude: null, longitude: null })}
                 placeholder="Calle, número y colonia"
                 placeholderTextColor={colors.textMute}
                 selectionColor={colors.accent}

@@ -25,6 +25,7 @@ import { useTheme } from '@/lib/theme';
 import { ActionSheet } from '@/components/action-sheet';
 import { GlassIconButton } from '@/components/glass-button';
 import { noWidow } from '@/lib/typography';
+import { TEXT_LIMITS } from '@/lib/text-limits';
 
 const PRICE_ACCESSORY = 'dish-price-keyboard';
 
@@ -212,7 +213,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
             onSubmitEditing={() => nombreInputRef.current?.blur()}
             placeholder={source === 'foto' ? 'Revisión' : 'Nuevo menú'}
             placeholderTextColor={c.textSecondary}
-            maxLength={60}
+            maxLength={TEXT_LIMITS.menuName}
             returnKeyType="done"
             accessibilityLabel="Nombre del menú"
           />
@@ -253,7 +254,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                   <TextInput
                     style={s.sectionName}
                     value={section.nombre}
-                    onChangeText={nombre => patchSection(section.id, { nombre: nombre.toUpperCase() })}
+                    onChangeText={nombre => patchSection(section.id, { nombre: nombre.toUpperCase().slice(0, TEXT_LIMITS.sectionName) })}
                     placeholder={sectionIndex === 0 ? 'PRIMER TIEMPO' : 'SECCIÓN'}
                     placeholderTextColor={c.textMute}
                     returnKeyType="done"
@@ -289,7 +290,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                                 ref={registerInput(`n-${dish.id}`)}
                                 style={s.dishName}
                                 value={dish.nombre}
-                                onChangeText={nombre => patchDish(section.id, dish.id, { nombre })}
+                                onChangeText={nombre => patchDish(section.id, dish.id, { nombre: nombre.slice(0, TEXT_LIMITS.dishName) })}
                                 onFocus={() => setEditingName(dish.id)}
                                 onBlur={() => { smoothly(); setEditingName((current) => current === dish.id ? null : current); }}
                                 placeholder="Platillo"
@@ -317,7 +318,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                                   ref={registerInput(`p-${dish.id}`)}
                                   style={s.dishPrice}
                                   value={dish.precio}
-                                  onChangeText={precio => patchDish(section.id, dish.id, { precio: precio.replace(/[^0-9.]/g, '') })}
+                                  onChangeText={precio => patchDish(section.id, dish.id, { precio: precio.replace(/[^0-9.]/g, '').slice(0, TEXT_LIMITS.dishPrice) })}
                                   onFocus={() => setPriceFocus(dish.id)}
                                   onBlur={() => {
                                     setPriceFocus((current) => current === dish.id ? null : current);
@@ -360,7 +361,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                                 ref={registerInput(`d-${dish.id}`)}
                                 style={s.description}
                                 value={dish.descripcion}
-                                onChangeText={descripcion => patchDish(section.id, dish.id, { descripcion })}
+                                onChangeText={descripcion => patchDish(section.id, dish.id, { descripcion: descripcion.slice(0, TEXT_LIMITS.dishDescription) })}
                                 placeholder="Descripción opcional"
                                 placeholderTextColor={c.textMute}
                                 returnKeyType="next"

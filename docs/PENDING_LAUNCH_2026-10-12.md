@@ -15,7 +15,11 @@ Propuesta completa en [PLANES_CREADORES_Y_RED](PLANES_CREADORES_Y_RED_2026-11-02
   cada perfil (migración `20261102130000_patio_followers.sql`).
 - [x] Avisos por lugar y tope de 3 menús al día por persona (2026-11-02).
   Requiere desplegar de nuevo `send-publication-notifications`.
-- [ ] Alejandro: `npx supabase db push --yes` (aplica las dos migraciones) y
+- [x] Límites de texto en un solo lugar (`lib/text-limits.ts`): nombre del
+  negocio 30 (cabe en dos renglones en la ficha), descripción y dirección 80,
+  platillo 60, descripción de platillo 140, sección 40, precio 7, reseña 600.
+  La base repite los del negocio (`20261102140000_text_limits.sql`).
+- [ ] Alejandro: `npx supabase db push --yes` (aplica las tres migraciones) y
   `npx supabase functions deploy send-special-notice revenuecat-webhook send-publication-notifications`.
 - [ ] Dar Pro a los Fundadores con el SQL de [billing](BILLING_SETUP_2026-10-26.md).
 - [ ] QA en el cel con una cuenta Pro: aviso especial (llega y se ve en la

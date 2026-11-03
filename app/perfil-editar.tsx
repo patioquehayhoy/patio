@@ -18,13 +18,14 @@ import { sanitizeNombreInput } from '@/lib/fondita-name';
 import { BUSINESS_TYPE_LABELS, type BusinessType } from '@/lib/smart-setup';
 import { noWidow } from '@/lib/typography';
 import { Type, useTheme, type Theme } from '@/lib/theme';
+import { TEXT_LIMITS } from '@/lib/text-limits';
 import { GlassIconButton } from '@/components/glass-button';
 import { BusinessPaymentSelector } from '@/components/business-payment-selector';
 import { BusinessScheduleEditor } from '@/components/business-schedule-editor';
 import { SettingsGroup, SettingsRow, settingsColors } from '@/components/settings-list';
 
-const MAX_DESCRIPCION = 80;
-const MAX_UBICACION   = 80;
+const MAX_DESCRIPCION = TEXT_LIMITS.businessDescription;
+const MAX_UBICACION   = TEXT_LIMITS.address;
 function makeStyles(theme: Theme) {
   const t = theme;
   return StyleSheet.create({

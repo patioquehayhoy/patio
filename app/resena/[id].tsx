@@ -14,6 +14,7 @@ import { reviewTags } from '@/lib/review-tags';
 import { useTheme, type Theme, Type } from '@/lib/theme';
 import { supabase } from '@/lib/supabase';
 import { noWidow } from '@/lib/typography';
+import { TEXT_LIMITS } from '@/lib/text-limits';
 
 function makeStyles(t: Theme) {
   return StyleSheet.create({
@@ -177,7 +178,7 @@ export default function ResenaScreen() {
           <TextInput
             style={s.noteInput}
             value={note}
-            onChangeText={setNote}
+            onChangeText={(value) => setNote(value.slice(0, TEXT_LIMITS.reviewNote))}
             placeholder="¿Qué tal estuvo? Cuéntale a quien anda buscando…"
             placeholderTextColor={theme.textSecondary}
             accessibilityLabel="Comentario de la reseña"

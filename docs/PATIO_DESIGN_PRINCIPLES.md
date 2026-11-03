@@ -83,10 +83,12 @@ errores) y la validación en línea de Luke Wroblewski.
 
 - El nombre de un platillo se ve completo mientras se escribe (el campo crece,
   como en un chat) y queda en una línea con «…» al pasar al siguiente.
-- Precio propio y descripción son opcionales y se piden igual: «Agregar
-  precio» y «Agregar descripción». El campo de precio nace donde estaba su
-  enlace, sin brincar al otro lado; los cambios del renglón se animan 200 ms.
-  El precio del día sigue arriba, sin cambios.
+- Precio propio y descripción son opcionales. El precio vive a la derecha
+  del nombre (2026-11-02, Parco): «+ Precio» y ahí mismo nace el campo. Sobre
+  el teclado, «Siguiente» pasa al precio del platillo de abajo (llenar varios o
+  saltarse uno) y «Listo» cierra (cambiar solo uno). «Agregar descripción»
+  sigue debajo del nombre; los cambios del renglón se animan 200 ms. El precio
+  del día sigue arriba, sin cambios.
 - Al publicar: un solo paso. Se ve el póster de lo publicado con «Publicado»
   arriba, «Editar» junto al menú, «Compartir como imagen» y «Listo».
 

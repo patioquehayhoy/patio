@@ -4,6 +4,8 @@ import { Stack } from 'expo-router';
 import { useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  InputAccessoryView,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -23,6 +25,8 @@ import { useTheme } from '@/lib/theme';
 import { ActionSheet } from '@/components/action-sheet';
 import { GlassIconButton } from '@/components/glass-button';
 import { noWidow } from '@/lib/typography';
+
+const PRICE_ACCESSORY = 'dish-price-keyboard';
 
 export { emptyMenu };
 
@@ -139,9 +143,25 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
   const [priceOpen, setPriceOpen] = useState<Record<string, boolean>>({});
   const smoothly = () => LayoutAnimation.configureNext(LayoutAnimation.create(200, 'easeInEaseOut', 'opacity'));
   const openPrice = (dishId: string) => {
+    const ref = inputRefs.current[`p-${dishId}`];
+    if (ref) { ref.focus(); return; }
     smoothly();
     pendingFocus.current = `p-${dishId}`;
     setPriceOpen((current) => ({ ...current, [dishId]: true }));
+  };
+  // Precios en fila: sobre el teclado, «Siguiente» pasa al precio del platillo
+  // de abajo (sirve para llenar varios o saltarse uno) y «Listo» cierra (para
+  // cambiar solo uno). En Android, la tecla de acción del teclado hace «Siguiente».
+  const [priceFocus, setPriceFocus] = useState<string | null>(null);
+  const priceOrder = () => data.secciones.filter((section) => !collapsed[section.id]).flatMap((section) => section.platillos.map((dish) => dish.id));
+  const nextPriceDish = (dishId: string | null) => {
+    if (!dishId) return undefined;
+    const order = priceOrder();
+    return order[order.indexOf(dishId) + 1];
+  };
+  const goToNextPrice = (dishId: string | null) => {
+    const next = nextPriceDish(dishId);
+    if (next) openPrice(next); else Keyboard.dismiss();
   };
 
   const addDishFocused = (section: Seccion) => {
@@ -290,6 +310,40 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                                 <Text style={s.dishName} numberOfLines={1} ellipsizeMode="tail">{dish.nombre}</Text>
                               </TouchableOpacity>
                             )}
+                            {dish.precio || priceOpen[dish.id] ? (
+                              <View style={s.priceChip}>
+                                <Text style={s.currency}>$</Text>
+                                <TextInput
+                                  ref={registerInput(`p-${dish.id}`)}
+                                  style={s.dishPrice}
+                                  value={dish.precio}
+                                  onChangeText={precio => patchDish(section.id, dish.id, { precio: precio.replace(/[^0-9.]/g, '') })}
+                                  onFocus={() => setPriceFocus(dish.id)}
+                                  onBlur={() => {
+                                    setPriceFocus((current) => current === dish.id ? null : current);
+                                    if (!dish.precio) { smoothly(); setPriceOpen((current) => ({ ...current, [dish.id]: false })); }
+                                  }}
+                                  placeholder="0"
+                                  placeholderTextColor={c.textMute}
+                                  keyboardType="decimal-pad"
+                                  returnKeyType="next"
+                                  onSubmitEditing={() => goToNextPrice(dish.id)}
+                                  inputAccessoryViewID={Platform.OS === 'ios' ? PRICE_ACCESSORY : undefined}
+                                  selectTextOnFocus
+                                  accessibilityLabel={`Precio de ${dish.nombre || 'platillo'}`}
+                                />
+                              </View>
+                            ) : (
+                              <TouchableOpacity
+                                style={s.addPrice}
+                                hitSlop={{ top: 7, bottom: 7, left: 6, right: 4 }}
+                                onPress={() => openPrice(dish.id)}
+                                activeOpacity={0.7}
+                                accessibilityRole="button"
+                                accessibilityLabel={`Agregar precio a ${dish.nombre || 'platillo'}`}>
+                                <Text style={s.addDetail}>+ Precio</Text>
+                              </TouchableOpacity>
+                            )}
                             <TouchableOpacity
                               style={s.removeDish}
                               hitSlop={{ top: 7, bottom: 7, left: 7, right: 7 }}
@@ -328,32 +382,6 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                                 accessibilityRole="button"
                                 accessibilityLabel={`Agregar descripción a ${dish.nombre || 'platillo'}`}>
                                 <Text style={s.addDetail}>Agregar descripción</Text>
-                              </TouchableOpacity>
-                            )}
-                            {dish.precio || priceOpen[dish.id] ? (
-                              <View style={s.priceChip}>
-                                <Text style={s.currency}>$</Text>
-                                <TextInput
-                                  ref={registerInput(`p-${dish.id}`)}
-                                  style={s.dishPrice}
-                                  value={dish.precio}
-                                  onChangeText={precio => patchDish(section.id, dish.id, { precio: precio.replace(/[^0-9.]/g, '') })}
-                                  onBlur={() => { if (!dish.precio) { smoothly(); setPriceOpen((current) => ({ ...current, [dish.id]: false })); } }}
-                                  placeholder="0"
-                                  placeholderTextColor={c.textMute}
-                                  keyboardType="decimal-pad"
-                                  selectTextOnFocus
-                                  accessibilityLabel={`Precio de ${dish.nombre || 'platillo'}`}
-                                />
-                              </View>
-                            ) : (
-                              <TouchableOpacity
-                                hitSlop={{ top: 6, bottom: 6, left: 4, right: 4 }}
-                                onPress={() => openPrice(dish.id)}
-                                activeOpacity={0.7}
-                                accessibilityRole="button"
-                                accessibilityLabel={`Agregar precio a ${dish.nombre || 'platillo'}`}>
-                                <Text style={s.addDetail}>Agregar precio</Text>
                               </TouchableOpacity>
                             )}
                           </View>
@@ -474,6 +502,21 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+      {Platform.OS === 'ios' && (
+        <InputAccessoryView nativeID={PRICE_ACCESSORY}>
+          <View style={s.priceBar}>
+            {nextPriceDish(priceFocus) ? (
+              <TouchableOpacity style={s.priceBarButton} onPress={() => goToNextPrice(priceFocus)} activeOpacity={0.7} accessibilityRole="button" accessibilityLabel="Siguiente precio">
+                <Text style={s.priceBarNext}>Siguiente</Text>
+                <Ionicons name="chevron-down" size={15} color={c.text} />
+              </TouchableOpacity>
+            ) : <View />}
+            <TouchableOpacity style={s.priceBarButton} onPress={() => Keyboard.dismiss()} activeOpacity={0.7} accessibilityRole="button" accessibilityLabel="Listo">
+              <Text style={s.priceBarDone}>Listo</Text>
+            </TouchableOpacity>
+          </View>
+        </InputAccessoryView>
+      )}
 
       <ActionSheet
         visible={!!sectionActions}
@@ -512,7 +555,12 @@ function makeStyles(c: FonderoColors) {
     addDetail: { paddingTop: 3, fontSize: 12, fontWeight: '300', color: c.textSecondary },
     detailRow: { marginTop: 2, flexDirection: 'row', alignItems: 'center' },
     description: { flex: 1, paddingVertical: 3, fontSize: 13, fontWeight: '300', color: c.textSecondary },
-    priceChip: { minWidth: 64, height: 30, marginTop: 4, paddingHorizontal: 9, borderRadius: 10, flexDirection: 'row', alignItems: 'center', gap: 2, backgroundColor: c.iconBg },
+    priceChip: { minWidth: 64, height: 28, marginTop: -1, paddingHorizontal: 9, borderRadius: 10, flexDirection: 'row', alignItems: 'center', gap: 2, backgroundColor: c.iconBg },
+    addPrice: { height: 27, justifyContent: 'center' },
+    priceBar: { minHeight: 44, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: c.surface2, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: c.border },
+    priceBarButton: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 4 },
+    priceBarNext: { fontSize: 16, fontWeight: '400', color: c.text },
+    priceBarDone: { fontSize: 16, fontWeight: '700', color: c.accent },
     dishPrice: { minWidth: 40, paddingVertical: 0, fontSize: 15, fontWeight: '700', color: c.text },
     addDish: { minHeight: 44, marginLeft: 30, flexDirection: 'row', alignItems: 'center', gap: 8 },
     addDishText: { fontSize: 13, fontWeight: '700', color: c.accent },

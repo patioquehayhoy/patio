@@ -56,7 +56,7 @@ errores) y la validación en línea de Luke Wroblewski.
   gente para seguirla.
 - Seguir, como Instagram (2026-11-02): se siguen personas y lugares. Una lista
   pública ofrece «Seguir a [nombre]», la persona que la armó, porque sus listas
-  viven en su perfil;
+  viven en su perfil.
   «Guardar» ya no se usa para lugares. La ficha lleva «Seguir» (naranja) y
   «Siguiendo» (abre Agregar a una lista y Dejar de seguir). La pestaña del
   Foodie se llama «Siguiendo».

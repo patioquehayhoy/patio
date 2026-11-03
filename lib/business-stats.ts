@@ -1,3 +1,4 @@
+import { getDemoPatioStats } from '@/lib/patio-stats';
 import type { FollowListPerson } from '@/lib/profile-privacy';
 import { supabase } from '@/lib/supabase';
 
@@ -7,7 +8,12 @@ import { supabase } from '@/lib/supabase';
 export type BusinessStats = { saves: number; dishLikes: number; reviews: number };
 
 export async function getBusinessStats(negocioId: string): Promise<BusinessStats | null> {
-  if (!/^[0-9a-f-]{36}$/i.test(negocioId)) return null;
+  if (!/^[0-9a-f-]{36}$/i.test(negocioId)) {
+    // Lugares de ejemplo (solo desarrollo): números sintéticos estables por
+    // lugar para revisar la ficha completa sin datos reales.
+    const demo = getDemoPatioStats(negocioId);
+    return demo ? { saves: demo.followers, dishLikes: demo.dishLikes.length, reviews: demo.ratingCount } : null;
+  }
   const { data, error } = await supabase.rpc('business_stats', { target: negocioId });
   if (error) throw error;
   const row = Array.isArray(data) ? data[0] : data;

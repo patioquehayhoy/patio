@@ -62,16 +62,12 @@ errores) y la validación en línea de Luke Wroblewski.
   máximo tres al día por persona (servidor). Al tocar «Seguir» aparece una
   barra flotante «Te avisaremos cuando publique · Silenciar»; se va cuando la
   persona la cierra, silencia o se mueve por la ficha, nunca por tiempo.
-- Ficha del lugar (2026-11-02): nombre y «N seguidores» van sobre la foto,
-  abajo a la izquierda, en blanco sobre el degradado (portada de artista en
-  Spotify y Apple Music). En la tarjeta, ubicación y precio y luego una fila de
-  dos botones iguales de 44: «Seguir» (único naranja) y «Cómo llegar»
-  (contorno), como la fila de acciones de Apple Maps. Razones: proximidad
-  (el número describe al lugar, no al botón —
-  https://www.nngroup.com/articles/gestalt-proximity/), Fitts (blancos anchos
-  al alcance del pulgar — https://www.nngroup.com/articles/fitts-law/), Jakob
-  (la gente ya conoce esa fila — https://lawsofux.com/jakobs-law/) y un solo
-  acento (https://developer.apple.com/design/human-interface-guidelines/buttons).
+- Ficha del lugar (2026-11-02, cerrado con Parco): sobre la foto, abajo, el
+  nombre y en la línea de abajo «N seguidores» a la izquierda y «Seguir»
+  compacto a la derecha, como el encabezado de un perfil en X o la portada de
+  un artista en Spotify. Sin botón de «Cómo llegar»: el mapa de la ficha ya
+  abre las indicaciones. «Se acabó por hoy» va arriba del nombre. En
+  desarrollo, los lugares de ejemplo muestran seguidores sintéticos.
 - Seguir, como Instagram (2026-11-02): se siguen personas y lugares. Una lista
   pública ofrece «Seguir a [nombre]», la persona que la armó, porque sus listas
   viven en su perfil.
@@ -171,6 +167,9 @@ no la medida.
   «Editar», «Limpiar») 16/700.
 - **Vidrio:** `GlassIconButton` en su tamaño por defecto (40, ícono 20); sobre
   la foto de la ficha, círculo de 44.
+- **Seguir compacto (ficha):** cápsula de 36 (radio 18), texto 15/700,
+  objetivo táctil de 44. «Seguir» en naranja; «Siguiendo ▾» en el mismo
+  vidrio que los botones de la foto.
 - **Texto (Neue Montreal: 600 o más se dibuja Semibold, lo demás Regular):**
   17 títulos de barra y sheet · 16 botones · 15 cuerpo · 14 filas y notas ·
   13 secundario · 12 metadatos y horas · 11 etiquetas en mayúsculas (700,

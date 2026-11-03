@@ -31,6 +31,7 @@ export type DemoDishLike = {
 
 export type PatioStatsSnapshot = {
   views: number;
+  followers: number;
   ratingAvg: number;
   ratingCount: number;
   reviews: DemoReview[];
@@ -87,5 +88,5 @@ export function getDemoPatioStats(seed: string): PatioStatsSnapshot | null {
     return { dishName: DEMO_DISHES[h % DEMO_DISHES.length], authors, daysAgo: h % 10 };
   });
 
-  return { views: 8 + (hash % 40), ratingAvg, ratingCount, reviews, dishLikes };
+  return { views: 8 + (hash % 40), followers: 12 + (hash % 280), ratingAvg, ratingCount, reviews, dishLikes };
 }

@@ -124,7 +124,7 @@ function makeStyles(t: Theme) {
     // ── Hero ──
     hero: { height: HERO_HEIGHT, backgroundColor: 'transparent', overflow: 'hidden' },
     heroImgMuted: { opacity: 0.55 },
-    soldBanner: { position: 'absolute', alignSelf: 'center', top: HERO_HEIGHT * 0.36, flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, paddingVertical: 9, borderRadius: 100, backgroundColor: t.accent, shadowColor: t.accent, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 16, elevation: 6, zIndex: 15 },
+    soldBanner: { alignSelf: 'flex-start', marginBottom: 12, flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, paddingVertical: 9, borderRadius: 100, backgroundColor: t.accent, shadowColor: t.accent, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 16, elevation: 6 },
     soldBannerText: { fontSize: 12, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase', color: '#fff' },
     heroGradient: { ...StyleSheet.absoluteFillObject },
     heroNav: { position: 'absolute', left: Spacing.lg, right: Spacing.lg, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', zIndex: 20 },
@@ -142,20 +142,18 @@ function makeStyles(t: Theme) {
     verifiedMark: { width: 28, height: 28, alignItems: 'center', justifyContent: 'center' },
     summaryRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 16 },
     summaryPrice: { maxWidth: '50%', marginLeft: 'auto' },
-    followersLink: { alignSelf: 'flex-start', marginTop: 4 },
+    heroMeta: { minHeight: 36, marginTop: 6, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
     followersText: { fontSize: 14, lineHeight: 19, fontWeight: '400', color: 'rgba(255,255,255,0.86)' },
     followersValue: { fontWeight: '700', color: '#FFFFFF' },
-    actionRow: { flexDirection: 'row', gap: 8, marginBottom: 20 },
     followToast: { position: 'absolute', left: 16, right: 16, borderRadius: 28 },
     followToastInner: { minHeight: 56, paddingLeft: 16, paddingRight: 4, borderRadius: 28, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden', flexDirection: 'row', alignItems: 'center', gap: 8 },
     followToastText: { flex: 1, minWidth: 0, fontSize: 14, lineHeight: 19, fontWeight: '400', color: t.text },
     followToastAction: { minHeight: 44, paddingHorizontal: 8, justifyContent: 'center' },
     followToastActionText: { fontSize: 14, fontWeight: '700', color: t.accent },
     followToastClose: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-    actionCell: { flex: 1 },
-    actionButton: { height: 44, borderRadius: 22, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
-    actionButtonQuiet: { backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
-    actionText: { fontSize: 16, fontWeight: '700' },
+    followPill: { height: 36, paddingHorizontal: 16, borderRadius: 18, overflow: 'hidden', flexDirection: 'row', alignItems: 'center', gap: 4 },
+    followPillGlass: { paddingHorizontal: 14, borderWidth: StyleSheet.hairlineWidth, borderColor: t.isDark ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.85)' },
+    followPillText: { fontSize: 15, fontWeight: '700' },
     notice: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginBottom: 16, padding: 12, borderRadius: 14, backgroundColor: t.accentSoft },
     noticeText: { flex: 1, minWidth: 0, fontSize: 15, lineHeight: 20, fontWeight: '400', color: t.text },
     featuredLabel: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 2 },
@@ -732,36 +730,55 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
             locations={[0, 0.62, 1]}
             style={s.heroGradient}
           />
-          {soldOut && (
-            <View style={s.soldBanner}>
-              <Ionicons name="time-outline" size={13} color="#fff" />
-              <Text style={s.soldBannerText} allowFontScaling={true}>{noWidow('Se acabó por hoy')}</Text>
-            </View>
-          )}
-          {/* Nombre y seguidores sobre la foto, como la portada de un artista en
-              Spotify o Apple Music; la tarjeta queda para ubicación, acciones
-              y menú. Solo «Seguir» lleva naranja. */}
+          {/* Identidad sobre la foto, como el encabezado de un perfil en X o la
+              portada de un artista en Spotify: nombre, y en la misma línea los
+              seguidores a la izquierda y «Seguir» compacto a la derecha. */}
           <View style={s.heroIdentity}>
+            {soldOut && (
+              <View style={s.soldBanner}>
+                <Ionicons name="time-outline" size={13} color="#fff" />
+                <Text style={s.soldBannerText} allowFontScaling={true}>{noWidow('Se acabó por hoy')}</Text>
+              </View>
+            )}
             <View style={s.titleRow}>
               <Text accessibilityRole="header" style={s.title} allowFontScaling={true}>{noWidow(patio.name)}</Text>
               {patio.isVerifiedBusiness && <View style={s.verifiedMark} accessible accessibilityLabel="Negocio verificado">
                 <SymbolView name="checkmark.seal.fill" size={25} weight="medium" tintColor="#FFFFFF" fallback={<TintIcon source={ANDROID_ICONS.verified} size={25} color="#FFFFFF" />} />
               </View>}
             </View>
-            {!!businessStatsLabel(businessStats) && (
-              <TouchableOpacity
-                style={s.followersLink}
-                activeOpacity={0.7}
-                hitSlop={{ top: 8, bottom: 8 }}
-                disabled={!/^[0-9a-f-]{36}$/i.test(patio.id)}
-                onPress={() => router.push({ pathname: '/foodie/seguidores', params: { patio: patio.id } })}
-                accessibilityRole="button"
-                accessibilityLabel={`${businessStatsLabel(businessStats)}, ver quién lo sigue`}>
-                <Text style={s.followersText} allowFontScaling={true}>
-                  <Text style={s.followersValue}>{businessStats?.saves ?? 0}</Text> {businessStats?.saves === 1 ? 'seguidor' : 'seguidores'}
-                </Text>
-              </TouchableOpacity>
-            )}
+            <View style={s.heroMeta}>
+              {businessStats ? (
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  hitSlop={{ top: 10, bottom: 10 }}
+                  disabled={!/^[0-9a-f-]{36}$/i.test(patio.id)}
+                  onPress={() => router.push({ pathname: '/foodie/seguidores', params: { patio: patio.id } })}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${businessStatsLabel(businessStats)}, ver quién lo sigue`}>
+                  <Text style={s.followersText} allowFontScaling={true}>
+                    <Text style={s.followersValue}>{businessStats.saves}</Text> {businessStats.saves === 1 ? 'seguidor' : 'seguidores'}
+                  </Text>
+                </TouchableOpacity>
+              ) : <View />}
+              {!own && (
+                <View ref={followAnchor} collapsable={false}>
+                  <TouchableOpacity
+                    style={[s.followPill, isSaved ? s.followPillGlass : { backgroundColor: theme.accent }]}
+                    activeOpacity={isSaved ? 0.7 : 0.85}
+                    hitSlop={{ top: 4, bottom: 4 }}
+                    onPress={() => { void handleFollowPress(); }}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: isSaved }}
+                    accessibilityLabel={isSaved ? `Siguiendo a ${patio.name}${muted ? ', avisos silenciados' : ''}` : `Seguir a ${patio.name}`}>
+                    {isSaved && <BlurView intensity={theme.isDark ? 24 : 40} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />}
+                    {isSaved && <View style={[StyleSheet.absoluteFillObject, { backgroundColor: theme.glass }]} />}
+                    {isSaved && muted && <Ionicons name="notifications-off-outline" size={14} color={theme.textSecondary} />}
+                    <Text style={[s.followPillText, { color: isSaved ? theme.text : '#FFFFFF' }]} allowFontScaling={true}>{isSaved ? 'Siguiendo' : 'Seguir'}</Text>
+                    {isSaved && <Ionicons name="chevron-down" size={14} color={theme.text} />}
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
           </View>
           <View style={[s.heroNav, { top: insets.top + 8 }]}>
             {own ? <View /> : <GlassIcon name="chevron-back" size={21} onPress={handleBack} label="Volver" />}
@@ -778,34 +795,6 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
             <PatioCardLocation area={patio.area} distanceLabel={distance} variant="detail" style={{ flex: 1 }} />
             <PatioCardPrice patio={patio} compact={false} style={s.summaryPrice} />
           </View>
-          {!own && (
-            <View style={s.actionRow}>
-              <View ref={followAnchor} collapsable={false} style={s.actionCell}>
-                <TouchableOpacity
-                  style={[s.actionButton, isSaved ? s.actionButtonQuiet : { backgroundColor: theme.accent }]}
-                  activeOpacity={0.85}
-                  onPress={() => { void handleFollowPress(); }}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: isSaved }}
-                  accessibilityLabel={isSaved ? `Siguiendo a ${patio.name}` : `Seguir a ${patio.name}`}>
-                  <Text style={[s.actionText, { color: isSaved ? theme.text : '#FFFFFF' }]} allowFontScaling={true}>{isSaved ? 'Siguiendo' : 'Seguir'}</Text>
-                  {isSaved && muted && <Ionicons name="notifications-off-outline" size={15} color={theme.textSecondary} />}
-                  {isSaved && <Ionicons name="chevron-down" size={15} color={theme.text} />}
-                </TouchableOpacity>
-              </View>
-              {patio.latitude > 0 && (
-                <TouchableOpacity
-                  style={[s.actionCell, s.actionButton, s.actionButtonQuiet]}
-                  activeOpacity={0.7}
-                  onPress={handleComoLlegar}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Cómo llegar a ${patio.name}`}>
-                  <Ionicons name="navigate-outline" size={16} color={theme.text} />
-                  <Text style={[s.actionText, { color: theme.text }]} allowFontScaling={true}>Cómo llegar</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          )}
           {!!highlights.notice && (
             <View style={s.notice} accessible accessibilityLabel={`Aviso de ${patio.name}: ${highlights.notice.body}`}>
               <Ionicons name="megaphone-outline" size={18} color={theme.accent} />

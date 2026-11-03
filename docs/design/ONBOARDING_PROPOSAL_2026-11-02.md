@@ -1,5 +1,20 @@
 # Onboardings de Patio — propuesta 2026-11-02
 
+> **Revisión en simulador (2026-11-02 noche, Claude):** se recorrieron las 13
+> pantallas reales de los dos onboardings con la letra de marca. Corregido por
+> reglas ya vigentes: el «Continuar» del alta usa el estado homologado y dice
+> qué falta («Falta el nombre», «Elige el tipo de lugar», «Falta la
+> dirección», «Elige los días que abres», «Elige cómo te pagan»); el giro ya
+> no se puede saltar (antes pasaba como Fondita sin elegirlo, y después solo
+> soporte lo cambia); «Crear mi primer menú» va en naranja (única acción
+> destacada); el acceso del Foodie dice «Sigue lo bueno.» y «Enviar código».
+> **Decisiones de Parco pendientes:** (1) quitar las dos primeras
+> diapositivas y dejar entrada + elección (recomendado: el valor llega dos
+> toques antes); (2) alinear a la izquierda títulos y textos del alta (hoy
+> centrados; Parco no quiere párrafos centrados); (3) título del acceso del
+> negocio «Tu menú, en un correo.» (puede leerse como que el menú llega por
+> correo; propuesta: «Publica con tu correo.»).
+
 > **Actualización (mismo día):** la propuesta de abajo se dibujó desde cero.
 > El flujo ya estaba especificado (`docs/PATIO_SYSTEM_MAP.md`, 19 jul) y
 > diseñado (Figma Make). Lo que se hizo fue completarlo: el negocio pasa de la

@@ -84,12 +84,12 @@ export default function ComunidadAccesoScreen() {
           <Image source={MARK} style={s.mark} resizeMode="contain" />
           <Text style={s.eyebrow}>{noWidow('TU COMUNIDAD')}</Text>
           <Text style={s.title}>
-            {noWidow(sent ? 'Revisa tu correo.' : 'Guarda lo bueno. Te avisamos cuando vuelva.')}
+            {noWidow(sent ? 'Revisa tu correo.' : 'Sigue lo bueno.')}
           </Text>
           <Text style={s.body}>
             {noWidow(sent
               ? `Mandamos un código y un enlace a ${email}. Escribe el código para entrar.`
-              : 'Tu correo sincroniza a quién sigues y tus reseñas. Sin contraseña.')}
+              : 'Te avisamos cuando tus lugares publiquen. Sin contraseña: entras con un código que te llega al correo.')}
           </Text>
 
           {!sent ? (
@@ -108,10 +108,10 @@ export default function ComunidadAccesoScreen() {
                 returnKeyType="go"
                 onSubmitEditing={send}
               />
-              <TouchableOpacity style={[s.button, busy && { opacity: 0.6 }]} onPress={send} disabled={busy} accessibilityRole="button" accessibilityState={{ disabled: busy, busy }} accessibilityLabel={busy ? 'Enviando enlace' : 'Enviar enlace'}>
+              <TouchableOpacity style={[s.button, busy && { opacity: 0.6 }]} onPress={send} disabled={busy} accessibilityRole="button" accessibilityState={{ disabled: busy, busy }} accessibilityLabel={busy ? 'Enviando código' : 'Enviar código'}>
                 {busy
                   ? <AgentSpinner variant="dots" size={18} color="#FFFFFF" />
-                  : <Text style={s.buttonText}>{noWidow('Enviar enlace')}</Text>}
+                  : <Text style={s.buttonText}>{noWidow('Enviar código')}</Text>}
               </TouchableOpacity>
             </>
           ) : (

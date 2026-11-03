@@ -23,6 +23,7 @@ import { BusinessPaymentSelector } from '@/components/business-payment-selector'
 import { NewMenuSheet } from '@/components/new-menu-sheet';
 import { BusinessScheduleEditor } from '@/components/business-schedule-editor';
 import { saveUserRole } from '@/lib/entry-flow';
+import { Colors } from '@/lib/colors';
 import { fonderoPalette, type FonderoColors } from '@/lib/fondero-palette';
 import { sanitizeNombreInput } from '@/lib/fondita-name';
 import {
@@ -115,24 +116,29 @@ function StepHeader({ colors, title, subtitle }: {
   );
 }
 
-function ContinueButton({ colors, disabled, loading, onPress }: {
+// Estados homologados (2026-11-01): si falta algo, superficie con borde fino
+// y el texto dice qué falta; listo, naranja; en curso, naranja con indicador.
+function ContinueButton({ colors, missing, loading, onPress }: {
   colors: FonderoColors;
-  disabled?: boolean;
+  missing?: string;
   loading?: boolean;
   onPress: () => void;
 }) {
+  const label = missing ?? 'Continuar';
   return (
     <TouchableOpacity
       accessibilityRole="button"
-      accessibilityLabel="Continuar"
-      accessibilityState={{ disabled: disabled || loading, busy: loading }}
-      disabled={disabled || loading}
+      accessibilityLabel={label}
+      accessibilityState={{ disabled: !!missing || loading, busy: loading }}
+      disabled={!!missing || loading}
       onPress={onPress}
-      activeOpacity={0.7}
-      style={[s.continueButton, { backgroundColor: colors.accent }, (disabled || loading) && s.disabled]}>
+      activeOpacity={0.85}
+      style={[s.continueButton, missing
+        ? { backgroundColor: colors.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border }
+        : { backgroundColor: colors.accent }]}>
       {loading
         ? <ActivityIndicator size="small" color="#FFFFFF" />
-        : <Text style={[s.continueText, { color: '#FFFFFF' }]} numberOfLines={1} maxFontSizeMultiplier={1.3}>Continuar</Text>}
+        : <Text style={[s.continueText, { color: missing ? colors.textSecondary : '#FFFFFF' }]} numberOfLines={1} maxFontSizeMultiplier={1.3}>{noWidow(label)}</Text>}
     </TouchableOpacity>
   );
 }
@@ -400,7 +406,7 @@ export default function PatioSmartScreen() {
             </View>
             <ContinueButton
               colors={colors}
-              disabled={!result.nombre.trim()}
+              missing={result.nombre.trim() ? undefined : 'Falta el nombre'}
               onPress={() => { Keyboard.dismiss(); setStage('category'); }}
             />
           </>
@@ -469,7 +475,7 @@ export default function PatioSmartScreen() {
             ) : null}
             <ContinueButton
               colors={colors}
-              disabled={result.tipos.includes('otro') && !result.otroGiro?.trim()}
+              missing={!result.tipos.length ? 'Elige el tipo de lugar' : result.tipos.includes('otro') && !result.otroGiro?.trim() ? 'Escribe de qué es' : undefined}
               onPress={() => { Keyboard.dismiss(); setStage('location'); }}
             />
           </>
@@ -525,7 +531,7 @@ export default function PatioSmartScreen() {
               />
             </View>
 
-            <ContinueButton colors={colors} disabled={!hasLocation} loading={locating} onPress={continueFromLocation} />
+            <ContinueButton colors={colors} missing={hasLocation ? undefined : 'Falta la dirección'} loading={locating} onPress={continueFromLocation} />
           </>
         )}
 
@@ -544,7 +550,7 @@ export default function PatioSmartScreen() {
 
             <ContinueButton
               colors={colors}
-              disabled={selectedDays.length === 0}
+              missing={selectedDays.length ? undefined : 'Elige los días que abres'}
               onPress={confirmSchedule}
             />
           </>
@@ -566,7 +572,7 @@ export default function PatioSmartScreen() {
             </View>
             <ContinueButton
               colors={colors}
-              disabled={!Object.values(result.pagos).some(Boolean)}
+              missing={Object.values(result.pagos).some(Boolean) ? undefined : 'Elige cómo te pagan'}
               loading={loading}
               onPress={confirmPayments}
             />
@@ -595,7 +601,6 @@ const s = StyleSheet.create({
   otroField: { marginTop: 12 },
   continueButton: { minWidth: 154, minHeight: 54, alignSelf: 'center', marginTop: 26, paddingHorizontal: 26, borderRadius: 27, alignItems: 'center', justifyContent: 'center' },
   continueText: { fontSize: 16, fontWeight: '700' },
-  disabled: { opacity: 0.4 },
   locationAction: { minHeight: 76, marginTop: 28, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 8 },
   locationIcon: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   locationCopy: { flex: 1, minWidth: 0 },
@@ -614,8 +619,9 @@ const s = StyleSheet.create({
   finishContent: { position: 'absolute', left: 26, right: 26, bottom: 0, alignItems: 'center' },
   finishTitle: { color: '#fff', ...Type.section, textAlign: 'center' },
   finishBody: { maxWidth: 340, color: 'rgba(255,255,255,0.74)', marginTop: 8, fontSize: 15, lineHeight: 21, fontWeight: '400', textAlign: 'center' },
-  finishButton: { minHeight: 54, marginTop: 22, paddingHorizontal: 24, borderRadius: 27, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' },
-  finishButtonText: { color: '#111214', fontSize: 16, fontWeight: '700' },
+  // La única acción destacada de la pantalla va en naranja (CLAUDE.md).
+  finishButton: { minHeight: 54, marginTop: 22, paddingHorizontal: 24, borderRadius: 27, backgroundColor: Colors.accent, alignItems: 'center', justifyContent: 'center' },
+  finishButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
   finishEdit: { minHeight: 42, paddingHorizontal: 18, alignItems: 'center', justifyContent: 'center' },
   finishEditText: { color: 'rgba(255,255,255,0.62)', fontSize: 13, fontWeight: '400' },
 });

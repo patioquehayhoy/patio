@@ -2,8 +2,12 @@
 
 ## Siguiente (2026-11-02 noche)
 
-- [ ] **Onboarding:** concluir el flujo (prioridad; el alta del negocio es el
-  lado difícil).
+- [x] Onboarding revisado en simulador (13 pantallas) y corregido por reglas
+  vigentes: estados de «Continuar», giro obligatorio, CTA naranja en la
+  celebración, acceso Foodie con «Seguir».
+- [ ] **Onboarding — decisiones de Parco:** quitar las dos primeras
+  diapositivas, alinear a la izquierda el alta y el título del acceso del
+  negocio (detalle en `docs/design/ONBOARDING_PROPOSAL_2026-11-02.md`).
 - [ ] QA en el cel de la ficha: Seguir/Siguiendo, barra de avisos, silenciar,
   «Elegir lugares», lista de seguidores, descripción; precio del platillo con
   «Siguiente»/«Listo».

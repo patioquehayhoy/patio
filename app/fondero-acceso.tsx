@@ -193,7 +193,7 @@ export default function FonderoAccesoScreen() {
                     onPress={handleSend}
                     disabled={loading}
                     accessibilityRole="button"
-                    accessibilityLabel="Enviar enlace"
+                    accessibilityLabel="Enviar código"
                     accessibilityState={{ disabled: loading, busy: loading }}
                     activeOpacity={0.85}>
                     {loading

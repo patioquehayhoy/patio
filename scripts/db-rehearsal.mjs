@@ -210,6 +210,65 @@ await check('publicar una lista con lugares (parámetro renombrado)', async () =
   const { rows } = await admin(`select count(*)::int as n from public.collection_places where collection_id = $1`, [list]);
   if (rows[0].n !== 1) throw new Error(`places ${rows[0].n}`);
 });
+await check('seguidores públicos de un lugar; lugares que sigue un perfil respetan lo privado', async () => {
+  const followers = (await as(null, `select display_name from public.patio_followers($1) order by display_name`, [business])).rows.map((row) => row.display_name);
+  if (followers.join() !== 'Ana P.,Luis P.') throw new Error(JSON.stringify(followers));
+  const privateForAnon = await as(null, `select * from public.profile_followed_places($1)`, [ids.ana]);
+  if (privateForAnon.rows.length) throw new Error('private followed places visible');
+  const forFollower = await as(ids.luis, `select nombre from public.profile_followed_places($1)`, [ids.ana]);
+  if (forFollower.rows.length !== 1) throw new Error('accepted follower cannot see followed places');
+  const stats = (await as(null, `select * from public.profile_stats($1)`, [ids.luis])).rows[0];
+  if (Number(stats.following) !== 2) throw new Error(`following ${stats.following}`);
+  await as(ids.ana, `insert into public.blocked_users (blocker_id, blocked_user_id) values ($1, $2)`, [ids.ana, ids.luis]);
+  const seenByAna = (await as(ids.ana, `select display_name from public.patio_followers($1)`, [business])).rows.map((row) => row.display_name);
+  if (seenByAna.includes('Luis P.')) throw new Error('blocked follower visible');
+  await as(ids.ana, `delete from public.blocked_users where blocker_id = $1`, [ids.ana]);
+});
+await check('Pro: platillo destacado solo con Pro y solo mientras dure', async () => {
+  await rejects(as(ids.owner, `update public.${table} set featured_dish = 'POZOLE' where id = $1`, [business]), /PRO_REQUIRED/);
+  await admin(`insert into public.business_plans (user_id, plan, source, expires_at) values ($1, 'pro', 'founder', now() + interval '6 months')`, [ids.owner]);
+  await as(ids.owner, `update public.${table} set featured_dish = 'POZOLE' where id = $1`, [business]);
+  const shown = (await as(null, `select featured_dish from public.patio_highlights($1)`, [business])).rows[0];
+  if (shown.featured_dish !== 'POZOLE') throw new Error(JSON.stringify(shown));
+  await admin(`update public.business_plans set expires_at = now() - interval '1 day' where user_id = $1`, [ids.owner]);
+  const expired = (await as(null, `select featured_dish from public.patio_highlights($1)`, [business])).rows[0];
+  if (expired.featured_dish !== null) throw new Error('featured dish shown without Pro');
+  await admin(`update public.business_plans set expires_at = now() + interval '6 months' where user_id = $1`, [ids.owner]);
+  await rejects(as(ids.luis, `select public.has_pro($1)`, [ids.owner]), /permission denied/);
+});
+await check('Pro: estado y cuándo hay más interés, solo para el dueño', async () => {
+  const status = (await as(ids.owner, `select * from public.business_pro_status($1)`, [business])).rows[0];
+  if (!status.pro_until || Number(status.notices_left) !== 8) throw new Error(JSON.stringify(status));
+  const peaks = (await as(ids.owner, `select weekday, hour_of_day, signals from public.business_peak_times($1)`, [business])).rows;
+  if (!peaks.length || peaks.reduce((sum, row) => sum + Number(row.signals), 0) !== 4) throw new Error(JSON.stringify(peaks));
+  await rejects(as(ids.luis, `select * from public.business_peak_times($1)`, [business]), /not authorized/);
+  await rejects(as(ids.luis, `select * from public.business_pro_status($1)`, [business]), /not authorized/);
+});
+await check('Pro: lecturas con foto, 20 al día sin Pro y 60 con Pro', async () => {
+  const today = `date_trunc('day', statement_timestamp() at time zone 'America/Mexico_City') at time zone 'America/Mexico_City'`;
+  for (const user of [ids.ana, ids.owner]) {
+    await admin(`insert into public.ai_request_usage (user_id, feature, window_kind, window_start, requests) values ($1, 'read-menu', 'day', ${today}, 20)`, [user]);
+  }
+  const free = (await admin(`select public.consume_ai_request($1, 'read-menu') as ok`, [ids.ana])).rows[0].ok;
+  const pro = (await admin(`select public.consume_ai_request($1, 'read-menu') as ok`, [ids.owner])).rows[0].ok;
+  if (free !== false || pro !== true) throw new Error(`free ${free}, pro ${pro}`);
+});
+await check('avisos especiales: filtro de lenguaje, solo el servidor los crea y la ficha los muestra', async () => {
+  await rejects(admin(`insert into public.special_notices (${fk}, created_by, body) values ($1, $2, 'qué mierda de precios')`, [business, ids.owner]), /CONTENT_REJECTED/);
+  await rejects(as(ids.owner, `insert into public.special_notices (${fk}, created_by, body) values ($1, $2, 'Hoy agua gratis')`, [business, ids.owner]), /permission denied/);
+  await admin(`insert into public.special_notices (${fk}, created_by, body) values ($1, $2, 'Hoy agua gratis')`, [business, ids.owner]);
+  const shown = (await as(null, `select notice_body from public.patio_highlights($1)`, [business])).rows[0];
+  if (shown.notice_body !== 'Hoy agua gratis') throw new Error(JSON.stringify(shown));
+  const left = (await as(ids.owner, `select notices_left from public.business_pro_status($1)`, [business])).rows[0];
+  if (Number(left.notices_left) !== 7) throw new Error(JSON.stringify(left));
+});
+await check('límites de texto del negocio: se revisan solo al cambiar', async () => {
+  await rejects(as(ids.owner, `update public.${table} set descripcion = $2 where id = $1`, [business, 'Comida corrida casera '.repeat(4)]), /TEXT_TOO_LONG/);
+  await admin(`alter table public.${table} disable trigger negocios_text_limits`);
+  await admin(`update public.${table} set direccion = $2 where id = $1`, [business, 'Calle muy larga de antes '.repeat(5)]);
+  await admin(`alter table public.${table} enable trigger negocios_text_limits`);
+  await as(ids.owner, `update public.${table} set horario = '9-18' where id = $1`, [business]);
+});
 await check('eliminar la cuenta del dueño borra su negocio (trigger reescrito)', async () => {
   await admin(`delete from auth.users where id = $1`, [ids.owner]);
   const { rows } = await admin(`select count(*)::int as n from public.${table}`);

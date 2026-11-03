@@ -19,8 +19,15 @@ Propuesta completa en [PLANES_CREADORES_Y_RED](PLANES_CREADORES_Y_RED_2026-11-02
   negocio 30 (cabe en dos renglones en la ficha), descripción y dirección 80,
   platillo 60, descripción de platillo 140, sección 40, precio 7, reseña 600.
   La base repite los del negocio (`20261102140000_text_limits.sql`).
-- [ ] Alejandro: `npx supabase db push --yes` (aplica las tres migraciones) y
-  `npx supabase functions deploy send-special-notice revenuecat-webhook send-publication-notifications`.
+- [x] Aplicadas en producción (verificado 2026-11-02 con `db push --dry-run`):
+  Pro y seguidores; funciones `send-special-notice` y `revenuecat-webhook`
+  activas.
+- [ ] Alejandro: `npx supabase db push --yes` (falta solo
+  `20261102140000_text_limits`) y
+  `npx supabase functions deploy send-publication-notifications` (el tope
+  de 3 avisos al día es posterior al último despliegue).
+- [x] Todas las migraciones nuevas ensayadas con `npm run db:rehearse`,
+  con escenarios de Pro, seguidores, avisos especiales y límites de texto.
 - [ ] Dar Pro a los Fundadores con el SQL de [billing](BILLING_SETUP_2026-10-26.md).
 - [ ] QA en el cel con una cuenta Pro: aviso especial (llega y se ve en la
   ficha 24 h), estrella de platillo destacado en Mi Patio, «Cuándo hay más
@@ -88,7 +95,7 @@ Estos puntos son de UX; no sustituyen los pendientes técnicos/de operación aba
 > *Auditoría 2026-11-01* (`docs/APP_AUDIT_2026-11-01.md`)
 > - [x] Comentarios guardados, filtro de contenido, perfil privado, avisos de
 >   comunidad, reglas de nombre y giro, y sin columna de teléfono (código listo).
-> - [ ] **Publicar en producción (Parco):** `npx supabase db push` (siete
+> - [x] **Publicar en producción (Parco):** `npx supabase db push` (siete
 >   migraciones del 1 nov, incluye `fonditas` → `negocios`; responder «Y») y
 >   `npx supabase functions deploy send-community-notification
 >   notify-content-report send-publication-notifications
@@ -96,7 +103,7 @@ Estos puntos son de UX; no sustituyen los pendientes técnicos/de operación aba
 >   `npm run db:rehearse` (Postgres embebido, 34 migraciones, 23 escenarios).
 > - [x] Ícono de Mi Patio: puestito con piso (elegido por Parco 2026-11-02),
 >   `assets/icons/mi-patio*.svg|png`. Falta verlo en el teléfono.
-> - [ ] Publicar el tablero del negocio: `npx supabase db push`
+> - [x] Publicar el tablero del negocio: `npx supabase db push`
 >   (`20261102100000_business_insights`, ensayada con `npm run db:rehearse`).
 > - [ ] Listas en Menús: Parco duda de su utilidad; decidir si se quitan
 >   (Codex estaba por rediseñarlas).

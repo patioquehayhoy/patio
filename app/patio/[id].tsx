@@ -372,7 +372,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
   const [titleClamped, setTitleClamped] = useState(false);
   useEffect(() => { setTitleStep(0); setTitleClamped(false); }, [patio?.name]);
   // Descripción del negocio sobre la foto, completa (hasta 80, dos renglones),
-  // como la bio de un perfil.
+  // como la bio de un perfil. Una antigua más larga se corta en dos renglones.
   const description = patio?.reason.trim() ?? '';
   // La foto crece si la identidad (nombre largo + descripción abierta) no cabe
   // debajo de volver y compartir: nunca se enciman.
@@ -774,7 +774,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
               </View></>}
             </Text>
             {!!description && (
-              <Text style={[s.heroBioText, s.heroBio]} allowFontScaling={true}>{noWidow(description)}</Text>
+              <Text style={[s.heroBioText, s.heroBio]} numberOfLines={2} allowFontScaling={true}>{noWidow(description)}</Text>
             )}
             <View style={[s.heroMeta, !description && s.heroMetaUnderName]}>
               {businessStats ? (

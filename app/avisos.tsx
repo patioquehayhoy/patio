@@ -150,6 +150,7 @@ export default function AvisosScreen() {
           <>
             <SettingsGroup c={sc} label="Tus lugares">
               <SettingsRow c={sc} icon="document-text-outline" title="Menú de hoy" sub="Cuando un lugar que sigues publica" trailing={toggle('patioPublications', 'Menú de hoy')} />
+              {remote.patioPublications && <SettingsRow c={sc} icon="options-outline" title="Elegir lugares" sub="Silencia los que no quieres oír" divider onPress={() => router.push('/avisos-lugares')} />}
               <SettingsRow c={sc} icon="megaphone-outline" title="Promociones" sub="Avisos especiales de lugares que sigues" divider trailing={toggle('specialNotices', 'Promociones')} />
             </SettingsGroup>
             <SettingsGroup c={sc} label="Tu comunidad">

@@ -54,6 +54,12 @@ errores) y la validación en línea de Luke Wroblewski.
   escribir. Dos negocios pueden llamarse igual; la colonia los distingue.
 - El nombre de quien reseña o comenta abre su perfil: así se encuentra a la
   gente para seguirla.
+- Avisos por lugar (2026-11-02), como la campana de YouTube o Instagram:
+  seguir no obliga a recibir todo. «Siguiendo ▾» → «Silenciar avisos» /
+  «Activar avisos» (el botón muestra la campana tachada si está silenciado);
+  Notificaciones → Menú de hoy → «Elegir lugares» para hacerlo de todos a la
+  vez. Contra la fatiga de avisos: un aviso de menú por lugar al día y como
+  máximo tres al día por persona (servidor).
 - Ficha del lugar (2026-11-02): nombre y «N seguidores» van sobre la foto,
   abajo a la izquierda, en blanco sobre el degradado (portada de artista en
   Spotify y Apple Music). En la tarjeta, ubicación y precio y luego una fila de

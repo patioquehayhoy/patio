@@ -1,6 +1,8 @@
 import { requireUser } from '../_shared/auth.ts';
 import { corsHeaders, errorResponse, json, readJson } from '../_shared/http.ts';
 
+const DAILY_CAP = 3;
+
 type RequestBody = {
   fonditaId?: string;
   kind?: 'menu_published';
@@ -109,7 +111,20 @@ Deno.serve(async (req) => {
     const prefs = prefsResult.data;
     const devices = devicesResult.data;
     const allowed = new Set((prefs ?? []).filter((pref) => pref.patio_publications).map((pref) => pref.user_id));
-    const targets = (devices ?? []).filter((device) => allowed.has(device.user_id));
+    // Tope contra la fatiga de avisos: cada persona recibe como máximo
+    // DAILY_CAP menús publicados al día, sin importar cuántos lugares siga.
+    const { data: todaySent, error: todayError } = await admin.from('notification_deliveries')
+      .select('user_id,event_id').in('user_id', [...allowed]).eq('status', 'sent')
+      .gte('created_at', new Date(`${menuDate}T00:00:00-06:00`).toISOString());
+    if (todayError) throw todayError;
+    const eventsByUser = new Map<string, Set<string>>();
+    for (const row of todaySent ?? []) {
+      const events = eventsByUser.get(row.user_id) ?? new Set<string>();
+      events.add(row.event_id);
+      eventsByUser.set(row.user_id, events);
+    }
+    const targets = (devices ?? []).filter((device) => allowed.has(device.user_id)
+      && (eventsByUser.get(device.user_id)?.size ?? 0) < DAILY_CAP);
     if (!targets.length) return json({ eventId: event.id, delivered: 0 });
 
     const dishes = firstDishNames(menu?.secciones);

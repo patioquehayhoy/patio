@@ -148,15 +148,14 @@ export async function updateRemoteNotificationPreferences(
   return getRemoteNotificationPreferences();
 }
 
-// Guardar un lugar y recibir sus avisos son conceptos distintos.
-// patio_follows is only the server-side delivery projection when the person
-// explicitly enables "Menús nuevos" for their saved places.
+// Seguir un lugar y recibir sus avisos son cosas distintas, como la campana
+// de YouTube o de Instagram: patio_follows guarda, por lugar, si la persona
+// quiere sus avisos (notifications_enabled). La fila vive mientras lo sigue,
+// aunque apague «Menú de hoy» en general, para no perder lo que eligió lugar
+// por lugar; el servidor revisa también ese interruptor general.
 export async function syncSavedPatioNotificationSubscriptions(savedPatioIds: string[]): Promise<void> {
   const userId = await currentUserId();
-  const prefs = await getRemoteNotificationPreferences();
-  const desired = prefs.patioPublications
-    ? [...new Set(savedPatioIds.filter(isUuid))]
-    : [];
+  const desired = [...new Set(savedPatioIds.filter(isUuid))];
   const { data: current, error: readError } = await supabase
     .from('patio_follows')
     .select('negocio_id')
@@ -187,6 +186,26 @@ export async function syncSavedPatioNotificationSubscriptions(savedPatioIds: str
     );
     if (error) throw error;
   }
+}
+
+/** Lugares que sigues con avisos apagados (silenciados). */
+export async function getMutedPatioIds(): Promise<Set<string>> {
+  const userId = await currentUserId();
+  const { data, error } = await supabase.from('patio_follows').select('negocio_id')
+    .eq('user_id', userId).eq('notifications_enabled', false);
+  if (error) throw error;
+  return new Set((data ?? []).map((row) => row.negocio_id as string));
+}
+
+/** Activa o silencia los avisos de un lugar que sigues. */
+export async function setPatioNotifications(patioId: string, enabled: boolean): Promise<void> {
+  if (!isUuid(patioId)) return;
+  const userId = await currentUserId();
+  const { error } = await supabase.from('patio_follows').upsert(
+    { user_id: userId, negocio_id: patioId, notifications_enabled: enabled, updated_at: new Date().toISOString() },
+    { onConflict: 'user_id,negocio_id' },
+  );
+  if (error) throw error;
 }
 
 export async function announceMenuPublication(fonditaId: string): Promise<void> {

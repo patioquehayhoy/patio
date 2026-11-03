@@ -176,7 +176,7 @@ test('search-intent: signed in request reaches provider and returns structured i
   assert.deepEqual(await response.json(), intent);
 });
 
-function publicationAdmin({ menuExists = true, ownsPatio = true, targetCount = 0 } = {}) {
+function publicationAdmin({ menuExists = true, ownsPatio = true, targetCount = 0, sentToday = null } = {}) {
   const mutations = [];
   const targets = Array.from({ length: targetCount }, (_, index) => ({
     id: `device-${index}`, user_id: `follower-${index}`, expo_push_token: `ExpoPushToken[${index}]`,
@@ -188,7 +188,7 @@ function publicationAdmin({ menuExists = true, ownsPatio = true, targetCount = 0
       from: (table) => {
         let inserted;
         const query = {
-          select() { return query; }, eq() { return query; }, in() { return query; },
+          select() { return query; }, eq() { return query; }, in() { return query; }, gte() { return query; },
           insert(rows) { inserted = rows; mutations.push([table, rows]); return query; },
           update(rows) { mutations.push([table, rows]); return query; },
           single() { return query; }, maybeSingle() { return query; },
@@ -200,7 +200,7 @@ function publicationAdmin({ menuExists = true, ownsPatio = true, targetCount = 0
               patio_follows: targets.map(({ user_id }) => ({ user_id })),
               notification_preferences: targets.map(({ user_id }) => ({ user_id, patio_publications: true })),
               push_devices: targets,
-              notification_deliveries: null,
+              notification_deliveries: sentToday,
             };
             return Promise.resolve({ data: values[table], error: null }).then(resolve);
           },
@@ -234,6 +234,20 @@ test('publication: 205 recipients use Expo batches of 100 with one audited ticke
   assert.deepEqual(batchSizes, [100, 100, 5]);
   assert.equal((await response.json()).delivered, 205);
   assert.equal(mutations.find(([table]) => table === 'notification_deliveries')[1].length, 205);
+});
+
+test('publication: nobody gets more than three menu pushes a day', async () => {
+  const sentToday = ['a', 'b', 'c'].map((event) => ({ user_id: 'follower-0', event_id: event }));
+  const { admin } = publicationAdmin({ targetCount: 2, sentToday });
+  const sentTo = [];
+  const handler = loadEdge('send-publication-notifications', admin, async (_url, options) => {
+    const messages = JSON.parse(options.body);
+    sentTo.push(...messages.map((message) => message.to));
+    return Response.json({ data: messages.map((message) => ({ status: 'ok', id: message.to })) });
+  });
+  const response = await handler(request({ fonditaId: userId }));
+  assert.equal(response.status, 200);
+  assert.deepEqual(sentTo, ['ExpoPushToken[1]']);
 });
 
 test('publication: a failed Expo batch records errors without shifting later device tickets', async () => {

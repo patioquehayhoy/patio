@@ -24,6 +24,7 @@ import { getLikedReviewIds, getReviewLikeCounts, toggleReviewLike } from '@/lib/
 import { CommentSignInRequiredError, commentTimeLabel, deleteReviewComment, getReviewComments, isRealReviewId, postReviewComment, setCommentLike } from '@/lib/review-comments';
 import { reportContent, writeErrorMessage, type ReportReason } from '@/lib/content-safety';
 import { businessStatsLabel, getBusinessStats, getDishLikeCounts, type BusinessStats } from '@/lib/business-stats';
+import { getMutedPatioIds, setPatioNotifications } from '@/lib/community-notifications';
 import { getPatioHighlights, getProStatus, setFeaturedDish, type PatioHighlights } from '@/lib/business-pro';
 import { formatHHMM12 } from '@/lib/horario';
 import { MAP_STYLE_DARK, MAP_STYLE_LIGHT } from '@/lib/map-style';
@@ -330,6 +331,26 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
   // agregar a una lista o dejar de seguir.
   const followAnchor = useRef<View>(null);
   const [followMenu, setFollowMenu] = useState(false);
+  // Avisos por lugar, como la campana de YouTube: seguir no obliga a recibir
+  // todo; desde «Siguiendo» se silencia o se vuelve a activar este lugar.
+  const [muted, setMuted] = useState(false);
+  useEffect(() => {
+    if (!patio?.id || !isSaved || own) { setMuted(false); return; }
+    let active = true;
+    getMutedPatioIds().then((ids) => { if (active) setMuted(ids.has(patio.id)); }).catch(() => {});
+    return () => { active = false; };
+  }, [isSaved, own, patio?.id]);
+  const toggleMuted = async () => {
+    if (!patio?.id) return;
+    const next = !muted;
+    setMuted(next);
+    try {
+      await setPatioNotifications(patio.id, !next);
+    } catch {
+      setMuted(!next);
+      Alert.alert(noWidow('No pudimos guardar el cambio'), noWidow('Entra a tu cuenta y revisa tu conexión.'));
+    }
+  };
   const handleFollowPress = () => {
     if (isSaved) setFollowMenu(true);
     else void handleToggleSaved();
@@ -745,6 +766,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
                   accessibilityState={{ selected: isSaved }}
                   accessibilityLabel={isSaved ? `Siguiendo a ${patio.name}` : `Seguir a ${patio.name}`}>
                   <Text style={[s.actionText, { color: isSaved ? theme.text : '#FFFFFF' }]} allowFontScaling={true}>{isSaved ? 'Siguiendo' : 'Seguir'}</Text>
+                  {isSaved && muted && <Ionicons name="notifications-off-outline" size={15} color={theme.textSecondary} />}
                   {isSaved && <Ionicons name="chevron-down" size={15} color={theme.text} />}
                 </TouchableOpacity>
               </View>
@@ -1202,6 +1224,9 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
         anchorRef={followAnchor}
         onDismiss={() => setFollowMenu(false)}
         options={[
+          muted
+            ? { label: 'Activar avisos', icon: 'notifications-outline', onPress: () => { void toggleMuted(); } }
+            : { label: 'Silenciar avisos', icon: 'notifications-off-outline', onPress: () => { void toggleMuted(); } },
           { label: 'Agregar a una lista', icon: 'list-outline', afterDismiss: true, onPress: () => setSaveSheetVisible(true) },
           { label: 'Dejar de seguir', icon: 'person-remove-outline', destructive: true, onPress: () => { void handleToggleSaved(); } },
         ]}

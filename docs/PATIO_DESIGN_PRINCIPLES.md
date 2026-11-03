@@ -54,8 +54,9 @@ errores) y la validación en línea de Luke Wroblewski.
   escribir. Dos negocios pueden llamarse igual; la colonia los distingue.
 - El nombre de quien reseña o comenta abre su perfil: así se encuentra a la
   gente para seguirla.
-- Ficha del lugar (2026-11-02): «N seguidores» va bajo el nombre, como dato
-  de identidad (Instagram, Spotify); debajo de ubicación y precio, una fila de
+- Ficha del lugar (2026-11-02): nombre y «N seguidores» van sobre la foto,
+  abajo a la izquierda, en blanco sobre el degradado (portada de artista en
+  Spotify y Apple Music). En la tarjeta, ubicación y precio y luego una fila de
   dos botones iguales de 44: «Seguir» (único naranja) y «Cómo llegar»
   (contorno), como la fila de acciones de Apple Maps. Razones: proximidad
   (el número describe al lugar, no al botón —

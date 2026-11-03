@@ -121,7 +121,7 @@ function makeStyles(t: Theme) {
     // ── Hero ──
     hero: { height: HERO_HEIGHT, backgroundColor: 'transparent', overflow: 'hidden' },
     heroImgMuted: { opacity: 0.55 },
-    soldBanner: { position: 'absolute', alignSelf: 'center', top: HERO_HEIGHT * 0.5, flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, paddingVertical: 9, borderRadius: 100, backgroundColor: t.accent, shadowColor: t.accent, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 16, elevation: 6, zIndex: 15 },
+    soldBanner: { position: 'absolute', alignSelf: 'center', top: HERO_HEIGHT * 0.36, flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, paddingVertical: 9, borderRadius: 100, backgroundColor: t.accent, shadowColor: t.accent, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 16, elevation: 6, zIndex: 15 },
     soldBannerText: { fontSize: 12, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase', color: '#fff' },
     heroGradient: { ...StyleSheet.absoluteFillObject },
     heroNav: { position: 'absolute', left: Spacing.lg, right: Spacing.lg, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', zIndex: 20 },
@@ -133,15 +133,16 @@ function makeStyles(t: Theme) {
     scheduleDivider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border },
     scheduleDay: { fontSize: 13, fontWeight: '700', color: t.text },
     scheduleHours: { fontSize: 13, color: t.textSecondary },
-    titleRow: { marginBottom: 6, flexDirection: 'row', alignItems: 'flex-start', gap: 6 },
-    title: { ...Type.screen, flex: 1, minWidth: 0, color: t.text },
+    heroIdentity: { position: 'absolute', left: 20, right: 20, bottom: 44 },
+    titleRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 6 },
+    title: { ...Type.screen, flex: 1, minWidth: 0, color: '#FFFFFF', textShadowColor: 'rgba(0,0,0,0.25)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 8 },
     verifiedMark: { width: 28, height: 28, alignItems: 'center', justifyContent: 'center' },
     summaryRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 16 },
     summaryPrice: { maxWidth: '50%', marginLeft: 'auto' },
-    followersLink: { alignSelf: 'flex-start', marginBottom: 8 },
-    followersText: { fontSize: 14, lineHeight: 19, fontWeight: '400', color: t.textSecondary },
-    followersValue: { fontWeight: '700', color: t.text },
-    actionRow: { flexDirection: 'row', gap: 8, marginTop: -4, marginBottom: 20 },
+    followersLink: { alignSelf: 'flex-start', marginTop: 4 },
+    followersText: { fontSize: 14, lineHeight: 19, fontWeight: '400', color: 'rgba(255,255,255,0.86)' },
+    followersValue: { fontWeight: '700', color: '#FFFFFF' },
+    actionRow: { flexDirection: 'row', gap: 8, marginBottom: 20 },
     actionCell: { flex: 1 },
     actionButton: { height: 44, borderRadius: 22, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
     actionButtonQuiet: { backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
@@ -693,6 +694,31 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
               <Text style={s.soldBannerText} allowFontScaling={true}>{noWidow('Se acabó por hoy')}</Text>
             </View>
           )}
+          {/* Nombre y seguidores sobre la foto, como la portada de un artista en
+              Spotify o Apple Music; la tarjeta queda para ubicación, acciones
+              y menú. Solo «Seguir» lleva naranja. */}
+          <View style={s.heroIdentity}>
+            <View style={s.titleRow}>
+              <Text accessibilityRole="header" style={s.title} allowFontScaling={true}>{noWidow(patio.name)}</Text>
+              {patio.isVerifiedBusiness && <View style={s.verifiedMark} accessible accessibilityLabel="Negocio verificado">
+                <SymbolView name="checkmark.seal.fill" size={25} weight="medium" tintColor="#FFFFFF" fallback={<TintIcon source={ANDROID_ICONS.verified} size={25} color="#FFFFFF" />} />
+              </View>}
+            </View>
+            {!!businessStatsLabel(businessStats) && (
+              <TouchableOpacity
+                style={s.followersLink}
+                activeOpacity={0.7}
+                hitSlop={{ top: 8, bottom: 8 }}
+                disabled={!/^[0-9a-f-]{36}$/i.test(patio.id)}
+                onPress={() => router.push({ pathname: '/foodie/seguidores', params: { patio: patio.id } })}
+                accessibilityRole="button"
+                accessibilityLabel={`${businessStatsLabel(businessStats)}, ver quién lo sigue`}>
+                <Text style={s.followersText} allowFontScaling={true}>
+                  <Text style={s.followersValue}>{businessStats?.saves ?? 0}</Text> {businessStats?.saves === 1 ? 'seguidor' : 'seguidores'}
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
           <View style={[s.heroNav, { top: insets.top + 8 }]}>
             {own ? <View /> : <GlassIcon name="chevron-back" size={21} onPress={handleBack} label="Volver" />}
             <View style={{ flexDirection: 'row', gap: 8 }}>
@@ -704,29 +730,6 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
 
         {/* Card traslapada */}
         <View style={s.card}>
-          <View style={s.titleRow}>
-            <Text style={s.title} allowFontScaling={true}>{noWidow(patio.name)}</Text>
-            {patio.isVerifiedBusiness && <View style={s.verifiedMark} accessible accessibilityLabel="Negocio verificado">
-              <SymbolView name="checkmark.seal.fill" size={25} weight="medium" tintColor={theme.accent} fallback={<TintIcon source={ANDROID_ICONS.verified} size={25} color={theme.accent} />} />
-            </View>}
-          </View>
-          {/* Identidad y acciones como Instagram y Apple Maps: los seguidores
-              van bajo el nombre (dato del lugar) y las acciones en una fila
-              de botones iguales; solo «Seguir» lleva naranja. */}
-          {!!businessStatsLabel(businessStats) && (
-            <TouchableOpacity
-              style={s.followersLink}
-              activeOpacity={0.7}
-              hitSlop={{ top: 8, bottom: 8 }}
-              disabled={!/^[0-9a-f-]{36}$/i.test(patio.id)}
-              onPress={() => router.push({ pathname: '/foodie/seguidores', params: { patio: patio.id } })}
-              accessibilityRole="button"
-              accessibilityLabel={`${businessStatsLabel(businessStats)}, ver quién lo sigue`}>
-              <Text style={s.followersText} allowFontScaling={true}>
-                <Text style={s.followersValue}>{businessStats?.saves ?? 0}</Text> {businessStats?.saves === 1 ? 'seguidor' : 'seguidores'}
-              </Text>
-            </TouchableOpacity>
-          )}
           <View style={s.summaryRow}>
             <PatioCardLocation area={patio.area} distanceLabel={distance} variant="detail" style={{ flex: 1 }} />
             <PatioCardPrice patio={patio} compact={false} style={s.summaryPrice} />

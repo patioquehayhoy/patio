@@ -796,7 +796,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
                   <TouchableOpacity
                     style={[s.followPill, isSaved ? s.followPillGlass : { backgroundColor: theme.accent }]}
                     activeOpacity={isSaved ? 0.7 : 0.85}
-                    hitSlop={{ top: 4, bottom: 4 }}
+                    hitSlop={{ top: 6, bottom: 6 }}
                     onPress={() => { void handleFollowPress(); }}
                     accessibilityRole="button"
                     accessibilityState={{ selected: isSaved }}

@@ -145,10 +145,10 @@ function makeStyles(t: Theme) {
     summaryRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 24 },
     summaryPrice: { maxWidth: '50%', marginLeft: 'auto' },
     heroBio: { marginTop: 2 },
-    heroBioRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 4 },
+    // Sin descripción, el nombre ya trae su propio aire abajo (los rasgos
+    // descendentes de Monument): 4 se ve igual de separado que 16 tras texto.
+    heroMetaUnderName: { marginTop: 4 },
     heroBioText: { fontSize: 15, lineHeight: 20, fontWeight: '400', color: '#FFFFFF', textShadowColor: 'rgba(0,0,0,0.25)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 6 },
-    heroBioMeasure: { position: 'absolute', left: 0, right: 0, opacity: 0 },
-    heroBioMore: { fontSize: 15, lineHeight: 20, fontWeight: '700', color: 'rgba(255,255,255,0.72)' },
     followersText: { fontSize: 14, lineHeight: 19, fontWeight: '400', color: 'rgba(255,255,255,0.86)' },
     followersValue: { fontWeight: '700', color: '#FFFFFF' },
     followToast: { position: 'absolute', left: 16, right: 16, borderRadius: 28 },
@@ -371,12 +371,9 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
   const [titleStep, setTitleStep] = useState(0);
   const [titleClamped, setTitleClamped] = useState(false);
   useEffect(() => { setTitleStep(0); setTitleClamped(false); }, [patio?.name]);
-  // Descripción del negocio sobre la foto, como la bio de Instagram: un
-  // renglón y «más» si no cabe; al tocarla se ve completa (hasta 80).
+  // Descripción del negocio sobre la foto, completa (hasta 80, dos renglones),
+  // como la bio de un perfil.
   const description = patio?.reason.trim() ?? '';
-  const [descOpen, setDescOpen] = useState(false);
-  const [descTruncates, setDescTruncates] = useState(false);
-  useEffect(() => { setDescOpen(false); setDescTruncates(false); }, [description]);
   // La foto crece si la identidad (nombre largo + descripción abierta) no cabe
   // debajo de volver y compartir: nunca se enciman.
   const [identityHeight, setIdentityHeight] = useState(0);
@@ -777,25 +774,9 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
               </View></>}
             </Text>
             {!!description && (
-              <View style={s.heroBio}>
-                {/* Copia invisible a todo lo ancho: solo mide si cabe en un renglón. */}
-                <Text style={[s.heroBioText, s.heroBioMeasure]} onTextLayout={(event) => setDescTruncates(event.nativeEvent.lines.length > 1)}
-                  accessibilityElementsHidden importantForAccessibility="no-hide-descendants" allowFontScaling={true}>{description}</Text>
-                <TouchableOpacity
-                  style={s.heroBioRow}
-                  activeOpacity={0.7}
-                  disabled={!descTruncates}
-                  onPress={() => setDescOpen((open) => !open)}
-                  accessible
-                  accessibilityRole={descTruncates ? 'button' : 'text'}
-                  accessibilityLabel={description}
-                  accessibilityHint={descTruncates ? (descOpen ? 'Toca para verla en un renglón' : 'Toca para verla completa') : undefined}>
-                  <Text style={[s.heroBioText, { flexShrink: 1 }]} numberOfLines={descOpen ? undefined : 1} allowFontScaling={true}>{noWidow(description)}</Text>
-                  {descTruncates && !descOpen && <Text style={s.heroBioMore} allowFontScaling={true}>más</Text>}
-                </TouchableOpacity>
-              </View>
+              <Text style={[s.heroBioText, s.heroBio]} allowFontScaling={true}>{noWidow(description)}</Text>
             )}
-            <View style={s.heroMeta}>
+            <View style={[s.heroMeta, !description && s.heroMetaUnderName]}>
               {businessStats ? (
                 <TouchableOpacity
                   style={s.followersLink}

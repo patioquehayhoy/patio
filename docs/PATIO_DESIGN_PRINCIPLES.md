@@ -62,12 +62,20 @@ errores) y la validación en línea de Luke Wroblewski.
   máximo tres al día por persona (servidor). Al tocar «Seguir» aparece una
   barra flotante «Te avisaremos cuando publique · Silenciar»; se va cuando la
   persona la cierra, silencia o se mueve por la ficha, nunca por tiempo.
-- Ficha del lugar (2026-11-02, cerrado con Parco): sobre la foto, abajo, el
-  nombre y en la línea de abajo «N seguidores» a la izquierda y «Seguir»
-  compacto a la derecha, como el encabezado de un perfil en X o la portada de
-  un artista en Spotify. Sin botón de «Cómo llegar»: el mapa de la ficha ya
-  abre las indicaciones. «Se acabó por hoy» va arriba del nombre. En
-  desarrollo, los lugares de ejemplo muestran seguidores sintéticos.
+- Ficha del lugar (2026-11-02, cerrado con Parco, revisado en simulador):
+  - Sobre la foto, abajo: el nombre (máximo dos líneas; si no cabe baja de
+    `Type.screen` a `Type.title` y luego a `Type.section`, nunca se encoge a
+    mano) con el sello pegado a la última palabra, y debajo «N seguidores» a
+    la izquierda y «Seguir» compacto a la derecha (encabezado de X, portada
+    de artista en Spotify). Sin «Cómo llegar»: el mapa ya abre indicaciones.
+  - El estado del día vive en la tarjeta: «Se acabó por hoy» es el primer
+    bloque y el menú solo se atenúa (sin caja ni etiqueta «Agotado»).
+  - Ritmo en la retícula de 8: tarjeta 24 arriba; ubicación y precio → 24 →
+    menú; nombre y descripción a 2; platillos a 12; secciones a 24 sin
+    líneas (el espacio separa; línea y espacio a la vez es doble); etiqueta
+    de sección `Type.label` en gris, no naranja (un solo acento por
+    pantalla: «Seguir»); menú → 32 → detalles; mapa → 32 → reseñas.
+  - En desarrollo, los lugares de ejemplo muestran seguidores sintéticos.
 - Seguir, como Instagram (2026-11-02): se siguen personas y lugares. Una lista
   pública ofrece «Seguir a [nombre]», la persona que la armó, porque sus listas
   viven en su perfil.

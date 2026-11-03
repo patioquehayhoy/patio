@@ -94,6 +94,7 @@ function syntheticThreadFor(userId: string, patioName: string, stars: number): R
 }
 
 const HERO_HEIGHT = 300;
+const TITLE_STEPS = [Type.screen, Type.title, Type.section] as const;
 const PULL_TO_DISMISS_THRESHOLD = 93;
 const DAYS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 
@@ -124,25 +125,22 @@ function makeStyles(t: Theme) {
     // ── Hero ──
     hero: { height: HERO_HEIGHT, backgroundColor: 'transparent', overflow: 'hidden' },
     heroImgMuted: { opacity: 0.55 },
-    soldBanner: { alignSelf: 'flex-start', marginBottom: 12, flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, paddingVertical: 9, borderRadius: 100, backgroundColor: t.accent, shadowColor: t.accent, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 16, elevation: 6 },
-    soldBannerText: { fontSize: 12, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase', color: '#fff' },
     heroGradient: { ...StyleSheet.absoluteFillObject },
     heroNav: { position: 'absolute', left: Spacing.lg, right: Spacing.lg, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', zIndex: 20 },
     glassIcon: { width: 44, height: 44, borderRadius: 22, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth, borderColor: t.isDark ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.85)', shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.2, shadowRadius: 16, elevation: 4 },
     // ── Card traslapada ──
-    card: { marginTop: -28, backgroundColor: t.bg, borderTopLeftRadius: Radius.sheet, borderTopRightRadius: Radius.sheet, paddingHorizontal: 20, paddingTop: 22 },
+    card: { marginTop: -28, backgroundColor: t.bg, borderTopLeftRadius: Radius.sheet, borderTopRightRadius: Radius.sheet, paddingHorizontal: 20, paddingTop: 24 },
     schedule: { marginBottom: 16, borderRadius: 18, overflow: 'hidden', backgroundColor: t.surface },
     scheduleRow: { minHeight: 38, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
     scheduleDivider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border },
     scheduleDay: { fontSize: 13, fontWeight: '700', color: t.text },
     scheduleHours: { fontSize: 13, color: t.textSecondary },
     heroIdentity: { position: 'absolute', left: 20, right: 20, bottom: 44 },
-    titleRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 6 },
-    title: { ...Type.screen, flex: 1, minWidth: 0, color: '#FFFFFF', textShadowColor: 'rgba(0,0,0,0.25)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 8 },
-    verifiedMark: { width: 28, height: 28, alignItems: 'center', justifyContent: 'center' },
-    summaryRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 16 },
+    title: { color: '#FFFFFF', textShadowColor: 'rgba(0,0,0,0.25)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 8 },
+    verifiedInline: { paddingLeft: 2 },
+    summaryRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 24 },
     summaryPrice: { maxWidth: '50%', marginLeft: 'auto' },
-    heroMeta: { minHeight: 36, marginTop: 6, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
+    heroMeta: { minHeight: 36, marginTop: 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
     followersText: { fontSize: 14, lineHeight: 19, fontWeight: '400', color: 'rgba(255,255,255,0.86)' },
     followersValue: { fontWeight: '700', color: '#FFFFFF' },
     followToast: { position: 'absolute', left: 16, right: 16, borderRadius: 28 },
@@ -154,31 +152,27 @@ function makeStyles(t: Theme) {
     followPill: { height: 36, paddingHorizontal: 16, borderRadius: 18, overflow: 'hidden', flexDirection: 'row', alignItems: 'center', gap: 4 },
     followPillGlass: { paddingHorizontal: 14, borderWidth: StyleSheet.hairlineWidth, borderColor: t.isDark ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.85)' },
     followPillText: { fontSize: 15, fontWeight: '700' },
-    notice: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginBottom: 16, padding: 12, borderRadius: 14, backgroundColor: t.accentSoft },
+    notice: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginBottom: 24, padding: 12, borderRadius: 14, backgroundColor: t.accentSoft },
     noticeText: { flex: 1, minWidth: 0, fontSize: 15, lineHeight: 20, fontWeight: '400', color: t.text },
     featuredLabel: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 2 },
     featuredLabelText: { fontSize: 11, lineHeight: 14, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase', color: t.accent },
     payments: { flexDirection: 'row', alignItems: 'center', gap: 8 },
     paymentIconBox: { width: 20, height: 20, alignItems: 'center', justifyContent: 'center' },
     // ── Menú agrupado ──
-    menuSoldWrap: { position: 'relative', borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, borderRadius: 18, padding: 16, marginBottom: 16, backgroundColor: t.surface },
-    agotadoBadge: { position: 'absolute', right: 14, bottom: 14, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 10, backgroundColor: t.text },
-    agotadoBadgeText: { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase', color: t.bg },
-    mananaCard: { padding: 16, borderRadius: 18, backgroundColor: t.accentSoft, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(242,97,47,0.2)', marginBottom: 16 },
+    mananaCard: { padding: 16, borderRadius: 18, backgroundColor: t.accentSoft, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(242,97,47,0.2)', marginBottom: 24 },
     mananaHead: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 8 },
     mananaEyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase', color: t.accent },
     mananaBody: { fontSize: 14, fontWeight: '400', lineHeight: 20, color: t.text },
-    group: { marginBottom: 22 },
-    groupHead: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 },
-    groupTitle: { fontSize: 13, lineHeight: 18, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase', color: t.accent },
+    group: { marginBottom: 12 },
+    groupHead: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
+    groupTitle: { ...Type.label, color: t.textSecondary },
     groupItem: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 12 },
     groupItemName: { flex: 1, fontSize: 16, fontWeight: '700', color: t.text, lineHeight: 21 },
-    groupItemDescription: { marginTop: 3, fontSize: 13, lineHeight: 18, fontWeight: '400', color: t.textSecondary },
+    groupItemDescription: { marginTop: 2, fontSize: 13, lineHeight: 18, fontWeight: '400', color: t.textSecondary },
     groupItemPrice: { fontSize: 15, lineHeight: 21, fontWeight: '700', color: t.text },
     dishLikeCount: { minWidth: 21, height: 21, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 3 },
     dishLikeCountText: { fontSize: 12, fontWeight: '500', color: t.textSecondary, fontVariant: ['tabular-nums'] },
-    groupDashed: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.border, marginTop: 4 },
-    reviewSection: { paddingTop: 28, marginBottom: 22 },
+    reviewSection: { paddingTop: 32, marginBottom: 24 },
     reviewsSummary: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
     reviewsTitle: { ...Type.section, color: t.text },
     ratingOverview: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16, paddingVertical: 4 },
@@ -226,11 +220,11 @@ function makeStyles(t: Theme) {
     reviewPrompt: { minHeight: 44, borderRadius: 22, paddingHorizontal: 13, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, backgroundColor: t.surface },
     reviewPromptText: { fontSize: 13, fontWeight: '700', color: t.text },
     // ── Detalles + mapa ──
-    section: { paddingTop: 6 },
+    section: { paddingTop: 8 },
     earnedBadges: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
     earnedBadge: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
     earnedBadgeActive: { backgroundColor: t.accentSoft, borderColor: t.accent },
-    facts: { marginTop: 4, marginBottom: 14, paddingTop: 6, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border },
+    facts: { marginBottom: 8 },
     factsStage: { height: 48, justifyContent: 'center', overflow: 'hidden' },
     factsLine: { height: 48, flexDirection: 'row', alignItems: 'center' },
     factColumn: { flex: 1, minWidth: 0, minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 4 },
@@ -360,6 +354,11 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
   // Al seguir, una barra dice que llegarán avisos y deja silenciarlos ahí
   // mismo, como YouTube al suscribirte. Se va cuando la persona la cierra,
   // silencia o se mueve por la ficha; nunca por tiempo.
+  // Nombre sobre la foto: dos líneas como máximo. Si no cabe en Type.screen
+  // baja a Type.title y luego a Type.section, que conservan el interlineado de
+  // la fuente de marca (encogerla a mano lo abre y corta acentos).
+  const [titleStep, setTitleStep] = useState(0);
+  useEffect(() => { setTitleStep(0); }, [patio?.name]);
   const [followToast, setFollowToast] = useState(false);
   const toastScrollY = useRef<number | null>(null);
   const handleFollowPress = async () => {
@@ -731,21 +730,26 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
             style={s.heroGradient}
           />
           {/* Identidad sobre la foto, como el encabezado de un perfil en X o la
-              portada de un artista en Spotify: nombre, y en la misma línea los
-              seguidores a la izquierda y «Seguir» compacto a la derecha. */}
+              portada de un artista en Spotify: nombre (dos líneas como máximo;
+              si no cabe, se reduce) y debajo los seguidores a la izquierda y
+              «Seguir» compacto a la derecha. El estado del día vive en la
+              tarjeta, no en la foto. */}
           <View style={s.heroIdentity}>
-            {soldOut && (
-              <View style={s.soldBanner}>
-                <Ionicons name="time-outline" size={13} color="#fff" />
-                <Text style={s.soldBannerText} allowFontScaling={true}>{noWidow('Se acabó por hoy')}</Text>
-              </View>
-            )}
-            <View style={s.titleRow}>
-              <Text accessibilityRole="header" style={s.title} allowFontScaling={true}>{noWidow(patio.name)}</Text>
-              {patio.isVerifiedBusiness && <View style={s.verifiedMark} accessible accessibilityLabel="Negocio verificado">
-                <SymbolView name="checkmark.seal.fill" size={25} weight="medium" tintColor="#FFFFFF" fallback={<TintIcon source={ANDROID_ICONS.verified} size={25} color="#FFFFFF" />} />
-              </View>}
-            </View>
+            <Text
+              accessibilityRole="header"
+              accessibilityLabel={patio.isVerifiedBusiness ? `${patio.name}, negocio verificado` : patio.name}
+              style={[s.title, TITLE_STEPS[titleStep]]}
+              numberOfLines={titleStep === TITLE_STEPS.length - 1 ? 2 : undefined}
+              onTextLayout={(event) => {
+                if (event.nativeEvent.lines.length > 2 && titleStep < TITLE_STEPS.length - 1) setTitleStep(titleStep + 1);
+              }}
+              allowFontScaling={true}>
+              {noWidow(patio.name)}
+              {/* El sello va pegado a la última palabra, como en X o Instagram. */}
+              {patio.isVerifiedBusiness && <>{'\u00A0'}<View style={s.verifiedInline}>
+                <SymbolView name="checkmark.seal.fill" size={Math.round(TITLE_STEPS[titleStep].fontSize * 0.72)} weight="medium" tintColor="#FFFFFF" fallback={<TintIcon source={ANDROID_ICONS.verified} size={Math.round(TITLE_STEPS[titleStep].fontSize * 0.72)} color="#FFFFFF" />} />
+              </View></>}
+            </Text>
             <View style={s.heroMeta}>
               {businessStats ? (
                 <TouchableOpacity
@@ -792,7 +796,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
         {/* Card traslapada */}
         <View style={s.card}>
           <View style={s.summaryRow}>
-            <PatioCardLocation area={patio.area} distanceLabel={distance} variant="detail" style={{ flex: 1 }} />
+            <PatioCardLocation area={patio.area} distanceLabel={distance} variant="detail" style={{ flex: 1, marginTop: 0 }} />
             <PatioCardPrice patio={patio} compact={false} style={s.summaryPrice} />
           </View>
           {!!highlights.notice && (
@@ -801,10 +805,20 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
               <Text style={s.noticeText} allowFontScaling={true}>{noWidow(highlights.notice.body)}</Text>
             </View>
           )}
-          {/* Menú del día — agrupado por sección (atenuado si ya se acabó) */}
-          <View style={soldOut && s.menuSoldWrap}>
+          {soldOut && (
+            <View style={s.mananaCard}>
+              <View style={s.mananaHead}>
+                <Ionicons name="time-outline" size={12} color={theme.accent} />
+                <Text style={s.mananaEyebrow} allowFontScaling={true}>Se acabó por hoy</Text>
+              </View>
+              <Text style={s.mananaBody} allowFontScaling={true}>{noWidow(`${proxTexto ?? `Mañana abre a las ${patio.open.split(/[-–]/)[0]}`}. ${isSaved ? 'Te avisamos cuando publique.' : 'Síguelo y te avisamos cuando publique.'}`)}</Text>
+            </View>
+          )}
+          {/* Menú del día — agrupado por sección. Si ya se acabó, solo se
+              atenúa: el aviso de arriba ya lo dice, sin caja ni etiqueta extra. */}
+          <View>
             <View style={soldOut ? { opacity: 0.42 } : undefined}>
-              {sections.map((section, si) => (
+              {sections.map((section) => (
                 <View key={section.section} style={s.group}>
                   {!['menu del dia', 'menu de hoy'].includes(
                     section.section.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim(),
@@ -866,26 +880,10 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
                       </View>
                     );
                   })}
-                  {si < sections.length - 1 && <View style={s.groupDashed} />}
                 </View>
               ))}
             </View>
-            {soldOut && (
-              <View style={s.agotadoBadge}>
-                <Text style={s.agotadoBadgeText} allowFontScaling={true}>Agotado</Text>
-              </View>
-            )}
           </View>
-
-          {soldOut && (
-            <View style={s.mananaCard}>
-              <View style={s.mananaHead}>
-                <Ionicons name="time-outline" size={12} color={theme.accent} />
-                <Text style={s.mananaEyebrow} allowFontScaling={true}>{proxTexto ? `${proxTexto}` : `Mañana abre a las ${patio.open.split(/[-–]/)[0]}`}</Text>
-              </View>
-              <Text style={s.mananaBody} allowFontScaling={true}>{noWidow('Vuelve mañana por el menú del día. Guárdalo y te avisamos cuando publiquen.')}</Text>
-            </View>
-          )}
 
           {/* Detalles + mapa */}
           <View style={s.section}>

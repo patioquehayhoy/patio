@@ -135,9 +135,10 @@ function makeStyles(t: Theme) {
     scheduleDivider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border },
     scheduleDay: { fontSize: 13, fontWeight: '700', color: t.text },
     scheduleHours: { fontSize: 13, color: t.textSecondary },
-    heroIdentity: { position: 'absolute', left: 20, right: 20, bottom: 52, flexDirection: 'row', alignItems: 'flex-end', gap: 16 },
-    heroText: { flex: 1, minWidth: 0 },
-    followersLink: { alignSelf: 'flex-start', marginTop: 4 },
+    heroIdentity: { position: 'absolute', left: 20, right: 20, bottom: 44 },
+    // A 4 del nombre: la cápsula nunca toca los rasgos descendentes del nombre.
+    followersLink: { flexShrink: 1 },
+    heroMeta: { height: 32, marginTop: 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 16 },
     title: { color: '#FFFFFF', textShadowColor: 'rgba(0,0,0,0.25)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 8 },
     verifiedInline: { paddingLeft: 2 },
     summaryRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 24 },
@@ -150,11 +151,9 @@ function makeStyles(t: Theme) {
     followToastAction: { minHeight: 44, paddingHorizontal: 8, justifyContent: 'center' },
     followToastActionText: { fontSize: 14, fontWeight: '700', color: t.accent },
     followToastClose: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-    // Centrada en la línea de seguidores (19 de alto): baja la mitad de la diferencia.
-    followPillSlot: { marginBottom: (19 - 36) / 2 },
     // Ancho fijo en sus dos estados, como el botón de Instagram: al seguir no
     // cambia de tamaño ni mueve el nombre.
-    followPill: { width: 120, height: 36, borderRadius: 18, overflow: 'hidden', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4 },
+    followPill: { width: 112, height: 32, borderRadius: 16, overflow: 'hidden', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4 },
     followPillGlass: { borderWidth: StyleSheet.hairlineWidth, borderColor: t.isDark ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.85)' },
     followPillText: { fontSize: 15, fontWeight: '700' },
     notice: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginBottom: 24, padding: 12, borderRadius: 14, backgroundColor: t.accentSoft },
@@ -736,32 +735,33 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
             locations={[0, 0.62, 1]}
             style={s.heroGradient}
           />
-          {/* Identidad sobre la foto en dos columnas, la misma retícula de 20 que
-              los botones de arriba (X, Apple Music): a la izquierda el nombre
-              (que baja de tamaño si es largo) con el sello y, pegado debajo, «N
-              seguidores»; a la derecha «Seguir», centrado en la línea de los
-              seguidores. El estado del día vive en la tarjeta, no en la foto. */}
+          {/* Identidad sobre la foto, en la misma retícula de 20 que volver y
+              compartir: el nombre a todo lo ancho (baja de tamaño si es largo)
+              con el sello pegado a la última palabra y, debajo, una línea con
+              «N seguidores» a la izquierda y «Seguir» a la derecha, como el
+              encabezado de un perfil en X. El estado del día vive en la
+              tarjeta, no en la foto. */}
           <View style={s.heroIdentity}>
-            <View style={s.heroText}>
-              <Text
-                accessibilityRole="header"
-                accessibilityLabel={patio.isVerifiedBusiness ? `${patio.name}, negocio verificado` : patio.name}
-                style={[s.title, TITLE_STEPS[titleStep]]}
-                numberOfLines={titleClamped ? 3 : undefined}
-                onTextLayout={(event) => {
-                  const last = titleStep === TITLE_STEPS.length - 1;
-                  if (event.nativeEvent.lines.length <= (last ? 3 : 2)) return;
-                  if (!last) setTitleStep(titleStep + 1);
-                  else if (!titleClamped) setTitleClamped(true);
-                }}
-                allowFontScaling={true}>
-                {noWidow(patio.name)}
-                {/* El sello va pegado a la última palabra, como en X o Instagram. */}
-                {patio.isVerifiedBusiness && !titleClamped && <>{'\u00A0'}<View style={s.verifiedInline}>
-                  <SymbolView name="checkmark.seal.fill" size={Math.round(TITLE_STEPS[titleStep].fontSize * 0.72)} weight="medium" tintColor="#FFFFFF" fallback={<TintIcon source={ANDROID_ICONS.verified} size={Math.round(TITLE_STEPS[titleStep].fontSize * 0.72)} color="#FFFFFF" />} />
-                </View></>}
-              </Text>
-              {!!businessStats && (
+            <Text
+              accessibilityRole="header"
+              accessibilityLabel={patio.isVerifiedBusiness ? `${patio.name}, negocio verificado` : patio.name}
+              style={[s.title, TITLE_STEPS[titleStep]]}
+              numberOfLines={titleClamped ? 3 : undefined}
+              onTextLayout={(event) => {
+                const last = titleStep === TITLE_STEPS.length - 1;
+                if (event.nativeEvent.lines.length <= (last ? 3 : 2)) return;
+                if (!last) setTitleStep(titleStep + 1);
+                else if (!titleClamped) setTitleClamped(true);
+              }}
+              allowFontScaling={true}>
+              {noWidow(patio.name)}
+              {/* El sello va pegado a la última palabra, como en X o Instagram. */}
+              {patio.isVerifiedBusiness && !titleClamped && <>{'\u00A0'}<View style={s.verifiedInline}>
+                <SymbolView name="checkmark.seal.fill" size={Math.round(TITLE_STEPS[titleStep].fontSize * 0.72)} weight="medium" tintColor="#FFFFFF" fallback={<TintIcon source={ANDROID_ICONS.verified} size={Math.round(TITLE_STEPS[titleStep].fontSize * 0.72)} color="#FFFFFF" />} />
+              </View></>}
+            </Text>
+            <View style={s.heroMeta}>
+              {businessStats ? (
                 <TouchableOpacity
                   style={s.followersLink}
                   activeOpacity={0.7}
@@ -774,25 +774,25 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
                     <Text style={s.followersValue}>{businessStats.saves}</Text> {businessStats.saves === 1 ? 'seguidor' : 'seguidores'}
                   </Text>
                 </TouchableOpacity>
+              ) : <View />}
+              {!own && (
+                <View ref={followAnchor} collapsable={false}>
+                  <TouchableOpacity
+                    style={[s.followPill, isSaved ? s.followPillGlass : { backgroundColor: theme.accent }]}
+                    activeOpacity={isSaved ? 0.7 : 0.85}
+                    hitSlop={{ top: 4, bottom: 4 }}
+                    onPress={() => { void handleFollowPress(); }}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: isSaved }}
+                    accessibilityLabel={isSaved ? `Siguiendo a ${patio.name}${muted ? ', avisos silenciados' : ''}` : `Seguir a ${patio.name}`}>
+                    {isSaved && <BlurView intensity={theme.isDark ? 24 : 40} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />}
+                    {isSaved && <View style={[StyleSheet.absoluteFillObject, { backgroundColor: theme.glass }]} />}
+                    <Text style={[s.followPillText, { color: isSaved ? theme.text : '#FFFFFF' }]} numberOfLines={1} adjustsFontSizeToFit allowFontScaling={true}>{isSaved ? 'Siguiendo' : 'Seguir'}</Text>
+                    {isSaved && <Ionicons name={muted ? 'notifications-off-outline' : 'chevron-down'} size={14} color={muted ? theme.textSecondary : theme.text} />}
+                  </TouchableOpacity>
+                </View>
               )}
             </View>
-            {!own && (
-              <View ref={followAnchor} collapsable={false} style={s.followPillSlot}>
-                <TouchableOpacity
-                  style={[s.followPill, isSaved ? s.followPillGlass : { backgroundColor: theme.accent }]}
-                  activeOpacity={isSaved ? 0.7 : 0.85}
-                  hitSlop={{ top: 4, bottom: 4 }}
-                  onPress={() => { void handleFollowPress(); }}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: isSaved }}
-                  accessibilityLabel={isSaved ? `Siguiendo a ${patio.name}${muted ? ', avisos silenciados' : ''}` : `Seguir a ${patio.name}`}>
-                  {isSaved && <BlurView intensity={theme.isDark ? 24 : 40} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />}
-                  {isSaved && <View style={[StyleSheet.absoluteFillObject, { backgroundColor: theme.glass }]} />}
-                  <Text style={[s.followPillText, { color: isSaved ? theme.text : '#FFFFFF' }]} numberOfLines={1} adjustsFontSizeToFit allowFontScaling={true}>{isSaved ? 'Siguiendo' : 'Seguir'}</Text>
-                  {isSaved && <Ionicons name={muted ? 'notifications-off-outline' : 'chevron-down'} size={14} color={muted ? theme.textSecondary : theme.text} />}
-                </TouchableOpacity>
-              </View>
-            )}
           </View>
           <View style={[s.heroNav, { top: insets.top + 8 }]}>
             {own ? <View /> : <GlassIcon name="chevron-back" size={21} onPress={handleBack} label="Volver" />}

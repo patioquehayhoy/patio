@@ -14,6 +14,7 @@ import { ActionSheet } from '@/components/action-sheet';
 import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { bottomActionClearance, bottomTabClearance } from '@/lib/layout-metrics';
 import { SelectionActions } from '@/components/selection-actions';
+import { StreakStatsSheet } from '@/components/streak-stats-sheet';
 import { FoodieLoading } from '@/components/foodie-loading';
 import { MenuListsSheet } from '@/components/menu-lists-sheet';
 import { NewMenuSheet } from '@/components/new-menu-sheet';
@@ -41,6 +42,7 @@ export default function HistorialScreen() {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
   const c = fonderoPalette(theme.isDark);
+  const [streakOpen, setStreakOpen] = useState(false);
   const { onScroll } = useTabBarScroll();
   const { refresh, closeRename, deleteMenu, deleteMenus, draftName, editing, loading, menus, openRename, reuse, saveName, setDraftName, streak } = useMenuHistoryController();
   const [actionsFor, setActionsFor] = useState<PublishedMenu | null>(null);
@@ -85,8 +87,8 @@ export default function HistorialScreen() {
     });
   };
 
-  // "Publicar igual": mismo menú guardado, sin pasar por el editor completo
-  // — para cuando de verdad es igual a antes. "Editar y usar" sigue
+  // "Publicar hoy así": mismo menú guardado, sin pasar por el editor completo
+  // — para cuando de verdad es igual a antes. "Cambiar y publicar" sigue
   // existiendo para cuando algo cambió (precio, agotado, etc.) — pedido de
   // Alejandro 2026-08-30, tras notar que republicar siempre forzaba el
   // editor incluso sin nada que cambiar.
@@ -190,11 +192,8 @@ export default function HistorialScreen() {
                   style={[s.streakPill, { borderColor: c.border, backgroundColor: c.surface }]}
                   activeOpacity={0.7}
                   accessibilityRole="button"
-                  accessibilityLabel={`Racha de ${streak} ${streak === 1 ? 'día' : 'días'} seguidos publicando menú. Toca para más información`}
-                  onPress={() => Alert.alert(
-                    `Racha de ${streak} ${streak === 1 ? 'día' : 'días'}`,
-                    `Llevas ${streak} ${streak === 1 ? 'día seguido publicando' : 'días seguidos publicando'} tu menú. Se rompe si dejas pasar un día completo sin publicar.`,
-                  )}>
+                  accessibilityLabel={`Racha de ${streak} ${streak === 1 ? 'día' : 'días'} seguidos publicando menú. Toca para ver cómo va tu negocio`}
+                  onPress={() => setStreakOpen(true)}>
                   <Ionicons name="flame" size={14} color={c.text} />
                   <Text style={[s.streakText, { color: c.text }]}>{streak}</Text>
                 </TouchableOpacity>
@@ -270,14 +269,15 @@ export default function HistorialScreen() {
         title={actionsFor ? (actionsFor.nombre || defaultHistoryTitle(actionsFor)) : undefined}
         onDismiss={() => setActionsFor(null)}
         options={actionsFor ? [
-          { label: 'Publicar igual', icon: 'checkmark-done-outline', onPress: () => publishReused(actionsFor) },
-          { label: 'Editar y usar', icon: 'create-outline', onPress: () => reuse(actionsFor) },
-          { label: 'Seleccionar varios', icon: 'checkmark-circle-outline', onPress: () => { setSelecting(true); toggleSelect(actionsFor.id); } },
-          { label: 'Renombrar', icon: 'pencil', onPress: () => openRename(actionsFor) },
+          { label: 'Publicar hoy así', icon: 'checkmark-done-outline', onPress: () => publishReused(actionsFor) },
+          { label: 'Cambiar y publicar', icon: 'create-outline', onPress: () => reuse(actionsFor) },
+          { label: 'Renombrar', icon: 'pencil', sectionLabel: 'Organizar', onPress: () => openRename(actionsFor) },
           { label: 'Añadir a lista', icon: 'folder-outline', onPress: () => { setAssignFechas([actionsFor.id]); setSheetMode('assign'); } },
+          { label: 'Seleccionar varios', icon: 'checkmark-circle-outline', onPress: () => { setSelecting(true); toggleSelect(actionsFor.id); } },
           { label: 'Eliminar', icon: 'trash-outline', destructive: true, onPress: () => deleteMenu(actionsFor) },
         ] : []}
       />
+      <StreakStatsSheet visible={streakOpen} onClose={() => setStreakOpen(false)} streak={streak} publishedDates={menus.filter((menu) => menu.published).map((menu) => menu.fecha)} />
       <MenuListsSheet
         visible={sheetMode !== null}
         mode={sheetMode ?? 'filter'}

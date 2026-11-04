@@ -2,7 +2,9 @@ import { router, usePathname } from 'expo-router';
 import { BlurView } from 'expo-blur';
 import { BottomContentFade } from '@/components/bottom-content-fade';
 import { NewMenuSheet } from '@/components/new-menu-sheet';
-import { Animated, Image, Keyboard, StyleSheet, Text, TouchableOpacity, View, type ImageSourcePropType } from 'react-native';
+import { PatioGiros } from '@/components/business-category-icon';
+import type { PatioGiroGlyph } from '@/lib/business-category-icons';
+import { Animated, Keyboard, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useMemo, useState } from 'react';
@@ -23,15 +25,15 @@ type Tab = {
   label: string;
   icon: keyof typeof Ionicons.glyphMap;
   selectedIcon: keyof typeof Ionicons.glyphMap;
-  /** Ícono propio (PNG teñible) en lugar de Ionicons. */
-  image?: { off: ImageSourcePropType; on: ImageSourcePropType };
+  /** Ícono propio (glifo de PatioGiros) en lugar de Ionicons. */
+  image?: { off: PatioGiroGlyph; on: PatioGiroGlyph };
 };
 
 // Mi Patio: puestito con piso, a propósito ambiguo entre puesto y local.
 // Fuente en assets/icons/mi-patio*.svg (retícula de Ionicons, trazo 32).
-const MI_PATIO_IMAGE = {
-  off: require('../assets/icons/mi-patio.png'),
-  on: require('../assets/icons/mi-patio-filled.png'),
+const MI_PATIO_IMAGE: { off: PatioGiroGlyph; on: PatioGiroGlyph } = {
+  off: 'patio-mipatio',
+  on: 'patio-mipatiofilled',
 };
 
 const FOODIE_TABS: Tab[] = [
@@ -117,7 +119,7 @@ export function BottomTabBar({ variant = 'fondero', fade = true }: { variant?: '
               onPress={onTabPress}>
               <View style={styles.icon} pointerEvents="none">
                 {image
-                  ? <Image source={active ? image.on : image.off} style={[styles.image, { tintColor: active ? theme.accent : theme.textSecondary }]} />
+                  ? <PatioGiros name={active ? image.on : image.off} size={22} color={active ? theme.accent : theme.textSecondary} />
                   : <Ionicons name={active ? selectedIcon : icon} size={path === '+' ? 24 : 22} color={active ? theme.accent : theme.textSecondary} />}
                 {hasNews && <View style={styles.dot} />}
               </View>
@@ -155,7 +157,6 @@ const makeStyles = (t: Theme) => StyleSheet.create({
     gap: 1,
   },
   icon: { width: 28, height: 24, alignItems: 'center', justifyContent: 'center' },
-  image: { width: 22, height: 22 },
   label: { fontSize: 10, lineHeight: 12, fontWeight: '700' },
   dot: { position: 'absolute', top: -1, right: -2, width: 7, height: 7, borderRadius: 4, backgroundColor: t.accent, borderColor: t.surface, borderWidth: StyleSheet.hairlineWidth },
 });

@@ -3,7 +3,7 @@ import type { BusinessType } from './smart-setup';
 
 /** Giros use Ionicons, the same family as navigation and actions. Giros Ionicons
  * lacks are composed from real Ionicons parts in the PatioGiros font. */
-export type PatioGiroGlyph = 'patio-jugos' | 'patio-tacos' | 'patio-elotes' | 'patio-postres' | 'patio-botanas' | 'patio-fondita';
+export type PatioGiroGlyph = 'patio-jugos' | 'patio-tacos' | 'patio-elotes' | 'patio-postres' | 'patio-botanas' | 'patio-fondita' | 'patio-mipatio' | 'patio-mipatiofilled';
 export type CategoryIcon = keyof typeof Ionicons.glyphMap | PatioGiroGlyph;
 
 export const BUSINESS_CATEGORY_ICONS = {

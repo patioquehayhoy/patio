@@ -11,9 +11,12 @@ de 24, equivalente a 32 en 512). Se empaquetan como fuente
 | `elotes.svg` | Hugeicons `corn` | MIT (Hugeicons) |
 | `postres.svg` | Hugeicons `cheese-cake-01` (elegida con Jev entre dos rebanadas) | MIT (Hugeicons) |
 | `botanas.svg` | IconPark `popcorn`, trazo 3 en retícula de 48 | Apache 2.0 (ByteDance) |
+| `mipatio.svg`, `mipatiofilled.svg` | Ícono de la pestaña Mi Patio (puestito con piso), copia de `assets/icons/mi-patio*.svg`. En fuente para que no parpadee al cambiar de pestaña | Propia |
 | `fondita.svg` | Olla con tapa dibujada para Patio en la retícula de Ionicons (2026-11-02); la tiendita queda para Mi Patio | Propia |
 
-Regenerar: expandir trazos con `picosvg NAME.svg > NAME.pico.svg` y correr
+Regenerar: expandir trazos con `picosvg NAME.svg > NAME.pico.svg` (el relleno de
+`mipatiofilled` usa una máscara para las rayas del toldo, que picosvg ignora:
+restarlas con `skia-pathops`) y correr
 `scripts/design/build-patio-giros-font.py <dir> assets/fonts/PatioGiros.ttf "$(cat codepoints.json)"`.
 Al cambiar los glifos, cambiar también el nombre de la familia en el script y en
 `components/business-category-icon.tsx` para que el teléfono no use la versión en caché.

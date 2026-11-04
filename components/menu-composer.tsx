@@ -49,6 +49,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
     closeSectionActions,
     collapsed,
     data,
+    dayPrice,
     details,
     moveSection,
     nombre,
@@ -64,6 +65,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
     savedFlash,
     sectionActions,
     sectionSuggestions,
+    setDayPrice,
     setNombre,
     toggleCollapsed,
     toggleSectionActions,
@@ -236,6 +238,30 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
           keyboardDismissMode="interactive"
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}>
+          {/* Precio del menú del día (comida corrida): un precio para todo el
+              menú, guardado en la primera sección. Los platillos con precio
+              propio se cobran aparte, a la carta; los dos conviven. */}
+          <View style={s.dayPriceRow}>
+            <View style={s.dayPriceText}>
+              <Text style={s.dayPriceLabel}>{noWidow('Precio del menú del día')}</Text>
+              <Text style={s.dayPriceHint}>{noWidow('Si cobras todo el menú junto. Los platillos con precio propio se cobran aparte.')}</Text>
+            </View>
+            <View style={s.dayPriceField}>
+              <Text style={s.dayPriceCurrency}>$</Text>
+              <TextInput
+                style={s.dayPriceInput}
+                value={dayPrice}
+                onChangeText={(precio) => setDayPrice(precio.slice(0, TEXT_LIMITS.dishPrice))}
+                placeholder="—"
+                placeholderTextColor={c.textMute}
+                keyboardType="decimal-pad"
+                returnKeyType="done"
+                inputAccessoryViewID={Platform.OS === 'ios' ? PRICE_ACCESSORY : undefined}
+                selectTextOnFocus
+                accessibilityLabel="Precio del menú del día"
+              />
+            </View>
+          </View>
           {data.secciones.map((section, sectionIndex) => {
             const isCollapsed = !!collapsed[section.id];
             const actionsOpen = sectionActions === section.id;
@@ -344,7 +370,8 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                                 activeOpacity={0.7}
                                 accessibilityRole="button"
                                 accessibilityLabel={`Agregar precio a ${dish.nombre || 'platillo'}`}>
-                                <Text style={s.addPriceText}>+ Precio</Text>
+                                <Text style={s.currency}>$</Text>
+                                <Text style={s.addPriceText}>—</Text>
                               </TouchableOpacity>
                             )}
                             <TouchableOpacity
@@ -537,6 +564,10 @@ function makeStyles(c: FonderoColors) {
     nav: { minHeight: 54, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
     navButton: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
     navTitle: { flex: 1, textAlign: 'left', paddingHorizontal: 8, fontSize: 17, fontWeight: '700', color: c.textSecondary },
+    dayPriceRow: { flexDirection: 'row', alignItems: 'center', gap: 16, paddingBottom: 16 },
+    dayPriceText: { flex: 1, minWidth: 0, gap: 2 },
+    dayPriceLabel: { fontSize: 16, lineHeight: 21, fontWeight: '700', color: c.text },
+    dayPriceHint: { fontSize: 13, lineHeight: 17, fontWeight: '400', color: c.textSecondary },
     dayPriceField: { minWidth: 78, height: 40, paddingHorizontal: 10, borderRadius: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', backgroundColor: c.iconBg },
     dayPriceCurrency: { fontSize: 15, fontWeight: '700', color: c.textSecondary },
     dayPriceInput: { minWidth: 56, height: 44, paddingVertical: 0, paddingLeft: 2, textAlign: 'right', fontSize: 17, fontWeight: '700', color: c.text },
@@ -558,9 +589,11 @@ function makeStyles(c: FonderoColors) {
     addDetail: { paddingTop: 3, fontSize: 12, fontWeight: '300', color: c.textSecondary },
     detailRow: { marginTop: 2, flexDirection: 'row', alignItems: 'center' },
     description: { flex: 1, paddingVertical: 3, fontSize: 13, fontWeight: '300', color: c.textSecondary },
-    priceChip: { minWidth: 64, height: 28, marginTop: -1, paddingHorizontal: 9, borderRadius: 10, flexDirection: 'row', alignItems: 'center', gap: 2, backgroundColor: c.iconBg },
-    priceChipEmpty: { justifyContent: 'center', backgroundColor: 'transparent', borderWidth: 1, borderColor: c.border },
-    addPriceText: { fontSize: 13, fontWeight: '400', color: c.textSecondary },
+    // Alto de la línea del nombre (21) + 3: el chip se centra en esa línea y
+    // su número comparte la línea base del nombre, sin sobresalir.
+    priceChip: { minWidth: 64, height: 24, marginTop: 1.5, paddingHorizontal: 9, borderRadius: 8, flexDirection: 'row', alignItems: 'center', gap: 2, backgroundColor: c.iconBg },
+    priceChipEmpty: { backgroundColor: 'transparent', borderWidth: 1, borderColor: c.border },
+    addPriceText: { fontSize: 15, fontWeight: '400', color: c.textMute },
     priceBar: { minHeight: 44, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: c.surface2, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: c.border },
     priceBarButton: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 4 },
     priceBarNext: { fontSize: 16, fontWeight: '400', color: c.text },

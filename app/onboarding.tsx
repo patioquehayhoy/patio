@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { PatioGiros } from '@/components/business-category-icon';
 import { completeOnboarding, saveUserRole, type UserRole } from '@/lib/entry-flow';
 import { useTheme, type Theme, Type } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
@@ -13,7 +14,6 @@ import { noWidow } from '@/lib/typography';
 const KENBURNS_MS = 14000;
 const HERO = require('../assets/hero/botanica-2.jpg');
 const LOGO_BLANCO = require('../assets/images/logo-blanco.png');
-const MI_PATIO = require('../assets/icons/mi-patio.png');
 
 // Una sola pantalla después de la entrada (decisión de Parco, 2026-11-03):
 // la marca, qué es Patio en una frase y la elección. Antes eran tres
@@ -33,7 +33,6 @@ function makeStyles(_t: Theme) {
     roleButton: { minHeight: 66, borderRadius: 16, overflow: 'hidden', marginBottom: 9 },
     roleButtonInner: { minHeight: 66, paddingVertical: 12, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 8 },
     roleIcon: { width: 38, height: 38, borderRadius: 12, backgroundColor: 'rgba(255,106,61,0.16)', alignItems: 'center', justifyContent: 'center' },
-    roleImage: { width: 20, height: 20, tintColor: '#FF6A3D' },
     roleCopy: { flex: 1 },
     roleTitle: { fontSize: 15, lineHeight: 19, fontWeight: '700', color: '#FFFFFF' },
     roleHint: { marginTop: 2, fontSize: 12, lineHeight: 16, fontWeight: '400', color: 'rgba(255,255,255,0.62)' },
@@ -100,7 +99,7 @@ export default function OnboardingScreen() {
           <TouchableOpacity accessibilityRole="button" accessibilityLabel="Publicar lo que preparo" accessibilityState={{ disabled: routing }} disabled={routing} style={s.roleButton} onPress={() => chooseRole('fondero')} activeOpacity={0.85}>
             <BlurView intensity={24} tint="dark" style={s.roleButtonInner}>
               {/* Mapa y Mi Patio: el ícono de cada lado en su barra. */}
-              <View style={s.roleIcon}><Image source={MI_PATIO} style={s.roleImage} /></View>
+              <View style={s.roleIcon}><PatioGiros name="patio-mipatio" size={20} color="#FF6A3D" /></View>
               <View style={s.roleCopy}>
                 <Text style={s.roleTitle}>{noWidow('Publicar lo que preparo')}</Text>
                 <Text style={s.roleHint}>{noWidow('Crear el perfil de tu negocio')}</Text>

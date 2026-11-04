@@ -240,25 +240,25 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
           showsVerticalScrollIndicator={false}>
           {/* Precio del menú del día (comida corrida): un precio para todo el
               menú, guardado en la primera sección. Los platillos con precio
-              propio se cobran aparte, a la carta; los dos conviven. */}
+              propio se cobran aparte, a la carta; los dos conviven. Se lee
+              como un encabezado más del menú: misma fila de 44, mismo texto
+              y columna que el nombre de cada sección, el campo al borde
+              derecho donde viven «···» y «×». */}
           <View style={s.dayPriceRow}>
-            <View style={s.dayPriceText}>
-              <Text style={s.dayPriceLabel}>{noWidow('Precio del menú del día')}</Text>
-              <Text style={s.dayPriceHint}>{noWidow('Si cobras todo el menú junto. Los platillos con precio propio se cobran aparte.')}</Text>
-            </View>
+            <Text style={s.dayPriceLabel} numberOfLines={1}>PRECIO DEL MENÚ</Text>
             <View style={s.dayPriceField}>
               <Text style={s.dayPriceCurrency}>$</Text>
               <TextInput
                 style={s.dayPriceInput}
                 value={dayPrice}
                 onChangeText={(precio) => setDayPrice(precio.slice(0, TEXT_LIMITS.dishPrice))}
-                placeholder="—"
-                placeholderTextColor={c.textMute}
+                onBlur={() => { if (!Number(dayPrice)) setDayPrice(''); }}
                 keyboardType="decimal-pad"
                 returnKeyType="done"
                 inputAccessoryViewID={Platform.OS === 'ios' ? PRICE_ACCESSORY : undefined}
                 selectTextOnFocus
                 accessibilityLabel="Precio del menú del día"
+                accessibilityHint="Si cobras todo el menú junto. Los platillos con precio propio se cobran aparte."
               />
             </View>
           </View>
@@ -348,10 +348,12 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                                   onFocus={() => setPriceFocus(dish.id)}
                                   onBlur={() => {
                                     setPriceFocus((current) => current === dish.id ? null : current);
-                                    if (!dish.precio) { smoothly(); setPriceOpen((current) => ({ ...current, [dish.id]: false })); }
+                                    // Arrepentirse deja el platillo sin precio: vacío o «0» no se guarda.
+                                    if (!Number(dish.precio)) {
+                                      if (dish.precio) patchDish(section.id, dish.id, { precio: '' });
+                                      smoothly(); setPriceOpen((current) => ({ ...current, [dish.id]: false }));
+                                    }
                                   }}
-                                  placeholder="0"
-                                  placeholderTextColor={c.textMute}
                                   keyboardType="decimal-pad"
                                   returnKeyType="next"
                                   onSubmitEditing={() => goToNextPrice(dish.id)}
@@ -371,7 +373,6 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                                 accessibilityRole="button"
                                 accessibilityLabel={`Agregar precio a ${dish.nombre || 'platillo'}`}>
                                 <Text style={s.currency}>$</Text>
-                                <Text style={s.addPriceText}>—</Text>
                               </TouchableOpacity>
                             )}
                             <TouchableOpacity
@@ -564,10 +565,8 @@ function makeStyles(c: FonderoColors) {
     nav: { minHeight: 54, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
     navButton: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
     navTitle: { flex: 1, textAlign: 'left', paddingHorizontal: 8, fontSize: 17, fontWeight: '700', color: c.textSecondary },
-    dayPriceRow: { flexDirection: 'row', alignItems: 'center', gap: 16, paddingBottom: 16 },
-    dayPriceText: { flex: 1, minWidth: 0, gap: 2 },
-    dayPriceLabel: { fontSize: 16, lineHeight: 21, fontWeight: '700', color: c.text },
-    dayPriceHint: { fontSize: 13, lineHeight: 17, fontWeight: '400', color: c.textSecondary },
+    dayPriceRow: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 8, paddingBottom: 12 },
+    dayPriceLabel: { flex: 1, paddingLeft: 30, fontSize: 14, lineHeight: 20, fontWeight: '700', letterSpacing: 0.6, color: c.text },
     dayPriceField: { minWidth: 78, height: 40, paddingHorizontal: 10, borderRadius: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', backgroundColor: c.iconBg },
     dayPriceCurrency: { fontSize: 15, fontWeight: '700', color: c.textSecondary },
     dayPriceInput: { minWidth: 56, height: 44, paddingVertical: 0, paddingLeft: 2, textAlign: 'right', fontSize: 17, fontWeight: '700', color: c.text },
@@ -591,14 +590,13 @@ function makeStyles(c: FonderoColors) {
     description: { flex: 1, paddingVertical: 3, fontSize: 13, fontWeight: '300', color: c.textSecondary },
     // Alto de la línea del nombre (21) + 3: el chip se centra en esa línea y
     // su número comparte la línea base del nombre, sin sobresalir.
-    priceChip: { minWidth: 64, height: 24, marginTop: 1.5, paddingHorizontal: 9, borderRadius: 8, flexDirection: 'row', alignItems: 'center', gap: 2, backgroundColor: c.iconBg },
-    priceChipEmpty: { backgroundColor: 'transparent', borderWidth: 1, borderColor: c.border },
-    addPriceText: { fontSize: 15, fontWeight: '400', color: c.textMute },
+    priceChip: { minWidth: 48, height: 24, marginTop: 1.5, paddingHorizontal: 9, borderRadius: 8, flexDirection: 'row', alignItems: 'center', gap: 2, backgroundColor: c.iconBg },
+    priceChipEmpty: { justifyContent: 'center', backgroundColor: 'transparent', borderWidth: 1, borderColor: c.border },
     priceBar: { minHeight: 44, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: c.surface2, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: c.border },
     priceBarButton: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 4 },
     priceBarNext: { fontSize: 16, fontWeight: '400', color: c.text },
     priceBarDone: { fontSize: 16, fontWeight: '700', color: c.accent },
-    dishPrice: { minWidth: 40, paddingVertical: 0, fontSize: 15, fontWeight: '700', color: c.text },
+    dishPrice: { minWidth: 24, paddingVertical: 0, fontSize: 15, fontWeight: '700', color: c.text },
     addDish: { minHeight: 44, marginLeft: 30, flexDirection: 'row', alignItems: 'center', gap: 8 },
     addDishText: { fontSize: 13, fontWeight: '700', color: c.accent },
     addSectionBlock: { borderTopWidth: StyleSheet.hairlineWidth, borderColor: c.border, paddingTop: 14 },

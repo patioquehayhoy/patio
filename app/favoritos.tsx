@@ -341,8 +341,8 @@ export default function FavoritosScreen() {
                 <SearchField
                   value={searchQuery}
                   onChangeText={setSearchQuery}
-                  placeholder="Buscar en Siguiendo"
-                  accessibilityLabel="Buscar en Siguiendo"
+                  placeholder="Buscar en Patios"
+                  accessibilityLabel="Buscar en Patios"
                   style={s.searchWrap}
                 />
                 <FoodieFilterBar
@@ -363,7 +363,7 @@ export default function FavoritosScreen() {
                     sectionLabel: index === 0 ? 'Orden' : undefined,
                     icon: mode === 'distance' ? 'navigate-outline' : mode === 'price' ? 'cash-outline' : mode === 'rating' ? 'star-outline' : mode === 'recent' ? 'time-outline' : 'text-outline',
                     selected: mode === sortMode,
-                    accessibilityHint: mode === 'price' ? 'Menor precio publicado primero. Sin precio al final.' : mode === 'distance' ? 'Distancia en línea recta desde tu ubicación. Sin coordenadas al final.' : 'Ordenar Siguiendo',
+                    accessibilityHint: mode === 'price' ? 'Menor precio publicado primero. Sin precio al final.' : mode === 'distance' ? 'Distancia en línea recta desde tu ubicación. Sin coordenadas al final.' : 'Ordenar Patios',
                     afterDismiss: mode === 'distance',
                     onPress: () => {
                       Haptics.selectionAsync().catch(() => {});

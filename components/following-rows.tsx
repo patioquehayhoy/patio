@@ -3,10 +3,10 @@ import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-nati
 
 import { AvatarCircle } from '@/components/avatar-circle';
 import type { FollowingActivity } from '@/lib/profile-privacy';
-import { Radius, useTheme, type Theme } from '@/lib/theme';
+import { Radius, Type, useTheme, type Theme } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
 
-// «De quienes sigues»: fila que se desliza de lado arriba de Siguiendo con lo
+// «De quienes sigues»: fila que se desliza de lado arriba de Patios con lo
 // reciente de las personas que sigues.
 
 const CARD_WIDTH = 232;
@@ -59,8 +59,8 @@ export function FollowingActivityRow({ events, onOpen }: { events: FollowingActi
 function makeStyles(t: Theme) {
   return StyleSheet.create({
     block: { paddingBottom: 16 },
-    // Mismo estilo que «CERCA DE TI» / «GUARDADOS» del panel.
-    label: { fontSize: 13, fontWeight: '700', color: t.textSecondary, paddingHorizontal: 16, paddingTop: 8, marginBottom: 8 },
+    // Etiqueta de grupo del sistema (Type.label), como en Actividad.
+    label: { ...Type.label, color: t.textSecondary, paddingHorizontal: 16, paddingTop: 8, marginBottom: 8 },
     row: { paddingHorizontal: 16, gap: 8 },
     card: { width: CARD_WIDTH, padding: 12, borderRadius: Radius.card, backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
     activityCard: { flexDirection: 'row', alignItems: 'center', gap: 8 },

@@ -315,8 +315,8 @@ test('library keeps the two shared scope controls beside contextual view and ord
   const f = fixture('components/foodie-filter-bar.tsx');
   const props = { filters: f.exports.EMPTY_FOODIE_FILTERS, onChange() {}, categories: [], collections: [], viewMode: 'list', onViewModeChange() {}, organizationOptions: [{ label: 'Alfabético A–Z', icon: 'text-outline', sectionLabel: 'Orden', selected: true, onPress() {} }] };
   let tree = f.render(f.exports.FoodieFilterBar, props);
-  const buttons = nodes(tree).filter((node) => node.type === 'TouchableOpacity' && ['Filtros', 'Tus listas', 'Organizar Siguiendo'].includes(node.props.accessibilityLabel));
-  assert.deepEqual(buttons.map((button) => button.props.accessibilityLabel), ['Filtros', 'Tus listas', 'Organizar Siguiendo']);
+  const buttons = nodes(tree).filter((node) => node.type === 'TouchableOpacity' && ['Filtros', 'Tus listas', 'Organizar Patios'].includes(node.props.accessibilityLabel));
+  assert.deepEqual(buttons.map((button) => button.props.accessibilityLabel), ['Filtros', 'Tus listas', 'Organizar Patios']);
   buttons[2].props.onPress();
   tree = f.render(f.exports.FoodieFilterBar, props);
   const organizeMenu = nodes(tree).find((node) => node.type === 'ActionSheet');
@@ -346,7 +346,7 @@ test('map location uses the shared trailing control slot and exposes pending fee
 
   tree = f.render(f.exports.FoodieFilterBar, { ...props, viewMode: 'list', onViewModeChange() {} });
   assert.equal(findLocation(tree), undefined);
-  const organize = nodes(tree).find((node) => node.props?.accessibilityLabel === 'Organizar Siguiendo');
+  const organize = nodes(tree).find((node) => node.props?.accessibilityLabel === 'Organizar Patios');
   assert.equal(Object.assign({}, ...organize.props.style).width, 40);
 });
 
@@ -402,7 +402,7 @@ test('index dragging clamps to real sections even beyond rail edges', () => {
   assert.equal(indexAtPosition(0, 0, 0), 0);
 });
 
-test('Siguiendo index scrolls without filtering and hides for search, grid and selection', async () => {
+test('Patios index scrolls without filtering and hides for search, grid and selection', async () => {
   const indexing = fixture('lib/library-index.ts').exports;
   const places = Array.from({ length: 24 }, (_, i) => ({ id: String(i), name: `${['Árbol', 'Ñoño', 'Tacos', 'Órale'][i % 4]} ${i}`, categories: [], payments: [], weeklyHours: null, area: 'Centro', rating: 'Nuevo' }));
   const delayedReads = [];
@@ -443,11 +443,11 @@ test('Siguiendo index scrolls without filtering and hides for search, grid and s
   rail.props.onSelect('Ñ');
   assert.deepEqual(scrolls.at(-1), { y: 400, animated: false });
   assert.equal(nodes(tree).filter((node) => node.props?.accessibilityLabel?.startsWith('Abrir ')).length, 24);
-  nodes(tree).find((node) => node.props?.accessibilityLabel === 'Buscar en Siguiendo').props.onChangeText('Ñoño 5');
+  nodes(tree).find((node) => node.props?.accessibilityLabel === 'Buscar en Patios').props.onChangeText('Ñoño 5');
   tree = f.render(f.exports.default);
   assert.equal(nodes(tree).some((node) => node.type === 'AlphabetIndex'), false);
   assert.equal(nodes(tree).filter((node) => node.props?.accessibilityLabel?.startsWith('Abrir ')).length, 1);
-  nodes(tree).find((node) => node.props?.accessibilityLabel === 'Buscar en Siguiendo').props.onChangeText('');
+  nodes(tree).find((node) => node.props?.accessibilityLabel === 'Buscar en Patios').props.onChangeText('');
   tree = f.render(f.exports.default);
   assert.ok(nodes(tree).some((node) => node.type === 'AlphabetIndex'));
   bar().props.onViewModeChange('grid');

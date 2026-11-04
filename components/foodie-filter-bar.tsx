@@ -647,7 +647,7 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
         style={[s.organizer, s.organizerCompact, { backgroundColor: pillBg }]}
         activeOpacity={0.7}
         accessibilityRole="button"
-        accessibilityLabel="Organizar Siguiendo"
+        accessibilityLabel="Organizar Guardados"
         accessibilityState={{ expanded: organizerVisible }}
         accessibilityHint="Ordenar, cambiar vista y seleccionar lugares">
         {floating && <View style={s.pillBlurClip}>

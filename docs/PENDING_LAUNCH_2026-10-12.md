@@ -10,10 +10,11 @@
   foto, dirección confirmada en el mapa.
 - [ ] Rediseñar el flujo de publicar (terminar → revisar → ver como imagen →
   publicar y compartir → ir a tu ficha); propuesta antes de construir.
-- [ ] «De quienes sigues» (aprobado): fila en el panel del mapa con lo que
-  hacen las personas que sigues; necesita una función nueva en la base.
-- [ ] «Hoy de los que sigues»: menús del día de los lugares que sigues, en
-  scroll (idea de Parco para separar «seguir» de «guardar»).
+- [x] «De quienes sigues»: fila arriba de Guardados (el panel del mapa no se
+  abre sin búsqueda). Función `following_activity` (14 días, sin bloqueos,
+  respeta perfiles privados). **Falta `npx supabase db push --yes`.**
+- [x] «Hoy de los que sigues»: menús del día de los lugares que sigues, en
+  scroll arriba de Guardados.
 - [x] Giro «Venta en casa» (Jev: 72–75 % lo quiere; el nombre le ganó a «Dark
   kitchen», 65–85 % entre quienes venden). Pide solo edificio o unidad.
 - [x] Después de publicar, «Listo» lleva a Mi Patio.

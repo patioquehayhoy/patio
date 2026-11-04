@@ -20,6 +20,8 @@ import { SelectionActions } from '@/components/selection-actions';
 import { SaveToListSheet } from '@/components/save-to-list-sheet';
 import { SearchField } from '@/components/search-field';
 import { PatioIdentityIcon } from '@/components/patio-identity-icon';
+import { FollowingActivityRow, TodayFromFollowed } from '@/components/following-rows';
+import { getFollowingActivity, type FollowingActivity } from '@/lib/profile-privacy';
 import { patioCardAccessibilityLabel } from '@/lib/patio-card-info';
 import { PatioCardInfo, PatioCardPrice } from '@/components/patio-card-info';
 import { useFavoritePatiosController } from '@/lib/controllers/useFavoritePatiosController';
@@ -118,6 +120,14 @@ export default function FavoritosScreen() {
   // Selección rápida (patrón Fotos/Archivos de iOS): "Seleccionar" activa
   // círculos de selección por fila y cambia la barra inferior por acciones
   // en lote — nada de esto compite con el tap normal de abrir un lugar.
+  // Lo de hoy de los lugares que sigues y lo reciente de las personas que
+  // sigues: Guardados es donde vive todo lo que sigues.
+  const [followingActivity, setFollowingActivity] = useState<FollowingActivity[]>([]);
+  useFocusEffect(useCallback(() => {
+    let active = true;
+    getFollowingActivity().then((events) => { if (active) setFollowingActivity(events); }).catch(() => {});
+    return () => { active = false; };
+  }, []));
   const [selecting, setSelecting] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [saveSheetVisible, setSaveSheetVisible] = useState(false);
@@ -331,8 +341,8 @@ export default function FavoritosScreen() {
                 <SearchField
                   value={searchQuery}
                   onChangeText={setSearchQuery}
-                  placeholder="Buscar en Siguiendo"
-                  accessibilityLabel="Buscar en Siguiendo"
+                  placeholder="Buscar en Guardados"
+                  accessibilityLabel="Buscar en Guardados"
                   style={s.searchWrap}
                 />
                 <FoodieFilterBar
@@ -391,6 +401,13 @@ export default function FavoritosScreen() {
           const section = [...sections].reverse().find(({ letter }) => (sectionOffsets.current[letter] ?? Infinity) <= y + 8);
           if (section) setActiveLetter(section.letter);
         }}>
+        {!selecting && !normalizedQuery && <>
+          <TodayFromFollowed patios={patios} onOpen={(patio) => router.push(`/patio/${patio.id}`)} />
+          <FollowingActivityRow events={followingActivity} onOpen={(event) => {
+            if (event.kind === 'list' && event.listId) router.push(`/coleccion-publica/${event.listId}`);
+            else if (event.placeId) router.push(`/patio/${event.placeId}`);
+          }} />
+        </>}
         {patios.length > 0 && <View style={s.libraryHeader}>
           <Text style={s.libraryCount}>{noWidow(selecting
             ? selectedIds.size ? `${selectedIds.size} ${selectedIds.size === 1 ? 'lugar seleccionado' : 'lugares seleccionados'}` : 'Seleccionar lugares'

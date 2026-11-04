@@ -167,3 +167,37 @@ export async function getTopPlaces(targetId: string): Promise<TopPlace[]> {
   const onlyFollowed = followed.filter((place) => !best.has(place.id)).map((place): TopPlace => ({ id: place.id, name: place.name }));
   return [...reviewed, ...onlyFollowed].slice(0, 10);
 }
+
+export type FollowingActivity = {
+  key: string;
+  kind: 'follow' | 'list' | 'review';
+  actorId: string;
+  actorName: string;
+  avatarUrl?: string;
+  placeId?: string;
+  placeName?: string;
+  listId?: string;
+  listTitle?: string;
+  stars?: number;
+  at: string;
+};
+
+/** «De quienes sigues»: lo reciente de las personas que sigues (14 días). */
+export async function getFollowingActivity(): Promise<FollowingActivity[]> {
+  if (!(await currentUserId())) return [];
+  const { data, error } = await supabase.rpc('following_activity');
+  if (error) throw error;
+  return ((data ?? []) as any[]).map((row): FollowingActivity => ({
+    key: `${row.kind}-${row.actor_id}-${row.negocio_id ?? row.collection_id}-${row.happened_at}`,
+    kind: row.kind,
+    actorId: row.actor_id,
+    actorName: row.display_name,
+    avatarUrl: row.avatar_url || undefined,
+    placeId: row.negocio_id || undefined,
+    placeName: row.negocio_nombre || undefined,
+    listId: row.collection_id || undefined,
+    listTitle: row.collection_title || undefined,
+    stars: row.stars ?? undefined,
+    at: row.happened_at,
+  }));
+}

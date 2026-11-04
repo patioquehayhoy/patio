@@ -224,6 +224,16 @@ await check('seguidores públicos de un lugar; lugares que sigue un perfil respe
   if (seenByAna.includes('Luis P.')) throw new Error('blocked follower visible');
   await as(ids.ana, `delete from public.blocked_users where blocker_id = $1`, [ids.ana]);
 });
+await check('«De quienes sigues»: lo reciente de quien sigues, sin bloqueos ni anónimos', async () => {
+  const seen = (await as(ids.luis, `select kind, display_name, negocio_id from public.following_activity()`)).rows;
+  if (!seen.some((row) => row.kind === 'follow' && row.display_name === 'Ana P.' && row.negocio_id === business)) throw new Error(JSON.stringify(seen));
+  if (seen.some((row) => row.display_name === 'Luis P.')) throw new Error('own activity listed');
+  await rejects(as(null, `select * from public.following_activity()`), /permission denied/);
+  await as(ids.ana, `insert into public.blocked_users (blocker_id, blocked_user_id) values ($1, $2)`, [ids.ana, ids.luis]);
+  const blocked = (await as(ids.luis, `select * from public.following_activity()`)).rows;
+  if (blocked.length) throw new Error('blocked person activity visible');
+  await as(ids.ana, `delete from public.blocked_users where blocker_id = $1`, [ids.ana]);
+});
 await check('Pro: platillo destacado solo con Pro y solo mientras dure', async () => {
   await rejects(as(ids.owner, `update public.${table} set featured_dish = 'POZOLE' where id = $1`, [business]), /PRO_REQUIRED/);
   await admin(`insert into public.business_plans (user_id, plan, source, expires_at) values ($1, 'pro', 'founder', now() + interval '6 months')`, [ids.owner]);

@@ -1,5 +1,11 @@
 # HANDOFF
 
+## Continuidad 2026-11-03 — Guardados (Claude)
+
+Ver [heads-up](HEADS_UP_2026-10-12.md), bloque «Cierre 2026-11-03». Guardados
+abre con «Hoy de los que sigues» y «De quienes sigues». Falta
+`npx supabase db push --yes` para la función de actividad.
+
 ## Continuidad 2026-11-02 noche — ficha y red (Claude)
 
 Leer primero el [heads-up](HEADS_UP_2026-10-12.md) (bloque «Cierre 2026-11-02

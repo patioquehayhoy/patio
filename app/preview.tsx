@@ -29,7 +29,7 @@ export function MenuPoster({ justPublished = false }: { justPublished?: boolean 
   const { theme } = useTheme();
   const c = fonderoPalette(theme.isDark);
   const s = makeStyles(c);
-  const { businessName, fecha, handleBack, handleOpenProfile, handleShare, patioId, sections } = useMenuPreviewController();
+  const { businessName, fecha, handleBack, handleOpenProfile, handleShare, patioId, priceLabel, sections } = useMenuPreviewController();
   const posterRef = useRef<View>(null);
   const [sharing, setSharing] = useState(false);
   const [newMenuSheetVisible, setNewMenuSheetVisible] = useState(false);
@@ -108,6 +108,14 @@ export function MenuPoster({ justPublished = false }: { justPublished?: boolean 
               <Text style={s.posterDate} allowFontScaling={true}>{fecha}</Text>
               <Text style={s.posterName} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.6} allowFontScaling={true}>{businessName}</Text>
             </View>
+            {/* Precio del menú completo (comida corrida): a la derecha, como
+                en la pizarra de la fonda — visible, un paso abajo del nombre. */}
+            {!!priceLabel && (
+              <View style={s.posterPrice} accessible accessibilityLabel={`Menú del día, ${priceLabel}`}>
+                <Text style={s.posterPriceLabel} allowFontScaling={true}>MENÚ</Text>
+                <Text style={s.posterPriceValue} allowFontScaling={true}>{priceLabel}</Text>
+              </View>
+            )}
           </View>
 
           {/* Card de menú: las secciones hablan solas, sin label redundante. */}
@@ -196,6 +204,9 @@ function makeStyles(c: FonderoColors) {
   poster: { width: 330, borderRadius: 26, backgroundColor: LIGHT.bg, overflow: 'hidden', shadowColor: '#000', shadowOffset: { width: 0, height: 24 }, shadowOpacity: 0.24, shadowRadius: 34, elevation: 12 },
   posterHead: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, paddingHorizontal: 22, paddingTop: 26, paddingBottom: 18 },
   posterHeadLeft: { flex: 1 },
+  posterPrice: { alignItems: 'flex-end' },
+  posterPriceLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, color: LIGHT.inkSoft, marginBottom: 7 },
+  posterPriceValue: { ...Type.section, color: LIGHT.ink, fontVariant: ['tabular-nums'] },
   posterDate: { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase', color: LIGHT.accent, marginBottom: 7 },
   posterName: { ...Type.screen, color: LIGHT.ink },
 

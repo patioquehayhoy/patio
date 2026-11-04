@@ -1,20 +1,20 @@
-## Precio del día en menu-composer.tsx — NO TOCAR
+## Precio del menú del día en menu-composer.tsx
 
-> Corregido 2026-08-14 tras auditoría: `app/menu.tsx` dejó de ser el editor de
-> precio hace tiempo (hoy es el selector "¿Cómo quieres empezar?"); la ley
-> seguía apuntando a un archivo que ya no tenía ese bloque. El editor real de
-> precio vive en `components/menu-composer.tsx` (`dayPriceField`/
-> `dayPriceCurrency`/`dayPriceInput`, líneas ~364-366) — esta entrada ahora
-> protege esa ubicación real.
+> Reescrito 2026-11-03 por decisión de Parco: el campo grande anterior
+> (`dayPriceField`/`dayPriceCurrency`/`dayPriceInput`, 40–44 pt, texto 17)
+> «está enorme». Se homologó con el precio de cada platillo.
 
-El bloque del precio del día en `components/menu-composer.tsx` tiene esta
-estructura exacta que NO debe modificarse sin decisión explícita:
-- `dayPriceField`: contenedor `flexDirection row`, `alignItems center`, `justifyContent flex-end`, sin `paddingVertical`
-- `dayPriceCurrency` (Text del signo `$`): `fontSize 15`, `fontWeight '700'`
-- `dayPriceInput` (TextInput): `fontSize 17`, `fontWeight '700'`, `height 44`, `paddingVertical 0`
+- Fila `dayPriceRow` arriba de las secciones: se lee como un encabezado más
+  («PRECIO DEL MENÚ», misma letra, alto 44 y columna de 30 que el nombre de
+  cada sección), sin nota visible (la explicación va en `accessibilityHint`).
+- El valor usa el MISMO chip que el precio de un platillo (`priceChip`,
+  `currency`, `dishPrice`); el chip abraza el número (sin ancho mínimo lleno)
+  y vacío muestra solo «$». Al borde derecho, alineado con «···» y «×».
+- Se muestra de entrada en los giros de comida corrida (`MENU_PRICE_TYPES`:
+  fondita, venta en casa, restaurante) o si ya tiene precio; en los demás se
+  ofrece como chip «PRECIO DEL MENÚ» junto a las sugerencias de sección.
+- Vacío o «0» al salir del campo nunca se guarda.
+- Se guarda en la primera sección (`setDayPrice`) y sale en el póster
+  compartido (`app/preview.tsx`, a la derecha del nombre) y en la ficha.
 
-El precio por platillo (`dishPrice`/`inlinePrice`, mismo archivo) es un bloque
-distinto y no está cubierto por esta ley — solo el precio del día.
-
-Si se edita `menu-composer.tsx` por cualquier razón, verificar que este bloque
-no haya cambiado antes de guardar.
+El precio por platillo es el mismo chip; si se cambia uno, se cambia el otro.

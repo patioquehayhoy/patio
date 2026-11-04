@@ -2,9 +2,10 @@
 
 ## Continuidad 2026-11-03 — Guardados (Claude)
 
-Ver [heads-up](HEADS_UP_2026-10-12.md), bloque «Cierre 2026-11-03». Guardados
-abre con «Hoy de los que sigues» y «De quienes sigues». Falta
-`npx supabase db push --yes` para la función de actividad.
+Ver [heads-up](HEADS_UP_2026-10-12.md), bloque «Cierre 2026-11-03». Pestaña
+Foodie «Patios» (a prueba) con «De quienes sigues»; precio del menú del día de
+vuelta (editor y póster); «Tu racha» con números del negocio; ícono de Mi
+Patio en fuente. Falta `npx supabase db push --yes` (función de actividad).
 
 ## Continuidad 2026-11-02 noche — ficha y red (Claude)
 

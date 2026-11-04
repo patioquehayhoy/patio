@@ -151,7 +151,9 @@ export function MenuPoster({ justPublished = false }: { justPublished?: boolean 
           <Text style={s.ctaText} allowFontScaling={true}>{sharing ? 'Preparando…' : 'Compartir como imagen'}</Text>
         </TouchableOpacity>
         {justPublished ? (
-          <TouchableOpacity style={s.shareLink} onPress={handleBack} activeOpacity={0.7} accessibilityRole="button" accessibilityLabel="Listo">
+          // Después de publicar, «Listo» lleva a tu ficha: ahí ves lo que la
+          // gente ya está viendo.
+          <TouchableOpacity style={s.shareLink} onPress={() => router.replace('/mi-patio')} activeOpacity={0.7} accessibilityRole="button" accessibilityLabel="Listo, ver mi ficha">
             <Text style={[s.shareLinkText, { color: c.textSecondary }]} allowFontScaling={true}>Listo</Text>
           </TouchableOpacity>
         ) : (

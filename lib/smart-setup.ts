@@ -39,6 +39,7 @@ export type BusinessType =
   | 'jugos'
   | 'cafeteria'
   | 'restaurante'
+  | 'casa'
   | 'otro';
 
 // Etiqueta atómica pública por tag (columna `categorias`, chips de filtro).
@@ -55,6 +56,9 @@ export const BUSINESS_TYPE_LABELS: Record<BusinessType, string> = {
   jugos: 'Jugos y fruta',
   cafeteria: 'Café',
   restaurante: 'Restaurante',
+  // Quien vende desde su casa o edificio, sin local a la calle (Jev eligió el
+  // nombre: docs/research/jev-giro-casa-2026-11-03.json).
+  casa: 'Venta en casa',
   otro: 'Otro',
 };
 

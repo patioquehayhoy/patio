@@ -267,6 +267,7 @@ function tipoLabels(tipo: string | null): string[] {
     jugos: ['Jugos y fruta'],
     cafeteria: ['Café'],
     restaurante: ['Restaurante'],
+    casa: ['Venta en casa'],
     otro: ['Otro'],
   };
   return (tipo && map[tipo]) || ['Fondita'];

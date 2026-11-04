@@ -49,6 +49,7 @@ const SECCION_DEFAULTS: Record<string, string[]> = {
   jugos:      ['JUGOS', 'LICUADOS', 'FRUTA PREPARADA'],
   cafeteria:  ['CAFÉ', 'PAN', 'DESAYUNOS'],
   restaurante:['ENTRADAS', 'PLATOS FUERTES', 'POSTRES', 'BEBIDAS'],
+  casa:       ['LO DE HOY', 'POR ENCARGO', 'BEBIDAS'],
   otro:       ['SECCIÓN 1'],
 };
 

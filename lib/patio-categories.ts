@@ -4,4 +4,4 @@
 // Único origen de verdad — los datos demo/densidad (lib/demo.ts) deben usar
 // exactamente estas etiquetas, nunca inventar otras, o los chips de categoría
 // del mapa se contaminan.
-export const PATIO_CATEGORIES = ['Fondita', 'Tacos', 'Antojitos', 'Elotes', 'Botanas', 'Postres', 'Café', 'Mariscos', 'Bebidas', 'Jugos y fruta', 'Restaurante'];
+export const PATIO_CATEGORIES = ['Fondita', 'Tacos', 'Antojitos', 'Elotes', 'Botanas', 'Postres', 'Café', 'Mariscos', 'Bebidas', 'Jugos y fruta', 'Restaurante', 'Venta en casa'];

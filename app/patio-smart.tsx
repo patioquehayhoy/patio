@@ -88,6 +88,7 @@ const BUSINESS_TYPES: { id: BusinessType; label: string }[] = [
   { id: 'bebidas', label: BUSINESS_TYPE_LABELS.bebidas },
   { id: 'jugos', label: BUSINESS_TYPE_LABELS.jugos },
   { id: 'restaurante', label: BUSINESS_TYPE_LABELS.restaurante },
+  { id: 'casa', label: BUSINESS_TYPE_LABELS.casa },
   { id: 'otro', label: 'Otro' },
 ];
 
@@ -549,6 +550,12 @@ export default function PatioSmartScreen() {
               />
             </View>
 
+            {result.tipos.includes('casa') && addressCheck.status === 'idle' && (
+              // Vender desde casa no obliga a publicar el departamento.
+              <Text style={[s.addressError, { color: colors.textSecondary }]} maxFontSizeMultiplier={1.5}>
+                {noWidow('Si vendes en tu casa, basta con tu edificio o unidad; no pongas el número de departamento.')}
+              </Text>
+            )}
             {addressCheck.status === 'found' && (
               <View style={s.addressCheck} accessibilityLiveRegion="polite">
                 <Ionicons name="location" size={15} color={colors.accent} />

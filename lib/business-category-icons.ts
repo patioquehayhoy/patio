@@ -19,6 +19,7 @@ export const BUSINESS_CATEGORY_ICONS = {
   bebidas: 'wine-outline',
   jugos: 'patio-jugos',
   restaurante: 'restaurant-outline',
+  casa: 'home-outline',
   otro: 'ellipsis-horizontal',
 } as const satisfies Record<BusinessType, CategoryIcon>;
 
@@ -34,6 +35,7 @@ const KEYWORDS: [RegExp, CategoryIcon][] = [
   [/marisco|pescad/, 'fish-outline'],
   [/bebida|bar\b|antro|cantina/, 'wine-outline'],
   [/restaurante/, 'restaurant-outline'],
+  [/venta en casa|en casa|dark kitchen/, 'home-outline'],
   [/fond|cocina|caser/, 'patio-fondita'],
 ];
 

@@ -636,7 +636,8 @@ export default function ExplorarScreen() {
     // La selección es la señal más específica, así que gana ella sola.
     const showMatch = isFiltering && !isMuted && !showSelectedOverlay;
     // Mapa personal: los lugares que sigues llevan tu color (naranja); los
-    // demás van en gris, lo que te falta por conocer.
+    // demás van en tinta, la otra mitad de la paleta: lo que te falta por
+    // conocer, sin verse apagado como el gris sobre el mapa claro.
     const followed = savedSet.has(patio.id);
     return (
       <Marker
@@ -698,9 +699,9 @@ export default function ExplorarScreen() {
             </View>
           )}
           <View style={[s.pinCategory, (showSelectedOverlay || showMatch) && s.pinCategoryOpaque]}>
-            <View style={{ transform: [{ rotate: '45deg' }] }}><BusinessCategoryIcon context="map" category={patio.categories[0] ?? 'Fondita'} size={15} color={followed ? theme.accent : theme.textSecondary} /></View>
+            <View style={{ transform: [{ rotate: '45deg' }] }}><BusinessCategoryIcon context="map" category={patio.categories[0] ?? 'Fondita'} size={15} color={followed ? theme.accent : theme.text} /></View>
           </View>
-          </> : <View style={s.mapDotWrap}><View style={[s.mapDot, !followed && { backgroundColor: theme.textMute }, showMatch && { backgroundColor: theme.accent, borderColor: theme.accent }]} /></View>}
+          </> : <View style={s.mapDotWrap}><View style={[s.mapDot, !followed && { backgroundColor: theme.text }, showMatch && { backgroundColor: theme.accent, borderColor: theme.accent }]} /></View>}
         </View>
       </Marker>
     );

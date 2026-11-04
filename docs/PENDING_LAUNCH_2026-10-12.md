@@ -5,9 +5,13 @@
 - [x] Onboarding revisado en simulador (13 pantallas) y corregido por reglas
   vigentes: estados de «Continuar», giro obligatorio, CTA naranja en la
   celebración, acceso Foodie con «Seguir».
-- [ ] **Onboarding — decisiones de Parco:** quitar las dos primeras
-  diapositivas, alinear a la izquierda el alta y el título del acceso del
-  negocio (detalle en `docs/design/ONBOARDING_PROPOSAL_2026-11-02.md`).
+- [x] Onboarding decidido y aplicado (2026-11-03): una sola pantalla, alta
+  centrada (Jev), acceso del negocio que invita, celebración que vende la
+  foto, dirección confirmada en el mapa.
+- [ ] Rediseñar el flujo de publicar (terminar → revisar → ver como imagen →
+  publicar y compartir → ir a tu ficha); propuesta antes de construir.
+- [ ] «De quienes sigues»: definir con Parco (bloque en el mapa o pestaña).
+- [ ] Cobro sin RevenueCat: StoreKit y Play Billing directo + validación propia.
 - [ ] QA en el cel de la ficha: Seguir/Siguiendo, barra de avisos, silenciar,
   «Elegir lugares», lista de seguidores, descripción; precio del platillo con
   «Siguiente»/«Listo».

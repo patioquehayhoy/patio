@@ -62,3 +62,13 @@ export async function getPatioHighlights(negocioId: string): Promise<PatioHighli
     notice: row?.notice_body ? { body: row.notice_body, createdAt: new Date(row.notice_at) } : null,
   };
 }
+
+export type MyPlan = { source: 'store' | 'founder'; expiresAt: Date };
+
+/** Pro vigente de la cuenta (la base solo entrega la fila propia). */
+export async function getMyPlan(): Promise<MyPlan | null> {
+  const { data, error } = await supabase.from('business_plans').select('source,expires_at').maybeSingle();
+  if (error || !data) return null;
+  const expiresAt = new Date(data.expires_at);
+  return expiresAt > new Date() ? { source: data.source, expiresAt } : null;
+}

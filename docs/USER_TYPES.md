@@ -66,7 +66,8 @@ Aquí solo se describe lo que existe en la app.
 - **Costo:** $0.
 - **Recibe:** 6 meses de Pro (se otorga a mano, ver
   [billing](BILLING_SETUP_2026-10-26.md)), alta del negocio y del menú en
-  persona y línea directa con el equipo. El sello Fundador aún no existe.
+  persona. El sello Fundador aún no existe. En Planes ve Pro a $0 «como
+  Fundador» con su fecha, y ya no ve la invitación.
 
 ## Reglas
 

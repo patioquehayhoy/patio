@@ -335,14 +335,16 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                                 />
                               </View>
                             ) : (
+                              // Mismo hueco que el precio lleno (alto, ancho y radio):
+                              // al escribir, el campo nace exactamente ahí.
                               <TouchableOpacity
-                                style={s.addPrice}
-                                hitSlop={{ top: 7, bottom: 7, left: 6, right: 4 }}
+                                style={[s.priceChip, s.priceChipEmpty]}
+                                hitSlop={{ top: 8, bottom: 8, left: 6, right: 4 }}
                                 onPress={() => openPrice(dish.id)}
                                 activeOpacity={0.7}
                                 accessibilityRole="button"
                                 accessibilityLabel={`Agregar precio a ${dish.nombre || 'platillo'}`}>
-                                <Text style={s.addDetail}>+ Precio</Text>
+                                <Text style={s.addPriceText}>+ Precio</Text>
                               </TouchableOpacity>
                             )}
                             <TouchableOpacity
@@ -486,7 +488,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
               activeOpacity={0.85}
               accessibilityRole="button"
               accessibilityLabel={savedFlash ? 'Guardado' : 'Guardar borrador'}>
-              <Ionicons name="checkmark" size={16} color={c.text} style={{ opacity: savedFlash ? 1 : 0 }} />
+              {savedFlash && <Ionicons name="checkmark" size={16} color={c.text} />}
               <Text style={s.saveText}>{savedFlash ? 'Guardado' : 'Guardar'}</Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -557,7 +559,8 @@ function makeStyles(c: FonderoColors) {
     detailRow: { marginTop: 2, flexDirection: 'row', alignItems: 'center' },
     description: { flex: 1, paddingVertical: 3, fontSize: 13, fontWeight: '300', color: c.textSecondary },
     priceChip: { minWidth: 64, height: 28, marginTop: -1, paddingHorizontal: 9, borderRadius: 10, flexDirection: 'row', alignItems: 'center', gap: 2, backgroundColor: c.iconBg },
-    addPrice: { height: 27, justifyContent: 'center' },
+    priceChipEmpty: { justifyContent: 'center', backgroundColor: 'transparent', borderWidth: StyleSheet.hairlineWidth, borderColor: c.border },
+    addPriceText: { fontSize: 13, fontWeight: '400', color: c.textSecondary },
     priceBar: { minHeight: 44, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: c.surface2, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: c.border },
     priceBarButton: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 4 },
     priceBarNext: { fontSize: 16, fontWeight: '400', color: c.text },
@@ -574,8 +577,10 @@ function makeStyles(c: FonderoColors) {
     chip: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingLeft: 10, paddingRight: 14, minHeight: 36, borderRadius: 100, backgroundColor: c.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: c.border },
     chipText: { fontSize: 12, fontWeight: '700', letterSpacing: 0.6, color: c.text },
     actionsBlock: { marginTop: 24, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: 8 },
-    saveButton: { minHeight: 54, borderRadius: 27, paddingVertical: 12, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: c.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: c.border },
-    saveText: { minWidth: 76, textAlign: 'center', fontSize: 16, fontWeight: '700', color: c.text },
+    // Ancho fijo para «Guardar» y «✓ Guardado»: el texto queda centrado y el
+    // botón no cambia de tamaño (antes reservaba un ícono invisible).
+    saveButton: { minHeight: 54, minWidth: 148, borderRadius: 27, paddingVertical: 12, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: c.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: c.border },
+    saveText: { textAlign: 'center', fontSize: 16, fontWeight: '700', color: c.text },
     publishButton: { minHeight: 54, borderRadius: 27, paddingVertical: 12, paddingHorizontal: 32, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: c.accent },
     // Mismos estados que Guardar en Editar mi negocio: falta algo (gris, dice
     // qué), listo (naranja), publicando (naranja con indicador).

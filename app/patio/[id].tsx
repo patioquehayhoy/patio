@@ -26,11 +26,12 @@ import { reportContent, writeErrorMessage, type ReportReason } from '@/lib/conte
 import { businessStatsLabel, getBusinessStats, getDishLikeCounts, type BusinessStats } from '@/lib/business-stats';
 import { getMutedPatioIds, getRemoteNotificationPreferences, setPatioNotifications } from '@/lib/community-notifications';
 import { floatingSurfaceShadow, sheetSurfaceTint } from '@/lib/surface-styles';
+import { opticalIndent } from '@/lib/optical';
 import { supabase } from '@/lib/supabase';
 import { getPatioHighlights, getProStatus, setFeaturedDish, type PatioHighlights } from '@/lib/business-pro';
 import { formatHHMM12 } from '@/lib/horario';
 import { MAP_STYLE_DARK, MAP_STYLE_LIGHT } from '@/lib/map-style';
-import { Radius, useTheme, type Theme, Type } from '@/lib/theme';
+import { Fonts, Radius, useTheme, type Theme, Type } from '@/lib/theme';
 import { recordRecentPatio } from '@/lib/recent-patios';
 import { noWidow } from '@/lib/typography';
 import { useKnownLocation } from '@/lib/use-known-location';
@@ -758,7 +759,9 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
             <Text
               accessibilityRole="header"
               accessibilityLabel={patio.isVerifiedBusiness ? `${patio.name}, negocio verificado` : patio.name}
-              style={[s.title, TITLE_STEPS[titleStep]]}
+              // Alineación óptica: la tinta del nombre, la descripción y los
+              // seguidores empieza en la misma vertical (no sus cajas).
+              style={[s.title, TITLE_STEPS[titleStep], { marginLeft: opticalIndent(patio.name, Fonts.brand, TITLE_STEPS[titleStep].fontSize) }]}
               numberOfLines={titleClamped ? 3 : undefined}
               onTextLayout={(event) => {
                 const last = titleStep === TITLE_STEPS.length - 1;
@@ -774,7 +777,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
               </View></>}
             </Text>
             {!!description && (
-              <Text style={[s.heroBioText, s.heroBio]} numberOfLines={2} allowFontScaling={true}>{noWidow(description)}</Text>
+              <Text style={[s.heroBioText, s.heroBio, { marginLeft: opticalIndent(description, Fonts.text, 15) }]} numberOfLines={2} allowFontScaling={true}>{noWidow(description)}</Text>
             )}
             <View style={[s.heroMeta, !description && s.heroMetaUnderName]}>
               {businessStats ? (
@@ -786,7 +789,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
                   onPress={() => router.push({ pathname: '/foodie/seguidores', params: { patio: patio.id } })}
                   accessibilityRole="button"
                   accessibilityLabel={`${businessStatsLabel(businessStats)}, ver quién lo sigue`}>
-                  <Text style={s.followersText} allowFontScaling={true}>
+                  <Text style={[s.followersText, { marginLeft: opticalIndent(String(businessStats.saves), Fonts.textSemibold, 14) }]} allowFontScaling={true}>
                     <Text style={s.followersValue}>{businessStats.saves}</Text> {businessStats.saves === 1 ? 'seguidor' : 'seguidores'}
                   </Text>
                 </TouchableOpacity>

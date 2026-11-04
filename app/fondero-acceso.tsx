@@ -168,9 +168,9 @@ export default function FonderoAccesoScreen() {
 
           {!sent ? (
             <View style={s.actionArea}>
-              <Text style={s.title} allowFontScaling={true} lineBreakStrategyIOS="push-out" maxFontSizeMultiplier={1.4}>{noWidow('Tu menú, en un correo.')}</Text>
+              <Text style={s.title} allowFontScaling={true} lineBreakStrategyIOS="push-out" maxFontSizeMultiplier={1.4}>{noWidow('Que te encuentren hoy.')}</Text>
               <Text style={s.sub} allowFontScaling={true} lineBreakStrategyIOS="push-out" maxFontSizeMultiplier={1.7}>
-                {noWidow('Sin contraseñas. Recibe un código por correo y publica tu menú.')}
+                {noWidow('Publica lo que preparas y aparece en el mapa de quien busca dónde comer cerca. Entras con tu correo, sin contraseñas.')}
               </Text>
               <View style={[s.field, error ? { borderColor: '#E5484D' } : null]}>
                 <BlurView intensity={16} tint="dark" style={s.fieldInner}>

@@ -42,6 +42,14 @@ select id, 'pro', 'founder', now() + interval '6 months' from auth.users where e
 on conflict (user_id) do update set source = 'founder', expires_at = excluded.expires_at, updated_at = now();
 ```
 
+## Decisión de Parco (2026-11-03): sin intermediarios
+
+Nada de software de cobro de terceros. Dentro de la app el cobro es el de
+Apple (StoreKit) y Google Play Billing, como lo exigen sus tiendas para
+funciones digitales; se conectan directo (p. ej. `react-native-iap`, código
+abierto) y la validación de recibos vive en una función propia de Supabase.
+RevenueCat se retira al encender el cobro. Los Fundadores reciben Pro a mano.
+
 ## Falta antes de habilitar cobros
 
 1. Aplicar la migración y desplegar funciones:

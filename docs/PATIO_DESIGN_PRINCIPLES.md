@@ -225,6 +225,12 @@ no la medida.
 - **Vacío de pantalla completa:** ícono de 32 en caja de 68 (radio 20), título
   `Type.section`, texto 15/21 y una acción.
 - **Color:** el naranja sale de la paleta (`Colors.accent`, `t.accent`).
+- **Alineación óptica (2026-11-03):** cuando un título grande va sobre texto
+  chico, se alinea la tinta, no la caja: `lib/optical.ts` resta el margen
+  propio de la primera letra (medido de Monument y Neue Montreal). Así la
+  «C» de un nombre y el «7» de los seguidores caen en la misma vertical.
+- **Precio de platillo:** vacío y lleno comparten el mismo hueco (alto 28,
+  radio 10): vacío con borde fino y «+ Precio», lleno con fondo y «$».
 
 ## Visual Style
 

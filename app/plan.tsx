@@ -5,15 +5,16 @@ import type { PurchasesPackage } from 'react-native-purchases';
 import { Alert, Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { getProStatus } from '@/lib/business-pro';
-import { getFonditaId } from '@/lib/menu-store';
+import { getMyPlan, type MyPlan } from '@/lib/business-pro';
 import { billingAvailable, loadPlanPackages, purchasePlan, restorePlan, subscriptionLegalUrls } from '@/lib/billing';
 import { PLANS, type BillingPeriod } from '@/lib/plans';
 import { useTheme, Type, type Theme } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
 
 const SUPPORT_EMAIL = 'quehayhoy.patio@gmail.com';
-const FOUNDER_BENEFITS = ['6 meses de Pro sin costo', 'Para los primeros negocios de cada colonia', 'Damos de alta tu negocio y tu menú contigo, en persona', 'Línea directa con el equipo de Patio'];
+// Solo lo que se cumple: Pro ya existe y el alta en persona la hace el equipo
+// al visitar cada negocio. Nada de canales o sellos que todavía no hay.
+const FOUNDER_BENEFITS = ['6 meses de Pro sin costo', 'Para los primeros negocios de cada colonia', 'Damos de alta tu negocio y tu menú contigo, en persona'];
 const PREVIEW = 3;
 const mxn = (value: number) => `$${value.toLocaleString('es-MX')}`;
 // Ahorro real del anual frente a 12 meses.
@@ -72,11 +73,10 @@ export default function Plan() {
   const [notice, setNotice] = useState('');
   const available = billingAvailable();
   // Pro activo (Fundador o tienda): se muestra como tu plan aunque el cobro esté apagado.
-  const [proUntil, setProUntil] = useState<Date | null>(null);
-  useEffect(() => {
-    const id = getFonditaId();
-    if (id) void getProStatus(id).then((status) => setProUntil(status?.proUntil ?? null)).catch(() => {});
-  }, []);
+  const [myPlan, setMyPlan] = useState<MyPlan | null>(null);
+  useEffect(() => { void getMyPlan().then(setMyPlan).catch(() => {}); }, []);
+  const proUntil = myPlan?.expiresAt ?? null;
+  const founder = myPlan?.source === 'founder';
   const showPro = available || !!proUntil;
   useEffect(() => {
     let mounted = true;
@@ -135,7 +135,7 @@ export default function Plan() {
         price="$0" unit="siempre" benefits={free.benefits} />
       {!available && proUntil && <PlanCard t={theme} highlight name={paid.name} badge="Tu plan"
         tagline={`Activo hasta el ${proUntil.toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })}`}
-        price={mxn(paid.monthly)} unit="/mes" benefits={paidBenefits} />}
+        price={founder ? '$0' : mxn(paid.monthly)} unit={founder ? 'como Fundador' : '/mes'} benefits={paidBenefits} />}
       {available && <><PlanCard t={theme} highlight name={`${paid.name} anual`} badge={`−${ANNUAL_SAVING}%`} tagline={tagline}
         was={packages.annual ? undefined : mxn(paid.monthly)} price={packages.annual?.product.priceString ?? mxn(Math.round(paid.annual / 12))}
         unit={packages.annual ? 'al año' : `/mes · ${mxn(paid.annual)} al año`}
@@ -144,7 +144,8 @@ export default function Plan() {
         price={packages.monthly?.product.priceString ?? mxn(paid.monthly)} unit="/mes"
         action={subscribe('monthly', 'outline')} benefits={paidBenefits} /></>}
 
-      <View style={[s.special, { backgroundColor: theme.accentLight }]}>
+      {/* Quien ya es Fundador no ve la invitación. */}
+      {!founder && <View style={[s.special, { backgroundColor: theme.accentLight }]}>
         <View style={s.cardHead}>
           <Text accessibilityRole="header" style={[s.planName, { color: theme.text }]}>Fundadores</Text>
           <View style={[s.badge, { backgroundColor: theme.surface }]}><Text style={[s.badgeText, { color: theme.accent }]}>Por invitación</Text></View>
@@ -154,7 +155,7 @@ export default function Plan() {
         <TouchableOpacity accessibilityRole="button" style={[s.cta, { backgroundColor: available ? theme.text : theme.accent }]} onPress={() => openMail('Patio · Fundadores')}>
           <Text style={[s.ctaText, { color: available ? theme.bg : '#fff' }]}>Pedir invitación</Text>
         </TouchableOpacity>
-      </View>
+      </View>}
 
       {showPro && <><Text style={[s.compareTitle, { color: theme.text }]}>{noWidow('Comparar planes')}</Text>
       <View style={[s.tableHead, { borderBottomColor: theme.sep }]}>

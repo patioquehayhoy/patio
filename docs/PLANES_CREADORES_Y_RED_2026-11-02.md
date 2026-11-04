@@ -46,7 +46,7 @@ mensual al lado, tabla para comparar, texto alineado a la izquierda):
 |---|---|---|
 | Gratis | $0 siempre | Perfil público, menú a mano sin límite, 20 lecturas con foto al día, compartir como imagen, aviso a tus seguidores, reseñas y respuesta, quién te sigue y «me gusta» |
 | Pro | $99/mes · $990/año | Todo lo de Gratis, más 60 lecturas con foto al día, 8 avisos especiales al mes, platillo destacado en la ficha, día y hora con más interés |
-| Fundador | Por invitación | 6 meses de Pro, alta en persona, línea directa con el equipo |
+| Fundador | Por invitación | 6 meses de Pro (se da en la visita) y alta en persona |
 
 Pro está construido (2026-11-02, ver [billing](BILLING_SETUP_2026-10-26.md)).
 Se ofrece a la venta cuando el cobro se encienda; mientras, los Fundadores lo

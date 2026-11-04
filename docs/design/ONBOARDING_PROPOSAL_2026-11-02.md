@@ -8,12 +8,16 @@
 > no se puede saltar (antes pasaba como Fondita sin elegirlo, y después solo
 > soporte lo cambia); «Crear mi primer menú» va en naranja (única acción
 > destacada); el acceso del Foodie dice «Sigue lo bueno.» y «Enviar código».
-> **Decisiones de Parco pendientes:** (1) quitar las dos primeras
-> diapositivas y dejar entrada + elección (recomendado: el valor llega dos
-> toques antes); (2) alinear a la izquierda títulos y textos del alta (hoy
-> centrados; Parco no quiere párrafos centrados); (3) título del acceso del
-> negocio «Tu menú, en un correo.» (puede leerse como que el menú llega por
-> correo; propuesta: «Publica con tu correo.»).
+> **Decidido 2026-11-03:** (1) una sola pantalla después de la entrada:
+> logo, «Pásale, aquí es.», una frase y la elección (Mapa / ícono de Mi
+> Patio); (2) el alta sigue centrada: Jev la prefirió 68–80 % sobre la
+> izquierda y la leyó más rápido y confiable (`docs/research/jev-alta-*`);
+> cada frase cabe en un renglón para no centrar párrafos; (3) acceso del
+> negocio: «Que te encuentren hoy.»; (4) la celebración vende la foto:
+> «Tómale foto a tu menú.» con «Tomar foto del menú» y, de secundaria,
+> «Elegir de Fotos o escribirlo»; (5) la dirección escrita se confirma en
+> el mapa («Te ubicamos en… ¿Es aquí?») y el teclado sugiere direcciones del
+> teléfono.
 
 > **Actualización (mismo día):** la propuesta de abajo se dibujó desde cero.
 > El flujo ya estaba especificado (`docs/PATIO_SYSTEM_MAP.md`, 19 jul) y

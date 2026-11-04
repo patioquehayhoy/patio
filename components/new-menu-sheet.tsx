@@ -114,7 +114,7 @@ export function NewMenuSheet({ visible, onClose, onCancel, replaceOnNavigate }: 
         <Animated.View accessibilityViewIsModal onAccessibilityEscape={() => { onCancel?.(); onClose(); }} onLayout={(event) => setContentHeight(event.nativeEvent.layout.height)} style={[s.wrap, { paddingBottom: bottomPadding, transform: [{ translateY }] }]}>
           <View style={s.group}>
             <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
-            <View pointerEvents="none" style={[s.groupTint, { backgroundColor: theme.isDark ? 'rgba(20,21,24,0.72)' : 'rgba(255,255,255,0.70)' }]} />
+            <View pointerEvents="none" style={[s.groupTint, { backgroundColor: theme.isDark ? 'rgba(20,21,24,0.90)' : 'rgba(255,255,255,0.88)' }]} />
             {options.map((option, index) => (
               <TouchableOpacity
                 key={option.label}
@@ -129,7 +129,7 @@ export function NewMenuSheet({ visible, onClose, onCancel, replaceOnNavigate }: 
           </View>
           <TouchableOpacity onPress={() => { onCancel?.(); onClose(); }} style={s.cancelGroup} accessibilityRole="button" accessibilityLabel="Cancelar">
             <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
-            <View pointerEvents="none" style={[s.groupTint, { backgroundColor: theme.isDark ? 'rgba(20,21,24,0.72)' : 'rgba(255,255,255,0.70)' }]} />
+            <View pointerEvents="none" style={[s.groupTint, { backgroundColor: theme.isDark ? 'rgba(20,21,24,0.90)' : 'rgba(255,255,255,0.88)' }]} />
             <Text style={[s.cancelText, { color: c.text }]}>Cancelar</Text>
           </TouchableOpacity>
         </Animated.View>
@@ -141,7 +141,8 @@ export function NewMenuSheet({ visible, onClose, onCancel, replaceOnNavigate }: 
 function makeStyles(isDark: boolean) {
   const border = isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.06)';
   return StyleSheet.create({
-    backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.16)' },
+    // Más opaco que antes: el texto de atrás no debe leerse a través del menú.
+    backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.32)' },
     wrap: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 8, gap: 8 },
     group: { borderRadius: Radius.card, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: border },
     groupTint: StyleSheet.absoluteFillObject,

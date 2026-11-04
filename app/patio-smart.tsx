@@ -118,13 +118,14 @@ function StepHeader({ colors, title, subtitle }: {
 
 // Estados homologados (2026-11-01): si falta algo, superficie con borde fino
 // y el texto dice qué falta; listo, naranja; en curso, naranja con indicador.
-function ContinueButton({ colors, missing, loading, onPress }: {
+function ContinueButton({ colors, missing, label: readyLabel, loading, onPress }: {
   colors: FonderoColors;
   missing?: string;
+  label?: string;
   loading?: boolean;
   onPress: () => void;
 }) {
-  const label = missing ?? 'Continuar';
+  const label = missing ?? readyLabel ?? 'Continuar';
   return (
     <TouchableOpacity
       accessibilityRole="button"
@@ -170,6 +171,9 @@ export default function PatioSmartScreen() {
   );
 
   const hasCoordinates = Number.isFinite(result.latitude) && Number.isFinite(result.longitude);
+  // Dirección escrita a mano: se busca en el mapa y se confirma antes de
+  // seguir («Te ubicamos en…»); si no aparece en México, se pide revisarla.
+  const [addressCheck, setAddressCheck] = useState<{ status: 'idle' | 'found' | 'notFound'; label?: string }>({ status: 'idle' });
   const hasLocation = hasCoordinates || Boolean(result.direccion.trim());
 
   const useCurrentLocation = async () => {
@@ -207,12 +211,18 @@ export default function PatioSmartScreen() {
     if (!hasCoordinates && result.direccion.trim()) {
       setLocating(true);
       try {
-        const matches = await Location.geocodeAsync(result.direccion.trim());
-        const match = matches[0];
-        if (match) update({ latitude: match.latitude, longitude: match.longitude });
+        const match = (await Location.geocodeAsync(result.direccion.trim()))[0];
+        const place = match ? (await Location.reverseGeocodeAsync({ latitude: match.latitude, longitude: match.longitude }).catch(() => []))[0] : undefined;
+        if (!match || (place?.isoCountryCode && place.isoCountryCode !== 'MX')) {
+          setAddressCheck({ status: 'notFound' });
+          return;
+        }
+        update({ latitude: match.latitude, longitude: match.longitude });
+        setAddressCheck({ status: 'found', label: formatPlacemark(place) || result.direccion.trim() });
+        return;
       } catch {
-        // La dirección sigue siendo útil y no bloqueamos el alta por un fallo
-        // temporal del geocodificador. El punto puede afinarse después.
+        // Sin conexión con el geocodificador no bloqueamos el alta: la
+        // dirección escrita sirve y el punto se afina después.
       } finally {
         setLocating(false);
       }
@@ -307,31 +317,34 @@ export default function PatioSmartScreen() {
         </View>
 
         <View style={[s.finishContent, { paddingBottom: insets.bottom + 24 }]}>
+          {/* La primera vez se vende la foto: es lo que Patio hace mejor
+              (lee el menú solo). Una primaria y una secundaria, como pide la
+              regla de celebraciones; los datos se editan con «volver». */}
           <Text style={s.finishTitle} lineBreakStrategyIOS="push-out" maxFontSizeMultiplier={1.35}>
-            {noWidow('Publica lo de hoy.')}
+            {noWidow('Tómale foto a tu menú.')}
           </Text>
           <Text style={s.finishBody} lineBreakStrategyIOS="push-out" maxFontSizeMultiplier={1.6}>
-            {noWidow('Toma una foto del menú o agrégalo en unos cuantos pasos.')}
+            {noWidow('Patio lo lee y lo acomoda por ti. Tú solo revisas y publicas.')}
           </Text>
-          {/* Del alta directo al primer menú: foto, Fotos o escribirlo. Si se
-              cancela, entra a Menús; nunca se queda atorado aquí. */}
           <TouchableOpacity
-            onPress={() => setFirstMenuVisible(true)}
+            onPress={() => router.replace({ pathname: '/foto-menu', params: { source: 'camera' } })}
             activeOpacity={0.85}
             style={s.finishButton}
             accessibilityRole="button"
-            accessibilityLabel="Crear mi primer menú">
+            accessibilityLabel="Tomar foto del menú">
+            <Ionicons name="camera-outline" size={20} color="#FFFFFF" />
             <Text style={s.finishButtonText} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.3}>
-              {noWidow('Crear mi primer menú')}
+              {noWidow('Tomar foto del menú')}
             </Text>
           </TouchableOpacity>
+          {/* Si se cancela, entra a Menús; nunca se queda atorado aquí. */}
           <TouchableOpacity
-            onPress={() => setStage('name')}
+            onPress={() => setFirstMenuVisible(true)}
             activeOpacity={0.7}
             style={s.finishEdit}
             accessibilityRole="button"
-            accessibilityLabel="Editar datos">
-            <Text style={s.finishEditText} numberOfLines={1} maxFontSizeMultiplier={1.3}>{noWidow('Editar datos')}</Text>
+            accessibilityLabel="Elegir de Fotos o escribirlo">
+            <Text style={s.finishEditText} numberOfLines={1} maxFontSizeMultiplier={1.3}>{noWidow('Elegir de Fotos o escribirlo')}</Text>
           </TouchableOpacity>
         </View>
         <NewMenuSheet
@@ -417,7 +430,7 @@ export default function PatioSmartScreen() {
             <StepHeader
               colors={colors}
               title="¿Qué tipo de lugar es?"
-              subtitle="Esto ayuda a Patio a leer y ordenar tu menú correctamente."
+              subtitle="Así te encuentran por lo que preparas."
             />
             <View style={s.typeGrid}>
               {BUSINESS_TYPES.map((item) => {
@@ -518,7 +531,10 @@ export default function PatioSmartScreen() {
               <TextInput
                 accessibilityLabel="Dirección del negocio"
                 value={result.direccion}
-                onChangeText={(direccion) => update({ direccion: direccion.slice(0, TEXT_LIMITS.address), latitude: null, longitude: null })}
+                onChangeText={(direccion) => { setAddressCheck({ status: 'idle' }); update({ direccion: direccion.slice(0, TEXT_LIMITS.address), latitude: null, longitude: null }); }}
+                // El teclado de iOS sugiere direcciones guardadas en el teléfono.
+                textContentType="fullStreetAddress"
+                autoComplete="street-address"
                 placeholder="Calle, número y colonia"
                 placeholderTextColor={colors.textMute}
                 selectionColor={colors.accent}
@@ -531,7 +547,24 @@ export default function PatioSmartScreen() {
               />
             </View>
 
-            <ContinueButton colors={colors} missing={hasLocation ? undefined : 'Falta la dirección'} loading={locating} onPress={continueFromLocation} />
+            {addressCheck.status === 'found' && (
+              <View style={s.addressCheck} accessibilityLiveRegion="polite">
+                <Ionicons name="location" size={15} color={colors.accent} />
+                <Text style={[s.addressCheckText, { color: colors.text }]} maxFontSizeMultiplier={1.5}>{noWidow(`Te ubicamos en ${addressCheck.label}. ¿Es aquí?`)}</Text>
+              </View>
+            )}
+            {addressCheck.status === 'notFound' && (
+              <Text style={[s.addressError, { color: colors.accent }]} accessibilityLiveRegion="polite" maxFontSizeMultiplier={1.5}>
+                {noWidow('No encontramos esa dirección. Escribe calle, número y colonia, o usa tu ubicación.')}
+              </Text>
+            )}
+            <ContinueButton
+              colors={colors}
+              missing={!hasLocation ? 'Falta la dirección' : addressCheck.status === 'notFound' ? 'Revisa la dirección' : undefined}
+              label={addressCheck.status === 'found' ? 'Sí, es aquí' : undefined}
+              loading={locating}
+              onPress={continueFromLocation}
+            />
           </>
         )}
 
@@ -598,6 +631,9 @@ const s = StyleSheet.create({
   fieldLabel: { fontSize: 11, lineHeight: 14, fontWeight: '700', letterSpacing: 0.8 },
   fieldInput: { flex: 1, minHeight: 36, padding: 0, fontSize: 19, lineHeight: 25, fontWeight: '500' },
   addressField: { marginTop: 12 },
+  addressCheck: { marginTop: 12, paddingHorizontal: 4, flexDirection: 'row', alignItems: 'flex-start', gap: 6 },
+  addressCheckText: { flex: 1, fontSize: 14, lineHeight: 19, fontWeight: '400' },
+  addressError: { marginTop: 10, paddingHorizontal: 4, fontSize: 13, lineHeight: 18, fontWeight: '400' },
   otroField: { marginTop: 12 },
   continueButton: { minWidth: 154, minHeight: 54, alignSelf: 'center', marginTop: 26, paddingHorizontal: 26, borderRadius: 27, alignItems: 'center', justifyContent: 'center' },
   continueText: { fontSize: 16, fontWeight: '700' },
@@ -620,8 +656,8 @@ const s = StyleSheet.create({
   finishTitle: { color: '#fff', ...Type.section, textAlign: 'center' },
   finishBody: { maxWidth: 340, color: 'rgba(255,255,255,0.74)', marginTop: 8, fontSize: 15, lineHeight: 21, fontWeight: '400', textAlign: 'center' },
   // La única acción destacada de la pantalla va en naranja (CLAUDE.md).
-  finishButton: { minHeight: 54, marginTop: 22, paddingHorizontal: 24, borderRadius: 27, backgroundColor: Colors.accent, alignItems: 'center', justifyContent: 'center' },
+  finishButton: { minHeight: 54, marginTop: 22, paddingHorizontal: 24, borderRadius: 27, backgroundColor: Colors.accent, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   finishButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
-  finishEdit: { minHeight: 42, paddingHorizontal: 18, alignItems: 'center', justifyContent: 'center' },
-  finishEditText: { color: 'rgba(255,255,255,0.62)', fontSize: 13, fontWeight: '400' },
+  finishEdit: { minHeight: 44, marginTop: 4, paddingHorizontal: 18, alignItems: 'center', justifyContent: 'center' },
+  finishEditText: { color: 'rgba(255,255,255,0.82)', fontSize: 15, fontWeight: '700' },
 });

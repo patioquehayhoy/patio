@@ -717,8 +717,13 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
         ]}
         resizeMode="cover"
       />
+      {/* Foodie: arrastrar hacia abajo cierra la ficha y deja ver el mapa.
+          Fondero en su propia ficha: es una pestaña, no hay nada detrás, así
+          que no rebota (el rebote dejaba ver la foto de fondo cortada). */}
       <Animated.ScrollView
         contentInsetAdjustmentBehavior="never"
+        bounces={!own}
+        overScrollMode={own ? 'never' : 'auto'}
         contentContainerStyle={[s.scrollContent, own && { paddingBottom: bottomTabClearance(insets.bottom) }]}
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={16}

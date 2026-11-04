@@ -112,6 +112,9 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
   const sectionMoreRefs = useRef<Map<string, View | null>>(new Map());
   const activeSectionIndex = data.secciones.findIndex((section) => section.id === sectionActions);
   const sectionActionOptions = activeSectionIndex >= 0 ? [
+    collapsed[sectionActions!]
+      ? { label: 'Mostrar platillos', icon: 'chevron-down' as const, onPress: () => { smoothly(); toggleCollapsed(sectionActions!); } }
+      : { label: 'Ocultar platillos', icon: 'chevron-up' as const, onPress: () => { smoothly(); toggleCollapsed(sectionActions!); } },
     ...(activeSectionIndex > 0 ? [{ label: 'Subir', icon: 'arrow-up' as const, onPress: () => moveSection(sectionActions!, -1) }] : []),
     ...(activeSectionIndex < data.secciones.length - 1 ? [{ label: 'Bajar', icon: 'arrow-down' as const, onPress: () => moveSection(sectionActions!, 1) }] : []),
     { label: 'Eliminar', icon: 'trash-outline' as const, destructive: true, onPress: () => removeSection(sectionActions!) },
@@ -256,12 +259,12 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
               propio se cobran aparte. Aparece solo en los giros de comida
               corrida (fondita, venta en casa, restaurante) o si ya tiene
               precio; en los demás se ofrece como sugerencia junto a las
-              secciones. Se lee como un encabezado más (misma fila y columna
-              que cada sección) y usa el mismo chip que el precio de un
-              platillo, al borde derecho donde viven «···» y «×». */}
+              secciones. Es un dato del menú, no una sección: fila de
+              lista (etiqueta a la izquierda, valor a la derecha) con el mismo
+              chip que el precio de un platillo, en su misma columna. */}
           {showDayPrice && (
             <View style={s.dayPriceRow}>
-              <Text style={s.dayPriceLabel} numberOfLines={1}>PRECIO DEL MENÚ</Text>
+              <Text style={s.dayPriceLabel} numberOfLines={1}>Precio del menú</Text>
               <TouchableOpacity
                 style={[s.priceChip, !dayPrice && !dayPriceFocused && s.priceChipEmpty]}
                 activeOpacity={0.7}
@@ -296,15 +299,6 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
             return (
               <View key={section.id} style={s.section}>
                 <View style={s.sectionHeader}>
-                  <TouchableOpacity
-                    style={s.collapseButton}
-                    hitSlop={{ top: 4, bottom: 4, left: 7, right: 7 }}
-                    onPress={() => toggleCollapsed(section.id)}
-                    accessibilityRole="button"
-                    accessibilityLabel={isCollapsed ? 'Mostrar sección' : 'Ocultar sección'}
-                    activeOpacity={0.7}>
-                    <Ionicons name={isCollapsed ? 'chevron-forward' : 'chevron-down'} size={17} color={c.textSecondary} />
-                  </TouchableOpacity>
                   <TextInput
                     style={s.sectionName}
                     value={section.nombre}
@@ -313,6 +307,16 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                     placeholderTextColor={c.textMute}
                     returnKeyType="done"
                   />
+                  {isCollapsed && (
+                    <TouchableOpacity
+                      style={s.collapsedCount}
+                      onPress={() => { smoothly(); toggleCollapsed(section.id); }}
+                      activeOpacity={0.7}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Mostrar ${section.platillos.length} platillos`}>
+                      <Text style={s.collapsedCountText}>{`${section.platillos.length} ${section.platillos.length === 1 ? 'platillo' : 'platillos'}`}</Text>
+                    </TouchableOpacity>
+                  )}
                   <TouchableOpacity
                     ref={(el) => { sectionMoreRefs.current.set(section.id, el); }}
                     style={s.moreButton}
@@ -455,8 +459,8 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                       activeOpacity={0.7}
                       accessibilityRole="button"
                       accessibilityLabel="Agregar platillo">
-                      <Ionicons name="add" size={16} color={c.accent} />
-                      <Text style={s.addDishText}>{noWidow('Agregar')}</Text>
+                      <Ionicons name="add" size={18} color={c.accent} />
+                      <Text style={s.addText}>{noWidow('Agregar platillo')}</Text>
                     </TouchableOpacity>
                   </>
                 )}
@@ -478,8 +482,8 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                 activeOpacity={0.7}
                 accessibilityRole="button"
                 accessibilityLabel="Agregar sección">
-                <Ionicons name="add-circle" size={20} color={c.accent} />
-                <Text style={s.addSectionToggleText}>{noWidow('Agregar sección')}</Text>
+                <Ionicons name="add" size={18} color={c.accent} />
+                <Text style={s.addText}>{noWidow('Agregar sección')}</Text>
               </TouchableOpacity>
             ) : (
               <>
@@ -544,21 +548,10 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
             )}
           </View>
 
-          {/* Cierre del flujo, dentro del contenido: cápsulas HIG en fila —
-              el secundario usa superficie neutra y borde fino, el primario
-              lleva el peso. Nada ocupa todo el ancho. */}
+          {/* Cierre del flujo: una primaria y una secundaria, como el alta y
+              el póster. «Publicar menú» es la cápsula naranja de 54 (única
+              acción prominente); «Guardar sin publicar» es texto debajo. */}
           <View style={s.actionsBlock}>
-            <TouchableOpacity
-              style={[s.saveButton, publishing && { opacity: 0.4 }]}
-              disabled={publishing}
-              accessibilityState={{ disabled: publishing }}
-              onPress={saveDraft}
-              activeOpacity={0.85}
-              accessibilityRole="button"
-              accessibilityLabel={savedFlash ? 'Guardado' : 'Guardar borrador'}>
-              {savedFlash && <Ionicons name="checkmark" size={16} color={c.text} />}
-              <Text style={s.saveText}>{savedFlash ? 'Guardado' : 'Guardar'}</Text>
-            </TouchableOpacity>
             <TouchableOpacity
               style={[s.publishButton, menuEmpty && s.publishIdle]}
               onPress={publish}
@@ -569,6 +562,17 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
               accessibilityState={{ disabled: publishing || menuEmpty, busy: publishing }}>
               {publishing && <ActivityIndicator size="small" color="#fff" />}
               <Text style={[s.publishText, menuEmpty && { color: c.textSecondary }]}>{noWidow(publishing ? 'Publicando…' : menuEmpty ? 'Falta un platillo' : 'Publicar menú')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[s.saveButton, publishing && { opacity: 0.4 }]}
+              disabled={publishing}
+              accessibilityState={{ disabled: publishing }}
+              onPress={saveDraft}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel={savedFlash ? 'Guardado' : 'Guardar sin publicar'}>
+              {savedFlash && <Ionicons name="checkmark" size={16} color={c.textSecondary} />}
+              <Text style={s.saveText}>{noWidow(savedFlash ? 'Guardado' : 'Guardar sin publicar')}</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -605,15 +609,16 @@ function makeStyles(c: FonderoColors) {
     nav: { minHeight: 54, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
     navButton: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
     navTitle: { flex: 1, textAlign: 'left', paddingHorizontal: 8, fontSize: 17, fontWeight: '700', color: c.textSecondary },
-    dayPriceRow: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 8, paddingBottom: 12 },
-    dayPriceLabel: { flex: 1, paddingLeft: 30, fontSize: 14, lineHeight: 20, fontWeight: '700', letterSpacing: 0.6, color: c.text },
+    dayPriceRow: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 8, paddingBottom: 8 },
+    dayPriceLabel: { flex: 1, fontSize: 16, lineHeight: 21, fontWeight: '400', color: c.text },
     section: { borderTopWidth: StyleSheet.hairlineWidth, borderColor: c.border, paddingVertical: 12 },
     sectionHeader: { minHeight: 44, flexDirection: 'row', alignItems: 'center' },
-    collapseButton: { width: 30, height: 36, alignItems: 'flex-start', justifyContent: 'center' },
     sectionName: { flex: 1, paddingVertical: 6, fontSize: 14, lineHeight: 20, fontWeight: '700', letterSpacing: 0.6, color: c.text },
+    collapsedCount: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 4 },
+    collapsedCountText: { fontSize: 13, fontWeight: '400', color: c.textSecondary },
     moreButton: { width: 44, height: 44, alignItems: 'flex-end', justifyContent: 'center' },
     currency: { fontSize: 13, fontWeight: '300', color: c.textMute },
-    dish: { paddingVertical: 7, paddingLeft: 30 },
+    dish: { paddingVertical: 7 },
     dishDivider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: c.border },
     reviewNote: { marginBottom: 3, flexDirection: 'row', alignItems: 'center', gap: 4 },
     reviewNoteText: { flex: 1, fontSize: 11, lineHeight: 15, fontWeight: '300', color: c.accent },
@@ -634,22 +639,20 @@ function makeStyles(c: FonderoColors) {
     priceBarNext: { fontSize: 16, fontWeight: '400', color: c.text },
     priceBarDone: { fontSize: 16, fontWeight: '700', color: c.accent },
     dishPrice: { minWidth: 10, paddingVertical: 0, fontSize: 15, fontWeight: '700', color: c.text },
-    addDish: { minHeight: 44, marginLeft: 30, flexDirection: 'row', alignItems: 'center', gap: 8 },
-    addDishText: { fontSize: 13, fontWeight: '700', color: c.accent },
+    addDish: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 4 },
+    // Toda acción «agregar» del editor: mismo ícono, tamaño y color.
+    addText: { fontSize: 15, fontWeight: '700', color: c.accent },
     addSectionBlock: { borderTopWidth: StyleSheet.hairlineWidth, borderColor: c.border, paddingTop: 14 },
-    addSectionToggle: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 44 },
-    addSectionToggleText: { fontSize: 13, fontWeight: '700', color: c.accent },
+    addSectionToggle: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: 44 },
     addSectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: 28, marginBottom: 10 },
     addSectionLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, color: c.textMute },
     chipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
     chip: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingLeft: 10, paddingRight: 14, minHeight: 36, borderRadius: 100, backgroundColor: c.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: c.border },
     chipText: { fontSize: 12, fontWeight: '700', letterSpacing: 0.6, color: c.text },
-    actionsBlock: { marginTop: 24, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: 8 },
-    // Ancho fijo para «Guardar» y «✓ Guardado»: el texto queda centrado y el
-    // botón no cambia de tamaño (antes reservaba un ícono invisible).
-    saveButton: { minHeight: 54, minWidth: 148, borderRadius: 27, paddingVertical: 12, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: c.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: c.border },
-    saveText: { textAlign: 'center', fontSize: 16, fontWeight: '700', color: c.text },
-    publishButton: { minHeight: 54, borderRadius: 27, paddingVertical: 12, paddingHorizontal: 32, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: c.accent },
+    actionsBlock: { marginTop: 32, alignItems: 'center', gap: 8 },
+    saveButton: { minHeight: 44, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
+    saveText: { fontSize: 16, fontWeight: '400', color: c.textSecondary },
+    publishButton: { alignSelf: 'stretch', minHeight: 54, borderRadius: 27, paddingHorizontal: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: c.accent },
     // Mismos estados que Guardar en Editar mi negocio: falta algo (gris, dice
     // qué), listo (naranja), publicando (naranja con indicador).
     publishIdle: { backgroundColor: c.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: c.border },

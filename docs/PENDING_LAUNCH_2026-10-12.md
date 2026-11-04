@@ -18,6 +18,12 @@
 - [x] Giro «Venta en casa» (Jev: 72–75 % lo quiere; el nombre le ganó a «Dark
   kitchen», 65–85 % entre quienes venden). Pide solo edificio o unidad.
 - [x] Después de publicar, «Listo» lleva a Mi Patio.
+- [ ] `npx supabase db push --yes` (función `following_activity`).
+- [ ] Dominio de Patio: compartir ficha con póster + enlace web (ciclo viral) y
+  páginas de privacidad/condiciones.
+- [ ] Decidir nombre final de la pestaña Foodie («Patios» a prueba).
+- [x] Precio del menú del día de vuelta (editor y póster) y editor alineado.
+- [x] «Tu racha» con números del negocio, pantalla completa.
 - [ ] Cobro sin RevenueCat: StoreKit y Play Billing directo + validación propia.
 - [ ] QA en el cel de la ficha: Seguir/Siguiendo, barra de avisos, silenciar,
   «Elegir lugares», lista de seguidores, descripción; precio del platillo con
@@ -58,7 +64,7 @@ Propuesta completa en [PLANES_CREADORES_Y_RED](PLANES_CREADORES_Y_RED_2026-11-02
   escribirles antes de abrir.
 - [x] «Sus lugares» en cada perfil (2026-11-02): hasta 10, primero los que
   mejor calificó y luego los que sigue; respeta el perfil privado.
-- [ ] Bloque «De quienes sigues» en el mapa (sus listas y sus lugares).
+- [x] «De quienes sigues» arriba de Patios (falta `db push`).
 - [ ] Van Westendorp con los negocios Fundadores antes de fijar precios en tienda.
 - [ ] Piloto: medir qué parte de las vistas de una ficha termina en «Seguir»
   (vistas registradas + `saved_patios`). Si es baja, probar un «Seguir» más

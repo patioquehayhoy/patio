@@ -14,7 +14,6 @@ import { ActionSheet } from '@/components/action-sheet';
 import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { bottomActionClearance, bottomTabClearance } from '@/lib/layout-metrics';
 import { SelectionActions } from '@/components/selection-actions';
-import { StreakStatsSheet } from '@/components/streak-stats-sheet';
 import { FoodieLoading } from '@/components/foodie-loading';
 import { MenuListsSheet } from '@/components/menu-lists-sheet';
 import { NewMenuSheet } from '@/components/new-menu-sheet';
@@ -42,7 +41,6 @@ export default function HistorialScreen() {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
   const c = fonderoPalette(theme.isDark);
-  const [streakOpen, setStreakOpen] = useState(false);
   const { onScroll } = useTabBarScroll();
   const { refresh, closeRename, deleteMenu, deleteMenus, draftName, editing, loading, menus, openRename, reuse, saveName, setDraftName, streak } = useMenuHistoryController();
   const [actionsFor, setActionsFor] = useState<PublishedMenu | null>(null);
@@ -193,7 +191,7 @@ export default function HistorialScreen() {
                   activeOpacity={0.7}
                   accessibilityRole="button"
                   accessibilityLabel={`Racha de ${streak} ${streak === 1 ? 'día' : 'días'} seguidos publicando menú. Toca para ver cómo va tu negocio`}
-                  onPress={() => setStreakOpen(true)}>
+                  onPress={() => router.push('/racha')}>
                   <Ionicons name="flame" size={14} color={c.text} />
                   <Text style={[s.streakText, { color: c.text }]}>{streak}</Text>
                 </TouchableOpacity>
@@ -277,7 +275,6 @@ export default function HistorialScreen() {
           { label: 'Eliminar', icon: 'trash-outline', destructive: true, onPress: () => deleteMenu(actionsFor) },
         ] : []}
       />
-      <StreakStatsSheet visible={streakOpen} onClose={() => setStreakOpen(false)} streak={streak} publishedDates={menus.filter((menu) => menu.published).map((menu) => menu.fecha)} />
       <MenuListsSheet
         visible={sheetMode !== null}
         mode={sheetMode ?? 'filter'}

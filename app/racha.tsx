@@ -1,25 +1,22 @@
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
-import { BlurView } from 'expo-blur';
-import * as Haptics from 'expo-haptics';
-import { useEffect, useRef, useState } from 'react';
-import { Animated, Modal, PanResponder, ScrollView, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, useWindowDimensions, View } from 'react-native';
+import { router, Stack, useFocusEffect } from 'expo-router';
+import { useCallback, useState } from 'react';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { getPeakTime, getProStatus } from '@/lib/business-pro';
 import { getBusinessInsights, getDishLikeCounts, type BusinessInsights, type DishLikeCount } from '@/lib/business-stats';
+import { useMenuHistoryController } from '@/lib/controllers/useMenuHistoryController';
 import { fonderoPalette } from '@/lib/fondero-palette';
-import { isVerticalSheetDrag, SHEET_DISMISS_MS, SHEET_SPRING, shouldDismissSheet } from '@/lib/sheet-motion';
 import { localMenuDate } from '@/lib/menu-date';
 import { getFonditaId } from '@/lib/menu-store';
 import { Type, useTheme } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
 
-// Al tocar la racha: cómo va tu negocio en Patio, en una sola hoja. La racha
-// es la razón diaria para volver (lado difícil de la red); junto a ella van
-// los números que dicen si publicar está sirviendo. Misma hoja que el detalle
-// de «me gusta» (dish-like-detail-sheet) y mismos estilos que el tablero de
-// Actividad (resenas.tsx): números en Type.section, etiquetas Type.label.
+// «Tu racha», pantalla completa desde Menús: la racha es la razón diaria para
+// volver (lado difícil de la red) y junto a ella van los números que dicen si
+// publicar está sirviendo. Mismo encabezado que las pantallas empujadas
+// (avisos-lugares) y mismos estilos que el tablero de Actividad (resenas.tsx).
 
 const dayNumber = (fecha: string) => Date.parse(`${fecha}T00:00:00Z`) / 86400000;
 
@@ -34,53 +31,18 @@ export function bestStreak(fechas: string[]): number {
   return best;
 }
 
-export function StreakStatsSheet({ visible, onClose, streak, publishedDates }: {
-  visible: boolean;
-  onClose: () => void;
-  streak: number;
-  publishedDates: string[];
-}) {
+export default function RachaScreen() {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
   const c = fonderoPalette(theme.isDark);
+  const { menus, streak } = useMenuHistoryController();
+  const publishedDates = menus.filter((menu) => menu.published).map((menu) => menu.fecha);
   const [insights, setInsights] = useState<BusinessInsights | null>(null);
   const [topDish, setTopDish] = useState<DishLikeCount | null>(null);
   const [peak, setPeak] = useState<{ day: string; hour: number } | null>(null);
   const [hasPro, setHasPro] = useState(false);
-  const { height: screenHeight } = useWindowDimensions();
-  const translateY = useRef(new Animated.Value(screenHeight)).current;
-  const [rendered, setRendered] = useState(visible);
 
-  useEffect(() => {
-    if (visible) {
-      translateY.setValue(screenHeight);
-      setRendered(true);
-      Animated.spring(translateY, { toValue: 0, ...SHEET_SPRING }).start();
-    } else if (rendered) {
-      Animated.timing(translateY, { toValue: screenHeight, duration: SHEET_DISMISS_MS, useNativeDriver: true }).start(({ finished }) => {
-        if (finished) setRendered(false);
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [visible, screenHeight]);
-
-  const pan = useRef(PanResponder.create({
-    onMoveShouldSetPanResponder: (_event, gesture) => isVerticalSheetDrag(gesture.dx, gesture.dy),
-    onPanResponderMove: (_event, gesture) => translateY.setValue(Math.max(0, gesture.dy)),
-    onPanResponderRelease: (_event, gesture) => {
-      if (shouldDismissSheet(gesture.dy, gesture.vy)) {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-        onClose();
-        return;
-      }
-      Animated.spring(translateY, { toValue: 0, ...SHEET_SPRING }).start();
-    },
-    onPanResponderTerminate: () => { Animated.spring(translateY, { toValue: 0, ...SHEET_SPRING }).start(); },
-  })).current;
-  const backdropOpacity = translateY.interpolate({ inputRange: [0, screenHeight], outputRange: [1, 0], extrapolate: 'clamp' });
-
-  useEffect(() => {
-    if (!visible) return;
+  useFocusEffect(useCallback(() => {
     const id = getFonditaId();
     if (!id) return;
     let alive = true;
@@ -93,7 +55,7 @@ export function StreakStatsSheet({ visible, onClose, streak, publishedDates }: {
       if (pro) { const value = await getPeakTime(id).catch(() => null); if (alive) setPeak(value); }
     }).catch(() => {});
     return () => { alive = false; };
-  }, [visible]);
+  }, []));
 
   const month = localMenuDate().slice(0, 7);
   const thisMonth = new Set(publishedDates.filter((fecha) => fecha.startsWith(month))).size;
@@ -101,25 +63,19 @@ export function StreakStatsSheet({ visible, onClose, streak, publishedDates }: {
   const publishedToday = publishedDates.includes(localMenuDate());
   const days = (n: number) => `${n} ${n === 1 ? 'día' : 'días'}`;
 
-  const open = (path: '/resenas') => { onClose(); router.push(path); };
-
-  if (!rendered) return null;
-
   return (
-    <Modal transparent visible animationType="none" onRequestClose={onClose} statusBarTranslucent>
-      <View style={{ flex: 1 }}>
-        <TouchableWithoutFeedback onPress={onClose} accessibilityLabel="Cerrar">
-          <Animated.View style={[s.backdrop, { opacity: backdropOpacity }]} />
-        </TouchableWithoutFeedback>
-        <Animated.View style={[s.sheet, { maxHeight: screenHeight * 0.85, paddingBottom: insets.bottom || 20, transform: [{ translateY }] }]}>
-          <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
-          <View pointerEvents="none" style={[s.tint, { backgroundColor: theme.isDark ? 'rgba(20,21,24,0.72)' : 'rgba(255,255,255,0.70)' }]} />
-          <View {...pan.panHandlers} style={s.handleArea}>
-            <View style={s.grabber} />
-          </View>
-          <ScrollView style={s.scroll} contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
-            {/* Identidad de la hoja: la racha manda (número de marca), lo
-                demás la acompaña en el ritmo del tablero de Actividad. */}
+    <View style={[s.root, { backgroundColor: c.bg, paddingTop: insets.top }]}>
+      <Stack.Screen options={{ headerShown: false }} />
+      <View style={s.nav}>
+        <TouchableOpacity style={s.back} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Volver">
+          <Ionicons name="chevron-back" size={21} color={c.text} />
+        </TouchableOpacity>
+        <Text accessibilityRole="header" numberOfLines={1} style={[s.navTitle, { color: c.text }]}>Tu racha</Text>
+        <View style={s.back} />
+      </View>
+      <ScrollView contentContainerStyle={[s.content, { paddingBottom: insets.bottom + 32 }]} showsVerticalScrollIndicator={false}>
+            {/* La racha manda (número de marca); lo demás la acompaña en el
+                ritmo del tablero de Actividad. */}
             <View style={s.hero} accessible accessibilityLabel={`Racha de ${days(streak)} seguidos publicando`}>
               <View style={s.heroLine}>
                 <Ionicons name="flame" size={24} color={c.accent} />
@@ -161,14 +117,8 @@ export function StreakStatsSheet({ visible, onClose, streak, publishedDates }: {
               )}
             </View>
 
-            <TouchableOpacity style={s.link} activeOpacity={0.7} onPress={() => open('/resenas')} accessibilityRole="button">
-              <Text style={[s.linkText, { color: c.text }]}>{noWidow('Ver toda tu actividad')}</Text>
-              <Ionicons name="chevron-forward" size={16} color={c.textMute} />
-            </TouchableOpacity>
-          </ScrollView>
-        </Animated.View>
-      </View>
-    </Modal>
+      </ScrollView>
+    </View>
   );
 }
 
@@ -183,13 +133,11 @@ function Stat({ label, value, week, c }: { label: string; value: string; week?: 
 }
 
 const s = StyleSheet.create({
-  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.25)' },
-  sheet: { borderTopLeftRadius: 28, borderTopRightRadius: 28, overflow: 'hidden' },
-  tint: StyleSheet.absoluteFillObject,
-  handleArea: { height: 28, alignItems: 'center', justifyContent: 'center' },
-  grabber: { width: 36, height: 5, borderRadius: 3, backgroundColor: 'rgba(128,128,128,0.4)' },
-  scroll: { flexShrink: 1 },
-  content: { paddingHorizontal: 20, paddingTop: 8 },
+  root: { flex: 1 },
+  nav: { height: 52, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  back: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  navTitle: { flex: 1, textAlign: 'center', fontSize: 17, lineHeight: 22, fontWeight: '700' },
+  content: { paddingHorizontal: 20, paddingTop: 16 },
   hero: { paddingBottom: 24, gap: 4 },
   heroLine: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   heroValue: { ...Type.screen },
@@ -207,6 +155,4 @@ const s = StyleSheet.create({
   groupLine: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   groupValue: { flex: 1, minWidth: 0, fontSize: 14, fontWeight: '700' },
   groupCount: { fontSize: 13, fontWeight: '500', fontVariant: ['tabular-nums'] },
-  link: { minHeight: 52, marginTop: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  linkText: { ...Type.body },
 });

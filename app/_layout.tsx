@@ -105,6 +105,7 @@ function RootStack() {
         <Stack.Screen name="coleccion-publica/[id]" options={{ headerShown: false }} />
         <Stack.Screen name="privacidad" options={{ headerShown: false }} />
         <Stack.Screen name="plan" options={{ headerShown: false }} />
+        <Stack.Screen name="racha" options={{ headerShown: false }} />
         <Stack.Screen name="favoritos" options={{ headerShown: false }} />
         <Stack.Screen name="vistos" options={{ headerShown: false }} />
         <Stack.Screen name="onboarding" options={{ headerShown: false }} />

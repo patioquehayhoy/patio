@@ -121,7 +121,7 @@ function heroPhotoFor(id: string) {
 function makeStyles(t: Theme) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: t.bg, borderTopLeftRadius: 30, borderTopRightRadius: 30, overflow: 'hidden' },
-    heroBackdrop: { position: 'absolute', left: 0, right: 0, top: 0, height: HERO_HEIGHT + 120, width: '100%' },
+    heroBackdrop: { position: 'absolute', left: 0, right: 0, top: 0, width: '100%' },
     scrollContent: { paddingBottom: 120 },
     // ── Hero ──
     hero: { height: HERO_HEIGHT, backgroundColor: 'transparent', overflow: 'hidden' },
@@ -379,6 +379,8 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
   // debajo de volver y compartir: nunca se enciman.
   const [identityHeight, setIdentityHeight] = useState(0);
   const heroHeight = Math.max(HERO_HEIGHT, insets.top + 8 + 44 + 16 + identityHeight + 44);
+  // La foto de fondo siempre cubre el encabezado aunque crezca por un nombre largo.
+  const backdropHeight = heroHeight + 120;
   const [followToast, setFollowToast] = useState(false);
   const toastScrollY = useRef<number | null>(null);
   const handleFollowPress = async () => {
@@ -713,17 +715,22 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
         style={[
           s.heroBackdrop,
           soldOut && s.heroImgMuted,
-          { transform: [{ scale: heroPullY.interpolate({ inputRange: [-120, 0], outputRange: [1.045, 1], extrapolate: 'clamp' }) }] },
+          { height: backdropHeight },
+          // Foodie: leve zoom mientras jala para cerrar y ver el mapa.
+          // Fondero en su ficha: la foto se estira desde arriba con el
+          // rebote (encabezado elástico de iOS), así nunca se ve cortada.
+          { transform: own ? [
+            { translateY: heroPullY.interpolate({ inputRange: [-300, 0], outputRange: [150, 0], extrapolateRight: 'clamp' }) },
+            { scale: heroPullY.interpolate({ inputRange: [-300, 0], outputRange: [1 + 300 / backdropHeight, 1], extrapolateRight: 'clamp' }) },
+          ] : [{ scale: heroPullY.interpolate({ inputRange: [-120, 0], outputRange: [1.045, 1], extrapolate: 'clamp' }) }] },
         ]}
         resizeMode="cover"
       />
       {/* Foodie: arrastrar hacia abajo cierra la ficha y deja ver el mapa.
-          Fondero en su propia ficha: es una pestaña, no hay nada detrás, así
-          que no rebota (el rebote dejaba ver la foto de fondo cortada). */}
+          Fondero en su propia ficha: rebote normal de iOS sin cerrar; la foto
+          se estira con él (ver heroBackdrop). */}
       <Animated.ScrollView
         contentInsetAdjustmentBehavior="never"
-        bounces={!own}
-        overScrollMode={own ? 'never' : 'auto'}
         contentContainerStyle={[s.scrollContent, own && { paddingBottom: bottomTabClearance(insets.bottom) }]}
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={16}

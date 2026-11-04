@@ -213,8 +213,11 @@ export default function PatioSmartScreen() {
       try {
         const match = (await Location.geocodeAsync(result.direccion.trim()))[0];
         const place = match ? (await Location.reverseGeocodeAsync({ latitude: match.latitude, longitude: match.longitude }).catch(() => []))[0] : undefined;
+        // Si no aparece, se avisa una vez y el segundo toque deja seguir:
+        // la dirección escrita sirve y el punto se afina después.
         if (!match || (place?.isoCountryCode && place.isoCountryCode !== 'MX')) {
-          setAddressCheck({ status: 'notFound' });
+          if (addressCheck.status !== 'notFound') { setAddressCheck({ status: 'notFound' }); return; }
+          setStage('schedule');
           return;
         }
         update({ latitude: match.latitude, longitude: match.longitude });
@@ -332,7 +335,6 @@ export default function PatioSmartScreen() {
             style={s.finishButton}
             accessibilityRole="button"
             accessibilityLabel="Tomar foto del menú">
-            <Ionicons name="camera-outline" size={20} color="#FFFFFF" />
             <Text style={s.finishButtonText} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.3}>
               {noWidow('Tomar foto del menú')}
             </Text>
@@ -555,13 +557,13 @@ export default function PatioSmartScreen() {
             )}
             {addressCheck.status === 'notFound' && (
               <Text style={[s.addressError, { color: colors.accent }]} accessibilityLiveRegion="polite" maxFontSizeMultiplier={1.5}>
-                {noWidow('No encontramos esa dirección. Escribe calle, número y colonia, o usa tu ubicación.')}
+                {noWidow('No la encontramos en el mapa. Revisa calle, número y colonia, o continúa así y la ajustas después.')}
               </Text>
             )}
             <ContinueButton
               colors={colors}
-              missing={!hasLocation ? 'Falta la dirección' : addressCheck.status === 'notFound' ? 'Revisa la dirección' : undefined}
-              label={addressCheck.status === 'found' ? 'Sí, es aquí' : undefined}
+              missing={!hasLocation ? 'Falta la dirección' : undefined}
+              label={addressCheck.status === 'found' ? 'Sí, es aquí' : addressCheck.status === 'notFound' ? 'Continuar así' : undefined}
               loading={locating}
               onPress={continueFromLocation}
             />

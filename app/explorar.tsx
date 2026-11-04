@@ -623,6 +623,7 @@ export default function ExplorarScreen() {
     Animated.timing(idleLayerOpacity, { toValue: searching ? 0 : 1, duration: 240, useNativeDriver: true }).start();
   }, [searchActive, isFiltering, idleLayerOpacity]);
 
+  const savedSet = useMemo(() => new Set(savedIds), [savedIds]);
   // Abrir/correr las ruedas no debe reconciliar cientos de vistas AIRMap.
   const patioMarkerElements = useMemo(() => stableMapPatios.map((patio) => {
     const included = filteredPinIds.has(patio.id);
@@ -634,9 +635,14 @@ export default function ExplorarScreen() {
     // acento — mostrar los dos a la vez dibuja dos círculos concéntricos.
     // La selección es la señal más específica, así que gana ella sola.
     const showMatch = isFiltering && !isMuted && !showSelectedOverlay;
+    // Mapa personal: los lugares que sigues llevan tu color (naranja); los
+    // demás van en gris, lo que te falta por conocer.
+    const followed = savedSet.has(patio.id);
     return (
       <Marker
-        key={patio.id}
+        // Al seguir o dejar de seguir cambia el color: la llave nueva rehace el
+        // dibujo del pin (los marcadores no se redibujan solos).
+        key={`${patio.id}-${followed ? 'sigue' : 'no'}`}
         ref={marker => { if (marker) markerRefs.current.set(patio.id, marker); else markerRefs.current.delete(patio.id); }}
         accessibilityLabel={`Abrir ${patio.name}`}
         coordinate={{ latitude: patio.latitude, longitude: patio.longitude }}
@@ -692,13 +698,13 @@ export default function ExplorarScreen() {
             </View>
           )}
           <View style={[s.pinCategory, (showSelectedOverlay || showMatch) && s.pinCategoryOpaque]}>
-            <View style={{ transform: [{ rotate: '45deg' }] }}><BusinessCategoryIcon context="map" category={patio.categories[0] ?? 'Fondita'} size={15} color={theme.text} /></View>
+            <View style={{ transform: [{ rotate: '45deg' }] }}><BusinessCategoryIcon context="map" category={patio.categories[0] ?? 'Fondita'} size={15} color={followed ? theme.accent : theme.textSecondary} /></View>
           </View>
-          </> : <View style={s.mapDotWrap}><View style={[s.mapDot, showMatch && { backgroundColor: theme.accent, borderColor: theme.accent }]} /></View>}
+          </> : <View style={s.mapDotWrap}><View style={[s.mapDot, !followed && { backgroundColor: theme.textMute }, showMatch && { backgroundColor: theme.accent, borderColor: theme.accent }]} /></View>}
         </View>
       </Marker>
     );
-  }), [animatingPinIds, filteredPinIds, getSelectedPinAnim, isFiltering, matchingPatioIds, matchTrackWindow, openPatioFromPin, pinGlowColors, pressedPinId, s, shouldCluster, showCategoryIcons, stableMapPatios, theme]);
+  }), [animatingPinIds, filteredPinIds, getSelectedPinAnim, isFiltering, matchingPatioIds, matchTrackWindow, openPatioFromPin, pinGlowColors, pressedPinId, s, savedSet, shouldCluster, showCategoryIcons, stableMapPatios, theme]);
 
   const clusterMarkerElements = useMemo(() => clusterGridKeys.map((key) => {
     const cell = clusterCells.get(key);

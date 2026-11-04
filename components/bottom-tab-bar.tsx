@@ -36,7 +36,7 @@ const MI_PATIO_IMAGE = {
 
 const FOODIE_TABS: Tab[] = [
   { path: '/explorar',  label: 'Mapa',      icon: 'map-outline',      selectedIcon: 'map' },
-  { path: '/favoritos', label: 'Siguiendo', icon: 'bookmark-outline', selectedIcon: 'bookmark' },
+  { path: '/favoritos', label: 'Guardados', icon: 'bookmark-outline', selectedIcon: 'bookmark' },
   { path: '/cuenta',    label: 'Perfil',    icon: 'person-outline',   selectedIcon: 'person' },
 ];
 

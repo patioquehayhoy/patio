@@ -559,7 +559,7 @@ function makeStyles(c: FonderoColors) {
     detailRow: { marginTop: 2, flexDirection: 'row', alignItems: 'center' },
     description: { flex: 1, paddingVertical: 3, fontSize: 13, fontWeight: '300', color: c.textSecondary },
     priceChip: { minWidth: 64, height: 28, marginTop: -1, paddingHorizontal: 9, borderRadius: 10, flexDirection: 'row', alignItems: 'center', gap: 2, backgroundColor: c.iconBg },
-    priceChipEmpty: { justifyContent: 'center', backgroundColor: 'transparent', borderWidth: StyleSheet.hairlineWidth, borderColor: c.border },
+    priceChipEmpty: { justifyContent: 'center', backgroundColor: 'transparent', borderWidth: 1, borderColor: c.border },
     addPriceText: { fontSize: 13, fontWeight: '400', color: c.textSecondary },
     priceBar: { minHeight: 44, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: c.surface2, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: c.border },
     priceBarButton: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 4 },

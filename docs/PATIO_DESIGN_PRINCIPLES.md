@@ -229,6 +229,9 @@ no la medida.
   chico, se alinea la tinta, no la caja: `lib/optical.ts` resta el margen
   propio de la primera letra (medido de Monument y Neue Montreal). Así la
   «C» de un nombre y el «7» de los seguidores caen en la misma vertical.
+- **Mapa personal (2026-11-03):** pin naranja = lugar que sigues; gris =
+  por conocer. La pestaña del Foodie vuelve a llamarse «Guardados»; el
+  botón de la ficha sigue diciendo «Seguir».
 - **Precio de platillo:** vacío y lleno comparten el mismo hueco (alto 28,
   radio 10): vacío con borde fino y «+ Precio», lleno con fondo y «$».
 

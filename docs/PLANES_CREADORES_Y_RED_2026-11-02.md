@@ -145,3 +145,37 @@ guardado publica.
 - [x] Pantalla de planes: Gratis + Fundadores con beneficios reales; Pro oculto.
 - [ ] Van Westendorp con los Fundadores antes de fijar precios en tienda.
 - [ ] Jev revisa la decisión de Patio+ para Foodie (después, no en arranque).
+
+## 8. Actualización 2026-11-03
+
+**Creadores en el radar:** Arturito, Lalo Villar (La Ruta de la Garnacha),
+Se te antoja MX. Mijangos (más de tecnología; probar solo si su audiencia
+come en la colonia piloto). Además, creadores chicos de la colonia (5–50 mil
+seguidores): su gente vive cerca, que es lo que necesita una red que arranca.
+
+**Fundador se gana, no solo se invita (propuesta):**
+- En la visita: alta en persona y 6 meses de Pro desde ese día.
+- El sello Fundador se gana: publicar 4 semanas seguidas y llegar a 100
+  seguidores (o la meta que se fije en el piloto). Así premia al que sostiene
+  el lado difícil.
+- Kit físico al ganarlo: calcomanía «Fundador de Patio» con QR a su ficha
+  para la puerta y el mostrador. Inversión que se mide: seguidores que llegan
+  por ese QR.
+
+**Van Westendorp, paso a paso (en la visita):**
+1. Enseñar Pro en el cel: avisos especiales, platillo destacado, cuándo hay
+   más interés.
+2. Hacer las cuatro preguntas, en este orden, y anotar el número:
+   ¿a qué precio al mes sería tan barato que desconfiarías?, ¿barato?,
+   ¿caro pero lo pagarías?, ¿tan caro que no lo pagarías?
+3. Con 15–20 negocios: graficar las cuatro curvas acumuladas; el cruce de
+   «barato» con «caro» da el piso y el techo del rango aceptable; el precio
+   va dentro, terminado en 9.
+
+**Campañas y contenido (workflow):** recetas reutilizables para piezas de
+lanzamiento, temporada, días especiales, novedades y comunidad («ya somos
+10 mil, gracias»): plantilla de texto + brief de imagen/video por pieza,
+con el agente `content-cdmx`.
+
+**Mapa personal (hecho 2026-11-03):** los lugares que sigues van en naranja
+y los demás en gris; se ve qué zona ya conoces y qué te falta.

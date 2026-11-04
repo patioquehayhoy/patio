@@ -272,6 +272,7 @@ export default function HistorialScreen() {
         options={actionsFor ? [
           { label: 'Publicar igual', icon: 'checkmark-done-outline', onPress: () => publishReused(actionsFor) },
           { label: 'Editar y usar', icon: 'create-outline', onPress: () => reuse(actionsFor) },
+          { label: 'Seleccionar varios', icon: 'checkmark-circle-outline', onPress: () => { setSelecting(true); toggleSelect(actionsFor.id); } },
           { label: 'Renombrar', icon: 'pencil', onPress: () => openRename(actionsFor) },
           { label: 'Añadir a lista', icon: 'folder-outline', onPress: () => { setAssignFechas([actionsFor.id]); setSheetMode('assign'); } },
           { label: 'Eliminar', icon: 'trash-outline', destructive: true, onPress: () => deleteMenu(actionsFor) },

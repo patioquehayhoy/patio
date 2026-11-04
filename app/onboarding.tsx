@@ -26,7 +26,7 @@ function makeStyles(_t: Theme) {
     img: { ...StyleSheet.absoluteFillObject, width: '100%', height: '100%' },
     veil: { ...StyleSheet.absoluteFillObject },
     content: { position: 'absolute', left: 28, right: 28 },
-    logo: { width: 150, height: 56, marginLeft: -6, marginBottom: 20 },
+    logo: { width: 160, height: 60, marginBottom: 20 },
     title: { ...Type.hero, color: '#FFFFFF', marginBottom: 10 },
     body: { fontSize: 15, fontWeight: '400', color: 'rgba(255,255,255,0.72)', lineHeight: 22 },
     ctaCol: { alignItems: 'stretch', gap: 4, marginTop: 28 },

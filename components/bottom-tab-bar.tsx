@@ -38,7 +38,7 @@ const MI_PATIO_IMAGE: { off: PatioGiroGlyph; on: PatioGiroGlyph } = {
 
 const FOODIE_TABS: Tab[] = [
   { path: '/explorar',  label: 'Mapa',      icon: 'map-outline',      selectedIcon: 'map' },
-  { path: '/favoritos', label: 'Guardados', icon: 'bookmark-outline', selectedIcon: 'bookmark' },
+  { path: '/favoritos', label: 'Siguiendo', icon: 'storefront-outline', selectedIcon: 'storefront', image: MI_PATIO_IMAGE },
   { path: '/cuenta',    label: 'Perfil',    icon: 'person-outline',   selectedIcon: 'person' },
 ];
 

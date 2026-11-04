@@ -20,7 +20,8 @@ import { SelectionActions } from '@/components/selection-actions';
 import { SaveToListSheet } from '@/components/save-to-list-sheet';
 import { SearchField } from '@/components/search-field';
 import { PatioIdentityIcon } from '@/components/patio-identity-icon';
-import { FollowingActivityRow, TodayFromFollowed } from '@/components/following-rows';
+import { FollowingActivityRow } from '@/components/following-rows';
+import { PatioGiros } from '@/components/business-category-icon';
 import { getFollowingActivity, type FollowingActivity } from '@/lib/profile-privacy';
 import { patioCardAccessibilityLabel } from '@/lib/patio-card-info';
 import { PatioCardInfo, PatioCardPrice } from '@/components/patio-card-info';
@@ -120,8 +121,7 @@ export default function FavoritosScreen() {
   // Selección rápida (patrón Fotos/Archivos de iOS): "Seleccionar" activa
   // círculos de selección por fila y cambia la barra inferior por acciones
   // en lote — nada de esto compite con el tap normal de abrir un lugar.
-  // Lo de hoy de los lugares que sigues y lo reciente de las personas que
-  // sigues: Guardados es donde vive todo lo que sigues.
+  // Lo reciente de las personas que sigues, arriba de los lugares que sigues.
   const [followingActivity, setFollowingActivity] = useState<FollowingActivity[]>([]);
   useFocusEffect(useCallback(() => {
     let active = true;
@@ -341,8 +341,8 @@ export default function FavoritosScreen() {
                 <SearchField
                   value={searchQuery}
                   onChangeText={setSearchQuery}
-                  placeholder="Buscar en Guardados"
-                  accessibilityLabel="Buscar en Guardados"
+                  placeholder="Buscar en Siguiendo"
+                  accessibilityLabel="Buscar en Siguiendo"
                   style={s.searchWrap}
                 />
                 <FoodieFilterBar
@@ -363,7 +363,7 @@ export default function FavoritosScreen() {
                     sectionLabel: index === 0 ? 'Orden' : undefined,
                     icon: mode === 'distance' ? 'navigate-outline' : mode === 'price' ? 'cash-outline' : mode === 'rating' ? 'star-outline' : mode === 'recent' ? 'time-outline' : 'text-outline',
                     selected: mode === sortMode,
-                    accessibilityHint: mode === 'price' ? 'Menor precio publicado primero. Sin precio al final.' : mode === 'distance' ? 'Distancia en línea recta desde tu ubicación. Sin coordenadas al final.' : 'Ordenar Guardados',
+                    accessibilityHint: mode === 'price' ? 'Menor precio publicado primero. Sin precio al final.' : mode === 'distance' ? 'Distancia en línea recta desde tu ubicación. Sin coordenadas al final.' : 'Ordenar Siguiendo',
                     afterDismiss: mode === 'distance',
                     onPress: () => {
                       Haptics.selectionAsync().catch(() => {});
@@ -402,7 +402,6 @@ export default function FavoritosScreen() {
           if (section) setActiveLetter(section.letter);
         }}>
         {!selecting && !normalizedQuery && <>
-          <TodayFromFollowed patios={patios} onOpen={(patio) => router.push(`/patio/${patio.id}`)} />
           <FollowingActivityRow events={followingActivity} onOpen={(event) => {
             if (event.kind === 'list' && event.listId) router.push(`/coleccion-publica/${event.listId}`);
             else if (event.placeId) router.push(`/patio/${event.placeId}`);
@@ -427,7 +426,7 @@ export default function FavoritosScreen() {
         </View> : patios.length === 0 ? (
           <View style={s.empty}>
             <View style={s.emptyIcon}>
-              <Ionicons name="bookmark-outline" size={32} color={theme.textSecondary} />
+              <PatioGiros name="patio-mipatio" size={32} color={theme.textSecondary} />
             </View>
             <Text style={s.emptyTitle} allowFontScaling={true}>{noWidow('Todavía no sigues ningún lugar')}</Text>
             <TouchableOpacity style={s.cta} onPress={() => router.replace('/explorar')} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel="Buscar algo rico">

@@ -2,62 +2,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import { AvatarCircle } from '@/components/avatar-circle';
-import type { Patio } from '@/lib/patios';
 import type { FollowingActivity } from '@/lib/profile-privacy';
 import { Radius, useTheme, type Theme } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
 
-// Dos filas que se deslizan de lado arriba de Guardados: lo que publicaron
-// hoy los lugares que sigues y lo reciente de las personas que sigues.
-// Comparten tarjeta, título y ritmo.
+// «De quienes sigues»: fila que se desliza de lado arriba de Siguiendo con lo
+// reciente de las personas que sigues.
 
 const CARD_WIDTH = 232;
-const MAX_DISHES = 3;
-
-function todayDishes(patio: Patio) {
-  return patio.menu.flatMap((section) => section.items
-    .filter((item) => item.name.trim())
-    .map((item) => ({ name: item.name.trim(), price: item.price?.trim() || section.price?.trim() || '' })));
-}
-
-export function hasTodayDishes(patio: Patio): boolean {
-  return !!patio.hasTodayMenu && todayDishes(patio).length > 0;
-}
-
-export function TodayFromFollowed({ patios, onOpen }: { patios: Patio[]; onOpen: (patio: Patio) => void }) {
-  const { theme } = useTheme();
-  const s = makeStyles(theme);
-  const published = patios.filter(hasTodayDishes);
-  if (!published.length) return null;
-  return (
-    <View style={s.block}>
-      <Text style={s.label} allowFontScaling>HOY DE LOS QUE SIGUES</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.row} decelerationRate="fast" snapToInterval={CARD_WIDTH + 8} snapToAlignment="start">
-        {published.map((patio) => {
-          const dishes = todayDishes(patio);
-          const more = dishes.length - MAX_DISHES;
-          return (
-            <TouchableOpacity key={patio.id} style={s.card} activeOpacity={0.7} onPress={() => onOpen(patio)}
-              accessibilityRole="button"
-              accessibilityLabel={`${patio.name}, menú de hoy: ${dishes.slice(0, MAX_DISHES).map((dish) => dish.name).join(', ')}`}>
-              <Text style={s.cardTitle} numberOfLines={1} allowFontScaling>{patio.name}</Text>
-              <View style={s.dishes}>
-                {dishes.slice(0, MAX_DISHES).map((dish, index) => (
-                  <View key={`${dish.name}-${index}`} style={s.dish}>
-                    <Text style={s.dishName} numberOfLines={1} allowFontScaling>{dish.name}</Text>
-                    {!!dish.price && <Text style={s.dishPrice} numberOfLines={1} allowFontScaling>{dish.price}</Text>}
-                  </View>
-                ))}
-              </View>
-              {more > 0 && <Text style={s.more} allowFontScaling>{`y ${more} más`}</Text>}
-            </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
-    </View>
-  );
-}
-
 function activityText(event: FollowingActivity): string {
   if (event.kind === 'follow') return `siguió ${event.placeName}`;
   if (event.kind === 'list') return `armó la lista «${event.listTitle}»`;
@@ -111,12 +63,6 @@ function makeStyles(t: Theme) {
     label: { fontSize: 13, fontWeight: '700', color: t.textSecondary, paddingHorizontal: 16, paddingTop: 8, marginBottom: 8 },
     row: { paddingHorizontal: 16, gap: 8 },
     card: { width: CARD_WIDTH, padding: 12, borderRadius: Radius.card, backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
-    cardTitle: { fontSize: 15, fontWeight: '700', color: t.text },
-    dishes: { marginTop: 6, gap: 2 },
-    dish: { flexDirection: 'row', alignItems: 'baseline', gap: 8 },
-    dishName: { flex: 1, fontSize: 13, fontWeight: '400', color: t.text },
-    dishPrice: { fontSize: 13, fontWeight: '500', color: t.textSecondary, fontVariant: ['tabular-nums'] },
-    more: { marginTop: 4, fontSize: 12, fontWeight: '400', color: t.textSecondary },
     activityCard: { flexDirection: 'row', alignItems: 'center', gap: 8 },
     activityBody: { flex: 1, minWidth: 0, gap: 2 },
     activityText: { fontSize: 13, fontWeight: '400', lineHeight: 17, color: t.text },

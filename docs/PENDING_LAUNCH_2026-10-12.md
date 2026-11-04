@@ -18,10 +18,11 @@
 - [x] Giro «Venta en casa» (Jev: 72–75 % lo quiere; el nombre le ganó a «Dark
   kitchen», 65–85 % entre quienes venden). Pide solo edificio o unidad.
 - [x] Después de publicar, «Listo» lleva a Mi Patio.
-- [ ] `npx supabase db push --yes` (función `following_activity`).
-- [ ] Dominio de Patio: compartir ficha con póster + enlace web (ciclo viral) y
-  páginas de privacidad/condiciones.
-- [ ] Decidir nombre final de la pestaña Foodie («Patios» a prueba).
+- [x] `db push` de `following_activity` (aplicado por Parco).
+- [ ] Comprar dominio (sugerido `quehayhoy.mx`) → página web por lugar sin
+  app ni cuenta, póster como vista previa, universal links, privacidad y
+  condiciones. Luego Compartir de la ficha = póster + enlace.
+- [x] Pestaña Foodie: «Patios» (decidido).
 - [x] Precio del menú del día de vuelta (editor y póster) y editor alineado.
 - [x] «Tu racha» con números del negocio, pantalla completa.
 - [ ] Cobro sin RevenueCat: StoreKit y Play Billing directo + validación propia.

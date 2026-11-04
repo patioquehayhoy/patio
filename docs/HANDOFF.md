@@ -2,9 +2,9 @@
 
 ## Continuidad 2026-11-03 — Patios, precio del menú, racha y editor (Claude)
 
-Ver [heads-up](HEADS_UP_2026-10-12.md), bloque «Cierre 2026-11-03». Falta
-`npx supabase db push --yes` (función de actividad) y que Parco elija dominio
-para compartir con enlace web.
+Ver [heads-up](HEADS_UP_2026-10-12.md), bloque «Cierre 2026-11-03».
+Producción al día. Pestaña Foodie: «Patios». Siguiente: comprar dominio
+(sugerido `quehayhoy.mx`) para compartir con enlace web.
 
 ## Continuidad 2026-11-02 noche — ficha y red (Claude)
 

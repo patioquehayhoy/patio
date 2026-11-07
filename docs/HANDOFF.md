@@ -1,5 +1,11 @@
 # HANDOFF
 
+## Continuidad 2026-11-07 — cobro, planes, avisos, Android y auditoría (Claude)
+
+Leer [DECISIONES_2026-11-07](DECISIONES_2026-11-07.md) y el corte superior de
+[pendientes](PENDING_LAUNCH_2026-10-12.md). Auditoría npm sin moderadas ni
+altas; Android listo en EAS production; build nuevo pendiente de autorización.
+
 ## Continuidad 2026-11-03 — Patios, precio del menú, racha y editor (Claude)
 
 Ver [heads-up](HEADS_UP_2026-10-12.md), bloque «Cierre 2026-11-03».

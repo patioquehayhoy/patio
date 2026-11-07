@@ -1,4 +1,26 @@
-# Pendientes y roadmap de lanzamiento — actualizado 2026-11-02
+# Pendientes y roadmap de lanzamiento — actualizado 2026-11-07
+
+## Corte 2026-11-07 (Claude)
+
+Decisiones y aterrizaje completos en [DECISIONES_2026-11-07](DECISIONES_2026-11-07.md).
+
+- [x] Auditoría npm: 25 moderadas cerradas (overrides `glob` 14.0.4 y
+  `minimatch` 11.0.5). Quedan 15 bajas de `deepmerge`, sin parche publicado.
+  `npm run check` (238 pruebas) y `expo-doctor` (18/18) en verde.
+- [x] Android: EAS production ya tiene `GOOGLE_MAPS_ANDROID_API_KEY` y
+  `GOOGLE_SERVICES_JSON`; FCM V1 está en Expo.
+- [ ] EAS preview no tiene la clave de Maps: un APK preview abriría el mapa sin
+  clave. Copiarla a preview o probar Android con build production + Play interno.
+- [ ] Build Android nuevo (el último es del 30 oct, sin los cambios del 2–3 nov),
+  solo con confirmación de Parco.
+- [ ] Cobro directo: `expo-iap` + `verify-purchase` + avisos de Apple y Google;
+  retirar `react-native-purchases` y `revenuecat-webhook`.
+- [ ] Avisos que faltan, en orden: cambio de hoy → resumen diario del negocio
+  → me gusta a tu reseña → Novedades → Lugares nuevos.
+- [ ] Aprobar: planes (§2), sesión anónima (§8), onboarding Leica (§15) y
+  concurrencia (§14).
+- [x] Listas de Menús se quedan por ahora.
+- [ ] Al final: revocar la clave antigua de Anthropic (una sola vez).
 
 ## Siguiente (2026-11-02 noche)
 

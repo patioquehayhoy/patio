@@ -6,6 +6,13 @@ Fuente: `~/Downloads/Referencias de video/AQOneENYF_….mp4` (clip vertical de
 pódcast, 37 s). Analizado con fotogramas cada segundo y transcripción local
 (whisper). Aquí va parafraseado; el video no se copia.
 
+## 0. Nombre de la técnica
+
+En Patio la llamamos **«oferta irresistible»**. En marketing se conoce como
+**Grand Slam Offer** (Alex Hormozi, libro *$100M Offers*); la parte de
+presentar todo lo que incluye antes del precio se llama **value stack**
+(Russell Brunson). Parco la eligió el 8 nov para el **clip de lanzamiento**.
+
 ## 1. Lo que dice: la estructura de la oferta
 
 1. **Promesa:** el resultado que la persona quiere.
@@ -52,21 +59,24 @@ La misma lógica en chico: **título = promesa**, **detalle = qué incluye y
 precio**, y un tercer campo propuesto, **«Hasta cuándo»** (solo hoy, hasta
 las 4 pm, quedan 20 porciones): escasez verdadera que el negocio sí conoce.
 
-### c) Reels de Patio para negocios (formato del video, voz de Patio)
+### c) Clip de lanzamiento (caso elegido)
 
-Guion de 35 s, plano partido (quien habla de Patio arriba, una fondera
-reaccionando abajo), subtítulos en Neue Montreal y etiqueta con la P:
+35 s, vertical, plano partido: arriba quien presenta Patio, abajo alguien de un
+negocio del piloto reaccionando. Subtítulos palabra por palabra en Neue
+Montreal y etiqueta con la P desde el primer cuadro. Abierto a cualquier lugar:
+sin nombrar giros.
 
-1. **Gancho:** «Doña Mary publicó su menú de hoy en diez segundos.»
-2. **Promesa:** tu colonia sabe qué cocinaste hoy antes de salir a comer.
-3. **Cómo:** tomas foto del pizarrón, Patio arma el menú y avisa a quienes te
-   siguen.
-4. **Entregables:** tu ficha en el mapa, tu póster para WhatsApp, tus
-   seguidores.
-5. **Precio:** gratis para publicar.
-6. **Bono real:** a los Fundadores los damos de alta en persona (el cartel con QR, cuando esté impreso).
-7. **Escasez honesta:** 20 lugares Fundadores por colonia.
-8. **Cierre:** «¿Qué hay hoy?» + «Saaaaaaabes.», siempre juntos.
+| Paso | Segundos | Lo que se dice |
+|---|---|---|
+| Gancho | 0–3 | «Lo que preparas hoy, tu colonia lo puede saber en diez segundos.» |
+| Promesa | 3–7 | «Le tomas foto a tu pizarrón y Patio lo publica.» |
+| Beneficios | 7–13 | «Apareces en el mapa con tu precio y tu horario, y a quien te sigue le llega un aviso.» |
+| Entregables | 13–18 | «Tu ficha, tu póster para WhatsApp y tus seguidores, desde el primer día.» |
+| Precio | 18–21 | «Publicar es gratis.» |
+| Tranquilidad | 21–24 | «Sin contratos y sin tarjeta.» |
+| Bono real | 24–28 | «A los primeros lugares de la colonia los damos de alta en persona.» |
+| Escasez honesta | 28–32 | «Son veinte lugares Fundadores por colonia.» |
+| Cierre | 32–35 | Arriba: «¿Qué hay hoy?» · Abajo, quien reacciona: «Saaaaaaabes.» |
 
 ## 4. Límites para usarlo bien
 

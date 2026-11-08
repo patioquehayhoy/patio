@@ -26,11 +26,15 @@ El precio por platillo es el mismo chip; si se cambia uno, se cambia el otro.
   «Agregar platillo», «Agregar sección» y «Precio del menú».
 - Ocultar/mostrar platillos (2026-11-08, Parco no lo encontraba en «···»): la
   flecha vuelve, pero en la columna derecha, junto al «···» (abajo = abierta,
-  derecha = oculta, como Notas). Oculta, muestra «N platillos» para abrirla.
-- Con 4 secciones o más, índice lateral a la derecha (`components/section-index.tsx`),
-  como las letras de Contactos: tocar o deslizar salta a la sección, burbuja
-  con el nombre y vibración por sección. Letras únicas o tres letras si se
-  repiten. Se esconde con el teclado abierto.
+  derecha = oculta, como Notas).
+- Con 4 secciones o más, **barra de secciones** bajo la barra de navegación
+  (`components/section-bar.tsx`, la misma de la ficha): cápsulas con el nombre
+  completo, la sección en pantalla marcada, tocar lleva a ella. Se esconde con
+  el teclado abierto. (El índice lateral tipo Contactos se probó el 8 nov y se
+  quitó: con 24 secciones se saturaba y el dedo tapaba la burbuja.)
+- Ocultar/mostrar: la flecha gira 90° (200 ms) en vez de cambiar de ícono; lo
+  de abajo se recorre con resorte suave; oculta, la sección muestra debajo
+  «6 platillos · Chilaquiles rojos, Molletes y 4 más» (tocar la abre).
 - Un solo borde derecho: «···», «×» y los chips de precio en su columna.
 - Toda acción «agregar»: ícono `add` 18 + texto 15/700 en acento.
 - Cierre: «Publicar menú» cápsula naranja de 54 a todo el ancho del

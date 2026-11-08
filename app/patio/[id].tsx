@@ -5,12 +5,12 @@ import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Animated, Share, StyleSheet, Text, TextInput, TouchableOpacity, View, useWindowDimensions, type ScrollView } from 'react-native';
+import { Alert, Animated, Share, StyleSheet, Text, TextInput, TouchableOpacity, View, type ScrollView } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ActionSheet } from '@/components/action-sheet';
-import { SectionIndex } from '@/components/section-index';
+import { SectionBar } from '@/components/section-bar';
 import { AgentSpinner } from '@/components/agent-spinner';
 import { PAYMENT_ORDER, PaymentIcon } from '@/components/payment-icon';
 import { ANDROID_ICONS, TintIcon } from '@/components/tint-icon';
@@ -36,6 +36,7 @@ import { MAP_STYLE_DARK, MAP_STYLE_LIGHT } from '@/lib/map-style';
 import { Fonts, Radius, useTheme, type Theme, Type } from '@/lib/theme';
 import { recordRecentPatio } from '@/lib/recent-patios';
 import { noWidow } from '@/lib/typography';
+import { sectionDisplayName } from '@/lib/section-names';
 import { useKnownLocation } from '@/lib/use-known-location';
 import { patioDistance } from '@/lib/patio-sort';
 import { formatDistance } from '@/lib/geo';
@@ -176,9 +177,14 @@ function makeStyles(t: Theme) {
     mananaHead: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 8 },
     mananaEyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase', color: t.accent },
     mananaBody: { fontSize: 14, fontWeight: '400', lineHeight: 20, color: t.text },
-    group: { marginBottom: 12 },
-    groupHead: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
-    groupTitle: { ...Type.label, color: t.textSecondary },
+    // Jerarquía del menú (2026-11-08): la sección manda (marca, 21), el
+    // platillo después (16 Semibold) y la descripción al final (13, gris).
+    // Entre secciones, el doble que entre platillos (24 contra 12).
+    group: { marginBottom: 24 },
+    groupHead: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
+    groupTitle: { ...Type.section, color: t.text },
+    sectionBar: { position: 'absolute', top: 0, left: 0, right: 0, zIndex: 30 },
+    sectionBarBack: { width: 44, height: 44, marginLeft: 6, alignItems: 'center', justifyContent: 'center' },
     groupItem: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 12 },
     groupItemName: { flex: 1, fontSize: 16, fontWeight: '700', color: t.text, lineHeight: 21 },
     groupItemDescription: { marginTop: 2, fontSize: 13, lineHeight: 18, fontWeight: '400', color: t.textSecondary },
@@ -440,28 +446,42 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
     if (own) getProStatus(patio.id).then((status) => { if (active) setOwnPro(!!status?.proUntil); }).catch(() => {});
     return () => { active = false; };
   }, [own, patio?.id]);
-  // Índice lateral de secciones (menús largos): posición de cada sección
-  // dentro del scroll y si el menú está a la vista.
-  const { height: windowHeight } = useWindowDimensions();
+  // Barra de secciones (menús de 4 secciones o más): aparece fija arriba en
+  // cuanto el menú llega a la parte de arriba, marca la sección en pantalla y
+  // lleva a la que toques. Patrón de las apps de comida (ley de Jakob).
   const scrollRef = useRef<ScrollView>(null);
   const menuFrame = useRef({ cardY: 0, menuY: 0, menuHeight: 0 });
   const groupY = useRef<number[]>([]);
-  const [indexVisible, setIndexVisible] = useState(false);
-  const indexVisibleRef = useRef(false);
-  const updateIndexVisible = (scrollY: number) => {
+  const barHeight = insets.top + 52;
+  const [barVisible, setBarVisible] = useState(false);
+  const barVisibleRef = useRef(false);
+  const barOpacity = useRef(new Animated.Value(0)).current;
+  const [activeSection, setActiveSection] = useState(0);
+  const activeSectionRef = useRef(0);
+  const followSections = (scrollY: number) => {
     const { cardY, menuY, menuHeight } = menuFrame.current;
     const top = cardY + menuY;
-    const visible = menuHeight > 0 && scrollY + windowHeight * 0.55 >= top && scrollY <= top + menuHeight - windowHeight * 0.35;
-    if (visible !== indexVisibleRef.current) {
-      indexVisibleRef.current = visible;
-      setIndexVisible(visible);
+    const visible = menuHeight > 0 && scrollY + barHeight >= top - 8 && scrollY + barHeight <= top + menuHeight - 48;
+    if (visible !== barVisibleRef.current) {
+      barVisibleRef.current = visible;
+      setBarVisible(true);
+      Animated.timing(barOpacity, { toValue: visible ? 1 : 0, duration: 200, useNativeDriver: true }).start(() => {
+        if (!barVisibleRef.current) setBarVisible(false);
+      });
+    }
+    const line = scrollY + barHeight + 16 - top;
+    let current = 0;
+    groupY.current.forEach((y, index) => { if (y != null && y <= line) current = index; });
+    if (current !== activeSectionRef.current) {
+      activeSectionRef.current = current;
+      setActiveSection(current);
     }
   };
-  const jumpToSection = (index: number, dragging: boolean) => {
+  const jumpToSection = (index: number) => {
     const { cardY, menuY } = menuFrame.current;
     const y = groupY.current[index];
     if (y == null) return;
-    scrollRef.current?.scrollTo({ y: Math.max(0, cardY + menuY + y - insets.top - 56), animated: !dragging });
+    scrollRef.current?.scrollTo({ y: Math.max(0, cardY + menuY + y - barHeight - 8), animated: true });
   };
 
   // «Qué tan lleno»: solo aparece con visitas reales suficientes.
@@ -789,7 +809,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
             useNativeDriver: true,
             listener: (event: any) => {
               const y = event.nativeEvent.contentOffset.y;
-              updateIndexVisible(y);
+              if (sections.length >= 4) followSections(y);
               if (followToast) {
                 if (toastScrollY.current === null) toastScrollY.current = y;
                 else if (Math.abs(y - toastScrollY.current) > 48) setFollowToast(false);
@@ -915,7 +935,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
                     section.section.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim(),
                   ) && (
                     <View style={s.groupHead}>
-                      <Text style={s.groupTitle} allowFontScaling={true}>{section.section}</Text>
+                      <Text style={s.groupTitle} accessibilityRole="header" allowFontScaling={true}>{noWidow(sectionDisplayName(section.section))}</Text>
                     </View>
                   )}
                   {section.items.map((item) => {
@@ -1352,15 +1372,21 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
 
         </View>
       </Animated.ScrollView>
-      {sections.length >= 4 && indexVisible && (
-        <SectionIndex
-          names={sections.map((section) => section.section)}
-          onSelect={jumpToSection}
-          colors={{ text: theme.text, textMute: theme.textSecondary, accent: theme.accent, surface: theme.surface, border: theme.border }}
-          dark={theme.isDark}
-          maxHeight={windowHeight - insets.top - insets.bottom - 200}
-          style={{ top: Math.max(insets.top + 80, (windowHeight - Math.min(windowHeight - insets.top - insets.bottom - 200, sections.length * 22 + 12)) / 2) }}
-        />
+      {sections.length >= 4 && barVisible && (
+        <Animated.View style={[s.sectionBar, { opacity: barOpacity }]} pointerEvents={barVisibleRef.current ? 'auto' : 'none'}>
+          <SectionBar
+            names={sections.map((section) => section.section)}
+            active={activeSection}
+            onSelect={jumpToSection}
+            colors={{ text: theme.text, textSecondary: theme.textSecondary, bg: theme.bg, border: theme.border, glass: theme.glass, isDark: theme.isDark }}
+            style={{ paddingTop: insets.top }}
+            leading={own ? undefined : (
+              <TouchableOpacity style={s.sectionBarBack} onPress={handleBack} activeOpacity={0.7} accessibilityRole="button" accessibilityLabel="Volver">
+                <Ionicons name="chevron-back" size={21} color={theme.text} />
+              </TouchableOpacity>
+            )}
+          />
+        </Animated.View>
       )}
       {followToast && (
         <View style={[s.followToast, { bottom: insets.bottom + 16 }, floatingSurfaceShadow(theme.isDark)]} accessibilityLiveRegion="polite">

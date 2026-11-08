@@ -644,3 +644,31 @@ herramienta; no se citan.
   «con …», el editor ofrece «Mover «con …» a la descripción».
 - **Línea de datos de la ficha:** tres lugares fijos; si falta «Abrió en», el
   pago y el horario ya no se recorren.
+
+## 22. Navegar menús largos: barra de secciones (8 nov, auditoría)
+
+Parco probó el índice lateral tipo Contactos: «se satura y el dedo tapa la
+ruleta». Auditoría con los principios de la biblia de diseño:
+
+- **Visibilidad:** 24 secciones en tres letras (DES, HUE, JUG…) no se leen de
+  un vistazo; el índice de Contactos funciona porque las letras son el dato.
+- **Afordancia y retroalimentación:** el pulgar en el borde derecho tapa la
+  tira y la burbuja que debía confirmar la sección.
+- **Consistencia (ley de Jakob):** en las apps de comida la carta se navega con
+  una barra de categorías fija arriba; la gente ya la conoce.
+
+**Decisión:** barra de secciones fija arriba (ficha y editor, mismo
+componente): nombre completo en cápsulas, la sección en pantalla se marca sola
+al bajar, tocar una lleva a ella, con «volver» a la izquierda en la ficha.
+
+**Jerarquía del menú en la ficha:** el título de sección era lo más débil (11,
+gris, mayúsculas) y competía mal con el platillo (16). Ahora la sección manda
+(Monument 21, «Platos fuertes» en mayúscula inicial), luego el platillo (16
+Semibold), luego la descripción (13, gris); entre secciones 24, el doble que
+entre platillos.
+
+**Tipografía:** la prueba solo trae Monument Black y Neue Montreal Regular y
+Semibold: dos pesos de interfaz. Con la licencia (pendiente de compra, la hace
+Parco) se usa Monument Semibold en títulos (menos pesado que Black) y se puede
+sumar Neue Montreal Medium para separar mejor platillo y precio. Es requisito
+antes de tiendas: las fuentes de prueba no se pueden publicar.

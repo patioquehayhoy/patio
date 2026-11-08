@@ -1,0 +1,9 @@
+{
+  "name": "deepmerge",
+  "version": "4.3.1-patio.1",
+  "description": "deepmerge 4.3.1 (MIT, TehShrike) con guarda contra __proto__ (GHSA-gcqx-w48m-w2h4). Sustituir por la versión oficial cuando publiquen parche.",
+  "main": "dist/cjs.js",
+  "types": "index.d.ts",
+  "license": "MIT",
+  "engines": { "node": ">=0.10.0" }
+}

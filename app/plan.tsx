@@ -1,12 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, Stack } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import type { PurchasesPackage } from 'react-native-purchases';
 import { Alert, Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { getMyPlan, type MyPlan } from '@/lib/business-pro';
-import { billingAvailable, loadPlanPackages, purchasePlan, restorePlan, subscriptionLegalUrls } from '@/lib/billing';
+import { billingAvailable, loadPlanPackages, purchasePlan, restorePlan, subscriptionLegalUrls, type StorePackage } from '@/lib/billing';
 import { PLANS, type BillingPeriod } from '@/lib/plans';
 import { useTheme, Type, type Theme } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
@@ -67,7 +66,7 @@ export default function Plan() {
   const paid = PLANS[paidId];
   // El plan de pago incluye todo lo del gratuito.
   const paidBenefits = [...paid.benefits, ...free.benefits.filter((item) => !/lecturas con foto/i.test(item))];
-  const [packages, setPackages] = useState<Partial<Record<BillingPeriod, PurchasesPackage>>>({});
+  const [packages, setPackages] = useState<Partial<Record<BillingPeriod, StorePackage>>>({});
   const [busy, setBusy] = useState<BillingPeriod | 'restore' | null>(null);
   const pending = useRef(false);
   const [notice, setNotice] = useState('');
@@ -137,11 +136,11 @@ export default function Plan() {
         tagline={`Activo hasta el ${proUntil.toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })}`}
         price={founder ? '$0' : mxn(paid.monthly)} unit={founder ? 'como Fundador' : '/mes'} benefits={paidBenefits} />}
       {available && <><PlanCard t={theme} highlight name={`${paid.name} anual`} badge={`−${ANNUAL_SAVING}%`} tagline={tagline}
-        was={packages.annual ? undefined : mxn(paid.monthly)} price={packages.annual?.product.priceString ?? mxn(Math.round(paid.annual / 12))}
+        was={packages.annual ? undefined : mxn(paid.monthly)} price={packages.annual?.priceString ?? mxn(Math.round(paid.annual / 12))}
         unit={packages.annual ? 'al año' : `/mes · ${mxn(paid.annual)} al año`}
         action={subscribe('annual', 'accent')} benefits={paidBenefits} />
       <PlanCard t={theme} name={`${paid.name} mensual`} tagline={tagline}
-        price={packages.monthly?.product.priceString ?? mxn(paid.monthly)} unit="/mes"
+        price={packages.monthly?.priceString ?? mxn(paid.monthly)} unit="/mes"
         action={subscribe('monthly', 'outline')} benefits={paidBenefits} /></>}
 
       {/* Quien ya es Fundador no ve la invitación. */}

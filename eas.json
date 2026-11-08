@@ -27,6 +27,13 @@
         "image": "ubuntu-24.04-jdk-17-ndk-r27b",
         "buildType": "app-bundle"
       }
+    },
+    "android-qa": {
+      "extends": "production",
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      }
     }
   },
   "submit": {

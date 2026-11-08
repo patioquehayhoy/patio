@@ -17,7 +17,7 @@ import { ANDROID_ICONS, TintIcon } from '@/components/tint-icon';
 import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { ContentSafetyMenu } from '@/components/content-safety-menu';
 import { SaveToListSheet } from '@/components/save-to-list-sheet';
-import { PatioCardLocation, PatioCardPrice } from '@/components/patio-card-info';
+import { patioCardPrice } from '@/lib/patio-card-info';
 import { usePatioDetailController } from '@/lib/controllers/usePatioDetailController';
 import { getLikedDishNames, toggleDishLike } from '@/lib/dish-likes';
 import { canonicalDishName } from '@/lib/menu-store';
@@ -146,9 +146,9 @@ function makeStyles(t: Theme) {
     heroMeta: { height: 32, marginTop: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 16 },
     title: { color: '#FFFFFF', textShadowColor: 'rgba(0,0,0,0.25)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 8 },
     verifiedInline: { paddingLeft: 2 },
-    summaryRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 24 },
-    summaryPrice: { maxWidth: '50%', marginLeft: 'auto' },
     heroBio: { marginTop: 2 },
+    heroFacts: { marginTop: 8, fontSize: 14, lineHeight: 19, fontWeight: '400', color: 'rgba(255,255,255,0.86)', textShadowColor: 'rgba(0,0,0,0.25)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 6 },
+    heroFactsUnderName: { marginTop: 4 },
     // Sin descripción, el nombre ya trae su propio aire abajo (los rasgos
     // descendentes de Monument): 4 se ve igual de separado que 16 tras texto.
     heroMetaUnderName: { marginTop: 4 },
@@ -775,6 +775,8 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
 
   const km = patioDistance(here, patio);
   const distance = km === null ? null : formatDistance(km);
+  const heroPrice = patioCardPrice(patio);
+  const heroFacts = [patio.area?.trim(), distance, heroPrice.source === 'missing' ? null : heroPrice.label].filter(Boolean).join(' · ');
   return (
     <View style={s.container}>
       <Stack.Screen options={{ headerShown: false }} />
@@ -861,7 +863,12 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
             {!!description && (
               <Text style={[s.heroBioText, s.heroBio, { marginLeft: opticalIndent(description, Fonts.text, 15) }]} numberOfLines={2} allowFontScaling={true}>{noWidow(description)}</Text>
             )}
-            <View style={[s.heroMeta, !description && s.heroMetaUnderName]}>
+            {/* Dónde está y cuánto cuesta, con la identidad (antes vivía en la
+                hoja blanca y no ayudaba): colonia · distancia · precio. */}
+            {!!heroFacts && (
+              <Text style={[s.heroFacts, !description && s.heroFactsUnderName, { marginLeft: opticalIndent(heroFacts, Fonts.text, 14) }]} allowFontScaling={true}>{noWidow(heroFacts)}</Text>
+            )}
+            <View style={[s.heroMeta, !description && !heroFacts && s.heroMetaUnderName]}>
               {businessStats ? (
                 <TouchableOpacity
                   style={s.followersLink}
@@ -906,10 +913,6 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
 
         {/* Card traslapada */}
         <View style={s.card} onLayout={(event) => { menuFrame.current.cardY = event.nativeEvent.layout.y; }}>
-          <View style={s.summaryRow}>
-            <PatioCardLocation area={patio.area} distanceLabel={distance} variant="detail" style={{ flex: 1, marginTop: 0 }} />
-            <PatioCardPrice patio={patio} compact={false} style={s.summaryPrice} />
-          </View>
           {!!highlights.notice && (
             <View style={s.notice} accessible accessibilityLabel={`Aviso de ${patio.name}: ${highlights.notice.body}`}>
               <Ionicons name="megaphone-outline" size={18} color={theme.accent} />

@@ -676,3 +676,13 @@ antes de tiendas: las fuentes de prueba no se pueden publicar.
 **Decisión de Parco (8 nov):** en la ficha que ve quien busca, la carta va
 **toda abierta** con la barra de secciones; no se ocultan secciones ahí. El
 acordeón se queda solo en el editor del negocio.
+
+### Ajustes del 8 nov (tarde): encabezado de la ficha y barra
+
+- **Colonia, distancia y precio** salen de la hoja blanca (no ayudaban ahí) y
+  pasan al encabezado, con la identidad: nombre → descripción → «Narvarte ·
+  450 m · $95» → seguidores y «Seguir». La hoja empieza directo con el aviso
+  o el menú.
+- **Barra de secciones más Apple:** las secciones son texto (15, gris) y solo
+  la actual lleva un fondo suave con el texto en negro; en las orillas, un
+  desvanecido avisa que hay más de lado en vez de cortar en seco.

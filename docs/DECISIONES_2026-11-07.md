@@ -627,7 +627,12 @@ herramienta; no se citan.
   (hasta 3): giros y platillos en común + cercanía, sin repetir lugares que ya
   reseñaste (`lib/recommendations.ts`). Hoy es similitud por palabras; con más
   catálogo, búsqueda vectorial (embeddings en Supabase con pgvector).
-- **«La Muestra»** (solo en desarrollo): búscala como «muestra» o por platillo.
-  10 secciones (índice lateral), nombres cortos y de 60 caracteres, varios
-  giros, aviso especial, platillo recomendado y «Qué tan lleno» sintético con
-  «Ahora: más lleno de lo normal».
+- **Lugares «Dev» para QA** (solo en desarrollo, `lib/demo.ts`). Busca «dev»:
+  - **Fondita Dev:** menú de 10 secciones, lleno ahora, aviso y recomendado.
+  - **Taquería Dev 2:** otro giro, menú muy extenso (14 secciones), menos gente
+    ahora, cierra los lunes.
+  - **Café Dev 3:** menú corto, sin reseñas, sin visitas suficientes (no hay
+    gráfica).
+  - **Pastelería Dev 4:** «Se acabó por hoy», como de costumbre, aviso especial.
+  - **Mariscos y Cocteles Dev Cinco:** nombre de 29 letras, platillos
+    larguísimos y solo precio del menú.

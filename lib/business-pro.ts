@@ -54,13 +54,14 @@ export type PatioHighlights = { featuredDish: string | null; notice: { body: str
 
 /** Lo que Pro agrega a la ficha pública: platillo destacado y aviso de las últimas 24 horas. */
 export async function getPatioHighlights(negocioId: string): Promise<PatioHighlights> {
-  // Lugar de prueba en desarrollo: aviso especial y platillo recomendado.
-  if (typeof __DEV__ !== 'undefined' && __DEV__ && negocioId === 'demo-la-muestra') {
+  // Lugares «Dev» en desarrollo: aviso especial y platillo recomendado.
+  if (typeof __DEV__ !== 'undefined' && __DEV__ && negocioId.startsWith('demo-dev-')) {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { SHOWCASE_HIGHLIGHTS } = require('./demo') as typeof import('./demo');
+    const { demoHighlights } = require('./demo') as typeof import('./demo');
+    const demo = demoHighlights(negocioId);
     return {
-      featuredDish: canonicalDishName(SHOWCASE_HIGHLIGHTS.featuredDishName),
-      notice: { body: SHOWCASE_HIGHLIGHTS.notice, createdAt: new Date() },
+      featuredDish: demo?.featuredDishName ? canonicalDishName(demo.featuredDishName) : null,
+      notice: demo?.notice ? { body: demo.notice, createdAt: new Date() } : null,
     };
   }
   if (!UUID.test(negocioId)) return { featuredDish: null, notice: null };

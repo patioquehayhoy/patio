@@ -128,111 +128,192 @@ export async function getDevPublishedPatio(): Promise<Patio | null> {
   return menu ? makeDevPublishedPatio(menu) : null;
 }
 
-// «La Muestra»: lugar de prueba para revisar todo en un solo lugar. Búscalo
-// como «muestra» o por un platillo («mole», «pastor», «tres leches»): menú de
-// 10 secciones con nombres cortos y largos, descripciones, varios giros,
-// aviso especial, platillo recomendado y «Qué tan lleno» sintético.
-export const SHOWCASE_PATIO_ID = 'demo-la-muestra';
+// Lugares «Dev» para QA (solo en desarrollo). Busca «dev» y salen todos;
+// cada uno prueba un caso distinto:
+//   Fondita Dev            menú grande (10 secciones), lleno ahora, aviso y recomendado
+//   Taquería Dev 2         otro giro, menú muy extenso (14 secciones), menos gente ahora
+//   Café Dev 3             menú corto, sin reseñas y sin visitas suficientes (no hay gráfica)
+//   Pastelería Dev 4       «Se acabó por hoy», como de costumbre, aviso especial
+//   Mariscos y Cocteles Dev 5  nombre de 29 letras, platillos larguísimos, solo precio del menú
+type DevBusy = 'busy' | 'quiet' | 'usual' | 'none';
+type DevQa = { patio: Patio; busy: DevBusy; notice?: string; featured?: string };
+
 const item = (name: string, price?: string, description?: string): PatioMenuSection['items'][number] => ({
   name, price, description, tags: name.toLowerCase().split(/\s+/).slice(0, 3),
 });
-const SHOWCASE_PATIO: Patio = {
-  id: SHOWCASE_PATIO_ID,
-  name: 'La Muestra',
-  categories: ['Fondita', 'Tacos', 'Café', 'Postres'],
+const section = (title: string, items: PatioMenuSection['items'], price?: string): PatioMenuSection => ({ section: title, price, items });
+const week = (abre: string, cierra: string, closedDays: number[] = []) => Array.from({ length: 7 }, (_, dia) => (
+  closedDays.includes(dia) ? { dia, cerrado: true, abre: null, cierra: null } : { dia, cerrado: false, abre, cierra }
+));
+const devPatio = (id: string, fields: Partial<Patio> & Pick<Patio, 'name' | 'categories' | 'menu' | 'latitude' | 'longitude'>): Patio => ({
+  id,
   area: 'Narvarte',
   price: '$95',
   address: 'Av. Universidad 1100',
   open: '8am-10pm',
-  rating: '4.8',
-  ratingCount: 126,
-  isVerifiedBusiness: true,
-  isNeighborhoodFavorite: true,
-  reason: 'Cocina de barrio de la mañana a la noche',
-  latitude: 19.3962,
-  longitude: -99.1553,
+  rating: '4.6',
+  ratingCount: 40,
+  reason: '',
   x: 50,
   y: 50,
   hasTodayMenu: true,
-  payments: ['Efectivo', 'Tarjeta', 'Transferencia'],
-  patioJoinedAt: '2026-10-01',
-  businessOpenedAt: '1998-03-01',
-  weeklyHours: [
-    { dia: 0, cerrado: false, abre: '09:00', cierra: '18:00' },
-    { dia: 1, cerrado: false, abre: '08:00', cierra: '22:00' },
-    { dia: 2, cerrado: false, abre: '08:00', cierra: '22:00' },
-    { dia: 3, cerrado: false, abre: '08:00', cierra: '22:00' },
-    { dia: 4, cerrado: false, abre: '08:00', cierra: '22:00' },
-    { dia: 5, cerrado: false, abre: '08:00', cierra: '22:00' },
-    { dia: 6, cerrado: false, abre: '09:00', cierra: '22:00' },
-  ],
-  menu: [
-    { section: 'DESAYUNOS', price: '$95', items: [
-      item('Chilaquiles verdes con pollo y crema', '$95', 'Con frijoles refritos y un huevo estrellado'),
-      item('Molletes con pico de gallo', '$65'),
-      item('Huevos a la mexicana', '$70', 'Con tortillas recién hechas'),
-    ] },
-    { section: 'ENTRADAS', items: [
-      item('Guacamole con totopos', '$75'),
-      item('Queso fundido con chorizo', '$85', 'Para compartir, con tortillas de harina'),
-    ] },
-    { section: 'SOPAS', items: [
-      item('Sopa de fideo'),
-      item('Consomé de pollo con arroz y garbanzo', undefined, 'Con limón, cebolla y chile serrano'),
-      item('Crema de elote'),
-    ] },
-    { section: 'PLATOS FUERTES', items: [
-      item('Milanesa de res empanizada con papas a la francesa', '$120', 'Con ensalada de la casa'),
-      item('Mole poblano con pollo', '$110'),
-      item('Pechuga a la plancha', '$105'),
-      item('Chile relleno de queso en caldillo de jitomate', '$115'),
-    ] },
-    { section: 'TACOS', items: [
-      item('Al pastor', '$60', 'Orden de cuatro, con piña'),
-      item('Suadero', '$60'),
-      item('Campechanos', '$65'),
-      item('Gringa de pastor con queso', '$70'),
-    ] },
-    { section: 'ANTOJITOS', items: [
-      item('Quesadilla de huitlacoche', '$45'),
-      item('Sope de tinga', '$40'),
-      item('Tlacoyo de frijol con nopales y queso fresco', '$40'),
-    ] },
-    { section: 'VEGETARIANO', items: [
-      item('Bowl de quinoa con verduras asadas y hummus', '$110'),
-      item('Tacos de coliflor al pastor', '$75'),
-    ] },
-    { section: 'BEBIDAS', items: [
-      item('Agua de horchata', '$25'),
-      item('Agua de jamaica', '$25', 'Sin azúcar si la pides'),
-      item('Limonada mineral', '$35'),
-      item('Refresco', '$25'),
-    ] },
-    { section: 'CAFÉ', items: [
-      item('Café de olla', '$30'),
-      item('Americano', '$35'),
-      item('Capuchino con leche de avena', '$55'),
-    ] },
-    { section: 'POSTRES', items: [
-      item('Pastel de tres leches', '$45'),
-      item('Flan napolitano', '$40'),
-      item('Arroz con leche', '$35'),
-      item('Pay de queso con zarzamora', '$50'),
-    ] },
-  ],
-};
+  payments: ['Efectivo', 'Tarjeta'],
+  weeklyHours: week('08:00', '22:00'),
+  ...fields,
+});
 
-export const SHOWCASE_HIGHLIGHTS = {
-  featuredDishName: 'Mole poblano con pollo',
-  notice: '2×1 en aguas frescas, hoy de 2 a 4 pm.',
-};
+const DEV_QA: DevQa[] = [
+  {
+    busy: 'busy',
+    notice: '2×1 en aguas frescas, hoy de 2 a 4 pm.',
+    featured: 'Mole poblano con pollo',
+    patio: devPatio('demo-dev-1', {
+      name: 'Fondita Dev',
+      categories: ['Fondita', 'Tacos', 'Café', 'Postres'],
+      rating: '4.8',
+      ratingCount: 126,
+      isVerifiedBusiness: true,
+      isNeighborhoodFavorite: true,
+      reason: 'Cocina de barrio de la mañana a la noche',
+      latitude: 19.3962,
+      longitude: -99.1553,
+      payments: ['Efectivo', 'Tarjeta', 'Transferencia'],
+      businessOpenedAt: '1998-03-01',
+      weeklyHours: week('08:00', '22:00'),
+      menu: [
+        section('DESAYUNOS', [
+          item('Chilaquiles verdes con pollo y crema', '$95', 'Con frijoles refritos y un huevo estrellado'),
+          item('Molletes con pico de gallo', '$65'),
+          item('Huevos a la mexicana', '$70', 'Con tortillas recién hechas'),
+        ], '$95'),
+        section('ENTRADAS', [item('Guacamole con totopos', '$75'), item('Queso fundido con chorizo', '$85', 'Para compartir, con tortillas de harina')]),
+        section('SOPAS', [item('Sopa de fideo'), item('Consomé de pollo con arroz y garbanzo', undefined, 'Con limón, cebolla y chile serrano'), item('Crema de elote')]),
+        section('PLATOS FUERTES', [
+          item('Milanesa de res empanizada con papas a la francesa', '$120', 'Con ensalada de la casa'),
+          item('Mole poblano con pollo', '$110'),
+          item('Pechuga a la plancha', '$105'),
+          item('Chile relleno de queso en caldillo de jitomate', '$115'),
+        ]),
+        section('TACOS', [item('Al pastor', '$60', 'Orden de cuatro, con piña'), item('Suadero', '$60'), item('Campechanos', '$65'), item('Gringa de pastor con queso', '$70')]),
+        section('ANTOJITOS', [item('Quesadilla de huitlacoche', '$45'), item('Sope de tinga', '$40'), item('Tlacoyo de frijol con nopales y queso fresco', '$40')]),
+        section('VEGETARIANO', [item('Bowl de quinoa con verduras asadas y hummus', '$110'), item('Tacos de coliflor al pastor', '$75')]),
+        section('BEBIDAS', [item('Agua de horchata', '$25'), item('Agua de jamaica', '$25', 'Sin azúcar si la pides'), item('Limonada mineral', '$35'), item('Refresco', '$25')]),
+        section('CAFÉ', [item('Café de olla', '$30'), item('Americano', '$35'), item('Capuchino con leche de avena', '$55')]),
+        section('POSTRES', [item('Pastel de tres leches', '$45'), item('Flan napolitano', '$40'), item('Arroz con leche', '$35'), item('Pay de queso con zarzamora', '$50')]),
+      ],
+    }),
+  },
+  {
+    busy: 'quiet',
+    patio: devPatio('demo-dev-2', {
+      name: 'Taquería Dev 2',
+      categories: ['Tacos', 'Antojitos'],
+      price: '$18–$145',
+      rating: '4.3',
+      ratingCount: 23,
+      reason: 'Tacos de guisado, pastor y canasta',
+      latitude: 19.3988,
+      longitude: -99.1581,
+      open: '1pm-11pm',
+      weeklyHours: week('13:00', '23:00', [1]),
+      menu: [
+        section('TACOS DE GUISADO', [item('Chicharrón en salsa verde', '$22'), item('Papa con chorizo', '$20'), item('Rajas con crema y elote', '$22'), item('Picadillo', '$20'), item('Huevo con salsa', '$18'), item('Mole verde con pollo deshebrado', '$24')]),
+        section('TACOS AL PASTOR', [item('Pastor sencillo', '$18'), item('Pastor con queso', '$28'), item('Pastor con piña y cilantro', '$20'), item('Orden de cinco al pastor con todo', '$85')]),
+        section('TACOS DE CANASTA', [item('Frijol', '$12'), item('Papa', '$12'), item('Chicharrón prensado', '$14'), item('Adobo', '$14'), item('Orden de cinco surtidos con salsa verde y cebolla', '$60')]),
+        section('TACOS DORADOS', [item('De pollo con crema y queso', '$55'), item('De papa con lechuga y salsa roja', '$50'), item('De barbacoa', '$65')]),
+        section('GRINGAS Y VOLCANES', [item('Gringa de pastor', '$55'), item('Gringa de suadero', '$55'), item('Volcán de bistec con queso gratinado', '$45'), item('Volcán de chorizo', '$40')]),
+        section('QUESADILLAS', [item('Queso', '$35'), item('Huitlacoche', '$45'), item('Flor de calabaza', '$45'), item('Chicharrón prensado', '$40'), item('Tinga de pollo', '$40')]),
+        section('TORTAS', [item('Torta de milanesa', '$75'), item('Torta de pastor', '$70'), item('Torta cubana con todo', '$110'), item('Pambazo de papa con chorizo', '$55')]),
+        section('ALAMBRES', [item('Alambre de res', '$135'), item('Alambre de pollo', '$125'), item('Alambre de pastor con queso, pimiento y tocino', '$145')]),
+        section('CALDOS', [item('Consomé de barbacoa', '$45'), item('Caldo de gallina', '$65')]),
+        section('ESPECIALIDADES DE LA CASA', [item('Costra de queso con pastor', '$45'), item('Campechano de suadero y longaniza', '$28'), item('Taco de cabeza', '$22')]),
+        section('PARA COMPARTIR', [item('Parrillada para cuatro', '$420', 'Pastor, bistec, chorizo, cebollitas y nopales'), item('Orden de veinte tacos surtidos', '$360')]),
+        section('SALSAS', [item('Verde cruda'), item('Roja de árbol'), item('Guacamole taquero')]),
+        section('BEBIDAS', [item('Agua de horchata', '$25'), item('Agua de jamaica', '$25'), item('Refresco', '$25'), item('Cerveza', '$45')]),
+        section('POSTRES', [item('Arroz con leche', '$30'), item('Flan', '$35')]),
+      ],
+    }),
+  },
+  {
+    busy: 'none',
+    patio: devPatio('demo-dev-3', {
+      name: 'Café Dev 3',
+      categories: ['Café'],
+      price: '$35–$60',
+      rating: '',
+      ratingCount: 0,
+      reason: 'Café de especialidad para llevar',
+      latitude: 19.3947,
+      longitude: -99.1537,
+      open: '7am-3pm',
+      patioJoinedAt: '2026-11-06',
+      weeklyHours: week('07:00', '15:00', [0]),
+      menu: [
+        section('CAFÉ', [item('Americano', '$35'), item('Latte', '$50'), item('Capuchino', '$50'), item('Café de olla', '$40')]),
+        section('PAN', [item('Concha', '$25'), item('Cuernito de jamón y queso', '$60')]),
+      ],
+    }),
+  },
+  {
+    busy: 'usual',
+    notice: 'Hoy pastel de zanahoria con 20 % de descuento.',
+    patio: devPatio('demo-dev-4', {
+      name: 'Pastelería Dev 4',
+      categories: ['Postres', 'Café'],
+      price: '$40–$480',
+      rating: '4.9',
+      ratingCount: 88,
+      isVerifiedBusiness: true,
+      reason: 'Pasteles por rebanada y enteros',
+      latitude: 19.3975,
+      longitude: -99.1520,
+      soldOut: true,
+      weeklyHours: week('10:00', '20:00'),
+      menu: [
+        section('PASTELES', [item('Tres leches por rebanada', '$55'), item('Chocolate con frambuesa', '$60'), item('Zanahoria con betún de queso crema', '$58'), item('Pastel entero de tres leches para diez personas', '$480')]),
+        section('GALLETAS', [item('Avena con pasas', '$25'), item('Chispas de chocolate', '$25'), item('Polvorones', '$20')]),
+        section('BEBIDAS', [item('Café americano', '$35'), item('Chocolate caliente', '$45')]),
+      ],
+    }),
+  },
+  {
+    busy: 'busy',
+    patio: devPatio('demo-dev-5', {
+      name: 'Mariscos y Cocteles Dev Cinco',
+      categories: ['Mariscos'],
+      price: '$150',
+      rating: '4.4',
+      ratingCount: 61,
+      reason: 'Comida corrida de mariscos con caldo, plato fuerte y agua',
+      latitude: 19.3931,
+      longitude: -99.1572,
+      weeklyHours: week('12:00', '19:00', [2]),
+      menu: [
+        section('CALDOS', [item('Caldo de camarón seco con verduras y chile guajillo'), item('Sopa de mariscos de la casa con pulpo, camarón y almeja')], '$150'),
+        section('COCTELES', [item('Coctel de camarón grande con aguacate y salsa de la casa'), item('Campechana de camarón, pulpo y ostión'), item('Vuelve a la vida')]),
+        section('TOSTADAS', [item('Tostada de ceviche de pescado'), item('Tostada de pulpo en su tinta con mayonesa de chipotle'), item('Tostada de atún fresco')]),
+        section('PLATOS', [item('Filete de pescado empapelado con mantequilla de ajo, champiñones y epazote'), item('Camarones a la diabla'), item('Pescado zarandeado al carbón')]),
+      ],
+    }),
+  },
+];
+
+export const DEV_QA_PATIOS: Patio[] = DEV_QA.map((entry) => entry.patio);
+
+/** Aviso especial y platillo recomendado de los lugares «Dev». */
+export function demoHighlights(id: string): { notice: string | null; featuredDishName: string | null } | null {
+  const entry = DEV_QA.find((candidate) => candidate.patio.id === id);
+  return entry ? { notice: entry.notice ?? null, featuredDishName: entry.featured ?? null } : null;
+}
 
 /**
- * «Qué tan lleno» sintético para los lugares de prueba: desayuno ligero, pico
- * a la comida (2 pm) y otro menor en la cena; los fines de semana, más tarde.
- * En la hora actual, más gente de lo normal para ver «Ahora: más lleno».
+ * «Qué tan lleno» sintético: desayuno ligero, pico a la comida y otro menor en
+ * la cena (fines de semana, más tarde). En la hora actual, según el caso:
+ * lleno, menos gente, como de costumbre o sin visitas suficientes.
  */
 export function demoBusynessRows(id: string, now = new Date()) {
+  const busy: DevBusy = DEV_QA.find((entry) => entry.patio.id === id)?.busy ?? 'usual';
+  if (busy === 'none') return [];
   const { dia, minutos } = ahoraCDMX(now);
   const hourNow = Math.floor(minutos / 60);
   const seed = [...id].reduce((sum, char) => sum + char.charCodeAt(0), 0);
@@ -240,7 +321,7 @@ export function demoBusynessRows(id: string, now = new Date()) {
   for (let weekday = 0; weekday < 7; weekday++) {
     const weekend = weekday === 0 || weekday === 6;
     const lunch = weekend ? 15 : 14;
-    for (let hour = 8; hour <= 21; hour++) {
+    for (let hour = 7; hour <= 23; hour++) {
       const value = 0.3 * Math.exp(-((hour - 9) ** 2) / 2)
         + Math.exp(-((hour - lunch) ** 2) / 3)
         + (0.4 + (seed % 3) * 0.1) * Math.exp(-((hour - 19.5) ** 2) / 2)
@@ -249,20 +330,21 @@ export function demoBusynessRows(id: string, now = new Date()) {
     }
   }
   const top = Math.max(...raw.map((row) => row.value));
+  const present = { busy: 9, quiet: 2, usual: 4 }[busy];
   return raw.map((row) => {
     const current = row.weekday === dia && row.hour_of_day === hourNow;
     return {
       weekday: row.weekday,
       hour_of_day: row.hour_of_day,
       level: Math.max(1, Math.round((100 * row.value) / top)),
-      present_now: current ? 9 : null,
+      present_now: current ? present : null,
       usual_present: current ? 4 : null,
     };
   });
 }
 
 export const DEMO_PATIOS: Patio[] = [
-  SHOWCASE_PATIO,
+  ...DEV_QA_PATIOS,
   {
     id: 'demo-patio-4',
     name: 'Café Patio de Siempre',

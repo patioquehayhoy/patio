@@ -63,7 +63,9 @@ salvo que cambie disponibilidad de forma significativa.
 
 ## Decisión de interfaz
 
-- El permiso nativo no se pide en onboarding.
+- Desde 2026-11-08 el onboarding tiene una pantalla de Permisos explicada
+  (como Leica): cada fila pide su permiso al tocarla y se puede continuar sin
+  darlos. Nunca se pide en frío al abrir la app.
 - No hay campana en el perfil público; bookmark significa únicamente guardar.
 - Guardar no concede permiso ni activa interrupciones.
 - Perfil muestra una fila `Avisos`, no un toggle maestro ambiguo.

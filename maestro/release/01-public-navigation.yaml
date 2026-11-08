@@ -19,13 +19,9 @@ tags:
 - assertVisible: 'Saaaaaaabes\.'
 - assertNotVisible: ".*DEV.*"
 - tapOn: "Entrar a Patio"
-- assertVisible: 'Saber qué.*hoy\.'
-- tapOn: "Continuar"
-- assertVisible: 'Publicar lo que.*preparas\.'
-- tapOn: "Continuar"
-- assertVisible: 'Pásale, aquí.*es\.'
-- assertVisible: "Ver qué hay hoy"
-- assertVisible: "Publicar lo que preparo"
+- assertVisible: '¿Cómo vas a usar.*Patio\?'
+- assertVisible: "Ver qué hay hoy.*"
+- assertVisible: "Publicar lo que preparo.*"
 # Do not choose a role: that would persist onboarding/preferences.
 - openLink: "patio://cuenta"
 - assertVisible: "Iniciar sesión.*"

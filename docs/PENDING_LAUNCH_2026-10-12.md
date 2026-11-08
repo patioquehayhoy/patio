@@ -32,7 +32,11 @@ Decisiones y aterrizaje completos en [DECISIONES_2026-11-07](DECISIONES_2026-11-
   mejor; mañana afina detalles y se empieza a ver en la app.
 - [ ] Afinar detalles de la v4 con Parco: Hoy, notificaciones, aviso gratis,
   flyers, mostrar en caja y sellos, onboarding, foto del lugar, ficha y marca.
-- [ ] Construir en la app, en orden: onboarding Leica + foto del lugar (alta y
+- [x] Onboarding estilo Leica construido (2026-11-08); falta verlo en el
+  teléfono (iPhone con Metro; Android necesita build nuevo).
+- [ ] «¿Qué te pareció…?» después de la visita: fase 1 sin ubicación en
+  segundo plano (DECISIONES §19).
+- [ ] Construir en la app, en orden: foto del lugar (alta y
   Editar) → Hoy (incluye quitar el «…» del platillo en Tu racha) → aviso de
   operación y resumen 18:00 → notificaciones simplificadas → flyers →
   mostrar en caja (fase 1). `borderCurve: 'continuous'` en tarjetas y botones.

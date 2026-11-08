@@ -278,9 +278,10 @@
   .poster .qr{width:120px;height:120px;background:#fff;border-radius:8px;display:grid;place-items:center;flex:none}
   .poster .foot p{font:400 18px/24px var(--ui)} .poster .foot p b{font-weight:600}
   .sticker{width:200px;height:200px;background:linear-gradient(170deg,#2B2C30 0%,#111214 70%);color:#fff;padding:24px;display:flex;flex-direction:column;justify-content:space-between}
-  .sticker .k{font:600 12px/16px var(--ui);letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.62)}
   .sticker .t{font:800 26px/32px var(--brand)}
   .seal{width:140px;height:140px;background:linear-gradient(170deg,#FF7C50 0%,#F2612F 55%,#DE5223 100%);color:#fff;padding:17px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+  .seal-in{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center}
+  .seal-in img{height:22px;transform:translate(-1%,4%)} /* centro óptico de la P itálica */
   .seal .t{font:800 18px/22px var(--brand);margin-top:10px}
   .seal .s{font:400 11px/14px var(--ui);margin-top:2px;opacity:.92}
   .appicon{width:120px;height:120px;background:#F3F3F0;display:grid;place-items:center}
@@ -303,7 +304,7 @@
 </head>
 <body>
 <div class="page">
-<p class="eyebrow">Patio · propuesta v4.1 · 8 nov 2026</p>
+<p class="eyebrow">Patio · propuesta v4.2 · 8 nov 2026</p>
 <h1>Diseño homologado con la app</h1>
 <p class="lead">Lado difícil hoy: el negocio que publica su menú diario. Esta versión dibuja cada pantalla a su tamaño real (390 × 844 pt) con la escala homologada de Patio: Monument y Neue Montreal, los íconos de la app (Ionicons), filas de Ajustes, botones de 54 y el mismo menú de la ficha.</p>
 
@@ -324,6 +325,8 @@
   <tr><td>13</td><td>Fondo de la ficha en blanco y nombre a 28.</td><td>Consistencia</td><td>Fondo de lienzo con radio 28 arriba, nombre a 32 que baja de tamaño si no cabe en dos renglones.</td></tr>
   <tr><td>14</td><td>«Enchiladas suizas gratinadas» salía cortado: la regla anti-viudas unía dos palabras largas en un bloque más ancho que el renglón.</td><td>Visibilidad</td><td>En títulos grandes la viuda se evita equilibrando renglones y bajando el tamaño en pasos; nunca uniendo palabras que no caben juntas.</td></tr>
   <tr><td>15</td><td>Flyers con fondo naranja y durazno.</td><td>Consistencia</td><td>Solo blanco, gris (lienzo con tarjeta, como el póster del menú) y negro; con foto, degradado.</td></tr>
+  <tr><td>16</td><td>Copy dirigido a fondas: «El menú de hoy de las fondas de tu colonia».</td><td>Modelo mental</td><td>Abierto a cualquier lugar, como pide la identidad verbal: «lo de hoy» y «lugares», sin nombrar giros.</td></tr>
+  <tr><td>17</td><td>Sticker con etiqueta en mayúsculas más un título que empezaba en minúscula.</td><td>Consistencia</td><td>Un solo mensaje con mayúscula inicial; el sello Fundador, todo centrado.</td></tr>
 </table>
 
 <!-- 1 LOGO -->
@@ -607,7 +610,7 @@
       <p class="t-hero">¿Qué hay hoy?</p>
       <p class="t-section" style="color:#fff;margin-top:4px">Saaaaaaabes.</p>
       <div class="collage"><div style="background-image:url('../assets/hero/botanica-5.jpg')"></div><div style="background-image:url('../assets/hero/botanica-1.jpg');grid-row:span 2"></div><div style="background-image:url('../assets/hero/botanica-4.jpg')"></div><div style="background-image:url('../assets/hero/botanica-7.jpg')"></div><div style="background-image:url('../assets/hero/botanica-8.jpg')"></div></div>
-      <p class="txt" style="margin:0 0 24px">El menú de hoy de las fondas de tu colonia.</p>
+      <p class="txt" style="margin:0 0 24px">Lo que preparan hoy los lugares cerca de ti, con precio y a qué distancia.</p>
       <div class="btn gl">Comenzar</div>
     </div>
   </div></div></div><p class="cap"><b>1 · Portada.</b> El par de marca siempre junto.</p></div>
@@ -615,24 +618,24 @@
   <div><div class="phone"><div class="screen"><div class="vp dark">
     <div class="sb" style="color:#fff"><span>9:41</span><span><i class="ion">&#xf208;</i><i class="ion">&#xf631;</i><i class="ion">&#xf187;</i></span></div>
     <div class="ob dark">
-      <p class="t-title" style="margin-top:20px">Mira el menú de hoy en el mapa</p>
+      <p class="t-title" style="margin-top:20px">Lo de hoy, en el mapa</p>
       <div class="dev"><span class="pin" style="left:44px;top:70px"></span><span class="pin" style="left:118px;top:120px"></span><span class="pin" style="left:76px;top:184px"></span><div class="sheet2"><i style="width:60%"></i><i style="width:85%"></i><i style="width:40%"></i></div></div>
-      <p class="txt">Cada punto es un lugar que <b>ya publicó</b> lo que hay <b>hoy</b>, con su <b>precio</b>.</p>
+      <p class="txt">Cada punto es un lugar que <b>ya publicó hoy</b>, con sus <b>precios</b> y su <b>horario</b>.</p>
       <div class="dots"><i class="on"></i><i></i><i></i></div>
       <div class="btn gl">Siguiente</div>
       <div class="btn tx">Omitir</div>
     </div>
-  </div></div></div><p class="cap"><b>2 a 4 · Mapa, seguir y listas.</b></p></div>
+  </div></div></div><p class="cap"><b>2 a 4 · Mapa, seguir y favoritos.</b></p></div>
 
   <div><div class="phone"><div class="screen"><div class="vp dark">
     <div class="sb" style="color:#fff"><span>9:41</span><span><i class="ion">&#xf208;</i><i class="ion">&#xf631;</i><i class="ion">&#xf187;</i></span></div>
     <div class="ob dark">
       <img class="pm" src="img/p-blanco.png" alt="Patio">
       <p class="t-title">Permisos</p>
-      <p class="txt">Dos cosas para que Patio te sirva.</p>
+      <p class="txt">Patio necesita un par de cosas antes de empezar.</p>
       <div class="perm">
-        <div class="prow"><span class="pic ok ion">&#xf21d;</span><span><b>Ubicación</b><span>Para ver lo que hay cerca de ti</span></span></div>
-        <div class="prow"><span class="pic ion">&#xf47f;</span><span><b>Notificaciones</b><span>Para saber cuando publican tus lugares</span></span></div>
+        <div class="prow"><span class="pic ok ion">&#xf21d;</span><span><b>Ubicación</b><span>Para mostrarte lo que hay cerca</span></span></div>
+        <div class="prow"><span class="pic ion">&#xf47f;</span><span><b>Notificaciones</b><span>Para avisarte cuando publican tus lugares</span></span></div>
       </div>
       <div class="btn gl">Continuar</div>
     </div>
@@ -642,8 +645,8 @@
     <div class="sb" style="color:#fff"><span>9:41</span><span><i class="ion">&#xf208;</i><i class="ion">&#xf631;</i><i class="ion">&#xf187;</i></span></div>
     <div class="ob dark">
       <img class="pm" src="img/p-blanco.png" alt="Patio">
-      <p class="t-title">Guarda tus lugares</p>
-      <p class="txt">Crea tu cuenta para seguir lugares, reseñar y no perder tus listas.</p>
+      <p class="t-title">Crea tu cuenta</p>
+      <p class="txt">Para seguir lugares, reseñar y no perder tus favoritos.</p>
       <div class="collage" style="grid-template-columns:repeat(2,1fr)"><div style="background-image:url('../assets/hero/botanica-2.jpg')"></div><div style="background-image:url('../assets/hero/botanica-6.jpg')"></div><div style="background-image:url('../assets/hero/botanica-3.jpg')"></div><div style="background-image:url('../assets/hero/botanica-8.jpg')"></div></div>
       <div class="btn gl">Crear cuenta</div>
       <div class="btn tx">Quizás más tarde</div>
@@ -655,7 +658,7 @@
     <div class="nav"><span class="bx ion">&#xf229;</span><span class="tt">Tu negocio</span><span class="bx" style="font:400 13px/17px var(--ui);color:var(--mute);width:auto">3 de 4</span></div>
     <div style="position:absolute;left:24px;right:24px;top:122px;bottom:34px;display:flex;flex-direction:column">
       <p class="t-title">La foto de tu lugar</p>
-      <p class="body15" style="margin:8px 0 20px">Es lo primero que ve la gente en el mapa: tu fachada o tu mejor platillo.</p>
+      <p class="body15" style="margin:8px 0 20px">Es lo primero que ve la gente en el mapa: tu fachada o lo que mejor te sale.</p>
       <div class="drop"><i class="ion">&#xf1dc;</i>Tomar foto o elegir de Fotos</div>
       <p style="font:400 13px/17px var(--ui);color:var(--mute);margin-top:10px">Horizontal, con luz de día y sin texto encima. Puedes cambiarla en Editar mi negocio.</p>
       <div style="flex:1"></div>
@@ -732,23 +735,25 @@
     <img src="img/p-blanco.png" alt="Patio" style="height:24px;align-self:flex-start">
     <p class="q">¿Qué hay hoy?</p>
     <p class="s">Saaaaaaabes.</p>
-    <div class="foot"><div class="qr"><span class="qr" data-seed="3" data-size="104"></span></div><p>Escanea y mira el menú de hoy de <b>Fonda Poblana</b></p></div>
+    <div class="foot"><div class="qr"><span class="qr" data-seed="3" data-size="104"></span></div><p>Escanea y mira lo de hoy en <b>Fonda Poblana</b>.</p></div>
   </div><p class="dim2"><b>Cartel carta</b> · 21.6 × 27.9 cm · margen 1.5 cm · QR 6 cm (se lee a 60 cm).</p></div>
 
   <div><div class="piece sq sticker" data-r=".2237" data-rim="1">
     <span class="safe" style="left:24px;top:24px;right:24px;bottom:24px"></span>
     <img src="img/p-blanco.png" alt="Patio" style="height:24px;align-self:flex-start;position:relative">
-    <div style="position:relative"><p class="k">Aquí publicamos</p><p class="t">el menú de hoy</p></div>
+    <p class="t" style="position:relative">Estamos en Patio</p>
   </div><p class="dim2" style="max-width:200px"><b>Sticker de ventana</b> · 10 × 10 cm · vinil · radio 2.2 cm continuo.</p></div>
 
-  <div><div class="piece sq seal" data-r=".2237" data-rim="1">
+  <div style="display:flex;flex-direction:column;align-items:center"><div class="piece sq seal" data-r=".2237" data-rim="1">
     <span class="safe" style="left:17px;top:17px;right:17px;bottom:17px"></span>
-    <img src="img/p-blanco.png" alt="Patio" style="height:22px;position:relative">
-    <p class="t" style="position:relative">Fundador</p>
-    <p class="s" style="position:relative">Narvarte · 2026</p>
-  </div><p class="dim2" style="max-width:140px"><b>Sello Fundador</b> · 7 × 7 cm · caja y puerta.</p></div>
+    <div class="seal-in">
+      <img src="img/p-blanco.png" alt="Patio">
+      <p class="t">Fundador</p>
+      <p class="s">Narvarte · 2026</p>
+    </div>
+  </div><p class="dim2" style="max-width:140px;text-align:center"><b>Sello Fundador</b><br>7 × 7 cm · caja y puerta</p></div>
 
-  <div><div class="piece sq appicon" data-r=".2237" data-rim="1"><img src="img/p-negro.png" alt="Patio" style="position:relative"></div><p class="dim2" style="max-width:120px"><b>Ícono de la app</b> · misma forma.</p></div>
+  <div style="display:flex;flex-direction:column;align-items:center"><div class="piece sq appicon" data-r=".2237" data-rim="1"><img src="img/p-negro.png" alt="Patio" style="position:relative"></div><p class="dim2" style="max-width:120px;text-align:center"><b>Ícono de la app</b><br>misma forma</p></div>
 </div>
 <p class="lead" style="margin-top:28px;font-size:14px">Dentro de la app, los reconocimientos de la ficha se quedan como hoy (círculos de 44). La esquina continua se aplica en código con <code>borderCurve: 'continuous'</code> en tarjetas, hojas y botones de iOS.</p>
 

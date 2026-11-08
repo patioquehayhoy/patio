@@ -534,3 +534,27 @@ listas de `components/settings-list.tsx`. Trae la auditoría v3 → v4.
 - **Video de oferta irresistible:** estructura y prácticas aplicadas a Pro,
   flyers y reels en `docs/research/VIDEO_OFERTA_IRRESISTIBLE_2026-11-08.md`.
   Propuesta: campo «Hasta cuándo» en los flyers (escasez verdadera).
+
+---
+
+## 19. Onboarding construido y opinión después de la visita (8 nov)
+
+- **Onboarding estilo Leica, ya en la app** (`app/onboarding.tsx`): ¿Cómo vas
+  a usar Patio? → tres pantallas por lado → permisos explicados (cada fila
+  pide su permiso al tocarla; se puede continuar sin darlos) → cuenta opcional
+  para quien busca («Crear cuenta» / «Quizás más tarde»); el negocio sigue a
+  su acceso. Copy abierto: «lo de hoy», «lugares», «favoritos»; sin giros.
+  `entrada.tsx` homologada a 54/27. Esto cambia la regla anterior de no pedir
+  permisos en el onboarding: ahora se piden explicados, como Leica.
+- **«¿Qué te pareció Tacos Juan?»** (idea de Parco). Hoy no existe. Plan:
+  - Copy: título = el lugar; cuerpo «¿Qué te pareció?». Abre la reseña.
+  - Reglas: solo si no has reseñado ese lugar; máximo uno al día; el mismo
+    lugar no se repite en 30 días; nunca de 22 a 9 h; se apaga en
+    Notificaciones («Pedir mi opinión»).
+  - **Fase 1, sin ubicación en segundo plano:** aviso local (no sale del
+    teléfono) 3 h después de tocar «Cómo llegar» o de canjear una promo:
+    «¿Fuiste a Tacos Juan? ¿Qué te pareció?».
+  - **Fase 2, con visitas reales:** las mismas geocercas de «Qué tan lleno»;
+    visita de 8 minutos o más y, al alejarte, el aviso.
+  - Por qué conviene: cada reseña es respuesta para el negocio, y que el
+    negocio vea respuesta es lo que lo hace seguir publicando (lado difícil).

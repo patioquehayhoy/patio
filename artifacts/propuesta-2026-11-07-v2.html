@@ -40,15 +40,18 @@
   /* app */
   .app{padding:50px 16px 16px}
   .nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-weight:600}
-  .chip{display:inline-flex;align-items:center;gap:6px;background:var(--accentSoft);color:#B5421A;border-radius:100px;padding:4px 10px;font-size:12px;font-weight:700}
-  .hero-n{font:800 88px/0.95 "Plus Jakarta Sans",system-ui;letter-spacing:-2px;margin:14px 0 2px}
-  .hero-l{font-size:17px;font-weight:600;margin:0}
-  .delta{color:var(--ok);font-size:14px;font-weight:600;margin:4px 0 0}
+  .chip{display:inline-flex;align-items:center;gap:4px;background:#EFEDE7;color:var(--soft);border-radius:100px;padding:3px 9px;font-size:12px;font-weight:500}
+  .eyebrow{font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--mute);margin:14px 0 4px}
+  .hero-n{font:800 40px/44px "Plus Jakarta Sans",system-ui;letter-spacing:-.4px;margin:0}
+  .hero-n span{font:500 17px/22px -apple-system,system-ui;letter-spacing:0;color:var(--ink);margin-left:6px}
+  .hero-l{display:none}
+  .delta{color:var(--soft);font-size:15px;font-weight:400;margin:2px 0 0}
+  .delta i{font-style:normal;color:var(--ok);font-weight:600;margin-right:4px}
   .card{background:var(--surface);border-radius:18px;padding:14px 16px;margin-top:14px}
   .ch-h{display:flex;justify-content:space-between;align-items:baseline}
-  .ch-h small{font-size:11px;font-weight:700;letter-spacing:.8px;color:var(--mute);text-transform:uppercase}
+  .ch-h small{font-size:15px;font-weight:600;color:var(--ink)}
   .ch-h strong{font-size:20px;font-weight:700}
-  .ch-h em{font-style:normal;font-size:12px;color:var(--mute)}
+  .ch-h em{font-style:normal;font-size:13px;color:var(--mute)}
   .chart{position:relative;height:96px;display:flex;align-items:flex-end;gap:7px;margin-top:10px}
   .chart i{flex:1;background:#E3E1DA;border-radius:5px 5px 2px 2px}
   .chart i.today{background:var(--accent)}
@@ -57,8 +60,8 @@
   .dl{display:flex;gap:7px;font-size:10px;color:var(--mute);margin-top:4px}.dl span{flex:1;text-align:center}
   .mini{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:14px}
   .mini div{background:var(--surface);border-radius:14px;padding:10px}
-  .mini b{display:block;font-size:20px;font-weight:700}
-  .mini span{font-size:11px;color:var(--soft);line-height:1.2;display:block}
+  .mini b{display:block;font-size:17px;font-weight:600}
+  .mini span{font-size:12px;color:var(--soft);line-height:1.25;display:block;margin-top:2px}
   .more{display:flex;justify-content:space-between;color:var(--soft);font-size:14px;padding:12px 2px 0}
   .up{background:var(--black);color:#fff;border-radius:18px;padding:14px 16px;margin-top:14px}
   .up b{display:block;font-size:15px}
@@ -116,6 +119,28 @@
   .poster .qr i{background:#111;border-radius:1px}.poster .qr i.w{background:#fff}
   .sticker{width:220px;height:220px;border-radius:50%;background:var(--ink);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
   .seal{width:170px;height:170px;border-radius:50%;border:3px solid var(--accent);color:var(--accent);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:var(--surface)}
+  .fi-hero{height:210px;background:linear-gradient(180deg,rgba(0,0,0,0) 40%,rgba(0,0,0,.6)),url('../assets/hero/botanica-5.jpg') center/cover;color:#fff;padding:0 16px 14px;display:flex;flex-direction:column;justify-content:flex-end}
+  .fi-hero b{font:800 28px/32px "Plus Jakarta Sans",system-ui;letter-spacing:-.28px}
+  .fi-hero span{font-size:13px;opacity:.9}
+  .fi-card{background:var(--surface);border-radius:18px 18px 0 0;margin-top:-14px;position:relative;padding:14px 16px}
+  .fi-row{display:flex;justify-content:space-between;font-size:14px;color:var(--soft);padding:6px 0}
+  .fi-row b{color:var(--ink);font-weight:500}
+  .sec{font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--mute);margin:14px 0 6px}
+  .dish{display:flex;justify-content:space-between;font-size:15px;padding:5px 0}
+  .dish span{color:var(--soft);font-size:14px}
+  .busy-h{display:flex;justify-content:space-between;align-items:baseline}
+  .busy-h b{font-size:15px;font-weight:600}
+  .busy-h span{font-size:13px;color:var(--mute)}
+  .live{display:flex;align-items:center;gap:6px;font-size:14px;color:var(--soft);margin:4px 0 0}
+  .live i{width:7px;height:7px;border-radius:50%;background:var(--accent)}
+  .bz{display:flex;align-items:flex-end;gap:4px;height:70px;margin-top:12px}
+  .bz i{flex:1;background:#E3E1DA;border-radius:4px 4px 1px 1px}
+  .bz i.now{background:var(--accent)}
+  .bz i.now-usual{background:#E3E1DA;position:relative}
+  .bzl{display:flex;justify-content:space-between;font-size:10px;color:var(--mute);margin-top:4px}
+  .days2{display:flex;gap:6px;margin-top:10px}
+  .days2 span{font-size:12px;padding:3px 9px;border-radius:100px;color:var(--soft)}
+  .days2 span.on{background:var(--ink);color:#fff}
   @media (max-width:640px){.phone,.cap{transform:scale(.94);transform-origin:top left}}
 </style>
 </head>
@@ -127,12 +152,12 @@
 
 <!-- 1 AVISOS -->
 <h2>1. Avisos: una sola gramática</h2>
-<p class="lead">Título = quién. Cuerpo = el hecho, una línea, con punto. Sin platillos, precios ni adjetivos: eso se ve al tocar.</p>
+<p class="lead">Título = quién. Cuerpo = el hecho, una línea, con punto. Nunca se repite lo que el sistema ya dice («Aviso», «Patio», «notificación»). Platillos y precios se ven al tocar.</p>
 <div class="row">
   <div><div class="phone"><div class="screen lock">
     <div class="time">13:02</div><div class="date">viernes 7 de noviembre</div>
     <div class="n"><div class="ic">P</div><div class="tx"><div class="h"><span>Patio</span><span>ahora</span></div><b>Fonda Poblana</b><span class="t">Publicó su menú de hoy.</span></div></div>
-    <div class="n"><div class="ic">P</div><div class="tx"><div class="h"><span>Patio</span><span>12:40</span></div><b>Doña Mary</b><span class="t">Aviso: Hoy abrimos a las 8 pm.</span></div></div>
+    <div class="n"><div class="ic">P</div><div class="tx"><div class="h"><span>Patio</span><span>12:40</span></div><b>Doña Mary</b><span class="t">Hoy abrimos a las 8 pm.</span></div></div>
     <div class="n"><div class="ic">P</div><div class="tx"><div class="h"><span>Patio</span><span>11:15</span></div><b>Ana y 2 más</b><span class="t">Les gustó tu reseña.</span></div></div>
   </div></div><p class="cap">Foodie</p></div>
 
@@ -147,7 +172,8 @@
     <p class="label">Antes → ahora</p>
     <table>
       <tr><td>Menú</td><td><span class="strike">Fonda Poblana publicó lo de hoy · Hoy hay mole poblano y sopa de fideo.</span><br>Fonda Poblana · Publicó su menú de hoy.</td></tr>
-      <tr><td>Aviso</td><td><span class="strike">Cambio de hoy</span><br>Doña Mary · Aviso: Hoy abrimos a las 8 pm.</td></tr>
+      <tr><td>Aviso</td><td><span class="strike">Cambio de hoy</span><br>Doña Mary · Hoy abrimos a las 8 pm.</td></tr>
+      <tr><td>Reporte</td><td><span class="strike">Nuevo reporte en Patio</span><br>Nuevo reporte · Reseña · Lenguaje ofensivo</td></tr>
       <tr><td>Resumen</td><td><span class="strike">Tu día en Patio · 34 vieron tu menú, 5 te empezaron a seguir y…</span><br>Hoy · 34 personas vieron tu menú.</td></tr>
       <tr><td>Comentario</td><td>Ana P. · Comentó tu reseña: «…»</td></tr>
       <tr><td>Seguidor</td><td>Ana P. · Empezó a seguirte.</td></tr>
@@ -157,33 +183,33 @@
 </div>
 
 <!-- 2 HOY -->
-<h2>2. Hoy: un número grande, lo demás chico</h2>
-<p class="lead">Como un pase de abordar bien hecho: el dato que decide va enorme; el resto, agrupado y a un toque. Gráfica al estilo de Salud y Fitness de Apple: resumen arriba, barra de hoy resaltada y línea del promedio.</p>
+<h2>2. Hoy: el dato que decide manda</h2>
+<p class="lead">Como un pase de abordar bien hecho: la jerarquía la dan posición, tamaño, peso y color juntos, no un número gigante. Primero el dato que decide (vistas de hoy, con su unidad), luego qué significa (contra tu día normal), luego la tendencia y al final el detalle. El naranja aparece una sola vez: la barra de hoy. Gráfica al estilo de Salud de Apple: título y promedio arriba, barra de hoy resaltada, línea de promedio.</p>
 <div class="row">
   <div><div class="phone"><div class="screen app">
-    <div class="nav"><span style="color:var(--mute)">‹</span><span>Hoy</span><span class="chip">🔥 12 días</span></div>
-    <p class="hero-n">34</p>
-    <p class="hero-l">personas vieron tu menú</p>
-    <p class="delta">↑ 8 más que un viernes normal</p>
+    <div class="nav"><span style="color:var(--mute)">‹</span><span>Hoy</span><span class="chip">12 días seguidos</span></div>
+    <p class="eyebrow">Viernes 7 de noviembre</p>
+    <p class="hero-n">34<span>vistas de tu menú</span></p>
+    <p class="delta"><i>↑</i>8 más que tu viernes normal</p>
     <div class="card">
-      <div class="ch-h"><small>Esta semana</small><em>Promedio <strong style="font-size:14px;color:var(--ink)">26</strong> al día</em></div>
+      <div class="ch-h"><small>Esta semana</small><em>Promedio 26 al día</em></div>
       <div class="chart">
         <div class="avg" style="bottom:52%"><span>26</span></div>
         <i style="height:42%"></i><i style="height:58%"></i><i style="height:36%"></i><i style="height:66%"></i><i class="today" style="height:82%"></i><i style="height:4%"></i><i style="height:4%"></i>
       </div>
       <div class="dl"><span>L</span><span>M</span><span>M</span><span>J</span><span style="color:var(--ink);font-weight:700">V</span><span>S</span><span>D</span></div>
     </div>
-    <div class="mini"><div><b>+5</b><span>seguidores</span></div><div><b>11</b><span>me gusta</span></div><div><b>Milanesa</b><span>lo que más gustó</span></div></div>
+    <div class="mini"><div><b>5</b><span>seguidores nuevos</span></div><div><b>11</b><span>me gusta</span></div><div><b>Milanesa</b><span>lo que más gustó</span></div></div>
     <div class="more"><span>Ver todo</span><span>›</span></div>
   </div></div><p class="cap">Lo primero que ve al tocar el aviso de las 18:00.</p></div>
 
   <div><div class="phone"><div class="screen app">
-    <div class="nav"><span style="color:var(--mute)">‹</span><span>Hoy</span><span class="chip">🔥 12 días</span></div>
-    <p class="hero-n">34</p>
-    <p class="hero-l">personas vieron tu menú</p>
-    <p class="delta">↑ 8 más que un viernes normal</p>
+    <div class="nav"><span style="color:var(--mute)">‹</span><span>Hoy</span><span class="chip">12 días seguidos</span></div>
+    <p class="eyebrow">Viernes 7 de noviembre</p>
+    <p class="hero-n">34<span>vistas de tu menú</span></p>
+    <p class="delta"><i>↑</i>8 más que tu viernes normal</p>
     <div class="up"><b>Tus 48 seguidores ya están aquí.</b><span>Anúnciales tu promo de mañana con Pro. 30 días gratis.</span><br><span class="go">Probar Pro</span></div>
-    <div class="mini"><div><b>+5</b><span>seguidores</span></div><div><b>11</b><span>me gusta</span></div><div><b>Milanesa</b><span>lo que más gustó</span></div></div>
+    <div class="mini"><div><b>5</b><span>seguidores nuevos</span></div><div><b>11</b><span>me gusta</span></div><div><b>Milanesa</b><span>lo que más gustó</span></div></div>
   </div></div><p class="cap">Venta de Pro como Uber: dentro de la app, junto al dato que la justifica. Nunca por push (los avisos de marketing quedan apagados de entrada).</p></div>
 
   <div><div class="phone"><div class="screen app">
@@ -213,7 +239,7 @@
       <div class="opts"><span class="opt sel">Abrimos tarde</span><span class="opt">Cerramos temprano</span><span class="opt">Hoy no abrimos</span><span class="opt">Se acabó</span></div>
       <p class="fl">Hora</p><div class="field">8:00 pm</div>
       <p class="fl">Vista previa</p>
-      <div class="n" style="background:#F2F1EC;margin:0"><div class="ic">P</div><div class="tx"><b>Doña Mary</b><span class="t">Aviso: Hoy abrimos a las 8 pm.</span></div></div>
+      <div class="n" style="background:#F2F1EC;margin:0"><div class="ic">P</div><div class="tx"><b>Doña Mary</b><span class="t">Hoy abrimos a las 8 pm.</span></div></div>
       <span class="cta">Avisar a 48 personas</span>
     </div>
   </div></div><p class="cap">Gratis. Uno al día por lugar.</p></div>
@@ -272,6 +298,40 @@
     <p style="color:var(--mute);font-size:12px;margin:10px 0 0">Horizontal, con luz de día y sin texto encima. Puedes cambiarla después en Editar mi negocio.</p>
     <span class="cta" style="margin-top:110px">Continuar</span><span class="ghost">Después</span>
   </div></div><p class="cap">Negocio · paso nuevo en el alta. El mismo campo vive en Editar mi negocio.</p></div>
+</div>
+
+<!-- 6 CONCURRENCIA -->
+<h2>6. Qué tan lleno está, en la ficha</h2>
+<p class="lead">Va donde Google lo pone: debajo del horario, porque responde la misma pregunta («¿voy ahora o al rato?»). Arriba de la ficha sigue mandando el menú de hoy.</p>
+<div class="row">
+  <div><div class="phone"><div class="screen" style="overflow:hidden">
+    <div class="fi-hero"><b>Fonda Poblana</b><span>Comida corrida casera desde 1998</span></div>
+    <div class="fi-card">
+      <div class="fi-row"><span>Narvarte · 450 m</span><b>$95</b></div>
+      <p class="sec">Menú de hoy</p>
+      <div class="dish">Sopa de fideo</div>
+      <div class="dish">Mole poblano<span>o milanesa</span></div>
+      <div class="dish">Agua de jamaica</div>
+      <p class="sec">Horario</p>
+      <div class="fi-row" style="padding-top:0"><span><b style="color:var(--ok)">Abierto</b> · cierra 5 pm</span><span>›</span></div>
+      <p class="sec">Qué tan lleno</p>
+      <div class="busy-h"><b>Viernes</b><span>Suele llenarse de 2 a 3 pm</span></div>
+      <p class="live"><i></i>Ahora: más lleno de lo normal</p>
+      <div class="bz">
+        <i style="height:20%"></i><i style="height:38%"></i><i style="height:62%"></i><i class="now" style="height:86%"></i><i style="height:92%"></i><i style="height:70%"></i><i style="height:44%"></i><i style="height:26%"></i><i style="height:12%"></i>
+      </div>
+      <div class="bzl"><span>12</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div>
+    </div>
+  </div></div><p class="cap">Ficha desplazada hasta Horario. La barra naranja es la hora actual.</p></div>
+
+  <div class="rule">
+    <p class="label">Cómo se lee</p>
+    <p><b>Orden:</b> menú de hoy → horario → qué tan lleno → mapa → reseñas.</p>
+    <p><b>Una línea arriba</b> con lo útil: a qué hora suele llenarse. Debajo, el estado en vivo solo cuando hay datos de la última hora.</p>
+    <p><b>Barras por hora</b> del horario del lugar, normalizadas contra su hora pico. Tocar el día cambia entre días de la semana.</p>
+    <p><b>Sin datos suficientes, la sección no aparece.</b> Nunca se inventa: necesita visitas reales (permiso opcional de ubicación, anónimo). Plan técnico en DECISIONES §17.</p>
+    <p><b>Para el negocio</b> (Hoy, Pro): «Tu hora pico es de 2 a 3 pm». Le ayuda a decidir cuánto cocinar.</p>
+  </div>
 </div>
 
 <!-- 5 MARCA -->

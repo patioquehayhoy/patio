@@ -28,7 +28,7 @@ Deno.serve(async (req) => {
     const supportIds = (Deno.env.get('SUPPORT_ADMIN_USER_IDS') ?? '').split(',').map((id) => id.trim()).filter((id) => UUID.test(id));
     const devices = await pushTargets(admin, supportIds);
     const delivered = await sendExpoPush(admin, devices, {
-      title: 'Nuevo reporte en Patio',
+      title: 'Nuevo reporte',
       body: `Reportaron ${TARGETS[report.target_type] ?? 'contenido'} · ${REASONS[report.reason] ?? report.reason}`,
       data: { type: 'content_report', reportId: body.reportId },
     });

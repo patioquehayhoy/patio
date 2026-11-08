@@ -50,7 +50,7 @@ Deno.serve(async (req) => {
     const targets = await pushTargets(admin, followerIds, 'special_notices', false);
     const delivered = await sendExpoPush(admin, targets, {
       title: negocio.nombre?.trim() || 'Un Patio',
-      body: `Aviso: ${text}`,
+      body: text,
       data: { type: 'special_notice', patioId: negocio.id, noticeId: notice.id },
     });
     return json({ noticeId: notice.id, delivered });

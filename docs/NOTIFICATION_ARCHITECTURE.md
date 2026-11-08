@@ -150,7 +150,8 @@ Por ahora, eventos y campañas quedan registrados, no implementados.
   un evento independiente cuando el producto lo incorpore.
 - Copy homologado (2026-11-07): título = quién (lugar o persona); cuerpo =
   el hecho en una línea, con punto. Menú: `{Lugar}` / «Publicó su menú de hoy.»
-  Aviso: `{Lugar}` / «Aviso: Hoy abrimos a las 8 pm.»
+  Aviso: `{Lugar}` / «Hoy abrimos a las 8 pm.» Nunca repetir «Aviso», «Patio»
+  ni «notificación» dentro del texto: el sistema ya lo dice.
 - Cuerpo: máximo dos platillos; si no hay datos fiables, texto genérico.
 - El tap abre `patio://patio/{id}`.
 

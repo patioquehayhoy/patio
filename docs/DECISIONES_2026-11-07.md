@@ -442,7 +442,7 @@ Propuesta visual: `artifacts/propuesta-2026-11-07-v2.html`.
   (son los que hacen que el negocio vea respuesta).
 - **Avisos — gramática única (aplicada en código):** título = quién; cuerpo =
   el hecho en una línea con punto. Menú: «Fonda Poblana / Publicó su menú de
-  hoy.» Aviso: «Doña Mary / Aviso: Hoy abrimos a las 8 pm.» «Cambio de hoy» se
+  hoy.» Aviso: «Doña Mary / Hoy abrimos a las 8 pm.» (la notificación ya es el aviso: no se repite la palabra) «Cambio de hoy» se
   retira como nombre. Resumen del negocio: «Hoy / 34 personas vieron tu menú.»
 - **Avisos de operación gratis; promociones con flyer en Pro.** El aviso de
   cerrado/horario/se acabó protege la red y le demuestra al negocio que avisar

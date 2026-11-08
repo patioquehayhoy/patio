@@ -9,26 +9,32 @@ Decisiones y aterrizaje completos en [DECISIONES_2026-11-07](DECISIONES_2026-11-
   la oficial cuando publiquen parche). 241 pruebas, `expo-doctor` 18/18.
 - [x] Android: EAS production con Maps, `google-services.json` y FCM V1. Perfil
   `android-qa` (entorno production, APK instalable) y `.easignore`.
-- [x] Build Android QA lanzado 2026-11-07 (versionCode 14).
+- [x] Build Android QA terminado 2026-11-07 (versionCode 14, perfil `android-qa`):
+  https://expo.dev/artifacts/eas/swT7mWxgPTmqhatU1j5p5U2ynVqwMREDaIViMlzR2kA.apk
 - [ ] Parco: instalar el APK y probar push (FCM), mapa, cámara y publicar.
 - [x] Cobro directo en código: `expo-iap`, `verify-purchase`,
   `store-notifications`, tabla `store_purchases`; RevenueCat retirado.
   Pasos de Parco (contratos, llaves, productos) en [billing](BILLING_SETUP_2026-10-26.md).
 - [ ] Parco: firmar Paid Apps Agreement y perfil de pagos de Play.
-- [ ] `db push` de `20261107120000_store_purchases` y deploy de las dos
-  funciones; borrar `revenuecat-webhook` desplegada.
+- [ ] `db push` de `20261107120000_store_purchases` y deploy de
+  `verify-purchase` y `store-notifications`; borrar `revenuecat-webhook`
+  (sigue ACTIVE en producción).
 - [ ] Día de planes: definir y crear productos en ambas tiendas.
-- [ ] Avisos y resumen: propuesta visual en
-  `artifacts/avisos-y-resumen-2026-11-07.html`; construir tras el sí de Parco
-  (cambio de hoy → Tu día en Patio → me gusta a tu reseña).
-- [x] Copy de avisos homologado en código (título = quién, cuerpo = el hecho).
-  Falta deploy de `send-publication-notifications`, `send-special-notice`,
-  `send-review-notification`, `send-community-notification`.
-- [ ] Aprobar propuesta v4 (`artifacts/propuesta-2026-11-07-v4.html`, medidas
-  reales y escala homologada): Hoy, notificaciones, aviso gratis, flyers,
-  mostrar en caja y sellos, onboarding, foto del lugar, ficha y marca.
-- [ ] Construir tras el sí: onboarding Leica + foto del lugar (alta y Editar),
-  Hoy, aviso de operación, resumen 18:00, notificaciones simplificadas, flyers.
+- [ ] Avisos que faltan, en orden: aviso de operación a seguidores (gratis) →
+  resumen «Hoy» de las 18:00 → me gusta a tu reseña. Diseño en la v4.
+- [x] Copy de avisos homologado (título = quién, cuerpo = el hecho; nunca
+  «Aviso:» ni «en Patio»). Parco desplegó 4 funciones el 2026-11-08 01:21 UTC.
+- [ ] Volver a desplegar `send-special-notice` (por si salió antes de quitar
+  «Aviso:») y `notify-content-report` (sigue con «Nuevo reporte en Patio»).
+- [x] Propuesta v4 (`artifacts/propuesta-2026-11-07-v4.html`): Parco la ve
+  mejor; mañana afina detalles y se empieza a ver en la app.
+- [ ] Afinar detalles de la v4 con Parco: Hoy, notificaciones, aviso gratis,
+  flyers, mostrar en caja y sellos, onboarding, foto del lugar, ficha y marca.
+- [ ] Construir en la app, en orden: onboarding Leica + foto del lugar (alta y
+  Editar) → Hoy (incluye quitar el «…» del platillo en Tu racha) → aviso de
+  operación y resumen 18:00 → notificaciones simplificadas → flyers →
+  mostrar en caja (fase 1). `borderCurve: 'continuous'` en tarjetas y botones.
+  Botón de vidrio de `entrada.tsx` a 54/27.
 - [ ] Sesión anónima (registro no obligatorio).
 - [ ] Parco: comprar dominio (`quehayhoy.mx`).
 - [ ] Concurrencia real con visitas (plan en DECISIONES §17), primera

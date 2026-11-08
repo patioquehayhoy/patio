@@ -1,10 +1,11 @@
 # HANDOFF
 
-## Continuidad 2026-11-07 — cobro, planes, avisos, Android y auditoría (Claude)
+## Continuidad 2026-11-07 — cobro directo, Android, avisos y propuesta v4 (Claude)
 
-Leer [DECISIONES_2026-11-07](DECISIONES_2026-11-07.md) y el corte superior de
-[pendientes](PENDING_LAUNCH_2026-10-12.md). Auditoría npm sin moderadas ni
-altas; Android listo en EAS production; build nuevo pendiente de autorización.
+Leer el [heads-up](HEADS_UP_2026-10-12.md), bloque «Cierre 2026-11-07», y
+[DECISIONES_2026-11-07](DECISIONES_2026-11-07.md). Mañana: afinar la v4 con
+Parco y empezar a construirla en la app. Producción: falta la migración de
+compras y desplegar las funciones de cobro (comandos en el heads-up).
 
 ## Continuidad 2026-11-03 — Patios, precio del menú, racha y editor (Claude)
 

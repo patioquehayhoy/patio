@@ -43,8 +43,8 @@ Billing) y el servidor confirma con Apple y Google. Decisión y explicación en
 ### Para encender
 
 `npx supabase db push` (tabla `store_purchases`) → `npx supabase functions
-deploy verify-purchase store-notifications --use-api` → borrar la función
-`revenuecat-webhook` del panel → probar en sandbox → en EAS production
+deploy verify-purchase store-notifications --use-api` → probar en sandbox
+(`revenuecat-webhook` ya se borró de producción el 2026-11-07) → en EAS production
 `EXPO_PUBLIC_PAID_PLANS_ENABLED=true` y URLs de privacidad y términos.
 
 ---

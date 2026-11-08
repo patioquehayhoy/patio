@@ -17,8 +17,9 @@ Decisiones y aterrizaje completos en [DECISIONES_2026-11-07](DECISIONES_2026-11-
   Pasos de Parco (contratos, llaves, productos) en [billing](BILLING_SETUP_2026-10-26.md).
 - [ ] Parco: firmar Paid Apps Agreement y perfil de pagos de Play.
 - [ ] `db push` de `20261107120000_store_purchases` y deploy de
-  `verify-purchase` y `store-notifications`; borrar `revenuecat-webhook`
-  (sigue ACTIVE en producción).
+  `verify-purchase` y `store-notifications`.
+- [x] `revenuecat-webhook` borrada de producción (2026-11-07, Claude, a
+  pedido de Parco; el código queda en el historial de git).
 - [ ] Día de planes: definir y crear productos en ambas tiendas.
 - [ ] Avisos que faltan, en orden: aviso de operación a seguidores (gratis) →
   resumen «Hoy» de las 18:00 → me gusta a tu reseña. Diseño en la v4.

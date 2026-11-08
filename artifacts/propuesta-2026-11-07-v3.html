@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Patio propuesta v3</title>
+<style>
+  /* Fuentes de prueba (uso personal, fuera de git): solo para ver la propuesta en esta Mac. */
+  @font-face{font-family:"Monument";src:url("../assets/fonts/prueba/Monument-Black.otf") format("opentype");font-weight:800}
+  @font-face{font-family:"Montreal";src:url("../assets/fonts/prueba/NeueMontreal-Regular.otf") format("opentype");font-weight:400}
+  @font-face{font-family:"Montreal";src:url("../assets/fonts/prueba/NeueMontreal-Semibold.otf") format("opentype");font-weight:600}
+  :root{--bg:#F8F8F5;--surface:#fff;--ink:#111214;--soft:#4A4A47;--mute:#8A8A85;--accent:#F2612F;--accentSoft:#FBE7DD;--sep:rgba(17,18,20,.08);--ok:#2E7D4F;--fill:#EFEDE7;
+    --brand:"Monument","Plus Jakarta Sans",system-ui;--ui:"Montreal",-apple-system,system-ui,sans-serif}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:400 15px/1.4 var(--ui);font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
+  p,span,b,td,h1,h2,h3{text-wrap:pretty}
+  .wrap{max-width:1280px;margin:0 auto;padding:44px 24px 96px}
+  .b{font-family:var(--brand);font-weight:800;letter-spacing:-.01em}
+  h1{font:800 40px/46px var(--brand);letter-spacing:-.4px;margin:0 0 10px}
+  h2{font:800 26px/32px var(--brand);letter-spacing:-.26px;margin:80px 0 8px}
+  .lead{color:var(--soft);max-width:740px;margin:0;font-size:16px;line-height:1.45}
+  .label{font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--mute);margin:0 0 8px}
+  .row{display:flex;gap:32px;flex-wrap:wrap;margin-top:28px;align-items:flex-start}
+  .phone{width:290px;height:600px;border-radius:46px;background:#141414;padding:9px;flex:none}
+  .screen{width:100%;height:100%;border-radius:38px;overflow:hidden;position:relative;background:var(--bg)}
+  .cap{font-size:13px;color:var(--mute);margin-top:10px;width:290px;line-height:1.4}
+  .note{background:var(--surface);border-radius:18px;padding:20px 22px;max-width:420px}
+  .note p{margin:0 0 12px;color:var(--soft);font-size:14px;line-height:1.45}
+  .note p:last-child{margin:0}
+  .note b{color:var(--ink);font-weight:600}
+
+  /* Botones: cápsula, peso 600, sin sombra. Naranja solo en la acción única. */
+  .btn{display:flex;align-items:center;justify-content:center;height:50px;border-radius:25px;font-weight:600;font-size:16px}
+  .btn.primary{background:var(--accent);color:#fff}
+  .btn.glass{background:rgba(255,255,255,.14);backdrop-filter:blur(20px);color:#fff;box-shadow:inset 0 0 0 .5px rgba(255,255,255,.18)}
+  .btn.text{color:var(--ink);height:44px;font-weight:400}
+  .dark .btn.text{color:rgba(255,255,255,.78)}
+
+  /* Notificaciones */
+  .lock{background:linear-gradient(170deg,#3a2f35,#1a1517 65%);color:#fff;padding:52px 10px 10px}
+  .time{text-align:center;font:600 64px/1 var(--ui);letter-spacing:-1px}
+  .date{text-align:center;font-size:15px;opacity:.85;margin:6px 0 26px}
+  .n{background:rgba(246,246,246,.82);backdrop-filter:blur(20px);color:#111;border-radius:20px;padding:11px 12px;margin-bottom:8px;display:flex;gap:10px;align-items:center}
+  .n img{width:36px;height:36px;border-radius:9px;flex:none}
+  .n .tx{flex:1;min-width:0}
+  .n .h{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+  .n .h b{font-size:15px;font-weight:600;line-height:1.25;min-width:0}
+  .n .h small{font-size:12px;color:#777;flex:none}
+  .n .t{font-size:15px;color:#2a2a2a;line-height:1.3;display:block}
+
+  /* Hoy */
+  .app{padding:52px 18px 18px}
+  .nav{display:grid;grid-template-columns:44px 1fr 44px;align-items:center;margin-bottom:6px;font-weight:600;font-size:16px;text-align:center}
+  .nav .back{color:var(--soft);text-align:left;font-size:22px}
+  .eyebrow{font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--mute);margin:16px 0 4px}
+  .kpi{display:flex;align-items:baseline;gap:8px;margin:0}
+  .kpi b{font:800 40px/44px var(--brand);letter-spacing:-.4px}
+  .kpi span{font-size:17px}
+  .meaning{color:var(--soft);font-size:15px;margin:4px 0 0}
+  .meaning i{font-style:normal;color:var(--ok);font-weight:600;margin-right:4px}
+  .streak{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--soft);margin-top:10px}
+  .streak img{width:16px;opacity:.8}
+  .card{background:var(--surface);border-radius:18px;padding:14px 16px;margin-top:16px}
+  .ch-h{display:flex;justify-content:space-between;align-items:baseline}
+  .ch-h b{font-size:15px;font-weight:600}
+  .ch-h span{font-size:13px;color:var(--mute)}
+  .chart{position:relative;height:92px;display:flex;align-items:flex-end;gap:8px;margin-top:12px}
+  .chart i{flex:1;background:#E4E2DB;border-radius:6px 6px 2px 2px}
+  .chart i.today{background:var(--accent)}
+  .chart .avg{position:absolute;left:0;right:0;border-top:1px dashed rgba(17,18,20,.35)}
+  .dl{display:flex;gap:8px;font-size:11px;color:var(--mute);margin-top:6px}.dl span{flex:1;text-align:center}
+  .dl span.on{color:var(--ink);font-weight:600}
+  .pair{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+  .pair div{background:var(--surface);border-radius:16px;padding:12px 14px}
+  .pair b{display:block;font-size:22px;font-weight:600;line-height:26px}
+  .pair span{display:block;font-size:13px;color:var(--soft);margin-top:2px}
+  .line{display:flex;justify-content:space-between;align-items:baseline;gap:12px;background:var(--surface);border-radius:16px;padding:12px 14px;margin-top:8px}
+  .line span{font-size:13px;color:var(--soft);flex:none}
+  .line b{font-size:15px;font-weight:600;text-align:right}
+  .upsell{background:var(--ink);color:#fff;border-radius:18px;padding:16px;margin-top:16px}
+  .upsell b{display:block;font-size:16px;font-weight:600;line-height:1.3}
+  .upsell span{display:block;font-size:14px;color:rgba(255,255,255,.7);margin-top:4px;line-height:1.35}
+  .upsell .go{display:inline-flex;margin-top:12px;height:34px;align-items:center;padding:0 14px;border-radius:17px;background:rgba(255,255,255,.14);font-size:14px;font-weight:600}
+
+  /* Ajustes */
+  .group{background:var(--surface);border-radius:14px;padding:0 14px;margin-top:8px}
+  .sr{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:48px;border-bottom:.5px solid var(--sep);font-size:16px}
+  .sr:last-child{border:0}
+  .sr small{display:block;color:var(--mute);font-size:13px;margin-top:1px}
+  .val{background:var(--fill);border-radius:8px;padding:4px 10px;font-size:15px;flex:none}
+  .tog{width:51px;height:31px;border-radius:16px;background:#34C759;position:relative;flex:none}
+  .tog:after{content:"";position:absolute;right:2px;top:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.15)}
+  .tog.off{background:#E3E1DB}.tog.off:after{right:auto;left:2px}
+
+  /* Hoja de aviso */
+  .sheet{position:absolute;left:0;right:0;bottom:0;background:var(--surface);border-radius:30px 30px 0 0;padding:10px 18px 26px}
+  .grab{width:36px;height:5px;border-radius:3px;background:#D9D7D0;margin:0 auto 16px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 6px}
+  .chip{height:34px;display:inline-flex;align-items:center;padding:0 14px;border-radius:17px;font-size:14px;background:var(--fill);color:var(--ink)}
+  .chip.sel{background:var(--ink);color:#fff}
+  .fl{font-size:13px;color:var(--soft);margin:14px 0 6px}
+  .field{background:var(--bg);border-radius:14px;padding:13px 14px;font-size:16px}
+
+  /* Flyers */
+  .fly{width:240px;height:300px;border-radius:22px;overflow:hidden;position:relative;flex:none;color:#fff;display:flex;flex-direction:column;padding:18px}
+  .fly .k{font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;opacity:.85}
+  .fly .big{font:800 28px/31px var(--brand);letter-spacing:-.3px;margin-top:auto;text-wrap:balance}
+  .fly .sub{font-size:14px;margin-top:6px;opacity:.9;text-wrap:balance}
+  .fly .ft{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:14px;padding-top:10px;border-top:.5px solid rgba(255,255,255,.3);font-size:12px}
+  .fly .ft b{font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .fly .ft img{height:12px}
+  .tag{position:absolute;top:14px;right:14px;background:rgba(255,255,255,.2);border-radius:100px;padding:3px 9px;font-size:11px;font-weight:600}
+
+  /* Onboarding */
+  .ob{background:#0E0D0C;color:#fff;text-align:center;padding:50px 22px 22px;display:flex;flex-direction:column;height:100%}
+  .ob .p{width:54px;margin:0 auto 16px}
+  .ob h3{font:800 22px/27px var(--brand);letter-spacing:-.22px;margin:0 0 8px;text-wrap:balance}
+  .ob p{font-size:15px;color:rgba(255,255,255,.7);margin:0;line-height:1.45;text-wrap:balance}
+  .ob p b{color:#fff;font-weight:600}
+  .ob .mock{flex:1;margin:20px auto;width:150px;border-radius:26px;border:6px solid #2a2a2a;background:#E9EEE6;overflow:hidden;position:relative}
+  .dots{display:flex;gap:6px;justify-content:center;margin:14px 0}
+  .dots i{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.28)}.dots i.on{background:#fff}
+  .perm{text-align:left;margin-top:22px;flex:1}
+  .perm div{display:grid;grid-template-columns:32px 1fr;gap:14px;align-items:center;padding:12px 0}
+  .perm .pi{width:32px;height:32px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(255,255,255,.35);display:grid;place-items:center;font-size:14px}
+  .perm .pi.ok{background:#fff;color:#111;box-shadow:none}
+  .perm b{display:block;font-size:16px;font-weight:600}
+  .perm span{font-size:14px;color:rgba(255,255,255,.6)}
+  .collage{flex:1;display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin:20px 0}
+  .collage div{border-radius:12px;background-size:cover;background-position:center}
+  .photo{height:156px;border-radius:18px;box-shadow:inset 0 0 0 1.5px rgba(17,18,20,.14);display:grid;place-items:center;color:var(--soft);font-size:15px;text-align:center;background:var(--surface);line-height:1.4}
+
+  /* Ficha */
+  .fi-hero{height:206px;background:linear-gradient(180deg,rgba(0,0,0,0) 35%,rgba(0,0,0,.62)),url('../assets/hero/botanica-5.jpg') center/cover;color:#fff;padding:0 18px 22px;display:flex;flex-direction:column;justify-content:flex-end}
+  .fi-hero b{font:800 26px/30px var(--brand);letter-spacing:-.26px;text-wrap:balance}
+  .fi-hero span{font-size:14px;opacity:.9;margin-top:2px}
+  .fi-card{background:var(--surface);border-radius:18px 18px 0 0;margin-top:-14px;position:relative;padding:16px 18px}
+  .fi-sum{display:flex;justify-content:space-between;align-items:baseline;font-size:14px;color:var(--soft)}
+  .fi-sum b{font-size:17px;color:var(--ink);font-weight:600}
+  .sec{font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--mute);margin:16px 0 4px}
+  .dish{display:grid;grid-template-columns:1fr auto;column-gap:16px;padding:5px 0;align-items:baseline}
+  .dish b{font-size:15px;font-weight:400;line-height:1.3}
+  .dish small{grid-column:1;font-size:13px;color:var(--mute);margin-top:1px;line-height:1.3}
+  .dish em{font-style:normal;font-size:15px;color:var(--ink);grid-row:1;grid-column:2}
+  .busy-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+  .busy-h b{font-size:15px;font-weight:600}
+  .busy-h span{font-size:13px;color:var(--mute);text-align:right}
+  .live{display:flex;align-items:center;gap:6px;font-size:14px;color:var(--soft);margin:4px 0 0}
+  .live i{width:7px;height:7px;border-radius:50%;background:var(--accent)}
+  .bz{display:flex;align-items:flex-end;gap:5px;height:64px;margin-top:12px}
+  .bz i{flex:1;background:#E4E2DB;border-radius:5px 5px 1px 1px}.bz i.now{background:var(--accent)}
+  .bzl{display:grid;grid-template-columns:repeat(9,1fr);gap:5px;font-size:11px;color:var(--mute);margin-top:5px;text-align:center}
+
+  /* Marca: formas tipo Tahoe (cuadrado de esquinas continuas, capas de vidrio) */
+  .sq{position:relative;flex:none;overflow:hidden}
+  .seal-wrap{display:flex;gap:28px;flex-wrap:wrap;align-items:flex-start}
+  .poster{width:300px;height:420px;background:var(--accent);color:#fff;padding:28px;display:flex;flex-direction:column}
+  .poster .q{font:800 40px/42px var(--brand);letter-spacing:-.5px}
+  .poster .qr{width:112px;height:112px;background:#fff;padding:10px;display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+  .poster .qr i{background:#111;border-radius:1px}.poster .qr i.w{background:#fff}
+  .sticker{width:220px;height:220px;background:linear-gradient(160deg,#2A2B2E,#111214);color:#fff;display:flex;flex-direction:column;justify-content:space-between;padding:22px}
+  .sticker:before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,0) 45%);pointer-events:none}
+  .seal{width:180px;height:180px;background:linear-gradient(160deg,#FF7A4D,#E2501F);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:6px}
+  .seal:before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.28),rgba(255,255,255,0) 50%);pointer-events:none}
+  .seal img{width:58px}
+  .appic{width:120px;height:120px;background:#F4F3EF;display:grid;place-items:center}
+  .appic:before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.7),rgba(255,255,255,0) 50%)}
+  .appic img{width:76px;position:relative}
+  @media (max-width:640px){.phone,.cap{transform:scale(.94);transform-origin:top left}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<p class="label">Patio · propuesta v3 · 7 nov 2026</p>
+<h1>Avisos, Hoy, flyers, onboarding, ficha y marca</h1>
+<p class="lead">Lado difícil hoy: el negocio que publica su menú diario. Ajustes de esta versión: logo P, Monument + Neue Montreal, botones más suaves, cero viudas con nombres largos, columnas y números alineados, sellos cuadrados con esquinas continuas.</p>
+
+<h2>1. Avisos</h2>
+<p class="lead">Título = quién. Cuerpo = el hecho, una línea. Nunca se repite lo que el sistema ya dice.</p>
+<div class="row">
+  <div><div class="phone"><div class="screen lock">
+    <div class="time">13:02</div><div class="date">viernes 7 de noviembre</div>
+    <div class="n"><img src="img/p-app.png" alt=""><div class="tx"><div class="h"><b>Fonda Poblana</b><small>ahora</small></div><span class="t">Publicó su menú de hoy.</span></div></div>
+    <div class="n"><img src="img/p-app.png" alt=""><div class="tx"><div class="h"><b>Cocina Económica Doña Mary</b><small>12:40</small></div><span class="t">Hoy abrimos a las 8 pm.</span></div></div>
+    <div class="n"><img src="img/p-app.png" alt=""><div class="tx"><div class="h"><b>Ana y 2 más</b><small>11:15</small></div><span class="t">Les gustó tu reseña.</span></div></div>
+  </div></div><p class="cap">Foodie. Un nombre largo baja de línea completo, sin cortar la hora.</p></div>
+  <div><div class="phone"><div class="screen lock">
+    <div class="time">18:00</div><div class="date">viernes 7 de noviembre</div>
+    <div class="n"><img src="img/p-app.png" alt=""><div class="tx"><div class="h"><b>Hoy</b><small>ahora</small></div><span class="t">34 personas vieron tu menú.</span></div></div>
+    <div class="n"><img src="img/p-app.png" alt=""><div class="tx"><div class="h"><b>Nueva reseña</b><small>15:22</small></div><span class="t">★★★★★ · Toca para responder.</span></div></div>
+    <div class="n"><img src="img/p-app.png" alt=""><div class="tx"><div class="h"><b>¿Ya publicaste lo de hoy?</b><small>10:00</small></div><span class="t">Una foto de tu menú y listo.</span></div></div>
+  </div></div><p class="cap">Negocio.</p></div>
+</div>
+
+<h2>2. Hoy</h2>
+<p class="lead">Jerarquía por función: el dato que decide, qué significa, la tendencia y al final el detalle. Dos datos numéricos van en pareja simétrica; un nombre de platillo, que puede ser largo, va en su propia fila para no romper la retícula.</p>
+<div class="row">
+  <div><div class="phone"><div class="screen app">
+    <div class="nav"><span class="back">‹</span><span>Hoy</span><span></span></div>
+    <p class="eyebrow">Viernes 7 de noviembre</p>
+    <p class="kpi"><b>34</b><span>vistas de tu menú</span></p>
+    <p class="meaning"><i>↑</i>8 más que tu viernes normal</p>
+    <div class="card">
+      <div class="ch-h"><b>Esta semana</b><span>Promedio 26 al día</span></div>
+      <div class="chart">
+        <div class="avg" style="bottom:52%"></div>
+        <i style="height:42%"></i><i style="height:58%"></i><i style="height:36%"></i><i style="height:66%"></i><i class="today" style="height:82%"></i><i style="height:3%"></i><i style="height:3%"></i>
+      </div>
+      <div class="dl"><span>L</span><span>M</span><span>M</span><span>J</span><span class="on">V</span><span>S</span><span>D</span></div>
+    </div>
+    <div class="pair"><div><b>5</b><span>seguidores nuevos</span></div><div><b>11</b><span>me gusta</span></div></div>
+    <div class="line"><span>Lo que más gustó</span><b>Milanesa a la napolitana con papas</b></div>
+  </div></div><p class="cap">Caso largo: el platillo se alinea a la derecha y baja de línea completo.</p></div>
+
+  <div><div class="phone"><div class="screen app">
+    <div class="nav"><span class="back">‹</span><span>Hoy</span><span></span></div>
+    <p class="eyebrow">Viernes 7 de noviembre</p>
+    <p class="kpi"><b>34</b><span>vistas de tu menú</span></p>
+    <p class="meaning"><i>↑</i>8 más que tu viernes normal</p>
+    <div class="streak"><img src="img/p-negro.png" alt="">12 días seguidos publicando</div>
+    <div class="upsell"><b>Tus 48 seguidores ya están aquí.</b><span>Anúnciales tu promo de mañana con Pro. Los primeros 30 días son gratis.</span><span class="go">Probar Pro</span></div>
+    <div class="pair"><div><b>5</b><span>seguidores nuevos</span></div><div><b>11</b><span>me gusta</span></div></div>
+    <div class="line"><span>Lo que más gustó</span><b>Mole</b></div>
+  </div></div><p class="cap">Pro se ofrece dentro de la app, junto al dato que lo justifica.</p></div>
+
+  <div><div class="phone"><div class="screen app">
+    <div class="nav"><span class="back">‹</span><span>Notificaciones</span><span></span></div>
+    <div class="group" style="margin-top:16px"><div class="sr"><div>Pausar todo</div><div class="tog off"></div></div></div>
+    <p class="eyebrow" style="margin-top:22px">Tu negocio</p>
+    <div class="group">
+      <div class="sr"><div>Reseñas y comentarios</div><div class="tog"></div></div>
+      <div class="sr"><div>Resumen de hoy</div><span class="val">18:00</span></div>
+      <div class="sr"><div>Recordatorio para publicar</div><span class="val">10:00</span></div>
+    </div>
+    <p class="eyebrow" style="margin-top:22px">Lugares que sigues</p>
+    <div class="group"><div class="sr"><div>Menús y avisos<small>Silencia un lugar desde su ficha</small></div><div class="tog"></div></div></div>
+  </div></div><p class="cap">Interruptores de iOS, horas en selector compacto.</p></div>
+</div>
+
+<h2>3. Avisar a quienes te siguen</h2>
+<p class="lead">Avisos de operación gratis (cerrado, horario, se acabó). Flyers de promoción con Pro.</p>
+<div class="row">
+  <div><div class="phone"><div class="screen app" style="background:#E7E5DF">
+    <div class="sheet">
+      <div class="grab"></div>
+      <p class="b" style="font-size:22px;line-height:27px;margin:0">Avisar a quienes te siguen</p>
+      <div class="chips"><span class="chip sel">Abrimos tarde</span><span class="chip">Cerramos temprano</span><span class="chip">Hoy no abrimos</span><span class="chip">Se acabó</span></div>
+      <p class="fl">Hora</p><div class="field">8:00 pm</div>
+      <p class="fl">Así les llega</p>
+      <div class="n" style="background:#F2F1EC;margin:0"><img src="img/p-app.png" alt=""><div class="tx"><div class="h"><b>Doña Mary</b><small>ahora</small></div><span class="t">Hoy abrimos a las 8 pm.</span></div></div>
+      <div style="height:16px"></div>
+      <span class="btn primary">Avisar a 48 personas</span>
+    </div>
+  </div></div><p class="cap">Gratis. Uno al día por lugar.</p></div>
+
+  <div style="flex:1;min-width:300px">
+    <p class="label">Flyers · mismo esqueleto, cualquier largo</p>
+    <div class="row" style="margin-top:8px;gap:20px">
+      <div class="fly" style="background:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.6)),url('../assets/hero/botanica-6.jpg') center/cover"><span class="tag">Con tu foto</span><span class="k">Platillo especial</span><span class="big">Hoy hay pozole</span><span class="sub">Rojo o verde · $85</span><div class="ft"><b>Fonda Poblana</b><img src="img/p-blanco.png" alt="Patio"></div></div>
+      <div class="fly" style="background:var(--accent)"><span class="k">Promoción</span><span class="big">2×1 en aguas frescas de temporada</span><span class="sub">Solo hoy, de 2 a 4 pm</span><div class="ft"><b>Fonda Poblana</b><img src="img/p-blanco.png" alt="Patio"></div></div>
+      <div class="fly" style="background:var(--ink)"><span class="k">Evento</span><span class="big">Viernes de mariscos</span><span class="sub">14 de noviembre, desde la 1 pm</span><div class="ft"><b>Cocina Económica Doña Mary</b><img src="img/p-blanco.png" alt="Patio"></div></div>
+      <div class="fly" style="background:#2F4A3A"><span class="k">Nuevo en el menú</span><span class="big">Enchiladas suizas gratinadas</span><span class="sub">Desde hoy, todos los días · $95</span><div class="ft"><b>Doña Mary</b><img src="img/p-blanco.png" alt="Patio"></div></div>
+      <div class="fly" style="background:#F2EDE4;color:var(--ink)"><span class="k" style="color:var(--accent);opacity:1">Aviso</span><span class="big">Hoy abrimos a las 8 pm</span><span class="sub" style="color:var(--soft)">Mañana, horario normal</span><div class="ft" style="border-color:var(--sep)"><b>Doña Mary</b><img src="img/p-negro.png" alt="Patio"></div></div>
+    </div>
+  </div>
+</div>
+
+<h2>4. Onboarding</h2>
+<p class="lead">Una idea por pantalla. El botón principal es de vidrio sobre fondo oscuro (la excepción de marca de entrada y onboarding), «Omitir» en texto.</p>
+<div class="row">
+  <div><div class="phone"><div class="screen ob dark">
+    <img class="p" src="img/p-blanco.png" alt="Patio"><h3>¿Qué hay hoy?</h3><p>Saaaaaaabes.</p>
+    <div class="collage"><div style="background-image:url('../assets/hero/botanica-5.jpg')"></div><div style="background-image:url('../assets/hero/botanica-1.jpg');grid-row:span 2"></div><div style="background-image:url('../assets/hero/botanica-4.jpg')"></div><div style="background-image:url('../assets/hero/botanica-7.jpg')"></div><div style="background-image:url('../assets/hero/botanica-8.jpg')"></div></div>
+    <p style="margin-bottom:16px">El menú de hoy de las fondas de tu colonia.</p>
+    <span class="btn glass">Comenzar</span>
+  </div></div><p class="cap">1 · Portada.</p></div>
+
+  <div><div class="phone"><div class="screen ob dark">
+    <h3>Mira el menú de hoy en el mapa</h3>
+    <div class="mock"><div style="position:absolute;left:30px;top:60px;width:12px;height:12px;border-radius:50%;background:var(--accent)"></div><div style="position:absolute;left:90px;top:110px;width:12px;height:12px;border-radius:50%;background:var(--accent)"></div><div style="position:absolute;left:60px;top:170px;width:12px;height:12px;border-radius:50%;background:var(--accent)"></div><div style="position:absolute;left:6px;right:6px;bottom:6px;height:70px;background:#fff;border-radius:14px"></div></div>
+    <p>Cada punto es un lugar que <b>ya publicó</b> lo que hay <b>hoy</b>, con su <b>precio</b>.</p>
+    <div class="dots"><i class="on"></i><i></i><i></i></div>
+    <span class="btn glass">Siguiente</span><span class="btn text">Omitir</span>
+  </div></div><p class="cap">2–4 · Mapa, seguir y listas.</p></div>
+
+  <div><div class="phone"><div class="screen ob dark">
+    <img class="p" src="img/p-blanco.png" alt="Patio"><h3>Permisos</h3><p>Dos cosas para que Patio te sirva.</p>
+    <div class="perm">
+      <div><span class="pi ok">✓</span><span><b>Ubicación</b><span>Para ver lo que hay cerca de ti</span></span></div>
+      <div><span class="pi">🔔</span><span><b>Notificaciones</b><span>Para saber cuando publican tus lugares</span></span></div>
+    </div>
+    <span class="btn glass">Continuar</span>
+  </div></div><p class="cap">5 · Cada fila pide su permiso y deja la palomita.</p></div>
+
+  <div><div class="phone"><div class="screen ob dark">
+    <div class="collage" style="margin-top:0;max-height:150px"><div style="background-image:url('../assets/hero/botanica-2.jpg')"></div><div style="background-image:url('../assets/hero/botanica-6.jpg')"></div><div style="background-image:url('../assets/hero/botanica-3.jpg')"></div></div>
+    <img class="p" src="img/p-blanco.png" alt="Patio"><h3>Guarda tus lugares</h3><p>Crea tu cuenta para seguir lugares, reseñar y no perder tus listas.</p>
+    <div style="flex:1"></div>
+    <span class="btn glass">Crear cuenta</span><span class="btn text">Quizás más tarde</span>
+  </div></div><p class="cap">6 · Cuenta opcional.</p></div>
+
+  <div><div class="phone"><div class="screen app" style="display:flex;flex-direction:column">
+    <div class="nav"><span class="back">‹</span><span>Tu negocio</span><span style="color:var(--mute);font-size:13px;font-weight:400">3 de 4</span></div>
+    <p class="b" style="font-size:24px;line-height:29px;margin:12px 0 6px">La foto de tu lugar</p>
+    <p style="color:var(--soft);margin:0 0 18px;font-size:15px">Es lo primero que ve la gente en el mapa: tu fachada o tu mejor platillo.</p>
+    <div class="photo">📷<br>Tomar foto o elegir de Fotos</div>
+    <p style="color:var(--mute);font-size:13px;margin:10px 0 0">Horizontal, con luz de día y sin texto encima. Puedes cambiarla en Editar mi negocio.</p>
+    <div style="flex:1"></div>
+    <span class="btn primary">Continuar</span><span class="btn text">Después</span>
+  </div></div><p class="cap">Negocio · paso nuevo del alta.</p></div>
+</div>
+
+<h2>5. Qué tan lleno está, en la ficha</h2>
+<p class="lead">Debajo del horario, como en Google. Nombres de platillo largos bajan de línea completos; el precio queda en su columna, alineado al primer renglón.</p>
+<div class="row">
+  <div><div class="phone"><div class="screen" style="overflow:hidden">
+    <div class="fi-hero"><b>Fonda Poblana</b><span>Comida corrida casera desde 1998</span></div>
+    <div class="fi-card">
+      <div class="fi-sum"><span>Narvarte · 450 m</span><b>$95</b></div>
+      <p class="sec">Menú de hoy</p>
+      <div class="dish"><b>Sopa de fideo</b></div>
+      <div class="dish"><b>Enchiladas suizas gratinadas con crema</b><em>$110</em><small>Pollo deshebrado</small></div>
+      <div class="dish"><b>Agua de jamaica</b></div>
+      <p class="sec">Horario</p>
+      <div class="fi-sum"><span><b style="font-size:15px;color:var(--ok)">Abierto</b> · cierra a las 5 pm</span><span>›</span></div>
+      <p class="sec">Qué tan lleno</p>
+      <div class="busy-h"><b>Viernes</b><span>Suele llenarse de 2 a 3 pm</span></div>
+      <p class="live"><i></i>Ahora: más lleno de lo normal</p>
+      <div class="bz"><i style="height:20%"></i><i style="height:38%"></i><i style="height:62%"></i><i class="now" style="height:86%"></i><i style="height:92%"></i><i style="height:70%"></i><i style="height:44%"></i><i style="height:26%"></i><i style="height:12%"></i></div>
+      <div class="bzl"><span>12</span><span></span><span>1</span><span></span><span>2</span><span></span><span>3</span><span></span><span>4</span></div>
+    </div>
+  </div></div><p class="cap">La barra naranja es la hora actual.</p></div>
+  <div class="note">
+    <p><b>Orden de la ficha:</b> menú de hoy → horario → qué tan lleno → mapa → reseñas.</p>
+    <p><b>Sin visitas suficientes, la sección no aparece.</b> No se inventa nada.</p>
+    <p><b>Para el negocio (Hoy, con Pro):</b> «Tu hora pico es de 2 a 3 pm», para decidir cuánto cocinar.</p>
+  </div>
+</div>
+
+<h2>6. Marca en la calle</h2>
+<p class="lead">Formas de macOS Tahoe: cuadrados de esquinas continuas (no redondeo común), con una capa de luz arriba como el vidrio. La P siempre presente.</p>
+<div class="row seal-wrap">
+  <div><div class="sq poster" data-r="0.12">
+    <img src="img/p-blanco.png" alt="Patio" style="width:46px;margin-bottom:18px">
+    <span class="q">¿Qué hay hoy?</span>
+    <span class="b" style="font-size:20px;margin-top:6px">Saaaaaaabes.</span>
+    <div style="display:flex;gap:16px;align-items:flex-end;margin-top:auto">
+      <div class="sq qr" data-r="0.18">
+        <i></i><i></i><i></i><i class="w"></i><i></i><i></i><i></i>
+        <i></i><i class="w"></i><i></i><i></i><i class="w"></i><i class="w"></i><i></i>
+        <i></i><i></i><i></i><i class="w"></i><i></i><i></i><i></i>
+        <i class="w"></i><i></i><i class="w"></i><i></i><i class="w"></i><i></i><i class="w"></i>
+        <i></i><i></i><i></i><i class="w"></i><i></i><i class="w"></i><i></i>
+        <i></i><i class="w"></i><i></i><i></i><i class="w"></i><i></i><i></i>
+        <i></i><i></i><i></i><i class="w"></i><i></i><i></i><i></i>
+      </div>
+      <span style="font-size:14px;line-height:1.35">Escanea y mira el menú de hoy de Fonda Poblana</span>
+    </div>
+  </div><p class="cap">Cartel tamaño carta.</p></div>
+
+  <div><div class="sq sticker" data-r="0.24">
+    <img src="img/p-blanco.png" alt="Patio" style="width:44px;position:relative">
+    <div style="position:relative"><p class="label" style="color:rgba(255,255,255,.6);margin:0 0 4px">Aquí publicamos</p><span class="b" style="font-size:24px;line-height:27px">el menú de hoy</span></div>
+  </div><p class="cap" style="width:220px">Sticker de ventana, 10 × 10 cm.</p></div>
+
+  <div><div class="sq seal" data-r="0.24">
+    <img src="img/p-blanco.png" alt="Patio" style="position:relative">
+    <span class="b" style="font-size:20px;position:relative">Fundador</span>
+    <span style="font-size:13px;position:relative;opacity:.9">Narvarte · 2026</span>
+  </div><p class="cap" style="width:180px">Sello Fundador: ficha, cartel y papel.</p></div>
+
+  <div><div class="sq appic" data-r="0.225"><img src="img/p-negro.png" alt="Patio"></div><p class="cap" style="width:120px">Misma forma que el ícono de la app.</p></div>
+</div>
+</div>
+
+<script>
+  // Esquinas continuas (superelipse) como los íconos de Tahoe.
+  function squircle(w, h, r) {
+    const R = Math.min(w, h) * r * 1.6, k = 0.55;
+    const p = (x, y) => `${x.toFixed(1)} ${y.toFixed(1)}`;
+    return `path('M ${p(R,0)} L ${p(w-R,0)} C ${p(w-R*(1-k)*0.4,0)} ${p(w,R*(1-k)*0.4)} ${p(w,R)} L ${p(w,h-R)} C ${p(w,h-R*(1-k)*0.4)} ${p(w-R*(1-k)*0.4,h)} ${p(w-R,h)} L ${p(R,h)} C ${p(R*(1-k)*0.4,h)} ${p(0,h-R*(1-k)*0.4)} ${p(0,h-R)} L ${p(0,R)} C ${p(0,R*(1-k)*0.4)} ${p(R*(1-k)*0.4,0)} ${p(R,0)} Z')`;
+  }
+  document.querySelectorAll('.sq').forEach((el) => {
+    el.style.clipPath = squircle(el.offsetWidth, el.offsetHeight, parseFloat(el.dataset.r || '0.2'));
+  });
+  // Cero viudas: une las dos últimas palabras de cada texto de varias palabras.
+  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  const nodes = []; while (walker.nextNode()) nodes.push(walker.currentNode);
+  nodes.forEach((n) => {
+    if (n.parentElement.closest('script,style')) return;
+    const t = n.nodeValue; const m = t.match(/^(.*\S)\s+(\S+\s*)$/s);
+    if (m && /\S\s+\S/.test(t.trim())) n.nodeValue = m[1] + ' ' + m[2];
+  });
+</script>
+</body>
+</html>

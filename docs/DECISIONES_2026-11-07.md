@@ -520,3 +520,17 @@ listas de `components/settings-list.tsx`. Trae la auditoría v3 → v4.
   escanea el negocio, con tarjeta de sellos. Cada escaneo es una visita
   confirmada para «Qué tan lleno». Canjes y sellos en Pro.
 - **Entrada:** el botón de vidrio de `entrada.tsx` (52/14) se homologa a 54/27.
+
+### Ajustes del 8 nov (v4.1)
+
+- **Flyers solo con neutros:** blanco, gris (lienzo #F8F8F5 con tarjeta blanca,
+  el mismo par del póster del menú) y negro; con foto del negocio, degradado
+  negro de abajo hacia arriba. El naranja queda solo en la etiqueta chica.
+- **Hallazgo de tipografía:** `noWidow` unía «suizas gratinadas» en un bloque
+  más ancho que el renglón y el flyer lo cortaba. En títulos grandes (marca,
+  flyers) la viuda se evita equilibrando renglones y bajando el tamaño en
+  pasos (128 → 112 → 96 → 84 → 72), nunca uniendo palabras que no caben
+  juntas. Revisar el mismo caso en la app al construir.
+- **Video de oferta irresistible:** estructura y prácticas aplicadas a Pro,
+  flyers y reels en `docs/research/VIDEO_OFERTA_IRRESISTIBLE_2026-11-08.md`.
+  Propuesta: campo «Hasta cuándo» en los flyers (escasez verdadera).

@@ -137,18 +137,34 @@
   .flabel{font:400 13px/17px var(--ui);color:var(--soft);margin:16px 0 6px}
   .field{min-height:52px;border-radius:14px;background:var(--bg);display:flex;align-items:center;justify-content:space-between;padding:0 8px 0 14px;font:400 16px/21px var(--ui)}
 
-  /* Flyers 1080 × 1350 a escala 1/4 */
-  .fly{width:270px;height:337.5px;border-radius:18px;overflow:hidden;position:relative;flex:none}
-  .fvp{position:absolute;left:0;top:0;width:1080px;height:1350px;transform:scale(.25);transform-origin:0 0;padding:80px;display:flex;flex-direction:column;color:#fff}
-  .fk{font:600 36px/44px var(--ui);letter-spacing:2.9px;text-transform:uppercase;opacity:.86;display:flex;justify-content:space-between}
-  .fk .tag{background:rgba(255,255,255,.2);border-radius:30px;padding:2px 22px;letter-spacing:0;text-transform:none;font-size:32px}
-  .ftt{font:800 128px/156px var(--brand);margin-top:auto}
-  .fs{font:400 48px/60px var(--ui);margin-top:20px;opacity:.92}
-  .ff{display:flex;align-items:center;justify-content:space-between;gap:40px;margin-top:56px;padding-top:36px;border-top:2px solid rgba(255,255,255,.32)}
+  /* Flyers 1080 × 1350 a escala 1/4. Fondos: blanco, gris (lienzo con tarjeta
+     blanca, como el póster del menú), negro o la foto del negocio con degradado. */
+  .fly{width:270px;height:337.5px;border-radius:18px;overflow:hidden;position:relative;flex:none;box-shadow:0 0 0 .5px rgba(17,18,20,.12)}
+  .fvp{position:absolute;left:0;top:0;width:1080px;height:1350px;transform:scale(.25);transform-origin:0 0;padding:80px;display:flex;flex-direction:column;color:var(--ink);background:#fff}
+  .fk{display:flex;justify-content:space-between;align-items:center;font:600 36px/44px var(--ui);letter-spacing:2.9px;text-transform:uppercase;color:var(--accent)}
+  .fk .tag{border-radius:30px;padding:4px 24px;letter-spacing:0;text-transform:none;font-size:32px;background:rgba(255,255,255,.2);color:#fff}
+  .fbody{margin-top:auto}
+  .ftt{font:800 128px/156px var(--brand);text-wrap:balance}
+  .fs{font:400 48px/60px var(--ui);margin-top:20px;color:var(--soft)}
+  .ff{display:flex;align-items:center;justify-content:space-between;gap:40px;margin-top:56px;padding-top:36px;border-top:2px solid rgba(17,18,20,.1)}
   .ff b{font:600 44px/54px var(--ui)}
   .ff img{height:48px;flex:none}
-  .fly.light .fvp{color:var(--ink)} .fly.light .ff{border-color:rgba(17,18,20,.14)} .fly.light .fk{opacity:1;color:var(--accent)}
+  .fly.negro .fvp{background:var(--ink);color:#fff} .fly.negro .fs{color:rgba(255,255,255,.72)} .fly.negro .ff{border-color:rgba(255,255,255,.18)}
+  .fly.foto .fvp{color:#fff} .fly.foto .fk{color:rgba(255,255,255,.92)} .fly.foto .fs{color:rgba(255,255,255,.88)} .fly.foto .ff{border-color:rgba(255,255,255,.3)}
+  .fly.gris .fvp{background:var(--bg)}
+  .fly.gris .fcard{margin-top:auto;background:#fff;border-radius:56px;padding:64px;box-shadow:inset 0 0 0 2px rgba(17,18,20,.06)}
+  .fly.gris .fbody{margin-top:0}
   .fcap{width:270px;margin-top:10px;font-size:13px;line-height:18px;color:var(--soft)}
+  .cnt{font:400 13px/17px var(--ui);color:var(--mute);padding-right:6px;flex:none}
+  .tchips{display:flex;gap:8px;overflow:hidden;margin-top:16px}
+  .tchips .chip{flex:none}
+  .sw{display:flex;gap:22px;margin-top:2px}
+  .swi{display:flex;flex-direction:column;align-items:center;gap:6px;font:400 12px/16px var(--ui);color:var(--soft)}
+  .swi.on{color:var(--ink);font-weight:600}
+  .swi i{width:48px;height:48px;display:grid;place-items:center;font-style:normal}
+  .s-blanco{background:#fff} .s-gris{background:var(--bg)} .s-negro{background:var(--ink)}
+  .s-gris b{width:28px;height:14px;border-radius:4px;background:#fff;margin-top:14px}
+  .s-foto{background:url('../assets/hero/botanica-6.jpg') center/cover;color:#fff;font-size:18px}
 
   /* Onboarding */
   .dark .vp,.vp.dark{background:#0E0D0C;color:#fff}
@@ -287,7 +303,7 @@
 </head>
 <body>
 <div class="page">
-<p class="eyebrow">Patio · propuesta v4 · 7 nov 2026</p>
+<p class="eyebrow">Patio · propuesta v4.1 · 8 nov 2026</p>
 <h1>Diseño homologado con la app</h1>
 <p class="lead">Lado difícil hoy: el negocio que publica su menú diario. Esta versión dibuja cada pantalla a su tamaño real (390 × 844 pt) con la escala homologada de Patio: Monument y Neue Montreal, los íconos de la app (Ionicons), filas de Ajustes, botones de 54 y el mismo menú de la ficha.</p>
 
@@ -306,6 +322,8 @@
   <tr><td>11</td><td>Tarjeta de Pro sin manera de cerrarla.</td><td>Control de la persona</td><td>× de 44 y reglas de aparición (sección 3).</td></tr>
   <tr><td>12</td><td>Horario dibujado como sección con título.</td><td>Consistencia</td><td>En la app el horario vive en la línea de datos (calendario · pagos · reloj). «Qué tan lleno» va entre esa línea y el mapa.</td></tr>
   <tr><td>13</td><td>Fondo de la ficha en blanco y nombre a 28.</td><td>Consistencia</td><td>Fondo de lienzo con radio 28 arriba, nombre a 32 que baja de tamaño si no cabe en dos renglones.</td></tr>
+  <tr><td>14</td><td>«Enchiladas suizas gratinadas» salía cortado: la regla anti-viudas unía dos palabras largas en un bloque más ancho que el renglón.</td><td>Visibilidad</td><td>En títulos grandes la viuda se evita equilibrando renglones y bajando el tamaño en pasos; nunca uniendo palabras que no caben juntas.</td></tr>
+  <tr><td>15</td><td>Flyers con fondo naranja y durazno.</td><td>Consistencia</td><td>Solo blanco, gris (lienzo con tarjeta, como el póster del menú) y negro; con foto, degradado.</td></tr>
 </table>
 
 <!-- 1 LOGO -->
@@ -443,7 +461,7 @@
 
 <!-- 4 AVISO + FLYERS -->
 <h2>4. Avisar a quienes te siguen</h2>
-<p class="lead">Avisos de operación gratis. Flyers de promoción con Pro. Los flyers comparten esqueleto: etiqueta, título, detalle y firma con la P. Límites: título 32, detalle 40, nombre 30. El título reduce su tamaño en pasos (128 → 112 → 96) para no pasar de tres renglones.</p>
+<p class="lead">Avisos de operación gratis. Flyers de promoción con Pro, con fondo blanco, gris o negro, o con la foto del negocio y un degradado. Todos comparten esqueleto: etiqueta, título, detalle y firma con la P. Límites: título 32, detalle 40, nombre 30.</p>
 <div class="row">
   <div><div class="phone"><div class="screen"><div class="vp" style="background:#E9E7E1">
     <div class="sb"><span>12:31</span><span><i class="ion">&#xf208;</i><i class="ion">&#xf631;</i><i class="ion">&#xf187;</i></span></div>
@@ -461,16 +479,47 @@
     </div>
   </div></div></div><p class="cap"><b>Gratis.</b> Uno al día por lugar. Hora con el selector compacto de iOS.</p></div>
 
-  <div style="flex:1;min-width:300px">
-    <div class="row" style="margin-top:0;gap:20px">
-      <div><div class="fly"><div class="fvp" style="background:linear-gradient(180deg,rgba(0,0,0,.1),rgba(0,0,0,.66)),url('../assets/hero/botanica-6.jpg') center/cover"><div class="fk"><span>Platillo especial</span><span class="tag">Tu foto</span></div><p class="ftt fit">Hoy hay pozole</p><p class="fs">Rojo o verde · $85</p><div class="ff"><b>Fonda Poblana</b><img src="img/p-blanco.png" alt="Patio"></div></div></div><p class="fcap">Con foto del negocio.</p></div>
-      <div><div class="fly"><div class="fvp" style="background:var(--accent)"><div class="fk"><span>Promoción</span></div><p class="ftt fit">2×1 en aguas frescas de la casa</p><p class="fs">Solo hoy, de 2 a 4 pm</p><div class="ff"><b>Fonda Poblana</b><img src="img/p-blanco.png" alt="Patio"></div></div></div><p class="fcap">Título largo: baja a 112.</p></div>
-      <div><div class="fly"><div class="fvp" style="background:var(--ink)"><div class="fk"><span>Evento</span></div><p class="ftt fit">Viernes de mariscos</p><p class="fs">14 de noviembre, desde la 1 pm</p><div class="ff"><b>Cocina Económica Doña Mary</b><img src="img/p-blanco.png" alt="Patio"></div></div></div><p class="fcap">Nombre largo, sin cortar.</p></div>
-      <div><div class="fly light"><div class="fvp" style="background:var(--accentSoft)"><div class="fk"><span>Nuevo en el menú</span></div><p class="ftt fit">Enchiladas suizas gratinadas</p><p class="fs">Desde hoy, todos los días · $95</p><div class="ff"><b>Doña Mary</b><img src="img/p-negro.png" alt="Patio"></div></div></div><p class="fcap">Fondo tibio de la paleta.</p></div>
-      <div><div class="fly light"><div class="fvp" style="background:var(--surface2)"><div class="fk"><span>Aviso</span></div><p class="ftt fit">Hoy abrimos a las 8 pm</p><p class="fs">Mañana, horario normal</p><div class="ff"><b>Doña Mary</b><img src="img/p-negro.png" alt="Patio"></div></div></div><p class="fcap">El aviso gratis, para compartir.</p></div>
-      <div><div class="fly"><div class="fvp" style="background:var(--ink)"><div class="fk"><span>Platillo especial</span></div><p class="ftt fit">Chiles en nogada todo septiembre</p><p class="fs">Con granada fresca y nuez de Castilla</p><div class="ff"><b>Cocina Económica La Poblanita</b><img src="img/p-blanco.png" alt="Patio"></div></div></div><p class="fcap"><b>Caso límite:</b> 32, 37 y 29 caracteres.</p></div>
+  <div><div class="phone"><div class="screen"><div class="vp">
+    <div class="sb"><span>12:31</span><span><i class="ion">&#xf208;</i><i class="ion">&#xf631;</i><i class="ion">&#xf187;</i></span></div>
+    <div class="nav"><span class="bx ion">&#xf229;</span><span class="tt">Nueva promo</span><span class="bx"></span></div>
+    <div style="padding:0 20px">
+      <div style="display:flex;justify-content:center"><div class="fly negro" style="width:200px;height:250px"><div class="fvp" style="transform:scale(.185185)"><div class="fk"><span>Promoción</span></div><div class="fbody"><p class="ftt fit">2×1 en aguas frescas de la casa</p><p class="fs">Solo hoy, de 2 a 4 pm</p></div><div class="ff"><b>Fonda Poblana</b><img src="img/p-blanco.png" alt="Patio"></div></div></div></div>
+      <div class="tchips"><span class="chip">Platillo especial</span><span class="chip on">Promoción</span><span class="chip">Evento</span><span class="chip">Nuevo en el menú</span></div>
+      <p class="flabel">Título</p>
+      <div class="field"><span>2×1 en aguas frescas de la casa</span><span class="cnt">31/32</span></div>
+      <p class="flabel">Detalle</p>
+      <div class="field"><span>Solo hoy, de 2 a 4 pm</span><span class="cnt">21/40</span></div>
+      <p class="flabel">Fondo</p>
+      <div class="sw">
+        <span class="swi"><i class="sq s-blanco" data-r=".2237" data-stroke="rgba(17,18,20,.16)"></i>Blanco</span>
+        <span class="swi"><i class="sq s-gris" data-r=".2237" data-stroke="rgba(17,18,20,.16)"><b></b></i>Gris</span>
+        <span class="swi on"><i class="sq s-negro" data-r=".2237" data-stroke="#F2612F" data-stroke-width="4"></i>Negro</span>
+        <span class="swi"><i class="sq s-foto ion" data-r=".2237">&#xf1dc;</i>Tu foto</span>
+      </div>
     </div>
+    <div style="position:absolute;left:20px;right:20px;bottom:34px">
+      <div class="btn or">Publicar y avisar a 48</div>
+      <div class="btn tx">Solo descargar la imagen</div>
+    </div>
+  </div></div></div><p class="cap"><b>Pro.</b> El negocio elige plantilla, escribe poco y elige fondo. Contadores con el límite de cada campo.</p></div>
+  <div class="note">
+    <h3>Fondos y texto de los flyers</h3>
+    <ul>
+      <li><b>Solo neutros de Patio:</b> blanco, gris (el lienzo #F8F8F5 con tarjeta blanca, el mismo par del póster del menú) y negro.</li>
+      <li><b>Tu foto:</b> degradado negro de abajo hacia arriba para que el texto blanco siempre se lea.</li>
+      <li><b>El naranja</b> queda solo en la etiqueta chica, como la fecha del póster.</li>
+      <li><b>Texto que no cabe:</b> baja de tamaño en pasos (128 → 112 → 96 → 84 → 72). Nunca se corta ni sale de la imagen.</li>
+    </ul>
+    <p style="margin-top:12px"><b>Hallazgo:</b> el corte de «Enchiladas suizas gratinadas» lo causaba la regla anti-viudas: unía «suizas gratinadas» en un bloque más ancho que el renglón. En títulos grandes, la viuda se evita equilibrando renglones y bajando el tamaño, nunca uniendo palabras que no caben juntas. La misma excepción aplica en la app.</p>
   </div>
+</div>
+<div class="row" style="gap:20px">
+      <div><div class="fly foto"><div class="fvp" style="background:linear-gradient(180deg,rgba(0,0,0,.2) 0%,rgba(0,0,0,0) 28%,rgba(0,0,0,.18) 50%,rgba(0,0,0,.78) 100%),url('../assets/hero/botanica-6.jpg') center/cover"><div class="fk"><span>Platillo especial</span><span class="tag">Tu foto</span></div><div class="fbody"><p class="ftt fit">Hoy hay pozole</p><p class="fs">Rojo o verde · $85</p></div><div class="ff"><b>Fonda Poblana</b><img src="img/p-blanco.png" alt="Patio"></div></div></div><p class="fcap"><b>Tu foto</b> con degradado: el texto blanco siempre se lee.</p></div>
+      <div><div class="fly negro"><div class="fvp"><div class="fk"><span>Promoción</span></div><div class="fbody"><p class="ftt fit">2×1 en aguas frescas de la casa</p><p class="fs">Solo hoy, de 2 a 4 pm</p></div><div class="ff"><b>Fonda Poblana</b><img src="img/p-blanco.png" alt="Patio"></div></div></div><p class="fcap"><b>Negro.</b> Título largo: baja a 112.</p></div>
+      <div><div class="fly gris"><div class="fvp"><div class="fk"><span>Evento</span></div><div class="fcard"><div class="fbody"><p class="ftt fit">Viernes de mariscos</p><p class="fs">14 de noviembre, desde la 1 pm</p></div></div><div class="ff"><b>Cocina Económica Doña Mary</b><img src="img/p-negro.png" alt="Patio"></div></div></div><p class="fcap"><b>Gris:</b> lienzo con tarjeta blanca, como el póster del menú.</p></div>
+      <div><div class="fly blanco"><div class="fvp"><div class="fk"><span>Nuevo en el menú</span></div><div class="fbody"><p class="ftt fit">Enchiladas suizas gratinadas</p><p class="fs">Desde hoy, todos los días · $95</p></div><div class="ff"><b>Doña Mary</b><img src="img/p-negro.png" alt="Patio"></div></div></div><p class="fcap"><b>Blanco.</b> Dos palabras largas: renglones equilibrados, sin cortar.</p></div>
+      <div><div class="fly gris"><div class="fvp"><div class="fk"><span>Aviso</span></div><div class="fcard"><div class="fbody"><p class="ftt fit">Hoy abrimos a las 8 pm</p><p class="fs">Mañana, horario normal</p></div></div><div class="ff"><b>Doña Mary</b><img src="img/p-negro.png" alt="Patio"></div></div></div><p class="fcap"><b>Gris.</b> El aviso gratis, para compartir.</p></div>
+      <div><div class="fly negro"><div class="fvp"><div class="fk"><span>Platillo especial</span></div><div class="fbody"><p class="ftt fit">Hamburguesas al carbón con papas</p><p class="fs">Con queso, tocino y aros de cebolla</p></div><div class="ff"><b>Cocina Económica La Poblanita</b><img src="img/p-blanco.png" alt="Patio"></div></div></div><p class="fcap"><b>Caso límite:</b> «Hamburguesas» no cabe a 128 y baja a 112. Título 32, detalle 35, nombre 29.</p></div>
 </div>
 
 <!-- 5 MOSTRAR EN CAJA -->
@@ -748,6 +797,13 @@
     if (!w || !h) return;
     const path = squirclePath(w, h, Math.min(w, h) * parseFloat(el.dataset.r || '0.2237'), 0.6);
     el.style.clipPath = `path('${path}')`;
+    if (el.dataset.stroke && !el.querySelector('.rim')) {
+      const ns = 'http://www.w3.org/2000/svg';
+      const svg = document.createElementNS(ns, 'svg');
+      svg.setAttribute('class', 'rim'); svg.setAttribute('width', w); svg.setAttribute('height', h);
+      svg.innerHTML = `<path d="${path}" fill="none" stroke="${el.dataset.stroke}" stroke-width="${el.dataset.strokeWidth || 2}"/>`;
+      el.appendChild(svg);
+    }
     if (el.dataset.rim && !el.querySelector('.rim')) {
       const ns = 'http://www.w3.org/2000/svg';
       const svg = document.createElementNS(ns, 'svg');
@@ -776,25 +832,31 @@
     }
     el.outerHTML = `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" fill="#111214">${r}</svg>`;
   }
-  // Título del flyer: baja de tamaño en pasos hasta caber en tres renglones.
+  // Título del flyer: baja de tamaño en pasos hasta que la palabra más larga
+  // quepa en el ancho y el texto no pase de tres renglones.
   function fit(el) {
-    for (const [fs, lh] of [[128, 156], [112, 136], [96, 118]]) {
+    for (const [fs, lh] of [[128, 156], [112, 136], [96, 118], [84, 104], [72, 90]]) {
       el.style.fontSize = fs + 'px'; el.style.lineHeight = lh + 'px';
-      if (el.scrollHeight <= lh * 3 + 2) return;
+      if (el.scrollWidth <= el.clientWidth + 1 && el.scrollHeight <= lh * 3 + 2) return;
     }
   }
-  // Cero viudas, igual que noWidow() de lib/typography.
+  // Cero viudas, igual que noWidow() de lib/typography. Si unir las dos últimas
+  // palabras no cabe en el renglón, se deshace: un texto cortado es peor que
+  // una viuda. Los títulos grandes (.ftt) se equilibran con text-wrap: balance.
   function noWidow(root) {
     const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
     const nodes = []; while (walker.nextNode()) nodes.push(walker.currentNode);
     for (const node of nodes) {
-      if (node.parentElement.closest('script,style,.ion')) continue;
+      const host = node.parentElement;
+      if (host.closest('script,style,.ion,.ftt')) continue;
       const text = node.nodeValue;
       if (!/\S\s+\S/.test(text)) continue;
       const lead = text.match(/^\s*/)[0], tail = text.match(/\s*$/)[0];
       const parts = text.trim().split(/\s+/);
-      const joined = parts.length <= 2 ? parts.join(' ') : [...parts.slice(0, -2), parts.slice(-2).join(' ')].join(' ');
+      const joined = parts.length <= 2 ? parts.join('\u00A0') : [...parts.slice(0, -2), parts.slice(-2).join('\u00A0')].join(' ');
       node.nodeValue = lead + joined + tail;
+      const box = host.closest('p,div,li,td,th,h1,h2,h3') || host;
+      if (box.scrollWidth > box.clientWidth + 1) node.nodeValue = text;
     }
   }
   function run() {

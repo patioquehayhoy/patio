@@ -16,8 +16,9 @@ Decisiones y aterrizaje completos en [DECISIONES_2026-11-07](DECISIONES_2026-11-
   `store-notifications`, tabla `store_purchases`; RevenueCat retirado.
   Pasos de Parco (contratos, llaves, productos) en [billing](BILLING_SETUP_2026-10-26.md).
 - [ ] Parco: firmar Paid Apps Agreement y perfil de pagos de Play.
-- [ ] `db push` de `20261107120000_store_purchases` y deploy de
-  `verify-purchase` y `store-notifications`.
+- [x] Producción (Parco, 2026-11-08 02:49 UTC): `store_purchases` aplicada;
+  `verify-purchase` (con sesión) y `store-notifications` (sin JWT) activas.
+  Prueba sin efectos: aviso vacío → 200 «ignored»; compra sin sesión → 401.
 - [x] `revenuecat-webhook` borrada de producción (2026-11-07, Claude, a
   pedido de Parco; el código queda en el historial de git).
 - [ ] Día de planes: definir y crear productos en ambas tiendas.
@@ -25,8 +26,8 @@ Decisiones y aterrizaje completos en [DECISIONES_2026-11-07](DECISIONES_2026-11-
   resumen «Hoy» de las 18:00 → me gusta a tu reseña. Diseño en la v4.
 - [x] Copy de avisos homologado (título = quién, cuerpo = el hecho; nunca
   «Aviso:» ni «en Patio»). Parco desplegó 4 funciones el 2026-11-08 01:21 UTC.
-- [ ] Volver a desplegar `send-special-notice` (por si salió antes de quitar
-  «Aviso:») y `notify-content-report` (sigue con «Nuevo reporte en Patio»).
+- [x] `send-special-notice` (v5) y `notify-content-report` (v4) desplegadas
+  con el copy final (2026-11-08 02:49 UTC).
 - [x] Propuesta v4 (`artifacts/propuesta-2026-11-07-v4.html`): Parco la ve
   mejor; mañana afina detalles y se empieza a ver en la app.
 - [ ] Afinar detalles de la v4 con Parco: Hoy, notificaciones, aviso gratis,

@@ -4,8 +4,8 @@
 
 Leer el [heads-up](HEADS_UP_2026-10-12.md), bloque «Cierre 2026-11-07», y
 [DECISIONES_2026-11-07](DECISIONES_2026-11-07.md). Mañana: afinar la v4 con
-Parco y empezar a construirla en la app. Producción: falta la migración de
-compras y desplegar las funciones de cobro (comandos en el heads-up).
+Parco y empezar a construirla en la app. Producción al día (verificado el
+8 nov); el cobro sigue apagado hasta contratos, llaves y productos.
 
 ## Continuidad 2026-11-03 — Patios, precio del menú, racha y editor (Claude)
 

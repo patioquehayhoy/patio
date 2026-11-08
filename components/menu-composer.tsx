@@ -15,6 +15,7 @@ import {
   TouchableOpacity,
   View,
   LayoutAnimation,
+  useWindowDimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -24,6 +25,7 @@ import { getTipoNegocio, type MenuData, type Platillo, type Seccion } from '@/li
 import { useTheme } from '@/lib/theme';
 import { ActionSheet } from '@/components/action-sheet';
 import { SectionIndex } from '@/components/section-index';
+import { mergeDescription, suggestDishSplit } from '@/lib/dish-split';
 import { GlassIconButton } from '@/components/glass-button';
 import { noWidow } from '@/lib/typography';
 import { TEXT_LIMITS } from '@/lib/text-limits';
@@ -45,6 +47,7 @@ type Props = {
 export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
+  const { height: windowHeight } = useWindowDimensions();
   const c = fonderoPalette(theme.isDark);
   const s = useMemo(() => makeStyles(c), [c]);
   const {
@@ -444,6 +447,28 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                               <Ionicons name="close" size={15} color={c.textMute} />
                             </TouchableOpacity>
                           </View>
+                          {/* Guía de captura: si el nombre trae la descripción pegada,
+                              ofrece separarla con un toque (el nombre es lo que se pide). */}
+                          {editingName !== dish.id && (() => {
+                            const split = suggestDishSplit(dish.nombre);
+                            if (!split) return null;
+                            return (
+                              <TouchableOpacity
+                                style={s.splitHint}
+                                onPress={() => {
+                                  smoothly();
+                                  patchDish(section.id, dish.id, { nombre: split.name, descripcion: mergeDescription(split.description, dish.descripcion ?? '').slice(0, TEXT_LIMITS.dishDescription) });
+                                  revealDetails(dish.id);
+                                  Haptics.selectionAsync().catch(() => {});
+                                }}
+                                activeOpacity={0.7}
+                                accessibilityRole="button"
+                                accessibilityLabel={`Mover «${split.description}» a la descripción`}>
+                                <Ionicons name="arrow-down" size={13} color={c.accent} />
+                                <Text style={s.splitHintText}>{noWidow(`Mover «${split.description.charAt(0).toLocaleLowerCase('es-MX') + split.description.slice(1)}» a la descripción`)}</Text>
+                              </TouchableOpacity>
+                            );
+                          })()}
                           {showDetails ? (
                             <View style={s.detailRow}>
                               <TextInput
@@ -608,7 +633,9 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
             names={data.secciones.map((section) => section.nombre)}
             onSelect={jumpToSection}
             colors={{ text: c.text, textMute: c.textMute, accent: c.accent, surface: c.surface2, border: c.border }}
-            style={{ top: insets.top + 70, right: 0 }}
+            dark={theme.isDark}
+            maxHeight={windowHeight - insets.top - insets.bottom - 180}
+            style={{ top: insets.top + 90 }}
           />
         )}
       </KeyboardAvoidingView>
@@ -656,6 +683,8 @@ function makeStyles(c: FonderoColors) {
     currency: { fontSize: 13, fontWeight: '300', color: c.textMute },
     dish: { paddingVertical: 7 },
     dishDivider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: c.border },
+    splitHint: { minHeight: 32, marginTop: 2, flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start' },
+    splitHintText: { flexShrink: 1, fontSize: 13, lineHeight: 17, fontWeight: '700', color: c.accent },
     reviewNote: { marginBottom: 3, flexDirection: 'row', alignItems: 'center', gap: 4 },
     reviewNoteText: { flex: 1, fontSize: 11, lineHeight: 15, fontWeight: '300', color: c.accent },
     dishMainRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },

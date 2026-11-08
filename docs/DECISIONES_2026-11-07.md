@@ -636,3 +636,11 @@ herramienta; no se citan.
   - **Pastelería Dev 4:** «Se acabó por hoy», como de costumbre, aviso especial.
   - **Mariscos y Cocteles Dev Cinco:** nombre de 29 letras, platillos
     larguísimos y solo precio del menú.
+  - **Cocina Grande Dev 6:** menú de 24 secciones y unos 150 platillos para
+    probar el índice lateral de secciones en la ficha.
+- **Índice lateral también en la ficha** (cápsula de vidrio a la derecha;
+  aparece cuando el menú está a la vista y tiene 4 secciones o más).
+- **Guía al capturar:** si un nombre de platillo pasa de 40 letras y trae
+  «con …», el editor ofrece «Mover «con …» a la descripción».
+- **Línea de datos de la ficha:** tres lugares fijos; si falta «Abrió en», el
+  pago y el horario ya no se recorren.

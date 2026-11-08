@@ -5,11 +5,12 @@ import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Animated, Share, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Animated, Share, StyleSheet, Text, TextInput, TouchableOpacity, View, useWindowDimensions, type ScrollView } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ActionSheet } from '@/components/action-sheet';
+import { SectionIndex } from '@/components/section-index';
 import { AgentSpinner } from '@/components/agent-spinner';
 import { PAYMENT_ORDER, PaymentIcon } from '@/components/payment-icon';
 import { ANDROID_ICONS, TintIcon } from '@/components/tint-icon';
@@ -439,6 +440,30 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
     if (own) getProStatus(patio.id).then((status) => { if (active) setOwnPro(!!status?.proUntil); }).catch(() => {});
     return () => { active = false; };
   }, [own, patio?.id]);
+  // Índice lateral de secciones (menús largos): posición de cada sección
+  // dentro del scroll y si el menú está a la vista.
+  const { height: windowHeight } = useWindowDimensions();
+  const scrollRef = useRef<ScrollView>(null);
+  const menuFrame = useRef({ cardY: 0, menuY: 0, menuHeight: 0 });
+  const groupY = useRef<number[]>([]);
+  const [indexVisible, setIndexVisible] = useState(false);
+  const indexVisibleRef = useRef(false);
+  const updateIndexVisible = (scrollY: number) => {
+    const { cardY, menuY, menuHeight } = menuFrame.current;
+    const top = cardY + menuY;
+    const visible = menuHeight > 0 && scrollY + windowHeight * 0.55 >= top && scrollY <= top + menuHeight - windowHeight * 0.35;
+    if (visible !== indexVisibleRef.current) {
+      indexVisibleRef.current = visible;
+      setIndexVisible(visible);
+    }
+  };
+  const jumpToSection = (index: number, dragging: boolean) => {
+    const { cardY, menuY } = menuFrame.current;
+    const y = groupY.current[index];
+    if (y == null) return;
+    scrollRef.current?.scrollTo({ y: Math.max(0, cardY + menuY + y - insets.top - 56), animated: !dragging });
+  };
+
   // «Qué tan lleno»: solo aparece con visitas reales suficientes.
   const [busyness, setBusyness] = useState<Busyness | null>(null);
   useEffect(() => {
@@ -753,6 +778,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
           Fondero en su propia ficha: rebote normal de iOS sin cerrar; la foto
           se estira con él (ver heroBackdrop). */}
       <Animated.ScrollView
+        ref={scrollRef}
         contentInsetAdjustmentBehavior="never"
         contentContainerStyle={[s.scrollContent, own && { paddingBottom: bottomTabClearance(insets.bottom) }]}
         showsVerticalScrollIndicator={false}
@@ -763,6 +789,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
             useNativeDriver: true,
             listener: (event: any) => {
               const y = event.nativeEvent.contentOffset.y;
+              updateIndexVisible(y);
               if (followToast) {
                 if (toastScrollY.current === null) toastScrollY.current = y;
                 else if (Math.abs(y - toastScrollY.current) > 48) setFollowToast(false);
@@ -858,7 +885,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
         </View>
 
         {/* Card traslapada */}
-        <View style={s.card}>
+        <View style={s.card} onLayout={(event) => { menuFrame.current.cardY = event.nativeEvent.layout.y; }}>
           <View style={s.summaryRow}>
             <PatioCardLocation area={patio.area} distanceLabel={distance} variant="detail" style={{ flex: 1, marginTop: 0 }} />
             <PatioCardPrice patio={patio} compact={false} style={s.summaryPrice} />
@@ -880,10 +907,10 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
           )}
           {/* Menú del día — agrupado por sección. Si ya se acabó, solo se
               atenúa: el aviso de arriba ya lo dice, sin caja ni etiqueta extra. */}
-          <View>
+          <View onLayout={(event) => { menuFrame.current.menuY = event.nativeEvent.layout.y; menuFrame.current.menuHeight = event.nativeEvent.layout.height; }}>
             <View style={soldOut ? { opacity: 0.42 } : undefined}>
-              {sections.map((section) => (
-                <View key={section.section} style={s.group}>
+              {sections.map((section, sectionIndex) => (
+                <View key={section.section} style={s.group} onLayout={(event) => { groupY.current[sectionIndex] = event.nativeEvent.layout.y; }}>
                   {!['menu del dia', 'menu de hoy'].includes(
                     section.section.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim(),
                   ) && (
@@ -974,13 +1001,15 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
                     <Text style={s.badgeInlineText} numberOfLines={2}>{activeBadge.detail}</Text>
                   </TouchableOpacity>
                 ) : <View style={s.factsLine}>
-                {businessOpeningLabel && (
+                {/* Tres lugares fijos (izquierda, centro, derecha): si falta un
+                    dato, su hueco se queda y los demás no se recorren. */}
+                {businessOpeningLabel ? (
                   <View style={s.factColumn} accessible accessibilityLabel={businessOpeningLabel}>
                     <Ionicons name="calendar-outline" size={13} color={theme.textMute} />
                     <Text style={s.historyMetaText} numberOfLines={1}>{businessOpeningLabel}</Text>
                   </View>
-                )}
-                {!!patio.payments.length && (
+                ) : <View style={s.factColumn} />}
+                {!patio.payments.length ? <View style={[s.factColumn, s.factColumnCenter]} /> : (
                   <View style={[s.factColumn, s.factColumnCenter]} accessible accessibilityLabel={`Acepta ${patio.payments.join(', ')}`}>
                   <View style={s.payments}>
                     {PAYMENT_ORDER.filter((payment) => patio.payments.includes(payment)).map((payment) => (
@@ -1323,6 +1352,16 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
 
         </View>
       </Animated.ScrollView>
+      {sections.length >= 4 && indexVisible && (
+        <SectionIndex
+          names={sections.map((section) => section.section)}
+          onSelect={jumpToSection}
+          colors={{ text: theme.text, textMute: theme.textSecondary, accent: theme.accent, surface: theme.surface, border: theme.border }}
+          dark={theme.isDark}
+          maxHeight={windowHeight - insets.top - insets.bottom - 200}
+          style={{ top: Math.max(insets.top + 80, (windowHeight - Math.min(windowHeight - insets.top - insets.bottom - 200, sections.length * 22 + 12)) / 2) }}
+        />
+      )}
       {followToast && (
         <View style={[s.followToast, { bottom: insets.bottom + 16 }, floatingSurfaceShadow(theme.isDark)]} accessibilityLiveRegion="polite">
           <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={[s.followToastInner, { backgroundColor: sheetSurfaceTint(theme.isDark), borderColor: theme.isDark ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.18)' }]}>

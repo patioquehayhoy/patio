@@ -298,6 +298,62 @@ const DEV_QA: DevQa[] = [
   },
 ];
 
+
+// Cocina Grande Dev 6: menú verdaderamente extenso (24 secciones, ~150
+// platillos) para probar el índice lateral de secciones en el celular.
+const BIG_MENU: [string, string[]][] = [
+  ['DESAYUNOS', ['Chilaquiles rojos con huevo', 'Chilaquiles verdes con pollo', 'Enfrijoladas de queso', 'Enmoladas de pollo', 'Molletes con chorizo', 'Hot cakes con miel de maple', 'Avena con fruta de temporada']],
+  ['HUEVOS AL GUSTO', ['Huevos a la mexicana', 'Huevos rancheros', 'Huevos divorciados', 'Huevos con jamón', 'Omelette de champiñones y queso', 'Huevos motuleños']],
+  ['JUGOS Y LICUADOS', ['Jugo de naranja', 'Jugo verde', 'Licuado de plátano', 'Licuado de fresa', 'Licuado de mamey', 'Jugo de zanahoria']],
+  ['PAN DULCE', ['Concha', 'Cuernito', 'Oreja', 'Dona de chocolate', 'Polvorón', 'Garibaldi']],
+  ['ENTRADAS', ['Guacamole con totopos', 'Queso fundido', 'Sopes de chorizo', 'Tostadas de tinga', 'Flautas de pollo', 'Chicharrón de queso']],
+  ['ENSALADAS', ['Ensalada César', 'Ensalada de nopales', 'Ensalada de la casa', 'Ensalada de atún', 'Ensalada de quinoa y aguacate', 'Ensalada de betabel con queso de cabra']],
+  ['SOPAS Y CREMAS', ['Sopa de fideo', 'Sopa de tortilla', 'Crema de elote', 'Crema de champiñones', 'Sopa de lentejas', 'Sopa de verduras']],
+  ['CALDOS', ['Caldo tlalpeño', 'Caldo de res', 'Caldo de gallina', 'Pozole rojo', 'Pozole verde', 'Menudo']],
+  ['ARROCES Y PASTAS', ['Arroz rojo', 'Arroz blanco con elote', 'Espagueti rojo', 'Espagueti a la crema', 'Macarrones con queso', 'Lasaña de carne']],
+  ['AVES', ['Mole poblano con pollo', 'Pollo en pipián', 'Pechuga empanizada', 'Pollo a la naranja', 'Pechuga rellena de espinaca', 'Tinga de pollo']],
+  ['RES', ['Bistec a la mexicana', 'Carne asada', 'Chamorro en adobo', 'Albóndigas en chipotle', 'Puntas de res al albañil', 'Milanesa de res']],
+  ['CERDO', ['Costillas en salsa verde', 'Chuleta ahumada', 'Cochinita pibil', 'Carnitas', 'Lomo en ciruela', 'Chicharrón en salsa roja']],
+  ['PESCADOS', ['Filete empapelado', 'Pescado a la veracruzana', 'Filete empanizado', 'Pescado al mojo de ajo', 'Tilapia a la plancha', 'Robalo a la talla']],
+  ['MARISCOS', ['Camarones al ajillo', 'Camarones a la diabla', 'Coctel de camarón', 'Pulpo a la gallega', 'Ceviche de pescado', 'Aguachile verde']],
+  ['ESPECIALIDADES', ['Chiles en nogada', 'Mixiote de carnero', 'Barbacoa de borrego', 'Enchiladas suizas', 'Pescado zarandeado', 'Pato en mole negro']],
+  ['TACOS', ['Al pastor', 'Suadero', 'Bistec', 'Campechanos', 'Longaniza', 'Cabeza']],
+  ['TORTAS', ['Torta de milanesa', 'Torta cubana', 'Torta de pierna', 'Torta ahogada', 'Torta de jamón', 'Pambazo']],
+  ['ANTOJITOS', ['Quesadillas', 'Sopes', 'Huaraches', 'Tlacoyos', 'Gorditas de chicharrón', 'Tlayudas']],
+  ['VEGETARIANO', ['Tacos de coliflor', 'Bowl de quinoa', 'Enchiladas de verduras', 'Hamburguesa de lenteja', 'Chiles rellenos de queso', 'Nopales asados con queso']],
+  ['INFANTIL', ['Nuggets con papas', 'Mini hamburguesa', 'Quesadilla sincronizada', 'Espagueti a la mantequilla', 'Hot dog', 'Sándwich de jamón']],
+  ['GUARNICIONES', ['Frijoles refritos', 'Papas a la francesa', 'Puré de papa', 'Verduras al vapor', 'Plátanos fritos', 'Tortillas hechas a mano']],
+  ['BEBIDAS', ['Agua de horchata', 'Agua de jamaica', 'Agua de tamarindo', 'Limonada', 'Refresco', 'Agua mineral']],
+  ['CAFÉ Y TÉ', ['Café de olla', 'Americano', 'Capuchino', 'Latte', 'Té de manzanilla', 'Chocolate caliente']],
+  ['POSTRES', ['Pastel de tres leches', 'Flan napolitano', 'Arroz con leche', 'Pay de queso', 'Gelatina de mosaico', 'Churros con cajeta']],
+];
+
+const bigMenuPrice = (sectionIndex: number, dishIndex: number) => String(25 + ((sectionIndex * 37 + dishIndex * 23) % 235));
+
+DEV_QA.push({
+  busy: 'usual',
+  notice: 'Hoy pozole rojo o verde a $85.',
+  featured: 'Chiles en nogada',
+  patio: devPatio('demo-dev-6', {
+    name: 'Cocina Grande Dev 6',
+    categories: ['Restaurante', 'Fondita'],
+    price: '$25–$260',
+    rating: '4.5',
+    ratingCount: 312,
+    isVerifiedBusiness: true,
+    reason: 'Menú completo del desayuno a la cena',
+    latitude: 19.3999,
+    longitude: -99.1546,
+    businessOpenedAt: '2004-06-01',
+    weeklyHours: week('07:00', '23:00'),
+    menu: BIG_MENU.map(([title, dishes], sectionIndex) => section(title, dishes.map((name, dishIndex) => item(
+      name,
+      '$' + bigMenuPrice(sectionIndex, dishIndex),
+      dishIndex === 0 ? 'La favorita de la casa' : undefined,
+    )))),
+  }),
+});
+
 export const DEV_QA_PATIOS: Patio[] = DEV_QA.map((entry) => entry.patio);
 
 /** Aviso especial y platillo recomendado de los lugares «Dev». */

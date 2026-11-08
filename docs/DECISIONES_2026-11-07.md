@@ -495,3 +495,28 @@ lectura típica ≈ 3,000 tokens de entrada (foto + instrucciones) y ≈ 1,200 d
 salida ≈ **USD 0.03 (≈ $0.50 MXN)**. El gasto ocurre solo cuando el negocio
 toma o elige la foto y Patio la lee; escribir el menú a mano no cuesta.
 Tope actual: 20 lecturas al día en Gratis, 60 en Pro.
+
+---
+
+## 18. Propuesta v4 (homologada con la app)
+
+`artifacts/propuesta-2026-11-07-v4.html`: pantallas a 390 × 844 pt reales con
+la escala homologada (`PATIO_DESIGN_PRINCIPLES.md`), Ionicons de la app y
+listas de `components/settings-list.tsx`. Trae la auditoría v3 → v4.
+
+- **Formas:** una sola esquina continua de Apple (22.37 % del lado, suavizado
+  60 %) para sticker, sello, casillas de sellos e ícono. Área segura 12 %.
+  En código: `borderCurve: 'continuous'` en tarjetas, hojas y botones (iOS).
+- **La P:** unidad = hueco interior (35 % del alto); área de seguridad = 1
+  unidad; mínimo 10 pt en pantalla (16 recomendado) y 5 mm impreso.
+- **Hoy:** tarjeta con número + comparación + gráfica; debajo listas
+  agrupadas (valores en una sola columna) y ranking de platillos que baja de
+  línea. Tu racha hoy corta el platillo con «…»: se corrige al construir.
+- **Tarjeta de Pro:** aparece con 10 seguidores y 5 menús publicados, junto
+  al dato; × de 44; cerrada no vuelve en 30 días; nunca por push; una sola en
+  la app a la vez.
+- **Mostrar en caja y sellos (idea nueva):** fase 1 sin escáner (quien atiende
+  toca «Canjear»); fase 2 QR de un solo uso que cambia cada 30 s y lo
+  escanea el negocio, con tarjeta de sellos. Cada escaneo es una visita
+  confirmada para «Qué tan lleno». Canjes y sellos en Pro.
+- **Entrada:** el botón de vidrio de `entrada.tsx` (52/14) se homologa a 54/27.

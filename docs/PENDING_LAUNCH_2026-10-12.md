@@ -24,8 +24,9 @@ Decisiones y aterrizaje completos en [DECISIONES_2026-11-07](DECISIONES_2026-11-
 - [x] Copy de avisos homologado en código (título = quién, cuerpo = el hecho).
   Falta deploy de `send-publication-notifications`, `send-special-notice`,
   `send-review-notification`, `send-community-notification`.
-- [ ] Aprobar propuesta v2 (`artifacts/propuesta-2026-11-07-v2.html`): Hoy,
-  notificaciones, aviso gratis, flyers, onboarding Leica, foto del lugar, marca.
+- [ ] Aprobar propuesta v4 (`artifacts/propuesta-2026-11-07-v4.html`, medidas
+  reales y escala homologada): Hoy, notificaciones, aviso gratis, flyers,
+  mostrar en caja y sellos, onboarding, foto del lugar, ficha y marca.
 - [ ] Construir tras el sí: onboarding Leica + foto del lugar (alta y Editar),
   Hoy, aviso de operación, resumen 18:00, notificaciones simplificadas, flyers.
 - [ ] Sesión anónima (registro no obligatorio).

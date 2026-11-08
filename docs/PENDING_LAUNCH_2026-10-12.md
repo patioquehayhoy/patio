@@ -4,19 +4,23 @@
 
 Decisiones y aterrizaje completos en [DECISIONES_2026-11-07](DECISIONES_2026-11-07.md).
 
-- [x] Auditoría npm: 25 moderadas cerradas (overrides `glob` 14.0.4 y
-  `minimatch` 11.0.5). Quedan 15 bajas de `deepmerge`, sin parche publicado.
-  `npm run check` (238 pruebas) y `expo-doctor` (18/18) en verde.
-- [x] Android: EAS production ya tiene `GOOGLE_MAPS_ANDROID_API_KEY` y
-  `GOOGLE_SERVICES_JSON`; FCM V1 está en Expo.
-- [ ] EAS preview no tiene la clave de Maps: un APK preview abriría el mapa sin
-  clave. Copiarla a preview o probar Android con build production + Play interno.
-- [ ] Build Android nuevo (el último es del 30 oct, sin los cambios del 2–3 nov),
-  solo con confirmación de Parco.
-- [ ] Cobro directo: `expo-iap` + `verify-purchase` + avisos de Apple y Google;
-  retirar `react-native-purchases` y `revenuecat-webhook`.
-- [ ] Avisos que faltan, en orden: cambio de hoy → resumen diario del negocio
-  → me gusta a tu reseña → Novedades → Lugares nuevos.
+- [x] Auditoría npm en **0**: overrides `glob` 14.0.4 y `minimatch` 11.0.5;
+  `deepmerge` 4.3.1 con guarda `__proto__` en `vendor/deepmerge` (sustituir por
+  la oficial cuando publiquen parche). 241 pruebas, `expo-doctor` 18/18.
+- [x] Android: EAS production con Maps, `google-services.json` y FCM V1. Perfil
+  `android-qa` (entorno production, APK instalable) y `.easignore`.
+- [x] Build Android QA lanzado 2026-11-07 (versionCode 14).
+- [ ] Parco: instalar el APK y probar push (FCM), mapa, cámara y publicar.
+- [x] Cobro directo en código: `expo-iap`, `verify-purchase`,
+  `store-notifications`, tabla `store_purchases`; RevenueCat retirado.
+  Pasos de Parco (contratos, llaves, productos) en [billing](BILLING_SETUP_2026-10-26.md).
+- [ ] Parco: firmar Paid Apps Agreement y perfil de pagos de Play.
+- [ ] `db push` de `20261107120000_store_purchases` y deploy de las dos
+  funciones; borrar `revenuecat-webhook` desplegada.
+- [ ] Día de planes: definir y crear productos en ambas tiendas.
+- [ ] Avisos y resumen: propuesta visual en
+  `artifacts/avisos-y-resumen-2026-11-07.html`; construir tras el sí de Parco
+  (cambio de hoy → Tu día en Patio → me gusta a tu reseña).
 - [ ] Aprobar: planes (§2), sesión anónima (§8), onboarding Leica (§15) y
   concurrencia (§14).
 - [x] Listas de Menús se quedan por ahora.

@@ -1,4 +1,55 @@
-# Planes y compras — 2026-10-26 (actualizado 2026-11-02)
+# Planes y compras — 2026-10-26 (actualizado 2026-11-07)
+
+## Cobro directo — vigente desde 2026-11-07
+
+RevenueCat se retiró. La app compra con `expo-iap` (StoreKit 2 / Play
+Billing) y el servidor confirma con Apple y Google. Decisión y explicación en
+[DECISIONES_2026-11-07](DECISIONES_2026-11-07.md) §1.
+
+| Pieza | Dónde |
+|---|---|
+| Cliente | `lib/billing.ts` (apagado salvo `EXPO_PUBLIC_PAID_PLANS_ENABLED=true` y URLs legales) |
+| Productos | `patio_pro_mensual`, `patio_pro_anual` — mismos IDs en ambas tiendas |
+| Verificación | función `verify-purchase` (con sesión) |
+| Renovación, cancelación, reembolso | función `store-notifications` (sin JWT) |
+| Registro de compras | `store_purchases` (`20261107120000_store_purchases.sql`) |
+| Plan vigente | `business_plans` (la app solo lee esto) |
+
+### Lo que hace Parco (en este orden)
+
+1. **App Store Connect → Business:** firmar el Paid Apps Agreement y llenar
+   banco y datos fiscales. Inscribirse al Small Business Program (15 %).
+2. **Play Console → Configuración → Perfil de pagos:** completarlo.
+3. Cuando los planes estén definidos (día de planes): crear los productos con
+   los IDs de arriba. Apple: grupo «Patio Pro» + oferta de introducción de 30
+   días gratis. Google: suscripción con plan base mensual + oferta de prueba.
+4. **App Store Connect → Users and Access → Integrations → In-App Purchase:**
+   generar una llave. Guardar Key ID, Issuer ID y el `.p8`.
+5. **Google Cloud (proyecto `patio-eas`):** cuenta de servicio con acceso a
+   Play Console (permiso «Ver datos financieros y administrar pedidos y
+   suscripciones») y su JSON.
+6. **Pub/Sub:** tema `play-rtdn`, suscripción push a
+   `https://<proyecto>.supabase.co/functions/v1/store-notifications?token=<STORE_NOTIFICATIONS_TOKEN>`;
+   ponerlo en Play Console → Monetización → Notificaciones en tiempo real.
+7. **App Store Connect → App → App Store Server Notifications V2:** la misma
+   URL, sin token (Apple firma y el servidor re-consulta).
+
+### Secretos de Supabase
+
+`APPLE_IAP_KEY_ID`, `APPLE_IAP_ISSUER_ID`, `APPLE_IAP_PRIVATE_KEY`,
+`APPLE_BUNDLE_ID`, `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON`,
+`GOOGLE_PLAY_PACKAGE=com.parcomx.patio`, `STORE_NOTIFICATIONS_TOKEN`.
+
+### Para encender
+
+`npx supabase db push` (tabla `store_purchases`) → `npx supabase functions
+deploy verify-purchase store-notifications --use-api` → borrar la función
+`revenuecat-webhook` del panel → probar en sandbox → en EAS production
+`EXPO_PUBLIC_PAID_PLANS_ENABLED=true` y URLs de privacidad y términos.
+
+---
+
+## Histórico (RevenueCat, retirado)
 
 Catálogo en `lib/plans.ts`, pantalla en `app/plan.tsx`. Solo el negocio tiene
 planes ([decisión](PLANES_CREADORES_Y_RED_2026-11-02.md)).

@@ -55,15 +55,15 @@ Deno.serve(async (req) => {
       let delivered = 0;
       if (parentAuthor && parentAuthor !== user.id) {
         delivered += await sendExpoPush(admin, await pushTargets(admin, [parentAuthor], PREFERENCE, true), {
-          title: `${author} te respondió`,
-          body: snippet(comment.body),
+          title: author,
+          body: `Te respondió: ${snippet(comment.body)}`,
           data: { type: 'review_comment', patioId: review.negocio_id },
         });
       }
       if (review.user_id !== user.id && review.user_id !== parentAuthor) {
         delivered += await sendExpoPush(admin, await pushTargets(admin, [review.user_id], PREFERENCE, true), {
-          title: `${author} comentó tu reseña`,
-          body: snippet(comment.body),
+          title: author,
+          body: `Comentó tu reseña: ${snippet(comment.body)}`,
           data: { type: 'review_comment', patioId: review.negocio_id },
         });
       }
@@ -90,8 +90,8 @@ Deno.serve(async (req) => {
       if (!review) return json({ delivered: 0, deduplicated: true });
       if (review.user_id === user.id) return json({ delivered: 0 });
       const delivered = await sendExpoPush(admin, await pushTargets(admin, [review.user_id], PREFERENCE, true), {
-        title: `${fondita.nombre?.trim() || 'El Patio'} respondió tu reseña`,
-        body: snippet(review.business_reply ?? ''),
+        title: fondita.nombre?.trim() || 'El Patio',
+        body: `Respondió tu reseña: ${snippet(review.business_reply ?? '')}`,
         data: { type: 'business_reply', patioId: target.negocio_id },
       });
       return json({ delivered });
@@ -109,8 +109,8 @@ Deno.serve(async (req) => {
       const name = await displayName(admin, user.id);
       const pending = follow.status === 'pending';
       const delivered = await sendExpoPush(admin, await pushTargets(admin, [body.followedId], PREFERENCE, true), {
-        title: pending ? 'Quieren seguirte' : 'Tienes un nuevo seguidor',
-        body: pending ? `${name} quiere seguirte. Acepta o rechaza en Actividad.` : `${name} empezó a seguirte.`,
+        title: name,
+        body: pending ? 'Quiere seguirte.' : 'Empezó a seguirte.',
         data: { type: pending ? 'follow_request' : 'new_follower', profileId: user.id },
       });
       return json({ delivered });

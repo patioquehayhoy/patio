@@ -21,8 +21,17 @@ Decisiones y aterrizaje completos en [DECISIONES_2026-11-07](DECISIONES_2026-11-
 - [ ] Avisos y resumen: propuesta visual en
   `artifacts/avisos-y-resumen-2026-11-07.html`; construir tras el sí de Parco
   (cambio de hoy → Tu día en Patio → me gusta a tu reseña).
-- [ ] Aprobar: planes (§2), sesión anónima (§8), onboarding Leica (§15) y
-  concurrencia (§14).
+- [x] Copy de avisos homologado en código (título = quién, cuerpo = el hecho).
+  Falta deploy de `send-publication-notifications`, `send-special-notice`,
+  `send-review-notification`, `send-community-notification`.
+- [ ] Aprobar propuesta v2 (`artifacts/propuesta-2026-11-07-v2.html`): Hoy,
+  notificaciones, aviso gratis, flyers, onboarding Leica, foto del lugar, marca.
+- [ ] Construir tras el sí: onboarding Leica + foto del lugar (alta y Editar),
+  Hoy, aviso de operación, resumen 18:00, notificaciones simplificadas, flyers.
+- [ ] Sesión anónima (registro no obligatorio).
+- [ ] Parco: comprar dominio (`quehayhoy.mx`).
+- [ ] Concurrencia real con visitas (plan en DECISIONES §17), primera
+  actualización tras el lanzamiento.
 - [x] Listas de Menús se quedan por ahora.
 - [ ] Al final: revocar la clave antigua de Anthropic (una sola vez).
 

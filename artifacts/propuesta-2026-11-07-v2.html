@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Patio propuesta v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#F8F8F5;--surface:#fff;--ink:#111214;--soft:#4A4A47;--mute:#8A8A85;--accent:#F2612F;--accentSoft:#FBE7DD;--sep:rgba(17,18,20,.08);--ok:#2E7D4F;--black:#292929}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.4 -apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif}
+  .wrap{max-width:1280px;margin:0 auto;padding:40px 24px 96px}
+  .brand{font-family:"Plus Jakarta Sans",-apple-system,system-ui;font-weight:800;letter-spacing:-.01em}
+  h1{font:800 40px/44px "Plus Jakarta Sans",system-ui;letter-spacing:-.4px;margin:0 0 8px}
+  h2{font:800 28px/32px "Plus Jakarta Sans",system-ui;letter-spacing:-.28px;margin:72px 0 6px}
+  .lead{color:var(--soft);max-width:760px;margin:0}
+  .label{font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--mute);margin:0 0 8px}
+  .row{display:flex;gap:28px;flex-wrap:wrap;margin-top:24px;align-items:flex-start}
+  .phone{width:290px;height:600px;border-radius:44px;background:#111;padding:9px;flex:none}
+  .screen{width:100%;height:100%;border-radius:36px;overflow:hidden;position:relative;background:var(--bg)}
+  .cap{font-size:12px;color:var(--mute);margin-top:8px;width:290px}
+  /* lock screen */
+  .lock{background:linear-gradient(170deg,#3a2f35,#1a1517 65%);color:#fff;padding:50px 10px 10px}
+  .time{text-align:center;font:200 62px/1 -apple-system,system-ui;letter-spacing:-1px}
+  .date{text-align:center;font-size:14px;opacity:.85;margin-bottom:24px}
+  .n{background:rgba(245,245,245,.8);backdrop-filter:blur(20px);color:#111;border-radius:18px;padding:10px 12px;margin-bottom:8px;display:flex;gap:10px;align-items:flex-start}
+  .n .ic{width:32px;height:32px;border-radius:8px;background:var(--accent);flex:none;display:grid;place-items:center;color:#fff;font:800 15px "Plus Jakarta Sans"}
+  .n .tx{flex:1;min-width:0}
+  .n .h{display:flex;justify-content:space-between;font-size:11px;color:#666;text-transform:uppercase;letter-spacing:.3px}
+  .n b{font-size:14px;display:block;line-height:1.25}
+  .n span.t{font-size:14px;color:#222;line-height:1.3}
+  .rule{background:var(--surface);border-radius:18px;padding:18px 20px;max-width:420px}
+  .rule p{margin:0 0 10px;color:var(--soft);font-size:14px}
+  .rule b{color:var(--ink)}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  td{padding:7px 0;border-bottom:.5px solid var(--sep);vertical-align:top}
+  td:first-child{color:var(--mute);width:96px}
+  .strike{text-decoration:line-through;color:var(--mute)}
+  /* app */
+  .app{padding:50px 16px 16px}
+  .nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-weight:600}
+  .chip{display:inline-flex;align-items:center;gap:6px;background:var(--accentSoft);color:#B5421A;border-radius:100px;padding:4px 10px;font-size:12px;font-weight:700}
+  .hero-n{font:800 88px/0.95 "Plus Jakarta Sans",system-ui;letter-spacing:-2px;margin:14px 0 2px}
+  .hero-l{font-size:17px;font-weight:600;margin:0}
+  .delta{color:var(--ok);font-size:14px;font-weight:600;margin:4px 0 0}
+  .card{background:var(--surface);border-radius:18px;padding:14px 16px;margin-top:14px}
+  .ch-h{display:flex;justify-content:space-between;align-items:baseline}
+  .ch-h small{font-size:11px;font-weight:700;letter-spacing:.8px;color:var(--mute);text-transform:uppercase}
+  .ch-h strong{font-size:20px;font-weight:700}
+  .ch-h em{font-style:normal;font-size:12px;color:var(--mute)}
+  .chart{position:relative;height:96px;display:flex;align-items:flex-end;gap:7px;margin-top:10px}
+  .chart i{flex:1;background:#E3E1DA;border-radius:5px 5px 2px 2px}
+  .chart i.today{background:var(--accent)}
+  .chart .avg{position:absolute;left:0;right:0;border-top:1.5px dashed var(--mute);opacity:.6}
+  .chart .avg span{position:absolute;right:0;top:-16px;font-size:10px;color:var(--mute)}
+  .dl{display:flex;gap:7px;font-size:10px;color:var(--mute);margin-top:4px}.dl span{flex:1;text-align:center}
+  .mini{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:14px}
+  .mini div{background:var(--surface);border-radius:14px;padding:10px}
+  .mini b{display:block;font-size:20px;font-weight:700}
+  .mini span{font-size:11px;color:var(--soft);line-height:1.2;display:block}
+  .more{display:flex;justify-content:space-between;color:var(--soft);font-size:14px;padding:12px 2px 0}
+  .up{background:var(--black);color:#fff;border-radius:18px;padding:14px 16px;margin-top:14px}
+  .up b{display:block;font-size:15px}
+  .up span{font-size:13px;opacity:.75}
+  .up .go{display:inline-block;margin-top:10px;background:#fff;color:#111;border-radius:100px;padding:6px 12px;font-size:13px;font-weight:700}
+  .set{background:var(--surface);border-radius:14px;padding:0 14px;margin-top:8px}
+  .sr{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:.5px solid var(--sep);font-size:15px}
+  .sr:last-child{border:0}
+  .sr small{display:block;color:var(--mute);font-size:12px}
+  .pill{background:#EFEDE7;border-radius:8px;padding:4px 10px;font-size:14px}
+  .tog{width:44px;height:26px;border-radius:13px;background:var(--accent);position:relative;flex:none}
+  .tog:after{content:"";position:absolute;right:2px;top:2px;width:22px;height:22px;border-radius:50%;background:#fff}
+  .tog.off{background:#E3E1DB}.tog.off:after{right:auto;left:2px}
+  .sheet{position:absolute;left:0;right:0;bottom:0;background:var(--surface);border-radius:30px 30px 0 0;padding:20px 16px 26px}
+  .opts{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+  .opt{border:1.5px solid var(--sep);border-radius:100px;padding:7px 12px;font-size:14px}
+  .opt.sel{border-color:var(--accent);background:var(--accentSoft);color:#B5421A;font-weight:600}
+  .field{background:var(--bg);border-radius:14px;padding:12px;font-size:15px}
+  .fl{font-size:13px;color:var(--soft);margin:12px 0 6px}
+  .cta{display:block;text-align:center;background:var(--accent);color:#fff;font-weight:700;border-radius:27px;padding:16px;margin-top:16px}
+  .ghost{display:block;text-align:center;color:var(--ink);font-weight:600;padding:12px;margin-top:2px}
+  /* flyers */
+  .fly{width:250px;height:312px;border-radius:18px;overflow:hidden;position:relative;flex:none;color:#fff;display:flex;flex-direction:column;padding:18px}
+  .fly .k{font-size:10px;font-weight:700;letter-spacing:.9px;text-transform:uppercase;opacity:.85}
+  .fly .big{font:800 34px/36px "Plus Jakarta Sans",system-ui;letter-spacing:-.6px;margin-top:auto}
+  .fly .sub{font-size:14px;margin-top:6px;opacity:.9}
+  .fly .ft{display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding-top:10px;border-top:1px solid rgba(255,255,255,.25);font-size:11px}
+  .fly .ft b{font:800 13px "Plus Jakarta Sans"}
+  .tag{position:absolute;top:14px;right:14px;background:rgba(255,255,255,.22);border-radius:100px;padding:3px 9px;font-size:10px;font-weight:700}
+  /* onboarding */
+  .ob{background:#0E0D0C;color:#fff;text-align:center;padding:46px 22px 22px;display:flex;flex-direction:column;height:100%}
+  .ob .logo{width:44px;height:44px;border-radius:50%;background:var(--accent);margin:0 auto 14px;display:grid;place-items:center;font:800 20px "Plus Jakarta Sans"}
+  .ob h3{font:800 23px/27px "Plus Jakarta Sans",system-ui;letter-spacing:-.23px;margin:0 0 8px}
+  .ob p{font-size:14px;color:rgba(255,255,255,.72);margin:0;line-height:1.4}
+  .ob p b{color:#fff;font-weight:600}
+  .ob .img{flex:1;margin:18px 0;border-radius:18px;background-size:cover;background-position:center}
+  .ob .mock{flex:1;margin:18px auto;width:150px;border-radius:24px;border:6px solid #2a2a2a;background:var(--bg);overflow:hidden;position:relative}
+  .dots{display:flex;gap:6px;justify-content:center;margin:12px 0}
+  .dots i{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.3)}.dots i.on{background:#fff}
+  .ob .cta{margin-top:0}
+  .ob .ghost{color:rgba(255,255,255,.8)}
+  .perm{text-align:left;margin-top:18px;flex:1}
+  .perm div{display:flex;gap:14px;align-items:flex-start;padding:12px 0}
+  .perm .pi{width:30px;height:30px;border-radius:50%;border:1.5px solid rgba(255,255,255,.4);flex:none;display:grid;place-items:center;font-size:14px}
+  .perm .pi.ok{background:var(--accent);border-color:var(--accent)}
+  .perm b{display:block;font-size:15px}
+  .perm span{font-size:13px;color:rgba(255,255,255,.6)}
+  .collage{flex:1;display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin:18px 0}
+  .collage div{border-radius:10px;background-size:cover;background-position:center}
+  .photo{height:150px;border-radius:18px;border:1.5px dashed rgba(17,18,20,.2);display:grid;place-items:center;color:var(--soft);font-size:14px;text-align:center;background:var(--surface)}
+  /* branding */
+  .poster{width:300px;height:420px;background:var(--accent);color:#fff;border-radius:6px;padding:26px;display:flex;flex-direction:column}
+  .poster .q{font:800 46px/46px "Plus Jakarta Sans",system-ui;letter-spacing:-1px}
+  .poster .qr{width:120px;height:120px;background:#fff;border-radius:10px;margin-top:auto;display:grid;grid-template-columns:repeat(7,1fr);padding:10px;gap:2px}
+  .poster .qr i{background:#111;border-radius:1px}.poster .qr i.w{background:#fff}
+  .sticker{width:220px;height:220px;border-radius:50%;background:var(--ink);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+  .seal{width:170px;height:170px;border-radius:50%;border:3px solid var(--accent);color:var(--accent);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:var(--surface)}
+  @media (max-width:640px){.phone,.cap{transform:scale(.94);transform-origin:top left}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<p class="label">Patio · propuesta v2 · 7 nov 2026</p>
+<h1>Avisos, Hoy, flyers, onboarding y marca</h1>
+<p class="lead">Lado difícil hoy: el negocio que publica su menú diario. Todo lo de abajo se mide contra una pregunta: ¿hace que publique mañana otra vez?</p>
+
+<!-- 1 AVISOS -->
+<h2>1. Avisos: una sola gramática</h2>
+<p class="lead">Título = quién. Cuerpo = el hecho, una línea, con punto. Sin platillos, precios ni adjetivos: eso se ve al tocar.</p>
+<div class="row">
+  <div><div class="phone"><div class="screen lock">
+    <div class="time">13:02</div><div class="date">viernes 7 de noviembre</div>
+    <div class="n"><div class="ic">P</div><div class="tx"><div class="h"><span>Patio</span><span>ahora</span></div><b>Fonda Poblana</b><span class="t">Publicó su menú de hoy.</span></div></div>
+    <div class="n"><div class="ic">P</div><div class="tx"><div class="h"><span>Patio</span><span>12:40</span></div><b>Doña Mary</b><span class="t">Aviso: Hoy abrimos a las 8 pm.</span></div></div>
+    <div class="n"><div class="ic">P</div><div class="tx"><div class="h"><span>Patio</span><span>11:15</span></div><b>Ana y 2 más</b><span class="t">Les gustó tu reseña.</span></div></div>
+  </div></div><p class="cap">Foodie</p></div>
+
+  <div><div class="phone"><div class="screen lock">
+    <div class="time">18:00</div><div class="date">viernes 7 de noviembre</div>
+    <div class="n"><div class="ic">P</div><div class="tx"><div class="h"><span>Patio</span><span>ahora</span></div><b>Hoy</b><span class="t">34 personas vieron tu menú.</span></div></div>
+    <div class="n"><div class="ic">P</div><div class="tx"><div class="h"><span>Patio</span><span>15:22</span></div><b>Nueva reseña</b><span class="t">★★★★★ · Toca para responder.</span></div></div>
+    <div class="n"><div class="ic">P</div><div class="tx"><div class="h"><span>Patio</span><span>10:00</span></div><b>¿Ya publicaste lo de hoy?</b><span class="t">Una foto de tu menú y listo.</span></div></div>
+  </div></div><p class="cap">Negocio. El resumen dice un solo dato: el que más importa.</p></div>
+
+  <div class="rule">
+    <p class="label">Antes → ahora</p>
+    <table>
+      <tr><td>Menú</td><td><span class="strike">Fonda Poblana publicó lo de hoy · Hoy hay mole poblano y sopa de fideo.</span><br>Fonda Poblana · Publicó su menú de hoy.</td></tr>
+      <tr><td>Aviso</td><td><span class="strike">Cambio de hoy</span><br>Doña Mary · Aviso: Hoy abrimos a las 8 pm.</td></tr>
+      <tr><td>Resumen</td><td><span class="strike">Tu día en Patio · 34 vieron tu menú, 5 te empezaron a seguir y…</span><br>Hoy · 34 personas vieron tu menú.</td></tr>
+      <tr><td>Comentario</td><td>Ana P. · Comentó tu reseña: «…»</td></tr>
+      <tr><td>Seguidor</td><td>Ana P. · Empezó a seguirte.</td></tr>
+    </table>
+    <p style="margin-top:12px"><b>Ya aplicado en el código</b> de los avisos del servidor y del recordatorio. Falta subirlo (deploy).</p>
+  </div>
+</div>
+
+<!-- 2 HOY -->
+<h2>2. Hoy: un número grande, lo demás chico</h2>
+<p class="lead">Como un pase de abordar bien hecho: el dato que decide va enorme; el resto, agrupado y a un toque. Gráfica al estilo de Salud y Fitness de Apple: resumen arriba, barra de hoy resaltada y línea del promedio.</p>
+<div class="row">
+  <div><div class="phone"><div class="screen app">
+    <div class="nav"><span style="color:var(--mute)">‹</span><span>Hoy</span><span class="chip">🔥 12 días</span></div>
+    <p class="hero-n">34</p>
+    <p class="hero-l">personas vieron tu menú</p>
+    <p class="delta">↑ 8 más que un viernes normal</p>
+    <div class="card">
+      <div class="ch-h"><small>Esta semana</small><em>Promedio <strong style="font-size:14px;color:var(--ink)">26</strong> al día</em></div>
+      <div class="chart">
+        <div class="avg" style="bottom:52%"><span>26</span></div>
+        <i style="height:42%"></i><i style="height:58%"></i><i style="height:36%"></i><i style="height:66%"></i><i class="today" style="height:82%"></i><i style="height:4%"></i><i style="height:4%"></i>
+      </div>
+      <div class="dl"><span>L</span><span>M</span><span>M</span><span>J</span><span style="color:var(--ink);font-weight:700">V</span><span>S</span><span>D</span></div>
+    </div>
+    <div class="mini"><div><b>+5</b><span>seguidores</span></div><div><b>11</b><span>me gusta</span></div><div><b>Milanesa</b><span>lo que más gustó</span></div></div>
+    <div class="more"><span>Ver todo</span><span>›</span></div>
+  </div></div><p class="cap">Lo primero que ve al tocar el aviso de las 18:00.</p></div>
+
+  <div><div class="phone"><div class="screen app">
+    <div class="nav"><span style="color:var(--mute)">‹</span><span>Hoy</span><span class="chip">🔥 12 días</span></div>
+    <p class="hero-n">34</p>
+    <p class="hero-l">personas vieron tu menú</p>
+    <p class="delta">↑ 8 más que un viernes normal</p>
+    <div class="up"><b>Tus 48 seguidores ya están aquí.</b><span>Anúnciales tu promo de mañana con Pro. 30 días gratis.</span><br><span class="go">Probar Pro</span></div>
+    <div class="mini"><div><b>+5</b><span>seguidores</span></div><div><b>11</b><span>me gusta</span></div><div><b>Milanesa</b><span>lo que más gustó</span></div></div>
+  </div></div><p class="cap">Venta de Pro como Uber: dentro de la app, junto al dato que la justifica. Nunca por push (los avisos de marketing quedan apagados de entrada).</p></div>
+
+  <div><div class="phone"><div class="screen app">
+    <div class="nav"><span style="color:var(--mute)">‹</span><span>Notificaciones</span><span></span></div>
+    <div class="set"><div class="sr"><div>Pausar todo</div><div class="tog off"></div></div></div>
+    <p class="label" style="margin-top:18px">Tu negocio</p>
+    <div class="set">
+      <div class="sr"><div>Reseñas y comentarios</div><div class="tog"></div></div>
+      <div class="sr"><div>Resumen de hoy</div><span class="pill">18:00</span></div>
+      <div class="sr"><div>Recordatorio para publicar</div><span class="pill">10:00</span></div>
+    </div>
+    <p class="label" style="margin-top:18px">Lugares que sigues</p>
+    <div class="set">
+      <div class="sr"><div>Menús y avisos<small>Silencia lugares desde su ficha</small></div><div class="tog"></div></div>
+    </div>
+  </div></div><p class="cap">Como Instagram: un «Pausar todo» y pocas filas. Las horas usan selector compacto.</p></div>
+</div>
+
+<!-- 3 AVISO + FLYERS -->
+<h2>3. Avisar a quienes te siguen</h2>
+<p class="lead">Recomendación: <b>los avisos de operación son gratis</b> (cerrado, horario, se acabó). Protegen la red: nadie llega a un lugar cerrado y el negocio ve que avisar funciona. <b>Las promociones con flyer son Pro.</b></p>
+<div class="row">
+  <div><div class="phone"><div class="screen app" style="background:#E7E5DF">
+    <div class="nav" style="opacity:.35"><span>‹</span><span>Mi Patio</span><span></span></div>
+    <div class="sheet">
+      <p class="brand" style="font-size:22px;line-height:26px;margin:0">Avisar a quienes te siguen</p>
+      <div class="opts"><span class="opt sel">Abrimos tarde</span><span class="opt">Cerramos temprano</span><span class="opt">Hoy no abrimos</span><span class="opt">Se acabó</span></div>
+      <p class="fl">Hora</p><div class="field">8:00 pm</div>
+      <p class="fl">Vista previa</p>
+      <div class="n" style="background:#F2F1EC;margin:0"><div class="ic">P</div><div class="tx"><b>Doña Mary</b><span class="t">Aviso: Hoy abrimos a las 8 pm.</span></div></div>
+      <span class="cta">Avisar a 48 personas</span>
+    </div>
+  </div></div><p class="cap">Gratis. Uno al día por lugar.</p></div>
+
+  <div style="flex:1;min-width:300px">
+    <p class="label">Flyers (Pro) · el negocio elige plantilla, escribe poco y puede subir su foto</p>
+    <div class="row" style="margin-top:8px">
+      <div class="fly" style="background:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.55)),url('../assets/hero/botanica-6.jpg') center/cover"><span class="tag">Con tu foto</span><span class="k">Platillo especial</span><span class="big">Hoy hay pozole</span><span class="sub">Rojo o verde · $85</span><div class="ft"><b>Fonda Poblana</b><span>Narvarte · en Patio</span></div></div>
+      <div class="fly" style="background:var(--accent)"><span class="k">Promoción</span><span class="big">2×1 en aguas</span><span class="sub">Solo hoy, de 2 a 4 pm</span><div class="ft"><b>Fonda Poblana</b><span>Narvarte · en Patio</span></div></div>
+      <div class="fly" style="background:var(--ink)"><span class="k">Evento</span><span class="big">Viernes de mariscos</span><span class="sub">Este 14 de noviembre · desde la 1 pm</span><div class="ft"><b>Doña Mary</b><span>Del Valle · en Patio</span></div></div>
+      <div class="fly" style="background:#2F4A3A"><span class="k">Nuevo en el menú</span><span class="big">Enchiladas suizas</span><span class="sub">Desde hoy, todos los días · $95</span><div class="ft"><b>Doña Mary</b><span>Del Valle · en Patio</span></div></div>
+      <div class="fly" style="background:#F2EDE4;color:var(--ink)"><span class="k" style="color:var(--accent)">Aviso</span><span class="big">Hoy abrimos a las 8 pm</span><span class="sub" style="color:var(--soft)">Mañana, horario normal</span><div class="ft" style="border-color:var(--sep)"><b>Doña Mary</b><span style="color:var(--mute)">Del Valle · en Patio</span></div></div>
+    </div>
+    <p class="lead" style="margin-top:14px;font-size:14px">Mismo esqueleto en las cinco: etiqueta chica, dato grande, una línea de detalle, firma del lugar. Se comparte como imagen (WhatsApp, estados) y llega como aviso a los seguidores.</p>
+  </div>
+</div>
+
+<!-- 4 ONBOARDING -->
+<h2>4. Onboarding con la calma de Leica</h2>
+<p class="lead">Una idea por pantalla, palabras clave en negrita, puntos de avance, «Siguiente» y «Omitir». Permisos explicados en una sola pantalla. La cuenta se puede dejar para después.</p>
+<div class="row">
+  <div><div class="phone"><div class="screen ob">
+    <div class="logo">P</div><h3>¿Qué hay hoy?</h3><p>Saaaaaaabes.</p>
+    <div class="collage"><div style="background-image:url('../assets/hero/botanica-5.jpg')"></div><div style="background-image:url('../assets/hero/botanica-1.jpg');grid-row:span 2"></div><div style="background-image:url('../assets/hero/botanica-4.jpg')"></div><div style="background-image:url('../assets/hero/botanica-7.jpg')"></div><div style="background-image:url('../assets/hero/botanica-8.jpg')"></div></div>
+    <p style="margin-bottom:14px">El menú de hoy de las fondas de tu colonia.</p>
+    <span class="cta">Comenzar</span>
+  </div></div><p class="cap">1 · Portada</p></div>
+
+  <div><div class="phone"><div class="screen ob">
+    <h3>Mira el menú de hoy en el mapa</h3>
+    <div class="mock"><div style="position:absolute;inset:0;background:#E9EEE6"></div><div style="position:absolute;left:30px;top:60px;width:12px;height:12px;border-radius:50%;background:var(--accent)"></div><div style="position:absolute;left:90px;top:110px;width:12px;height:12px;border-radius:50%;background:var(--accent)"></div><div style="position:absolute;left:60px;top:170px;width:12px;height:12px;border-radius:50%;background:var(--accent)"></div><div style="position:absolute;left:6px;right:6px;bottom:6px;height:70px;background:#fff;border-radius:12px"></div></div>
+    <p>Cada punto es un lugar que <b>ya publicó</b> lo que hay <b>hoy</b>, con su <b>precio</b>.</p>
+    <div class="dots"><i class="on"></i><i></i><i></i></div><span class="cta">Siguiente</span><span class="ghost">Omitir</span>
+  </div></div><p class="cap">2–4 · Una idea por pantalla (mapa, seguir, listas)</p></div>
+
+  <div><div class="phone"><div class="screen ob">
+    <div class="logo">P</div><h3>Permisos</h3><p>Dos cosas para que Patio te sirva.</p>
+    <div class="perm">
+      <div><span class="pi ok">✓</span><span><b>Ubicación</b><span>Para ver lo que hay cerca de ti</span></span></div>
+      <div><span class="pi">🔔</span><span><b>Notificaciones</b><span>Para saber cuando publican tus lugares</span></span></div>
+    </div>
+    <span class="cta">Continuar</span>
+  </div></div><p class="cap">5 · Tocar cada fila pide el permiso del sistema; queda la palomita.</p></div>
+
+  <div><div class="phone"><div class="screen ob">
+    <div class="collage" style="margin-top:0"><div style="background-image:url('../assets/hero/botanica-2.jpg')"></div><div style="background-image:url('../assets/hero/botanica-6.jpg')"></div><div style="background-image:url('../assets/hero/botanica-3.jpg')"></div></div>
+    <div class="logo">P</div><h3>Guarda tus lugares</h3><p>Crea tu cuenta para seguir lugares, reseñar y no perder tus listas.</p>
+    <div style="height:18px"></div><span class="cta">Crear cuenta</span><span class="ghost">Quizás más tarde</span>
+  </div></div><p class="cap">6 · Cuenta opcional. Sin cuenta igual cuenta como usuario (sesión anónima).</p></div>
+
+  <div><div class="phone"><div class="screen app">
+    <div class="nav"><span style="color:var(--mute)">‹</span><span>Tu negocio</span><span style="color:var(--mute);font-size:13px">3 de 4</span></div>
+    <p class="brand" style="font-size:26px;line-height:30px;margin:8px 0 6px">La foto de tu lugar</p>
+    <p style="color:var(--soft);margin:0 0 16px;font-size:14px">Es lo primero que ve la gente en el mapa. Tu fachada o tu mejor platillo.</p>
+    <div class="photo">📷<br>Tomar foto o elegir de Fotos</div>
+    <p style="color:var(--mute);font-size:12px;margin:10px 0 0">Horizontal, con luz de día y sin texto encima. Puedes cambiarla después en Editar mi negocio.</p>
+    <span class="cta" style="margin-top:110px">Continuar</span><span class="ghost">Después</span>
+  </div></div><p class="cap">Negocio · paso nuevo en el alta. El mismo campo vive en Editar mi negocio.</p></div>
+</div>
+
+<!-- 5 MARCA -->
+<h2>5. Marca en la calle</h2>
+<p class="lead">Las tres piezas que el Fundador pega en su local. Mismo sistema que la app: naranja de marca, tinta, etiqueta chica y dato grande.</p>
+<div class="row">
+  <div><div class="poster">
+    <span class="label" style="color:rgba(255,255,255,.8)">Fonda Poblana</span>
+    <span class="q">¿Qué hay hoy?</span>
+    <span class="brand" style="font-size:22px;margin-top:6px">Saaaaaaabes.</span>
+    <div style="display:flex;gap:14px;align-items:flex-end;margin-top:auto">
+      <div class="qr" style="margin:0">
+        <i></i><i></i><i></i><i class="w"></i><i></i><i></i><i></i>
+        <i></i><i class="w"></i><i></i><i></i><i class="w"></i><i class="w"></i><i></i>
+        <i></i><i></i><i></i><i class="w"></i><i></i><i></i><i></i>
+        <i class="w"></i><i></i><i class="w"></i><i></i><i class="w"></i><i></i><i class="w"></i>
+        <i></i><i></i><i></i><i class="w"></i><i></i><i class="w"></i><i></i>
+        <i></i><i class="w"></i><i></i><i></i><i class="w"></i><i></i><i></i>
+        <i></i><i></i><i></i><i class="w"></i><i></i><i></i><i></i>
+      </div>
+      <span style="font-size:13px;line-height:1.3">Escanea y mira<br>nuestro menú<br>de hoy en Patio</span>
+    </div>
+  </div><p class="cap">Cartel con QR (tamaño carta). El QR abre la página web del lugar.</p></div>
+
+  <div><div class="sticker"><span class="label" style="color:rgba(255,255,255,.6)">Aquí publicamos</span><span class="brand" style="font-size:26px;line-height:28px">el menú<br>de hoy</span><span style="font-size:13px;margin-top:8px;color:var(--accent);font-weight:700">en Patio</span></div><p class="cap" style="width:220px">Sticker de ventana, 10 cm.</p></div>
+
+  <div><div class="seal"><span class="label" style="color:var(--accent);margin:0">Patio</span><span class="brand" style="font-size:24px;line-height:26px">Fundador</span><span style="font-size:12px;margin-top:4px">Narvarte · 2026</span></div><p class="cap" style="width:170px">Sello Fundador: en la ficha y en papel.</p></div>
+</div>
+
+</div>
+</body>
+</html>

@@ -148,7 +148,9 @@ Por ahora, eventos y campañas quedan registrados, no implementados.
 - Una publicación por Patio y día; guardar/corregir otra vez no hace ruido.
 - `availability_changed` queda reservado para agotados/reposición y puede emitir
   un evento independiente cuando el producto lo incorpore.
-- Título: `{Patio} publicó lo de hoy`.
+- Copy homologado (2026-11-07): título = quién (lugar o persona); cuerpo =
+  el hecho en una línea, con punto. Menú: `{Lugar}` / «Publicó su menú de hoy.»
+  Aviso: `{Lugar}` / «Aviso: Hoy abrimos a las 8 pm.»
 - Cuerpo: máximo dos platillos; si no hay datos fiables, texto genérico.
 - El tap abre `patio://patio/{id}`.
 

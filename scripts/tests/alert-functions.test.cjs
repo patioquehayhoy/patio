@@ -78,7 +78,7 @@ test('a new review notifies the business owner once', async () => {
   const response = await handler(post({ fonditaId: patio }));
   assert.equal(response.status, 200);
   assert.equal((await response.json()).delivered, 1);
-  assert.equal(sent[0].title, 'Nueva reseña en Cocina Lupita');
+  assert.equal(sent[0].title, 'Nueva reseña');
   assert.match(sent[0].body, /^★★★★☆/);
   const claim = admin.calls.find((call) => call.table === 'reviews');
   assert.ok(claim.ops.some(([op, column]) => op === 'is' && column === 'owner_notified_at'), 'claims only unnotified reviews');
@@ -145,7 +145,8 @@ test('a comment notifies the review author once, never the commenter', async () 
   const handler = loadEdge('send-community-notification', admin, sendOk(sent));
   const response = await handler(post({ kind: 'comment', commentId: comment }));
   assert.equal((await response.json()).delivered, 1);
-  assert.equal(sent[0].title, 'Ana P. comentó tu reseña');
+  assert.equal(sent[0].title, 'Ana P.');
+  assert.match(sent[0].body, /^Comentó tu reseña: /);
   assert.equal(sent[0].data.patioId, patio);
   const claim = admin.calls.find((call) => call.table === 'review_comments');
   assert.ok(claim.ops.some(([op, column]) => op === 'is' && column === 'notified_at'), 'claims only unnotified comments');
@@ -163,7 +164,8 @@ test('a comment by the business signs with the Patio name', async () => {
   });
   const handler = loadEdge('send-community-notification', admin, sendOk(sent));
   await handler(post({ kind: 'comment', commentId: comment }));
-  assert.equal(sent[0].title, 'Cocina Lupita comentó tu reseña');
+  assert.equal(sent[0].title, 'Cocina Lupita');
+  assert.match(sent[0].body, /^Comentó tu reseña: /);
 });
 
 test('people who turned off community alerts get no comment push', async () => {
@@ -195,7 +197,7 @@ test('a follow request to a private profile asks for approval', async () => {
   });
   const handler = loadEdge('send-community-notification', admin, sendOk(sent));
   await handler(post({ kind: 'follow', followedId: reviewAuthor }));
-  assert.equal(sent[0].title, 'Quieren seguirte');
+  assert.equal(sent[0].body, 'Quiere seguirte.');
   assert.equal(sent[0].data.type, 'follow_request');
 });
 

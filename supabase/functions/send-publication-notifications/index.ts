@@ -15,24 +15,6 @@ type ExpoTicket = {
   details?: { error?: string };
 };
 
-function firstDishNames(secciones: unknown): string[] {
-  if (!secciones || typeof secciones !== 'object') return [];
-  const raw = (secciones as { secciones?: unknown[] }).secciones;
-  if (!Array.isArray(raw)) return [];
-  return raw
-    .flatMap((section) => {
-      if (!section || typeof section !== 'object') return [];
-      const dishes = (section as { platillos?: unknown[] }).platillos;
-      return Array.isArray(dishes) ? dishes : [];
-    })
-    .map((dish) => (
-      dish && typeof dish === 'object' && typeof (dish as { nombre?: unknown }).nombre === 'string'
-        ? (dish as { nombre: string }).nombre.trim()
-        : ''
-    ))
-    .filter(Boolean)
-    .slice(0, 2);
-}
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
@@ -127,14 +109,11 @@ Deno.serve(async (req) => {
       && (eventsByUser.get(device.user_id)?.size ?? 0) < DAILY_CAP);
     if (!targets.length) return json({ eventId: event.id, delivered: 0 });
 
-    const dishes = firstDishNames(menu?.secciones);
-    const bodyText = dishes.length
-      ? `Hoy hay ${dishes.join(' y ')}.`
-      : 'Ya puedes ver lo que hay hoy.';
     const messages = targets.map((device) => ({
       to: device.expo_push_token,
-      title: `${fondita.nombre || 'Un Patio'} publicó lo de hoy`,
-      body: bodyText,
+      title: fondita.nombre?.trim() || 'Un Patio',
+      // Copy homologado: título = quién, cuerpo = el hecho en una línea.
+      body: 'Publicó su menú de hoy.',
       sound: 'default',
       channelId: 'default',
       data: {

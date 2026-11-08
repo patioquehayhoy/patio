@@ -65,7 +65,7 @@ export async function syncPublishReminder(publishedToday: boolean) {
     if (day === 0 && (publishedToday || date <= now)) continue;
     await N.scheduleNotificationAsync({
       identifier: `publish-reminder-${day}`,
-      content: { title: '¿Ya publicaste lo de hoy?', body: 'Toma la foto de tu menú y queda publicado en un minuto.', data: { route: '/historial' } },
+      content: { title: '¿Ya publicaste lo de hoy?', body: 'Una foto de tu menú y listo.', data: { route: '/historial' } },
       trigger: { type: N.SchedulableTriggerInputTypes.DATE, date, channelId: 'default' },
     });
   }

@@ -426,3 +426,72 @@ Sin pantalla de pago en el onboarding: es el lado difícil.
 - [ ] Registro: aprobar sesión anónima + cuenta en el momento de valor (§8).
 - [ ] Onboarding Leica: aprobar estructura y resolver los choques (§15).
 - [ ] Concurrencia: aprobar el enfoque honesto en tres pasos (§14).
+
+---
+
+## 17. Segunda ronda (2026-11-07, tarde)
+
+Propuesta visual: `artifacts/propuesta-2026-11-07-v2.html`.
+
+- **Registro:** no obligatorio. Sesión anónima al abrir; la cuenta se pide al
+  seguir, reseñar o publicar. «Quizás más tarde» en el onboarding.
+- **Dominio:** sí, comprarlo (Parco). Lo necesitan privacidad, términos, la
+  página de cada lugar, el QR del cartel y el enlace de descarga.
+- **Filtro Mapa/Patios:** decidido por el lado difícil: mismo componente,
+  memoria separada. Filtrar en el mapa nunca esconde los lugares que sigues
+  (son los que hacen que el negocio vea respuesta).
+- **Avisos — gramática única (aplicada en código):** título = quién; cuerpo =
+  el hecho en una línea con punto. Menú: «Fonda Poblana / Publicó su menú de
+  hoy.» Aviso: «Doña Mary / Aviso: Hoy abrimos a las 8 pm.» «Cambio de hoy» se
+  retira como nombre. Resumen del negocio: «Hoy / 34 personas vieron tu menú.»
+- **Avisos de operación gratis; promociones con flyer en Pro.** El aviso de
+  cerrado/horario/se acabó protege la red y le demuestra al negocio que avisar
+  funciona; eso es lo que después vende Pro.
+- **Venta de Pro como Uber:** tarjeta dentro de Hoy, junto al dato que la
+  justifica («Tus 48 seguidores ya están aquí»). Nunca por push.
+- **Hoy (dashboard):** un número grande (vistas del día) con comparación
+  contra su día normal; gráfica semanal con barra de hoy resaltada y línea de
+  promedio; seguidores, me gusta y lo más gustado en tres mosaicos chicos; el
+  resto en «Ver todo».
+- **Notificaciones:** «Pausar todo» + tres filas por rol, como Instagram.
+- **Flyers:** cinco plantillas (platillo especial, promoción, evento, nuevo en
+  el menú, aviso) con el mismo esqueleto y foto opcional.
+- **Onboarding:** adaptar Leica (§15) + paso «La foto de tu lugar» en el alta
+  y en Editar mi negocio.
+- **Marca en la calle:** cartel con QR, sticker de ventana y sello Fundador.
+- **Listas:** en espera.
+
+### Concurrencia real como Google («sí o sí»)
+
+Plan técnico, por etapas:
+
+1. **Permiso opcional** en la pantalla de Permisos: «Ayuda a mostrar qué tan
+   lleno está cada lugar» → ubicación «Siempre» (iOS) / en segundo plano
+   (Android). Sin él, Patio funciona igual.
+2. **Detección de visitas en el teléfono:** geocercas (`expo-location` +
+   `expo-task-manager`) en los 20 lugares más cercanos (límite de iOS), que se
+   renuevan con cambios grandes de ubicación. Visita = entrar y quedarse al
+   menos 8 minutos.
+3. **Anónimo:** solo se manda «lugar + hora». Sin id de usuario; un hash
+   diario del teléfono evita contar dos veces la misma visita.
+4. **Servidor:** cada noche, histograma por día de la semana y hora de las
+   últimas 8 semanas, normalizado contra la hora pico (0–100). En vivo:
+   visitas de la última hora contra el promedio de esa hora.
+5. **Ficha:** barras por hora como Google, con «Poco concurrido / Lo normal /
+   Muy concurrido» y «Ahora: más que de costumbre». Solo se muestra con
+   mínimo de visitas (p. ej. 30 por franja); antes, nada.
+
+**Costos y requisitos:** Google Play pide declarar el uso de ubicación en
+segundo plano con video y justificación; Apple revisa el texto del permiso;
+hay que actualizar el aviso de privacidad y App Privacy («ubicación precisa,
+no ligada a la identidad»). Con pocos usuarios no habrá datos suficientes:
+crece con la red. Recomendación: construirlo en la primera actualización
+después del lanzamiento, para no frenar la revisión de tiendas.
+
+### Lector del menú: costo
+
+`read-menu` usa Claude Sonnet con visión, máximo 2,200 tokens de salida. Una
+lectura típica ≈ 3,000 tokens de entrada (foto + instrucciones) y ≈ 1,200 de
+salida ≈ **USD 0.03 (≈ $0.50 MXN)**. El gasto ocurre solo cuando el negocio
+toma o elige la foto y Patio la lee; escribir el menú a mano no cuesta.
+Tope actual: 20 lecturas al día en Gratis, 60 en Pro.

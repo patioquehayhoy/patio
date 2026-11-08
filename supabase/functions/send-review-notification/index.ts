@@ -31,8 +31,8 @@ Deno.serve(async (req) => {
 
     const devices = await pushTargets(admin, [fondita.owner_id], 'business_activity', true);
     const delivered = await sendExpoPush(admin, devices, {
-      title: `Nueva reseña en ${fondita.nombre || 'tu Patio'}`,
-      body: `${'★'.repeat(review.stars)}${'☆'.repeat(5 - review.stars)} · Ábrela para responder.`,
+      title: 'Nueva reseña',
+      body: `${'★'.repeat(review.stars)}${'☆'.repeat(5 - review.stars)} · Toca para responder.`,
       data: { type: 'review_received', patioId: body.fonditaId, url: 'patio://resenas' },
     });
     return json({ delivered });

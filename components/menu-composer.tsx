@@ -3,7 +3,6 @@ import * as Haptics from 'expo-haptics';
 import { Stack } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Animated,
   ActivityIndicator,
   InputAccessoryView,
   Keyboard,
@@ -53,7 +52,6 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
     addDish,
     addSection,
     closeSectionActions,
-    collapsed,
     data,
     dayPrice,
     details,
@@ -73,7 +71,6 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
     sectionSuggestions,
     setDayPrice,
     setNombre,
-    toggleCollapsed,
     toggleSectionActions,
   } = useFonderoMenuDraftController(initialData, source);
   // El botón dice qué falta en vez de fallar al tocarlo.
@@ -182,14 +179,6 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
   const [editingName, setEditingName] = useState<string | null>(null);
   const [priceOpen, setPriceOpen] = useState<Record<string, boolean>>({});
   const smoothly = () => LayoutAnimation.configureNext(LayoutAnimation.create(200, 'easeInEaseOut', 'opacity'));
-  // Ocultar/mostrar una sección: lo de abajo se recorre con resorte suave
-  // (como Notas) y los platillos se desvanecen.
-  const collapseSmoothly = () => LayoutAnimation.configureNext({
-    duration: 260,
-    create: { type: LayoutAnimation.Types.easeInEaseOut, property: LayoutAnimation.Properties.opacity },
-    update: { type: LayoutAnimation.Types.spring, springDamping: 0.85 },
-    delete: { type: LayoutAnimation.Types.easeInEaseOut, property: LayoutAnimation.Properties.opacity },
-  });
   const openPrice = (dishId: string) => {
     const ref = inputRefs.current[`p-${dishId}`];
     if (ref) { ref.focus(); return; }
@@ -211,7 +200,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
     setDayPriceOpen(true);
     requestAnimationFrame(() => dayPriceRef.current?.focus());
   };
-  const priceOrder = () => data.secciones.filter((section) => !collapsed[section.id]).flatMap((section) => section.platillos.map((dish) => dish.id));
+  const priceOrder = () => data.secciones.flatMap((section) => section.platillos.map((dish) => dish.id));
   const nextPriceDish = (dishId: string | null) => {
     if (!dishId) return undefined;
     const order = priceOrder();
@@ -344,7 +333,6 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
             </View>
           )}
           {data.secciones.map((section, sectionIndex) => {
-            const isCollapsed = !!collapsed[section.id];
             const actionsOpen = sectionActions === section.id;
             return (
               <View key={section.id} style={s.section} onLayout={(event) => { sectionY.current[section.id] = event.nativeEvent.layout.y; }}>
@@ -357,18 +345,6 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                     placeholderTextColor={c.textMute}
                     returnKeyType="done"
                   />
-                  {/* Ocultar/mostrar platillos, como las secciones de Notas: la
-                      flecha gira (abajo = abierta, derecha = oculta) y vive en
-                      la columna derecha, junto al «···». */}
-                  <TouchableOpacity
-                    style={s.collapseButton}
-                    onPress={() => { Haptics.selectionAsync().catch(() => {}); collapseSmoothly(); toggleCollapsed(section.id); }}
-                    activeOpacity={0.7}
-                    accessibilityRole="button"
-                    accessibilityLabel={isCollapsed ? 'Mostrar platillos' : 'Ocultar platillos'}
-                    accessibilityState={{ expanded: !isCollapsed }}>
-                    <TurningChevron open={!isCollapsed} color={c.textSecondary} />
-                  </TouchableOpacity>
                   <TouchableOpacity
                     ref={(el) => { sectionMoreRefs.current.set(section.id, el); }}
                     style={s.moreButton}
@@ -382,20 +358,9 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                   </TouchableOpacity>
                 </View>
 
-                {isCollapsed && (
-                  <TouchableOpacity
-                    style={s.collapsedSummary}
-                    onPress={() => { Haptics.selectionAsync().catch(() => {}); collapseSmoothly(); toggleCollapsed(section.id); }}
-                    activeOpacity={0.7}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Mostrar ${section.platillos.length} platillos`}>
-                    <Text style={s.collapsedSummaryText} numberOfLines={2}>
-                      {noWidow(collapsedSummary(section))}
-                    </Text>
-                  </TouchableOpacity>
-                )}
-                {!isCollapsed && (
-                  <>
+                {/* Todas las secciones abiertas, como la ficha: para moverse
+                    en menús largos está la barra de secciones de arriba. */}
+                <>
                     {section.platillos.map((dish, dishIndex) => {
                       const showDetails = details[dish.id] || !!dish.descripcion;
                       return (
@@ -548,8 +513,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                       <Ionicons name="add" size={18} color={c.accent} />
                       <Text style={s.addText}>{noWidow('Agregar platillo')}</Text>
                     </TouchableOpacity>
-                  </>
-                )}
+                </>
               </View>
             );
           })}
@@ -700,9 +664,6 @@ function makeStyles(c: FonderoColors) {
     section: { borderTopWidth: StyleSheet.hairlineWidth, borderColor: c.border, paddingVertical: 12 },
     sectionHeader: { minHeight: 44, flexDirection: 'row', alignItems: 'center' },
     sectionName: { flex: 1, paddingVertical: 6, fontSize: 14, lineHeight: 20, fontWeight: '700', letterSpacing: 0.6, color: c.text },
-    collapsedSummary: { minHeight: 32, justifyContent: 'center', paddingBottom: 4 },
-    collapsedSummaryText: { fontSize: 13, lineHeight: 17, fontWeight: '400', color: c.textSecondary },
-    collapseButton: { width: 36, height: 44, alignItems: 'center', justifyContent: 'center' },
     moreButton: { width: 44, height: 44, alignItems: 'flex-end', justifyContent: 'center' },
     currency: { fontSize: 13, fontWeight: '300', color: c.textMute },
     dish: { paddingVertical: 7 },
@@ -747,28 +708,4 @@ function makeStyles(c: FonderoColors) {
     publishIdle: { backgroundColor: c.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: c.border },
     publishText: { fontSize: 16, fontWeight: '700', color: '#fff' },
   });
-}
-
-/** «6 platillos · Chilaquiles rojos, Molletes y 4 más»: lo que hay adentro sin abrirla. */
-function collapsedSummary(section: Seccion): string {
-  const names = section.platillos.map((dish) => dish.nombre.trim()).filter(Boolean);
-  const count = section.platillos.length;
-  const label = `${count} ${count === 1 ? 'platillo' : 'platillos'}`;
-  if (!names.length) return label;
-  const shown = names.slice(0, 2).join(', ');
-  return names.length > 2 ? `${label} · ${shown} y ${names.length - 2} más` : `${label} · ${shown}`;
-}
-
-/** Flecha que gira 90° al ocultar o mostrar (200 ms), en vez de cambiar de ícono. */
-function TurningChevron({ open, color }: { open: boolean; color: string }) {
-  const turn = useRef(new Animated.Value(open ? 1 : 0)).current;
-  useEffect(() => {
-    Animated.timing(turn, { toValue: open ? 1 : 0, duration: 200, useNativeDriver: true }).start();
-  }, [open, turn]);
-  const rotate = turn.interpolate({ inputRange: [0, 1], outputRange: ['-90deg', '0deg'] });
-  return (
-    <Animated.View style={{ transform: [{ rotate }] }}>
-      <Ionicons name="chevron-down" size={17} color={color} />
-    </Animated.View>
-  );
 }

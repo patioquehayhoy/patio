@@ -184,7 +184,6 @@ function makeStyles(t: Theme) {
     groupHead: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
     groupTitle: { ...Type.section, color: t.text },
     sectionBar: { position: 'absolute', top: 0, left: 0, right: 0, zIndex: 30 },
-    sectionBarBack: { width: 44, height: 44, marginLeft: 6, alignItems: 'center', justifyContent: 'center' },
     groupItem: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 12 },
     groupItemName: { flex: 1, fontSize: 16, fontWeight: '700', color: t.text, lineHeight: 21 },
     groupItemDescription: { marginTop: 2, fontSize: 13, lineHeight: 18, fontWeight: '400', color: t.textSecondary },
@@ -448,7 +447,8 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
   }, [own, patio?.id]);
   // Barra de secciones (menús de 4 secciones o más): aparece fija arriba en
   // cuanto el menú llega a la parte de arriba, marca la sección en pantalla y
-  // lleva a la que toques. Patrón de las apps de comida (ley de Jakob).
+  // lleva a la que toques. Patrón de las apps de comida (ley de Jakob). Sin
+  // «volver» (decisión de Parco, 8 nov): toda la barra es para las secciones.
   const scrollRef = useRef<ScrollView>(null);
   const menuFrame = useRef({ cardY: 0, menuY: 0, menuHeight: 0 });
   const groupY = useRef<number[]>([]);
@@ -1383,11 +1383,6 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
             onSelect={jumpToSection}
             colors={{ text: theme.text, textSecondary: theme.textSecondary, bg: theme.bg, border: theme.border, glass: theme.glass, isDark: theme.isDark }}
             style={{ paddingTop: insets.top }}
-            leading={own ? undefined : (
-              <TouchableOpacity style={s.sectionBarBack} onPress={handleBack} activeOpacity={0.7} accessibilityRole="button" accessibilityLabel="Volver">
-                <Ionicons name="chevron-back" size={21} color={theme.text} />
-              </TouchableOpacity>
-            )}
           />
         </Animated.View>
       )}

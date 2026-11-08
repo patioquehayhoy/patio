@@ -1,4 +1,3 @@
-import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
@@ -12,8 +11,9 @@ type Colors = { text: string; textSecondary: string; bg: string; border: string;
 // lateral): el patrón que la gente ya conoce de las apps de comida. Fija
 // arriba, con el nombre completo de cada sección; la sección en pantalla se
 // marca sola mientras bajas y tocar una te lleva a ella. Como en iOS, las
-// secciones son texto y solo la actual lleva un fondo suave; en las orillas,
-// un desvanecido avisa que hay más de lado sin cortar en seco.
+// secciones son texto y solo la actual lleva un fondo suave. Fondo sólido del
+// lienzo: así el desvanecido de las orillas es del mismo color y no se ven
+// franjas (con vidrio, el degradado no coincidía con lo de atrás).
 export function SectionBar({ names, active, onSelect, colors, leading, style }: {
   names: string[];
   active: number;
@@ -39,16 +39,14 @@ export function SectionBar({ names, active, onSelect, colors, leading, style }: 
     if (x != null) scroller.current?.scrollTo({ x: Math.max(0, x - 24), animated: true });
   }, [active]);
 
-  // Desvanecido del color de la barra (vidrio claro u oscuro) hacia transparente.
-  const tint = colors.isDark ? '20,20,22' : '248,248,245';
-  const fadeIn = [`rgba(${tint},0.96)`, `rgba(${tint},0)`] as const;
-  const fadeOut = [`rgba(${tint},0)`, `rgba(${tint},0.96)`] as const;
+  // Desvanecido exacto: del color del lienzo a transparente.
+  const tint = rgb(colors.bg);
+  const fadeIn = [`rgba(${tint},1)`, `rgba(${tint},0)`] as const;
+  const fadeOut = [`rgba(${tint},0)`, `rgba(${tint},1)`] as const;
   const activeFill = colors.isDark ? 'rgba(255,255,255,0.12)' : 'rgba(17,18,20,0.06)';
 
   return (
-    <View style={[s.wrap, { borderBottomColor: colors.border }, style]}>
-      <BlurView intensity={colors.isDark ? 16 : 20} tint={colors.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
-      <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.glass }]} />
+    <View style={[s.wrap, { borderBottomColor: colors.border, backgroundColor: colors.bg }, style]}>
       <View style={s.row}>
         {leading}
         <View style={s.track}>
@@ -101,7 +99,15 @@ const s = StyleSheet.create({
   item: { height: 32, paddingHorizontal: 12, borderRadius: 16, justifyContent: 'center' },
   itemText: { fontSize: 15, fontWeight: '400' },
   itemTextOn: { fontWeight: '700' },
-  fade: { position: 'absolute', top: 0, bottom: 0, width: 32 },
+  fade: { position: 'absolute', top: 0, bottom: 0, width: 28 },
   fadeStart: { left: 0 },
   fadeEnd: { right: 0 },
 });
+
+/** «#F8F8F5» → «248,248,245» para armar el degradado con el color exacto. */
+function rgb(hex: string): string {
+  const clean = hex.replace('#', '');
+  const full = clean.length === 3 ? clean.split('').map((char) => char + char).join('') : clean.slice(0, 6);
+  const value = Number.parseInt(full, 16);
+  return Number.isFinite(value) ? `${(value >> 16) & 255},${(value >> 8) & 255},${value & 255}` : '248,248,245';
+}

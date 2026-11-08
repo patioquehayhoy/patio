@@ -686,3 +686,16 @@ acordeón se queda solo en el editor del negocio.
 - **Barra de secciones más Apple:** las secciones son texto (15, gris) y solo
   la actual lleva un fondo suave con el texto en negro; en las orillas, un
   desvanecido avisa que hay más de lado en vez de cortar en seco.
+
+### Ajustes del 8 nov (noche)
+
+- **Barra de secciones sin «volver»** (Parco) y con fondo sólido del lienzo:
+  el desvanecido de las orillas ahora es del mismo color (con vidrio no
+  coincidía y se veían franjas).
+- **Editor sin ocultar secciones** (Parco): todas abiertas, como la ficha; la
+  barra de secciones es la forma de moverse en menús largos.
+- **Encabezado de la ficha:** tres acomodos en
+  `artifacts/ficha-encabezado-opciones-2026-11-08.html`. Jev
+  (`docs/research/jev-ficha-encabezado-2026-11-08.json`) elige la franja tipo
+  Apple Maps en los tres perfiles (78–96 %): encuentra abierto, distancia y
+  precio mucho más rápido (3.7–3.9 contra ~2 de 4). Falta el sí de Parco.

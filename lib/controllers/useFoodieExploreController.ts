@@ -10,6 +10,8 @@ import { offerLunchReminderOnce } from '@/lib/first-save-offer';
 import { estaAbiertoAhora } from '@/lib/horario';
 import { searchLiveMenus } from '@/lib/menu';
 import { fetchPublicFonditas, type Patio, type PatioDishMatch } from '@/lib/patios';
+import { getFonditaId } from '@/lib/menu-store';
+import { rememberVisitPlaces } from '@/lib/visits';
 import { getSavedMapCategories, setSavedMapCategories } from '@/lib/saved-map-filters';
 import { distanceKm, formatDistance } from '@/lib/geo';
 
@@ -189,6 +191,13 @@ export function useFoodieExploreController() {
       };
     }, [])
   );
+
+  // Visitas reales: el mapa le pasa al teléfono los lugares que ya cargó,
+  // para vigilar los cercanos solo si la persona activó «Pedir mi opinión».
+  useEffect(() => {
+    if (!allPatios.length) return;
+    rememberVisitPlaces(allPatios, getFonditaId() ?? null).catch(() => {});
+  }, [allPatios]);
 
   const visiblePatios = useMemo(() => {
     const { latitude, longitude, latitudeDelta, longitudeDelta } = visibleRegion;

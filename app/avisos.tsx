@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Alert, Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -18,6 +18,7 @@ import { getFavoritePatioIds } from '@/lib/favorites';
 import { getReminder, setReminder } from '@/lib/local-reminders';
 import { useTheme } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
+import { disableVisits, enableVisits, visitsAvailable, visitsEnabled } from '@/lib/visits';
 
 
 export default function AvisosScreen() {
@@ -29,8 +30,18 @@ export default function AvisosScreen() {
   const [system, setSystem] = useState<'granted' | 'denied' | 'undetermined' | 'unavailable'>('undetermined');
   const [signedIn, setSignedIn] = useState(true);
   const [preview, setPreview] = useState(false);
-  const [updating, setUpdating] = useState<keyof NotificationPreferences | 'reminder' | null>(null);
+  const [updating, setUpdating] = useState<keyof NotificationPreferences | 'reminder' | 'visits' | null>(null);
   const [reminder, setReminderOn] = useState(false);
+  const [visits, setVisits] = useState(false);
+  // Solo en los builds que ya traen las geocercas (expo-task-manager y
+  // ubicación en segundo plano en el Info.plist / manifiesto).
+  const [canAskOpinion, setCanAskOpinion] = useState(false);
+  useEffect(() => {
+    if (fondero) return;
+    let active = true;
+    visitsAvailable().then((ok) => { if (active) setCanAskOpinion(ok); }).catch(() => {});
+    return () => { active = false; };
+  }, [fondero]);
   const reminderKind = fondero ? 'publish' : 'lunch';
   const [remote, setRemote] = useState<NotificationPreferences>({
     patioPublications: false,
@@ -44,6 +55,7 @@ export default function AvisosScreen() {
   useFocusEffect(useCallback(() => {
     let active = true;
     getReminder(reminderKind).then((on) => { if (active) setReminderOn(on); }).catch(() => {});
+    visitsEnabled().then((on) => { if (active) setVisits(on); }).catch(() => {});
     getSystemNotificationStatus().then((status) => {
       if (!active) return;
       setSystem(status);
@@ -100,6 +112,31 @@ export default function AvisosScreen() {
       setSystem(await getSystemNotificationStatus());
     } catch {
       setReminderOn(!value);
+      Alert.alert(noWidow('No pudimos guardar el cambio'), noWidow('Inténtalo otra vez.'));
+    } finally {
+      setUpdating(null);
+    }
+  };
+
+  // «Pedir mi opinión»: necesita ubicación «Siempre» para notar visitas reales.
+  const updateVisits = async (value: boolean) => {
+    setVisits(value);
+    setUpdating('visits');
+    try {
+      if (!value) {
+        await disableVisits();
+        return;
+      }
+      const result = await enableVisits();
+      if (result === 'enabled') return;
+      setVisits(false);
+      Alert.alert(
+        noWidow('Falta el permiso de ubicación'),
+        noWidow('Elige «Siempre» en Ajustes para que Patio note cuando visitas un lugar.'),
+        [{ text: 'Ahora no', style: 'cancel' }, { text: 'Abrir Ajustes', onPress: () => { Linking.openSettings().catch(() => {}); } }],
+      );
+    } catch {
+      setVisits(!value);
       Alert.alert(noWidow('No pudimos guardar el cambio'), noWidow('Inténtalo otra vez.'));
     } finally {
       setUpdating(null);
@@ -168,6 +205,16 @@ export default function AvisosScreen() {
             sub={fondero ? 'A las 10 de la mañana, si aún no publicas' : 'A la 1 de la tarde, para ver qué hay hoy'}
             trailing={<ToggleSwitch value={reminder} disabled={updating === 'reminder'} accessibilityLabel={fondero ? 'Publicar el menú' : 'Hora de comer'} onValueChange={updateReminder} />}
           />
+          {canAskOpinion && (
+            <SettingsRow
+              c={sc}
+              icon="star-outline"
+              title="Pedir mi opinión"
+              sub="Después de visitar un lugar. Tu visita cuenta, sin tu nombre, para «Qué tan lleno»."
+              divider
+              trailing={<ToggleSwitch value={visits} disabled={updating === 'visits'} accessibilityLabel="Pedir mi opinión" onValueChange={updateVisits} />}
+            />
+          )}
         </SettingsGroup>
       </ScrollView>
     </View>

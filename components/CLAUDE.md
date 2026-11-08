@@ -23,9 +23,14 @@ El precio por platillo es el mismo chip; si se cambia uno, se cambia el otro.
 ## Retícula del editor (2026-11-03)
 
 - Un solo borde izquierdo (20): nombre de sección, platillo, descripción,
-  «Agregar platillo», «Agregar sección» y «Precio del menú». Sin columna
-  vacía para el chevron: ocultar/mostrar platillos vive en el «···» de la
-  sección y, oculta, muestra «N platillos» para volver a abrirla.
+  «Agregar platillo», «Agregar sección» y «Precio del menú».
+- Ocultar/mostrar platillos (2026-11-08, Parco no lo encontraba en «···»): la
+  flecha vuelve, pero en la columna derecha, junto al «···» (abajo = abierta,
+  derecha = oculta, como Notas). Oculta, muestra «N platillos» para abrirla.
+- Con 4 secciones o más, índice lateral a la derecha (`components/section-index.tsx`),
+  como las letras de Contactos: tocar o deslizar salta a la sección, burbuja
+  con el nombre y vibración por sección. Letras únicas o tres letras si se
+  repiten. Se esconde con el teclado abierto.
 - Un solo borde derecho: «···», «×» y los chips de precio en su columna.
 - Toda acción «agregar»: ícono `add` 18 + texto 15/700 en acento.
 - Cierre: «Publicar menú» cápsula naranja de 54 a todo el ancho del

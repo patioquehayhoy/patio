@@ -119,6 +119,11 @@ export type SaveRatingInput = {
   photoUri?: string;
 };
 
+/** ¿Ya reseñaste este lugar desde este teléfono? (para no volver a preguntar). */
+export async function hasRatedPatio(patioId: string): Promise<boolean> {
+  return ((await getMap())[patioId] ?? []).length > 0;
+}
+
 // Acepta la firma corta (stars, reasons) por compatibilidad, o un objeto completo.
 export async function savePatioRating(
   patioId: string,

@@ -279,6 +279,38 @@ await check('límites de texto del negocio: se revisan solo al cambiar', async (
   await admin(`alter table public.${table} enable trigger negocios_text_limits`);
   await as(ids.owner, `update public.${table} set horario = '9-18' where id = $1`, [business]);
 });
+await check('visitas: anónimas, una por teléfono al día y nadie lee la tabla', async () => {
+  const device = 'a'.repeat(64);
+  const ok = (await as(null, `select public.record_visit($1, now() - interval '30 minutes', 20, $2) as ok`, [business, device])).rows[0].ok;
+  if (ok !== true) throw new Error('valid visit rejected');
+  await as(null, `select public.record_visit($1, now() - interval '20 minutes', 15, $2)`, [business, device]);
+  const { rows } = await admin(`select count(*)::int as n from public.place_visits where negocio_id = $1`, [business]);
+  if (rows[0].n !== 1) throw new Error(`same phone same day counted ${rows[0].n} times`);
+  const bad = [
+    [business, `now() - interval '30 minutes'`, 3, 'b'.repeat(64)],
+    [business, `now() + interval '1 hour'`, 20, 'c'.repeat(64)],
+    [business, `now() - interval '30 minutes'`, 20, 'not-a-hash'],
+    ['99999999-9999-4999-8999-999999999999', `now() - interval '30 minutes'`, 20, 'd'.repeat(64)],
+  ];
+  for (const [place, started, minutes, hash] of bad) {
+    const result = (await as(null, `select public.record_visit($1, ${started}, $2, $3) as ok`, [place, minutes, hash])).rows[0].ok;
+    if (result !== false) throw new Error(`accepted bad visit ${minutes} ${hash}`);
+  }
+  await rejects(as(null, `select * from public.place_visits`), /permission denied/);
+  await rejects(as(ids.ana, `select * from public.place_visits`), /permission denied/);
+});
+await check('qué tan lleno: nada con menos de 30 visitas; niveles contra la hora pico', async () => {
+  const few = (await as(null, `select * from public.place_busyness($1)`, [business])).rows;
+  if (few.length) throw new Error(`shown with ${few.length} rows and 1 visit`);
+  await admin(`insert into public.place_visits (negocio_id, started_at, minutes, device_day)
+    select $1, now() - (g || ' days')::interval, 20, md5(g::text) || md5((g + 500)::text) from generate_series(1, 40) g`, [business]);
+  const rows = (await as(null, `select * from public.place_busyness($1)`, [business])).rows;
+  if (!rows.length) throw new Error('nothing shown with 41 visits');
+  if (Math.max(...rows.map((row) => row.level)) !== 100) throw new Error('peak is not 100');
+  if (rows.some((row) => row.level < 1 || row.level > 100)) throw new Error('level out of range');
+  const current = rows.filter((row) => row.recent_visits !== null);
+  if (current.length !== 1 || current[0].recent_visits < 1) throw new Error(JSON.stringify(current));
+});
 await check('eliminar la cuenta del dueño borra su negocio (trigger reescrito)', async () => {
   await admin(`delete from auth.users where id = $1`, [ids.owner]);
   const { rows } = await admin(`select count(*)::int as n from public.${table}`);

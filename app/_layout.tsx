@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react';
 import { AppState, Platform } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { routeForNotification, type NotificationRoute } from '@/lib/notification-routes';
+import '@/lib/visits-task';
 import 'react-native-reanimated';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 

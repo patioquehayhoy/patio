@@ -563,3 +563,23 @@ listas de `components/settings-list.tsx`. Trae la auditoría v3 → v4.
     junto con «Qué tan lleno».
   - Por qué conviene: cada reseña es respuesta para el negocio, y que el
     negocio vea respuesta es lo que lo hace seguir publicando (lado difícil).
+
+### Construido el 8 nov (visitas reales, «Qué tan lleno» e índice del editor)
+
+- **Visitas reales** (`lib/visits.ts`, `lib/visits-task.ts`): geocercas de 80 m
+  en los 19 lugares más cercanos + una de 1.5 km que renueva la lista. Visita
+  = 8 min a 4 h dentro, en horario y fuera de tu negocio. Se activa en
+  Notificaciones → «Pedir mi opinión» (ubicación «Siempre», opcional).
+- **«Tacos Juan · ¿Qué te pareció?»**: aviso local 40 min después de salir, si
+  no lo has reseñado; uno al día, el mismo lugar cada 30 días, nunca de 22 a
+  9 h. Al tocarlo abre la reseña (`visit_review` en `notification-routes`).
+- **«Qué tan lleno»** en la ficha: `record_visit` (anónima, sin coordenadas,
+  identificador del teléfono que cambia cada día, topes contra inflado) y
+  `place_busyness` (nada con menos de 30 visitas en 8 semanas). Migración
+  `20261108120000_place_visits.sql`, ensayada con `npm run db:rehearse`.
+- **Editor de menú:** vuelve la flecha para ocultar/mostrar platillos (columna
+  derecha) y, con 4 secciones o más, índice lateral tipo Contactos.
+- **Para que funcione en el teléfono:** builds nuevos (iOS y Android: ubicación
+  en segundo plano y `expo-task-manager`), `db push` de la migración,
+  declaración de ubicación en segundo plano en Google Play (con video) y
+  «Ubicación aproximada, no vinculada» en App Privacy de Apple.

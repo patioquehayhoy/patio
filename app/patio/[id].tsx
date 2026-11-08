@@ -29,6 +29,7 @@ import { floatingSurfaceShadow, sheetSurfaceTint } from '@/lib/surface-styles';
 import { opticalIndent } from '@/lib/optical';
 import { supabase } from '@/lib/supabase';
 import { getPatioHighlights, getProStatus, setFeaturedDish, type PatioHighlights } from '@/lib/business-pro';
+import { axisHour, getPlaceBusyness, liveLabel, peakLabel, type Busyness } from '@/lib/busyness';
 import { formatHHMM12 } from '@/lib/horario';
 import { MAP_STYLE_DARK, MAP_STYLE_LIGHT } from '@/lib/map-style';
 import { Fonts, Radius, useTheme, type Theme, Type } from '@/lib/theme';
@@ -245,6 +246,19 @@ function makeStyles(t: Theme) {
     badgeInline: { height: 48, alignItems: 'flex-start', justifyContent: 'center', paddingHorizontal: 12 },
     badgeInlineTitle: { fontSize: 13, fontWeight: '700', color: t.text, textAlign: 'left' },
     badgeInlineText: { marginTop: 1, fontSize: 12, lineHeight: 16, color: t.textSecondary, textAlign: 'left' },
+    // «Qué tan lleno»: tarjeta como el horario; barras del color de las
+    // líneas y la hora actual en naranja, como las calificaciones.
+    busySection: { marginBottom: 16 },
+    busyCard: { borderRadius: Radius.card, backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, padding: 16 },
+    busyLive: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+    busyDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: t.accent },
+    busyLead: { flexShrink: 1, fontSize: 15, lineHeight: 20, fontWeight: '700', color: t.text },
+    busyNote: { marginTop: 2, fontSize: 13, lineHeight: 17, fontWeight: '400', color: t.textSecondary },
+    busyBars: { height: 72, marginTop: 16, flexDirection: 'row', alignItems: 'flex-end', gap: 4 },
+    busyBar: { flex: 1, borderTopLeftRadius: 4, borderTopRightRadius: 4, borderBottomLeftRadius: 1, borderBottomRightRadius: 1, backgroundColor: t.isDark ? 'rgba(255,255,255,0.14)' : 'rgba(17,18,20,0.09)' },
+    busyBarNow: { backgroundColor: t.accent },
+    busyAxis: { flexDirection: 'row', gap: 4, marginTop: 6 },
+    busyAxisText: { flex: 1, fontSize: 11, lineHeight: 14, fontWeight: '400', color: t.textMute },
     mapPanel: { height: 92, borderRadius: 18, backgroundColor: t.isDark ? '#191A1B' : '#D8D6D0', overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
     mapView: { ...StyleSheet.absoluteFillObject },
     mapMarker: { width: 26, height: 26, borderRadius: 13, backgroundColor: '#111214', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.82)', alignItems: 'center', justifyContent: 'center', shadowColor: '#FFFFFF', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.24, shadowRadius: 6, elevation: 4 },
@@ -425,6 +439,15 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
     if (own) getProStatus(patio.id).then((status) => { if (active) setOwnPro(!!status?.proUntil); }).catch(() => {});
     return () => { active = false; };
   }, [own, patio?.id]);
+  // «Qué tan lleno»: solo aparece con visitas reales suficientes.
+  const [busyness, setBusyness] = useState<Busyness | null>(null);
+  useEffect(() => {
+    if (!patio?.id) return;
+    let active = true;
+    setBusyness(null);
+    getPlaceBusyness(patio.id, patio.weeklyHours).then((value) => { if (active) setBusyness(value); }).catch(() => {});
+    return () => { active = false; };
+  }, [patio?.id, patio?.weeklyHours]);
   const handleFeatureDish = async (dishName: string) => {
     if (!patio?.id) return;
     const next = highlights.featuredDish === canonicalDishName(dishName) ? null : dishName;
@@ -986,6 +1009,36 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
                 </View>
               )}
             </View>
+            {!!busyness && (() => {
+              const live = liveLabel(busyness);
+              const peak = peakLabel(busyness);
+              return (
+                <View style={s.busySection}>
+                  <View style={s.groupHead}>
+                    <Text style={s.groupTitle} allowFontScaling={true}>Qué tan lleno</Text>
+                  </View>
+                  <View style={s.busyCard} accessible accessibilityLabel={[live, peak].filter(Boolean).join('. ')}>
+                    {!!live && (
+                      <View style={s.busyLive}>
+                        <View style={s.busyDot} />
+                        <Text style={s.busyLead} allowFontScaling={true}>{noWidow(live)}</Text>
+                      </View>
+                    )}
+                    {!!peak && <Text style={live ? s.busyNote : s.busyLead} allowFontScaling={true}>{noWidow(peak)}</Text>}
+                    <View style={s.busyBars}>
+                      {busyness.hours.map((item) => (
+                        <View key={item.hour} style={[s.busyBar, { height: `${Math.max(4, item.level)}%` as `${number}%` }, item.hour === busyness.currentHour && s.busyBarNow]} />
+                      ))}
+                    </View>
+                    <View style={s.busyAxis}>
+                      {busyness.hours.map((item, index) => (
+                        <Text key={item.hour} style={s.busyAxisText} allowFontScaling={false}>{index % 2 === 0 ? axisHour(item.hour) : ''}</Text>
+                      ))}
+                    </View>
+                  </View>
+                </View>
+              );
+            })()}
             {patio.latitude > 0 && (
               <TouchableOpacity
                 accessibilityLabel={`Abrir indicaciones para ${patio.name}`}

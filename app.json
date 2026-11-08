@@ -92,10 +92,10 @@
         "expo-location",
         {
           "locationWhenInUsePermission": "Usamos tu ubicación para encontrar comida cercana y ubicar tu negocio en el mapa de Patio",
-          "locationAlwaysPermission": false,
-          "locationAlwaysAndWhenInUsePermission": false,
-          "isIosBackgroundLocationEnabled": false,
-          "isAndroidBackgroundLocationEnabled": false,
+          "locationAlwaysPermission": "Si activas «Pedir mi opinión», Patio nota cuando visitas un lugar para preguntarte qué te pareció y cuenta la visita, sin tu nombre, para mostrar qué tan lleno está.",
+          "locationAlwaysAndWhenInUsePermission": "Si activas «Pedir mi opinión», Patio nota cuando visitas un lugar para preguntarte qué te pareció y cuenta la visita, sin tu nombre, para mostrar qué tan lleno está.",
+          "isIosBackgroundLocationEnabled": true,
+          "isAndroidBackgroundLocationEnabled": true,
           "isAndroidForegroundServiceEnabled": false
         }
       ],

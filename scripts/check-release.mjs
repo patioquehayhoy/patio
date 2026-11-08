@@ -72,8 +72,14 @@ if (splash.dark?.image) checkAsset(splash.dark.image);
 check(pluginOptions('expo-image-picker').microphonePermission === false, 'Image picker no debe añadir permiso de micrófono.');
 check(pluginOptions('expo-camera').microphonePermission === false && pluginOptions('expo-camera').recordAudioAndroid === false, 'La cámara de fotos no debe añadir grabación de audio.');
 const location = pluginOptions('expo-location');
-check(location.locationAlwaysPermission === false && location.locationAlwaysAndWhenInUsePermission === false, 'Elimina permisos iOS de ubicación permanente; Patio usa ubicación en contexto.');
-check(location.isIosBackgroundLocationEnabled === false && location.isAndroidBackgroundLocationEnabled === false, 'Ubicación en segundo plano no debe estar habilitada.');
+// Ubicación «Siempre» solo para visitas reales (opt-in «Pedir mi opinión»,
+// DECISIONES §19): texto que explica el uso, geocercas sin servicio en primer
+// plano y la tarea definida en lib/visits-task.ts.
+const alwaysText = `${location.locationAlwaysAndWhenInUsePermission ?? ''}`;
+check(alwaysText.length > 40 && /visit/i.test(alwaysText) && alwaysText === location.locationAlwaysPermission, 'El permiso de ubicación «Siempre» debe explicar las visitas en ambos textos de iOS.');
+check(location.isIosBackgroundLocationEnabled === true && location.isAndroidBackgroundLocationEnabled === true, 'Las geocercas de visitas necesitan ubicación en segundo plano en iOS y Android.');
+check(location.isAndroidForegroundServiceEnabled === false, 'Las geocercas no usan servicio en primer plano; no declares FOREGROUND_SERVICE_LOCATION.');
+check(existsSync(resolve(root, 'lib/visits-task.ts')), 'Falta la tarea de geocercas (lib/visits-task.ts).');
 
 if (platform !== 'android') {
   const image = eas.build?.production?.ios?.image ?? '';

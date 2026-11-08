@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { Stack } from 'expo-router';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   InputAccessoryView,
@@ -23,6 +23,7 @@ import { fonderoPalette, type FonderoColors } from '@/lib/fondero-palette';
 import { getTipoNegocio, type MenuData, type Platillo, type Seccion } from '@/lib/menu-store';
 import { useTheme } from '@/lib/theme';
 import { ActionSheet } from '@/components/action-sheet';
+import { SectionIndex } from '@/components/section-index';
 import { GlassIconButton } from '@/components/glass-button';
 import { noWidow } from '@/lib/typography';
 import { TEXT_LIMITS } from '@/lib/text-limits';
@@ -112,13 +113,27 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
   const sectionMoreRefs = useRef<Map<string, View | null>>(new Map());
   const activeSectionIndex = data.secciones.findIndex((section) => section.id === sectionActions);
   const sectionActionOptions = activeSectionIndex >= 0 ? [
-    collapsed[sectionActions!]
-      ? { label: 'Mostrar platillos', icon: 'chevron-down' as const, onPress: () => { smoothly(); toggleCollapsed(sectionActions!); } }
-      : { label: 'Ocultar platillos', icon: 'chevron-up' as const, onPress: () => { smoothly(); toggleCollapsed(sectionActions!); } },
     ...(activeSectionIndex > 0 ? [{ label: 'Subir', icon: 'arrow-up' as const, onPress: () => moveSection(sectionActions!, -1) }] : []),
     ...(activeSectionIndex < data.secciones.length - 1 ? [{ label: 'Bajar', icon: 'arrow-down' as const, onPress: () => moveSection(sectionActions!, 1) }] : []),
     { label: 'Eliminar', icon: 'trash-outline' as const, destructive: true, onPress: () => removeSection(sectionActions!) },
   ] : [];
+
+  // Índice lateral de secciones (como las letras de Contactos) para menús
+  // largos: salta a cada sección. Se esconde con el teclado abierto.
+  const scrollRef = useRef<ScrollView>(null);
+  const sectionY = useRef<Record<string, number>>({});
+  const [keyboardOpen, setKeyboardOpen] = useState(false);
+  useEffect(() => {
+    const show = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow', () => setKeyboardOpen(true));
+    const hide = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide', () => setKeyboardOpen(false));
+    return () => { show.remove(); hide.remove(); };
+  }, []);
+  const jumpToSection = (index: number, dragging: boolean) => {
+    const section = data.secciones[index];
+    const y = section ? sectionY.current[section.id] : undefined;
+    if (y == null) return;
+    scrollRef.current?.scrollTo({ y: Math.max(0, y - 8), animated: !dragging });
+  };
 
   // Revelación progresiva: las sugerencias de sección son secundarias una vez
   // que ya hay secciones armadas — no compiten por espacio con el contenido
@@ -250,6 +265,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
         </View>
 
         <ScrollView
+          ref={scrollRef}
           contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: insets.bottom + 32 }}
           keyboardDismissMode="interactive"
           keyboardShouldPersistTaps="handled"
@@ -297,7 +313,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
             const isCollapsed = !!collapsed[section.id];
             const actionsOpen = sectionActions === section.id;
             return (
-              <View key={section.id} style={s.section}>
+              <View key={section.id} style={s.section} onLayout={(event) => { sectionY.current[section.id] = event.nativeEvent.layout.y; }}>
                 <View style={s.sectionHeader}>
                   <TextInput
                     style={s.sectionName}
@@ -317,6 +333,17 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                       <Text style={s.collapsedCountText}>{`${section.platillos.length} ${section.platillos.length === 1 ? 'platillo' : 'platillos'}`}</Text>
                     </TouchableOpacity>
                   )}
+                  {/* Ocultar/mostrar platillos a la vista, como las secciones de
+                      Notas: la flecha vive en la columna derecha, junto al «···». */}
+                  <TouchableOpacity
+                    style={s.collapseButton}
+                    onPress={() => { smoothly(); toggleCollapsed(section.id); }}
+                    activeOpacity={0.7}
+                    accessibilityRole="button"
+                    accessibilityLabel={isCollapsed ? 'Mostrar platillos' : 'Ocultar platillos'}
+                    accessibilityState={{ expanded: !isCollapsed }}>
+                    <Ionicons name={isCollapsed ? 'chevron-forward' : 'chevron-down'} size={17} color={c.textSecondary} />
+                  </TouchableOpacity>
                   <TouchableOpacity
                     ref={(el) => { sectionMoreRefs.current.set(section.id, el); }}
                     style={s.moreButton}
@@ -576,6 +603,14 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
             </TouchableOpacity>
           </View>
         </ScrollView>
+        {data.secciones.length >= 4 && !keyboardOpen && (
+          <SectionIndex
+            names={data.secciones.map((section) => section.nombre)}
+            onSelect={jumpToSection}
+            colors={{ text: c.text, textMute: c.textMute, accent: c.accent, surface: c.surface2, border: c.border }}
+            style={{ top: insets.top + 70, right: 0 }}
+          />
+        )}
       </KeyboardAvoidingView>
       {Platform.OS === 'ios' && (
         <InputAccessoryView nativeID={PRICE_ACCESSORY}>
@@ -616,6 +651,7 @@ function makeStyles(c: FonderoColors) {
     sectionName: { flex: 1, paddingVertical: 6, fontSize: 14, lineHeight: 20, fontWeight: '700', letterSpacing: 0.6, color: c.text },
     collapsedCount: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 4 },
     collapsedCountText: { fontSize: 13, fontWeight: '400', color: c.textSecondary },
+    collapseButton: { width: 36, height: 44, alignItems: 'center', justifyContent: 'center' },
     moreButton: { width: 44, height: 44, alignItems: 'flex-end', justifyContent: 'center' },
     currency: { fontSize: 13, fontWeight: '300', color: c.textMute },
     dish: { paddingVertical: 7 },

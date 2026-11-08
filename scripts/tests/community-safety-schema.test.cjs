@@ -120,6 +120,7 @@ test('tapping an alert only opens known screens', () => {
   const { routeForNotification } = loadTs('lib/notification-routes.ts');
   assert.deepEqual(routeForNotification({ type: 'follow_request' }), { pathname: '/notificaciones' });
   assert.deepEqual(routeForNotification({ type: 'review_comment', patioId: 'p1' }), { pathname: '/patio/[id]', params: { id: 'p1' } });
+  assert.deepEqual(routeForNotification({ type: 'visit_review', patioId: 'p1' }), { pathname: '/resena/[id]', params: { id: 'p1' } });
   assert.deepEqual(routeForNotification({ route: '/historial' }), { pathname: '/historial' });
   assert.equal(routeForNotification({ route: '/perfil-editar' }), null);
   assert.equal(routeForNotification({}), null);

@@ -34,8 +34,9 @@ Decisiones y aterrizaje completos en [DECISIONES_2026-11-07](DECISIONES_2026-11-
   flyers, mostrar en caja y sellos, onboarding, foto del lugar, ficha y marca.
 - [x] Onboarding estilo Leica construido (2026-11-08); falta verlo en el
   teléfono (iPhone con Metro; Android necesita build nuevo).
-- [ ] «¿Qué te pareció…?» después de la visita: fase 1 sin ubicación en
-  segundo plano (DECISIONES §19).
+- [ ] «¿Qué te pareció…?» solo con visitas reales (8 min o más, al alejarte),
+  junto con «Qué tan lleno» (DECISIONES §19).
+- [ ] Parco: QA del onboarding nuevo en el iPhone (en curso, 8 nov).
 - [ ] Construir en la app, en orden: foto del lugar (alta y
   Editar) → Hoy (incluye quitar el «…» del platillo en Tu racha) → aviso de
   operación y resumen 18:00 → notificaciones simplificadas → flyers →

@@ -551,10 +551,15 @@ listas de `components/settings-list.tsx`. Trae la auditoría v3 → v4.
   - Reglas: solo si no has reseñado ese lugar; máximo uno al día; el mismo
     lugar no se repite en 30 días; nunca de 22 a 9 h; se apaga en
     Notificaciones («Pedir mi opinión»).
-  - **Fase 1, sin ubicación en segundo plano:** aviso local (no sale del
-    teléfono) 3 h después de tocar «Cómo llegar» o de canjear una promo:
-    «¿Fuiste a Tacos Juan? ¿Qué te pareció?».
-  - **Fase 2, con visitas reales:** las mismas geocercas de «Qué tan lleno»;
-    visita de 8 minutos o más y, al alejarte, el aviso.
+  - **Decisión de Parco (8 nov): solo con visitas reales.** Preguntar por
+    intención («Cómo llegar») sonaría raro si solo pasaste. Se descarta esa fase.
+  - **Visita real:** las mismas geocercas de «Qué tan lleno». Cuenta solo si
+    te quedas 8 minutos o más a menos de 50 m, en horario del lugar, y nunca
+    en tu propio negocio. Pasar enfrente no cuenta.
+  - **Cuándo llega:** al alejarte (más de 300 m) y de 30 a 60 minutos después.
+    El aviso se arma en el teléfono; la ubicación no sale de él.
+  - **Requisitos:** permiso de ubicación «Siempre» opcional, build nuevo y la
+    declaración de ubicación en segundo plano en Google Play. Se construye
+    junto con «Qué tan lleno».
   - Por qué conviene: cada reseña es respuesta para el negocio, y que el
     negocio vea respuesta es lo que lo hace seguir publicando (lado difícil).

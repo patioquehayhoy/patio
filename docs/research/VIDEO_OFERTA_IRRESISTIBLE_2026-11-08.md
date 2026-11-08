@@ -41,7 +41,7 @@ pódcast, 37 s). Analizado con fotogramas cada segundo y transcripción local
 | Entregables | 8 avisos especiales al mes · 60 lecturas con foto al día · platillo destacado · horas con más interés. |
 | Precio | $99 al mes. |
 | Garantía | 30 días gratis; cancelas cuando quieras desde tu teléfono. Propuesto: Patio avisa 3 días antes de que termine la prueba (hay que construirlo antes de prometerlo). |
-| Bonos (solo reales) | Fundadores: cartel con QR, sticker de ventana, sello en tu ficha y alta en persona. |
+| Bonos (solo reales) | Hoy existen: alta en persona y 6 meses de Pro para Fundadores. Cartel con QR, sticker y sello entran solo cuando estén impresos y en la app. |
 | Precio otra vez | $99 al mes, y los primeros 30 días van por nuestra cuenta. |
 | Preguntas | ¿Me cobran en la prueba? ¿Cómo cancelo? ¿Mis clientes pagan algo? ¿Y si no sé usar bien el celular? |
 | Escasez honesta | Fundadores: cupo de 20 lugares por colonia (es real y sale de la red atómica del libro). |
@@ -64,7 +64,7 @@ reaccionando abajo), subtítulos en Neue Montreal y etiqueta con la P:
 4. **Entregables:** tu ficha en el mapa, tu póster para WhatsApp, tus
    seguidores.
 5. **Precio:** gratis para publicar.
-6. **Bono real:** a los Fundadores les llevamos el cartel con QR.
+6. **Bono real:** a los Fundadores los damos de alta en persona (el cartel con QR, cuando esté impreso).
 7. **Escasez honesta:** 20 lugares Fundadores por colonia.
 8. **Cierre:** «¿Qué hay hoy?» + «Saaaaaaabes.», siempre juntos.
 

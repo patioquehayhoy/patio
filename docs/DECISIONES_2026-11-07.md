@@ -550,7 +550,7 @@ listas de `components/settings-list.tsx`. Trae la auditoría v3 → v4.
   - Copy: título = el lugar; cuerpo «¿Qué te pareció?». Abre la reseña.
   - Reglas: solo si no has reseñado ese lugar; máximo uno al día; el mismo
     lugar no se repite en 30 días; nunca de 22 a 9 h; se apaga en
-    Notificaciones («Pedir mi opinión»).
+    Notificaciones («Tus visitas»).
   - **Decisión de Parco (8 nov): solo con visitas reales.** Preguntar por
     intención («Cómo llegar») sonaría raro si solo pasaste. Se descarta esa fase.
   - **Visita real:** las mismas geocercas de «Qué tan lleno». Cuenta solo si
@@ -569,7 +569,7 @@ listas de `components/settings-list.tsx`. Trae la auditoría v3 → v4.
 - **Visitas reales** (`lib/visits.ts`, `lib/visits-task.ts`): geocercas de 80 m
   en los 19 lugares más cercanos + una de 1.5 km que renueva la lista. Visita
   = 8 min a 4 h dentro, en horario y fuera de tu negocio. Se activa en
-  Notificaciones → «Pedir mi opinión» (ubicación «Siempre», opcional).
+  Notificaciones → «Tus visitas» (ubicación «Siempre», opcional).
 - **«Tacos Juan · ¿Qué te pareció?»**: aviso local 40 min después de salir, si
   no lo has reseñado; uno al día, el mismo lugar cada 30 días, nunca de 22 a
   9 h. Al tocarlo abre la reseña (`visit_review` en `notification-routes`).
@@ -583,3 +583,51 @@ listas de `components/settings-list.tsx`. Trae la auditoría v3 → v4.
   en segundo plano y `expo-task-manager`), `db push` de la migración,
   declaración de ubicación en segundo plano en Google Play (con video) y
   «Ubicación aproximada, no vinculada» en App Privacy de Apple.
+
+---
+
+## 20. Auditoría CDF de las visitas reales (8 nov)
+
+Parco preguntó de dónde salían «8 minutos» y «4 horas». **Respuesta honesta:
+eran supuestos míos, no venían de una fuente.** Auditoría con el CDF (método
+comparado, fuentes públicas verificadas el 8 nov) y con la referencia directa
+de la industria:
+
+| Referente / fuente | Qué dice (verificado) | Cómo se aplica a Patio |
+|---|---|---|
+| Google, *Popular times* ([ayuda](https://support.google.com/business/answer/6263531)) | Datos agregados y anónimos de quien activó el Historial de ubicaciones; historial de semanas y meses; solo aparece con suficientes visitas; lo «en vivo» se actualiza en tiempo real. Sin umbrales numéricos publicados. | Historial + en vivo, como Google. Ni Google es inmediato: necesita datos; su ventaja es el volumen. |
+| Android, guía de geocercas ([docs](https://developer.android.com/develop/sensors-and-location/location/geofencing)) | Radio mínimo de 100–150 m; usar «dwell» con retraso para evitar avisos de más; alertas en ~2 min (hasta ~6 min con el teléfono quieto). Sin valor de minutos publicado. | Radio de 80 → **100 m**. La estancia se mide entre entrar y salir. |
+| Jeff Bezos, carta 2016 ([Amazon](https://www.aboutamazon.com/news/company-news/2016-letter-to-shareholders)) | Decidir con ~70 % de la información; las decisiones de «dos vías» se corrigen rápido; ser lento sale caro. | Los umbrales son de dos vías: se lanzan con un valor razonable y se ajustan. |
+| Andrej Karpathy, *A Recipe for Training Neural Networks* ([blog](http://karpathy.github.io/2019/04/25/recipe/)) | Paso 1: «become one with the data». | Calibrar con los datos del piloto, no con supuestos: el teléfono manda estancias desde 3 min y el umbral vive en el servidor. |
+
+Las páginas de Apple (CLVisit, geocercas) no se pudieron leer completas con la
+herramienta; no se citan.
+
+**Cambios por la auditoría:**
+
+- Radio 100 m. Estancias desde **3 min** se mandan; la gráfica usa **5 min**
+  (`visit_settings.busy_min_minutes`), ajustable sin publicar la app.
+- «¿Qué te pareció?» sigue en **8 min**: preguntar por un lugar donde no
+  estuviste molesta más que no preguntar.
+- **4 horas** como tope se queda (quien trabaja o vive al lado no es visita) y
+  se suma una regla en el teléfono: un lugar donde estás 5 de los últimos 7
+  días (casa o trabajo) deja de contar y de preguntar.
+- **En vivo de verdad:** al entrar y al salir se marca presencia
+  (`place_presence`, `mark_presence`); el servidor cuenta a quien lleva 3 min
+  o más dentro y lo compara con lo usual a esa hora (ley de Little: llegadas
+  por hora × estancia promedio). La gráfica aparece con **10 visitas** en 8
+  semanas (antes 30); «Ahora» con 2 personas dentro o más.
+- El interruptor se llama **«Tus visitas»** (sustantivo, como «Ubicaciones
+  importantes» de Apple): «Al salir de un lugar, te preguntamos qué te
+  pareció. Tu visita cuenta, sin tu nombre, para «Qué tan lleno».»
+
+## 21. Parecidos cerca y lugar de prueba (8 nov)
+
+- **Después de reseñar:** confirmación «Reseña publicada» y «Parecidos cerca»
+  (hasta 3): giros y platillos en común + cercanía, sin repetir lugares que ya
+  reseñaste (`lib/recommendations.ts`). Hoy es similitud por palabras; con más
+  catálogo, búsqueda vectorial (embeddings en Supabase con pgvector).
+- **«La Muestra»** (solo en desarrollo): búscala como «muestra» o por platillo.
+  10 secciones (índice lateral), nombres cortos y de 60 caracteres, varios
+  giros, aviso especial, platillo recomendado y «Qué tan lleno» sintético con
+  «Ahora: más lleno de lo normal».

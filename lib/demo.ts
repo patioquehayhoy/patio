@@ -9,6 +9,7 @@ import { makePlatilloId, makeSectionId, type MenuData } from './menu-store';
 import { registerPatioView, getViewedPatioIds } from './stats';
 import type { Patio, PatioMenuSection } from './patios';
 import { publicCurrency } from './prices';
+import { ahoraCDMX } from './horario';
 
 export const DEV_MY_PATIO_ID = 'demo-mi-patio';
 const DEV_PUBLISHED_MENU_KEY = '@patio_demo_published_menu';
@@ -127,7 +128,141 @@ export async function getDevPublishedPatio(): Promise<Patio | null> {
   return menu ? makeDevPublishedPatio(menu) : null;
 }
 
+// «La Muestra»: lugar de prueba para revisar todo en un solo lugar. Búscalo
+// como «muestra» o por un platillo («mole», «pastor», «tres leches»): menú de
+// 10 secciones con nombres cortos y largos, descripciones, varios giros,
+// aviso especial, platillo recomendado y «Qué tan lleno» sintético.
+export const SHOWCASE_PATIO_ID = 'demo-la-muestra';
+const item = (name: string, price?: string, description?: string): PatioMenuSection['items'][number] => ({
+  name, price, description, tags: name.toLowerCase().split(/\s+/).slice(0, 3),
+});
+const SHOWCASE_PATIO: Patio = {
+  id: SHOWCASE_PATIO_ID,
+  name: 'La Muestra',
+  categories: ['Fondita', 'Tacos', 'Café', 'Postres'],
+  area: 'Narvarte',
+  price: '$95',
+  address: 'Av. Universidad 1100',
+  open: '8am-10pm',
+  rating: '4.8',
+  ratingCount: 126,
+  isVerifiedBusiness: true,
+  isNeighborhoodFavorite: true,
+  reason: 'Cocina de barrio de la mañana a la noche',
+  latitude: 19.3962,
+  longitude: -99.1553,
+  x: 50,
+  y: 50,
+  hasTodayMenu: true,
+  payments: ['Efectivo', 'Tarjeta', 'Transferencia'],
+  patioJoinedAt: '2026-10-01',
+  businessOpenedAt: '1998-03-01',
+  weeklyHours: [
+    { dia: 0, cerrado: false, abre: '09:00', cierra: '18:00' },
+    { dia: 1, cerrado: false, abre: '08:00', cierra: '22:00' },
+    { dia: 2, cerrado: false, abre: '08:00', cierra: '22:00' },
+    { dia: 3, cerrado: false, abre: '08:00', cierra: '22:00' },
+    { dia: 4, cerrado: false, abre: '08:00', cierra: '22:00' },
+    { dia: 5, cerrado: false, abre: '08:00', cierra: '22:00' },
+    { dia: 6, cerrado: false, abre: '09:00', cierra: '22:00' },
+  ],
+  menu: [
+    { section: 'DESAYUNOS', price: '$95', items: [
+      item('Chilaquiles verdes con pollo y crema', '$95', 'Con frijoles refritos y un huevo estrellado'),
+      item('Molletes con pico de gallo', '$65'),
+      item('Huevos a la mexicana', '$70', 'Con tortillas recién hechas'),
+    ] },
+    { section: 'ENTRADAS', items: [
+      item('Guacamole con totopos', '$75'),
+      item('Queso fundido con chorizo', '$85', 'Para compartir, con tortillas de harina'),
+    ] },
+    { section: 'SOPAS', items: [
+      item('Sopa de fideo'),
+      item('Consomé de pollo con arroz y garbanzo', undefined, 'Con limón, cebolla y chile serrano'),
+      item('Crema de elote'),
+    ] },
+    { section: 'PLATOS FUERTES', items: [
+      item('Milanesa de res empanizada con papas a la francesa', '$120', 'Con ensalada de la casa'),
+      item('Mole poblano con pollo', '$110'),
+      item('Pechuga a la plancha', '$105'),
+      item('Chile relleno de queso en caldillo de jitomate', '$115'),
+    ] },
+    { section: 'TACOS', items: [
+      item('Al pastor', '$60', 'Orden de cuatro, con piña'),
+      item('Suadero', '$60'),
+      item('Campechanos', '$65'),
+      item('Gringa de pastor con queso', '$70'),
+    ] },
+    { section: 'ANTOJITOS', items: [
+      item('Quesadilla de huitlacoche', '$45'),
+      item('Sope de tinga', '$40'),
+      item('Tlacoyo de frijol con nopales y queso fresco', '$40'),
+    ] },
+    { section: 'VEGETARIANO', items: [
+      item('Bowl de quinoa con verduras asadas y hummus', '$110'),
+      item('Tacos de coliflor al pastor', '$75'),
+    ] },
+    { section: 'BEBIDAS', items: [
+      item('Agua de horchata', '$25'),
+      item('Agua de jamaica', '$25', 'Sin azúcar si la pides'),
+      item('Limonada mineral', '$35'),
+      item('Refresco', '$25'),
+    ] },
+    { section: 'CAFÉ', items: [
+      item('Café de olla', '$30'),
+      item('Americano', '$35'),
+      item('Capuchino con leche de avena', '$55'),
+    ] },
+    { section: 'POSTRES', items: [
+      item('Pastel de tres leches', '$45'),
+      item('Flan napolitano', '$40'),
+      item('Arroz con leche', '$35'),
+      item('Pay de queso con zarzamora', '$50'),
+    ] },
+  ],
+};
+
+export const SHOWCASE_HIGHLIGHTS = {
+  featuredDishName: 'Mole poblano con pollo',
+  notice: '2×1 en aguas frescas, hoy de 2 a 4 pm.',
+};
+
+/**
+ * «Qué tan lleno» sintético para los lugares de prueba: desayuno ligero, pico
+ * a la comida (2 pm) y otro menor en la cena; los fines de semana, más tarde.
+ * En la hora actual, más gente de lo normal para ver «Ahora: más lleno».
+ */
+export function demoBusynessRows(id: string, now = new Date()) {
+  const { dia, minutos } = ahoraCDMX(now);
+  const hourNow = Math.floor(minutos / 60);
+  const seed = [...id].reduce((sum, char) => sum + char.charCodeAt(0), 0);
+  const raw: { weekday: number; hour_of_day: number; value: number }[] = [];
+  for (let weekday = 0; weekday < 7; weekday++) {
+    const weekend = weekday === 0 || weekday === 6;
+    const lunch = weekend ? 15 : 14;
+    for (let hour = 8; hour <= 21; hour++) {
+      const value = 0.3 * Math.exp(-((hour - 9) ** 2) / 2)
+        + Math.exp(-((hour - lunch) ** 2) / 3)
+        + (0.4 + (seed % 3) * 0.1) * Math.exp(-((hour - 19.5) ** 2) / 2)
+        + 0.06;
+      raw.push({ weekday, hour_of_day: hour, value: value * (weekend ? 1.15 : 1) });
+    }
+  }
+  const top = Math.max(...raw.map((row) => row.value));
+  return raw.map((row) => {
+    const current = row.weekday === dia && row.hour_of_day === hourNow;
+    return {
+      weekday: row.weekday,
+      hour_of_day: row.hour_of_day,
+      level: Math.max(1, Math.round((100 * row.value) / top)),
+      present_now: current ? 9 : null,
+      usual_present: current ? 4 : null,
+    };
+  });
+}
+
 export const DEMO_PATIOS: Patio[] = [
+  SHOWCASE_PATIO,
   {
     id: 'demo-patio-4',
     name: 'Café Patio de Siempre',

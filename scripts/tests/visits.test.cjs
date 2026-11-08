@@ -39,13 +39,24 @@ test('sha256 matches node crypto', () => {
   }
 });
 
-test('a real visit needs 8+ minutes inside opening hours', () => {
-  const { isRealVisit } = V();
-  assert.equal(isRealVisit(place, at(14, 0), at(14, 5)), false, 'passing by does not count');
+test('stays: 3+ minutes count for busyness, 8+ minutes to ask, inside opening hours, never 4+ hours', () => {
+  const { isVisit, isRealVisit, REPORT_MIN_MS } = V();
+  assert.equal(isVisit(place, at(14, 0), at(14, 2), REPORT_MIN_MS), false, 'passing by does not count');
+  assert.equal(isVisit(place, at(14, 0), at(14, 5), REPORT_MIN_MS), true);
+  assert.equal(isRealVisit(place, at(14, 0), at(14, 5)), false, '5 minutes is not enough to ask');
   assert.equal(isRealVisit(place, at(14, 0), at(14, 20)), true);
   assert.equal(isRealVisit(place, at(20, 0), at(20, 30)), false, 'closed');
   assert.equal(isRealVisit({ ...place, weeklyHours: null }, at(20, 0), at(20, 30)), true, 'unknown hours do not block');
   assert.equal(isRealVisit(place, at(9, 0), at(14, 0)), false, 'more than 4 hours is not a visit');
+});
+
+test('home or work: 5 of the last 7 days', () => {
+  const { isFrequentPlace, cdmxDay } = V();
+  const now = at(14, 0);
+  const days = (n) => Array.from({ length: n }, (_, i) => cdmxDay(now - i * 86_400_000));
+  assert.equal(isFrequentPlace(days(4), now), false);
+  assert.equal(isFrequentPlace(days(5), now), true);
+  assert.equal(isFrequentPlace(['2026-09-01', '2026-09-02', '2026-09-03', '2026-09-04', '2026-09-05'], now), false, 'old days do not count');
 });
 
 test('ask once: not reviewed, not own place, 30-day cooldown, one per day, never at night', () => {
@@ -68,6 +79,7 @@ test('regions: 19 nearest within 5 km plus the refresh region', () => {
   assert.equal(regions.length, 20);
   assert.equal(regions[0].identifier, 'p0');
   assert.equal(regions[0].radius, VISIT_RADIUS_M);
+  assert.equal(VISIT_RADIUS_M, 100, 'Android geofencing guide: 100–150 m minimum');
   assert.ok(!regions.some((region) => region.identifier === 'far'));
   assert.equal(regions[19].identifier, REFRESH_REGION_ID);
 });
@@ -76,24 +88,25 @@ test('geofence events: enter then exit reports the visit and asks once', async (
   const { handleGeofenceEvent, VISIT_KEYS } = V();
   const store = { [VISIT_KEYS.places]: [place], [VISIT_KEYS.ownPlace]: null };
   let now = at(14, 0);
-  const calls = { report: 0, ask: 0, refresh: 0 };
+  const calls = { report: 0, ask: 0, refresh: 0, inside: 0, outside: 0 };
   const deps = {
     now: () => now,
     read: async (key, fallback) => (key in store ? JSON.parse(JSON.stringify(store[key])) : fallback),
     write: async (key, value) => { store[key] = JSON.parse(JSON.stringify(value)); },
     isReviewed: async () => false,
     report: async () => { calls.report++; },
+    presence: async (_place, inside) => { if (inside) calls.inside++; else calls.outside++; },
     ask: async () => { calls.ask++; },
     refresh: async () => { calls.refresh++; },
   };
   assert.equal(await handleGeofenceEvent({ type: 'enter', id: place.id }, deps), 'entered');
-  now = at(14, 3);
-  assert.equal(await handleGeofenceEvent({ type: 'exit', id: place.id }, deps), 'ignored', '3 minutes is passing by');
+  now = at(14, 2);
+  assert.equal(await handleGeofenceEvent({ type: 'exit', id: place.id }, deps), 'ignored', '2 minutes is passing by');
   now = at(14, 10);
   await handleGeofenceEvent({ type: 'enter', id: place.id }, deps);
   now = at(14, 40);
   assert.equal(await handleGeofenceEvent({ type: 'exit', id: place.id }, deps), 'visit');
-  assert.deepEqual(calls, { report: 1, ask: 1, refresh: 0 });
+  assert.deepEqual(calls, { report: 1, ask: 1, refresh: 0, inside: 2, outside: 2 });
   now = at(15, 0);
   await handleGeofenceEvent({ type: 'enter', id: place.id }, deps);
   now = at(15, 30);
@@ -114,6 +127,7 @@ test('own business never counts as a visit', async () => {
     write: async (key, value) => { store[key] = value; },
     isReviewed: async () => false,
     report: async () => { reported++; },
+    presence: async () => { reported++; },
     ask: async () => {},
     refresh: async () => {},
   };
@@ -126,10 +140,10 @@ test('own business never counts as a visit', async () => {
 test('busyness: bars inside opening hours, peak label and live only with enough recent visits', () => {
   const B = load('lib/busyness.ts', { './supabase': { supabase: {} } });
   const rows = [
-    { weekday: 5, hour_of_day: 13, level: 60, recent_visits: null, usual_visits: null },
-    { weekday: 5, hour_of_day: 14, level: 100, recent_visits: 5, usual_visits: '2.5' },
-    { weekday: 5, hour_of_day: 15, level: 40, recent_visits: null, usual_visits: null },
-    { weekday: 2, hour_of_day: 14, level: 80, recent_visits: null, usual_visits: null },
+    { weekday: 5, hour_of_day: 13, level: 60, present_now: null, usual_present: null },
+    { weekday: 5, hour_of_day: 14, level: 100, present_now: 6, usual_present: '2.5' },
+    { weekday: 5, hour_of_day: 15, level: 40, present_now: null, usual_present: null },
+    { weekday: 2, hour_of_day: 14, level: 80, present_now: null, usual_present: null },
   ];
   const hours = Array.from({ length: 7 }, (_, dia) => ({ dia, cerrado: false, abre: '13:00', cierra: '17:00' }));
   const now = new Date(at(14, 20));
@@ -139,9 +153,33 @@ test('busyness: bars inside opening hours, peak label and live only with enough 
   assert.equal(shaped.live, 'more');
   assert.equal(B.peakLabel(shaped), 'Los viernes suele llenarse de 2 a 3 pm');
   assert.equal(B.liveLabel(shaped), 'Ahora: más lleno de lo normal');
-  const quiet = B.shapeBusyness(rows.map((r) => (r.recent_visits ? { ...r, recent_visits: 2 } : r)), now, hours);
-  assert.equal(quiet.live, null, 'fewer than 3 recent visits says nothing');
+  const calm = B.shapeBusyness(rows.map((r) => (r.present_now ? { ...r, present_now: 1 } : r)), now, hours);
+  assert.equal(calm.live, 'less');
+  const unknown = B.shapeBusyness(rows.map((r) => ({ ...r, present_now: null })), now, hours);
+  assert.equal(unknown.live, null, 'the server sends nobody inside when there are too few');
   assert.equal(B.shapeBusyness(rows, new Date(at(14, 0, 8)), hours), null, 'no data for Sunday');
   assert.equal(B.axisHour(13), '1');
   assert.equal(B.peakLabel({ ...shaped, peak: { from: 11, to: 12 } }), 'Los viernes suele llenarse de 11 am a 12 pm');
+});
+
+test('a place you are at almost every day stops counting and asking', async () => {
+  const { handleGeofenceEvent, VISIT_KEYS, cdmxDay } = V();
+  let now = at(14, 0);
+  const pastDays = Array.from({ length: 5 }, (_, i) => cdmxDay(now - (i + 1) * 86_400_000));
+  const store = { [VISIT_KEYS.places]: [place], [VISIT_KEYS.ownPlace]: null, [VISIT_KEYS.days]: { [place.id]: pastDays } };
+  const calls = { report: 0, ask: 0, inside: 0 };
+  const deps = {
+    now: () => now,
+    read: async (key, fallback) => (key in store ? store[key] : fallback),
+    write: async (key, value) => { store[key] = value; },
+    isReviewed: async () => false,
+    report: async () => { calls.report++; },
+    presence: async (_p, inside) => { if (inside) calls.inside++; },
+    ask: async () => { calls.ask++; },
+    refresh: async () => {},
+  };
+  await handleGeofenceEvent({ type: 'enter', id: place.id }, deps);
+  now = at(14, 30);
+  assert.equal(await handleGeofenceEvent({ type: 'exit', id: place.id }, deps), 'ignored');
+  assert.deepEqual(calls, { report: 0, ask: 0, inside: 0 });
 });

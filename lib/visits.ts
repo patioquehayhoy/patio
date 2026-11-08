@@ -5,20 +5,24 @@ import { Platform } from 'react-native';
 import { ahoraCDMX, estaAbiertoAhora, type HorarioSemanal } from './horario';
 import { sha256Hex } from './sha256';
 
-// Visitas reales (DECISIONES §17 y §19). Con el permiso «Siempre» que la
-// persona activa, el teléfono vigila los lugares cercanos (geocercas). Una
-// visita cuenta solo si te quedas 8 minutos o más, en horario del lugar y
-// nunca en tu propio negocio: pasar enfrente no cuenta. Con cada visita:
-//   1) se manda al servidor, sin cuenta ni coordenadas, para «Qué tan lleno»;
-//   2) si no has reseñado el lugar, 40 minutos después llega
-//      «Tacos Juan · ¿Qué te pareció?» (aviso local: se arma en el teléfono).
+// Visitas reales (DECISIONES §17 y §19). Con «Tus visitas» activado (permiso
+// de ubicación «Siempre»), el teléfono vigila los lugares cercanos con
+// geocercas de 100 m (mínimo que recomienda la guía de geocercas de Android).
+//   · En vivo: al entrar y al salir se avisa al servidor, sin cuenta ni
+//     coordenadas; el servidor solo cuenta a quien lleva 3 minutos o más dentro.
+//   · Visita: de 3 minutos a 4 horas, en horario del lugar; la gráfica de
+//     «Qué tan lleno» filtra en el servidor (visit_settings, hoy 5 minutos).
+//   · «Tacos Juan · ¿Qué te pareció?»: solo con 8 minutos o más, 40 minutos
+//     después de salir, si no lo has reseñado.
+// Nunca en tu propio negocio ni en lugares donde estás casi a diario (casa o
+// trabajo: 5 de los últimos 7 días). Todo es ajustable: decisión de dos vías.
 
 export const VISITS_TASK = 'patio-visits';
-// iOS no garantiza geocercas menores a ~100 m; con 80 m y 8 minutos de
-// estancia, pasar por la banqueta no cuenta.
-export const VISIT_RADIUS_M = 80;
-export const MIN_DWELL_MS = 8 * 60_000;
+export const VISIT_RADIUS_M = 100;
+export const REPORT_MIN_MS = 3 * 60_000;
+export const PROMPT_MIN_MS = 8 * 60_000;
 export const MAX_DWELL_MS = 240 * 60_000;
+const FREQUENT_DAYS = 5; // de los últimos 7: casa o trabajo, no visita
 export const PROMPT_DELAY_S = 40 * 60;
 export const SAME_PLACE_COOLDOWN_MS = 30 * 86_400_000;
 export const QUIET_FROM_HOUR = 22;
@@ -38,6 +42,7 @@ export const VISIT_KEYS = {
   asked: '@patio_visits_asked',
   lastPromptDay: '@patio_visits_last_prompt_day',
   ownPlace: '@patio_visits_own_place',
+  days: '@patio_visits_days',
   refreshedAt: '@patio_visits_refreshed_at',
   secret: '@patio_device_secret',
 } as const;
@@ -82,11 +87,22 @@ export function cdmxHour(ms: number): number {
   return cdmxShifted(ms).getHours();
 }
 
-/** Visita real: de 8 minutos a 4 horas y, si el lugar tiene horario, dentro de él. */
-export function isRealVisit(place: VisitPlace, enteredAt: number, exitedAt: number): boolean {
+/** Estancia válida: entre `minMs` y 4 horas y, si el lugar tiene horario, dentro de él. */
+export function isVisit(place: VisitPlace, enteredAt: number, exitedAt: number, minMs: number): boolean {
   const dwell = exitedAt - enteredAt;
-  if (dwell < MIN_DWELL_MS || dwell > MAX_DWELL_MS) return false;
+  if (dwell < minMs || dwell > MAX_DWELL_MS) return false;
   return estaAbiertoAhora(place.weeklyHours, ahoraCDMX(new Date(enteredAt + dwell / 2))) !== false;
+}
+
+/** Visita suficiente para preguntar «¿Qué te pareció?» (8 minutos o más). */
+export function isRealVisit(place: VisitPlace, enteredAt: number, exitedAt: number): boolean {
+  return isVisit(place, enteredAt, exitedAt, PROMPT_MIN_MS);
+}
+
+/** Casa o trabajo: estuviste ahí 5 de los últimos 7 días. */
+export function isFrequentPlace(days: string[], now: number): boolean {
+  const lastWeek = new Set(Array.from({ length: 7 }, (_, index) => cdmxDay(now - index * 86_400_000)));
+  return new Set(days.filter((day) => lastWeek.has(day))).size >= FREQUENT_DAYS;
 }
 
 export function shouldAskOpinion(input: {
@@ -114,6 +130,7 @@ export type VisitDeps = {
   write: (key: string, value: unknown) => Promise<void>;
   isReviewed: (placeId: string) => Promise<boolean>;
   report: (place: VisitPlace, enteredAt: number, exitedAt: number) => Promise<void>;
+  presence: (place: VisitPlace, inside: boolean) => Promise<void>;
   ask: (place: VisitPlace) => Promise<void>;
   refresh: () => Promise<void>;
 };
@@ -125,24 +142,34 @@ export async function handleGeofenceEvent(event: GeofenceEvent, deps: VisitDeps)
     return 'refreshed';
   }
   const now = deps.now();
-  const entered = await deps.read<Record<string, number>>(VISIT_KEYS.entered, {});
+  const [entered, places, ownPlaceId, days] = await Promise.all([
+    deps.read<Record<string, number>>(VISIT_KEYS.entered, {}),
+    deps.read<VisitPlace[]>(VISIT_KEYS.places, []),
+    deps.read<string | null>(VISIT_KEYS.ownPlace, null),
+    deps.read<Record<string, string[]>>(VISIT_KEYS.days, {}),
+  ]);
   for (const [id, at] of Object.entries(entered)) if (now - at > STALE_ENTER_MS) delete entered[id];
+  const place = places.find((candidate) => candidate.id === event.id);
+  const frequent = isFrequentPlace(days[event.id] ?? [], now);
+
   if (event.type === 'enter') {
     entered[event.id] = now;
     await deps.write(VISIT_KEYS.entered, entered);
+    if (place && place.id !== ownPlaceId && !frequent) await deps.presence(place, true).catch(() => {});
     return 'entered';
   }
+
   const enteredAt = entered[event.id];
   delete entered[event.id];
   await deps.write(VISIT_KEYS.entered, entered);
-  if (!enteredAt) return 'ignored';
+  if (!place || place.id === ownPlaceId) return 'ignored';
+  await deps.presence(place, false).catch(() => {});
+  if (!enteredAt || !isVisit(place, enteredAt, now, REPORT_MIN_MS)) return 'ignored';
 
-  const [places, ownPlaceId] = await Promise.all([
-    deps.read<VisitPlace[]>(VISIT_KEYS.places, []),
-    deps.read<string | null>(VISIT_KEYS.ownPlace, null),
-  ]);
-  const place = places.find((candidate) => candidate.id === event.id);
-  if (!place || place.id === ownPlaceId || !isRealVisit(place, enteredAt, now)) return 'ignored';
+  // Se anota el día antes de decidir: así casa y trabajo se reconocen solos.
+  days[place.id] = [...new Set([...(days[place.id] ?? []), cdmxDay(now)])].slice(-10);
+  await deps.write(VISIT_KEYS.days, days);
+  if (frequent) return 'ignored';
 
   await deps.report(place, enteredAt, now).catch(() => {});
   const [asked, lastPromptDay, reviewed] = await Promise.all([
@@ -262,6 +289,11 @@ async function reportVisit(place: VisitPlace, enteredAt: number, exitedAt: numbe
   });
 }
 
+async function markPresence(place: VisitPlace, inside: boolean): Promise<void> {
+  const { supabase } = await import('./supabase');
+  await supabase.rpc('mark_presence', { p_negocio: place.id, p_device_day: await deviceDay(Date.now()), p_inside: inside });
+}
+
 async function askOpinion(place: VisitPlace): Promise<void> {
   const Notifications = await import('expo-notifications');
   if (!(await Notifications.getPermissionsAsync()).granted) return;
@@ -285,6 +317,7 @@ export function handleVisitTaskEvent(event: GeofenceEvent) {
     write: writeJson,
     isReviewed,
     report: reportVisit,
+    presence: markPresence,
     ask: askOpinion,
     refresh: refreshRegions,
   });

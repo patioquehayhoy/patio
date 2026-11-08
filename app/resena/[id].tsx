@@ -6,9 +6,10 @@ import { useEffect, useRef, useState } from 'react';
 import { Alert, Animated, Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { fetchFonditaById, getPatioById, type Patio } from '@/lib/patios';
+import { fetchFonditaById, fetchPublicFonditas, getPatioById, type Patio } from '@/lib/patios';
 import { publicPrice } from '@/lib/prices';
-import { savePatioRating } from '@/lib/ratings';
+import { getRatedPatioIds, savePatioRating } from '@/lib/ratings';
+import { similarPlaces } from '@/lib/recommendations';
 import { writeErrorMessage } from '@/lib/content-safety';
 import { reviewTags } from '@/lib/review-tags';
 import { useTheme, type Theme, Type } from '@/lib/theme';
@@ -52,6 +53,19 @@ function makeStyles(t: Theme) {
     cta: { minHeight: 54, paddingVertical: 12, paddingHorizontal: 20, borderRadius: 27, backgroundColor: t.accent, alignItems: 'center', justifyContent: 'center' },
     ctaDisabled: { opacity: 0.4 },
     ctaText: { fontSize: 16, fontWeight: '700', color: '#fff' },
+
+    // Confirmación (vacío homologado: ícono de 32 en caja de 68, radio 20).
+    doneContent: { paddingHorizontal: 20, paddingTop: 48 },
+    doneHead: { alignItems: 'center', marginBottom: 40 },
+    doneIcon: { width: 68, height: 68, borderRadius: 20, backgroundColor: t.accentSoft, alignItems: 'center', justifyContent: 'center' },
+    doneTitle: { ...Type.section, color: t.text, marginTop: 18, textAlign: 'center' },
+    doneBody: { maxWidth: 310, marginTop: 9, fontSize: 15, lineHeight: 21, fontWeight: '400', color: t.textSecondary, textAlign: 'center' },
+    similarCard: { borderRadius: 18, backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, overflow: 'hidden' },
+    similarRow: { minHeight: 56, paddingVertical: 10, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 8 },
+    similarDivider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border },
+    similarCopy: { flex: 1, minWidth: 0 },
+    similarName: { fontSize: 16, lineHeight: 21, fontWeight: '700', color: t.text },
+    similarMeta: { marginTop: 2, fontSize: 13, lineHeight: 17, fontWeight: '400', color: t.textSecondary },
   });
 }
 
@@ -69,6 +83,8 @@ export default function ResenaScreen() {
   const [note, setNote] = useState('');
   const [photoUri, setPhotoUri] = useState<string | undefined>(undefined);
   const [saving, setSaving] = useState(false);
+  // Después de publicar: «Parecidos cerca» para seguir buscando lugares.
+  const [similar, setSimilar] = useState<Patio[] | null>(null);
 
   const starAnims = useRef([1, 2, 3, 4, 5].map(() => new Animated.Value(1))).current;
 
@@ -125,13 +141,59 @@ export default function ResenaScreen() {
     setSaving(true);
     try {
       await savePatioRating(cleanId, { stars, reasons: selected, note, photoUri });
-      router.back();
+      const suggestions = patio
+        ? await Promise.all([fetchPublicFonditas(), getRatedPatioIds()])
+          .then(([all, rated]) => similarPlaces(patio, all, rated))
+          .catch(() => [] as Patio[])
+        : [];
+      if (suggestions.length) setSimilar(suggestions);
+      else router.back();
     } catch (error) {
       Alert.alert(noWidow('No pudimos publicar tu reseña'), noWidow(writeErrorMessage(error, 'Revisa tu conexión e inténtalo otra vez.')));
     } finally {
       setSaving(false);
     }
   };
+
+  if (similar) {
+    // Confirmación con el lugar al centro y, abajo, lugares parecidos: la
+    // reseña también lleva a conocer otros (búsqueda por parecido).
+    return (
+      <View style={[s.root, { paddingTop: insets.top + 8 }]}>
+        <Stack.Screen options={{ headerShown: false }} />
+        <ScrollView contentContainerStyle={[s.doneContent, { paddingBottom: insets.bottom + 120 }]} showsVerticalScrollIndicator={false}>
+          <View style={s.doneHead}>
+            <View style={s.doneIcon}><Ionicons name="checkmark" size={32} color={theme.accent} /></View>
+            <Text style={s.doneTitle} accessibilityRole="header" allowFontScaling={true}>{noWidow('Reseña publicada')}</Text>
+            <Text style={s.doneBody} allowFontScaling={true}>{noWidow(`Le llega a ${patio?.name ?? 'el lugar'} y ayuda a quien busca dónde comer.`)}</Text>
+          </View>
+          <Text style={s.sectionLabel} allowFontScaling={true}>Parecidos cerca</Text>
+          <View style={s.similarCard}>
+            {similar.map((place, index) => (
+              <TouchableOpacity
+                key={place.id}
+                style={[s.similarRow, index > 0 && s.similarDivider]}
+                onPress={() => router.replace({ pathname: '/patio/[id]', params: { id: place.id } })}
+                activeOpacity={0.7}
+                accessibilityRole="button"
+                accessibilityLabel={`${place.name}, ${[place.area, place.categories[0]].filter(Boolean).join(', ')}`}>
+                <View style={s.similarCopy}>
+                  <Text style={s.similarName} allowFontScaling={true}>{place.name}</Text>
+                  <Text style={s.similarMeta} allowFontScaling={true}>{[place.area, place.categories[0], publicPrice(place.price)].filter(Boolean).join(' · ')}</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={16} color={theme.textMute} />
+              </TouchableOpacity>
+            ))}
+          </View>
+        </ScrollView>
+        <View style={[s.ctaWrap, { paddingBottom: insets.bottom + 20 }]}>
+          <TouchableOpacity style={s.cta} onPress={() => router.back()} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel="Listo">
+            <Text style={s.ctaText} allowFontScaling={true}>Listo</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <KeyboardAvoidingView style={s.root} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>

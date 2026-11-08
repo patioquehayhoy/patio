@@ -287,7 +287,7 @@ await check('visitas: anónimas, una por teléfono al día y nadie lee la tabla'
   const { rows } = await admin(`select count(*)::int as n from public.place_visits where negocio_id = $1`, [business]);
   if (rows[0].n !== 1) throw new Error(`same phone same day counted ${rows[0].n} times`);
   const bad = [
-    [business, `now() - interval '30 minutes'`, 3, 'b'.repeat(64)],
+    [business, `now() - interval '30 minutes'`, 2, 'b'.repeat(64)],
     [business, `now() + interval '1 hour'`, 20, 'c'.repeat(64)],
     [business, `now() - interval '30 minutes'`, 20, 'not-a-hash'],
     ['99999999-9999-4999-8999-999999999999', `now() - interval '30 minutes'`, 20, 'd'.repeat(64)],
@@ -296,20 +296,40 @@ await check('visitas: anónimas, una por teléfono al día y nadie lee la tabla'
     const result = (await as(null, `select public.record_visit($1, ${started}, $2, $3) as ok`, [place, minutes, hash])).rows[0].ok;
     if (result !== false) throw new Error(`accepted bad visit ${minutes} ${hash}`);
   }
-  await rejects(as(null, `select * from public.place_visits`), /permission denied/);
-  await rejects(as(ids.ana, `select * from public.place_visits`), /permission denied/);
+  for (const tableName of ['place_visits', 'place_presence', 'visit_settings']) {
+    await rejects(as(null, `select * from public.${tableName}`), /permission denied/);
+    await rejects(as(ids.ana, `select * from public.${tableName}`), /permission denied/);
+  }
 });
-await check('qué tan lleno: nada con menos de 30 visitas; niveles contra la hora pico', async () => {
+await check('en vivo: entrar y salir; solo cuenta quien lleva 3 minutos o más dentro', async () => {
+  const device = 'e'.repeat(64);
+  if ((await as(null, `select public.mark_presence($1, $2, true) as ok`, [business, device])).rows[0].ok !== true) throw new Error('presence rejected');
+  const inside = (await admin(`select left_at from public.place_presence where negocio_id = $1 and device_day = $2`, [business, device])).rows[0];
+  if (!inside || inside.left_at !== null) throw new Error('not inside');
+  await as(null, `select public.mark_presence($1, $2, false)`, [business, device]);
+  const out = (await admin(`select left_at from public.place_presence where negocio_id = $1 and device_day = $2`, [business, device])).rows[0];
+  if (!out.left_at) throw new Error('did not leave');
+  if ((await as(null, `select public.mark_presence($1, 'zz', true) as ok`, [business])).rows[0].ok !== false) throw new Error('bad hash accepted');
+});
+await check('qué tan lleno: nada con pocas visitas; niveles contra la hora pico y en vivo con quien está dentro', async () => {
   const few = (await as(null, `select * from public.place_busyness($1)`, [business])).rows;
   if (few.length) throw new Error(`shown with ${few.length} rows and 1 visit`);
   await admin(`insert into public.place_visits (negocio_id, started_at, minutes, device_day)
     select $1, now() - (g || ' days')::interval, 20, md5(g::text) || md5((g + 500)::text) from generate_series(1, 40) g`, [business]);
+  await admin(`insert into public.place_presence (negocio_id, device_day, arrived_at)
+    select $1, md5((g + 900)::text) || md5((g + 1900)::text), now() - interval '10 minutes' from generate_series(1, 3) g`, [business]);
+  await admin(`insert into public.place_presence (negocio_id, device_day, arrived_at)
+    values ($1, md5('justnow') || md5('justnow2'), now() - interval '1 minute')`, [business]);
   const rows = (await as(null, `select * from public.place_busyness($1)`, [business])).rows;
   if (!rows.length) throw new Error('nothing shown with 41 visits');
   if (Math.max(...rows.map((row) => row.level)) !== 100) throw new Error('peak is not 100');
   if (rows.some((row) => row.level < 1 || row.level > 100)) throw new Error('level out of range');
-  const current = rows.filter((row) => row.recent_visits !== null);
-  if (current.length !== 1 || current[0].recent_visits < 1) throw new Error(JSON.stringify(current));
+  const current = rows.filter((row) => row.usual_present !== null);
+  if (current.length !== 1 || current[0].present_now !== 3) throw new Error(JSON.stringify(current));
+  await admin(`update public.visit_settings set value = 100 where key = 'busy_min_visits'`);
+  const hidden = (await as(null, `select * from public.place_busyness($1)`, [business])).rows;
+  if (hidden.length) throw new Error('threshold not read from visit_settings');
+  await admin(`update public.visit_settings set value = 10 where key = 'busy_min_visits'`);
 });
 await check('eliminar la cuenta del dueño borra su negocio (trigger reescrito)', async () => {
   await admin(`delete from auth.users where id = $1`, [ids.owner]);

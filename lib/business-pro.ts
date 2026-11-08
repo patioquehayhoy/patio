@@ -54,6 +54,15 @@ export type PatioHighlights = { featuredDish: string | null; notice: { body: str
 
 /** Lo que Pro agrega a la ficha pública: platillo destacado y aviso de las últimas 24 horas. */
 export async function getPatioHighlights(negocioId: string): Promise<PatioHighlights> {
+  // Lugar de prueba en desarrollo: aviso especial y platillo recomendado.
+  if (typeof __DEV__ !== 'undefined' && __DEV__ && negocioId === 'demo-la-muestra') {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { SHOWCASE_HIGHLIGHTS } = require('./demo') as typeof import('./demo');
+    return {
+      featuredDish: canonicalDishName(SHOWCASE_HIGHLIGHTS.featuredDishName),
+      notice: { body: SHOWCASE_HIGHLIGHTS.notice, createdAt: new Date() },
+    };
+  }
   if (!UUID.test(negocioId)) return { featuredDish: null, notice: null };
   const { data, error } = await supabase.rpc('patio_highlights', { target: negocioId });
   const row = !error && Array.isArray(data) ? data[0] : null;

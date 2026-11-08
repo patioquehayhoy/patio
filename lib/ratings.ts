@@ -119,6 +119,11 @@ export type SaveRatingInput = {
   photoUri?: string;
 };
 
+/** Lugares que ya reseñaste desde este teléfono. */
+export async function getRatedPatioIds(): Promise<Set<string>> {
+  return new Set(Object.entries(await getMap()).filter(([, ratings]) => ratings.length > 0).map(([id]) => id));
+}
+
 /** ¿Ya reseñaste este lugar desde este teléfono? (para no volver a preguntar). */
 export async function hasRatedPatio(patioId: string): Promise<boolean> {
   return ((await getMap())[patioId] ?? []).length > 0;

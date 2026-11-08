@@ -118,7 +118,7 @@ export default function AvisosScreen() {
     }
   };
 
-  // «Pedir mi opinión»: necesita ubicación «Siempre» para notar visitas reales.
+  // «Tus visitas»: necesita ubicación «Siempre» para notar visitas reales.
   const updateVisits = async (value: boolean) => {
     setVisits(value);
     setUpdating('visits');
@@ -132,7 +132,7 @@ export default function AvisosScreen() {
       setVisits(false);
       Alert.alert(
         noWidow('Falta el permiso de ubicación'),
-        noWidow('Elige «Siempre» en Ajustes para que Patio note cuando visitas un lugar.'),
+        noWidow('Elige «Siempre» en Ajustes para que Patio note tus visitas.'),
         [{ text: 'Ahora no', style: 'cancel' }, { text: 'Abrir Ajustes', onPress: () => { Linking.openSettings().catch(() => {}); } }],
       );
     } catch {
@@ -208,11 +208,11 @@ export default function AvisosScreen() {
           {canAskOpinion && (
             <SettingsRow
               c={sc}
-              icon="star-outline"
-              title="Pedir mi opinión"
-              sub="Después de visitar un lugar. Tu visita cuenta, sin tu nombre, para «Qué tan lleno»."
+              icon="location-outline"
+              title="Tus visitas"
+              sub="Al salir de un lugar, te preguntamos qué te pareció. Tu visita cuenta, sin tu nombre, para «Qué tan lleno»."
               divider
-              trailing={<ToggleSwitch value={visits} disabled={updating === 'visits'} accessibilityLabel="Pedir mi opinión" onValueChange={updateVisits} />}
+              trailing={<ToggleSwitch value={visits} disabled={updating === 'visits'} accessibilityLabel="Tus visitas" onValueChange={updateVisits} />}
             />
           )}
         </SettingsGroup>

@@ -193,7 +193,7 @@ export function useFoodieExploreController() {
   );
 
   // Visitas reales: el mapa le pasa al teléfono los lugares que ya cargó,
-  // para vigilar los cercanos solo si la persona activó «Pedir mi opinión».
+  // para vigilar los cercanos solo si la persona activó «Tus visitas».
   useEffect(() => {
     if (!allPatios.length) return;
     rememberVisitPlaces(allPatios, getFonditaId() ?? null).catch(() => {});

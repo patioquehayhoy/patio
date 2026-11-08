@@ -672,3 +672,7 @@ Semibold: dos pesos de interfaz. Con la licencia (pendiente de compra, la hace
 Parco) se usa Monument Semibold en títulos (menos pesado que Black) y se puede
 sumar Neue Montreal Medium para separar mejor platillo y precio. Es requisito
 antes de tiendas: las fuentes de prueba no se pueden publicar.
+
+**Decisión de Parco (8 nov):** en la ficha que ve quien busca, la carta va
+**toda abierta** con la barra de secciones; no se ocultan secciones ahí. El
+acordeón se queda solo en el editor del negocio.

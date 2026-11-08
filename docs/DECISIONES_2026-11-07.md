@@ -699,3 +699,15 @@ acordeón se queda solo en el editor del negocio.
   (`docs/research/jev-ficha-encabezado-2026-11-08.json`) elige la franja tipo
   Apple Maps en los tres perfiles (78–96 %): encuentra abierto, distancia y
   precio mucho más rápido (3.7–3.9 contra ~2 de 4). Falta el sí de Parco.
+
+### Encabezado decidido y ley de casos de largo (8 nov, noche)
+
+- **Parco elige B** (datos junto a seguidores). Con caso límite no cabe junto a
+  «Seguir», así que es **adaptable**: un renglón cuando cabe; si no, los datos
+  bajan solos a su propia línea a todo lo ancho (como `ViewThatFits` de
+  Apple). Seguidores con separador de miles (12,480).
+- La franja tipo Apple Maps (A) se descarta por ahora: con colonias largas y
+  rangos de precio sus columnas de ~75 pt quedan disparejas.
+- **Ley nueva:** diseñar siempre con casos corto, típico, largo y límite
+  (`docs/design/CONTENT_STRESS_CASES.md`, también en `CLAUDE.md`). Los lugares
+  «Dev» traen ahora colonias largas, rangos de precio y 0 / miles de seguidores.

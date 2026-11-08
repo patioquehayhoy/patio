@@ -208,6 +208,7 @@ const DEV_QA: DevQa[] = [
     patio: devPatio('demo-dev-2', {
       name: 'Taquería Dev 2',
       categories: ['Tacos', 'Antojitos'],
+      area: 'San Pedro de los Pinos',
       price: '$18–$145',
       rating: '4.3',
       ratingCount: 23,
@@ -239,6 +240,7 @@ const DEV_QA: DevQa[] = [
     patio: devPatio('demo-dev-3', {
       name: 'Café Dev 3',
       categories: ['Café'],
+      area: 'Roma Norte',
       price: '$35–$60',
       rating: '',
       ratingCount: 0,
@@ -260,6 +262,7 @@ const DEV_QA: DevQa[] = [
     patio: devPatio('demo-dev-4', {
       name: 'Pastelería Dev 4',
       categories: ['Postres', 'Café'],
+      area: 'Santa María la Ribera',
       price: '$40–$480',
       rating: '4.9',
       ratingCount: 88,
@@ -281,12 +284,13 @@ const DEV_QA: DevQa[] = [
     patio: devPatio('demo-dev-5', {
       name: 'Mariscos y Cocteles Dev Cinco',
       categories: ['Mariscos'],
-      price: '$150',
+      area: 'Jardines del Pedregal de San Ángel',
+      price: '$150–$1,250',
+      latitude: 19.3285,
+      longitude: -99.2003,
       rating: '4.4',
       ratingCount: 61,
       reason: 'Comida corrida de mariscos con caldo, plato fuerte y agua',
-      latitude: 19.3931,
-      longitude: -99.1572,
       weeklyHours: week('12:00', '19:00', [2]),
       menu: [
         section('CALDOS', [item('Caldo de camarón seco con verduras y chile guajillo'), item('Sopa de mariscos de la casa con pulpo, camarón y almeja')], '$150'),
@@ -337,6 +341,7 @@ DEV_QA.push({
   patio: devPatio('demo-dev-6', {
     name: 'Cocina Grande Dev 6',
     categories: ['Restaurante', 'Fondita'],
+    area: 'Unidad Habitacional Vicente Guerrero',
     price: '$25–$260',
     rating: '4.5',
     ratingCount: 312,

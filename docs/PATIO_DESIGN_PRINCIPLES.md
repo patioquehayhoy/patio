@@ -101,11 +101,18 @@ errores) y la validación en línea de Luke Wroblewski.
     a una persona mayor.
   - El estado del día vive en la tarjeta: «Se acabó por hoy» es el primer
     bloque y el menú solo se atenúa (sin caja ni etiqueta «Agotado»).
-  - Ritmo en la retícula de 8: tarjeta 24 arriba; ubicación y precio → 24 →
-    menú; nombre y descripción a 2; platillos a 12; secciones a 24 sin
-    líneas (el espacio separa; línea y espacio a la vez es doble); etiqueta
-    de sección `Type.label` en gris, no naranja (un solo acento por
-    pantalla: «Seguir»); menú → 32 → detalles; mapa → 32 → reseñas.
+  - Ritmo en la retícula de 8: tarjeta 24 arriba → menú; nombre y
+    descripción a 2; platillos a 12; secciones a 24 sin líneas (el espacio
+    separa; línea y espacio a la vez es doble); título de sección en
+    `Type.section` con mayúscula inicial (2026-11-08: la etiqueta gris de 11
+    perdía contra el platillo de 16); menú → 32 → detalles; mapa → 32 →
+    reseñas.
+  - Colonia, distancia y precio (2026-11-08, Parco eligió B) van en la línea
+    de seguidores, junto a «Seguir», cuando caben en un renglón; si no caben,
+    bajan a su propia línea a todo lo ancho. Ya no viven en la hoja blanca.
+  - Menús de 4 secciones o más: barra de secciones fija arriba al bajar por
+    el menú (sin «volver»), fondo sólido del lienzo y desvanecido en las
+    orillas.
   - En desarrollo, los lugares de ejemplo muestran seguidores sintéticos.
 - Seguir, como Instagram (2026-11-02): se siguen personas y lugares. Una lista
   pública ofrece «Seguir a [nombre]», la persona que la armó, porque sus listas

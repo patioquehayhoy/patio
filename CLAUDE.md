@@ -39,6 +39,13 @@ Antes de cualquier cambio de UI, copy o flujo, leer los siguientes documentos en
   última línea. Todo copy estático de UI debe pasar por `noWidow()` de
   `lib/typography`; el contenido dinámico se protege cuando se presenta como
   bloque editorial. Esta revisión es obligatoria en cada cambio de pantalla.
+- **DISEÑAR CON CASOS DE LARGO, NUNCA CON UN SOLO EJEMPLO** (ley de Parco,
+  2026-11-08): toda propuesta, maqueta o pantalla se revisa con el caso
+  corto, típico, largo y límite de cada texto (colonia «Jardines del Pedregal
+  de San Ángel», precio «$150–$1,250», «12,480 seguidores»…), con letra
+  grande y en oscuro, antes de mostrarse. Si no cabe: baja a su propia línea,
+  baja de tamaño en pasos o parte en dos renglones; nunca se corta un dato
+  para decidir. Tabla y protocolo: `docs/design/CONTENT_STRESS_CASES.md`.
 - **La pantalla funciona sin conocer el chat:** jamás exponer decisiones
   internas, campos pospuestos, arquitectura o contexto de implementación. El
   copy solo explica la acción presente y el beneficio que la persona necesita

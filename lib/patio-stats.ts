@@ -59,6 +59,8 @@ function seedHash(seed: string): number {
   return hash;
 }
 
+const DEV_FOLLOWERS: Record<string, number> = { 'demo-dev-3': 0, 'demo-dev-5': 12480, 'demo-dev-6': 3215 };
+
 export function getDemoPatioStats(seed: string): PatioStatsSnapshot | null {
   if (!__DEV__ || !seed) return null;
   const hash = seedHash(seed);
@@ -88,5 +90,7 @@ export function getDemoPatioStats(seed: string): PatioStatsSnapshot | null {
     return { dishName: DEMO_DISHES[h % DEMO_DISHES.length], authors, daysAgo: h % 10 };
   });
 
-  return { views: 8 + (hash % 40), followers: 12 + (hash % 280), ratingAvg, ratingCount, reviews, dishLikes };
+  // Lugares «Dev» con números extremos para probar el largo: 0, miles y decenas de miles.
+  const followers = DEV_FOLLOWERS[seed] ?? 12 + (hash % 280);
+  return { views: 8 + (hash % 40), followers, ratingAvg, ratingCount, reviews, dishLikes };
 }

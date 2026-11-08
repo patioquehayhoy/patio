@@ -398,6 +398,9 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
   // La foto crece si la identidad (nombre largo + descripción abierta) no cabe
   // debajo de volver y compartir: nunca se enciman.
   const [identityHeight, setIdentityHeight] = useState(0);
+  // Datos junto a seguidores: un renglón si cabe; si no, bajan a su línea.
+  const [metaStacked, setMetaStacked] = useState(false);
+  useEffect(() => { setMetaStacked(false); }, [patio?.id, patio?.area, patio?.price, businessStats?.saves]);
   const heroHeight = Math.max(HERO_HEIGHT, insets.top + 8 + 44 + 16 + identityHeight + 44);
   // La foto de fondo siempre cubre el encabezado aunque crezca por un nombre largo.
   const backdropHeight = heroHeight + 120;
@@ -777,6 +780,8 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
   const distance = km === null ? null : formatDistance(km);
   const heroPrice = patioCardPrice(patio);
   const heroFacts = [patio.area?.trim(), distance, heroPrice.source === 'missing' ? null : heroPrice.label].filter(Boolean).join(' · ');
+  const followersCount = businessStats ? businessStats.saves.toLocaleString('es-MX') : '';
+  const metaLead = businessStats ? followersCount : heroFacts;
   return (
     <View style={s.container}>
       <Stack.Screen options={{ headerShown: false }} />
@@ -863,26 +868,31 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
             {!!description && (
               <Text style={[s.heroBioText, s.heroBio, { marginLeft: opticalIndent(description, Fonts.text, 15) }]} numberOfLines={2} allowFontScaling={true}>{noWidow(description)}</Text>
             )}
-            {/* Dónde está y cuánto cuesta, con la identidad (antes vivía en la
-                hoja blanca y no ayudaba): colonia · distancia · precio. */}
-            {!!heroFacts && (
+            {/* Datos junto a seguidores (Parco, 8 nov): «240 seguidores · Narvarte ·
+                450 m · $95» en la línea de «Seguir» cuando cabe en un renglón. Si
+                no cabe (colonia larga, rango de precio, miles de seguidores, letra
+                grande), los datos bajan a su propia línea a todo lo ancho, como
+                ViewThatFits de Apple: nunca se cortan ni se aprietan. */}
+            {metaStacked && !!heroFacts && (
               <Text style={[s.heroFacts, !description && s.heroFactsUnderName, { marginLeft: opticalIndent(heroFacts, Fonts.text, 14) }]} allowFontScaling={true}>{noWidow(heroFacts)}</Text>
             )}
-            <View style={[s.heroMeta, !description && !heroFacts && s.heroMetaUnderName]}>
-              {businessStats ? (
-                <TouchableOpacity
-                  style={s.followersLink}
-                  activeOpacity={0.7}
-                  hitSlop={{ top: 10, bottom: 10 }}
-                  disabled={!/^[0-9a-f-]{36}$/i.test(patio.id)}
-                  onPress={() => router.push({ pathname: '/foodie/seguidores', params: { patio: patio.id } })}
-                  accessibilityRole="button"
-                  accessibilityLabel={`${businessStatsLabel(businessStats)}, ver quién lo sigue`}>
-                  <Text style={[s.followersText, { marginLeft: opticalIndent(String(businessStats.saves), Fonts.textSemibold, 14) }]} allowFontScaling={true}>
-                    <Text style={s.followersValue}>{businessStats.saves}</Text> {businessStats.saves === 1 ? 'seguidor' : 'seguidores'}
-                  </Text>
-                </TouchableOpacity>
-              ) : <View />}
+            <View style={[s.heroMeta, !description && !(metaStacked && heroFacts) && s.heroMetaUnderName]}>
+              <View style={s.followersLink}>
+                <Text
+                  style={[s.followersText, { marginLeft: opticalIndent(metaLead, businessStats ? Fonts.textSemibold : Fonts.text, 14) }]}
+                  accessibilityLabel={[businessStats ? businessStatsLabel(businessStats) : '', metaStacked ? '' : heroFacts].filter(Boolean).join('. ')}
+                  onTextLayout={(event) => { if (!metaStacked && event.nativeEvent.lines.length > 1) setMetaStacked(true); }}
+                  allowFontScaling={true}>
+                  {businessStats ? (
+                    <Text
+                      suppressHighlighting
+                      onPress={/^[0-9a-f-]{36}$/i.test(patio.id) ? () => router.push({ pathname: '/foodie/seguidores', params: { patio: patio.id } }) : undefined}>
+                      <Text style={s.followersValue}>{followersCount}</Text>{` ${businessStats.saves === 1 ? 'seguidor' : 'seguidores'}`}
+                    </Text>
+                  ) : null}
+                  {!metaStacked && heroFacts ? `${businessStats ? ' · ' : ''}${heroFacts}` : ''}
+                </Text>
+              </View>
               {!own && (
                 <View ref={followAnchor} collapsable={false}>
                   <TouchableOpacity

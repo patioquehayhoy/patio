@@ -31,7 +31,7 @@ mostrarla.
 | Descripción del negocio (80) | — (vacía) | Comida corrida casera | Cocina de barrio de la mañana a la noche | Comida corrida de mariscos con caldo, plato fuerte y agua del día |
 | Colonia | Roma | Narvarte | San Pedro de los Pinos | Jardines del Pedregal de San Ángel · Unidad Habitacional Vicente Guerrero |
 | Distancia | 80 m | 450 m | 2.3 km | 24.8 km |
-| Precio | $25 | $95 | $75–$165 | $150–$1,250 |
+| Precio típico | $25 | $95 | $280 | $12,500 (un rango viejo: $1,250–2,950) |
 | Seguidores | 0 | 240 | 3,215 | 12,480 |
 | Calificación | sin reseñas | 4.6 (40) | 4.8 (126) | 4.5 (1,312) |
 | Horario de hoy | Cerrado hoy | 1–5pm | 8am–10pm | 12:30pm–11:30pm |
@@ -45,12 +45,12 @@ mostrarla.
 
 En desarrollo, los lugares «Dev» (`lib/demo.ts`) traen estos casos. Busca «dev»:
 
-- **Fondita Dev:** caso típico (Narvarte, $95, 240 seguidores).
-- **Taquería Dev 2:** San Pedro de los Pinos, $18–$145, menú de 14 secciones.
+- **Fondita Dev:** caso típico (Narvarte, precio del menú $95, 240 seguidores).
+- **Taquería Dev 2:** San Pedro de los Pinos, precio típico $45 (menú de $12 a $420), 14 secciones.
 - **Café Dev 3:** Roma Norte, 0 seguidores, sin reseñas.
 - **Pastelería Dev 4:** Santa María la Ribera, «Se acabó por hoy».
 - **Mariscos y Cocteles Dev Cinco:** nombre de 29, Jardines del Pedregal de
-  San Ángel, $150–$1,250, 12,480 seguidores, a más de 12 km.
+  San Ángel, precio del menú $150, 12,480 seguidores, a más de 12 km.
 - **Cocina Grande Dev 6:** Unidad Habitacional Vicente Guerrero, 24 secciones.
 
 ## 4. Qué nunca se corta y qué sí, a propósito

@@ -13,11 +13,9 @@ export function patioDistance(origin: Coordinates | null, patio: Coordinates): n
   return Number.isFinite(distance) ? distance : null;
 }
 
-/** Uses the lower bound of a real published price, never a spend estimate. */
-export function patioMinimumPrice(patio: Pick<Patio, 'price' | 'menu'>): number | null {
-  const price = patioCardPrice(patio);
-  if (price.source === 'missing') return null;
-  return Number(price.label.replace(/^\$/, '').split('–')[0].replace(/,/g, ''));
+/** Orders by the same typical price the card shows (2026-11-08), never by a menu extreme. */
+export function patioTypicalPrice(patio: Pick<Patio, 'price' | 'menu'>): number | null {
+  return patioCardPrice(patio).value;
 }
 
 /** Missing values last, preserving the original order for equal/unknown values. */

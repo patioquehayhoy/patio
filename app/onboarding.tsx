@@ -237,6 +237,7 @@ export default function OnboardingScreen() {
                   data={slides}
                   keyExtractor={(item) => `${role}-${item.key}`}
                   horizontal
+                  scrollsToTop={false}
                   pagingEnabled
                   bounces={false}
                   showsHorizontalScrollIndicator={false}

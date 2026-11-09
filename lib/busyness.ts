@@ -86,6 +86,6 @@ export function peakLabel(busyness: Busyness): string | null {
 export function liveLabel(busyness: Busyness): string | null {
   if (busyness.live === 'more') return 'Ahora: más lleno de lo normal';
   if (busyness.live === 'less') return 'Ahora: menos lleno de lo normal';
-  if (busyness.live === 'usual') return 'Ahora: como de costumbre';
+  if (busyness.live === 'usual') return 'Ahora: tan lleno como de costumbre';
   return null;
 }

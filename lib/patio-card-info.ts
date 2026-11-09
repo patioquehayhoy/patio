@@ -4,7 +4,13 @@ import type { Patio } from './patios';
 export type PatioCardPrice = {
   label: string;
   accessibilityLabel: string;
-  source: 'patio' | 'menu' | 'missing';
+  /**
+   * menu-day: el «Precio del menú» que pone el negocio (comida corrida);
+   * menu: el precio típico de su menú; patio: precio publicado en su perfil.
+   */
+  source: 'menu-day' | 'menu' | 'patio' | 'missing';
+  /** El número que representa al lugar al ordenar y comparar. */
+  value: number | null;
 };
 
 export type PatioCardInfoData = {
@@ -52,26 +58,86 @@ function amountLabel(amount: number): string {
   return amount.toLocaleString('es-MX', { maximumFractionDigits: 2 });
 }
 
-function priceInfo(min: number, max: number, source: 'patio' | 'menu'): PatioCardPrice {
-  const label = min === max ? `$${amountLabel(min)}` : `$${amountLabel(min)}–${amountLabel(max)}`;
-  return {
-    label,
-    source,
-    accessibilityLabel: min === max
-      ? `Precio publicado, ${amountLabel(min)} pesos`
-      : `Precios publicados, de ${amountLabel(min)} a ${amountLabel(max)} pesos`,
-  };
+function rangeLabel(min: number, max: number): string {
+  return min === max ? `$${amountLabel(min)}` : `$${amountLabel(min)}–${amountLabel(max)}`;
 }
 
-/** Published prices, never an estimate of average spend or price per person. */
-export function patioCardPrice(patio: Pick<Patio, 'price' | 'menu'>): PatioCardPrice {
-  const published = numericPriceRange(patio.price);
-  if (published) return priceInfo(published[0], published[1], 'patio');
+// Secciones que acompañan (bebidas, extras): no dicen lo que cuesta comer,
+// salvo que sean la mayoría del menú (un café o una juguería).
+const SIDE_SECTION = /^(bebidas?|aguas?|refrescos?|jugos?|licuados?|cervezas?|extras?|adicionales?|complementos?|guarnicion(es)?|acompanamientos?|tortillas?|salsas?)\b/;
 
-  const amounts = patio.menu.flatMap((section) => [section.price, ...section.items.map((item) => item.price)])
-    .flatMap((price) => numericPriceRange(price) ?? []);
-  if (amounts.length) return priceInfo(Math.min(...amounts), Math.max(...amounts), 'menu');
-  return { label: 'Sin precio', accessibilityLabel: 'Sin precios publicados', source: 'missing' };
+function isSideSection(name: string): boolean {
+  return SIDE_SECTION.test(name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase());
+}
+
+/** The middle published amount (the upper one on even counts): always a real menu price. */
+function middleAmount(amounts: number[]): number {
+  const sorted = [...amounts].sort((a, b) => a - b);
+  return sorted[Math.floor(sorted.length / 2)];
+}
+
+function amountsOf(price?: string | null): number[] {
+  const range = numericPriceRange(price);
+  return !range ? [] : range[0] === range[1] ? [range[0]] : range;
+}
+
+/**
+ * Un solo precio típico, tomado siempre de lo que el negocio publicó (nunca
+ * un estimado de gasto): el «Precio del menú» si lo puso; si no, el precio de
+ * en medio de su menú, sin bebidas ni extras. El rango del más barato al más
+ * caro lo dicen el menú y la etiqueta de accesibilidad: sus extremos suelen
+ * ser un agua y un platillo para compartir (auditoría 2026-11-08).
+ */
+export function patioCardPrice(patio: Pick<Patio, 'price' | 'menu'>): PatioCardPrice {
+  // El editor guarda el «Precio del menú» en una sola sección; varias
+  // secciones con precio son precios por sección (menús leídos de foto).
+  const pricedSections = patio.menu.filter((section) => amountsOf(section.price).length);
+  if (pricedSections.length === 1) {
+    const [low, high = low] = amountsOf(pricedSections[0].price);
+    return {
+      label: rangeLabel(low, high),
+      source: 'menu-day',
+      value: (low + high) / 2,
+      accessibilityLabel: low === high
+        ? `Precio del menú, ${amountLabel(low)} pesos`
+        : `Precio del menú, de ${amountLabel(low)} a ${amountLabel(high)} pesos`,
+    };
+  }
+
+  const entries = patio.menu.flatMap((section) => {
+    const side = isSideSection(section.section);
+    return [...amountsOf(section.price), ...section.items.flatMap((item) => amountsOf(item.price))]
+      .map((amount) => ({ amount, side }));
+  });
+  if (entries.length) {
+    const main = entries.filter((entry) => !entry.side);
+    const typical = middleAmount((main.length * 2 >= entries.length ? main : entries).map((entry) => entry.amount));
+    const all = entries.map((entry) => entry.amount);
+    const low = Math.min(...all);
+    const high = Math.max(...all);
+    return {
+      label: `$${amountLabel(typical)}`,
+      source: 'menu',
+      value: typical,
+      accessibilityLabel: low === high
+        ? `Precio típico, ${amountLabel(typical)} pesos`
+        : `Precio típico, ${amountLabel(typical)} pesos. En el menú, de ${amountLabel(low)} a ${amountLabel(high)} pesos`,
+    };
+  }
+
+  const published = numericPriceRange(patio.price);
+  if (published) {
+    const [low, high] = published;
+    return {
+      label: rangeLabel(low, high),
+      source: 'patio',
+      value: (low + high) / 2,
+      accessibilityLabel: low === high
+        ? `Precio publicado, ${amountLabel(low)} pesos`
+        : `Precios publicados, de ${amountLabel(low)} a ${amountLabel(high)} pesos`,
+    };
+  }
+  return { label: 'Sin precio', accessibilityLabel: 'Sin precios publicados', source: 'missing', value: null };
 }
 
 function knownHours(day: DiaHorario | undefined): boolean {

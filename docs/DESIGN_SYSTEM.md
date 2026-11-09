@@ -84,9 +84,15 @@ La colección pública no inventa métricas que su consulta no obtiene.
   categoría o una colonia inferida.
 - Lista: nombre a la izquierda y precio a la derecha en la cabecera. Con
   letra grande en ancho menor de 600 pt, el precio pasa debajo y mantiene
-  alineación derecha. El precio publicado siempre se ve completo: un rango
-  que no cabe parte después del guion en dos renglones («$12,500–» /
-  «25,000»). Sin «Ver precios» ni cifras recortadas.
+  alineación derecha.
+- Precio (auditoría 2026-11-08): **uno solo, el típico**, nunca el rango del
+  más barato al más caro (sus extremos suelen ser un agua y un platillo para
+  compartir). Es el «Precio del menú» si el negocio lo puso; si no, el precio
+  de en medio de su menú sin bebidas ni extras (salvo que sean la mayoría,
+  como en un café). Siempre es un precio real del menú; el rango completo lo
+  dicen el menú y VoiceOver. «Ordenar por precio» usa el mismo número. Un
+  precio publicado como rango (datos viejos) se ve completo y parte después
+  del guion si no cabe. Sin «Ver precios» ni cifras recortadas.
 - Calificación y cierre: la calificación («4.5 (1.3k)») nunca se encoge; el
   cierre ocupa el resto y baja de renglón. Con letra grande el cierre pasa
   a su propia línea.

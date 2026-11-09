@@ -1,0 +1,1118 @@
+{
+ "app": "Una app mexicana de celular para saber qué preparan hoy los lugares de comida cercanos: fondas, taquerías, cafés, marisquerías. En la lista de lugares cercanos cada tarjeta muestra el nombre, la colonia, la distancia, la calificación y, a la derecha, un precio. Al abrir un lugar se ve el menú de hoy completo, con el precio de cada platillo. Tres lugares de ejemplo: Fonda Lupita (comida corrida de $95 con sopa, arroz, guisado y agua; además aguas de $20 y postres de $30), Tacos El Güero (tacos de $18 a $38, órdenes para compartir de $120 a $145, refrescos de $25) y Mariscos La Ola (cocteles de $150 a $350, platos de $220 a $380, una mariscada para cuatro de $1,250 y aguas de $35).",
+ "opciones": {
+  "rango_completo": "La tarjeta muestra el rango del menú, del platillo más barato al más caro: Fonda Lupita «$20–95», Tacos El Güero «$18–145», Mariscos La Ola «$35–1,250».",
+  "precio_tipico": "La tarjeta muestra un solo precio típico: el de la comida corrida si la hay; si no, lo que cuesta un platillo típico del menú, sin contar bebidas: Fonda Lupita «$95», Tacos El Güero «$28», Mariscos La Ola «$280».",
+  "rango_central": "La tarjeta muestra el rango donde cae la mayoría de los platillos, sin los extremos: Fonda Lupita «$95», Tacos El Güero «$24–38», Mariscos La Ola «$220–350».",
+  "nivel": "La tarjeta muestra un nivel de precio con signos de pesos, de uno a cuatro: Fonda Lupita «$», Tacos El Güero «$», Mariscos La Ola «$$$».",
+  "sin_precio": "La tarjeta no muestra precio; los precios solo se ven al abrir el menú de cada lugar."
+ },
+ "por_opcion": {
+  "oficina": {
+   "rango_completo": {
+    "presupuesto": {
+     "type": "score",
+     "score": 2.75,
+     "confidence": 0.59,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.07,
+      "2": 0.23,
+      "3": 0.58,
+      "4": 0.12
+     }
+    },
+    "comparar": {
+     "type": "score",
+     "score": 2.86,
+     "confidence": 0.56,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.09,
+      "2": 0.15,
+      "3": 0.56,
+      "4": 0.2
+     }
+    },
+    "sorpresa": {
+     "type": "score",
+     "score": 2.63,
+     "confidence": 0.43,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.02,
+      "1": 0.15,
+      "2": 0.17,
+      "3": 0.5,
+      "4": 0.16
+     }
+    }
+   },
+   "precio_tipico": {
+    "presupuesto": {
+     "type": "score",
+     "score": 2.55,
+     "confidence": 0.58,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.08,
+      "2": 0.31,
+      "3": 0.58,
+      "4": 0.03
+     }
+    },
+    "comparar": {
+     "type": "score",
+     "score": 2.83,
+     "confidence": 0.57,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.08,
+      "2": 0.18,
+      "3": 0.56,
+      "4": 0.18
+     }
+    },
+    "sorpresa": {
+     "type": "score",
+     "score": 1.94,
+     "confidence": 0.52,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.31,
+      "2": 0.43,
+      "3": 0.25,
+      "4": 0.01
+     }
+    }
+   },
+   "rango_central": {
+    "presupuesto": {
+     "type": "score",
+     "score": 2.46,
+     "confidence": 0.51,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.11,
+      "2": 0.35,
+      "3": 0.52,
+      "4": 0.02
+     }
+    },
+    "comparar": {
+     "type": "score",
+     "score": 2.26,
+     "confidence": 0.32,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.2,
+      "2": 0.37,
+      "3": 0.39,
+      "4": 0.04
+     }
+    },
+    "sorpresa": {
+     "type": "score",
+     "score": 1.79,
+     "confidence": 0.33,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.4,
+      "2": 0.4,
+      "3": 0.18,
+      "4": 0.01
+     }
+    }
+   },
+   "nivel": {
+    "presupuesto": {
+     "type": "score",
+     "score": 2.3,
+     "confidence": 0.37,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.19,
+      "2": 0.35,
+      "3": 0.43,
+      "4": 0.03
+     }
+    },
+    "comparar": {
+     "type": "score",
+     "score": 3.18,
+     "confidence": 0.32,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.08,
+      "2": 0.09,
+      "3": 0.39,
+      "4": 0.44
+     }
+    },
+    "sorpresa": {
+     "type": "score",
+     "score": 2.1,
+     "confidence": 0.42,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.27,
+      "2": 0.36,
+      "3": 0.32,
+      "4": 0.04
+     }
+    }
+   },
+   "sin_precio": {
+    "presupuesto": {
+     "type": "score",
+     "score": 1.3,
+     "confidence": 0.53,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.13,
+      "1": 0.56,
+      "2": 0.21,
+      "3": 0.08,
+      "4": 0.02
+     }
+    },
+    "comparar": {
+     "type": "score",
+     "score": 0.91,
+     "confidence": 0.78,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.18,
+      "1": 0.75,
+      "2": 0.06,
+      "3": 0.01,
+      "4": 0.0
+     }
+    },
+    "sorpresa": {
+     "type": "score",
+     "score": 1.9,
+     "confidence": 0.19,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.05,
+      "1": 0.41,
+      "2": 0.23,
+      "3": 0.24,
+      "4": 0.07
+     }
+    }
+   }
+  },
+  "senor": {
+   "rango_completo": {
+    "presupuesto": {
+     "type": "score",
+     "score": 2.56,
+     "confidence": 0.52,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.12,
+      "2": 0.26,
+      "3": 0.55,
+      "4": 0.07
+     }
+    },
+    "comparar": {
+     "type": "score",
+     "score": 2.22,
+     "confidence": 0.28,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.25,
+      "2": 0.31,
+      "3": 0.39,
+      "4": 0.05
+     }
+    },
+    "sorpresa": {
+     "type": "score",
+     "score": 2.4,
+     "confidence": 0.36,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.02,
+      "1": 0.2,
+      "2": 0.23,
+      "3": 0.47,
+      "4": 0.08
+     }
+    }
+   },
+   "precio_tipico": {
+    "presupuesto": {
+     "type": "score",
+     "score": 2.61,
+     "confidence": 0.61,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.08,
+      "2": 0.27,
+      "3": 0.61,
+      "4": 0.04
+     }
+    },
+    "comparar": {
+     "type": "score",
+     "score": 2.71,
+     "confidence": 0.54,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.1,
+      "2": 0.22,
+      "3": 0.55,
+      "4": 0.13
+     }
+    },
+    "sorpresa": {
+     "type": "score",
+     "score": 1.91,
+     "confidence": 0.52,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.33,
+      "2": 0.43,
+      "3": 0.23,
+      "4": 0.01
+     }
+    }
+   },
+   "rango_central": {
+    "presupuesto": {
+     "type": "score",
+     "score": 2.19,
+     "confidence": 0.52,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.19,
+      "2": 0.44,
+      "3": 0.36,
+      "4": 0.01
+     }
+    },
+    "comparar": {
+     "type": "score",
+     "score": 1.91,
+     "confidence": 0.52,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.33,
+      "2": 0.43,
+      "3": 0.23,
+      "4": 0.01
+     }
+    },
+    "sorpresa": {
+     "type": "score",
+     "score": 1.61,
+     "confidence": 0.48,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.48,
+      "2": 0.4,
+      "3": 0.11,
+      "4": 0.0
+     }
+    }
+   },
+   "nivel": {
+    "presupuesto": {
+     "type": "score",
+     "score": 2.42,
+     "confidence": 0.45,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.15,
+      "2": 0.32,
+      "3": 0.49,
+      "4": 0.04
+     }
+    },
+    "comparar": {
+     "type": "score",
+     "score": 3.08,
+     "confidence": 0.52,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.07,
+      "2": 0.09,
+      "3": 0.51,
+      "4": 0.32
+     }
+    },
+    "sorpresa": {
+     "type": "score",
+     "score": 2.16,
+     "confidence": 0.43,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.24,
+      "2": 0.36,
+      "3": 0.36,
+      "4": 0.03
+     }
+    }
+   },
+   "sin_precio": {
+    "presupuesto": {
+     "type": "score",
+     "score": 1.33,
+     "confidence": 0.63,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.06,
+      "1": 0.65,
+      "2": 0.21,
+      "3": 0.07,
+      "4": 0.01
+     }
+    },
+    "comparar": {
+     "type": "score",
+     "score": 0.78,
+     "confidence": 0.72,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.28,
+      "1": 0.68,
+      "2": 0.03,
+      "3": 0.01,
+      "4": 0.0
+     }
+    },
+    "sorpresa": {
+     "type": "score",
+     "score": 1.7,
+     "confidence": 0.35,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.04,
+      "1": 0.49,
+      "2": 0.24,
+      "3": 0.19,
+      "4": 0.04
+     }
+    }
+   }
+  },
+  "estudiante": {
+   "rango_completo": {
+    "presupuesto": {
+     "type": "score",
+     "score": 2.93,
+     "confidence": 0.65,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.04,
+      "2": 0.16,
+      "3": 0.62,
+      "4": 0.18
+     }
+    },
+    "comparar": {
+     "type": "score",
+     "score": 2.75,
+     "confidence": 0.51,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.12,
+      "2": 0.18,
+      "3": 0.53,
+      "4": 0.17
+     }
+    },
+    "sorpresa": {
+     "type": "score",
+     "score": 2.56,
+     "confidence": 0.43,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.02,
+      "1": 0.16,
+      "2": 0.19,
+      "3": 0.51,
+      "4": 0.12
+     }
+    }
+   },
+   "precio_tipico": {
+    "presupuesto": {
+     "type": "score",
+     "score": 2.5,
+     "confidence": 0.54,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.09,
+      "2": 0.34,
+      "3": 0.54,
+      "4": 0.03
+     }
+    },
+    "comparar": {
+     "type": "score",
+     "score": 2.77,
+     "confidence": 0.49,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.1,
+      "2": 0.22,
+      "3": 0.49,
+      "4": 0.19
+     }
+    },
+    "sorpresa": {
+     "type": "score",
+     "score": 1.76,
+     "confidence": 0.55,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.39,
+      "2": 0.46,
+      "3": 0.15,
+      "4": 0.0
+     }
+    }
+   },
+   "rango_central": {
+    "presupuesto": {
+     "type": "score",
+     "score": 2.06,
+     "confidence": 0.57,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.22,
+      "2": 0.5,
+      "3": 0.27,
+      "4": 0.01
+     }
+    },
+    "comparar": {
+     "type": "score",
+     "score": 2.09,
+     "confidence": 0.48,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.26,
+      "2": 0.41,
+      "3": 0.3,
+      "4": 0.03
+     }
+    },
+    "sorpresa": {
+     "type": "score",
+     "score": 1.5,
+     "confidence": 0.57,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.02,
+      "1": 0.56,
+      "2": 0.34,
+      "3": 0.08,
+      "4": 0.0
+     }
+    }
+   },
+   "nivel": {
+    "presupuesto": {
+     "type": "score",
+     "score": 2.56,
+     "confidence": 0.51,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.12,
+      "2": 0.27,
+      "3": 0.53,
+      "4": 0.08
+     }
+    },
+    "comparar": {
+     "type": "score",
+     "score": 3.18,
+     "confidence": 0.52,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.05,
+      "2": 0.09,
+      "3": 0.48,
+      "4": 0.38
+     }
+    },
+    "sorpresa": {
+     "type": "score",
+     "score": 2.0,
+     "confidence": 0.47,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.3,
+      "2": 0.39,
+      "3": 0.28,
+      "4": 0.02
+     }
+    }
+   },
+   "sin_precio": {
+    "presupuesto": {
+     "type": "score",
+     "score": 1.28,
+     "confidence": 0.61,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.09,
+      "1": 0.64,
+      "2": 0.18,
+      "3": 0.07,
+      "4": 0.02
+     }
+    },
+    "comparar": {
+     "type": "score",
+     "score": 0.83,
+     "confidence": 0.72,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.26,
+      "1": 0.68,
+      "2": 0.05,
+      "3": 0.01,
+      "4": 0.0
+     }
+    },
+    "sorpresa": {
+     "type": "score",
+     "score": 1.85,
+     "confidence": 0.17,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.08,
+      "1": 0.41,
+      "2": 0.19,
+      "3": 0.23,
+      "4": 0.09
+     }
+    }
+   }
+  }
+ },
+ "elecciones": {
+  "oficina": [
+   {
+    "orden": [
+     "rango_completo",
+     "nivel",
+     "sin_precio",
+     "precio_tipico",
+     "rango_central"
+    ],
+    "respuesta": {
+     "elige": {
+      "type": "choice",
+      "choice": "precio_tipico",
+      "confidence": 0.62,
+      "probabilities": {
+       "rango_completo": 0.15,
+       "nivel": 0.08,
+       "sin_precio": 0.0,
+       "precio_tipico": 0.7,
+       "rango_central": 0.07
+      }
+     }
+    }
+   },
+   {
+    "orden": [
+     "nivel",
+     "precio_tipico",
+     "rango_completo",
+     "sin_precio",
+     "rango_central"
+    ],
+    "respuesta": {
+     "elige": {
+      "type": "choice",
+      "choice": "precio_tipico",
+      "confidence": 0.7,
+      "probabilities": {
+       "nivel": 0.08,
+       "precio_tipico": 0.76,
+       "rango_completo": 0.1,
+       "sin_precio": 0.0,
+       "rango_central": 0.06
+      }
+     }
+    }
+   },
+   {
+    "orden": [
+     "rango_completo",
+     "sin_precio",
+     "nivel",
+     "rango_central",
+     "precio_tipico"
+    ],
+    "respuesta": {
+     "elige": {
+      "type": "choice",
+      "choice": "precio_tipico",
+      "confidence": 0.66,
+      "probabilities": {
+       "rango_completo": 0.15,
+       "sin_precio": 0.0,
+       "nivel": 0.07,
+       "rango_central": 0.05,
+       "precio_tipico": 0.73
+      }
+     }
+    }
+   }
+  ],
+  "senor": [
+   {
+    "orden": [
+     "rango_completo",
+     "rango_central",
+     "nivel",
+     "precio_tipico",
+     "sin_precio"
+    ],
+    "respuesta": {
+     "elige": {
+      "type": "choice",
+      "choice": "precio_tipico",
+      "confidence": 0.71,
+      "probabilities": {
+       "rango_completo": 0.1,
+       "rango_central": 0.01,
+       "nivel": 0.12,
+       "precio_tipico": 0.77,
+       "sin_precio": 0.0
+      }
+     }
+    }
+   },
+   {
+    "orden": [
+     "rango_central",
+     "sin_precio",
+     "rango_completo",
+     "precio_tipico",
+     "nivel"
+    ],
+    "respuesta": {
+     "elige": {
+      "type": "choice",
+      "choice": "precio_tipico",
+      "confidence": 0.76,
+      "probabilities": {
+       "rango_central": 0.01,
+       "sin_precio": 0.01,
+       "rango_completo": 0.06,
+       "precio_tipico": 0.81,
+       "nivel": 0.11
+      }
+     }
+    }
+   },
+   {
+    "orden": [
+     "nivel",
+     "rango_central",
+     "rango_completo",
+     "precio_tipico",
+     "sin_precio"
+    ],
+    "respuesta": {
+     "elige": {
+      "type": "choice",
+      "choice": "precio_tipico",
+      "confidence": 0.57,
+      "probabilities": {
+       "nivel": 0.26,
+       "rango_central": 0.03,
+       "rango_completo": 0.05,
+       "precio_tipico": 0.66,
+       "sin_precio": 0.0
+      }
+     }
+    }
+   }
+  ],
+  "estudiante": [
+   {
+    "orden": [
+     "sin_precio",
+     "rango_completo",
+     "nivel",
+     "rango_central",
+     "precio_tipico"
+    ],
+    "respuesta": {
+     "elige": {
+      "type": "choice",
+      "choice": "precio_tipico",
+      "confidence": 0.49,
+      "probabilities": {
+       "sin_precio": 0.0,
+       "rango_completo": 0.2,
+       "nivel": 0.17,
+       "rango_central": 0.04,
+       "precio_tipico": 0.59
+      }
+     }
+    }
+   },
+   {
+    "orden": [
+     "nivel",
+     "sin_precio",
+     "precio_tipico",
+     "rango_central",
+     "rango_completo"
+    ],
+    "respuesta": {
+     "elige": {
+      "type": "choice",
+      "choice": "precio_tipico",
+      "confidence": 0.4,
+      "probabilities": {
+       "nivel": 0.27,
+       "sin_precio": 0.0,
+       "precio_tipico": 0.52,
+       "rango_central": 0.06,
+       "rango_completo": 0.15
+      }
+     }
+    }
+   },
+   {
+    "orden": [
+     "sin_precio",
+     "nivel",
+     "rango_central",
+     "precio_tipico",
+     "rango_completo"
+    ],
+    "respuesta": {
+     "elige": {
+      "type": "choice",
+      "choice": "precio_tipico",
+      "confidence": 0.4,
+      "probabilities": {
+       "sin_precio": 0.0,
+       "nivel": 0.23,
+       "rango_central": 0.06,
+       "precio_tipico": 0.52,
+       "rango_completo": 0.19
+      }
+     }
+    }
+   }
+  ]
+ }
+}

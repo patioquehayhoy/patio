@@ -1,6 +1,6 @@
 import { BottomContentFade } from '@/components/bottom-content-fade';
 import { usePullRefresh } from '@/lib/use-pull-refresh';
-import { patioDistance, patioMinimumPrice, sortPatiosByMetric, type PatioSortMode } from '@/lib/patio-sort';
+import { patioDistance, patioTypicalPrice, sortPatiosByMetric, type PatioSortMode } from '@/lib/patio-sort';
 import { FoodieLoading } from '@/components/foodie-loading';
 import { useScrollEdges } from '@/lib/use-scroll-edges';
 import { Ionicons } from '@expo/vector-icons';
@@ -278,7 +278,7 @@ export default function FavoritosScreen() {
       case 'rating':
         return [...filtered].sort((a, b) => (metaById[b.id]?.rating ?? -1) - (metaById[a.id]?.rating ?? -1));
       case 'price':
-        return sortPatiosByMetric(filtered, patioMinimumPrice);
+        return sortPatiosByMetric(filtered, patioTypicalPrice);
       case 'distance':
         return sortPatiosByMetric(filtered, (patio) => patioDistance(here, patio));
       case 'az':

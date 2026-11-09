@@ -53,6 +53,7 @@ export function SectionBar({ names, active, onSelect, colors, leading, style }: 
           <ScrollView
             ref={scroller}
             horizontal
+            scrollsToTop={false}
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={[s.items, !leading && s.itemsAlone]}
             onLayout={(event) => { sizes.current.view = event.nativeEvent.layout.width; updateEdges(); }}

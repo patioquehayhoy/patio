@@ -32,7 +32,7 @@ export function FollowingActivityRow({ events, onOpen }: { events: FollowingActi
   return (
     <View style={s.block}>
       <Text style={s.label} allowFontScaling>DE QUIENES SIGUES</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.row} decelerationRate="fast" snapToInterval={CARD_WIDTH + 8} snapToAlignment="start">
+      <ScrollView horizontal scrollsToTop={false} showsHorizontalScrollIndicator={false} contentContainerStyle={s.row} decelerationRate="fast" snapToInterval={CARD_WIDTH + 8} snapToAlignment="start">
         {events.map((event) => {
           const text = activityText(event);
           return (

@@ -749,3 +749,45 @@ letra grande; ahora es alto mínimo). En las tarjetas, la calificación ya no se
 encoge junto al cierre y el precio se ve completo siempre: «Ver precios» se
 quitó y un rango largo parte en dos renglones después del guion. Lo que sí se
 limita a propósito quedó en `docs/design/CONTENT_STRESS_CASES.md` §4.
+
+### Precio típico, «Qué tan lleno» y volver arriba (8 nov, noche)
+
+**¿Sirve mostrar el precio?** Sí. En Jev
+(`docs/research/jev-precio-tarjeta-2026-11-08.json`, tres perfiles, cinco
+opciones), quitar el precio de la tarjeta fue lo peor: 1.3 de 4 para saber
+cuánto vas a gastar y 0.8 para comparar.
+
+**¿Sirve el rango del más barato al más caro?** Casi nunca:
+
+- Sus extremos son dos platillos sueltos. En los lugares de prueba el más
+  barato es un agua, una concha o un taco de frijol; el más caro, una
+  «Parrillada para cuatro» o un «Pastel entero para diez». Taquería Dev 2
+  decía «$12–420» cuando lo típico es $45.
+- Teoría del rango (Janiszewski y Lichtenstein, *Journal of Consumer
+  Research*, 1999): el precio se juzga contra los extremos que uno tiene en
+  mente; un extremo de $420 hace ver cara una taquería de $45.
+- Google Maps muestra cuánto gasta la gente por persona (lo reportan quienes
+  reseñan, en rangos cortos), nunca los extremos del menú.
+- Jev eligió el precio típico en las nueve elecciones (52–81 %). Matiz: el
+  rango completo calificó mejor en «no llevarme una sorpresa al pagar»
+  (2.4–2.6 contra 1.8–1.9). Por eso el rango completo sigue en el menú de la
+  ficha y en VoiceOver.
+
+**Hecho:** la tarjeta, la ficha, «Parecidos cerca» y «Ordenar por precio»
+usan un solo precio típico (`lib/patio-card-info.ts`): el «Precio del menú» si
+el negocio lo puso; si no, el de en medio de su menú sin bebidas ni extras.
+Siempre es un precio que está en el menú. Siguiente paso, cuando haya
+reseñas: preguntar «¿cuánto gastaste por persona?», como Google.
+
+**«Qué tan lleno»** pierde su título: la primera línea de la tarjeta ya lo
+dice («Ahora: más lleno de lo normal», «Los viernes suele llenarse de 2 a 3
+pm») y los detalles de la ficha no llevan encabezados; el título, del tamaño
+de las secciones del menú, competía con ellas. «Como de costumbre» pasa a
+«tan lleno como de costumbre».
+
+**Volver arriba:** botón de contorno al final de las fichas de más de cuatro
+pantallas (guía de Nielsen Norman Group). Android no tiene el toque en la
+barra de estado de iOS, y en iOS ese gesto solo funciona si hay una sola
+lista que lo atienda: las tiras horizontales (secciones, «De quienes
+sigues», intro) ya no lo atienden.
+

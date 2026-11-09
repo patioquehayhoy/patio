@@ -7,7 +7,7 @@ import { Alert, Animated, Image, KeyboardAvoidingView, Platform, ScrollView, Sty
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { fetchFonditaById, fetchPublicFonditas, getPatioById, type Patio } from '@/lib/patios';
-import { publicPrice } from '@/lib/prices';
+import { patioCardPrice } from '@/lib/patio-card-info';
 import { getRatedPatioIds, savePatioRating } from '@/lib/ratings';
 import { similarPlaces } from '@/lib/recommendations';
 import { writeErrorMessage } from '@/lib/content-safety';
@@ -16,6 +16,12 @@ import { useTheme, type Theme, Type } from '@/lib/theme';
 import { supabase } from '@/lib/supabase';
 import { noWidow } from '@/lib/typography';
 import { TEXT_LIMITS } from '@/lib/text-limits';
+
+/** El mismo precio típico de las tarjetas; nada si el lugar no publica precios. */
+function typicalPrice(place: Patio): string | null {
+  const price = patioCardPrice(place);
+  return price.source === 'missing' ? null : price.label;
+}
 
 function makeStyles(t: Theme) {
   return StyleSheet.create({
@@ -128,7 +134,8 @@ export default function ResenaScreen() {
 
   const subtitle = (() => {
     const dishes = patio?.menu?.[0]?.items?.slice(0, 2).map((it) => it.name).join(' · ');
-    return [dishes, publicPrice(patio?.price)].filter(Boolean).join(' · ');
+    const price = patio ? patioCardPrice(patio) : null;
+    return [dishes, price && price.source !== 'missing' ? price.label : null].filter(Boolean).join(' · ');
   })();
 
   const submit = async () => {
@@ -179,7 +186,7 @@ export default function ResenaScreen() {
                 accessibilityLabel={`${place.name}, ${[place.area, place.categories[0]].filter(Boolean).join(', ')}`}>
                 <View style={s.similarCopy}>
                   <Text style={s.similarName} allowFontScaling={true}>{place.name}</Text>
-                  <Text style={s.similarMeta} allowFontScaling={true}>{[place.area, place.categories[0], publicPrice(place.price)].filter(Boolean).join(' · ')}</Text>
+                  <Text style={s.similarMeta} allowFontScaling={true}>{[place.area, place.categories[0], typicalPrice(place)].filter(Boolean).join(' · ')}</Text>
                 </View>
                 <Ionicons name="chevron-forward" size={16} color={theme.textMute} />
               </TouchableOpacity>

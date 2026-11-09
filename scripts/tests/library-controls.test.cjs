@@ -105,7 +105,7 @@ function fixture(file, overrides = {}) {
     '@/lib/theme': { Radius: { card: 18 }, useTheme: () => ({ theme: { isDark: false, text: '#111', bg: '#fff', border: '#eee', accent: '#f60' } }) },
     '@/lib/tab-bar-visibility': { useTabBarScroll: () => ({ onScroll() {}, reveal() {} }), useHideTabBarWhile: () => {} },
     '@/lib/recent-patios': { recordRecentPatio: async () => {} },
-    '@/lib/patio-sort': { patioDistance: () => null, patioMinimumPrice: () => null, sortPatiosByMetric: (items) => [...items] },
+    '@/lib/patio-sort': { patioDistance: () => null, patioTypicalPrice: () => null, sortPatiosByMetric: (items) => [...items] },
     '@/components/patio-status-indicator': { PatioStatusIndicator: 'PatioStatusIndicator' },
     '@/components/patio-identity-icon': { PatioIdentityIcon: 'PatioIdentityIcon' },
     '@/lib/patio-card-info': { patioCardAccessibilityLabel: (patio) => `Abrir ${patio.name}` },

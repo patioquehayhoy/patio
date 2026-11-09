@@ -1,5 +1,10 @@
 # Tarjetas: columnas estables y una línea por campo
 
+> **Superado en parte (2026-11-08):** por la ley de casos de largo, nombres y
+> colonias ya no se cortan (bajan de renglón), y el precio es uno solo, el
+> típico, sin «Ver precios». Contrato vigente: `docs/DESIGN_SYSTEM.md`,
+> «Tarjetas de lugar».
+
 Decisión posterior del usuario: concluir el ajuste de tarjetas con geometría
 estable, sin saltos por longitud del texto ni sello que siga al nombre.
 

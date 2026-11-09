@@ -4,8 +4,8 @@ import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Animated, Share, StyleSheet, Text, TextInput, TouchableOpacity, View, type ScrollView } from 'react-native';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Alert, Animated, Share, StyleSheet, Text, TextInput, TouchableOpacity, View, useWindowDimensions, type ScrollView } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -260,6 +260,9 @@ function makeStyles(t: Theme) {
     // «Qué tan lleno»: tarjeta como el horario; barras del color de las
     // líneas y la hora actual en naranja, como las calificaciones.
     busySection: { marginBottom: 16 },
+    // Contorno: acción secundaria de navegación dentro de la ficha.
+    backToTop: { alignSelf: 'center', minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 32, paddingHorizontal: 18, borderRadius: 22, borderWidth: 1.5, borderColor: t.border },
+    backToTopText: { fontSize: 15, fontWeight: '600', color: t.text },
     busyCard: { borderRadius: Radius.card, backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, padding: 16 },
     busyLive: { flexDirection: 'row', alignItems: 'center', gap: 8 },
     busyDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: t.accent },
@@ -458,6 +461,14 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
   // lleva a la que toques. Patrón de las apps de comida (ley de Jakob). Sin
   // «volver» (decisión de Parco, 8 nov): toda la barra es para las secciones.
   const scrollRef = useRef<ScrollView>(null);
+  // «Volver arriba» solo en fichas largas: más de cuatro pantallas (NN/g).
+  const { height: windowHeight } = useWindowDimensions();
+  const [contentHeight, setContentHeight] = useState(0);
+  const showBackToTop = contentHeight > windowHeight * 4;
+  const scrollToTop = useCallback(() => {
+    Haptics.selectionAsync().catch(() => {});
+    scrollRef.current?.scrollTo({ y: 0, animated: true });
+  }, []);
   const menuFrame = useRef({ cardY: 0, menuY: 0, menuHeight: 0 });
   const groupY = useRef<number[]>([]);
   const reviewsY = useRef(0);
@@ -836,6 +847,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
         contentContainerStyle={[s.scrollContent, own && { paddingBottom: bottomTabClearance(insets.bottom) }]}
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={16}
+        onContentSizeChange={(_width, height) => setContentHeight(height)}
         onScroll={Animated.event(
           [{ nativeEvent: { contentOffset: { y: heroPullY } } }],
           {
@@ -1102,10 +1114,10 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
               const peak = peakLabel(busyness);
               return (
                 <View style={s.busySection}>
-                  <View style={s.groupHead}>
-                    <Text style={s.groupTitle} allowFontScaling={true}>Qué tan lleno</Text>
-                  </View>
-                  <View style={s.busyCard} accessible accessibilityLabel={[live, peak].filter(Boolean).join('. ')}>
+                  {/* Sin título (8 nov): la primera línea ya dice de qué se
+                      trata y los detalles no llevan encabezados; un título
+                      del tamaño de las secciones del menú competía con él. */}
+                  <View style={s.busyCard} accessible accessibilityLabel={[live, peak].filter(Boolean).join('. ') || 'Qué tan lleno suele estar'}>
                     {!!live && (
                       <View style={s.busyLive}>
                         <View style={s.busyDot} />
@@ -1113,6 +1125,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
                       </View>
                     )}
                     {!!peak && <Text style={live ? s.busyNote : s.busyLead} allowFontScaling={true}>{noWidow(peak)}</Text>}
+                    {!live && !peak && <Text style={s.busyLead} allowFontScaling={true}>{noWidow('Qué tan lleno suele estar')}</Text>}
                     <View style={s.busyBars}>
                       {busyness.hours.map((item) => (
                         <View key={item.hour} style={[s.busyBar, { height: `${Math.max(4, item.level)}%` as `${number}%` }, item.hour === busyness.currentHour && s.busyBarNow]} />
@@ -1412,6 +1425,12 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
               <Text style={s.reviewNote}>{noWidow('Tu reseña será la primera experiencia compartida sobre este Patio.')}</Text>
             )}
           </View>
+          {showBackToTop && (
+            <TouchableOpacity style={s.backToTop} onPress={scrollToTop} activeOpacity={0.7} accessibilityRole="button" accessibilityLabel="Volver arriba">
+              <Ionicons name="arrow-up" size={16} color={theme.text} />
+              <Text style={s.backToTopText} allowFontScaling={true}>{noWidow('Volver arriba')}</Text>
+            </TouchableOpacity>
+          )}
 
         </View>
       </Animated.ScrollView>

@@ -5,7 +5,7 @@ import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Animated, Share, StyleSheet, Text, TextInput, TouchableOpacity, View, useWindowDimensions, type ScrollView } from 'react-native';
+import { Alert, Animated, Easing, Share, StyleSheet, Text, TextInput, TouchableOpacity, View, useWindowDimensions, type ScrollView } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -261,8 +261,10 @@ function makeStyles(t: Theme) {
     // «Qué tan lleno»: tarjeta como el horario; barras del color de las
     // líneas y la hora actual en naranja, como las calificaciones.
     busySection: { marginBottom: 16 },
-    // Volver arriba: círculo de vidrio abajo a la derecha (capa de control).
-    backToTop: { position: 'absolute', right: 20, width: 40, height: 40, borderRadius: 20, backgroundColor: t.surface },
+    // Volver arriba: círculo de vidrio al centro que sube desde el borde de
+    // abajo, como una pestaña (capa de control, decisión de Parco).
+    backToTopDock: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
+    backToTop: { width: 40, height: 40, borderRadius: 20, backgroundColor: t.surface },
     busyCard: { borderRadius: Radius.card, backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, padding: 16 },
     busyLive: { flexDirection: 'row', alignItems: 'center', gap: 8 },
     busyDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: t.accent },
@@ -463,8 +465,9 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
   const scrollRef = useRef<ScrollView>(null);
   // «Volver arriba» (NN/g, Loranger 2017): solo en fichas de más de cuatro
   // pantallas; aparece ya abajo cuando la persona empieza a subir o llega al
-  // final, y se va al seguir bajando. Círculo de vidrio sin texto, abajo a la
-  // derecha y quieto (decisión de Parco: sutil); VoiceOver dice «Volver arriba».
+  // final, y se va al seguir bajando. Círculo de vidrio sin texto, al centro,
+  // que sube desde el borde de abajo y ahí se queda quieto (decisión de Parco);
+  // VoiceOver dice «Volver arriba».
   const { height: windowHeight } = useWindowDimensions();
   const [contentHeight, setContentHeight] = useState(0);
   const longFicha = contentHeight > windowHeight * 4;
@@ -482,12 +485,13 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
     if (next === backToTopShown.current) return;
     backToTopShown.current = next;
     setBackToTopVisible(next);
-    Animated.timing(backToTopOpacity, { toValue: next ? 1 : 0, duration: 200, useNativeDriver: true }).start();
+    Animated.timing(backToTopOpacity, { toValue: next ? 1 : 0, duration: 200, easing: next ? Easing.out(Easing.cubic) : Easing.in(Easing.cubic), useNativeDriver: true }).start();
   };
   const scrollToTop = useCallback(() => {
     Haptics.selectionAsync().catch(() => {});
     scrollRef.current?.scrollTo({ y: 0, animated: true });
   }, []);
+  const backToTopBottom = own ? bottomTabClearance(insets.bottom) : insets.bottom + 16;
   const menuFrame = useRef({ cardY: 0, menuY: 0, menuHeight: 0 });
   const groupY = useRef<number[]>([]);
   const reviewsY = useRef(0);
@@ -1461,11 +1465,18 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
       )}
       {longFicha && !followToast && (
         <Animated.View
-          pointerEvents={backToTopVisible ? 'auto' : 'none'}
+          pointerEvents={backToTopVisible ? 'box-none' : 'none'}
           accessibilityElementsHidden={!backToTopVisible}
           importantForAccessibility={backToTopVisible ? 'auto' : 'no-hide-descendants'}
-          style={[s.backToTop, { bottom: own ? bottomTabClearance(insets.bottom) : insets.bottom + 16, opacity: backToTopOpacity }, floatingSurfaceShadow(theme.isDark)]}>
-          <GlassIconButton icon="arrow-up" iconSize={18} accessibilityLabel="Volver arriba" onPress={scrollToTop} />
+          style={[s.backToTopDock, {
+            bottom: backToTopBottom,
+            opacity: backToTopOpacity,
+            // Sube desde fuera de la pantalla, desde el borde de abajo.
+            transform: [{ translateY: backToTopOpacity.interpolate({ inputRange: [0, 1], outputRange: [backToTopBottom + 48, 0] }) }],
+          }]}>
+          <View style={[s.backToTop, floatingSurfaceShadow(theme.isDark)]}>
+            <GlassIconButton icon="arrow-up" iconSize={18} accessibilityLabel="Volver arriba" onPress={scrollToTop} />
+          </View>
         </Animated.View>
       )}
       {followToast && (

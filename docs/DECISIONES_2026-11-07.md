@@ -785,13 +785,16 @@ pm») y los detalles de la ficha no llevan encabezados; el título, del tamaño
 de las secciones del menú, competía con ellas. «Como de costumbre» pasa a
 «tan lleno como de costumbre».
 
-**Volver arriba:** círculo de vidrio de 40 pt con flecha, sin texto, abajo a
-la derecha (Parco: el botón de contorno con texto se veía pesado). Sigue la
-guía de Nielsen Norman Group (Loranger, 2017): solo en fichas de más de
-cuatro pantallas, abajo a la derecha, pequeño pero fácil de tocar, quieto, y
-aparece ya abajo cuando la persona empieza a subir (o llega al final); al
-seguir bajando se va. NN/g prefiere el texto «Volver arriba» en la web; aquí
-lo dice VoiceOver y el círculo es el de la barra de navegación de Patio. Android no tiene el toque en la
+**Volver arriba:** círculo de vidrio de 40 pt con flecha, sin texto, **al
+centro**, que sube desde el borde de abajo como una pestaña y ahí se queda
+quieto (Parco: el botón de contorno con texto se veía pesado, y lo quiere al
+centro). De la guía de Nielsen Norman Group (Loranger, 2017) se conserva: solo
+en fichas de más de cuatro pantallas, pequeño pero fácil de tocar, y aparece
+ya abajo cuando la persona empieza a subir (o llega al final); al seguir
+bajando se va. NN/g lo pone abajo a la derecha y con el texto «Volver
+arriba»; aquí va al centro por decisión de Parco y el texto lo dice
+VoiceOver. Queda arriba del indicador de inicio de iOS, nunca pegado al
+borde, para no chocar con el gesto del sistema. Android no tiene el toque en la
 barra de estado de iOS, y en iOS ese gesto solo funciona si hay una sola
 lista que lo atienda: las tiras horizontales (secciones, «De quienes
 sigues», intro) ya no lo atienden.

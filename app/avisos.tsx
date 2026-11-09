@@ -50,6 +50,8 @@ export default function AvisosScreen() {
     specialNotices: false,
     newPlaces: false,
     socialActivity: true,
+    dailySummary: true,
+    paused: false,
   });
 
   useFocusEffect(useCallback(() => {
@@ -164,6 +166,11 @@ export default function AvisosScreen() {
           <SettingsRow c={sc} icon="settings-outline" title="Activar en Ajustes" sub={systemLabel} onPress={() => Linking.openSettings()} />
         </SettingsGroup>}
 
+        {/* Como Instagram: una sola llave que silencia todo lo que manda el servidor. */}
+        {signedIn && <SettingsGroup c={sc}>
+          <SettingsRow c={sc} icon="moon-outline" title="Pausar todo" sub="No te llega ningún aviso hasta que lo quites" trailing={toggle('paused', 'Pausar todo')} />
+        </SettingsGroup>}
+
         {!signedIn ? (
           // Sin cuenta no hay a quién avisar: en vez de interruptores muertos, la entrada.
           <SettingsGroup c={sc} label={fondero ? 'Tu negocio' : 'Tus lugares'}>
@@ -179,6 +186,7 @@ export default function AvisosScreen() {
           <SettingsGroup c={sc} label="Tu negocio">
             <SettingsRow c={sc} icon="star-outline" title="Reseñas nuevas" sub="Cuando alguien opina sobre tu Patio" trailing={toggle('businessActivity', 'Reseñas nuevas')} />
             <SettingsRow c={sc} icon="chatbubble-ellipses-outline" title="Respuestas" sub="Cuando alguien responde lo que comentaste" divider trailing={toggle('socialActivity', 'Respuestas')} />
+            <SettingsRow c={sc} icon="stats-chart-outline" title="Resumen de hoy" sub="A las 6 de la tarde: cuántas personas vieron tu menú" divider trailing={toggle('dailySummary', 'Resumen de hoy')} />
           </SettingsGroup>
         ) : (
           // Solo se ofrece lo que de verdad se envía. Lugares nuevos

@@ -14,6 +14,8 @@ export type NotificationPreferences = {
   specialNotices: boolean;
   newPlaces: boolean;
   socialActivity: boolean;
+  dailySummary: boolean;
+  paused: boolean;
 };
 
 const PREFERENCE_COLUMNS: Record<keyof NotificationPreferences, string> = {
@@ -23,6 +25,8 @@ const PREFERENCE_COLUMNS: Record<keyof NotificationPreferences, string> = {
   specialNotices: 'special_notices',
   newPlaces: 'new_places',
   socialActivity: 'social_activity',
+  dailySummary: 'daily_summary',
+  paused: 'paused',
 };
 
 export class CommunitySignInRequiredError extends Error {
@@ -128,6 +132,8 @@ export async function getRemoteNotificationPreferences(): Promise<NotificationPr
     specialNotices: data?.special_notices ?? false,
     newPlaces: data?.new_places ?? false,
     socialActivity: data?.social_activity ?? true,
+    dailySummary: data?.daily_summary ?? true,
+    paused: data?.paused ?? false,
   };
 }
 

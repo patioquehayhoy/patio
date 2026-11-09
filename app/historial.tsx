@@ -190,8 +190,8 @@ export default function HistorialScreen() {
                   style={[s.streakPill, { borderColor: c.border, backgroundColor: c.surface }]}
                   activeOpacity={0.7}
                   accessibilityRole="button"
-                  accessibilityLabel={`Racha de ${streak} ${streak === 1 ? 'día' : 'días'} seguidos publicando menú. Toca para ver cómo va tu negocio`}
-                  onPress={() => router.push('/racha')}>
+                  accessibilityLabel={`Racha de ${streak} ${streak === 1 ? 'día' : 'días'} seguidos publicando menú. Toca para ver cómo va tu negocio hoy`}
+                  onPress={() => router.push('/hoy')}>
                   <Ionicons name="flame" size={14} color={c.text} />
                   <Text style={[s.streakText, { color: c.text }]}>{streak}</Text>
                 </TouchableOpacity>

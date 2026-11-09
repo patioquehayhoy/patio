@@ -319,9 +319,17 @@ export default function ResenasScreen() {
             )}
           </View>
         )}
-        {/* Gratis para todos los negocios (v4 §4): avisos de operación. */}
+        {/* Gratis para todos los negocios: «Hoy» (v4 §3) y avisos de operación (§4). */}
         <View style={[s.list, { borderColor: c.border, marginBottom: 24 }]}>
-          <TouchableOpacity style={s.proRow} activeOpacity={0.7} onPress={() => router.push('/avisar')} accessibilityRole="button">
+          <TouchableOpacity style={s.proRow} activeOpacity={0.7} onPress={() => router.push('/hoy')} accessibilityRole="button">
+            <Ionicons name="stats-chart-outline" size={21} color={c.text} />
+            <View style={s.rowBody}>
+              <Text style={[s.proTitle, { color: c.text }]}>Hoy</Text>
+              <Text style={[s.proSub, { color: c.textSecondary }]}>{noWidow('Cuántas personas vieron tu menú y qué les gustó')}</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={16} color={c.textMute} />
+          </TouchableOpacity>
+          <TouchableOpacity style={[s.proRow, { borderTopColor: c.border, borderTopWidth: StyleSheet.hairlineWidth }]} activeOpacity={0.7} onPress={() => router.push('/avisar')} accessibilityRole="button">
             <Ionicons name="notifications-outline" size={21} color={c.text} />
             <View style={s.rowBody}>
               <Text style={[s.proTitle, { color: c.text }]}>{noWidow('Avisar a quienes te siguen')}</Text>

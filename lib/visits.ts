@@ -270,7 +270,7 @@ export async function disableVisits(): Promise<void> {
 }
 
 /** Identificador del teléfono que cambia cada día: une las visitas de un mismo día y nada más. */
-async function deviceDay(now: number): Promise<string> {
+export async function deviceDay(now: number): Promise<string> {
   let secret = await AsyncStorage.getItem(VISIT_KEYS.secret);
   if (!secret) {
     secret = Array.from({ length: 48 }, () => Math.floor(Math.random() * 16).toString(16)).join('');

@@ -108,6 +108,7 @@ function RootStack() {
         <Stack.Screen name="plan" options={{ headerShown: false }} />
         <Stack.Screen name="racha" options={{ headerShown: false }} />
         <Stack.Screen name="avisar" options={{ headerShown: false }} />
+        <Stack.Screen name="hoy" options={{ headerShown: false }} />
         <Stack.Screen name="favoritos" options={{ headerShown: false }} />
         <Stack.Screen name="vistos" options={{ headerShown: false }} />
         <Stack.Screen name="onboarding" options={{ headerShown: false }} />

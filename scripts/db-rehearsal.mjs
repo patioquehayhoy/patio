@@ -280,6 +280,21 @@ await check('avisos de operación: no gastan el cupo de Pro y la ficha los muest
   if (Number(left.notices_left) !== 7) throw new Error(`operation notice used the Pro quota: ${JSON.stringify(left)}`);
   await rejects(admin(`insert into public.special_notices (${fk}, created_by, body, kind) values ($1, $2, 'x', 'spam')`, [business, ids.owner]), /check/);
 });
+await check('vistas: anónimas, una por teléfono al día, el dueño no cuenta y solo él ve «Hoy»', async () => {
+  const phone = 'e'.repeat(64);
+  if ((await as(null, `select public.record_patio_view($1, $2) as ok`, [business, phone])).rows[0].ok !== true) throw new Error('view rejected');
+  await as(null, `select public.record_patio_view($1, $2)`, [business, phone]);
+  await as(ids.ana, `select public.record_patio_view($1, $2)`, [business, 'f'.repeat(64)]);
+  if ((await as(ids.owner, `select public.record_patio_view($1, $2) as ok`, [business, '1'.repeat(64)])).rows[0].ok !== false) throw new Error('owner counted');
+  if ((await as(null, `select public.record_patio_view($1, 'no-hash') as ok`, [business])).rows[0].ok !== false) throw new Error('bad hash accepted');
+  const today = (await as(ids.owner, `select views_today, views_usual, jsonb_array_length(views_week) as days from public.business_today($1)`, [business])).rows[0];
+  if (today.views_today !== 2 || today.days !== 7 || today.views_usual !== null) throw new Error(JSON.stringify(today));
+  await rejects(as(ids.ana, `select * from public.business_today($1)`, [business]), /not authorized/);
+  await rejects(as(null, `select * from public.patio_views`), /permission denied/);
+  await rejects(as(ids.owner, `select * from public.business_daily_digest()`), /permission denied/);
+  const digest = (await admin(`select views_today from public.business_daily_digest() where negocio_id = $1`, [business])).rows[0];
+  if (digest?.views_today !== 2) throw new Error(JSON.stringify(digest));
+});
 await check('límites de texto del negocio: se revisan solo al cambiar', async () => {
   await rejects(as(ids.owner, `update public.${table} set descripcion = $2 where id = $1`, [business, 'Comida corrida casera '.repeat(4)]), /TEXT_TOO_LONG/);
   await admin(`alter table public.${table} disable trigger negocios_text_limits`);

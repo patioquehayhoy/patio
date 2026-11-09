@@ -4,9 +4,9 @@ export type NotificationRoute =
   | { pathname: '/patio/[id]'; params: { id: string } }
   | { pathname: '/foodie/[id]'; params: { id: string } }
   | { pathname: '/resena/[id]'; params: { id: string } }
-  | { pathname: '/notificaciones' | '/historial' | '/explorar' };
+  | { pathname: '/notificaciones' | '/historial' | '/explorar' | '/hoy' };
 
-const ROUTES = new Set(['/notificaciones', '/historial', '/explorar']);
+const ROUTES = new Set(['/notificaciones', '/historial', '/explorar', '/hoy']);
 
 export function routeForNotification(data: Record<string, unknown> | null | undefined): NotificationRoute | null {
   if (!data) return null;
@@ -19,6 +19,6 @@ export function routeForNotification(data: Record<string, unknown> | null | unde
     return { pathname: '/foodie/[id]', params: { id: data.profileId } };
   }
   if (typeof data.patioId === 'string' && data.patioId) return { pathname: '/patio/[id]', params: { id: data.patioId } };
-  if (typeof data.route === 'string' && ROUTES.has(data.route)) return { pathname: data.route as '/notificaciones' | '/historial' | '/explorar' };
+  if (typeof data.route === 'string' && ROUTES.has(data.route)) return { pathname: data.route as '/notificaciones' | '/historial' | '/explorar' | '/hoy' };
   return null;
 }

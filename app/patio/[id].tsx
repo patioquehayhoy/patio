@@ -12,6 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ActionSheet } from '@/components/action-sheet';
 import { SectionBar } from '@/components/section-bar';
 import { GlassIconButton } from '@/components/glass-button';
+import { recordPatioView } from '@/lib/patio-views';
 import { AgentSpinner } from '@/components/agent-spinner';
 import { PAYMENT_ORDER, PaymentIcon } from '@/components/payment-icon';
 import { ANDROID_ICONS, TintIcon } from '@/components/tint-icon';
@@ -411,6 +412,8 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
   // Datos junto a seguidores: un renglón si cabe; si no, bajan a su línea.
   const [metaStacked, setMetaStacked] = useState(false);
   useEffect(() => { setMetaStacked(false); }, [patio?.id, patio?.area, patio?.price, businessStats?.saves]);
+  // Cuenta la vista para «Hoy» del negocio (anónima, una al día); el dueño no.
+  useEffect(() => { if (patio?.id && !own) void recordPatioView(patio.id); }, [patio?.id, own]);
   const heroHeight = Math.max(HERO_HEIGHT, insets.top + 8 + 44 + 16 + identityHeight + 44);
   // La foto de fondo siempre cubre el encabezado aunque crezca por un nombre largo.
   const backdropHeight = heroHeight + 120;

@@ -5,19 +5,26 @@ type Device = { id: string; user_id: string; expo_push_token: string };
 type Message = { title: string; body: string; data: Record<string, string> };
 type ExpoTicket = { status: 'ok' | 'error'; details?: { error?: string } };
 
-/** Active devices of these users, optionally narrowed by a preference column. */
+/**
+ * Active devices of these users, optionally narrowed by a preference column.
+ * «Pausar todo» (paused, 2026-11-09) silences every category.
+ */
 export async function pushTargets(admin: Admin, userIds: string[], preference?: string, preferenceDefault = true): Promise<Device[]> {
   if (!userIds.length) return [];
   const { data: devices, error } = await admin.from('push_devices')
     .select('id,user_id,expo_push_token').in('user_id', userIds).eq('active', true);
   if (error) throw error;
-  if (!preference) return devices ?? [];
   const { data: prefs, error: prefsError } = await admin.from('notification_preferences')
-    .select(`user_id,${preference}`).in('user_id', userIds);
+    .select(['user_id', 'paused', ...(preference ? [preference] : [])].join(',')).in('user_id', userIds);
   if (prefsError) throw prefsError;
-  const chosen = new Map((prefs ?? []).map((pref: Record<string, unknown>) => [pref.user_id, pref[preference]]));
-  // Sin fila de preferencias se respeta el valor por defecto de la columna.
-  return (devices ?? []).filter((device) => (chosen.get(device.user_id) ?? preferenceDefault) === true);
+  const rows = new Map((prefs ?? []).map((pref: Record<string, unknown>) => [pref.user_id, pref]));
+  return (devices ?? []).filter((device) => {
+    const pref = rows.get(device.user_id);
+    if (pref?.paused === true) return false;
+    if (!preference) return true;
+    // Sin fila de preferencias se respeta el valor por defecto de la columna.
+    return (pref?.[preference] ?? preferenceDefault) === true;
+  });
 }
 
 /** Sends through Expo in batches of 100 and retires tokens Expo reports as dead. */

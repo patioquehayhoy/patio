@@ -33,5 +33,9 @@ verify_jwt = true
 [functions.send-operation-notice]
 verify_jwt = true
 
+# La llama solo pg_cron con PATIO_CRON_SECRET (no hay sesión de usuario).
+[functions.send-business-digest]
+verify_jwt = false
+
 [functions.store-notifications]
 verify_jwt = false

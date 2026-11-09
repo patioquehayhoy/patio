@@ -85,14 +85,15 @@ Deno.serve(async (req) => {
     if (!followerIds.length) return json({ eventId: event.id, delivered: 0 });
 
     const [prefsResult, devicesResult] = await Promise.all([
-      admin.from('notification_preferences').select('user_id,patio_publications').in('user_id', followerIds),
+      admin.from('notification_preferences').select('user_id,patio_publications,paused').in('user_id', followerIds),
       admin.from('push_devices').select('id,user_id,expo_push_token').in('user_id', followerIds).eq('active', true),
     ]);
     if (prefsResult.error) throw prefsResult.error;
     if (devicesResult.error) throw devicesResult.error;
     const prefs = prefsResult.data;
     const devices = devicesResult.data;
-    const allowed = new Set((prefs ?? []).filter((pref) => pref.patio_publications).map((pref) => pref.user_id));
+    // «Pausar todo» silencia también los menús.
+    const allowed = new Set((prefs ?? []).filter((pref) => pref.patio_publications && pref.paused !== true).map((pref) => pref.user_id));
     // Tope contra la fatiga de avisos: cada persona recibe como máximo
     // DAILY_CAP menús publicados al día, sin importar cuántos lugares siga.
     const { data: todaySent, error: todayError } = await admin.from('notification_deliveries')

@@ -21,8 +21,8 @@
           "es_MX"
         ],
         "ITSAppUsesNonExemptEncryption": false,
-        "NSCameraUsageDescription": "Toma foto del menú para subirlo automáticamente",
-        "NSPhotoLibraryUsageDescription": "Elige una foto del menú desde tu galería",
+        "NSCameraUsageDescription": "Para tomar fotos de tu menú, de tu lugar o para tus reseñas",
+        "NSPhotoLibraryUsageDescription": "Para elegir fotos de tu menú, de tu lugar o para tus reseñas",
         "NSLocationWhenInUseUsageDescription": "Usamos tu ubicación para encontrar comida cercana y ubicar tu negocio en el mapa de Patio"
       }
     },
@@ -60,15 +60,15 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Elige una foto del menú desde tu galería",
-          "cameraPermission": "Toma foto del menú para subirlo automáticamente",
+          "photosPermission": "Para elegir fotos de tu menú, de tu lugar o para tus reseñas",
+          "cameraPermission": "Para tomar fotos de tu menú, de tu lugar o para tus reseñas",
           "microphonePermission": false
         }
       ],
       [
         "expo-camera",
         {
-          "cameraPermission": "Toma foto del menú para subirlo automáticamente",
+          "cameraPermission": "Para tomar fotos de tu menú, de tu lugar o para tus reseñas",
           "microphonePermission": false,
           "recordAudioAndroid": false
         }

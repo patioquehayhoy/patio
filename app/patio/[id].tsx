@@ -11,6 +11,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ActionSheet } from '@/components/action-sheet';
 import { SectionBar } from '@/components/section-bar';
+import { GlassIconButton } from '@/components/glass-button';
 import { AgentSpinner } from '@/components/agent-spinner';
 import { PAYMENT_ORDER, PaymentIcon } from '@/components/payment-icon';
 import { ANDROID_ICONS, TintIcon } from '@/components/tint-icon';
@@ -260,9 +261,8 @@ function makeStyles(t: Theme) {
     // «Qué tan lleno»: tarjeta como el horario; barras del color de las
     // líneas y la hora actual en naranja, como las calificaciones.
     busySection: { marginBottom: 16 },
-    // Contorno: acción secundaria de navegación dentro de la ficha.
-    backToTop: { alignSelf: 'center', minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 32, paddingHorizontal: 18, borderRadius: 22, borderWidth: 1.5, borderColor: t.border },
-    backToTopText: { fontSize: 15, fontWeight: '600', color: t.text },
+    // Volver arriba: círculo de vidrio abajo a la derecha (capa de control).
+    backToTop: { position: 'absolute', right: 20, width: 40, height: 40, borderRadius: 20, backgroundColor: t.surface },
     busyCard: { borderRadius: Radius.card, backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, padding: 16 },
     busyLive: { flexDirection: 'row', alignItems: 'center', gap: 8 },
     busyDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: t.accent },
@@ -461,10 +461,29 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
   // lleva a la que toques. Patrón de las apps de comida (ley de Jakob). Sin
   // «volver» (decisión de Parco, 8 nov): toda la barra es para las secciones.
   const scrollRef = useRef<ScrollView>(null);
-  // «Volver arriba» solo en fichas largas: más de cuatro pantallas (NN/g).
+  // «Volver arriba» (NN/g, Loranger 2017): solo en fichas de más de cuatro
+  // pantallas; aparece ya abajo cuando la persona empieza a subir o llega al
+  // final, y se va al seguir bajando. Círculo de vidrio sin texto, abajo a la
+  // derecha y quieto (decisión de Parco: sutil); VoiceOver dice «Volver arriba».
   const { height: windowHeight } = useWindowDimensions();
   const [contentHeight, setContentHeight] = useState(0);
-  const showBackToTop = contentHeight > windowHeight * 4;
+  const longFicha = contentHeight > windowHeight * 4;
+  const lastScrollY = useRef(0);
+  const backToTopShown = useRef(false);
+  const backToTopOpacity = useRef(new Animated.Value(0)).current;
+  const [backToTopVisible, setBackToTopVisible] = useState(false);
+  const updateBackToTop = (y: number) => {
+    const delta = y - lastScrollY.current;
+    lastScrollY.current = y;
+    let next = backToTopShown.current;
+    if (!longFicha || y < windowHeight * 2) next = false;
+    else if (delta < -6 || y + windowHeight >= contentHeight - 80) next = true;
+    else if (delta > 6) next = false;
+    if (next === backToTopShown.current) return;
+    backToTopShown.current = next;
+    setBackToTopVisible(next);
+    Animated.timing(backToTopOpacity, { toValue: next ? 1 : 0, duration: 200, useNativeDriver: true }).start();
+  };
   const scrollToTop = useCallback(() => {
     Haptics.selectionAsync().catch(() => {});
     scrollRef.current?.scrollTo({ y: 0, animated: true });
@@ -855,6 +874,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
             listener: (event: any) => {
               const y = event.nativeEvent.contentOffset.y;
               if (sections.length >= 4) followSections(y);
+              updateBackToTop(y);
               if (followToast) {
                 if (toastScrollY.current === null) toastScrollY.current = y;
                 else if (Math.abs(y - toastScrollY.current) > 48) setFollowToast(false);
@@ -1425,12 +1445,6 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
               <Text style={s.reviewNote}>{noWidow('Tu reseña será la primera experiencia compartida sobre este Patio.')}</Text>
             )}
           </View>
-          {showBackToTop && (
-            <TouchableOpacity style={s.backToTop} onPress={scrollToTop} activeOpacity={0.7} accessibilityRole="button" accessibilityLabel="Volver arriba">
-              <Ionicons name="arrow-up" size={16} color={theme.text} />
-              <Text style={s.backToTopText} allowFontScaling={true}>{noWidow('Volver arriba')}</Text>
-            </TouchableOpacity>
-          )}
 
         </View>
       </Animated.ScrollView>
@@ -1443,6 +1457,15 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
             colors={{ text: theme.text, textSecondary: theme.textSecondary, bg: theme.bg, border: theme.border, glass: theme.glass, isDark: theme.isDark }}
             style={{ paddingTop: insets.top }}
           />
+        </Animated.View>
+      )}
+      {longFicha && !followToast && (
+        <Animated.View
+          pointerEvents={backToTopVisible ? 'auto' : 'none'}
+          accessibilityElementsHidden={!backToTopVisible}
+          importantForAccessibility={backToTopVisible ? 'auto' : 'no-hide-descendants'}
+          style={[s.backToTop, { bottom: own ? bottomTabClearance(insets.bottom) : insets.bottom + 16, opacity: backToTopOpacity }, floatingSurfaceShadow(theme.isDark)]}>
+          <GlassIconButton icon="arrow-up" iconSize={18} accessibilityLabel="Volver arriba" onPress={scrollToTop} />
         </Animated.View>
       )}
       {followToast && (

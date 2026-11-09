@@ -785,8 +785,13 @@ pm») y los detalles de la ficha no llevan encabezados; el título, del tamaño
 de las secciones del menú, competía con ellas. «Como de costumbre» pasa a
 «tan lleno como de costumbre».
 
-**Volver arriba:** botón de contorno al final de las fichas de más de cuatro
-pantallas (guía de Nielsen Norman Group). Android no tiene el toque en la
+**Volver arriba:** círculo de vidrio de 40 pt con flecha, sin texto, abajo a
+la derecha (Parco: el botón de contorno con texto se veía pesado). Sigue la
+guía de Nielsen Norman Group (Loranger, 2017): solo en fichas de más de
+cuatro pantallas, abajo a la derecha, pequeño pero fácil de tocar, quieto, y
+aparece ya abajo cuando la persona empieza a subir (o llega al final); al
+seguir bajando se va. NN/g prefiere el texto «Volver arriba» en la web; aquí
+lo dice VoiceOver y el círculo es el de la barra de navegación de Patio. Android no tiene el toque en la
 barra de estado de iOS, y en iOS ese gesto solo funciona si hay una sola
 lista que lo atienda: las tiras horizontales (secciones, «De quienes
 sigues», intro) ya no lo atienden.

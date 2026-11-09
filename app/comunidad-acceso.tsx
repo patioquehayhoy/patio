@@ -138,10 +138,10 @@ const s = StyleSheet.create({
   title: { ...Type.screen, maxWidth: 350, color: '#fff' },
   body: { maxWidth: 350, marginTop: 12, fontSize: 15, lineHeight: 22, fontWeight: '400', color: 'rgba(255,255,255,0.76)' },
   label: { marginTop: 26, fontSize: 13, fontWeight: '700', color: 'rgba(255,255,255,0.76)' },
-  input: { minHeight: 54, marginTop: 8, paddingVertical: 14, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.30)', backgroundColor: 'rgba(0,0,0,0.28)', borderRadius: 14, paddingHorizontal: 17, fontSize: 16, color: '#fff' },
+  input: { minHeight: 54, marginTop: 8, paddingVertical: 14, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.30)', backgroundColor: 'rgba(0,0,0,0.28)', borderRadius: 14, borderCurve: 'continuous', paddingHorizontal: 17, fontSize: 16, color: '#fff' },
   // Única acción prominente de esta pantalla (regla homologada 2026-08-16
   // en CLAUDE.md: cualquier verbo cuenta si es la única acción destacada).
-  button: { minHeight: 54, paddingVertical: 12, marginTop: 10, borderRadius: 27, backgroundColor: Colors.accent, alignItems: 'center', justifyContent: 'center' },
+  button: { minHeight: 54, paddingVertical: 12, marginTop: 10, borderRadius: 27, borderCurve: 'continuous', backgroundColor: Colors.accent, alignItems: 'center', justifyContent: 'center' },
   buttonText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
   change: { minHeight: 50, marginTop: 16, justifyContent: 'center', alignItems: 'center' },
   changeText: { fontSize: 14, textDecorationLine: 'underline', color: 'rgba(255,255,255,0.76)' },

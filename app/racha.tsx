@@ -143,7 +143,7 @@ const s = StyleSheet.create({
   heroValue: { ...Type.screen },
   heroSub: { ...Type.body },
   // Tarjeta del tablero de Actividad: radio 18, hairline, padding 16.
-  card: { borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, padding: 16 },
+  card: { borderRadius: 18, borderCurve: 'continuous', borderWidth: StyleSheet.hairlineWidth, padding: 16 },
   statRow: { flexDirection: 'row', gap: 16 },
   statRowNext: { marginTop: 16, paddingTop: 16, borderTopWidth: StyleSheet.hairlineWidth },
   stat: { flex: 1, minWidth: 0 },

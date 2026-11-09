@@ -64,7 +64,7 @@ function makeStyles(t: Theme) {
     list: { paddingHorizontal: 16 },
     grid: { paddingHorizontal: 16, flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
     card: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderColor: t.border, paddingVertical: 12 },
-    gridCard: { backgroundColor: t.surface, borderRadius: Radius.card, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, padding: 12 },
+    gridCard: { backgroundColor: t.surface, borderRadius: Radius.card, borderCurve: 'continuous', borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, padding: 12 },
     cardSelected: { borderColor: t.accent, backgroundColor: t.accentSoft },
     gridTop: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 },
     gridPrice: { flex: 1, minWidth: 0 },
@@ -76,16 +76,16 @@ function makeStyles(t: Theme) {
 
     // Sin resultados de filtro: misma tarjeta que una fila, para no
     // introducir un cuarto tratamiento visual solo para este estado.
-    filterEmptyCard: { alignItems: 'center', paddingVertical: 28, paddingHorizontal: 20, backgroundColor: t.surface, borderRadius: Radius.card, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
+    filterEmptyCard: { alignItems: 'center', paddingVertical: 28, paddingHorizontal: 20, backgroundColor: t.surface, borderRadius: Radius.card, borderCurve: 'continuous', borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
     filterEmptyText: { marginTop: 10, fontSize: 14, lineHeight: 20, fontWeight: '400', color: t.textSecondary, textAlign: 'center' },
     resetButton: { minHeight: 44, paddingHorizontal: 16, marginTop: 8, alignItems: 'center', justifyContent: 'center' },
     resetText: { fontSize: 14, fontWeight: '700', color: t.text },
 
     // Empty
     empty: { minHeight: 520, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 28 },
-    emptyIcon: { width: 68, height: 68, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, backgroundColor: t.surface, alignItems: 'center', justifyContent: 'center', marginBottom: 18 },
+    emptyIcon: { width: 68, height: 68, borderRadius: 20, borderCurve: 'continuous', borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, backgroundColor: t.surface, alignItems: 'center', justifyContent: 'center', marginBottom: 18 },
     emptyTitle: { ...Type.section, color: t.text, textAlign: 'center' },
-    cta: { marginTop: 26, height: 54, paddingHorizontal: 24, borderRadius: 27, backgroundColor: t.accent, alignItems: 'center', justifyContent: 'center' },
+    cta: { marginTop: 26, height: 54, paddingHorizontal: 24, borderRadius: 27, borderCurve: 'continuous', backgroundColor: t.accent, alignItems: 'center', justifyContent: 'center' },
     ctaText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
   });
 }

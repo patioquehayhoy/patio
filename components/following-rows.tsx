@@ -62,7 +62,7 @@ function makeStyles(t: Theme) {
     // Etiqueta de grupo del sistema (Type.label), como en Actividad.
     label: { ...Type.label, color: t.textSecondary, paddingHorizontal: 16, paddingTop: 8, marginBottom: 8 },
     row: { paddingHorizontal: 16, gap: 8 },
-    card: { width: CARD_WIDTH, padding: 12, borderRadius: Radius.card, backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
+    card: { width: CARD_WIDTH, padding: 12, borderRadius: Radius.card, borderCurve: 'continuous', backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
     activityCard: { flexDirection: 'row', alignItems: 'center', gap: 8 },
     activityBody: { flex: 1, minWidth: 0, gap: 2 },
     activityText: { fontSize: 13, fontWeight: '400', lineHeight: 17, color: t.text },

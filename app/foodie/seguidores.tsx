@@ -113,7 +113,7 @@ const s = StyleSheet.create({
   root: { flex: 1 },
   nav: { height: 52, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   navButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  segmented: { flexDirection: 'row', borderRadius: 14, borderWidth: 1, overflow: 'hidden' },
+  segmented: { flexDirection: 'row', borderRadius: 14, borderCurve: 'continuous', borderWidth: 1, overflow: 'hidden' },
   segment: { minWidth: 104, minHeight: 34, paddingHorizontal: 12, alignItems: 'center', justifyContent: 'center' },
   segmentText: { fontSize: 13, fontWeight: '700' },
   row: { minHeight: 64, flexDirection: 'row', alignItems: 'center', gap: 12 },

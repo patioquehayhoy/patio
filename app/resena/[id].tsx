@@ -35,7 +35,7 @@ function makeStyles(t: Theme) {
     subtitle: { fontSize: 13, fontWeight: '400', color: t.textSecondary, marginBottom: 22 },
 
     starsRow: { flexDirection: 'row', gap: 8, marginBottom: 24 },
-    star: { width: 48, height: 48, borderRadius: 14, alignItems: 'center', justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth },
+    star: { width: 48, height: 48, borderRadius: 14, borderCurve: 'continuous', alignItems: 'center', justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth },
     starOn: { backgroundColor: t.accentSoft, borderColor: 'rgba(242,97,47,0.25)' },
     starOff: { backgroundColor: t.isDark ? 'rgba(255,255,255,0.06)' : 'rgba(17,18,20,0.04)', borderColor: 'transparent' },
 
@@ -47,26 +47,26 @@ function makeStyles(t: Theme) {
     tagText: { fontSize: 13, fontWeight: '500', color: t.text },
     tagTextOn: { color: t.bg },
 
-    noteCard: { padding: 16, borderRadius: 18, backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, marginBottom: 14 },
+    noteCard: { padding: 16, borderRadius: 18, borderCurve: 'continuous', backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, marginBottom: 14 },
     noteInput: { fontSize: 14, lineHeight: 20, color: t.text, minHeight: 64, padding: 0, textAlignVertical: 'top' },
 
-    photoRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 14, backgroundColor: t.isDark ? 'rgba(255,255,255,0.04)' : 'rgba(17,18,20,0.04)', borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
+    photoRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 14, borderCurve: 'continuous', backgroundColor: t.isDark ? 'rgba(255,255,255,0.04)' : 'rgba(17,18,20,0.04)', borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
     photoText: { fontSize: 13, color: t.textSecondary, flex: 1 },
-    photoThumb: { width: 56, height: 56, borderRadius: 12 },
+    photoThumb: { width: 56, height: 56, borderRadius: 12, borderCurve: 'continuous' },
 
     ctaWrap: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 20, paddingTop: 14 },
     ctaFade: { position: 'absolute', left: 0, right: 0, top: -40, height: 40 },
-    cta: { minHeight: 54, paddingVertical: 12, paddingHorizontal: 20, borderRadius: 27, backgroundColor: t.accent, alignItems: 'center', justifyContent: 'center' },
+    cta: { minHeight: 54, paddingVertical: 12, paddingHorizontal: 20, borderRadius: 27, borderCurve: 'continuous', backgroundColor: t.accent, alignItems: 'center', justifyContent: 'center' },
     ctaDisabled: { opacity: 0.4 },
     ctaText: { fontSize: 16, fontWeight: '700', color: '#fff' },
 
     // Confirmación (vacío homologado: ícono de 32 en caja de 68, radio 20).
     doneContent: { paddingHorizontal: 20, paddingTop: 48 },
     doneHead: { alignItems: 'center', marginBottom: 40 },
-    doneIcon: { width: 68, height: 68, borderRadius: 20, backgroundColor: t.accentSoft, alignItems: 'center', justifyContent: 'center' },
+    doneIcon: { width: 68, height: 68, borderRadius: 20, borderCurve: 'continuous', backgroundColor: t.accentSoft, alignItems: 'center', justifyContent: 'center' },
     doneTitle: { ...Type.section, color: t.text, marginTop: 18, textAlign: 'center' },
     doneBody: { maxWidth: 310, marginTop: 9, fontSize: 15, lineHeight: 21, fontWeight: '400', color: t.textSecondary, textAlign: 'center' },
-    similarCard: { borderRadius: 18, backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, overflow: 'hidden' },
+    similarCard: { borderRadius: 18, borderCurve: 'continuous', backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, overflow: 'hidden' },
     similarRow: { minHeight: 56, paddingVertical: 10, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 8 },
     similarDivider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border },
     similarCopy: { flex: 1, minWidth: 0 },

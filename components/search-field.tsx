@@ -41,7 +41,7 @@ export function SearchField({ inputRef, style, onClear, onCancel, trailingAction
 }
 
 const s = StyleSheet.create({
-  field: { height: 50, borderRadius: 18, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 3 },
+  field: { height: 50, borderRadius: 18, borderCurve: 'continuous', overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 3 },
   control: { width: 44, height: 48, alignItems: 'center', justifyContent: 'center' },
   input: { flex: 1, minWidth: 0, height: 50, paddingVertical: 0, fontSize: 16, fontWeight: '400' },
 });

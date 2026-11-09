@@ -144,11 +144,11 @@ function makeStyles(isDark: boolean) {
     // Más opaco que antes: el texto de atrás no debe leerse a través del menú.
     backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.32)' },
     wrap: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 8, gap: 8 },
-    group: { borderRadius: Radius.card, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: border },
+    group: { borderRadius: Radius.card, borderCurve: 'continuous', overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: border },
     groupTint: StyleSheet.absoluteFillObject,
     row: { minHeight: 56, flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 18 },
     rowText: { fontSize: 16, fontWeight: '500' },
-    cancelGroup: { minHeight: 56, borderRadius: Radius.card, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth, borderColor: border },
+    cancelGroup: { minHeight: 56, borderRadius: Radius.card, borderCurve: 'continuous', overflow: 'hidden', alignItems: 'center', justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth, borderColor: border },
     cancelText: { fontSize: 16, fontWeight: '700' },
   });
 }

@@ -153,16 +153,16 @@ function makeStyles(t: Theme) {
     // simple para cuando hay muchos agrupados lejos; a propósito distinto
     // de la gota delicada de los pines individuales de cerca.
     clusterPin: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: t.isDark ? 'rgba(18,19,22,0.94)' : 'rgba(255,255,255,0.96)', borderWidth: StyleSheet.hairlineWidth, borderColor: t.isDark ? 'rgba(255,255,255,0.22)' : 'rgba(0,0,0,0.12)', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: t.isDark ? 0.28 : 0.15, shadowRadius: 7, elevation: 4 },
-    searchPill: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, height: 50, borderRadius: 18, overflow: 'hidden', backgroundColor: t.isDark ? 'rgba(20,21,24,0.55)' : 'rgba(255,255,255,0.78)', borderWidth: StyleSheet.hairlineWidth, borderColor: btnBorder, ...floatingSurfaceShadow(t.isDark) },
+    searchPill: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, height: 50, borderRadius: 18, borderCurve: 'continuous', overflow: 'hidden', backgroundColor: t.isDark ? 'rgba(20,21,24,0.55)' : 'rgba(255,255,255,0.78)', borderWidth: StyleSheet.hairlineWidth, borderColor: btnBorder, ...floatingSurfaceShadow(t.isDark) },
     bottomControls: { flexDirection: 'row', alignItems: 'stretch', gap: 8 },
-    aiProButton: { minHeight: 44, minWidth: 44, paddingHorizontal: 8, borderRadius: 16, flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: t.accentSoft },
+    aiProButton: { minHeight: 44, minWidth: 44, paddingHorizontal: 8, borderRadius: 16, borderCurve: 'continuous', flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: t.accentSoft },
     aiProText: { fontSize: 11, fontWeight: '700', color: t.accent, letterSpacing: 0.3 },
     // Edge-to-edge (sin margen lateral): mismo criterio que el sheet de
     // Filtros/Listas de FoodieFilterBar — ancho completo, borde solo arriba
     // (decisión 2026-08-20). Las esquinas inferiores siguen redondeándose en
     // modo idle (flota sobre la tab bar, con aire debajo) y se aplanan en
     // modo filtrado (llega hasta abajo del todo) — eso ya lo maneja el JSX.
-    sheet: { position: 'absolute', left: 0, right: 0, maxHeight: '48%', borderRadius: Radius.sheet, overflow: 'hidden', borderTopWidth: StyleSheet.hairlineWidth, borderColor: t.isDark ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.18)' },
+    sheet: { position: 'absolute', left: 0, right: 0, maxHeight: '48%', borderRadius: Radius.sheet, borderCurve: 'continuous', overflow: 'hidden', borderTopWidth: StyleSheet.hairlineWidth, borderColor: t.isDark ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.18)' },
     sheetTint: { ...StyleSheet.absoluteFillObject, backgroundColor: sheetSurfaceTint(t.isDark) },
     grabber: { alignSelf: 'center', width: 36, height: 4, borderRadius: 2, backgroundColor: t.isDark ? 'rgba(255,255,255,0.16)' : 'rgba(0,0,0,0.10)', marginTop: 7 },
     sheetHeader: { minHeight: 44 },

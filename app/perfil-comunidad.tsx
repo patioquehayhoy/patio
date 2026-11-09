@@ -153,10 +153,10 @@ const s = StyleSheet.create({
   title: { ...Type.screen, maxWidth: 340 },
   body: { maxWidth: 350, marginTop: 12, marginBottom: 26, fontSize: 14, lineHeight: 21 },
   label: { fontSize: 13, lineHeight: 18, fontWeight: '700', marginBottom: 6 },
-  input: { minHeight: 54, borderRadius: 15, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 16, paddingVertical: 14, marginBottom: 16, fontSize: 16 },
+  input: { minHeight: 54, borderRadius: 15, borderCurve: 'continuous', borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 16, paddingVertical: 14, marginBottom: 16, fontSize: 16 },
   bio: { minHeight: 96, textAlignVertical: 'top' },
   lastInput: { marginBottom: 6 },
   note: { fontSize: 13, lineHeight: 18, marginBottom: 16 },
-  button: { minHeight: 54, paddingVertical: 12, paddingHorizontal: 20, borderRadius: 27, alignItems: 'center', justifyContent: 'center', marginTop: 6 },
+  button: { minHeight: 54, paddingVertical: 12, paddingHorizontal: 20, borderRadius: 27, borderCurve: 'continuous', alignItems: 'center', justifyContent: 'center', marginTop: 6 },
   buttonText: { fontSize: 16, fontWeight: '700' },
 });

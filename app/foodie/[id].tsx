@@ -203,7 +203,7 @@ const s = StyleSheet.create({
   name: { ...Type.title, marginTop: 12 },
   handle: { fontSize: 13, marginTop: 2 },
   bio: { fontSize: 14, lineHeight: 20, textAlign: 'center', marginTop: 10, maxWidth: 300 },
-  follow: { minHeight: 44, borderRadius: 22, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 24, paddingVertical: 10, justifyContent: 'center', marginTop: 16 },
+  follow: { minHeight: 44, borderRadius: 22, borderCurve: 'continuous', borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 24, paddingVertical: 10, justifyContent: 'center', marginTop: 16 },
   label: { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, marginTop: 18 },
   placeRow: { minHeight: 52, borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 12 },
   placeRank: { width: 20, fontSize: 15, fontWeight: '700', fontVariant: ['tabular-nums'] },
@@ -216,5 +216,5 @@ const s = StyleSheet.create({
   stat: { alignItems: 'center', minWidth: 56 },
   statValue: { fontSize: 17, fontWeight: '700', fontVariant: ['tabular-nums'], lineHeight: 22 },
   statLabel: { fontSize: 12, marginTop: 2 },
-  locked: { alignItems: 'center', marginTop: 24, paddingVertical: 24, paddingHorizontal: 16, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth },
+  locked: { alignItems: 'center', marginTop: 24, paddingVertical: 24, paddingHorizontal: 16, borderRadius: 18, borderCurve: 'continuous', borderWidth: StyleSheet.hairlineWidth },
 });

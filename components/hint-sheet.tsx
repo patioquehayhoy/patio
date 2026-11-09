@@ -81,12 +81,12 @@ function makeStyles(t: Theme) {
     overlay:      { flex: 1, backgroundColor: 'rgba(0,0,0,0.40)', justifyContent: 'flex-end' },
     sheet:        { backgroundColor: t.surface, borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: 24, paddingTop: 20 },
     closeBtn:     { position: 'absolute', top: 16, right: 16, width: 44, height: 44, alignItems: 'center', justifyContent: 'center', opacity: 0.4 },
-    iconBadge:    { alignSelf: 'center', width: 56, height: 56, borderRadius: 16, backgroundColor: t.accentSoft, alignItems: 'center', justifyContent: 'center', marginBottom: 16, marginTop: 12 },
+    iconBadge:    { alignSelf: 'center', width: 56, height: 56, borderRadius: 16, borderCurve: 'continuous', backgroundColor: t.accentSoft, alignItems: 'center', justifyContent: 'center', marginBottom: 16, marginTop: 12 },
     title:        { ...Type.title, textAlign: 'center', color: t.text, marginBottom: 10 },
     body:         { fontSize: 15, fontWeight: '400', textAlign: 'center', color: t.textSecondary, lineHeight: 22, marginBottom: 28 },
-    primaryBtn:   { minHeight: 54, borderRadius: 27, backgroundColor: t.text, alignItems: 'center', justifyContent: 'center' },
+    primaryBtn:   { minHeight: 54, borderRadius: 27, borderCurve: 'continuous', backgroundColor: t.text, alignItems: 'center', justifyContent: 'center' },
     primaryText:  { fontSize: 16, fontWeight: '700', color: t.bg },
-    secondaryBtn: { marginTop: 10, minHeight: 54, borderRadius: 27, borderWidth: 1.5, borderColor: t.border, alignItems: 'center', justifyContent: 'center' },
+    secondaryBtn: { marginTop: 10, minHeight: 54, borderRadius: 27, borderCurve: 'continuous', borderWidth: 1.5, borderColor: t.border, alignItems: 'center', justifyContent: 'center' },
     secondaryText:{ fontSize: 15, fontWeight: '400', color: t.text },
   });
 }

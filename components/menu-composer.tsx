@@ -704,7 +704,7 @@ function makeStyles(c: FonderoColors) {
     actionsBlock: { marginTop: 32, alignItems: 'center', gap: 8 },
     saveButton: { minHeight: 44, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
     saveText: { fontSize: 16, fontWeight: '400', color: c.textSecondary },
-    publishButton: { alignSelf: 'stretch', minHeight: 54, borderRadius: 27, paddingHorizontal: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: c.accent },
+    publishButton: { alignSelf: 'stretch', minHeight: 54, borderRadius: 27, borderCurve: 'continuous', paddingHorizontal: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: c.accent },
     // Mismos estados que Guardar en Editar mi negocio: falta algo (gris, dice
     // qué), listo (naranja), publicando (naranja con indicador).
     publishIdle: { backgroundColor: c.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: c.border },

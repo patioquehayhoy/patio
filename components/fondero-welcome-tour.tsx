@@ -73,14 +73,14 @@ export function FonderoWelcomeTour({ visible, onDone, onPublish }: { visible: bo
 
 const s = StyleSheet.create({
   backdrop: { flex: 1, justifyContent: 'flex-end', paddingHorizontal: 12, backgroundColor: 'rgba(0,0,0,0.42)' },
-  card: { borderRadius: Radius.sheet, paddingHorizontal: 24, paddingTop: 28, paddingBottom: 12 },
+  card: { borderRadius: Radius.sheet, borderCurve: 'continuous', paddingHorizontal: 24, paddingTop: 28, paddingBottom: 12 },
   icon: { width: 52, height: 52, borderRadius: 26, alignItems: 'center', justifyContent: 'center', marginBottom: 18 },
   title: { ...Type.title },
   body: { ...Type.body, marginTop: 8 },
   dots: { flexDirection: 'row', gap: 6, marginTop: 22, marginBottom: 22 },
   dot: { width: 6, height: 6, borderRadius: 3 },
   dotCurrent: { width: 18 },
-  primary: { minHeight: 54, borderRadius: 27, alignItems: 'center', justifyContent: 'center' },
+  primary: { minHeight: 54, borderRadius: 27, borderCurve: 'continuous', alignItems: 'center', justifyContent: 'center' },
   primaryText: { fontSize: 16, fontWeight: '700' },
   secondary: { minHeight: 44, alignItems: 'center', justifyContent: 'center', marginTop: 4 },
   secondaryText: { fontSize: 15 },

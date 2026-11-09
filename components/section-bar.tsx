@@ -97,7 +97,7 @@ const s = StyleSheet.create({
   // Sin «volver», el texto de la primera sección cae en el margen de 20.
   itemsAlone: { paddingLeft: 8 },
   // Texto como pestaña; la actual con fondo suave en cápsula de 32.
-  item: { height: 32, paddingHorizontal: 12, borderRadius: 16, justifyContent: 'center' },
+  item: { height: 32, paddingHorizontal: 12, borderRadius: 16, borderCurve: 'continuous', justifyContent: 'center' },
   itemText: { fontSize: 15, fontWeight: '400' },
   itemTextOn: { fontWeight: '700' },
   fade: { position: 'absolute', top: 0, bottom: 0, width: 28 },

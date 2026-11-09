@@ -93,7 +93,7 @@ function styles(t: Theme) {
     openChip: {},
     scopeScroll: { flex: 1, minWidth: 0 },
     scopeGroup: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-    organizer: { minHeight: 40, paddingHorizontal: 6, paddingVertical: 4, borderRadius: 16, flexDirection: 'row', alignItems: 'center', gap: 4, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, backgroundColor: t.glass },
+    organizer: { minHeight: 40, paddingHorizontal: 6, paddingVertical: 4, borderRadius: 16, borderCurve: 'continuous', flexDirection: 'row', alignItems: 'center', gap: 4, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, backgroundColor: t.glass },
     organizerCompact: { flexShrink: 0, width: 40, paddingHorizontal: 0, justifyContent: 'center' },
     headerTextAction: { minWidth: 44, minHeight: 44, paddingHorizontal: 8, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
     headerActionText: { fontSize: 16, lineHeight: 20, fontWeight: '700', color: t.text },
@@ -110,7 +110,7 @@ function styles(t: Theme) {
     // badge vive fuera de los bordes del pill (top/right negativos) y con
     // `overflow: hidden` en el propio TouchableOpacity se cercenaba a una
     // astilla en vez de mostrarse como círculo completo.
-    pillBlurClip: { ...StyleSheet.absoluteFillObject, borderRadius: 16, overflow: 'hidden' },
+    pillBlurClip: { ...StyleSheet.absoluteFillObject, borderRadius: 16, borderCurve: 'continuous', overflow: 'hidden' },
     // Sheet real (no popover) — en iPhone Apple usa sheets para esto, los
     // popovers son de iPad/Mac. Edge-to-edge (sin margen lateral ni inferior,
     // solo esquinas superiores redondeadas) — el tratamiento flotante con
@@ -122,7 +122,7 @@ function styles(t: Theme) {
     // auditoría 2026-08-23. intensity 20/16 y tinte según la tabla.
     sheet: { position: 'absolute', left: 0, right: 0, bottom: 0, borderTopLeftRadius: 28, borderTopRightRadius: 28, overflow: 'hidden', borderTopWidth: StyleSheet.hairlineWidth, borderColor: border },
     section: { paddingTop: 12 },
-    group: { marginHorizontal: 16, borderRadius: 14, backgroundColor: t.surface, overflow: 'hidden' },
+    group: { marginHorizontal: 16, borderRadius: 14, borderCurve: 'continuous', backgroundColor: t.surface, overflow: 'hidden' },
     rowDivider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border },
     rowCopy: { flex: 1, minWidth: 0 },
     emptyLists: { paddingHorizontal: 24, paddingVertical: 24, gap: 8, alignItems: 'center' },
@@ -136,12 +136,12 @@ function styles(t: Theme) {
     createBtn: { minWidth: 44, minHeight: 44, paddingHorizontal: 8, alignItems: 'center', justifyContent: 'center' },
     createBtnDisabled: { opacity: 0.4 },
     createBtnText: { fontSize: 16, fontWeight: '700', color: t.accent },
-    confirmMoveButton: { minHeight: 54, borderRadius: 27, backgroundColor: t.accent, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 20, paddingVertical: 12 },
+    confirmMoveButton: { minHeight: 54, borderRadius: 27, borderCurve: 'continuous', backgroundColor: t.accent, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 20, paddingVertical: 12 },
     confirmMoveText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF', textAlign: 'center' },
     // Menú de acciones por lista — anclado junto al botón "···" (mismo
     // componente visual que components/action-sheet.tsx), dentro del MISMO
     // Modal del panel (ver comentario en LibrarySheet), no un Modal propio.
-    inlineMenu: { position: 'absolute', borderRadius: 18, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, ...floatingSurfaceShadow(t.isDark) },
+    inlineMenu: { position: 'absolute', borderRadius: 18, borderCurve: 'continuous', overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, ...floatingSurfaceShadow(t.isDark) },
     inlineMenuTint: { ...StyleSheet.absoluteFillObject, backgroundColor: t.isDark ? 'rgba(28,29,32,0.78)' : 'rgba(255,255,255,0.78)' },
     inlineTitleRow: { minHeight: 34, paddingHorizontal: 14, alignItems: 'center', justifyContent: 'center' },
     inlineTitleText: { fontSize: 12, fontWeight: '700', color: t.textSecondary, textAlign: 'center' },
@@ -156,7 +156,7 @@ function styles(t: Theme) {
     // filas, solo más compacta) y los márgenes de aire se ajustan parejo.
     // 190 (antes 300→230): el odómetro de una línea mide una fracción de lo
     // que medía la ruleta nativa de varias filas — recortado 2026-09-16.
-    pickerSurface: { width: 320, minHeight: 252, paddingTop: 24, paddingBottom: 16, borderRadius: 32, borderWidth: StyleSheet.hairlineWidth, borderColor: border, overflow: 'hidden', alignItems: 'center', justifyContent: 'flex-start', ...floatingSurfaceShadow(t.isDark) },
+    pickerSurface: { width: 320, minHeight: 252, paddingTop: 24, paddingBottom: 16, borderRadius: 32, borderCurve: 'continuous', borderWidth: StyleSheet.hairlineWidth, borderColor: border, overflow: 'hidden', alignItems: 'center', justifyContent: 'flex-start', ...floatingSurfaceShadow(t.isDark) },
     // Antes vivía "position: absolute" mientras el resto del contenido se
     // centraba con justifyContent:'center' — dos sistemas de coordenadas
     // distintos que casi nunca coinciden, así que subir el `top` a mano no

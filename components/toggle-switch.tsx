@@ -44,7 +44,7 @@ export function ToggleSwitch({ value, onValueChange, activeColor, disabled = fal
 }
 
 const s = StyleSheet.create({
-  track: { width: 44, height: 26, borderRadius: 13, justifyContent: 'center', paddingHorizontal: 1 },
+  track: { width: 44, height: 26, borderRadius: 13, borderCurve: 'continuous', justifyContent: 'center', paddingHorizontal: 1 },
   thumb: { width: 22, height: 22, borderRadius: 11, backgroundColor: '#fff', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.15, shadowRadius: 4, elevation: 2 },
   disabled: { opacity: 0.5 },
 });

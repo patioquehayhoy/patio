@@ -148,7 +148,7 @@ export function ActionSheet({ visible, anchorRef, title, options, onDismiss }: A
 
 function makeStyles(t: Theme) {
   return StyleSheet.create({
-    menu: { position: 'absolute', borderRadius: Radius.card, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, ...floatingSurfaceShadow(t.isDark) },
+    menu: { position: 'absolute', borderRadius: Radius.card, borderCurve: 'continuous', overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, ...floatingSurfaceShadow(t.isDark) },
     tint: { ...StyleSheet.absoluteFillObject, backgroundColor: t.isDark ? 'rgba(28,29,32,0.78)' : 'rgba(255,255,255,0.78)' },
     titleRow: { minHeight: 34, paddingHorizontal: 14, alignItems: 'center', justifyContent: 'center' },
     titleText: { fontSize: 12, fontWeight: '700', color: t.textSecondary, textAlign: 'center' },

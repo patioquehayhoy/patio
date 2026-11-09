@@ -27,7 +27,7 @@ export function SelectionActions({ actions, busy = false }: { actions: Selection
 }
 
 const s = StyleSheet.create({
-  bar: { flexDirection: 'row', minHeight: 52, borderRadius: 26, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden', paddingHorizontal: 4, paddingVertical: 2 },
+  bar: { flexDirection: 'row', minHeight: 52, borderRadius: 26, borderCurve: 'continuous', borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden', paddingHorizontal: 4, paddingVertical: 2 },
   expandedBar: { flexWrap: 'wrap' },
   expandedAction: { flexBasis: '30%', flexGrow: 1 },
   action: { flex: 1, minWidth: 44, minHeight: 48, paddingVertical: 4, gap: 2, justifyContent: 'center', alignItems: 'center' },

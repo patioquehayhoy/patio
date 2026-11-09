@@ -373,8 +373,8 @@ const s = StyleSheet.create({
   root: { flex: 1 },
   groupLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase' },
 
-  list: { borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
-  insights: { borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, padding: 16, marginBottom: 24 },
+  list: { borderRadius: 18, borderCurve: 'continuous', borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
+  insights: { borderRadius: 18, borderCurve: 'continuous', borderWidth: StyleSheet.hairlineWidth, padding: 16, marginBottom: 24 },
   insightRow: { flexDirection: 'row', gap: 16 },
   insight: { flex: 1, minWidth: 0 },
   insightValue: { ...Type.section, fontVariant: ['tabular-nums'] },
@@ -404,10 +404,10 @@ const s = StyleSheet.create({
   replyAction: { fontSize: 13, fontWeight: '700' },
   replyBox: { marginTop: 12, paddingLeft: 12, borderLeftWidth: 2 },
   replyLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, lineHeight: 14 },
-  replyComposer: { marginTop: 12, padding: 12, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth },
+  replyComposer: { marginTop: 12, padding: 12, borderRadius: 14, borderCurve: 'continuous', borderWidth: StyleSheet.hairlineWidth },
   replyInput: { minHeight: 70, fontSize: 14, lineHeight: 19, textAlignVertical: 'top' },
 
-  empty: { marginTop: 34, padding: 24, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center' },
+  empty: { marginTop: 34, padding: 24, borderRadius: 18, borderCurve: 'continuous', borderWidth: StyleSheet.hairlineWidth, alignItems: 'center' },
   emptyTitle: { marginTop: 14, ...Type.section, textAlign: 'center' },
   emptyBody: { maxWidth: 270, marginTop: 7, textAlign: 'center', fontSize: 14, lineHeight: 20 },
 });

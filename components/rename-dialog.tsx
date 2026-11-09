@@ -36,10 +36,10 @@ export function RenameDialog({ visible, title, value, onChangeText, onClose, onS
 }
 const s = StyleSheet.create({
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.26)', alignItems: 'center', justifyContent: 'center', padding: 24 },
-  card: { width: '100%', maxWidth: 360, padding: 20, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, gap: 16 },
+  card: { width: '100%', maxWidth: 360, padding: 20, borderRadius: 18, borderCurve: 'continuous', borderWidth: StyleSheet.hairlineWidth, gap: 16 },
   title: { fontSize: 17, lineHeight: 23, fontWeight: '700', textAlign: 'center' },
-  input: { minHeight: 48, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, padding: 12, fontSize: 16 },
+  input: { minHeight: 48, borderRadius: 14, borderCurve: 'continuous', borderWidth: StyleSheet.hairlineWidth, padding: 12, fontSize: 16 },
   actions: { flexDirection: 'row', gap: 8 },
-  button: { flex: 1, minHeight: 54, paddingVertical: 12, paddingHorizontal: 8, borderRadius: 27, alignItems: 'center', justifyContent: 'center' },
+  button: { flex: 1, minHeight: 54, paddingVertical: 12, paddingHorizontal: 8, borderRadius: 27, borderCurve: 'continuous', alignItems: 'center', justifyContent: 'center' },
   label: { fontSize: 16, fontWeight: '700', textAlign: 'center' },
 });

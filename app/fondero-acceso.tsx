@@ -265,12 +265,12 @@ const s = StyleSheet.create({
   emailHi: { maxWidth: 320, fontSize: 14, fontWeight: '700', color: '#F8F8F5', textAlign: 'center' },
   sentHint: { marginTop: 8, maxWidth: 320, fontSize: 14, fontWeight: '400', lineHeight: 20, color: 'rgba(248,248,245,0.7)', textAlign: 'center' },
 
-  field: { alignSelf: 'stretch', borderRadius: 14, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.18)' },
+  field: { alignSelf: 'stretch', borderRadius: 14, borderCurve: 'continuous', overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.18)' },
   fieldInner: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingLeft: 18, paddingRight: 5, paddingVertical: 5 },
   input: { flex: 1, minHeight: 46, fontSize: 16, fontWeight: '400', color: '#F8F8F5', paddingVertical: 0 },
   // Única acción prominente de esta pantalla (regla homologada 2026-08-16
   // en CLAUDE.md) — mismo tratamiento que su gemela Foodie en comunidad-acceso.tsx.
-  sendBtn: { width: 44, height: 44, borderRadius: 12, backgroundColor: Colors.accent, alignItems: 'center', justifyContent: 'center' },
+  sendBtn: { width: 44, height: 44, borderRadius: 12, borderCurve: 'continuous', backgroundColor: Colors.accent, alignItems: 'center', justifyContent: 'center' },
   sendBtnOff: { opacity: 0.4 },
   errorText: { marginTop: 10, fontSize: 13, fontWeight: '400', color: '#FF8A8E', textAlign: 'center' },
 

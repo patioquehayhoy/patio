@@ -100,11 +100,11 @@ const s = StyleSheet.create({
   content: { paddingHorizontal: 20, paddingTop: 16 },
   help: { fontSize: 15, lineHeight: 20, fontWeight: '400' },
   label: { ...Type.label, marginTop: 24, marginBottom: 6, marginLeft: 4 },
-  field: { minHeight: 140, padding: 16, borderRadius: Radius.card, borderWidth: StyleSheet.hairlineWidth },
+  field: { minHeight: 140, padding: 16, borderRadius: Radius.card, borderCurve: 'continuous', borderWidth: StyleSheet.hairlineWidth },
   input: { minHeight: 90, fontSize: 15, lineHeight: 20, textAlignVertical: 'top' },
   counter: { alignSelf: 'flex-end', fontSize: 11 },
   error: { marginTop: 8, fontSize: 13, lineHeight: 18 },
   left: { marginTop: 16, fontSize: 13, lineHeight: 18 },
-  send: { minHeight: 54, marginTop: 16, paddingHorizontal: 16, borderRadius: 27, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  send: { minHeight: 54, marginTop: 16, paddingHorizontal: 16, borderRadius: 27, borderCurve: 'continuous', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   sendText: { fontSize: 16, fontWeight: '700' },
 });

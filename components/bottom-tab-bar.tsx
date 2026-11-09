@@ -140,7 +140,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
     gap: 4,
     paddingVertical: 4,
     paddingHorizontal: 6,
-    borderRadius: 28,
+    borderRadius: 28, borderCurve: 'continuous',
     height: BOTTOM_TAB_HEIGHT,
     backgroundColor: t.glass,
     borderColor: t.isDark ? t.border : 'rgba(255,255,255,0.18)',
@@ -151,7 +151,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   tab: {
     width: 58,
     height: 48,
-    borderRadius: 20,
+    borderRadius: 20, borderCurve: 'continuous',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 1,

@@ -113,7 +113,7 @@ const s = StyleSheet.create({
   tagline: { fontSize: 15, fontFamily: Fonts.brand, textAlign: 'center', color: 'rgba(248,248,245,0.7)' },
   actions: { alignItems: 'center', gap: 4 },
   // Escala homologada: cápsula de 54, radio 27 (igual que el onboarding).
-  ctaGlass: { alignSelf: 'stretch', height: 54, borderRadius: 27, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.10)' },
+  ctaGlass: { alignSelf: 'stretch', height: 54, borderRadius: 27, borderCurve: 'continuous', overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.10)' },
   ctaGlassInner: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.10)' },
   ctaGlassText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
   devVersion: { marginTop: 6, fontSize: 10, fontWeight: '700', letterSpacing: 0.8, color: 'rgba(248,248,245,0.35)' },

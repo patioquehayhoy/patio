@@ -52,7 +52,7 @@ export function BusinessPaymentSelector({ colors, value, onChange }: Props) {
 
 const s = StyleSheet.create({
   list: { gap: 8 },
-  row: { minHeight: 62, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 8 },
-  icon: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  row: { minHeight: 62, borderRadius: 14, borderCurve: 'continuous', borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 8 },
+  icon: { width: 38, height: 38, borderRadius: 12, borderCurve: 'continuous', alignItems: 'center', justifyContent: 'center' },
   label: { flex: 1, fontSize: 16, lineHeight: 20, fontWeight: '700' },
 });

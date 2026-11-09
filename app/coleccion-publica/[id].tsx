@@ -160,7 +160,7 @@ const s = StyleSheet.create({
   retry: { minHeight: 44, justifyContent: 'center', marginTop: 16 },
   title: { ...Type.screen, marginTop: 24 },
   desc: { fontSize: 15, lineHeight: 22, marginTop: 10 },
-  button: { minHeight: 54, paddingVertical: 12, borderRadius: 27, alignSelf: 'flex-start', paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 26 },
+  button: { minHeight: 54, paddingVertical: 12, borderRadius: 27, borderCurve: 'continuous', alignSelf: 'flex-start', paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 26 },
   placeIcon: { width: 36, height: 36, flexShrink: 0, alignItems: 'center', justifyContent: 'center' },
   placeName: { flex: 1, minWidth: 0, fontSize: 16, lineHeight: 21, fontWeight: '700' },
   row: { gap: 12, paddingVertical: 12, minHeight: 60, borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },

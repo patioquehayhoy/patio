@@ -21,13 +21,13 @@ function makeStyles(t: Theme) {
 
     // Lista
     list: { paddingHorizontal: 20, gap: 8, marginTop: 16 },
-    card: { flexDirection: 'row', gap: 8, backgroundColor: t.surface, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, padding: 12 },
+    card: { flexDirection: 'row', gap: 8, backgroundColor: t.surface, borderRadius: 18, borderCurve: 'continuous', borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, padding: 12 },
     // Empty
     empty: { minHeight: 520, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 28 },
-    emptyIcon: { width: 68, height: 68, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, backgroundColor: t.surface, alignItems: 'center', justifyContent: 'center', marginBottom: 18 },
+    emptyIcon: { width: 68, height: 68, borderRadius: 20, borderCurve: 'continuous', borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, backgroundColor: t.surface, alignItems: 'center', justifyContent: 'center', marginBottom: 18 },
     emptyTitle: { ...Type.section, color: t.text, textAlign: 'center' },
     emptyText: { marginTop: 10, fontSize: 15, lineHeight: 21, fontWeight: '400', color: t.textSecondary, textAlign: 'center' },
-    cta: { marginTop: 26, minHeight: 54, paddingVertical: 12, paddingHorizontal: 24, borderRadius: 27, backgroundColor: t.accent, alignItems: 'center', justifyContent: 'center' },
+    cta: { marginTop: 26, minHeight: 54, paddingVertical: 12, paddingHorizontal: 24, borderRadius: 27, borderCurve: 'continuous', backgroundColor: t.accent, alignItems: 'center', justifyContent: 'center' },
     ctaText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
   });
 }

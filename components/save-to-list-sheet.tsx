@@ -201,7 +201,7 @@ export function SaveToListSheet({ visible, patioIds, patioName, onDismiss, mode 
         <View style={{ flexShrink: 1, minHeight: 0 }}>
         <ScrollView key={`${visible}:${mode}:${choosingSource ? 'source' : 'destination'}`} onLayout={edges.onLayout} onScroll={edges.onScroll} scrollEventThrottle={16} contentContainerStyle={{ paddingBottom: mode === 'move' ? 32 : 0 }} style={[s.list, { height: Math.min(listContentHeight || Math.max(1, choices.length) * 52, maxListHeight), maxHeight: maxListHeight }]}
           onContentSizeChange={(width, height) => { edges.onContentSizeChange(width, height); setListContentHeight(height); }} showsVerticalScrollIndicator indicatorStyle={theme.isDark ? 'white' : 'black'} keyboardShouldPersistTaps="handled">
-        {creating && <View style={[s.row, { backgroundColor: theme.surface, borderRadius: 14, marginTop: 8 }]}>
+        {creating && <View style={[s.row, { backgroundColor: theme.surface, borderRadius: 14, borderCurve: 'continuous', marginTop: 8 }]}>
           <TextInput autoFocus keyboardAppearance={theme.isDark ? 'dark' : 'light'} value={newTitle} editable={!busy} onChangeText={setNewTitle} maxLength={60} accessibilityLabel="Nombre de la lista" onSubmitEditing={handleCreate} placeholder="Nombre de la lista" placeholderTextColor={theme.textMute} returnKeyType="done" autoCapitalize="words" style={s.input} />
           <TouchableOpacity disabled={!newTitle.trim() || busy} onPress={handleCreate} style={[s.createButton, (!newTitle.trim() || busy) && s.disabled]} accessibilityRole="button" accessibilityLabel="Crear lista"><Text style={s.createText}>{busy ? 'Creando…' : 'Crear'}</Text></TouchableOpacity>
         </View>}
@@ -245,7 +245,7 @@ function makeStyles(t: Theme) {
     context: { flex: 1, minWidth: 0, fontSize: 15, lineHeight: 20, fontWeight: '500', color: t.text },
     closeButton: { minWidth: 44, height: 44, paddingHorizontal: 4, alignItems: 'center', justifyContent: 'center' },
     closeText: { fontSize: 16, fontWeight: '700', color: t.accent },
-    list: { flexGrow: 0, flexShrink: 1, maxHeight: 310, marginTop: 8, borderRadius: 14, backgroundColor: t.surface },
+    list: { flexGrow: 0, flexShrink: 1, maxHeight: 310, marginTop: 8, borderRadius: 14, borderCurve: 'continuous', backgroundColor: t.surface },
     row: { minHeight: 52, paddingVertical: 6, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 12 },
     divider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border },
     rowCopy: { flex: 1, minWidth: 0, justifyContent: 'center' },
@@ -254,7 +254,7 @@ function makeStyles(t: Theme) {
     input: { flex: 1, minWidth: 0, height: 44, paddingVertical: 0, fontSize: 16, fontWeight: '400', color: t.text },
     createButton: { minWidth: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
     createText: { fontSize: 15, fontWeight: '500', color: t.accent },
-    confirmButton: { minHeight: 54, borderRadius: 27, marginTop: 8, paddingHorizontal: 20, paddingVertical: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: t.accent },
+    confirmButton: { minHeight: 54, borderRadius: 27, borderCurve: 'continuous', marginTop: 8, paddingHorizontal: 20, paddingVertical: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: t.accent },
     confirmText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF', textAlign: 'center' },
     disabled: { opacity: 0.4 },
     moveHint: { paddingHorizontal: 8, paddingTop: 6, fontSize: 13, lineHeight: 18, fontWeight: '400', color: t.textSecondary },

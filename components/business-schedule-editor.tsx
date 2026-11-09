@@ -303,7 +303,7 @@ export function BusinessScheduleEditor({ colors, value, onChange, isDark = false
 
 const s = StyleSheet.create({
   presets: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 8 },
-  preset: { minHeight: 44, paddingHorizontal: 18, borderRadius: 22, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  preset: { minHeight: 44, paddingHorizontal: 18, borderRadius: 22, borderCurve: 'continuous', borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   presetText: { fontSize: 13, lineHeight: 18, fontWeight: '700', textAlign: 'center' },
   sectionHeading: { marginTop: 22, marginBottom: 8, minHeight: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   sectionLabel: { fontSize: 10, lineHeight: 13, fontWeight: '700', letterSpacing: 0.9 },
@@ -311,7 +311,7 @@ const s = StyleSheet.create({
   dayDots: { flexDirection: 'row', justifyContent: 'space-between' },
   dayDot: { width: 44, height: 44, borderRadius: 22, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   dayDotText: { fontSize: 12, fontWeight: '700', letterSpacing: 0.2 },
-  scheduleCard: { marginTop: 20, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 16, overflow: 'hidden' },
+  scheduleCard: { marginTop: 20, borderRadius: 18, borderCurve: 'continuous', borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 16, overflow: 'hidden' },
   columnLabel: { fontSize: 10, lineHeight: 12, fontWeight: '700', letterSpacing: 0.8 },
   scheduleRow: { minHeight: 112, paddingVertical: 14 },
   scheduleDay: { fontSize: 15, lineHeight: 20, fontWeight: '700', textAlign: 'center' },
@@ -320,10 +320,10 @@ const s = StyleSheet.create({
   timeSide: { flex: 1, alignItems: 'center' },
   timeColumn: { width: 104, alignItems: 'center' },
   rangeConnector: { width: 24, alignItems: 'center', justifyContent: 'center' },
-  compactTime: { width: 104, minHeight: 44, borderRadius: 12, alignSelf: 'center', alignItems: 'center', justifyContent: 'center' },
+  compactTime: { width: 104, minHeight: 44, borderRadius: 12, borderCurve: 'continuous', alignSelf: 'center', alignItems: 'center', justifyContent: 'center' },
   compactTimeText: { fontSize: 17, lineHeight: 22, fontWeight: '500', textAlign: 'center' },
   pickerOverlay: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  pickerSurface: { width: 320, minHeight: 236, borderRadius: 34, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 28, shadowOffset: { width: 0, height: 14 }, elevation: 18 },
+  pickerSurface: { width: 320, minHeight: 236, borderRadius: 34, borderCurve: 'continuous', borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 28, shadowOffset: { width: 0, height: 14 }, elevation: 18 },
   pickerTitle: { position: 'absolute', top: 18, left: 24, right: 24, zIndex: 1, fontSize: 11, lineHeight: 14, fontWeight: '700', letterSpacing: 0.8, textAlign: 'center' },
   pickerWheel: { width: 288, height: 190, marginTop: 24, alignSelf: 'center' },
 });

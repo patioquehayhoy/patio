@@ -81,8 +81,8 @@ export function EmailCodeForm({ email, role, onResend }: {
 const s = StyleSheet.create({
   form: { alignSelf: 'stretch', marginTop: 16 },
   label: { fontSize: 13, color: '#fff', marginBottom: 6 },
-  input: { minHeight: 54, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.3)', paddingHorizontal: 16, fontSize: 22, color: '#fff', backgroundColor: 'rgba(0,0,0,0.28)' },
-  button: { minHeight: 54, borderRadius: 27, marginTop: 10, backgroundColor: Colors.accent, alignItems: 'center', justifyContent: 'center' },
+  input: { minHeight: 54, borderRadius: 14, borderCurve: 'continuous', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.3)', paddingHorizontal: 16, fontSize: 22, color: '#fff', backgroundColor: 'rgba(0,0,0,0.28)' },
+  button: { minHeight: 54, borderRadius: 27, borderCurve: 'continuous', marginTop: 10, backgroundColor: Colors.accent, alignItems: 'center', justifyContent: 'center' },
   buttonText: { color: '#fff', fontWeight: '700', fontSize: 16 },
   disabled: { opacity: 0.4 },
   error: { color: '#FF8A8E', marginTop: 8, fontSize: 13 },

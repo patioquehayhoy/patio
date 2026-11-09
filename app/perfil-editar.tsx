@@ -36,13 +36,13 @@ function makeStyles(theme: Theme) {
     // Barra Guardar fija abajo (glass)
     saveBar:            { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 20, paddingTop: 12, overflow: 'hidden' },
     saveBarBorder:      { position: 'absolute', top: 0, left: 0, right: 0, height: StyleSheet.hairlineWidth, backgroundColor: t.border },
-    saveBtn:            { height: 54, borderRadius: 27, flexDirection: 'row', backgroundColor: t.accent, alignItems: 'center', justifyContent: 'center' },
+    saveBtn:            { height: 54, borderRadius: 27, borderCurve: 'continuous', flexDirection: 'row', backgroundColor: t.accent, alignItems: 'center', justifyContent: 'center' },
     saveBtnIdle:        { backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
     fieldNote:          { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6 },
     fieldNoteText:      { marginTop: 6, fontSize: 13, lineHeight: 18, fontWeight: '400', color: t.textSecondary },
     saveBtnText:        { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
     // Card de campos
-    fieldCard:          { backgroundColor: t.surface, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, paddingHorizontal: 16, paddingVertical: 14 },
+    fieldCard:          { backgroundColor: t.surface, borderRadius: 18, borderCurve: 'continuous', borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, paddingHorizontal: 16, paddingVertical: 14 },
     fieldLabel:         { fontSize: 11, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', color: t.textMute, marginBottom: 4 },
     fieldValue:         { fontSize: 16, fontWeight: '400', color: t.text, paddingVertical: 0, paddingHorizontal: 0, backgroundColor: 'transparent' },
     fieldDivider:       { height: StyleSheet.hairlineWidth, backgroundColor: t.border, marginVertical: 12 },

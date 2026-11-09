@@ -486,7 +486,7 @@ const s = StyleSheet.create({
   dotOn: { backgroundColor: '#FFFFFF' },
   // Escala homologada: cápsula de 54, radio 27, texto 16/700. Vidrio solo en
   // entrada y onboarding (excepción de marca de CLAUDE.md).
-  cta: { alignSelf: 'stretch', height: 54, borderRadius: 27, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.10)' },
+  cta: { alignSelf: 'stretch', height: 54, borderRadius: 27, borderCurve: 'continuous', overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.10)' },
   ctaInner: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.10)' },
   ctaText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
   textButton: { height: 44, alignItems: 'center', justifyContent: 'center' },
@@ -496,7 +496,7 @@ const s = StyleSheet.create({
   collageGrid: { flexDirection: 'column', marginTop: 0, marginBottom: 28 },
   collageRow: { flex: 1, flexDirection: 'row', gap: 8 },
   collageCol: { flex: 1, gap: 8 },
-  collageCell: { flex: 1, width: '100%', borderRadius: 14 },
+  collageCell: { flex: 1, width: '100%', borderRadius: 14, borderCurve: 'continuous' },
   role: { minHeight: 72, borderRadius: 18, borderCurve: 'continuous', overflow: 'hidden', marginBottom: 10, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.10)' },
   roleInner: { minHeight: 72, paddingHorizontal: 16, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: 'rgba(255,255,255,0.06)' },
   roleIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,106,61,0.16)', alignItems: 'center', justifyContent: 'center' },

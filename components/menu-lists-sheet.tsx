@@ -122,11 +122,11 @@ export function MenuListsSheet({ visible, onClose, mode, collections, onCollecti
   </>;
 }
 const s = StyleSheet.create({
-  confirm: { minHeight: 50, padding: 12, borderRadius: 25, alignItems: 'center', justifyContent: 'center' },
+  confirm: { minHeight: 50, padding: 12, borderRadius: 25, borderCurve: 'continuous', alignItems: 'center', justifyContent: 'center' },
   confirmText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
-  group: { marginHorizontal: 16, marginTop: 12, borderRadius: 14, overflow: 'hidden' },
+  group: { marginHorizontal: 16, marginTop: 12, borderRadius: 14, borderCurve: 'continuous', overflow: 'hidden' },
   empty: { padding: 24, fontSize: 14, textAlign: 'center' },
-  editor: { marginHorizontal: 16, marginVertical: 12, paddingVertical: 12, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, gap: 8 },
+  editor: { marginHorizontal: 16, marginVertical: 12, paddingVertical: 12, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', borderRadius: 14, borderCurve: 'continuous', borderWidth: StyleSheet.hairlineWidth, gap: 8 },
   input: { flex: 1, minWidth: 0, minHeight: 44, padding: 0, fontSize: 16, fontWeight: '400', backgroundColor: 'transparent' },
   control: { minWidth: 44, minHeight: 44, justifyContent: 'center', alignItems: 'center' },
 });

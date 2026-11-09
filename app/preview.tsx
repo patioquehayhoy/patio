@@ -185,10 +185,10 @@ function makeStyles(c: FonderoColors) {
   return StyleSheet.create({
   root: { flex: 1, backgroundColor: c.bg },
   emptyRoot: { paddingHorizontal: 28, alignItems: 'center', justifyContent: 'center' },
-  emptyIcon: { width: 68, height: 68, borderRadius: 20, backgroundColor: c.iconBg, alignItems: 'center', justifyContent: 'center' },
+  emptyIcon: { width: 68, height: 68, borderRadius: 20, borderCurve: 'continuous', backgroundColor: c.iconBg, alignItems: 'center', justifyContent: 'center' },
   emptyTitle: { ...Type.section, marginTop: 18, color: c.text, textAlign: 'center' },
   emptyBody: { maxWidth: 310, marginTop: 9, fontSize: 15, lineHeight: 21, fontWeight: '400', color: c.textSecondary, textAlign: 'center' },
-  emptyButton: { width: '100%', maxWidth: 330, minHeight: 54, marginTop: 24, borderRadius: 27, backgroundColor: c.accent, alignItems: 'center', justifyContent: 'center' },
+  emptyButton: { width: '100%', maxWidth: 330, minHeight: 54, marginTop: 24, borderRadius: 27, borderCurve: 'continuous', backgroundColor: c.accent, alignItems: 'center', justifyContent: 'center' },
   emptyButtonText: { color: '#fff', fontSize: 16, fontWeight: '700' },
   top: { position: 'absolute', left: 16, right: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', zIndex: 20 },
   // Espaciador de la top bar: mismo ancho que el botón de volver, SIN fondo —
@@ -201,7 +201,7 @@ function makeStyles(c: FonderoColors) {
   editText: { fontSize: 16, fontWeight: '700', color: c.accent },
 
   posterWrap: { alignItems: 'center', paddingHorizontal: 22 },
-  poster: { width: 330, borderRadius: 26, backgroundColor: LIGHT.bg, overflow: 'hidden', shadowColor: '#000', shadowOffset: { width: 0, height: 24 }, shadowOpacity: 0.24, shadowRadius: 34, elevation: 12 },
+  poster: { width: 330, borderRadius: 26, borderCurve: 'continuous', backgroundColor: LIGHT.bg, overflow: 'hidden', shadowColor: '#000', shadowOffset: { width: 0, height: 24 }, shadowOpacity: 0.24, shadowRadius: 34, elevation: 12 },
   posterHead: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, paddingHorizontal: 22, paddingTop: 26, paddingBottom: 18 },
   posterHeadLeft: { flex: 1 },
   posterPrice: { alignItems: 'flex-end' },
@@ -213,7 +213,7 @@ function makeStyles(c: FonderoColors) {
   // Densidad editorial (regla HIG): nombre+descripción son una unidad óptica
   // (1px de separación), filas a 5px, secciones a 10px — el aire vive ENTRE
   // grupos, nunca dentro de ellos.
-  menuCard: { marginHorizontal: 18, padding: 18, borderRadius: 18, backgroundColor: LIGHT.card, borderWidth: StyleSheet.hairlineWidth, borderColor: LIGHT.sep },
+  menuCard: { marginHorizontal: 18, padding: 18, borderRadius: 18, borderCurve: 'continuous', backgroundColor: LIGHT.card, borderWidth: StyleSheet.hairlineWidth, borderColor: LIGHT.sep },
   menuSection: { marginTop: 10 },
   menuSectionTitle: { marginBottom: 2, fontSize: 11, fontWeight: '700', letterSpacing: 0.8, color: LIGHT.accent, textTransform: 'uppercase', lineHeight: 14 },
   menuRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', paddingVertical: 5, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: LIGHT.sep },
@@ -226,7 +226,7 @@ function makeStyles(c: FonderoColors) {
   posterSign: { textAlign: 'center', fontSize: 11, fontWeight: '400', letterSpacing: 0.4, color: LIGHT.mute },
 
   ctaWrap: { paddingHorizontal: 22, paddingTop: 12 },
-  cta: { height: 54, borderRadius: 27, backgroundColor: c.accent, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  cta: { height: 54, borderRadius: 27, borderCurve: 'continuous', backgroundColor: c.accent, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   ctaText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
   shareLink: { minHeight: 44, marginTop: 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   shareLinkText: { fontSize: 14, fontWeight: '500' },

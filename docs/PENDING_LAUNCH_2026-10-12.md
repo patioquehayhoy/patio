@@ -14,9 +14,12 @@
 - [x] Build iOS development (para Metro, con visitas y cobro):
   https://expo.dev/accounts/patio-quehayhoy/projects/lafondita/builds/f78a296a-4a85-4e6c-bba8-5e7ca4dc9358
 - [ ] Build Android QA (APK con todo lo de hoy), en cola:
-  https://expo.dev/accounts/patio-quehayhoy/projects/lafondita/builds/ce28b4f8-a6cd-42a7-9522-99756b45f2a1
-  (el primer intento falló sin culpa del código: GitHub respondió 504 al
-  bajar Gradle 8.14.3; se relanzó igual).
+  https://expo.dev/accounts/patio-quehayhoy/projects/lafondita/builds/37b53388-a21b-462a-bbc4-654a8067d697
+  Los dos primeros
+  intentos fallaron sin culpa del código: GitHub respondió 504 al bajar
+  Gradle 8.14.3; el tercero se lanzó cuando la descarga ya respondía.
+- [x] Producción del 9 nov aplicada por Parco (verificado 16:42 UTC): las 5
+  migraciones (existe `cron_secret`) y las 7 funciones nuevas o cambiadas.
 - [ ] **Parco, producción, en este orden** (sin SQL a mano: la migración
   20261109120000 genera y guarda el secreto del resumen en Vault):
   1. `npx supabase db push --yes` (place_photo, operation_notices,

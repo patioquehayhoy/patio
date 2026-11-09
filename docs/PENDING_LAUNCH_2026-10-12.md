@@ -14,7 +14,9 @@
 - [x] Build iOS development (para Metro, con visitas y cobro):
   https://expo.dev/accounts/patio-quehayhoy/projects/lafondita/builds/f78a296a-4a85-4e6c-bba8-5e7ca4dc9358
 - [ ] Build Android QA (APK con todo lo de hoy), en cola:
-  https://expo.dev/accounts/patio-quehayhoy/projects/lafondita/builds/de7ceff8-a6db-419c-a7ac-d15b8a638c4e
+  https://expo.dev/accounts/patio-quehayhoy/projects/lafondita/builds/ce28b4f8-a6cd-42a7-9522-99756b45f2a1
+  (el primer intento falló sin culpa del código: GitHub respondió 504 al
+  bajar Gradle 8.14.3; se relanzó igual).
 - [ ] **Parco, producción, en este orden:**
   1. `npx supabase db push --yes` (place_photo, operation_notices,
      today_views, daily_schedule).

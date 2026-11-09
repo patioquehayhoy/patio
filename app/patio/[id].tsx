@@ -149,6 +149,7 @@ function makeStyles(t: Theme) {
     heroBio: { marginTop: 2 },
     heroFacts: { marginTop: 8, fontSize: 14, lineHeight: 19, fontWeight: '400', color: 'rgba(255,255,255,0.86)', textShadowColor: 'rgba(0,0,0,0.25)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 6 },
     heroFactsUnderName: { marginTop: 4 },
+    address: { marginTop: 8, fontSize: 13, lineHeight: 17, fontWeight: '400', color: t.textSecondary },
     // Sin descripción, el nombre ya trae su propio aire abajo (los rasgos
     // descendentes de Monument): 4 se ve igual de separado que 16 tras texto.
     heroMetaUnderName: { marginTop: 4 },
@@ -779,7 +780,10 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
   const km = patioDistance(here, patio);
   const distance = km === null ? null : formatDistance(km);
   const heroPrice = patioCardPrice(patio);
-  const heroFacts = [patio.area?.trim(), distance, heroPrice.source === 'missing' ? null : heroPrice.label].filter(Boolean).join(' · ');
+  // En el encabezado, solo lo que decide la visita: distancia y precio. La
+  // colonia va abajo del mapa, con la dirección (como la ficha de Google).
+  const heroFacts = [distance, heroPrice.source === 'missing' ? null : heroPrice.label].filter(Boolean).join(' · ');
+  const placeAddress = [patio.address?.trim(), patio.area?.trim()].filter(Boolean).join(' · ');
   const followersCount = businessStats ? businessStats.saves.toLocaleString('es-MX') : '';
   const metaLead = businessStats ? followersCount : heroFacts;
   return (
@@ -868,11 +872,11 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
             {!!description && (
               <Text style={[s.heroBioText, s.heroBio, { marginLeft: opticalIndent(description, Fonts.text, 15) }]} numberOfLines={2} allowFontScaling={true}>{noWidow(description)}</Text>
             )}
-            {/* Datos junto a seguidores (Parco, 8 nov): «240 seguidores · Narvarte ·
-                450 m · $95» en la línea de «Seguir» cuando cabe en un renglón. Si
-                no cabe (colonia larga, rango de precio, miles de seguidores, letra
-                grande), los datos bajan a su propia línea a todo lo ancho, como
-                ViewThatFits de Apple: nunca se cortan ni se aprietan. */}
+            {/* Datos junto a seguidores (Parco, 8 nov): «240 seguidores · 450 m ·
+                $95» en la línea de «Seguir» cuando cabe en un renglón. Si no cabe
+                (rango de precio, miles de seguidores, letra grande), los datos
+                bajan a su propia línea a todo lo ancho, como ViewThatFits de
+                Apple: nunca se cortan ni se aprietan. */}
             {metaStacked && !!heroFacts && (
               <Text style={[s.heroFacts, !description && s.heroFactsUnderName, { marginLeft: opticalIndent(heroFacts, Fonts.text, 14) }]} allowFontScaling={true}>{noWidow(heroFacts)}</Text>
             )}
@@ -1132,6 +1136,10 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
                   </Marker>
                 </MapView>
               </TouchableOpacity>
+            )}
+            {/* Dirección y colonia completas bajo el mapa: nunca se cortan. */}
+            {!!placeAddress && (
+              <Text style={s.address} allowFontScaling={true}>{noWidow(placeAddress)}</Text>
             )}
           </View>
 

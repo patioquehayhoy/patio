@@ -178,14 +178,19 @@ test('location uses a middle dot only between real area and distance and speaks 
   const f = fixture('components/patio-card-info.tsx');
   const area = 'San Miguel Chapultepec Primera Sección';
   const render = (props) => f.render(f.exports.PatioCardLocation, props);
+  // 2026-11-08: la colonia nunca se corta (hasta dos renglones) y la distancia
+  // va pegada con espacios que no se parten, para no quedar sola.
+  const text = (tree) => nodes(tree).filter((node) => typeof node.props?.children === 'string').map((node) => node.props.children).join('');
   let tree = render({ area, distanceLabel: '12.5 km', variant: 'detail' });
   assert.equal(tree.props.accessibilityLabel, `${area}. Distancia, 12.5 km`);
-  assert.equal(nodes(tree).filter((node) => node.props?.children === '·').length, 1);
+  assert.equal((text(tree).match(/·/g) ?? []).length, 1);
+  assert.match(text(tree), /\u00A0·\u00A012\.5\u00A0km$/);
   assert.equal(nodes(tree).filter((node) => node.type === 'Icon').length, 0);
-  assert.equal(nodes(render({ area, distanceLabel: null })).filter((node) => node.props?.children === '·').length, 0);
+  assert.ok(!nodes(tree).some((node) => node.props?.ellipsizeMode), 'the area is never cut with an ellipsis');
+  assert.equal((text(render({ area, distanceLabel: null })).match(/·/g) ?? []).length, 0);
   tree = render({ area: ' ', distanceLabel: '750 m' });
   assert.equal(tree.props.accessibilityLabel, 'Distancia, 750 m');
-  assert.equal(nodes(tree).filter((node) => node.props?.children === '·').length, 0);
+  assert.equal((text(tree).match(/·/g) ?? []).length, 0);
   assert.equal(render({ area: '', distanceLabel: null }), null);
 });
 

@@ -711,3 +711,16 @@ acordeón se queda solo en el editor del negocio.
 - **Ley nueva:** diseñar siempre con casos corto, típico, largo y límite
   (`docs/design/CONTENT_STRESS_CASES.md`, también en `CLAUDE.md`). Los lugares
   «Dev» traen ahora colonias largas, rangos de precio y 0 / miles de seguidores.
+
+### Colonia, título del menú y menús sin nombre (8 nov, noche)
+
+- **Ficha:** la colonia sale del encabezado. Arriba solo lo que decide la
+  visita: «240 seguidores · 450 m · $95». La dirección y la colonia completas
+  van bajo el mapa, como en la ficha de Google.
+- **Listas (tiras):** la colonia se queda, como en Google, pero ya no se corta
+  con «…»: puede bajar a un segundo renglón y la distancia va pegada al final.
+- **Editor:** sin nombre, el título dice «Nombre del menú» en gris suave
+  (como «Título» en Notas).
+- **Menús sin nombre** se siguen titulando con sus platillos (como Notas usa
+  su primera línea; la fecha ya va abajo), ahora con conteo y sin cortarse:
+  «Chilaquiles, Molletes y 22 más»; con nombres largos, uno solo y «y N más».

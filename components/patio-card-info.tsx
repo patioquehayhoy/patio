@@ -70,10 +70,14 @@ export function PatioCardLocation({ area, distanceLabel, reserveLine = false, va
   const distance = distanceLabel?.trim();
   if (!cleanArea && !distance && !reserveLine) return null;
   const accessibilityLabel = [cleanArea, distance ? `Distancia, ${distance}` : null].filter(Boolean).join('. ');
+  // Una sola línea de texto que puede bajar a dos: la colonia completa (nunca
+  // con «…», ley de casos de largo) y la distancia pegada al final para que
+  // jamás quede sola en otro renglón.
   return <View style={[s.location, reserveLine && { minHeight: 18 * fontScale }, style]} accessible={!!accessibilityLabel} accessibilityLabel={accessibilityLabel || undefined}>
-    {!!cleanArea && <Text style={[s.area, variant === 'detail' && s.detailLocation]} numberOfLines={1} ellipsizeMode="tail" allowFontScaling>{noWidow(cleanArea)}</Text>}
-    {!!cleanArea && !!distance && <Text style={[s.area, s.locationSeparator, variant === 'detail' && s.detailLocation]} accessible={false}>·</Text>}
-    {!!distance && <Text style={[s.area, s.distance, s.numeric, variant === 'detail' && s.detailLocation]} numberOfLines={1} allowFontScaling>{noWidow(distance)}</Text>}
+    <Text style={[s.area, variant === 'detail' && s.detailLocation]} numberOfLines={2} allowFontScaling>
+      {cleanArea ? noWidow(cleanArea) : null}
+      {!!distance && <Text style={s.numeric}>{`${cleanArea ? '\u00A0·\u00A0' : ''}${distance.replace(/ /g, '\u00A0')}`}</Text>}
+    </Text>
   </View>;
 }
 

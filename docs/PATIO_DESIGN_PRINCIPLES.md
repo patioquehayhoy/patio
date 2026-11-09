@@ -107,9 +107,11 @@ errores) y la validación en línea de Luke Wroblewski.
     `Type.section` con mayúscula inicial (2026-11-08: la etiqueta gris de 11
     perdía contra el platillo de 16); menú → 32 → detalles; mapa → 32 →
     reseñas.
-  - Colonia, distancia y precio (2026-11-08, Parco eligió B) van en la línea
-    de seguidores, junto a «Seguir», cuando caben en un renglón; si no caben,
-    bajan a su propia línea a todo lo ancho. Ya no viven en la hoja blanca.
+  - Distancia y precio (2026-11-08, Parco eligió B) van en la línea de
+    seguidores, junto a «Seguir», cuando caben en un renglón; si no caben,
+    bajan a su propia línea a todo lo ancho. La colonia y la dirección van
+    completas bajo el mapa (como Google); en listas, la colonia puede bajar a
+    dos renglones, nunca con «…».
   - Menús de 4 secciones o más: barra de secciones fija arriba al bajar por
     el menú (sin «volver»), fondo sólido del lienzo y desvanecido en las
     orillas.

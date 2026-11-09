@@ -257,8 +257,10 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
             onFocus={focusNombre}
             onBlur={confirmNombre}
             onSubmitEditing={() => nombreInputRef.current?.blur()}
-            placeholder={source === 'foto' ? 'Revisión' : 'Nuevo menú'}
-            placeholderTextColor={c.textSecondary}
+            // Sin nombre, el título se ve suave (como «Título» en Notas) y dice
+            // qué va ahí; al guardar sin nombre, Menús lo titula con sus platillos.
+            placeholder="Nombre del menú"
+            placeholderTextColor={c.textMute}
             maxLength={TEXT_LIMITS.menuName}
             returnKeyType="done"
             accessibilityLabel="Nombre del menú"

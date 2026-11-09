@@ -9,6 +9,7 @@ import { localMenuDate } from '@/lib/menu-date';
 import { noWidow } from '@/lib/typography';
 import { supabase } from '@/lib/supabase';
 import { getFonditaId } from '@/lib/user-store';
+import { summary } from '@/lib/menu-title';
 
 export type PublishedMenu = LocalMenuEntry;
 type RemoteMenu = { fecha: string; secciones: MenuData };
@@ -24,15 +25,6 @@ export function mergeMenuHistory(local: LocalMenuEntry[], remote: RemoteMenu[], 
   return [...merged.values()].sort((a, b) => b.fecha.localeCompare(a.fecha));
 }
 
-
-function summary(menu: MenuData): string {
-  return menu.secciones
-    .flatMap((section) => section.platillos)
-    .map((dish) => dish.nombre.trim())
-    .filter(Boolean)
-    .slice(0, 3)
-    .join(' · ');
-}
 
 export function dateLabel(fecha: string): string {
   return new Date(`${fecha}T12:00:00`).toLocaleDateString('es-MX', { day: 'numeric', month: 'long' });

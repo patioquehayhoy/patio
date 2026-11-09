@@ -193,7 +193,7 @@ export function SaveToListSheet({ visible, patioIds, patioName, onDismiss, mode 
             }} style={s.headerIcon}>
               <Ionicons name={creating || canReturnToSource ? 'chevron-back' : 'add'} size={21} color={theme.text} />
             </TouchableOpacity>}
-            <Text accessibilityRole="header" style={s.context} numberOfLines={1}>{noWidow(creating ? 'Nueva lista' : mode === 'move' ? choosingSource ? 'Origen' : 'Destino' : patioIds.length > 1 ? `${patioIds.length} lugares` : patioName || 'Agregar a lista')}</Text>
+            <Text accessibilityRole="header" style={s.context}>{noWidow(creating ? 'Nueva lista' : mode === 'move' ? choosingSource ? 'Origen' : 'Destino' : patioIds.length > 1 ? `${patioIds.length} lugares` : patioName || 'Agregar a lista')}</Text>
             {canReturnToSource && !creating && <TouchableOpacity disabled={busy} accessibilityRole="button" accessibilityLabel="Nueva lista" onPress={() => setCreating(true)} style={s.headerIcon}><Ionicons name="add" size={21} color={theme.text} /></TouchableOpacity>}
             <TouchableOpacity accessibilityRole="button" accessibilityState={{ disabled: busy }} onPress={dismiss} disabled={busy} style={s.closeButton}><Text style={s.closeText}>{mode === 'move' ? 'Cancelar' : 'Listo'}</Text></TouchableOpacity>
           </View>
@@ -206,7 +206,7 @@ export function SaveToListSheet({ visible, patioIds, patioName, onDismiss, mode 
           <TouchableOpacity disabled={!newTitle.trim() || busy} onPress={handleCreate} style={[s.createButton, (!newTitle.trim() || busy) && s.disabled]} accessibilityRole="button" accessibilityLabel="Crear lista"><Text style={s.createText}>{busy ? 'Creando…' : 'Crear'}</Text></TouchableOpacity>
         </View>}
         {mode === 'move' && (
-          <Text style={s.moveHint} numberOfLines={2}>
+          <Text style={s.moveHint}>
             {noWidow(choosingSource ? `${patioIds.length} ${patioIds.length === 1 ? 'lugar seleccionado' : 'lugares seleccionados'}` : `Origen: ${sourceNames}`)}
           </Text>
         )}
@@ -216,7 +216,7 @@ export function SaveToListSheet({ visible, patioIds, patioName, onDismiss, mode 
             return <TouchableOpacity key={collection.id} disabled={busy} accessibilityRole={mode === 'move' && !choosingSource ? 'radio' : 'checkbox'} accessibilityState={{ checked: partial ? 'mixed' : selected, disabled: busy }}
               accessibilityLabel={`${collection.title}, ${collection.patioIds.length} ${collection.patioIds.length === 1 ? 'lugar' : 'lugares'}`} onPress={() => choose(collection)} style={[s.row, index > 0 && s.divider]}>
               <Ionicons name={selected ? 'checkmark-circle' : partial ? 'remove-circle-outline' : 'ellipse-outline'} size={22} color={selected || partial ? theme.accent : theme.textMute} />
-              <View style={s.rowCopy}><Text style={s.rowTitle} numberOfLines={2}>{noWidow(collection.title)}</Text></View><Text style={s.rowMeta} numberOfLines={1}>{collection.patioIds.length} {collection.patioIds.length === 1 ? 'lugar' : 'lugares'}</Text>
+              <View style={s.rowCopy}><Text style={s.rowTitle}>{noWidow(collection.title)}</Text></View><Text style={s.rowMeta} numberOfLines={1}>{collection.patioIds.length} {collection.patioIds.length === 1 ? 'lugar' : 'lugares'}</Text>
             </TouchableOpacity>;
           })}
           {!choices.length && <View style={s.empty}><Text style={s.rowMeta}>{noWidow(mode === 'move' && !choosingSource ? 'Sin listas de destino' : 'Sin listas')}</Text></View>}

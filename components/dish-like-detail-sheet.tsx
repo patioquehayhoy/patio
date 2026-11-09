@@ -81,7 +81,7 @@ export function DishLikeDetailSheet({ visible, onClose, dishName, authors }: {
             <View style={s.grabber} />
           </View>
           <View style={s.header}>
-            <Text style={[s.title, { color: c.text }]} numberOfLines={1}>{noWidow(dishName)}</Text>
+            <Text style={[s.title, { color: c.text }]}>{noWidow(dishName)}</Text>
             <Text style={[s.subtitle, { color: c.textSecondary }]}>{authors.length === 1 ? '1 like en total' : `${authors.length} likes en total`}</Text>
           </View>
           {/* La lista crece con los likes; el panel tiene tope de 70 % y la
@@ -91,8 +91,8 @@ export function DishLikeDetailSheet({ visible, onClose, dishName, authors }: {
             <View key={`${author.name}-${index}`} style={[s.row, index > 0 && { borderTopColor: c.border, borderTopWidth: StyleSheet.hairlineWidth }]}>
               <AvatarCircle name={author.name} avatarUrl={author.avatarUrl} backgroundColor={c.iconBg} textColor={c.textSecondary} size={34} />
               <View style={s.rowBody}>
-                <Text style={[s.rowText, { color: c.text }]} numberOfLines={1}>{author.name}</Text>
-                <Text style={[s.rowSubtext, { color: c.textMute }]} numberOfLines={1}>{noWidow(author.label)}</Text>
+                <Text style={[s.rowText, { color: c.text }]}>{author.name}</Text>
+                <Text style={[s.rowSubtext, { color: c.textMute }]}>{noWidow(author.label)}</Text>
               </View>
             </View>
           ))}

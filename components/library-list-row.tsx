@@ -15,7 +15,7 @@ export function LibraryListRow({ title, count, unit, checked, disabled, onPress,
   return <View style={[s.row, divider && { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.border }]}>
     <Pressable style={({ pressed }) => [s.main, pressed && { backgroundColor: theme.surface2 }]} disabled={disabled} accessibilityRole={role} accessibilityLabel={`${title}, ${countLabel}${pinned ? ', fijada' : ''}`} accessibilityState={{ checked, disabled: !!disabled }} onPress={onPress} onLongPress={onLongPress}>
       <Ionicons name={checked === 'mixed' ? 'remove-circle-outline' : checked ? 'checkmark-circle' : 'ellipse-outline'} size={22} color={checked ? theme.accent : theme.textMute} />
-      <Text numberOfLines={2} ellipsizeMode="tail" style={[s.title, { color: theme.text }]}>{noWidow(title)}</Text>
+      <Text style={[s.title, { color: theme.text }]}>{noWidow(title)}</Text>
       {pinned && <PinIcon size={14} color={theme.textSecondary} />}
       <Text numberOfLines={2} style={[s.count, { color: theme.textSecondary }]}>{countLabel}</Text>
     </Pressable>

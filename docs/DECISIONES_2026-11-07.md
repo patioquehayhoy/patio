@@ -737,3 +737,15 @@ completas más abajo.
 **Hecho:** «★ 4.8 (126)» va en la línea de datos del encabezado (con seguidores,
 distancia y precio; si no cabe, baja a su línea) y al tocarlo baja a las
 reseñas. Las reseñas completas se quedan al final, después del menú.
+
+### ¿No se corta ninguna info? (8 nov, noche)
+
+Barrido de los 57 `numberOfLines` de la app con la ley de casos de largo.
+Ya no se corta con «…»: nombres de lugares y personas en todas las listas,
+colonias, platillos, secciones, horarios, títulos de menús y listas, el
+encabezado de «Agregar a lista», el título de los menús de acciones y los
+reconocimientos de la ficha (su franja tenía alto fijo de 48 y recortaba con
+letra grande; ahora es alto mínimo). En las tarjetas, la calificación ya no se
+encoge junto al cierre y el precio se ve completo siempre: «Ver precios» se
+quitó y un rango largo parte en dos renglones después del guion. Lo que sí se
+limita a propósito quedó en `docs/design/CONTENT_STRESS_CASES.md` §4.

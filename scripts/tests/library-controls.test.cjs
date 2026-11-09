@@ -165,7 +165,10 @@ test('one rating star acknowledges a valid personal vote while retaining the pub
   assert.equal(star(tree)[0].props.color, '#f60');
   assert.ok(nodes(tree).some((node) => node.props?.children === '4.7'));
   assert.ok(nodes(tree).some((node) => /Calificación pública, 4.7.*213 reseñas.*Tu calificación, 2.0/.test(node.props?.accessibilityLabel ?? '')));
-  assert.equal(nodes(tree).find((node) => node.props?.accessibilityLabel === props.patio.name).props.numberOfLines, 1);
+  // 2026-11-08 (ley de casos de largo): el nombre baja de renglón, nunca se corta.
+  const nameNode = nodes(tree).find((node) => node.props?.accessibilityLabel === props.patio.name);
+  assert.equal(nameNode.props.numberOfLines, undefined);
+  assert.equal(nameNode.props.ellipsizeMode, undefined);
   for (const personalRating of [null, 0, 6, NaN]) {
     tree = f.render(f.exports.PatioCardInfo, { ...props, personalRating, variant: 'list' });
     assert.equal(star(tree).length, 1);
@@ -194,18 +197,21 @@ test('location uses a middle dot only between real area and distance and speaks 
   assert.equal(render({ area: '', distanceLabel: null }), null);
 });
 
-test('compact prices never show an incomplete extraordinary amount and the expanded page keeps exact prices', () => {
+test('card prices are never cut or hidden: a long range splits after its dash', () => {
+  // 2026-11-08 (ley de casos de largo): sin «Ver precios» ni «…»; el rango
+  // completo baja a dos renglones si no cabe en su columna.
   const f = fixture('components/patio-card-info.tsx', { '@/lib/patio-card-info': pureModule('lib/patio-card-info.ts') });
   const patio = { menu: [], price: '$12,500–25,000' };
   let tree = f.render(f.exports.PatioCardPrice, { patio });
   const text = nodes(tree).find((node) => node.type === 'Text');
-  assert.equal(text.props.children, 'Ver precios');
-  assert.equal(text.props.numberOfLines, 1);
+  assert.equal(text.props.children, '$12,500–\u200B25,000');
+  assert.equal(text.props.numberOfLines, undefined);
+  assert.equal(text.props.ellipsizeMode, undefined);
   assert.match(text.props.accessibilityLabel, /12,500.*25,000/);
-  tree = f.render(f.exports.PatioCardPrice, { patio, compact: false });
-  assert.equal(nodes(tree).find((node) => node.type === 'Text').props.children, '$12,500–25,000');
-  tree = f.render(f.exports.PatioCardPrice, { patio: { ...patio, price: '$1,250–2,950' } });
-  assert.equal(nodes(tree).find((node) => node.type === 'Text').props.children, '$1,250–2,950');
+  tree = f.render(f.exports.PatioCardPrice, { patio: { ...patio, price: '$95' } });
+  assert.equal(nodes(tree).find((node) => node.type === 'Text').props.children, '$95');
+  tree = f.render(f.exports.PatioCardPrice, { patio: { menu: [], price: null } });
+  assert.equal(nodes(tree).find((node) => node.type === 'Text').props.children.replace(/\u00A0/g, ' '), 'Sin precio');
 });
 
 test('sheet geometry respects the available viewport instead of forcing a minimum behind the keyboard', () => {

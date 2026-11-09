@@ -397,7 +397,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                                 activeOpacity={0.7}
                                 accessibilityRole="button"
                                 accessibilityLabel={`${dish.nombre}. Editar platillo`}>
-                                <Text style={s.dishName} numberOfLines={1} ellipsizeMode="tail">{dish.nombre}</Text>
+                                <Text style={s.dishName}>{dish.nombre}</Text>
                               </TouchableOpacity>
                             )}
                             {dish.precio || priceOpen[dish.id] ? (

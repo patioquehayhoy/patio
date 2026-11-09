@@ -778,7 +778,7 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
                 onPress={() => { Haptics.selectionAsync().catch(() => {}); setFilterDetail(group.field); }}>
                 <View style={s.checkSlot}>{group.field === 'payments' ? <PaymentIcon method="Tarjeta" size={20} color={theme.textSecondary} /> : <PlaceIcon name={group.icon} size={20} color={theme.textSecondary} />}</View>
                 <Text style={s.disclosureLabel}>{noWidow(group.title)}</Text>
-                <Text numberOfLines={2} style={s.disclosureValue}>{noWidow(summary)}</Text>
+                <Text style={s.disclosureValue}>{noWidow(summary)}</Text>
                 <View style={s.disclosureChevron}><Ionicons name="chevron-forward" size={16} color={theme.textMute} /></View>
               </TouchableOpacity>;
             })}

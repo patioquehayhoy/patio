@@ -99,7 +99,7 @@ export default function RachaScreen() {
                 <View style={[s.group, { borderTopColor: c.border }]}>
                   <Text style={[s.groupLabel, { color: c.textSecondary }]}>{noWidow('Lo que más gusta')}</Text>
                   <View style={s.groupLine} accessible accessibilityLabel={`${topDish.displayName}, ${topDish.likes} me gusta`}>
-                    <Text style={[s.groupValue, { color: c.text }]} numberOfLines={1}>{topDish.displayName}</Text>
+                    <Text style={[s.groupValue, { color: c.text }]}>{noWidow(topDish.displayName)}</Text>
                     <Ionicons name="heart" size={13} color={c.accent} />
                     <Text style={[s.groupCount, { color: c.textSecondary }]}>{topDish.likes}</Text>
                   </View>
@@ -110,7 +110,7 @@ export default function RachaScreen() {
               {hasPro && (
                 <View style={[s.group, { borderTopColor: c.border }]}>
                   <Text style={[s.groupLabel, { color: c.textSecondary }]}>{noWidow('Cuándo hay más interés')}</Text>
-                  <Text style={[s.groupValue, { color: c.text }]} numberOfLines={1}>
+                  <Text style={[s.groupValue, { color: c.text }]}>
                     {peak ? `Los ${peak.day} de ${peak.hour} a ${peak.hour + 1} h` : 'Aún juntamos datos de tu semana'}
                   </Text>
                 </View>

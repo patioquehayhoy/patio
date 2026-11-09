@@ -46,7 +46,7 @@ export function BlockedAccounts() {
         <Text style={{ color: theme.accent }}>{noWidow('No pudimos cargar las cuentas. Reintentar.')}</Text>
       </TouchableOpacity> : profiles.length ? profiles.map((profile) =>
         <View key={profile.user_id} style={{ flexDirection: 'row', alignItems: 'center', minHeight: 52, gap: 16 }}>
-          <Text style={{ flex: 1, color: theme.text }} numberOfLines={1}>{profile.display_name || noWidow('Cuenta bloqueada')}</Text>
+          <Text style={{ flex: 1, color: theme.text }}>{profile.display_name || noWidow('Cuenta bloqueada')}</Text>
           <TouchableOpacity disabled={busy !== null} onPress={() => void unblock(profile.user_id)} accessibilityRole="button"
             accessibilityState={{ disabled: busy !== null, busy: busy === profile.user_id }}
             accessibilityLabel={`Desbloquear ${profile.display_name || 'cuenta'}`} style={{ minHeight: 44, justifyContent: 'center' }}>

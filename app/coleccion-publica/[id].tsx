@@ -141,7 +141,7 @@ export default function PublicCollection() {
           <TouchableOpacity accessibilityRole="button" style={[s.row, { borderColor: theme.border }]} onPress={() => router.push({ pathname: '/foodie/[id]', params: { id: item.owner_id } })}><Text style={{ color: theme.textSecondary }}>{noWidow(ownerName ? `Ver perfil de ${ownerName}` : 'Ver perfil de quien la armó')}</Text><Ionicons name="chevron-forward" size={16} color={theme.textMute} /></TouchableOpacity>
           {places.map((place) => <TouchableOpacity key={place.id} accessibilityRole="button" accessibilityLabel={`Abrir ${place.nombre}`} style={[s.row, { borderColor: theme.border }]} onPress={() => router.push(`/patio/${place.id}`)}>
             <View style={s.placeIcon}><PlaceIcon size={18} color={theme.textSecondary} /></View>
-            <Text numberOfLines={2} ellipsizeMode="tail" style={[s.placeName, { color: theme.text }]}>{noWidow(place.nombre)}</Text>
+            <Text style={[s.placeName, { color: theme.text }]}>{noWidow(place.nombre)}</Text>
             <Ionicons name="chevron-forward" size={16} color={theme.textMute} />
           </TouchableOpacity>)}
           {!places.length && <Text style={[s.desc, { color: theme.textSecondary }]}>{noWidow('Esta lista todavía no tiene lugares disponibles.')}</Text>}

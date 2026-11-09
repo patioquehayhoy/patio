@@ -304,7 +304,7 @@ export default function ResenasScreen() {
                 <Text style={[s.groupLabel, { color: c.textSecondary }]}>{noWidow('Lo que más gusta')}</Text>
                 {topDishes.map((dish) => (
                   <View key={dish.dishName} style={s.topDish} accessible accessibilityLabel={`${dish.displayName}, ${dish.likes} me gusta`}>
-                    <Text style={[s.topDishName, { color: c.text }]} numberOfLines={1}>{dish.displayName}</Text>
+                    <Text style={[s.topDishName, { color: c.text }]}>{noWidow(dish.displayName)}</Text>
                     <Ionicons name="heart" size={13} color={c.accent} />
                     <Text style={[s.topDishCount, { color: c.textSecondary }]}>{dish.likes}</Text>
                   </View>

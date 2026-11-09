@@ -82,8 +82,8 @@ export default function FollowListScreen() {
               accessibilityLabel={`Ver perfil de ${person.name}`}>
               <AvatarCircle name={person.name} avatarUrl={person.avatarUrl} backgroundColor={theme.surface2} textColor={theme.textSecondary} />
               <View style={{ flex: 1, minWidth: 0 }}>
-                <Text style={[s.name, { color: theme.text }]} numberOfLines={1}>{person.name}</Text>
-                {!!person.handle && <Text style={[s.handle, { color: theme.textSecondary }]} numberOfLines={1}>@{person.handle}</Text>}
+                <Text style={[s.name, { color: theme.text }]}>{person.name}</Text>
+                {!!person.handle && <Text style={[s.handle, { color: theme.textSecondary }]}>@{person.handle}</Text>}
               </View>
               <Ionicons name="chevron-forward" size={16} color={theme.textMute} />
             </TouchableOpacity>
@@ -99,7 +99,7 @@ export default function FollowListScreen() {
               <View style={[s.placeIcon, { backgroundColor: theme.surface2 }]}>
                 <Ionicons name="storefront-outline" size={18} color={theme.textSecondary} />
               </View>
-              <Text style={[s.name, { flex: 1, minWidth: 0, color: theme.text }]} numberOfLines={1}>{place.name}</Text>
+              <Text style={[s.name, { flex: 1, minWidth: 0, color: theme.text }]}>{noWidow(place.name)}</Text>
               <Ionicons name="chevron-forward" size={16} color={theme.textMute} />
             </TouchableOpacity>
           ))}

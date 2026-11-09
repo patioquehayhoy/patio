@@ -226,6 +226,7 @@ function makeStyles(t: Theme) {
     reviewThreadBubble: { maxWidth: '94%', paddingHorizontal: 11, paddingVertical: 8, borderRadius: 15, backgroundColor: t.bg },
     reviewThreadHead: { width: '100%', flexDirection: 'row', alignItems: 'center', gap: 4 },
     reviewThreadAuthor: { flex: 1, minWidth: 0, fontSize: 12, lineHeight: 16, fontWeight: '700', color: t.text },
+    reviewThreadAuthorLink: { flexShrink: 1, minWidth: 0 },
     reviewThreadSeal: { width: 16, height: 16, flexShrink: 0, alignItems: 'center', justifyContent: 'center' },
     reviewThreadText: { marginTop: 2, fontSize: 13, lineHeight: 18, color: t.textSecondary },
     reviewThreadActions: { height: 29, paddingLeft: 7, flexDirection: 'row', alignItems: 'center', gap: 4 },
@@ -244,13 +245,16 @@ function makeStyles(t: Theme) {
     earnedBadge: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
     earnedBadgeActive: { backgroundColor: t.accentSoft, borderColor: t.accent },
     facts: { marginBottom: 8 },
-    factsStage: { height: 48, justifyContent: 'center', overflow: 'hidden' },
-    factsLine: { height: 48, flexDirection: 'row', alignItems: 'center' },
+    // Alto mínimo, nunca fijo: con letra grande o un dato largo la franja
+    // crece en vez de recortar (antes 48 fijos con overflow oculto).
+    factsStage: { minHeight: 48, justifyContent: 'center' },
+    factsLine: { minHeight: 48, flexDirection: 'row', alignItems: 'center' },
     factColumn: { flex: 1, minWidth: 0, minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 4 },
     factColumnCenter: { justifyContent: 'center' },
     factColumnRight: { justifyContent: 'flex-end' },
-    historyMetaText: { fontSize: 12, color: t.textMute, flexShrink: 1 },
-    badgeInline: { height: 48, alignItems: 'flex-start', justifyContent: 'center', paddingHorizontal: 12 },
+    historyMetaText: { fontSize: 12, lineHeight: 16, color: t.textMute, flexShrink: 1 },
+    factRight: { textAlign: 'right' },
+    badgeInline: { minHeight: 48, alignItems: 'flex-start', justifyContent: 'center', paddingHorizontal: 12, paddingVertical: 6 },
     badgeInlineTitle: { fontSize: 13, fontWeight: '700', color: t.text, textAlign: 'left' },
     badgeInlineText: { marginTop: 1, fontSize: 12, lineHeight: 16, color: t.textSecondary, textAlign: 'left' },
     // «Qué tan lleno»: tarjeta como el horario; barras del color de las
@@ -888,7 +892,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
               </View></>}
             </Text>
             {!!description && (
-              <Text style={[s.heroBioText, s.heroBio, { marginLeft: opticalIndent(description, Fonts.text, 15) }]} numberOfLines={2} allowFontScaling={true}>{noWidow(description)}</Text>
+              <Text style={[s.heroBioText, s.heroBio, { marginLeft: opticalIndent(description, Fonts.text, 15) }]} allowFontScaling={true}>{noWidow(description)}</Text>
             )}
             {/* Datos junto a seguidores (Parco, 8 nov): «240 seguidores · 450 m ·
                 $95» en la línea de «Seguir» cuando cabe en un renglón. Si no cabe
@@ -1053,7 +1057,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
                 {activeBadge ? (
                   <TouchableOpacity style={s.badgeInline} onPress={() => setActiveBadgeId(null)} accessibilityRole="button" accessible accessibilityLabel={`${activeBadge.title}. ${activeBadge.detail}. Toca para cerrar`}>
                     <Text style={s.badgeInlineTitle}>{activeBadge.title}</Text>
-                    <Text style={s.badgeInlineText} numberOfLines={2}>{activeBadge.detail}</Text>
+                    <Text style={s.badgeInlineText}>{noWidow(activeBadge.detail)}</Text>
                   </TouchableOpacity>
                 ) : <View style={s.factsLine}>
                 {/* Tres lugares fijos (izquierda, centro, derecha): si falta un
@@ -1061,7 +1065,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
                 {businessOpeningLabel ? (
                   <View style={s.factColumn} accessible accessibilityLabel={businessOpeningLabel}>
                     <Ionicons name="calendar-outline" size={13} color={theme.textMute} />
-                    <Text style={s.historyMetaText} numberOfLines={1}>{businessOpeningLabel}</Text>
+                    <Text style={s.historyMetaText}>{noWidow(businessOpeningLabel)}</Text>
                   </View>
                 ) : <View style={s.factColumn} />}
                 {!patio.payments.length ? <View style={[s.factColumn, s.factColumnCenter]} /> : (
@@ -1077,7 +1081,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
                 )}
                 <TouchableOpacity accessibilityRole="button" accessibilityLabel={patio.weeklyHours?.length ? 'Ver horario semanal' : 'Horario no disponible'} accessibilityState={{ expanded: showSchedule, disabled: !patio.weeklyHours?.length }} disabled={!patio.weeklyHours?.length} style={[s.factColumn, s.factColumnRight]} onPress={() => setShowSchedule((value) => !value)}>
                   <Ionicons name="time-outline" size={14} color={theme.textMute} />
-                  <Text style={s.historyMetaText} numberOfLines={1}>{rangoHoy}</Text>
+                  <Text style={[s.historyMetaText, s.factRight]}>{rangoHoy}</Text>
                   {!!patio.weeklyHours?.length && <Ionicons name={showSchedule ? 'chevron-up' : 'chevron-down'} size={11} color={theme.textMute} />}
                   </TouchableOpacity>
                 </View>}
@@ -1295,10 +1299,10 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
                               <View style={s.reviewThreadBubble}>
                                 <View style={s.reviewThreadHead}>
                                   {reply.real && !reply.mine && !reply.patio && isAccountId(reply.userId) ? (
-                                    <TouchableOpacity onPress={() => openProfile(reply.userId!)} accessibilityRole="link" accessibilityLabel={`Ver perfil de ${reply.author}`} hitSlop={{ top: 6, bottom: 6 }}>
-                                      <Text style={s.reviewThreadAuthor} numberOfLines={1}>{reply.author}</Text>
+                                    <TouchableOpacity onPress={() => openProfile(reply.userId!)} accessibilityRole="link" accessibilityLabel={`Ver perfil de ${reply.author}`} hitSlop={{ top: 6, bottom: 6 }} style={s.reviewThreadAuthorLink}>
+                                      <Text style={s.reviewThreadAuthor}>{reply.author}</Text>
                                     </TouchableOpacity>
-                                  ) : <Text style={s.reviewThreadAuthor} numberOfLines={1}>{reply.mine ? 'Tú' : reply.author}</Text>}
+                                  ) : <Text style={s.reviewThreadAuthor}>{reply.mine ? 'Tú' : reply.author}</Text>}
                                   {reply.patio && (
                                     <View style={s.reviewThreadSeal}>
                                       <SymbolView name="checkmark.seal.fill" size={13} weight="medium" tintColor={theme.accent} fallback={<TintIcon source={ANDROID_ICONS.verified} size={13} color={theme.accent} />} />

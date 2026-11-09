@@ -52,3 +52,24 @@ En desarrollo, los lugares «Dev» (`lib/demo.ts`) traen estos casos. Busca «de
 - **Mariscos y Cocteles Dev Cinco:** nombre de 29, Jardines del Pedregal de
   San Ángel, $150–$1,250, 12,480 seguidores, a más de 12 km.
 - **Cocina Grande Dev 6:** Unidad Habitacional Vicente Guerrero, 24 secciones.
+
+## 4. Qué nunca se corta y qué sí, a propósito
+
+Barrido del 8 nov: ningún dato variable lleva `numberOfLines` que lo corte
+ni un alto fijo que lo recorte. Nombres de lugares y personas, colonias,
+platillos, secciones, precios, horarios, títulos de menús y listas, avisos,
+reconocimientos y reseñas **bajan de renglón**.
+
+Lo único que se limita, y por qué:
+
+| Qué | Cómo | Por qué |
+|---|---|---|
+| Etiquetas fijas de la app (pestañas, «Filtros», «Seguir», botones) | una línea; algunas bajan de tamaño | texto nuestro y corto; cabe siempre |
+| Título chico de la barra al hacer scroll | una línea | repite el título grande, que se ve completo |
+| Vista previa de un comentario en Notificaciones | tres renglones | al tocarla se abre la ficha con el comentario completo |
+| Push de comentarios (servidor) | 90 letras | aviso del sistema; el texto completo está en la app |
+| Nombre en el cartel de «Vista previa» | baja de tamaño hasta 60 % | cabe en dos renglones con el máximo de 30 letras |
+| Nombre del lugar sobre la foto de la ficha | baja de tamaño en tres pasos; solo con la letra de accesibilidad más grande se limita a tres renglones | la foto tiene alto propio |
+
+Al agregar un `numberOfLines`, un `height` fijo con `overflow: 'hidden'` o un
+`slice()` con «…», justificarlo en esta tabla.

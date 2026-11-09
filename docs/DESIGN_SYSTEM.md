@@ -72,16 +72,24 @@ PatioCardInfo, PatioIdentityIcon y patioCardAccessibilityLabel comparten
 jerarquía en Guardados, resultados de Mapa, Vistos y colección privada.
 La colección pública no inventa métricas que su consulta no obtiene.
 
-- Nombre: una línea con elipsis tanto en lista como en cuadrícula.
-  Completo en accesibilidad y ficha. Eliminar la variante de dos líneas de
-  las tarjetas compactas; su longitud no modifica la altura de la fila.
-- Colonia: una línea. Sin giro ni categoría. Si falta, no sustituirla con
-  «CDMX», una categoría o una colonia inferida.
+> **Corregido 2026-11-08 (ley de casos de largo, `CLAUDE.md`):** ningún dato
+> de la tarjeta se corta con «…» ni se esconde. Si no cabe, baja de renglón
+> o a su propia línea; la fila crece. Casos: `docs/design/CONTENT_STRESS_CASES.md`.
+
+- Nombre: completo, baja de renglón (lista y cuadrícula). El sello conserva
+  su columna al final del bloque de nombre.
+- Colonia: completa, con la distancia pegada al final por espacios duros
+  («Jardines del Pedregal de San Ángel · 12.4 km»); baja de renglón si no
+  cabe. Sin giro ni categoría. Si falta, no sustituirla con «CDMX», una
+  categoría o una colonia inferida.
 - Lista: nombre a la izquierda y precio a la derecha en la cabecera. Con
   letra grande en ancho menor de 600 pt, el precio pasa debajo y mantiene
-  alineación derecha. Cada importe compacto ocupa una línea. Los rangos
-  extraordinarios muestran «Ver precios»; accesibilidad y ficha conservan
-  el valor publicado completo. No mostrar una cifra parcialmente recortada.
+  alineación derecha. El precio publicado siempre se ve completo: un rango
+  que no cabe parte después del guion en dos renglones («$12,500–» /
+  «25,000»). Sin «Ver precios» ni cifras recortadas.
+- Calificación y cierre: la calificación («4.5 (1.3k)») nunca se encoge; el
+  cierre ocupa el resto y baja de renglón. Con letra grande el cierre pasa
+  a su propia línea.
 - El precio reserva 112 pt × fontScale en lista. La verificación tiene una
   columna independiente de 16 pt al final del bloque de nombre, reservada
   también cuando no hay sello. El nombre ocupa el ancho restante; nombre
@@ -90,7 +98,7 @@ La colección pública no inventa métricas que su consulta no obtiene.
   reserva 40 pt; debajo hay tres líneas de texto: nombre, ubicación y
   calificación/cierre. Las reservas escalan con la letra. La zona superior
   podrá incorporar una foto real del local en una iteración futura.
-- Ficha: nombre completo; debajo, colonia/distancia a la izquierda y precio a la derecha.
+- Ficha: nombre completo; la línea de datos del encabezado lleva calificación, distancia y precio junto a seguidores (si no cabe, baja a su línea). Dirección y colonia completas van bajo el mapa.
 - Guardados pasa a una columna con fontScale > 1.4 o si las dos columnas no
   dejan 140 pt × fontScale de contenido y 24 pt de padding por card.
   No fijar una altura total.

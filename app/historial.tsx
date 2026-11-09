@@ -148,7 +148,7 @@ export default function HistorialScreen() {
           <Ionicons name={isSelected ? 'checkmark-circle' : 'ellipse-outline'} size={22} color={isSelected ? c.accent : c.textMute} />
         )}
         <View style={{ flex: 1, minWidth: 0 }}>
-          <Text style={[s.summary, { color: c.text }]} numberOfLines={2}>{menu.nombre || defaultHistoryTitle(menu)}</Text>
+          <Text style={[s.summary, { color: c.text }]}>{noWidow(menu.nombre || defaultHistoryTitle(menu))}</Text>
           <Text style={[s.date, { color: c.textMute }]}>{noWidow(`${menu.published ? 'Publicado' : 'Guardado'} · ${dateLabel(menu.fecha)}`)}</Text>
         </View>
         {!selecting && (

@@ -40,7 +40,7 @@ export function FollowingActivityRow({ events, onOpen }: { events: FollowingActi
               accessibilityRole="button" accessibilityLabel={`${event.actorName} ${text}, ${timeAgo(event.at)}`}>
               <AvatarCircle name={event.actorName} avatarUrl={event.avatarUrl} backgroundColor={theme.iconBg} textColor={theme.textSecondary} size={36} />
               <View style={s.activityBody}>
-                <Text style={s.activityText} numberOfLines={2} allowFontScaling>
+                <Text style={s.activityText} allowFontScaling>
                   <Text style={s.actor}>{event.actorName}</Text>{' '}{noWidow(text)}
                 </Text>
                 <View style={s.activityMeta}>

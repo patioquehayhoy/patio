@@ -174,7 +174,7 @@ export default function FoodieProfile() {
               accessibilityLabel={`${index + 1}. ${place.name}${place.stars ? `, ${place.stars} estrellas` : ''}`}
               style={[s.placeRow, { borderColor: theme.border }]} onPress={() => router.push({ pathname: '/patio/[id]', params: { id: place.id } })}>
               <Text style={[s.placeRank, { color: theme.textMute }]}>{index + 1}</Text>
-              <Text style={[s.listName, { flex: 1, minWidth: 0, color: theme.text }]} numberOfLines={1}>{place.name}</Text>
+              <Text style={[s.listName, { flex: 1, minWidth: 0, color: theme.text }]}>{noWidow(place.name)}</Text>
               {!!place.stars && <View style={s.placeStars}>
                 <Ionicons name="star" size={13} color={theme.accent} />
                 <Text style={[s.placeStarsText, { color: theme.textSecondary }]}>{place.stars}</Text>

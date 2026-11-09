@@ -117,7 +117,7 @@ export function ActionSheet({ visible, anchorRef, title, options, onDismiss }: A
         <View pointerEvents="none" style={s.tint} />
         <ScrollView bounces={false} keyboardShouldPersistTaps="handled" accessibilityViewIsModal>
         {!!title && (
-          <View style={s.titleRow}><Text style={s.titleText} numberOfLines={1}>{noWidow(title)}</Text></View>
+          <View style={s.titleRow}><Text style={s.titleText}>{noWidow(title)}</Text></View>
         )}
         {options.map((option, index) => (
           <View key={option.label}>

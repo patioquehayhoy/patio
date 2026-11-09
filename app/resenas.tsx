@@ -319,6 +319,17 @@ export default function ResenasScreen() {
             )}
           </View>
         )}
+        {/* Gratis para todos los negocios (v4 §4): avisos de operación. */}
+        <View style={[s.list, { borderColor: c.border, marginBottom: 24 }]}>
+          <TouchableOpacity style={s.proRow} activeOpacity={0.7} onPress={() => router.push('/avisar')} accessibilityRole="button">
+            <Ionicons name="notifications-outline" size={21} color={c.text} />
+            <View style={s.rowBody}>
+              <Text style={[s.proTitle, { color: c.text }]}>{noWidow('Avisar a quienes te siguen')}</Text>
+              <Text style={[s.proSub, { color: c.textSecondary }]}>{noWidow('Abrimos tarde, hoy no abrimos… Gratis, uno al día')}</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={16} color={c.textMute} />
+          </TouchableOpacity>
+        </View>
         {!!pro && (
           <View style={[s.list, { borderColor: c.border, marginBottom: 24 }]}>
             <TouchableOpacity style={s.proRow} activeOpacity={0.7} onPress={() => router.push('/aviso-especial')} accessibilityRole="button">

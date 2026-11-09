@@ -272,6 +272,14 @@ await check('avisos especiales: filtro de lenguaje, solo el servidor los crea y 
   const left = (await as(ids.owner, `select notices_left from public.business_pro_status($1)`, [business])).rows[0];
   if (Number(left.notices_left) !== 7) throw new Error(JSON.stringify(left));
 });
+await check('avisos de operación: no gastan el cupo de Pro y la ficha los muestra con su tipo', async () => {
+  await admin(`insert into public.special_notices (${fk}, created_by, body, kind) values ($1, $2, 'Hoy abrimos a las 8 pm.', 'operation')`, [business, ids.owner]);
+  const shown = (await as(null, `select notice_body, notice_kind from public.patio_highlights($1)`, [business])).rows[0];
+  if (shown.notice_body !== 'Hoy abrimos a las 8 pm.' || shown.notice_kind !== 'operation') throw new Error(JSON.stringify(shown));
+  const left = (await as(ids.owner, `select notices_left from public.business_pro_status($1)`, [business])).rows[0];
+  if (Number(left.notices_left) !== 7) throw new Error(`operation notice used the Pro quota: ${JSON.stringify(left)}`);
+  await rejects(admin(`insert into public.special_notices (${fk}, created_by, body, kind) values ($1, $2, 'x', 'spam')`, [business, ids.owner]), /check/);
+});
 await check('límites de texto del negocio: se revisan solo al cambiar', async () => {
   await rejects(as(ids.owner, `update public.${table} set descripcion = $2 where id = $1`, [business, 'Comida corrida casera '.repeat(4)]), /TEXT_TOO_LONG/);
   await admin(`alter table public.${table} disable trigger negocios_text_limits`);

@@ -33,12 +33,12 @@ Deno.serve(async (req) => {
     // Inicio del mes en la Ciudad de México (UTC−6, sin horario de verano).
     const monthStart = new Date(`${part('year')}-${part('month')}-01T00:00:00-06:00`).toISOString();
     const { count, error: countError } = await admin.from('special_notices')
-      .select('id', { count: 'exact', head: true }).eq('negocio_id', negocio.id).gte('created_at', monthStart);
+      .select('id', { count: 'exact', head: true }).eq('negocio_id', negocio.id).eq('kind', 'promo').gte('created_at', monthStart);
     if (countError) throw countError;
     if ((count ?? 0) >= MONTHLY_NOTICES) throw new HttpError(429, 'Ya enviaste tus 8 avisos de este mes.');
 
     const { data: notice, error: insertError } = await admin.from('special_notices')
-      .insert({ negocio_id: negocio.id, created_by: user.id, body: text }).select('id').single();
+      .insert({ negocio_id: negocio.id, created_by: user.id, body: text, kind: 'promo' }).select('id').single();
     if (insertError?.message?.includes('CONTENT_REJECTED')) throw new HttpError(422, 'Patio no permite insultos ni lenguaje ofensivo.');
     if (insertError || !notice) throw insertError ?? new Error('Could not save notice');
 

@@ -30,5 +30,8 @@ verify_jwt = true
 [functions.send-special-notice]
 verify_jwt = true
 
+[functions.send-operation-notice]
+verify_jwt = true
+
 [functions.store-notifications]
 verify_jwt = false

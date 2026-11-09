@@ -17,6 +17,7 @@ new Function('exports', output)(loaded.exports);
 const { PLANS } = loaded.exports;
 const migration = read('supabase/migrations/20261102120000_business_pro.sql');
 const notices = read('supabase/functions/send-special-notice/index.ts');
+const operation = read('supabase/migrations/20261109100000_operation_notices.sql');
 
 test('photo reads per plan match the server quota', () => {
   assert.match(migration, new RegExp(`when public\\.has_pro\\(p_user_id\\) then ${PLANS.pro.photoReads} else ${PLANS.free.photoReads} end`));
@@ -25,4 +26,8 @@ test('photo reads per plan match the server quota', () => {
 test('special notices per month match the server quota', () => {
   assert.match(notices, new RegExp(`MONTHLY_NOTICES = ${PLANS.pro.specialNotices};`));
   assert.match(migration, new RegExp(`greatest\\(0, ${PLANS.pro.specialNotices} - `));
+  // 2026-11-09: el cupo cuenta solo promociones; los avisos de operación son gratis.
+  assert.match(operation, new RegExp(`greatest\\(0, ${PLANS.pro.specialNotices} - `));
+  assert.match(operation, /s\.kind = 'promo'/);
+  assert.match(notices, /\.eq\('kind', 'promo'\)/);
 });

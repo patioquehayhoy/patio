@@ -50,7 +50,7 @@ export async function setFeaturedDish(negocioId: string, dishName: string | null
   if (error) throw new Error('No pudimos guardar el platillo destacado.');
 }
 
-export type PatioHighlights = { featuredDish: string | null; notice: { body: string; createdAt: Date } | null };
+export type PatioHighlights = { featuredDish: string | null; notice: { body: string; createdAt: Date; kind?: 'promo' | 'operation' } | null };
 
 /** Lo que Pro agrega a la ficha pública: platillo destacado y aviso de las últimas 24 horas. */
 export async function getPatioHighlights(negocioId: string): Promise<PatioHighlights> {
@@ -69,7 +69,9 @@ export async function getPatioHighlights(negocioId: string): Promise<PatioHighli
   const row = !error && Array.isArray(data) ? data[0] : null;
   return {
     featuredDish: row?.featured_dish ?? null,
-    notice: row?.notice_body ? { body: row.notice_body, createdAt: new Date(row.notice_at) } : null,
+    notice: row?.notice_body
+      ? { body: row.notice_body, createdAt: new Date(row.notice_at), kind: row.notice_kind === 'operation' ? 'operation' : 'promo' }
+      : null,
   };
 }
 

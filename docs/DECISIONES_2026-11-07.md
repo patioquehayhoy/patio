@@ -724,3 +724,16 @@ acordeón se queda solo en el editor del negocio.
 - **Menús sin nombre** se siguen titulando con sus platillos (como Notas usa
   su primera línea; la fecha ya va abajo), ahora con conteo y sin cortarse:
   «Chilaquiles, Molletes y 22 más»; con nombres largos, uno solo y «y N más».
+
+### ¿Reseñas arriba o abajo? (8 nov, noche)
+
+Jev (`docs/research/jev-ficha-resenas-2026-11-08.json`, tres perfiles) eligió
+**«resumen arriba»** en las nueve elecciones (68–92 %): la calificación arriba
+da más confianza (3.15 de 4 contra 1.7–1.9 con todo abajo) sin alejar tanto el
+menú como un carrusel de reseñas arriba (que llega al menú más lento: 2.0–2.4).
+Es lo que hacen Google y Apple Maps: el resumen en el encabezado y las reseñas
+completas más abajo.
+
+**Hecho:** «★ 4.8 (126)» va en la línea de datos del encabezado (con seguidores,
+distancia y precio; si no cabe, baja a su línea) y al tocarlo baja a las
+reseñas. Las reseñas completas se quedan al final, después del menú.

@@ -107,6 +107,8 @@ errores) y la validación en línea de Luke Wroblewski.
     `Type.section` con mayúscula inicial (2026-11-08: la etiqueta gris de 11
     perdía contra el platillo de 16); menú → 32 → detalles; mapa → 32 →
     reseñas.
+  - Calificación «★ 4.8 (126)» al inicio de la línea de datos (Jev, 8 nov);
+    tocarla baja a las reseñas, que siguen al final de la ficha.
   - Distancia y precio (2026-11-08, Parco eligió B) van en la línea de
     seguidores, junto a «Seguir», cuando caben en un renglón; si no caben,
     bajan a su propia línea a todo lo ancho. La colonia y la dirección van

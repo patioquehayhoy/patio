@@ -456,6 +456,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
   const scrollRef = useRef<ScrollView>(null);
   const menuFrame = useRef({ cardY: 0, menuY: 0, menuHeight: 0 });
   const groupY = useRef<number[]>([]);
+  const reviewsY = useRef(0);
   const barHeight = insets.top + 52;
   const [barVisible, setBarVisible] = useState(false);
   const barVisibleRef = useRef(false);
@@ -782,7 +783,24 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
   const heroPrice = patioCardPrice(patio);
   // En el encabezado, solo lo que decide la visita: distancia y precio. La
   // colonia va abajo del mapa, con la dirección (como la ficha de Google).
-  const heroFacts = [distance, heroPrice.source === 'missing' ? null : heroPrice.label].filter(Boolean).join(' · ');
+  // Calificación arriba y reseñas completas abajo (Jev, 8 nov: «resumen
+  // arriba» 68–92 % en tres perfiles; como Google y Apple Maps). Tocarla baja
+  // a las reseñas.
+  const ratingFact = reviews.length ? `★\u00A0${ratingAverage.toFixed(1)}\u00A0(${reviews.length.toLocaleString('es-MX')})` : null;
+  const factParts = [distance, heroPrice.source === 'missing' ? null : heroPrice.label].filter((part): part is string => !!part);
+  const heroFacts = [ratingFact, ...factParts].filter(Boolean).join(' · ');
+  const jumpToReviews = () => {
+    scrollRef.current?.scrollTo({ y: Math.max(0, menuFrame.current.cardY + reviewsY.current - insets.top - 8), animated: true });
+  };
+  const renderFacts = (lead: string) => (
+    <>
+      {lead}
+      {ratingFact && (
+        <Text suppressHighlighting onPress={jumpToReviews} accessibilityLabel={`${ratingAverage.toFixed(1)} de 5, ${reviews.length} reseñas`}>{ratingFact}</Text>
+      )}
+      {factParts.length ? `${ratingFact ? ' · ' : ''}${factParts.join(' · ')}` : ''}
+    </>
+  );
   const placeAddress = [patio.address?.trim(), patio.area?.trim()].filter(Boolean).join(' · ');
   const followersCount = businessStats ? businessStats.saves.toLocaleString('es-MX') : '';
   const metaLead = businessStats ? followersCount : heroFacts;
@@ -878,7 +896,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
                 bajan a su propia línea a todo lo ancho, como ViewThatFits de
                 Apple: nunca se cortan ni se aprietan. */}
             {metaStacked && !!heroFacts && (
-              <Text style={[s.heroFacts, !description && s.heroFactsUnderName, { marginLeft: opticalIndent(heroFacts, Fonts.text, 14) }]} allowFontScaling={true}>{noWidow(heroFacts)}</Text>
+              <Text style={[s.heroFacts, !description && s.heroFactsUnderName, { marginLeft: opticalIndent(heroFacts, Fonts.text, 14) }]} allowFontScaling={true}>{renderFacts('')}</Text>
             )}
             <View style={[s.heroMeta, !description && !(metaStacked && heroFacts) && s.heroMetaUnderName]}>
               <View style={s.followersLink}>
@@ -894,7 +912,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
                       <Text style={s.followersValue}>{followersCount}</Text>{` ${businessStats.saves === 1 ? 'seguidor' : 'seguidores'}`}
                     </Text>
                   ) : null}
-                  {!metaStacked && heroFacts ? `${businessStats ? ' · ' : ''}${heroFacts}` : ''}
+                  {!metaStacked && heroFacts ? renderFacts(businessStats ? ' · ' : '') : null}
                 </Text>
               </View>
               {!own && (
@@ -1143,7 +1161,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
             )}
           </View>
 
-          <View style={s.reviewSection}>
+          <View style={s.reviewSection} onLayout={(event) => { reviewsY.current = event.nativeEvent.layout.y; }}>
             <View style={s.reviewsSummary}>
               <View>
                 <Text style={s.reviewsTitle}>Reseñas</Text>

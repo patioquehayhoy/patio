@@ -1,12 +1,9 @@
 -- Resumen de las 18:00 (hora de la Ciudad de México, UTC−6 todo el año),
--- 2026-11-09. El recordatorio de las 10:00 lo programa el teléfono. pg_cron llama a la función
--- send-business-digest con un secreto guardado en Vault:
---
---   select vault.create_secret('https://<proyecto>.supabase.co', 'patio_project_url');
---   select vault.create_secret('<el mismo valor de PATIO_CRON_SECRET>', 'patio_cron_secret');
---
--- Sin esos secretos la llamada no hace nada. Sin pg_cron o pg_net (por
--- ejemplo, en el ensayo local) este paso solo avisa y no programa nada.
+-- 2026-11-09. El recordatorio de las 10:00 lo programa el teléfono. pg_cron
+-- llama a la función send-business-digest con el secreto que la migración
+-- 20261109120000 genera y guarda en Vault (`patio_cron_secret`, junto con
+-- `patio_project_url`). Sin pg_cron o pg_net (por ejemplo, en el ensayo
+-- local) este paso solo avisa y no programa nada.
 
 create or replace function public.invoke_business_digest(mode text)
 returns bigint language plpgsql security definer set search_path = public, pg_temp

@@ -14,21 +14,23 @@ function sameSecret(a: string, b: string): boolean {
 }
 
 // Resumen de las 18:00 («Hoy · 34 personas vieron tu menú.»). Solo la llama
-// pg_cron (migración 20261109111000) con PATIO_CRON_SECRET; nadie más puede.
+// pg_cron (migración 20261109111000) con el secreto que la base generó y
+// guarda en Vault (20261109120000); aquí se compara contra la base.
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405);
   try {
-    const expected = Deno.env.get('PATIO_CRON_SECRET') ?? '';
-    const token = req.headers.get('Authorization')?.match(/^Bearer\s+(\S+)$/i)?.[1] ?? '';
-    if (expected.length < 32 || !sameSecret(token, expected)) throw new HttpError(401, 'Unauthorized');
-    const body = await readJson(req, 512) as { mode?: unknown };
-    if (body.mode !== 'summary') throw new HttpError(400, 'mode must be summary');
-
     const url = Deno.env.get('SUPABASE_URL');
     const key = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     if (!url || !key) throw new HttpError(503, 'El servicio no está disponible');
     const admin = createClient(url, key, { auth: { autoRefreshToken: false, persistSession: false } });
+
+    const token = req.headers.get('Authorization')?.match(/^Bearer\s+(\S+)$/i)?.[1] ?? '';
+    const { data: expected, error: secretError } = await admin.rpc('cron_secret');
+    if (secretError) throw secretError;
+    if (typeof expected !== 'string' || expected.length < 32 || !sameSecret(token, expected)) throw new HttpError(401, 'Unauthorized');
+    const body = await readJson(req, 512) as { mode?: unknown };
+    if (body.mode !== 'summary') throw new HttpError(400, 'mode must be summary');
 
     const { data, error } = await admin.rpc('business_daily_digest');
     if (error) throw error;

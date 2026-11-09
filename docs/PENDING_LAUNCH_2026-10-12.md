@@ -17,17 +17,12 @@
   https://expo.dev/accounts/patio-quehayhoy/projects/lafondita/builds/ce28b4f8-a6cd-42a7-9522-99756b45f2a1
   (el primer intento falló sin culpa del código: GitHub respondió 504 al
   bajar Gradle 8.14.3; se relanzó igual).
-- [ ] **Parco, producción, en este orden:**
+- [ ] **Parco, producción, en este orden** (sin SQL a mano: la migración
+  20261109120000 genera y guarda el secreto del resumen en Vault):
   1. `npx supabase db push --yes` (place_photo, operation_notices,
-     today_views, daily_schedule).
-  2. `npx supabase functions deploy send-operation-notice send-business-digest send-special-notice send-publication-notifications`
-     (`send-review-notification`, `send-community-notification` y
-     `notify-content-report` también, porque cambió `_shared/expo-push.ts`).
-  3. Generar un secreto (`openssl rand -hex 32`) y guardarlo en
-     `npx supabase secrets set PATIO_CRON_SECRET=<secreto>`.
-  4. En el editor SQL de Supabase:
-     `select vault.create_secret('https://gjfjsjlrgycrgmcbjrus.supabase.co', 'patio_project_url');`
-     y `select vault.create_secret('<el mismo secreto>', 'patio_cron_secret');`
+     today_views, daily_schedule, cron_secret_in_db).
+  2. `npx supabase functions deploy send-operation-notice send-business-digest send-special-notice send-publication-notifications send-review-notification send-community-notification notify-content-report`
+     (las tres últimas porque cambió `_shared/expo-push.ts`).
 - [ ] Falta construir: flyers de Pro, mostrar en caja (fase 1), «me gusta» a
   tu reseña, tarjeta de Pro en «Hoy», sesión anónima, textos para App
   Privacy, Data Safety y la declaración de ubicación en segundo plano.

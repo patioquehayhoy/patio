@@ -58,6 +58,9 @@ export type Patio = {
   isVerifiedBusiness?: boolean;
   // Agotado es disponibilidad de inventario, no estado de horario.
   soldOut?: boolean;
+  // Foto del lugar que subió el negocio (alta o «Editar mi negocio»); sin ella
+  // la ficha usa su foto botánica de siempre.
+  photoUrl?: string;
 };
 
 // Deriva el horario semanal de una fila: jsonb nuevo, o fallback al string viejo.
@@ -417,9 +420,16 @@ export async function fetchFonditaById(id: string, options: { throwOnError?: boo
   }
 
   const weekly = weeklyFromRow(row.horario_semanal, (row.horario as string | null) ?? null);
-  const menu = (await fetchPublicMenus([id])).get(id);
+  // La foto va aparte: si el servidor aún no tiene la columna, la ficha sale igual.
+  const [menus, photo] = await Promise.all([
+    fetchPublicMenus([id]),
+    supabase.from('negocios').select('foto_url').eq('id', id).maybeSingle(),
+  ]);
+  const menu = menus.get(id);
+  const photoUrl = photo.error ? undefined : (photo.data as { foto_url?: string | null } | null)?.foto_url ?? undefined;
   return {
     id: row.id as string,
+    photoUrl,
     name: (row.nombre as string | null) ?? 'Sin nombre',
     categories: categoriasFromRow(row.categorias, row.tipo_negocio as string | null),
     area: '',

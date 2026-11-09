@@ -331,6 +331,15 @@ await check('qué tan lleno: nada con pocas visitas; niveles contra la hora pico
   if (hidden.length) throw new Error('threshold not read from visit_settings');
   await admin(`update public.visit_settings set value = 10 where key = 'busy_min_visits'`);
 });
+await check('foto del lugar: solo de la carpeta del dueño y cualquiera la lee', async () => {
+  const own = `https://x.supabase.co/storage/v1/object/public/place-photos/${ids.owner}/${business}.jpg?v=1`;
+  await as(ids.owner, `update public.${table} set foto_url = $2 where id = $1`, [business, own]);
+  await rejects(as(ids.owner, `update public.${table} set foto_url = $2 where id = $1`, [business, `https://x.supabase.co/storage/v1/object/public/place-photos/${ids.ana}/robada.jpg`]), /se sube desde Patio/);
+  await rejects(as(ids.owner, `update public.${table} set foto_url = 'https://otro.sitio/foto.jpg' where id = $1`, [business]), /se sube desde Patio/);
+  const { rows } = await as(null, `select foto_url from public.${table} where id = $1`, [business]);
+  if (rows[0]?.foto_url !== own) throw new Error(`public read ${JSON.stringify(rows)}`);
+  await as(ids.owner, `update public.${table} set foto_url = null where id = $1`, [business]);
+});
 await check('eliminar la cuenta del dueño borra su negocio (trigger reescrito)', async () => {
   await admin(`delete from auth.users where id = $1`, [ids.owner]);
   const { rows } = await admin(`select count(*)::int as n from public.${table}`);

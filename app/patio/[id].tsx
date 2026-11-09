@@ -846,7 +846,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
     <View style={s.container}>
       <Stack.Screen options={{ headerShown: false }} />
       <Animated.Image
-        source={heroPhoto}
+        source={patio.photoUrl ? { uri: patio.photoUrl } : heroPhoto}
         style={[
           s.heroBackdrop,
           soldOut && s.heroImgMuted,

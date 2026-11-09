@@ -87,6 +87,7 @@ export function useFonderoProfileController() {
   const [pagosTarjeta, setPagosTarjetaState] = useState(getPagosTarjeta());
   const [tipoNegocio, setTipoNegocioState] = useState(getTipoNegocio() ?? 'otro');
   const [email, setEmail] = useState('');
+  const [fotoUrl, setFotoUrl] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [savedFlash, setSavedFlash] = useState(false);
@@ -221,6 +222,10 @@ export function useFonderoProfileController() {
 
         fonditaIdRef.current = fondita.id;
         setFonditaId(fondita.id);
+        // La foto del lugar va aparte: si el servidor todavía no tiene la
+        // columna (migración 20261109090000), lo demás carga igual.
+        const photo = await supabase.from('negocios').select('foto_url').eq('id', fondita.id).maybeSingle();
+        if (!photo.error && active) setFotoUrl((photo.data as { foto_url?: string | null } | null)?.foto_url ?? null);
 
         const nextNombre = fondita.nombre ?? getFonditaName();
         const nextDescripcion = fondita.descripcion ?? getFonditaDescription();
@@ -430,6 +435,9 @@ export function useFonderoProfileController() {
   }, []);
 
   return {
+    fotoUrl,
+    setFotoUrl,
+    negocioId: fonditaIdRef.current,
     apertura,
     aplicarATodos,
     aplicarHora,

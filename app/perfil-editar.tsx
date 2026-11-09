@@ -20,6 +20,7 @@ import { noWidow } from '@/lib/typography';
 import { Type, useTheme, type Theme } from '@/lib/theme';
 import { TEXT_LIMITS } from '@/lib/text-limits';
 import { GlassIconButton } from '@/components/glass-button';
+import { PlacePhotoPicker } from '@/components/place-photo-picker';
 import { BusinessPaymentSelector } from '@/components/business-payment-selector';
 import { BusinessScheduleEditor } from '@/components/business-schedule-editor';
 import { SettingsGroup, SettingsRow, settingsColors } from '@/components/settings-list';
@@ -67,6 +68,9 @@ export default function PerfilScreen() {
   const {
     descripcion,
     email,
+    fotoUrl,
+    negocioId,
+    setFotoUrl,
     handleBack,
     handleMarkLocation,
     handleSaveAll,
@@ -106,6 +110,18 @@ export default function PerfilScreen() {
       <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
         <Text style={s.pageTitle} accessibilityRole="header">{noWidow('Editar mi negocio')}</Text>
         <Text style={s.fieldNoteText}>{noWidow('Nombre, dirección, horario y formas de pago que verá la gente en Patio.')}</Text>
+
+        {/* ── FOTO DEL LUGAR ── la misma del alta; se sube al elegirla. */}
+        <View style={s.block}>
+          <Text style={s.blockLabel} allowFontScaling={true}>FOTO DEL LUGAR</Text>
+          <PlacePhotoPicker
+            negocioId={negocioId}
+            photoUrl={fotoUrl}
+            onChange={setFotoUrl}
+            colors={{ surface: theme.surface, border: theme.border, text: theme.text, textSecondary: theme.textSecondary }}
+          />
+          <Text style={s.fieldNoteText}>{noWidow('Es lo primero que ve la gente en tu ficha. Horizontal, con luz de día y sin texto encima.')}</Text>
+        </View>
 
         {/* ── IDENTIDAD ── */}
         <View style={s.block}>

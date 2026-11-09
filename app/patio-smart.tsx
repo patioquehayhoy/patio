@@ -40,8 +40,10 @@ import { CONTENT_REJECTED_MESSAGE, isContentRejected } from '@/lib/content-safet
 import { useTheme, Type } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
 import { TEXT_LIMITS } from '@/lib/text-limits';
+import { PlacePhotoPicker } from '@/components/place-photo-picker';
+import { getFonditaId } from '@/lib/user-store';
 
-type Stage = 'name' | 'category' | 'location' | 'schedule' | 'payments' | 'finish';
+type Stage = 'name' | 'category' | 'location' | 'schedule' | 'payments' | 'photo' | 'finish';
 
 const MAX_CATEGORIES = 3;
 
@@ -71,7 +73,9 @@ const STEP_BY_STAGE: Record<Exclude<Stage, 'finish'>, number> = {
   location: 2,
   schedule: 3,
   payments: 4,
+  photo: 5,
 };
+const STEP_COUNT = Object.keys(STEP_BY_STAGE).length;
 
 // Multi-tag: hasta 3 (ver MAX_CATEGORIES). 'Elotes' y 'Botanas' viven
 // separados — antes eran una sola etiqueta compuesta "Elotes y botanas".
@@ -150,6 +154,7 @@ export default function PatioSmartScreen() {
   const colors = fonderoPalette(theme.isDark);
   const insets = useSafeAreaInsets();
   const [stage, setStage] = useState<Stage>('name');
+  const [placePhoto, setPlacePhoto] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [firstMenuVisible, setFirstMenuVisible] = useState(false);
   // En desarrollo, «Ver alta del negocio» recorre el alta sin guardar nada.
@@ -267,7 +272,7 @@ export default function PatioSmartScreen() {
     setLoading(true);
     try {
       if (!isPreview) await persistSetup();
-      setStage('finish');
+      setStage('photo');
     } catch (err) {
       if (isContentRejected(err)) {
         Alert.alert(noWidow('Revisa el nombre'), noWidow(CONTENT_REJECTED_MESSAGE));
@@ -286,6 +291,7 @@ export default function PatioSmartScreen() {
     else if (stage === 'category') setStage('name');
     else if (stage === 'location') setStage('category');
     else if (stage === 'schedule') setStage('location');
+    else if (stage === 'photo') setStage('payments');
     else setStage('schedule');
   };
 
@@ -305,7 +311,7 @@ export default function PatioSmartScreen() {
           accessibilityRole="button"
           accessibilityLabel="Volver"
           hitSlop={{ top: 2, bottom: 2, left: 2, right: 2 }}
-          onPress={() => setStage('payments')}
+          onPress={() => setStage('photo')}
           activeOpacity={0.7}
           style={[s.finishBack, { top: insets.top + 8 }]}>
           <Ionicons name="chevron-back" size={21} color={colors.accent} />
@@ -374,8 +380,8 @@ export default function PatioSmartScreen() {
           style={[s.close, { backgroundColor: colors.surface }]}>
           <Ionicons name={stage === 'name' ? 'close' : 'chevron-back'} size={21} color={colors.accent} />
         </TouchableOpacity>
-        <View style={s.progress} accessibilityLabel={`Paso ${stepIndex + 1} de 5`}>
-          {[0, 1, 2, 3, 4].map((step) => (
+        <View style={s.progress} accessibilityLabel={`Paso ${stepIndex + 1} de ${STEP_COUNT}`}>
+          {Array.from({ length: STEP_COUNT }, (_, step) => step).map((step) => (
             <View
               key={step}
               style={[
@@ -620,6 +626,41 @@ export default function PatioSmartScreen() {
             />
           </>
         )}
+
+        {/* La foto del lugar (v4, 8 nov): es lo primero que ve la gente en la
+            ficha. Opcional: «Después» sigue sin ella y se pone en Editar. */}
+        {stage === 'photo' && (
+          <>
+            <StepHeader
+              colors={colors}
+              title="La foto de tu lugar"
+              subtitle="Es lo primero que ve la gente en tu ficha: tu fachada o lo que mejor te sale."
+            />
+            <View style={s.photoEditor}>
+              <PlacePhotoPicker
+                negocioId={getFonditaId()}
+                photoUrl={placePhoto}
+                onChange={setPlacePhoto}
+                colors={{ surface: colors.surface, border: colors.border, text: colors.text, textSecondary: colors.textSecondary }}
+              />
+              <Text style={[s.photoHint, { color: colors.textSecondary }]} maxFontSizeMultiplier={1.6}>
+                {noWidow('Horizontal, con luz de día y sin texto encima. Puedes cambiarla en Editar mi negocio.')}
+              </Text>
+            </View>
+            <ContinueButton
+              colors={colors}
+              missing={placePhoto ? undefined : 'Elige una foto'}
+              onPress={() => setStage('finish')}
+            />
+            <TouchableOpacity
+              accessibilityRole="button"
+              onPress={() => setStage('finish')}
+              activeOpacity={0.7}
+              style={s.laterButton}>
+              <Text style={[s.laterText, { color: colors.textSecondary }]} maxFontSizeMultiplier={1.4}>Después</Text>
+            </TouchableOpacity>
+          </>
+        )}
       </ScrollView>
     </View>
   );
@@ -646,6 +687,10 @@ const s = StyleSheet.create({
   otroField: { marginTop: 12 },
   continueButton: { minWidth: 154, minHeight: 54, alignSelf: 'center', marginTop: 26, paddingHorizontal: 26, borderRadius: 27, borderCurve: 'continuous', alignItems: 'center', justifyContent: 'center' },
   continueText: { fontSize: 16, fontWeight: '700' },
+  photoEditor: { marginTop: 30, gap: 10 },
+  photoHint: { fontSize: 13, lineHeight: 18, fontWeight: '400', textAlign: 'center', paddingHorizontal: 8 },
+  laterButton: { minHeight: 44, alignSelf: 'center', justifyContent: 'center', paddingHorizontal: 16, marginTop: 6 },
+  laterText: { fontSize: 16, fontWeight: '400' },
   locationAction: { minHeight: 76, marginTop: 28, borderRadius: 14, borderCurve: 'continuous', borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 8 },
   locationIcon: { width: 38, height: 38, borderRadius: 12, borderCurve: 'continuous', alignItems: 'center', justifyContent: 'center' },
   locationCopy: { flex: 1, minWidth: 0 },

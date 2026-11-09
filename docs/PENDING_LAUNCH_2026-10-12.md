@@ -1,5 +1,35 @@
 # Pendientes y roadmap de lanzamiento — actualizado 2026-11-07
 
+## Corte 2026-11-09 (Claude)
+
+- [x] Ficha: nada se corta, precio típico, «Qué tan lleno» sin título,
+  «Volver arriba» al centro (commits del 8 nov).
+- [x] Esquina continua de Apple en tarjetas, hojas, chips y botones.
+- [x] Foto del lugar: paso nuevo del alta y bloque en «Editar mi negocio».
+- [x] Avisos de operación gratis: `app/avisar.tsx` y `send-operation-notice`.
+- [x] «Hoy» del negocio (`app/hoy.tsx`) y resumen de las 18:00
+  (`send-business-digest` con pg_cron). El recordatorio de las 10:00 ya lo
+  programa el teléfono.
+- [x] «Pausar todo» y «Resumen de hoy» en Avisos.
+- [x] Build iOS development (para Metro, con visitas y cobro):
+  https://expo.dev/accounts/patio-quehayhoy/projects/lafondita/builds/f78a296a-4a85-4e6c-bba8-5e7ca4dc9358
+- [ ] Build Android QA (APK con todo lo de hoy), en cola:
+  https://expo.dev/accounts/patio-quehayhoy/projects/lafondita/builds/de7ceff8-a6db-419c-a7ac-d15b8a638c4e
+- [ ] **Parco, producción, en este orden:**
+  1. `npx supabase db push --yes` (place_photo, operation_notices,
+     today_views, daily_schedule).
+  2. `npx supabase functions deploy send-operation-notice send-business-digest send-special-notice send-publication-notifications`
+     (`send-review-notification`, `send-community-notification` y
+     `notify-content-report` también, porque cambió `_shared/expo-push.ts`).
+  3. Generar un secreto (`openssl rand -hex 32`) y guardarlo en
+     `npx supabase secrets set PATIO_CRON_SECRET=<secreto>`.
+  4. En el editor SQL de Supabase:
+     `select vault.create_secret('https://gjfjsjlrgycrgmcbjrus.supabase.co', 'patio_project_url');`
+     y `select vault.create_secret('<el mismo secreto>', 'patio_cron_secret');`
+- [ ] Falta construir: flyers de Pro, mostrar en caja (fase 1), «me gusta» a
+  tu reseña, tarjeta de Pro en «Hoy», sesión anónima, textos para App
+  Privacy, Data Safety y la declaración de ubicación en segundo plano.
+
 ## Corte 2026-11-07 (Claude)
 
 Decisiones y aterrizaje completos en [DECISIONES_2026-11-07](DECISIONES_2026-11-07.md).
@@ -36,7 +66,7 @@ Decisiones y aterrizaje completos en [DECISIONES_2026-11-07](DECISIONES_2026-11-
   teléfono (iPhone con Metro; Android necesita build nuevo).
 - [x] Visitas reales, «¿Qué te pareció…?» y «Qué tan lleno» construidos
   (2026-11-08, DECISIONES §19).
-- [ ] Parco: `npx supabase db push` (place_visits).
+- [x] Parco: `npx supabase db push` (place_visits) — verificado en producción el 2026-11-09.
 - [ ] Builds nuevos iOS y Android (ubicación en segundo plano, task manager).
 - [ ] Google Play: declaración de ubicación en segundo plano con video.
 - [ ] App Store Connect, App Privacy: ubicación aproximada, no vinculada.

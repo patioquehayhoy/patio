@@ -1,5 +1,17 @@
 # ROADCONTROLLER — Patio
 
+> **Corte vigente — 2026-11-09 (Claude).** Lado difícil hoy: el negocio que
+> publica su menú diario. Rama `main` con push directo. **Producción al día**
+> (verificado 16:42 UTC): migraciones hasta `20261109120000` y funciones del
+> 9 nov — foto del lugar, avisos de operación gratis, «Hoy» con vistas
+> anónimas y resumen de las 18:00 (pg_cron, secreto generado en Vault).
+> Cobro directo con `expo-iap` en código, apagado hasta contratos y
+> productos. Builds: iOS development listo; Android QA en cola (dos intentos
+> fallaron por un 504 de GitHub al bajar Gradle). 270 pruebas y 31
+> verificaciones. [Continuidad](HEADS_UP_2026-10-12.md) ·
+> [Pendientes](PENDING_LAUNCH_2026-10-12.md) ·
+> [Decisiones](DECISIONES_2026-11-07.md).
+
 > **Auditoría de credenciales, 2026-10-27:** antes de proponer cuentas, proyectos,
 > claves o builds, consultar [inventario verificado](CREDENTIALS_INVENTORY_2026-10-27.md).
 > Ya existen firma Android/EAS Submit, Google Play interno 8, firma iOS, APNs y
@@ -28,7 +40,7 @@
 > [Estado de esta ejecución](EXECUTION_CLOSEOUT_2026-10-26.md).
 
 
-> **Corte vigente — 2026-10-26:** operador legal Alejandro (persona física);
+> **Corte histórico — 2026-10-26:** operador legal Alejandro (persona física);
 > soporte con Alejandro como contacto y Claude/Codex de apoyo; taco ajustado por
 > Alejandro (`PatioGiros6`) con crédito en Ayuda; tipografía de lanzamiento por
 > decidir (Plus Jakarta gratis o comprar Monument/Neue Montreal ≈ USD 240).
@@ -147,13 +159,13 @@ Patio/
 
 | Frente | Dónde | Estado | Siguiente útil |
 |---|---|---|---|
-| Código RN (producto) | `app/` `components/` `lib/` | Pulido compartido cerrado; 189 pruebas; confirmación reciente del usuario, QA integral pendiente | Alejandro prueba y reporta fallos concretos |
-| Rama de trabajo | `rebuild/patio-final` | Checkpoint de este corte; push a la misma rama | No mezclar ni forzar main/v2-menu-vivo |
-| Backend | `supabase/` `scripts/backend/` | Siete migraciones y cinco funciones promovidas tras 15 ensayos reales, 2026-10-09 | Integraciones IA/SMTP/push y QA móvil pendientes |
+| Código RN (producto) | `app/` `components/` `lib/` | Ficha (nada se corta, precio típico, volver arriba), foto del lugar, avisos gratis y «Hoy» (9 nov); 270 pruebas | Parco hace QA con los builds nuevos y reporta fallos concretos |
+| Rama de trabajo | `main` | Push directo a `origin/main` en cada cierre | No reescribir historia ni forzar push |
+| Backend | `supabase/` `scripts/backend/` | Migraciones hasta `20261109120000` y funciones del 9 nov en producción; ensayo local con PGlite (`npm run db:rehearse`) | Flyers de Pro y mostrar en caja (fase 1) |
 | Figma Make | `design-source/figma-make/` | Cerrado como herramienta; v01/v02 históricos | No retomar |
 | Docs de estado | `HANDOFF` `STATE` `TASKS` | Corte 2026-10-18 y checklist único | Actualizar resultados de QA y gates de release |
-| QA dispositivo | iPhone y Android | El usuario realizará la prueba; cierre iPhone previo sin confirmar | Búsqueda/swipe, GPS, ambas bibliotecas y ambos roles |
-| TestFlight/Google Play | Distribución | Candidato firmado actual pendiente; no se inició EAS | Resolver gates del checklist antes de construir/enviar |
+| QA dispositivo | iPhone y Android | iOS development listo (visitas, cobro); Android QA en cola | Parco instala, prueba avisos, visitas, «Hoy» y foto del lugar |
+| TestFlight/Google Play | Distribución | Falta licencia de tipografía, contratos de pago y productos | Día de planes; después candidato firmado y prueba cerrada |
 | Supabase | `patio`, org Parco Apps | Cuenta Patio como único Owner, verificado 2026-10-09 | No repetir login/promoción ni reasignar datos sintéticos |
 | EAS Update (OTA) | Radar posterior | Decisión pendiente; no bloquea este checkpoint Git | Evaluar después del candidato y QA |
 
@@ -227,13 +239,20 @@ horario semanal por día · stats vivas + `vistos.tsx` · collapsing-header (Lar
 
 ## 9. Prioridades actuales
 
-1. Aviso de privacidad público (datos de Alejandro) y acceso del revisor
-   (código de 6 dígitos + cuenta de revisión).
-2. Decidir tipografía de lanzamiento (Plus Jakarta o comprar Monument).
-3. QA del usuario: búsqueda → swipe → navegación, cards, ubicación y bibliotecas.
-4. Candidatos firmados, QA iPhone/Android y fichas de tiendas.
-5. Sin frenar el lanzamiento: auditoría npm, Maps/Firebase Android, SMTP, IA y push.
-6. Después del candidato: planes, branding, miniatura real del local y piloto.
+Actualizado 2026-11-09:
+
+1. QA de Parco con los builds nuevos (iPhone development con Metro y APK
+   Android QA): avisos, visitas, «Hoy», foto del lugar y la ficha.
+2. Parco: contratos de pago (Paid Apps de Apple, perfil de pagos de Play),
+   licencia de Monument/Neue Montreal y dominio `quehayhoy.mx`.
+3. Construir, en orden: flyers de Pro → mostrar en caja (fase 1) → «me gusta»
+   a tu reseña → tarjeta de Pro en «Hoy» → sesión anónima.
+4. Textos para App Privacy, Data Safety y la declaración de ubicación en
+   segundo plano (con video).
+5. Día de planes: productos en tiendas; candidato firmado, TestFlight y
+   prueba cerrada de Play (12 personas, 14 días).
+6. Al final: aviso de privacidad con datos legales y revocar la clave antigua
+   de Anthropic.
 
 Criterios y responsables: [PENDING_LAUNCH_2026-10-12](PENDING_LAUNCH_2026-10-12.md).
 No reabrir auditoría amplia, USB ni EAS automáticamente. El cierre nativo previo

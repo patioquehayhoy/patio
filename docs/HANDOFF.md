@@ -3,9 +3,9 @@
 ## Continuidad 2026-11-09 — foto del lugar, avisos gratis, «Hoy» y builds (Claude)
 
 Leer el [heads-up](HEADS_UP_2026-10-12.md), bloque «Cierre 2026-11-09», y
-[DECISIONES_2026-11-07](DECISIONES_2026-11-07.md). Producción pendiente:
-migraciones y funciones del 9 nov (comandos en PENDING_LAUNCH). Siguiente:
-flyers de Pro y mostrar en caja.
+[DECISIONES_2026-11-07](DECISIONES_2026-11-07.md). Producción al día
+(migraciones y funciones del 9 nov aplicadas por Parco). Roadmap en
+[ROADCONTROLLER](ROADCONTROLLER.md). Siguiente: flyers de Pro y mostrar en caja.
 
 ## Continuidad 2026-11-07 — cobro directo, Android, avisos y propuesta v4 (Claude)
 

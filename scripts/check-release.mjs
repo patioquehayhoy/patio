@@ -96,9 +96,12 @@ if (platform !== 'ios') {
   }
   check(eas.build?.production?.android?.buildType === 'app-bundle', 'Google Play requiere producción como Android App Bundle.');
   const blocked = config.android?.blockedPermissions ?? [];
-  for (const permission of ['RECORD_AUDIO', 'ACCESS_BACKGROUND_LOCATION', 'READ_MEDIA_IMAGES', 'READ_MEDIA_VIDEO']) {
+  for (const permission of ['RECORD_AUDIO', 'READ_MEDIA_IMAGES', 'READ_MEDIA_VIDEO']) {
     check(blocked.includes(`android.permission.${permission}`), `Evita permiso Android innecesario: ${permission}.`);
   }
+  // «Tus visitas» también corre en Android (decisión de Parco, 2026-11-11):
+  // bloquearlo deja las geocercas sin permiso y la función desaparece.
+  check(!blocked.includes('android.permission.ACCESS_BACKGROUND_LOCATION'), 'Las visitas en Android necesitan ACCESS_BACKGROUND_LOCATION; no lo bloquees.');
   check(pluginOptions('expo-notifications').defaultChannel === 'default', 'El canal Android de push debe coincidir con el canal default creado en runtime.');
   const versionsPath = resolve(root, 'node_modules/react-native/gradle/libs.versions.toml');
   if (existsSync(versionsPath)) {

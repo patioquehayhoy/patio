@@ -1,0 +1,1177 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Patio — Sistema</title>
+<style>
+  @font-face{font-family:"Monument";src:url("../assets/fonts/prueba/Monument-Black.otf") format("opentype");font-weight:800}
+  @font-face{font-family:"Montreal";src:url("../assets/fonts/prueba/NeueMontreal-Regular.otf") format("opentype");font-weight:400}
+  @font-face{font-family:"Montreal";src:url("../assets/fonts/prueba/NeueMontreal-Semibold.otf") format("opentype");font-weight:600}
+  @font-face{font-family:"Ionicons";src:url("../node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/Ionicons.ttf") format("truetype")}
+  :root{
+    --bg:#F8F8F5;--surface:#FFFFFF;--surface2:#F6F4EE;--ink:#111214;--soft:#4A4A47;--mute:#8A8A85;
+    --accent:#F2612F;--accentSoft:#FBE7DD;--border:rgba(17,18,20,.08);--iconBg:rgba(17,18,20,.04);--green:#2E9E63;--off:#cbced4;
+    --brand:"Monument",system-ui;--ui:"Montreal",-apple-system,system-ui,sans-serif;
+    --sys:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:#F2F2F0;color:var(--ink);font:400 15px/20px var(--ui);font-synthesis:none;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased;overflow:hidden}
+  p,h1,h2,h3,h4,figure,ul,ol,dl{margin:0}
+  ul,ol{padding:0;list-style:none}
+  p,span,b,li,h1,h2,h3{text-wrap:pretty}
+  img{display:block}
+  .ion{font-family:"Ionicons";font-style:normal;font-weight:400;line-height:1;display:inline-block;speak:never}
+
+  /* ── Barra: cápsulas flotantes ── */
+  .hdr{position:fixed;top:0;left:0;right:0;height:64px;z-index:50;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:0 16px;font-family:var(--ui);pointer-events:none}
+  .hdr>*{pointer-events:auto}
+  .brand{justify-self:start;display:flex;align-items:center;gap:12px;height:40px;padding:0 18px 0 16px;border-radius:100px;background:rgba(255,255,255,.86);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);box-shadow:0 0 0 .5px rgba(0,0,0,.08);cursor:pointer;color:var(--ink);text-decoration:none}
+  .brand img{height:12px}
+  .brand span{font:400 14px/18px var(--ui);color:var(--soft)}
+  .caps{display:flex;gap:6px}
+  .caps button{border:0;height:40px;padding:0 18px;border-radius:100px;background:rgba(255,255,255,.86);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);box-shadow:0 0 0 .5px rgba(0,0,0,.08);font:400 15px/18px var(--ui);color:var(--ink);cursor:pointer}
+  .caps button:hover{background:#fff}
+  .caps button[aria-current="true"]{background:var(--ink);color:#fff;box-shadow:none}
+  .ctl{justify-self:end;display:flex;align-items:center;gap:6px}
+  .pc{font:400 13px/16px var(--ui);color:var(--mute);margin-right:8px;min-width:52px;text-align:right}
+  .cb{width:40px;height:40px;border-radius:50%;border:0;background:rgba(255,255,255,.86);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);box-shadow:0 0 0 .5px rgba(0,0,0,.08);display:grid;place-items:center;cursor:pointer;color:var(--ink);padding:0}
+  .cb:hover{background:#fff}
+  .cb:disabled{opacity:.35;cursor:default}
+  .cb[aria-pressed="true"]{background:var(--ink);color:#fff}
+  .cb svg{width:14px;height:14px}
+  .prog{position:fixed;left:0;top:0;height:2px;background:var(--accent);z-index:60;transition:width .3s ease}
+  @media (max-width:980px){.caps{display:none}.hdr{grid-template-columns:1fr 1fr}}
+
+  /* ── Escenario: 1600 × 900 ── */
+  .stage{position:fixed;top:64px;left:0;right:0;bottom:0}
+  .book{position:absolute;width:1600px;height:900px;transform-origin:0 0;border-radius:20px;overflow:hidden;box-shadow:0 12px 48px rgba(0,0,0,.07),0 0 0 .5px rgba(0,0,0,.06)}
+  .pg{position:absolute;inset:0;display:none;background:#fff;overflow:hidden}
+  .pg.on{display:block;animation:fade .28s ease}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+  .book.measure .pg{display:block;visibility:hidden;animation:none}
+  body.ov .stage{overflow-y:auto}
+  body.ov .book{position:static;transform:none!important;width:auto;height:auto;border-radius:0;box-shadow:none;overflow:visible;display:grid;grid-template-columns:repeat(auto-fill,320px);justify-content:center;gap:40px 28px;padding:24px 24px 80px}
+  body.ov .pg{position:relative;inset:auto;display:block;width:1600px;height:900px;zoom:.2;border-radius:80px;cursor:pointer;animation:none;box-shadow:0 0 0 2.5px rgba(0,0,0,.08)}
+  body.ov .pg:hover{box-shadow:0 0 0 10px rgba(0,0,0,.18)}
+  body.ov .pg.on{box-shadow:0 0 0 12px var(--accent)}
+
+  /* ── Retícula de página ── */
+  .a{position:absolute}
+  .rt{position:absolute;writing-mode:vertical-rl;transform:rotate(180deg);font:600 11px/14px var(--ui);letter-spacing:1.6px;text-transform:uppercase;color:var(--mute);white-space:nowrap}
+  .r1{left:40px;top:72px}.r2{left:40px;bottom:72px}
+  .pn{position:absolute;right:72px;bottom:44px;font:400 13px/16px var(--ui);color:var(--mute)}
+  .dk{background:#0E0D0C;color:#fff}
+  .dk .rt,.dk .pn{color:rgba(255,255,255,.6)}
+  .photo{position:absolute;inset:0;background-size:cover;background-position:center}
+  .photo:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.25),rgba(0,0,0,.35) 50%,rgba(0,0,0,.8))}
+
+  /* Encabezado de página: etiqueta y titular en dos tonos */
+  .head{position:absolute;left:120px;top:72px;width:1040px}
+  .head.n{width:460px}
+  .ey{font:600 12px/16px var(--ui);letter-spacing:1px;text-transform:uppercase;color:var(--mute)}
+  .ey em{font-style:normal;color:var(--accent);margin-left:8px}
+  .hl{font:400 38px/46px var(--ui);letter-spacing:-.4px;color:var(--mute);margin-top:16px;text-wrap:balance}
+  .hl b{font-weight:400;color:var(--ink)}
+  .dk .hl{color:rgba(255,255,255,.55)} .dk .hl b{color:#fff} .dk .ey{color:rgba(255,255,255,.6)}
+  .note{font:400 15px/24px var(--ui);color:var(--soft)}
+  .note b{color:var(--ink);font-weight:600}
+  .note+.note{margin-top:20px}
+  .cap2{font:400 13px/18px var(--ui);color:var(--mute);margin-top:12px}
+  .cap2 b{color:var(--ink);font-weight:600}
+  .lbl{font:600 11px/14px var(--ui);letter-spacing:1px;text-transform:uppercase;color:var(--mute)}
+  .vlbl{position:absolute;writing-mode:vertical-rl;transform:rotate(180deg);font:400 13px/16px var(--ui)}
+  .z84{zoom:.84}.z86{zoom:.86}.z9{zoom:.9}
+  .prow2{position:absolute;display:flex;gap:40px;align-items:flex-start}
+  .rl li{padding:14px 0;border-top:.5px solid rgba(17,18,20,.14);font:400 15px/22px var(--ui);color:var(--soft)}
+  .rl li b{display:block;color:var(--ink);font-weight:600}
+  .dk .rl li{border-color:rgba(255,255,255,.2);color:rgba(255,255,255,.7)} .dk .rl li b{color:#fff}
+
+  /* Sumario */
+  .toc{position:absolute;left:120px;right:120px;top:200px}
+  .toc .r{display:grid;grid-template-columns:96px 300px 1fr;align-items:start;padding:28px 0 32px;border-top:.5px solid rgba(17,18,20,.18)}
+  .toc .no{font:400 15px/20px var(--ui);color:var(--accent);padding-top:10px}
+  .toc .cx{font:800 40px/48px var(--brand);cursor:pointer}
+  .toc .cx small{display:block;font:400 14px/20px var(--ui);color:var(--mute);margin-top:6px}
+  .toc .subs{display:grid;grid-template-columns:repeat(4,1fr);gap:12px 24px;padding-top:8px}
+  .toc .subs a{display:flex;gap:10px;font:400 15px/20px var(--ui);color:var(--ink);text-decoration:none;cursor:pointer}
+  .toc .subs a b{font-weight:400;color:var(--mute);min-width:20px}
+  .toc .subs a:hover{color:var(--accent)}
+
+  /* Portadillas */
+  .ch-num{position:absolute;right:120px;top:40px;font:800 720px/1 var(--brand);color:var(--accent);letter-spacing:-20px}
+  .ch-t{position:absolute;left:120px;top:420px;font:800 104px/112px var(--brand);color:#fff}
+  .ch-l{position:absolute;left:124px;top:560px;width:560px;font:400 17px/28px var(--ui);color:rgba(255,255,255,.78)}
+
+  /* Marca */
+  .tile4{position:absolute;left:640px;top:0;right:0;bottom:0;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}
+  .tile4>div{position:relative;display:grid;place-items:center;overflow:hidden}
+  .tile4 img{width:56%;position:relative}
+  .tile4 .vlbl{left:24px;bottom:24px}
+  .clearbox{position:relative;padding:64px;box-shadow:inset 0 0 0 1px rgba(242,97,47,.55);background:repeating-linear-gradient(45deg,rgba(242,97,47,.06) 0 8px,transparent 8px 16px)}
+  .clearbox img{height:150px;background:#fff}
+  .clearbox .x{position:absolute;left:12px;top:10px;font:600 13px/16px var(--ui);color:var(--accent)}
+  .ladder2{display:flex;align-items:flex-end;gap:44px}
+  .ladder2 div{display:flex;flex-direction:column;gap:12px;font:400 13px/18px var(--ui);color:var(--soft)}
+  .bad{position:absolute;left:600px;top:250px;display:grid;grid-template-columns:repeat(4,200px);gap:40px 24px}
+  .bad figure{text-align:center}
+  .bad .t{height:140px;border-radius:14px;background:var(--bg);display:grid;place-items:center;overflow:hidden;position:relative}
+  .bad .t img{width:60%}
+  .bad .t:after{content:"";position:absolute;inset:0;background:linear-gradient(to top right,transparent calc(50% - 1px),var(--ink) calc(50% - .5px),var(--ink) calc(50% + .5px),transparent calc(50% + 1px))}
+  .bad figcaption{font:400 14px/18px var(--ui);color:var(--mute);margin-top:10px}
+  .badlist{position:absolute;left:120px;top:250px;width:380px;counter-reset:n}
+  .badlist li{counter-increment:n;font:400 15px/22px var(--ui);color:var(--soft);padding-left:28px;position:relative;margin-bottom:10px}
+  .badlist li:before{content:counter(n);position:absolute;left:0;color:var(--mute)}
+  .x-stretch img{transform:scaleX(1.45)}
+  .x-rotate img{transform:rotate(-14deg)}
+  .x-shadow img{filter:drop-shadow(6px 8px 6px rgba(0,0,0,.45))}
+  .x-color img{filter:invert(32%) sepia(86%) saturate(2500%) hue-rotate(198deg)}
+  .x-crop img{width:130%!important;transform:translate(26%,20%)}
+  .x-contrast{background:url('../assets/hero/botanica-3.jpg') center/cover!important}
+  .x-alpha{background:var(--accent)!important} .x-alpha img{opacity:.45}
+  .x-pattern img{width:auto!important;height:36px}
+  .cols3{position:absolute;left:0;right:0;top:250px;bottom:0;display:grid;grid-template-columns:repeat(3,1fr)}
+  .cols3>div{position:relative;overflow:hidden}
+  .cols3 .w{position:absolute;left:-8px;top:64px;font:800 150px/1 var(--brand);white-space:nowrap}
+  .cols3 ul{position:absolute;left:40px;top:300px}
+  .cols3 li{font:400 17px/28px var(--ui)}
+  .cols3 code{position:absolute;left:40px;bottom:48px;font:600 13px/18px var(--ui);letter-spacing:1px}
+  .cols3>div:first-child .w{left:112px}
+  .cols3>div:first-child ul,.cols3>div:first-child code{left:120px}
+  .sws{position:absolute;left:120px;right:120px;top:250px;display:grid;grid-template-columns:repeat(4,1fr);gap:28px}
+  .sw2 i{display:block;height:120px;box-shadow:inset 0 0 0 .5px rgba(17,18,20,.1)}
+  .sw2 b{display:block;font:600 15px/20px var(--ui);margin-top:12px}
+  .sw2 span{display:block;font:400 13px/18px var(--ui);color:var(--soft)}
+  .sw2 dl{display:grid;grid-template-columns:40px 1fr;margin-top:8px;font:400 12px/18px var(--ui)}
+  .sw2 dt{color:var(--mute)} .sw2 dd{margin:0}
+  .propbar{position:absolute;left:120px;right:120px;bottom:72px}
+  .propbar .bar{display:flex;height:32px;box-shadow:inset 0 0 0 .5px rgba(17,18,20,.1)}
+  .propbar .bar i{display:block}
+  .propbar .k{display:flex;margin-top:8px;font:400 12px/16px var(--ui);color:var(--mute)}
+
+  /* Tipografía */
+  .alpha{position:absolute;left:120px;top:250px;width:520px;height:580px;background:var(--ink);color:#fff;padding:44px 40px}
+  .alpha .u{font:800 56px/66px var(--brand);word-break:break-all}
+  .alpha .l{font:800 26px/36px var(--brand);margin-top:24px;opacity:.9}
+  .weights{position:absolute;left:672px;top:250px;width:420px;height:580px;background:var(--bg);padding:20px 40px}
+  .weights .w{display:grid;grid-template-columns:28px 1fr;align-items:center;height:135px}
+  .weights .w span{writing-mode:vertical-rl;transform:rotate(180deg);font:400 12px/16px var(--ui);color:var(--soft)}
+  .weights .w p{font-size:104px;line-height:1}
+  .roles{position:absolute;left:1132px;top:262px;width:348px}
+  .roles div+div{margin-top:36px}
+  .roles .n{font:400 13px/16px var(--ui);color:var(--mute)}
+  .roles .s{font-size:34px;line-height:42px;margin-top:6px}
+  .roles .d{font:400 14px/21px var(--ui);color:var(--soft);margin-top:8px}
+  .scale2{position:absolute;left:120px;right:120px;top:236px}
+  .scale2 .r{display:grid;grid-template-columns:180px 1fr 220px;align-items:baseline;border-top:.5px solid rgba(17,18,20,.14);padding:13px 0 11px}
+  .scale2 .r:last-child{border-bottom:.5px solid rgba(17,18,20,.14)}
+  .scale2 .m{font:400 13px/18px var(--ui);color:var(--mute);text-align:right}
+  .generic{--brand:var(--sys);--ui:var(--sys)}
+
+  /* Recorridos */
+  .track{position:absolute;left:120px;right:120px}
+  .track .hd{display:flex;align-items:center;gap:20px}
+  .track .hd h3{font:400 24px/30px var(--ui)}
+  .pills{display:inline-flex;gap:4px}
+  .pills span{padding:5px 12px;font:400 12px/16px var(--ui);color:var(--soft);border-radius:100px;box-shadow:inset 0 0 0 .5px rgba(17,18,20,.2)}
+  .pills span.on{background:var(--ink);color:#fff;box-shadow:none}
+  .pills span.plus{color:var(--accent)}
+  .nodes{display:flex;align-items:stretch;margin-top:20px}
+  .node{flex:0 0 148px;border-radius:16px;padding:16px 14px;background:var(--bg);display:flex;flex-direction:column;min-height:158px}
+  .node i{font:400 12px/16px var(--ui);color:var(--mute);font-style:normal}
+  .node b{display:block;font:600 16px/21px var(--ui);margin-top:8px}
+  .node p{font:400 13px/18px var(--ui);color:var(--soft);margin-top:6px}
+  .node code{margin-top:auto;padding-top:12px;font:400 11px/14px ui-monospace,Menlo,monospace;color:var(--mute)}
+  .node.key{background:var(--ink);color:#fff}
+  .node.key p{color:rgba(255,255,255,.7)} .node.key code{color:rgba(255,255,255,.5)} .node.key i{color:var(--accent)}
+  .arr{flex:0 0 22px;display:grid;place-items:center}
+  .arr:before{content:"";width:12px;height:1px;background:rgba(17,18,20,.3)}
+
+  /* Inventario */
+  .inv2{position:absolute;left:120px;right:120px;top:276px;columns:3;column-gap:56px}
+  .inv2 h4{font:600 11px/14px var(--ui);letter-spacing:1px;text-transform:uppercase;color:var(--mute);margin:0 0 4px;break-after:avoid}
+  .inv2 .g{break-inside:avoid;margin-bottom:20px}
+  .inv2 .i{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;padding:5px 0;border-top:.5px solid rgba(17,18,20,.12);font:400 14px/19px var(--ui)}
+  .dot{width:9px;height:9px;border-radius:50%;display:inline-block;flex:none}
+  .s-app{background:var(--ink)} .s-dis{box-shadow:inset 0 0 0 2px var(--ink)} .s-falta{background:var(--accent)} .s-ren{box-shadow:inset 0 0 0 2px var(--accent)}
+  .legend{position:absolute;left:120px;top:232px;display:flex;gap:24px;font:400 13px/16px var(--ui);color:var(--soft)}
+  .legend span{display:flex;align-items:center;gap:8px}
+  .legend b{color:var(--ink);font-weight:600}
+  .gbtn{border:0;background:var(--bg);box-shadow:inset 0 0 0 .5px rgba(17,18,20,.16);border-radius:100px;padding:8px 16px;font:400 14px/18px var(--ui);cursor:pointer;color:var(--ink)}
+  .gbtn[aria-pressed="true"]{background:var(--ink);color:#fff;box-shadow:none}
+
+/* ── Teléfono: 390 × 844 pt, escalado ── */
+  .phone{width:308px;padding:9px;border-radius:53px;background:#161616;flex:none}
+  .screen{width:290px;height:628px;border-radius:44px;overflow:hidden;position:relative;background:var(--bg)}
+  .vp{position:absolute;left:0;top:0;width:390px;height:844px;transform:scale(.7435897);transform-origin:0 0;overflow:hidden;background:var(--bg);font:400 15px/20px var(--ui)}
+  .sb{height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 30px 0 42px;font:600 17px/22px var(--ui)}
+  .sb .ion{font-size:15px;margin-left:5px}
+  .nav{height:52px;display:flex;align-items:center;padding:0 14px}
+  .nav .bx{width:44px;height:44px;display:grid;place-items:center;font-size:21px;color:var(--ink);flex:none}
+  .nav .tt{flex:1;text-align:center;font:600 17px/22px var(--ui)}
+  .nav .act{width:44px;flex:none;text-align:right;font:600 16px/20px var(--ui);color:var(--accent)}
+  .ct{padding:8px 20px 40px}
+  .btn{height:54px;border-radius:27px;display:flex;align-items:center;justify-content:center;font:600 16px/20px var(--ui)}
+  .btn.or{background:var(--accent);color:#fff}
+  .btn.gl{background:rgba(255,255,255,.12);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);box-shadow:inset 0 0 0 .5px rgba(255,255,255,.18);color:#fff}
+  .btn.tx{height:44px;font-weight:400;color:var(--ink)}
+  .dark .btn.tx{color:rgba(255,255,255,.78)}
+  .glabel{font:600 11px/14px var(--ui);letter-spacing:.8px;text-transform:uppercase;color:var(--mute);padding:0 6px 8px;margin-top:24px}
+  .card{background:var(--surface);border-radius:18px;box-shadow:inset 0 0 0 .5px var(--border);overflow:hidden}
+  .srow{min-height:56px;display:flex;align-items:center;gap:8px;padding:10px 16px}
+  .srow+.srow{border-top:.5px solid var(--border)}
+  .ibox{width:32px;height:32px;border-radius:10px;background:var(--iconBg);display:grid;place-items:center;color:var(--soft);font-size:17px;flex:none}
+  .ibox.acc{background:var(--accentSoft);color:var(--accent)}
+  .sbody{flex:1;min-width:0}
+  .stitle{font:400 16px/21px var(--ui)}
+  .ssub{font:400 13px/17px var(--ui);color:var(--soft);margin-top:2px}
+  .trail{display:flex;align-items:center;gap:6px;font:400 16px/21px var(--ui);color:var(--soft);flex:none}
+  .trail .ion{font-size:16px;color:var(--mute)}
+  .tg{width:44px;height:26px;border-radius:13px;background:var(--accent);position:relative;flex:none}
+  .tg:after{content:"";position:absolute;top:2px;right:2px;width:22px;height:22px;border-radius:11px;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.15)}
+  .tg.off{background:var(--off)} .tg.off:after{right:auto;left:2px}
+  .tp{background:rgba(120,120,128,.12);border-radius:8px;padding:6px 11px;font:400 16px/20px var(--ui);color:var(--ink);flex:none}
+  .lock{background:linear-gradient(175deg,#4a3c43 0%,#241d21 55%,#141113 100%);color:#fff}
+  .ldate{text-align:center;font:600 20px/24px var(--ui);margin-top:14px;opacity:.9}
+  .ltime{text-align:center;font:600 96px/100px var(--ui);letter-spacing:-2px;margin-bottom:150px}
+  .nt{margin:0 12px 8px;background:rgba(246,246,246,.82);-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);border-radius:22px;padding:13px 14px;display:flex;gap:11px;align-items:center;color:#111}
+  .nt img{width:38px;height:38px;border-radius:9px;flex:none}
+  .nt .tx{flex:1;min-width:0}
+  .nt .hd{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+  .nt .hd b{font:600 15px/20px var(--ui)}
+  .nt .hd small{font:400 13px/18px var(--ui);color:#6e6e73;flex:none}
+  .nt p{font:400 15px/20px var(--ui)}
+  .kpi{padding:16px}
+  .kh{display:flex;align-items:center;gap:6px;font:600 13px/17px var(--ui);color:var(--soft)}
+  .kh .ion{font-size:15px;color:var(--accent)}
+  .kh .r{margin-left:auto;font-weight:400;color:var(--mute)}
+  .kv{display:flex;align-items:baseline;gap:8px;margin-top:10px}
+  .kv b{font:800 32px/39px var(--brand)}
+  .kv span{font:400 15px/20px var(--ui);color:var(--soft)}
+  .kc{display:flex;align-items:center;gap:4px;font:400 13px/17px var(--ui);color:var(--soft);margin-top:2px}
+  .kc .ion{font-size:13px;color:var(--green)}
+  .chart{position:relative;height:108px;display:grid;grid-template-columns:repeat(7,1fr);gap:10px;align-items:end;margin-top:20px}
+  .chart i{display:block;background:rgba(17,18,20,.09);border-radius:6px 6px 2px 2px}
+  .chart i.on{background:var(--accent)}
+  .chart .avg{position:absolute;left:0;right:0;border-top:1px dashed rgba(17,18,20,.34)}
+  .chart .avg span{position:absolute;right:0;bottom:3px;padding-left:6px;background:var(--surface);font:400 11px/14px var(--ui);color:var(--mute)}
+  .xl{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;margin-top:6px;text-align:center;font:400 11px/14px var(--ui);color:var(--mute)}
+  .xl .on{color:var(--ink);font-weight:600}
+  .rk{display:grid;grid-template-columns:18px 1fr auto;column-gap:12px;align-items:start;padding:17px 16px}
+  .rk+.rk{border-top:.5px solid var(--border)}
+  .rk .n{font:600 15px/21px var(--ui);color:var(--mute)}
+  .rk .nm{font:400 16px/21px var(--ui)}
+  .rk .ct2{display:flex;align-items:center;gap:3px;font:600 13px/21px var(--ui);color:var(--soft)}
+  .rk .ct2 .ion{font-size:13px;color:var(--accent)}
+  .ups{display:grid;grid-template-columns:32px 1fr 44px;column-gap:12px;align-items:start;padding:16px 0 12px 16px}
+  .ups b{display:block;font:600 16px/21px var(--ui)}
+  .ups p{font:400 13px/17px var(--ui);color:var(--soft);margin-top:2px}
+  .ups .go{display:inline-flex;align-items:center;gap:4px;height:36px;font:600 14px/18px var(--ui);color:var(--accent)}
+  .ups .x{width:44px;height:44px;margin-top:-10px;display:grid;place-items:center;font-size:20px;color:var(--mute)}
+  .dim{position:absolute;inset:0;background:rgba(17,18,20,.32)}
+  .sheet{position:absolute;left:0;right:0;bottom:0;background:var(--surface);border-radius:28px 28px 0 0;padding:8px 24px 34px}
+  .grab{width:36px;height:5px;border-radius:3px;background:rgba(17,18,20,.16);margin:0 auto 18px}
+  .t-section{font:800 21px/26px var(--brand)}
+  .t-title{font:800 26px/32px var(--brand)}
+  .t-hero{font:800 38px/46px var(--brand)}
+  .body15{font:400 15px/20px var(--ui);color:var(--soft)}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+  .chip{min-height:40px;padding:0 16px;border-radius:20px;box-shadow:inset 0 0 0 .5px rgba(17,18,20,.16);display:inline-flex;align-items:center;font:400 14px/18px var(--ui)}
+  .chip.on{background:var(--ink);color:var(--bg);box-shadow:none}
+  .flabel{font:400 13px/17px var(--ui);color:var(--soft);margin:16px 0 6px}
+  .field{min-height:52px;border-radius:14px;background:var(--bg);display:flex;align-items:center;justify-content:space-between;padding:0 8px 0 14px;font:400 16px/21px var(--ui)}
+  .cnt{font:400 13px/17px var(--ui);color:var(--mute);padding-right:6px;flex:none}
+  .tchips{display:flex;gap:8px;overflow:hidden;margin-top:16px}
+  .tchips .chip{flex:none}
+  .swr{display:flex;gap:22px;margin-top:2px}
+  .swi{display:flex;flex-direction:column;align-items:center;gap:6px;font:400 12px/16px var(--ui);color:var(--soft)}
+  .swi.on{color:var(--ink);font-weight:600}
+  .swi i{width:48px;height:48px;display:grid;place-items:center;font-style:normal}
+  .s-blanco{background:#fff} .s-gris{background:var(--bg)} .s-negro{background:var(--ink)}
+  .s-gris b{width:28px;height:14px;border-radius:4px;background:#fff;margin-top:14px}
+  .s-foto{background:url('../assets/hero/botanica-6.jpg') center/cover;color:#fff;font-size:18px}
+
+  /* Flyers 1080 × 1350 a 1/4 */
+  .fly{width:270px;height:337.5px;border-radius:18px;overflow:hidden;position:relative;flex:none;box-shadow:0 0 0 .5px rgba(17,18,20,.12)}
+  .fvp{position:absolute;left:0;top:0;width:1080px;height:1350px;transform:scale(.25);transform-origin:0 0;padding:80px;display:flex;flex-direction:column;color:var(--ink);background:#fff}
+  .fk{display:flex;justify-content:space-between;align-items:center;font:600 36px/44px var(--ui);letter-spacing:2.9px;text-transform:uppercase;color:var(--accent)}
+  .fk .tag{border-radius:30px;padding:4px 24px;letter-spacing:0;text-transform:none;font-size:32px;background:rgba(255,255,255,.2);color:#fff}
+  .fbody{margin-top:auto}
+  .ftt{font:800 128px/156px var(--brand);text-wrap:balance}
+  .fs{font:400 48px/60px var(--ui);margin-top:20px;color:var(--soft)}
+  .ff{display:flex;align-items:center;justify-content:space-between;gap:40px;margin-top:56px;padding-top:36px;border-top:2px solid rgba(17,18,20,.1)}
+  .ff b{font:600 44px/54px var(--ui)}
+  .ff img{height:48px;flex:none}
+  .fly.negro .fvp{background:var(--ink);color:#fff} .fly.negro .fs{color:rgba(255,255,255,.72)} .fly.negro .ff{border-color:rgba(255,255,255,.18)}
+  .fly.foto .fvp{color:#fff} .fly.foto .fk{color:rgba(255,255,255,.92)} .fly.foto .fs{color:rgba(255,255,255,.88)} .fly.foto .ff{border-color:rgba(255,255,255,.3)}
+  .fly.gris .fvp{background:var(--bg)}
+  .fly.gris .fcard{margin-top:auto;background:#fff;border-radius:56px;padding:64px;box-shadow:inset 0 0 0 2px rgba(17,18,20,.06)}
+  .fly.gris .fbody{margin-top:0}
+  .fcap{width:270px;margin-top:12px;font:400 13px/18px var(--ui);color:var(--soft)}
+  .fcap b{color:var(--ink);font-weight:600}
+
+  /* Onboarding */
+  .vp.dark{background:#0E0D0C;color:#fff}
+  .ob{position:absolute;left:0;right:0;top:54px;bottom:0;padding:24px 28px 34px;display:flex;flex-direction:column;text-align:center}
+  .ob .pm{height:24px;margin:0 auto 20px}
+  .ob .txt{font:400 15px/21px var(--ui);color:rgba(255,255,255,.7);margin-top:8px}
+  .ob .txt b{color:#fff;font-weight:600}
+  .collage{display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:1fr;gap:8px;flex:1;margin:28px 0}
+  .collage div{border-radius:14px;background-size:cover;background-position:center}
+  .perm{text-align:left;margin-top:28px;flex:1}
+  .prow{display:grid;grid-template-columns:40px 1fr;column-gap:14px;align-items:center;min-height:64px}
+  .pic{width:40px;height:40px;border-radius:20px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.3);display:grid;place-items:center;font-size:19px;color:#fff}
+  .pic.ok{background:#fff;color:var(--ink);box-shadow:none}
+  .prow b{display:block;font:600 16px/21px var(--ui)}
+  .prow span{font:400 13px/17px var(--ui);color:rgba(255,255,255,.62)}
+  .drop{height:194px;border-radius:18px;background:var(--surface);box-shadow:inset 0 0 0 .5px rgba(17,18,20,.16);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--soft);font:400 15px/20px var(--ui)}
+  .drop .ion{font-size:28px;color:var(--soft)}
+
+  /* Ficha */
+  .fhero{position:relative;height:320px;background:linear-gradient(180deg,rgba(0,0,0,.28) 0%,rgba(0,0,0,0) 26%,rgba(0,0,0,0) 46%,rgba(0,0,0,.66) 100%),url('../assets/hero/botanica-5.jpg') center/cover;color:#fff}
+  .gc{position:absolute;top:62px;width:44px;height:44px;border-radius:22px;background:rgba(255,255,255,.2);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);box-shadow:inset 0 0 0 .5px rgba(255,255,255,.85);display:grid;place-items:center;font-size:21px;color:#fff}
+  .fid{position:absolute;left:20px;right:20px;bottom:44px}
+  .fid .nm{font:800 32px/39px var(--brand)}
+  .fid .ds{font:400 15px/20px var(--ui);margin-top:2px}
+  .fmeta{height:32px;margin-top:16px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+  .fmeta span{font:400 14px/19px var(--ui);color:rgba(255,255,255,.86)} .fmeta span b{color:#fff;font-weight:600}
+  .follow{width:112px;height:32px;border-radius:16px;background:var(--accent);display:grid;place-items:center;font:600 15px/20px var(--ui);color:#fff}
+  .fsheet{position:relative;margin-top:-28px;background:var(--bg);border-radius:28px 28px 0 0;padding:24px 20px 0}
+  .fsum{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:24px;font:400 14px/20px var(--ui);color:var(--soft)}
+  .fsum b{font-weight:600;color:var(--ink)}
+  .fnot{display:flex;gap:8px;align-items:flex-start;padding:12px;border-radius:14px;background:var(--accentSoft);margin-bottom:24px}
+  .fnot .ion{font-size:18px;color:var(--accent);margin-top:1px}
+  .fnot p{font:400 15px/20px var(--ui)}
+  .fnot .go{display:inline-flex;align-items:center;gap:5px;height:32px;margin-top:4px;font:600 14px/18px var(--ui);color:var(--accent)}
+  .ml{font:600 11px/14px var(--ui);letter-spacing:.8px;text-transform:uppercase;color:var(--soft);margin-bottom:8px}
+  .mg{margin-bottom:12px}
+  .mi{display:flex;align-items:flex-start;gap:8px;margin-bottom:12px}
+  .mi .nmb{flex:1;min-width:0}
+  .mi .nmb b{display:block;font:600 16px/21px var(--ui)}
+  .mi .nmb small{display:block;font:400 13px/18px var(--ui);color:var(--soft);margin-top:2px}
+  .mi .pr{font:600 15px/21px var(--ui)}
+  .mi .hb{width:21px;height:21px;display:grid;place-items:center;font-size:17px;color:var(--mute);flex:none}
+  .feat{display:flex;align-items:center;gap:4px;font:600 11px/14px var(--ui);letter-spacing:.8px;text-transform:uppercase;color:var(--accent);margin-bottom:2px}
+  .feat .ion{font-size:11px}
+  .facts{height:48px;display:flex;align-items:center;margin-bottom:8px}
+  .fc{flex:1;min-width:0;display:flex;align-items:center;gap:4px;font:400 12px/16px var(--ui);color:var(--mute)}
+  .fc .ion{font-size:13px}
+  .fc.c{justify-content:center;gap:8px} .fc.c .ion{font-size:18px}
+  .fc.r{justify-content:flex-end}
+  .busy{padding:16px;margin-bottom:16px}
+  .bl{display:flex;align-items:center;gap:8px;font:600 15px/20px var(--ui)}
+  .bl i{width:8px;height:8px;border-radius:4px;background:var(--accent);flex:none}
+  .bt{font:400 13px/17px var(--ui);color:var(--soft);margin-top:2px}
+  .bz{display:grid;grid-template-columns:repeat(12,1fr);gap:4px;align-items:end;height:72px;margin-top:16px}
+  .bz i{display:block;background:rgba(17,18,20,.09);border-radius:4px 4px 1px 1px}
+  .bz i.on{background:var(--accent)}
+  .bzl{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-top:6px;font:400 11px/14px var(--ui);color:var(--mute)}
+  .map{height:92px;border-radius:18px;background:#D8D6D0;position:relative;overflow:hidden;box-shadow:inset 0 0 0 .5px var(--border)}
+  .map:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent 47%,rgba(255,255,255,.7) 47%,rgba(255,255,255,.7) 51%,transparent 51%),linear-gradient(0deg,transparent 40%,rgba(255,255,255,.7) 40%,rgba(255,255,255,.7) 46%,transparent 46%)}
+  .map .mk{position:absolute;left:50%;top:50%;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:13px;background:var(--ink);display:grid;place-items:center;color:#fff;font-size:12px;box-shadow:0 0 0 .5px rgba(255,255,255,.82)}
+
+  /* Pase y sellos */
+  .pass{padding:20px}
+  .ph{display:flex;align-items:center;gap:8px}
+  .ph img{height:12px}
+  .ph b{font:600 15px/20px var(--ui)}
+  .ph .lb{margin-left:auto;font:600 11px/14px var(--ui);letter-spacing:.8px;text-transform:uppercase;color:var(--mute)}
+  .pmeta{display:flex;align-items:center;gap:4px;font:400 13px/17px var(--ui);color:var(--soft);margin-top:6px}
+  .pmeta .ion{font-size:13px}
+  .hair{height:.5px;background:var(--border);margin:18px 0}
+  .ms{display:flex;align-items:center;gap:6px;margin-top:12px}
+  .ms i{display:block;width:22px;height:22px;background:rgba(17,18,20,.08)}
+  .ms i.on{background:var(--accent)}
+  .ms span{margin-left:6px;font:400 13px/17px var(--ui);color:var(--soft)}
+  .redeem{margin-top:4px;padding:18px;border-radius:14px;background:var(--bg);text-align:center}
+  .redeem p{font:400 13px/17px var(--ui);color:var(--soft);margin-bottom:12px}
+  .stamp{padding:16px}
+  .slots{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:14px}
+  .slot{aspect-ratio:1/1;position:relative;background:rgba(17,18,20,.05);display:grid;place-items:center}
+  .slot.on{background:var(--accent)}
+  .slot img{width:46%}
+  .reward{display:flex;align-items:center;gap:6px;margin-top:14px;font:400 13px/17px var(--ui);color:var(--soft)}
+  .reward .ion{font-size:15px;color:var(--accent)}
+
+  /* Calle, a escala: 1 cm = 20 px */
+  .piece{position:relative;flex:none}
+  .sq{position:relative;overflow:visible}
+  .rim{position:absolute;left:0;top:0;pointer-events:none}
+  .poster{width:432px;height:558px;background:var(--accent);color:#fff;padding:30px;display:flex;flex-direction:column;box-shadow:0 0 0 .5px rgba(17,18,20,.12)}
+  .poster .q{font:800 48px/59px var(--brand);margin-top:24px}
+  .poster .s{font:800 24px/30px var(--brand);margin-top:4px}
+  .poster .foot{display:flex;gap:20px;align-items:flex-end;margin-top:auto}
+  .poster .qr{width:120px;height:120px;background:#fff;border-radius:8px;display:grid;place-items:center;flex:none}
+  .poster .foot p{font:400 18px/24px var(--ui)} .poster .foot p b{font-weight:600}
+  .sticker{width:200px;height:200px;background:linear-gradient(170deg,#2B2C30 0%,#111214 70%);color:#fff;padding:24px;display:flex;flex-direction:column;justify-content:space-between}
+  .sticker .t{font:800 26px/32px var(--brand)}
+  .seal{width:140px;height:140px;background:linear-gradient(170deg,#FF7C50 0%,#F2612F 55%,#DE5223 100%);color:#fff;padding:17px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+  .seal-in{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center}
+  .seal-in img{height:22px;transform:translate(-1%,4%)}
+  .seal .t{font:800 18px/22px var(--brand);margin-top:10px}
+  .seal .s{font:400 11px/14px var(--ui);margin-top:2px;opacity:.92}
+  .appicon{width:120px;height:120px;background:#F3F3F0;display:grid;place-items:center}
+  .appicon img{width:62%}
+  .safe{position:absolute;border:1px dashed rgba(17,18,20,.45);pointer-events:none;display:none}
+  .on-guides .safe{display:block}
+  .poster .safe,.sticker .safe,.seal .safe{border-color:rgba(255,255,255,.75)}
+  .dim2{font:400 13px/18px var(--ui);color:var(--soft);margin-top:14px;max-width:432px}
+  .dim2 b{color:var(--ink);font-weight:600}
+  .toggle{display:inline-flex;align-items:center;gap:8px;margin-top:32px;font:400 14px/18px var(--ui);color:var(--soft);cursor:pointer;user-select:none}
+
+  
+</style>
+</head>
+<body>
+<div class="prog" id="prog"></div>
+<header class="hdr">
+  <a class="brand" data-go="p-sumario"><img src="../assets/images/logo-negro.png" alt="Patio"><span>Sistema</span></a>
+  <nav class="caps" id="caps"></nav>
+  <div class="ctl">
+    <span class="pc" id="pc">1 / 1</span>
+    <button class="cb" id="ov" aria-pressed="false" aria-label="Todas las páginas"><svg viewBox="0 0 14 14" fill="currentColor"><rect x="0" y="0" width="6" height="6" rx="1.5"/><rect x="8" y="0" width="6" height="6" rx="1.5"/><rect x="0" y="8" width="6" height="6" rx="1.5"/><rect x="8" y="8" width="6" height="6" rx="1.5"/></svg></button>
+    <button class="cb" id="prev" aria-label="Anterior"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2 4 7l5 5"/></svg></button>
+    <button class="cb" id="next" aria-label="Siguiente"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m5 2 5 5-5 5"/></svg></button>
+  </div>
+</header>
+
+<main class="stage" id="stage"><div class="book" id="book">
+
+<section class="pg dk" id="p-portada" data-part="0">
+  <div class="photo" style="background-image:url('../assets/hero/botanica-1.jpg')"></div>
+  <img class="a" src="../assets/images/logo-blanco.png" alt="Patio" style="left:120px;top:96px;height:40px">
+  <p class="a" style="left:116px;top:420px;font:800 200px/200px var(--brand)">Sistema</p>
+  <p class="a" style="left:124px;top:650px;font:400 17px/26px var(--ui);color:rgba(255,255,255,.78)">Marca, producto y piezas · Noviembre 2026 · Versión 1.0</p>
+  <div class="a" style="left:1080px;top:744px"><p style="font:800 30px/38px var(--brand)">¿Qué hay hoy?</p><p style="font:800 20px/26px var(--brand);color:var(--accent);margin-top:2px">Saaaaaaabes.</p></div>
+</section>
+
+<section class="pg" id="p-sumario" data-part="0">
+  <span class="rt r1">Sumario</span><span class="rt r2">Patio · Sistema</span>
+  <div class="head"><p class="ey">Sumario</p><h2 class="hl"><b>Tres partes.</b> La marca, el producto y las piezas que salen de los dos.</h2></div>
+  <div class="toc">
+    <div class="r"><p class="no">1</p><p class="cx" data-go="p-m">Marca<small>Brand book</small></p><div class="subs"><a data-go="p-m01"><b>01</b>Logotipo</a><a data-go="p-m02"><b>02</b>La P</a><a data-go="p-m03"><b>03</b>Usos no permitidos</a><a data-go="p-m04"><b>04</b>Color</a><a data-go="p-m05"><b>05</b>Paleta</a><a data-go="p-m06"><b>06</b>Tipografía</a><a data-go="p-m07"><b>07</b>Escala</a><a data-go="p-m08"><b>08</b>En pantalla</a><a data-go="p-m09"><b>09</b>Voz</a><a data-go="p-m10"><b>10</b>Flyers</a><a data-go="p-m11"><b>11</b>Calle</a></div></div>
+    <div class="r"><p class="no">2</p><p class="cx" data-go="p-p">Producto<small>Pantallas y flujos</small></p><div class="subs"><a data-go="p-p01"><b>01</b>Recorridos</a><a data-go="p-p02"><b>02</b>Quien busca</a><a data-go="p-p03"><b>03</b>El negocio</a><a data-go="p-p04"><b>04</b>Avisos</a><a data-go="p-p05"><b>05</b>Aviso y promo</a><a data-go="p-p06"><b>06</b>Prueba Pro</a><a data-go="p-p07"><b>07</b>Mostrar en caja</a></div></div>
+    <div class="r"><p class="no">3</p><p class="cx" data-go="p-i">Piezas<small>Inventario con estado</small></p><div class="subs"><a data-go="p-i01"><b>01</b>Inventario</a></div></div>
+  </div>
+  <span class="pn">2</span>
+</section>
+
+<!-- ═════════ PARTE 1 · MARCA ═════════ -->
+<section class="pg dk" id="p-m" data-part="1">
+  <div class="photo" style="background-image:url('../assets/hero/botanica-2.jpg')"></div>
+  <span class="rt r1">Parte 1</span><span class="rt r2">Patio · Sistema</span>
+  <p class="ch-num">1</p><p class="ch-t">Marca</p>
+  <p class="ch-l">Logotipo, la P, usos, color, tipografía, voz y aplicaciones.</p>
+  <span class="pn">3</span>
+</section>
+
+<section class="pg" id="p-m01" data-part="1">
+  <span class="rt r1">Marca</span><span class="rt r2">Patio · Sistema</span>
+  <div class="head n"><p class="ey">Marca<em>01</em></p><h2 class="hl"><b>Logotipo.</b> La palabra Patio, en itálica, firma todo.</h2></div>
+  <div class="a" style="left:120px;top:340px;width:400px">
+    <p class="note">La P sola lo sustituye donde no cabe.</p>
+    <p class="note"><b>Tinta</b> sobre claro. <b>Blanco</b> sobre tinta, naranja o foto con velo.</p>
+  </div>
+  <div class="tile4">
+    <div style="background:var(--bg)"><img src="../assets/images/logo-negro.png" alt=""><span class="vlbl">Lienzo</span></div>
+    <div style="background:var(--ink);color:#fff"><img src="../assets/images/logo-blanco.png" alt=""><span class="vlbl">Tinta</span></div>
+    <div style="background:var(--accent);color:#fff"><img src="../assets/images/logo-blanco.png" alt=""><span class="vlbl">Naranja</span></div>
+    <div style="background:url('../assets/hero/botanica-6.jpg') center/cover;color:#fff"><div style="position:absolute;inset:0;background:rgba(0,0,0,.35)"></div><img src="../assets/images/logo-blanco.png" alt=""><span class="vlbl">Foto con velo</span></div>
+  </div>
+  <span class="pn" style="color:rgba(255,255,255,.7)">4</span>
+</section>
+
+<section class="pg" id="p-m02" data-part="1">
+  <span class="rt r1">Marca</span><span class="rt r2">Patio · Sistema</span>
+  <div class="head"><p class="ey">Marca<em>02</em></p><h2 class="hl"><b>La P.</b> El monograma, con su aire siempre alrededor.</h2></div>
+  <div class="a" style="left:120px;top:270px;width:340px">
+    <p class="note">La unidad <b>x</b> es el hueco interior de la P: 35 % de su alto.</p>
+    <p class="note"><b>Pantalla</b><br>10 pt mínimo. 16 pt recomendado.</p>
+    <p class="note"><b>Impreso</b><br>5 mm mínimo.</p>
+    <p class="note"><b>Ícono de app</b><br>Archivo cuadrado. El sistema aplica la esquina continua.</p>
+  </div>
+  <div class="a" style="left:560px;top:270px"><div class="clearbox"><img src="img/p-negro.png" alt="P de Patio"><span class="x">x</span></div><p class="cap2">Área de seguridad</p></div>
+  <div class="a" style="left:1140px;top:400px"><div class="ladder2"><div><img src="img/p-negro.png" alt="" style="height:10px">10</div><div><img src="img/p-negro.png" alt="" style="height:16px">16</div><div><img src="img/p-negro.png" alt="" style="height:24px">24</div><div><img src="img/p-negro.png" alt="" style="height:40px">40</div></div><p class="cap2">Tamaños en pt</p></div>
+  <span class="pn">5</span>
+</section>
+
+<section class="pg" id="p-m03" data-part="1">
+  <span class="rt r1">Marca</span><span class="rt r2">Patio · Sistema</span>
+  <div class="head"><p class="ey">Marca<em>03</em></p><h2 class="hl"><b>Usos no permitidos.</b> El logotipo se usa tal cual.</h2></div>
+  <ol class="badlist">
+    <li>Las proporciones no cambian.</li><li>Se mantiene derecho.</li><li>Sin sombras ni efectos.</li><li>Solo en tinta o en blanco.</li>
+    <li>Siempre con contraste.</li><li>Nunca se recorta.</li><li>Sin transparencia.</li><li>La P no forma patrones.</li>
+  </ol>
+  <div class="bad">
+    <figure><div class="t x-stretch"><img src="../assets/images/logo-negro.png" alt=""></div><figcaption>1</figcaption></figure>
+    <figure><div class="t x-rotate"><img src="../assets/images/logo-negro.png" alt=""></div><figcaption>2</figcaption></figure>
+    <figure><div class="t x-shadow"><img src="../assets/images/logo-negro.png" alt=""></div><figcaption>3</figcaption></figure>
+    <figure><div class="t x-color"><img src="../assets/images/logo-negro.png" alt=""></div><figcaption>4</figcaption></figure>
+    <figure><div class="t x-contrast"><img src="../assets/images/logo-negro.png" alt=""></div><figcaption>5</figcaption></figure>
+    <figure><div class="t x-crop"><img src="../assets/images/logo-negro.png" alt=""></div><figcaption>6</figcaption></figure>
+    <figure><div class="t x-alpha"><img src="../assets/images/logo-negro.png" alt=""></div><figcaption>7</figcaption></figure>
+    <figure><div class="t x-pattern" style="display:flex;gap:12px;flex-wrap:wrap;align-content:center;justify-content:center;padding:16px"><img src="img/p-negro.png" alt=""><img src="img/p-negro.png" alt=""><img src="img/p-negro.png" alt=""><img src="img/p-negro.png" alt=""><img src="img/p-negro.png" alt=""><img src="img/p-negro.png" alt=""></div><figcaption>8</figcaption></figure>
+  </div>
+  <span class="pn">6</span>
+</section>
+
+<section class="pg" id="p-m04" data-part="1">
+  <span class="rt r1">Marca</span><span class="rt r2">Patio · Sistema</span>
+  <div class="head"><p class="ey">Marca<em>04</em></p><h2 class="hl"><b>Color.</b> Neutros para el contenido y un solo acento.</h2></div>
+  <div class="cols3">
+    <div style="background:var(--ink);color:#fff"><p class="w">Tinta</p><ul><li>El texto</li><li>Los botones neutros</li><li>La noche</li></ul><code>#111214</code></div>
+    <div style="background:var(--bg)"><p class="w">Lienzo</p><ul><li>El fondo</li><li>El papel</li><li>El día</li></ul><code>#F8F8F5</code></div>
+    <div style="background:var(--accent);color:#fff"><p class="w">Naranja</p><ul><li>La acción principal</li><li>La selección</li><li>El antojo</li></ul><code>#F2612F</code></div>
+  </div>
+  <span class="pn" style="color:rgba(255,255,255,.7)">7</span>
+</section>
+
+<section class="pg" id="p-m05" data-part="1">
+  <span class="rt r1">Marca</span><span class="rt r2">Patio · Sistema</span>
+  <div class="head"><p class="ey">Marca<em>05</em></p><h2 class="hl"><b>Paleta.</b> Valores para pantalla, en claro y en oscuro.</h2></div>
+  <div class="sws">
+    <div class="sw2"><i style="background:#111214"></i><b>Tinta</b><span>Texto y botones neutros</span><dl><dt>HEX</dt><dd>#111214</dd><dt>RGB</dt><dd>17 18 20</dd></dl></div>
+    <div class="sw2"><i style="background:#F8F8F5"></i><b>Lienzo</b><span>Fondo</span><dl><dt>HEX</dt><dd>#F8F8F5</dd><dt>RGB</dt><dd>248 248 245</dd></dl></div>
+    <div class="sw2"><i style="background:#FFFFFF"></i><b>Superficie</b><span>Tarjetas y hojas</span><dl><dt>HEX</dt><dd>#FFFFFF</dd><dt>RGB</dt><dd>255 255 255</dd></dl></div>
+    <div class="sw2"><i style="background:#F2612F"></i><b>Naranja</b><span>Una acción por pantalla</span><dl><dt>HEX</dt><dd>#F2612F</dd><dt>RGB</dt><dd>242 97 47</dd></dl></div>
+    <div class="sw2"><i style="background:#4A4A47"></i><b>Tinta suave</b><span>Subtítulos</span><dl><dt>HEX</dt><dd>#4A4A47</dd><dt>RGB</dt><dd>74 74 71</dd></dl></div>
+    <div class="sw2"><i style="background:#8A8A85"></i><b>Tinta tenue</b><span>Datos y etiquetas</span><dl><dt>HEX</dt><dd>#8A8A85</dd><dt>RGB</dt><dd>138 138 133</dd></dl></div>
+    <div class="sw2"><i style="background:#0A0B0D"></i><b>Fondo oscuro</b><span>Superficie #1B1C20</span><dl><dt>HEX</dt><dd>#0A0B0D</dd><dt>RGB</dt><dd>10 11 13</dd></dl></div>
+    <div class="sw2"><i style="background:#FF6A3D"></i><b>Naranja oscuro</b><span>Sobre fondo oscuro</span><dl><dt>HEX</dt><dd>#FF6A3D</dd><dt>RGB</dt><dd>255 106 61</dd></dl></div>
+  </div>
+  <div class="propbar"><div class="bar"><i style="flex:46;background:#F8F8F5"></i><i style="flex:30;background:#FFFFFF"></i><i style="flex:16;background:#111214"></i><i style="flex:6;background:#4A4A47"></i><i style="flex:2;background:#F2612F"></i></div><div class="k"><span style="flex:46">Lienzo</span><span style="flex:30">Superficie</span><span style="flex:16">Tinta</span><span style="flex:8;text-align:right">Naranja</span></div></div>
+  <span class="pn">8</span>
+</section>
+
+<section class="pg" id="p-m06" data-part="1">
+  <span class="rt r1">Marca</span><span class="rt r2">Patio · Sistema</span>
+  <div class="head"><p class="ey">Marca<em>06</em></p><h2 class="hl"><b>Tipografía.</b> Monument para la marca. Neue Montreal para todo lo demás.</h2></div>
+  <div class="alpha"><p class="u">ABCDEFGHI JKLMNÑOPQ RSTUVWXYZ 0123456789</p><p class="l">abcdefghijklmnñopqrstuvwxyz ¿? $</p></div>
+  <div class="weights">
+    <div class="w"><span>Regular</span><p style="font-family:var(--ui);font-weight:400">Aa</p></div>
+    <div class="w"><span>Semibold</span><p style="font-family:var(--ui);font-weight:600">Aa</p></div>
+    <div class="w"><span>Monument</span><p style="font-family:var(--brand);font-weight:800">Aa</p></div>
+    <div class="w"><span>Sistema</span><p style="font-family:var(--sys);font-weight:400">Aa</p></div>
+  </div>
+  <div class="roles">
+    <div><p class="n">Monument</p><p class="s" style="font-family:var(--brand);font-weight:800">Fonda Poblana</p><p class="d">Títulos, nombres de lugar, precios grandes y el par de marca. Desde 20 pt.</p></div>
+    <div><p class="n">Neue Montreal</p><p class="s" style="font-family:var(--ui)">Comida corrida</p><p class="d">Botones, etiquetas, menús y datos. Regular y Semibold.</p></div>
+    <div><p class="n">Sistema</p><p class="s" style="font-family:var(--sys)">SF Pro</p><p class="d">Cuando las dos anteriores no están disponibles.</p></div>
+  </div>
+  <span class="pn">9</span>
+</section>
+
+<section class="pg" id="p-m07" data-part="1">
+  <span class="rt r1">Marca</span><span class="rt r2">Patio · Sistema</span>
+  <div class="head"><p class="ey">Marca<em>07</em></p><h2 class="hl"><b>Escala.</b> Un tamaño por rol, del título a la etiqueta.</h2></div>
+  <div class="scale2">
+    <div class="r"><span class="lbl">Celebración</span><span style="font:800 44px/54px var(--brand)">Fonda Poblana</span><span class="m">Monument 44 / 54</span></div>
+    <div class="r"><span class="lbl">Hero</span><span style="font:800 38px/46px var(--brand)">¿Qué hay hoy? Saaaaaaabes.</span><span class="m">Monument 38 / 46</span></div>
+    <div class="r"><span class="lbl">Pantalla</span><span style="font:800 32px/39px var(--brand)">Mi Patio</span><span class="m">Monument 32 / 39</span></div>
+    <div class="r"><span class="lbl">Título</span><span style="font:800 26px/32px var(--brand)">La foto de tu lugar</span><span class="m">Monument 26 / 32</span></div>
+    <div class="r"><span class="lbl">Sección</span><span style="font:800 21px/26px var(--brand)">Reseñas</span><span class="m">Monument 21 / 26</span></div>
+    <div class="r"><span class="lbl">Encabezado</span><span style="font:600 17px/22px var(--ui)">Milanesa de res empanizada</span><span class="m">Neue Montreal 17 / 22</span></div>
+    <div class="r"><span class="lbl">Cuerpo</span><span style="font:400 15px/20px var(--ui)">Con ensalada de la casa y agua del día.</span><span class="m">Neue Montreal 15 / 20</span></div>
+    <div class="r"><span class="lbl">Subtítulo</span><span style="font:400 13px/17px var(--ui);color:var(--soft)">Narvarte · 450 m</span><span class="m">Neue Montreal 13 / 17</span></div>
+    <div class="r"><span class="lbl">Etiqueta</span><span style="font:600 11px/14px var(--ui);letter-spacing:.8px;text-transform:uppercase;color:var(--mute)">Platos fuertes</span><span class="m">Neue Montreal 11 / 14 · +0.8</span></div>
+  </div>
+  <span class="pn">10</span>
+</section>
+
+<section class="pg" id="p-m08" data-part="1">
+  <span class="rt r1">Marca</span><span class="rt r2">Patio · Sistema</span>
+  <div class="head n"><p class="ey">Marca<em>08</em></p><h2 class="hl"><b>En pantalla.</b> La misma ficha con Patio y con una genérica.</h2></div>
+  <div class="a" style="left:120px;top:380px;width:400px"><p class="note">Mismas medidas y mismo contenido. Monument y Neue Montreal convierten una lista en un lugar.</p></div>
+  <div class="prow2" style="left:680px;top:110px">
+    <div class="z9"><div class="phone"><div class="screen"><div class="vp">
+        <div class="fhero">
+          <div class="sb" style="color:#fff"><span>13:18</span><span><i class="ion">&#xf208;</i><i class="ion">&#xf631;</i><i class="ion">&#xf187;</i></span></div>
+          <span class="gc ion" style="left:20px">&#xf229;</span>
+          <div class="fid"><p class="nm">Fonda Poblana</p><p class="ds">Comida corrida casera desde 1998</p>
+            <div class="fmeta"><span><b>240</b> seguidores</span><span class="follow">Seguir</span></div></div>
+        </div>
+        <div class="fsheet">
+          <div class="fsum"><span>Narvarte · 450 m</span><b>$95</b></div>
+          <div class="mg"><p class="ml">Platos fuertes</p>
+            <div class="mi"><div class="nmb"><b>Milanesa de res empanizada con papas a la francesa</b><small>Con ensalada de la casa</small></div><span class="pr">$120</span><span class="hb ion">&#xf377;</span></div>
+            <div class="mi"><div class="nmb"><b>Mole</b></div><span class="pr">$95</span><span class="hb ion">&#xf377;</span></div></div>
+          <p class="t-section" style="margin-top:20px">Reseñas</p>
+        </div>
+      </div></div></div><p class="cap2"><b>Patio</b> · Monument y Neue Montreal</p></div>
+    <div class="z9 generic"><div class="phone"><div class="screen"><div class="vp">
+        <div class="fhero">
+          <div class="sb" style="color:#fff"><span>13:18</span><span><i class="ion">&#xf208;</i><i class="ion">&#xf631;</i><i class="ion">&#xf187;</i></span></div>
+          <span class="gc ion" style="left:20px">&#xf229;</span>
+          <div class="fid"><p class="nm">Fonda Poblana</p><p class="ds">Comida corrida casera desde 1998</p>
+            <div class="fmeta"><span><b>240</b> seguidores</span><span class="follow">Seguir</span></div></div>
+        </div>
+        <div class="fsheet">
+          <div class="fsum"><span>Narvarte · 450 m</span><b>$95</b></div>
+          <div class="mg"><p class="ml">Platos fuertes</p>
+            <div class="mi"><div class="nmb"><b>Milanesa de res empanizada con papas a la francesa</b><small>Con ensalada de la casa</small></div><span class="pr">$120</span><span class="hb ion">&#xf377;</span></div>
+            <div class="mi"><div class="nmb"><b>Mole</b></div><span class="pr">$95</span><span class="hb ion">&#xf377;</span></div></div>
+          <p class="t-section" style="margin-top:20px">Reseñas</p>
+        </div>
+      </div></div></div><p class="cap2"><b>Genérica</b> · fuente del sistema</p></div>
+  </div>
+  <span class="pn">11</span>
+</section>
+
+<section class="pg dk" id="p-m09" data-part="1">
+  <span class="rt r1">Marca</span><span class="rt r2">Patio · Sistema</span>
+  <div class="head"><p class="ey">Marca<em>09</em></p><h2 class="hl"><b>Voz.</b> Una pregunta y su respuesta, siempre juntas.</h2></div>
+  <p class="a" style="left:116px;top:300px;font:800 140px/154px var(--brand)">¿Qué hay hoy?</p>
+  <p class="a" style="left:120px;top:460px;font:800 72px/88px var(--brand);color:var(--accent)">Saaaaaaabes.</p>
+  <ul class="a rl" style="left:120px;right:120px;top:660px;display:grid;grid-template-columns:repeat(3,1fr);gap:0 48px">
+    <li><b>Siempre juntos</b>La pregunta y la respuesta van en la misma pieza.</li>
+    <li><b>Siete aes</b>El tagline se escribe así y no se parafrasea.</li>
+    <li><b>Afirma</b>Patio dice lo que es, sin compararse.</li>
+  </ul>
+  <span class="pn">12</span>
+</section>
+
+<section class="pg" id="p-m10" data-part="1">
+  <span class="rt r1">Marca</span><span class="rt r2">Patio · Sistema</span>
+  <div class="head"><p class="ey">Marca<em>10</em></p><h2 class="hl"><b>Flyers.</b> Cinco plantillas con un solo esqueleto.</h2></div>
+  <div class="prow2 z9" style="left:133px;top:275px;gap:28px">
+      <div><div class="fly foto"><div class="fvp" style="background:linear-gradient(180deg,rgba(0,0,0,.2) 0%,rgba(0,0,0,0) 28%,rgba(0,0,0,.18) 50%,rgba(0,0,0,.78) 100%),url('../assets/hero/botanica-6.jpg') center/cover"><div class="fk"><span>Platillo especial</span><span class="tag">Tu foto</span></div><div class="fbody"><p class="ftt fit">Hoy hay pozole</p><p class="fs">Rojo o verde · $85</p></div><div class="ff"><b>Fonda Poblana</b><img src="img/p-blanco.png" alt="Patio"></div></div></div><p class="fcap"><b>Platillo especial</b> · foto con velo</p></div>
+      <div><div class="fly negro"><div class="fvp"><div class="fk"><span>Promoción</span></div><div class="fbody"><p class="ftt fit">2×1 en aguas frescas de la casa</p><p class="fs">Solo hoy, de 2 a 4 pm</p></div><div class="ff"><b>Fonda Poblana</b><img src="img/p-blanco.png" alt="Patio"></div></div></div><p class="fcap"><b>Promoción</b> · negro</p></div>
+      <div><div class="fly gris"><div class="fvp"><div class="fk"><span>Evento</span></div><div class="fcard"><div class="fbody"><p class="ftt fit">Viernes de mariscos</p><p class="fs">14 de noviembre, desde la 1 pm</p></div></div><div class="ff"><b>Cocina Económica Doña Mary</b><img src="img/p-negro.png" alt="Patio"></div></div></div><p class="fcap"><b>Evento</b> · gris</p></div>
+      <div><div class="fly blanco"><div class="fvp"><div class="fk"><span>Nuevo en el menú</span></div><div class="fbody"><p class="ftt fit">Enchiladas suizas gratinadas</p><p class="fs">Desde hoy, todos los días · $95</p></div><div class="ff"><b>Doña Mary</b><img src="img/p-negro.png" alt="Patio"></div></div></div><p class="fcap"><b>Nuevo en el menú</b> · blanco</p></div>
+      <div><div class="fly gris"><div class="fvp"><div class="fk"><span>Aviso</span></div><div class="fcard"><div class="fbody"><p class="ftt fit">Hoy abrimos a las 8 pm</p><p class="fs">Mañana, horario normal</p></div></div><div class="ff"><b>Doña Mary</b><img src="img/p-negro.png" alt="Patio"></div></div></div><p class="fcap"><b>Aviso</b> · gris</p></div>
+    </div>
+  <ul class="a rl" style="left:120px;right:120px;top:712px;display:grid;grid-template-columns:repeat(4,1fr);gap:0 40px">
+    <li><b>Esqueleto</b>Etiqueta, título, detalle y firma con la P.</li>
+    <li><b>Fondos</b>Blanco, gris, negro o foto con velo.</li>
+    <li><b>Naranja</b>Solo en la etiqueta.</li>
+    <li><b>Texto largo</b>Baja en pasos, de 128 a 72. Nunca se corta.</li>
+  </ul>
+  <span class="pn">13</span>
+</section>
+
+<section class="pg" id="p-m11" data-part="1">
+  <span class="rt r1">Marca</span><span class="rt r2">Patio · Sistema</span>
+  <div class="head"><p class="ey">Marca<em>11</em></p><h2 class="hl"><b>Calle.</b> Cartel, sticker, sello e ícono, a escala.</h2></div>
+  <button class="a gbtn" id="guides" aria-pressed="false" style="right:120px;top:84px">Área segura</button>
+  <div class="prow2 z9" id="brand" style="left:133px;top:262px;gap:64px;align-items:flex-end">
+    <div><div class="piece poster">
+      <span class="safe" style="left:30px;top:30px;right:30px;bottom:30px"></span>
+      <img src="img/p-blanco.png" alt="Patio" style="height:24px;align-self:flex-start">
+      <p class="q">¿Qué hay hoy?</p>
+      <p class="s">Saaaaaaabes.</p>
+      <div class="foot"><div class="qr"><span class="qr" data-seed="3" data-size="104"></span></div><p>Escanea y mira lo de hoy en <b>Fonda Poblana</b>.</p></div>
+    </div><p class="dim2"><b>Cartel</b> · carta, 21.6 × 27.9 cm · margen 1.5 cm · QR de 6 cm, legible a 60 cm.</p></div>
+
+    <div><div class="piece sq sticker" data-r=".2237" data-rim="1">
+      <span class="safe" style="left:24px;top:24px;right:24px;bottom:24px"></span>
+      <img src="img/p-blanco.png" alt="Patio" style="height:24px;align-self:flex-start;position:relative">
+      <p class="t" style="position:relative">Estamos en Patio</p>
+    </div><p class="dim2" style="max-width:200px"><b>Sticker de ventana</b> · 10 × 10 cm · vinil.</p></div>
+
+    <div style="display:flex;flex-direction:column;align-items:center"><div class="piece sq seal" data-r=".2237" data-rim="1">
+      <span class="safe" style="left:17px;top:17px;right:17px;bottom:17px"></span>
+      <div class="seal-in"><img src="img/p-blanco.png" alt="Patio"><p class="t">Fundador</p><p class="s">Granada · 2026</p></div>
+    </div><p class="dim2" style="max-width:140px;text-align:center"><b>Sello Fundador</b><br>7 × 7 cm</p></div>
+
+    <div style="display:flex;flex-direction:column;align-items:center"><div class="piece sq appicon" data-r=".2237" data-rim="1"><img src="img/p-negro.png" alt="Patio" style="position:relative"></div><p class="dim2" style="max-width:120px;text-align:center"><b>Ícono</b><br>misma forma</p></div>
+  </div>
+  <ul class="a rl" style="left:120px;right:120px;top:800px;display:grid;grid-template-columns:repeat(4,1fr);gap:0 40px">
+    <li><b>Escala</b>1 cm = 20 px.</li>
+    <li><b>Forma</b>Esquina continua de 22.37 %. El cartel, recto.</li>
+    <li><b>Área segura</b>12 % por lado.</li>
+    <li><b>QR</b>Abre la página del lugar.</li>
+  </ul>
+  <span class="pn">14</span>
+</section>
+
+<!-- ═════════ PARTE 2 · PRODUCTO ═════════ -->
+<section class="pg dk" id="p-p" data-part="2">
+  <div class="photo" style="background-image:url('../assets/hero/botanica-5.jpg')"></div>
+  <span class="rt r1">Parte 2</span><span class="rt r2">Patio · Sistema</span>
+  <p class="ch-num">2</p><p class="ch-t">Producto</p>
+  <p class="ch-l">Recorridos y pantallas de la app: quien busca qué comer y el negocio que publica.</p>
+  <span class="pn">15</span>
+</section>
+
+<section class="pg" id="p-p01" data-part="2">
+  <span class="rt r1">Producto</span><span class="rt r2">Patio · Sistema</span>
+  <div class="head"><p class="ey">Producto<em>01</em></p><h2 class="hl"><b>Recorridos.</b> Quien busca qué comer y el negocio que publica.</h2></div>
+  <div class="track" style="top:250px">
+    <div class="hd"><h3>Quien busca</h3><span class="pills"><span class="on">Mapa</span><span>Patios</span><span>Perfil</span></span></div>
+    <div class="nodes">
+      <div class="node"><i>1</i><b>Entrada</b><p>El par de marca sobre foto.</p><code>entrada</code></div><span class="arr"></span>
+      <div class="node"><i>2</i><b>Onboarding</b><p>Mapa, seguir, permisos y cuenta opcional.</p><code>onboarding</code></div><span class="arr"></span>
+      <div class="node key"><i>3</i><b>Mapa</b><p>Lo que ya publicaron hoy, cerca.</p><code>explorar</code></div><span class="arr"></span>
+      <div class="node key"><i>4</i><b>Ficha</b><p>Menú de hoy, precio y qué tan lleno.</p><code>patio/[id]</code></div><span class="arr"></span>
+      <div class="node"><i>5</i><b>Seguir y reseñar</b><p>Y mostrar en caja.</p><code>resena/[id]</code></div><span class="arr"></span>
+      <div class="node"><i>6</i><b>Patios</b><p>Lo que sigue y lo de quienes sigue.</p><code>favoritos</code></div>
+    </div>
+  </div>
+  <div class="track" style="top:560px">
+    <div class="hd"><h3>El negocio</h3><span class="pills"><span>Menús</span><span>Actividad</span><span class="plus">+</span><span class="on">Mi Patio</span><span>Perfil</span></span></div>
+    <div class="nodes">
+      <div class="node"><i>1</i><b>Acceso</b><p>Correo y código de 8 dígitos.</p><code>fondero-acceso</code></div><span class="arr"></span>
+      <div class="node"><i>2</i><b>Alta</b><p>Giro, dirección, foto, horario y pagos.</p><code>patio-smart</code></div><span class="arr"></span>
+      <div class="node key"><i>3</i><b>Nuevo menú</b><p>Foto, Fotos o escribir.</p><code>menu</code></div><span class="arr"></span>
+      <div class="node"><i>4</i><b>Revisar</b><p>Platillos, precios y secciones.</p><code>menu-editar</code></div><span class="arr"></span>
+      <div class="node key"><i>5</i><b>Publicar</b><p>Aviso a seguidores y póster.</p><code>preview</code></div><span class="arr"></span>
+      <div class="node"><i>6</i><b>Hoy</b><p>Vistas y lo que más gustó.</p><code>hoy</code></div><span class="arr"></span>
+      <div class="node"><i>7</i><b>Avisar</b><p>Aviso gratis o promo Pro.</p><code>avisar</code></div>
+    </div>
+  </div>
+  <span class="pn">16</span>
+</section>
+
+<section class="pg" id="p-p02" data-part="2">
+  <span class="rt r1">Producto</span><span class="rt r2">Patio · Sistema</span>
+  <div class="head"><p class="ey">Producto<em>02</em></p><h2 class="hl"><b>Quien busca.</b> De la portada a la ficha del lugar.</h2></div>
+  <div class="prow2" style="left:120px;top:236px;gap:36px">
+    <div class="z84"><div class="phone"><div class="screen"><div class="vp dark">
+        <div class="sb" style="color:#fff"><span>9:41</span><span><i class="ion">&#xf208;</i><i class="ion">&#xf631;</i><i class="ion">&#xf187;</i></span></div>
+        <div class="ob">
+          <img class="pm" src="img/p-blanco.png" alt="Patio">
+          <p class="t-hero">¿Qué hay hoy?</p>
+          <p class="t-section" style="color:#fff;margin-top:4px">Saaaaaaabes.</p>
+          <div class="collage"><div style="background-image:url('../assets/hero/botanica-5.jpg')"></div><div style="background-image:url('../assets/hero/botanica-1.jpg');grid-row:span 2"></div><div style="background-image:url('../assets/hero/botanica-4.jpg')"></div><div style="background-image:url('../assets/hero/botanica-7.jpg')"></div><div style="background-image:url('../assets/hero/botanica-8.jpg')"></div></div>
+          <p class="txt" style="margin:0 0 24px">Lo que preparan hoy los lugares cerca de ti, con precio y a qué distancia.</p>
+          <div class="btn gl">Comenzar</div>
+        </div>
+      </div></div></div><p class="cap2"><b>Portada</b></p></div>
+    <div class="z84"><div class="phone"><div class="screen"><div class="vp dark">
+        <div class="sb" style="color:#fff"><span>9:41</span><span><i class="ion">&#xf208;</i><i class="ion">&#xf631;</i><i class="ion">&#xf187;</i></span></div>
+        <div class="ob">
+          <img class="pm" src="img/p-blanco.png" alt="Patio">
+          <p class="t-title">Permisos</p>
+          <p class="txt">Patio necesita un par de cosas antes de empezar.</p>
+          <div class="perm">
+            <div class="prow"><span class="pic ok ion">&#xf21d;</span><span><b>Ubicación</b><span>Para mostrarte lo que hay cerca</span></span></div>
+            <div class="prow"><span class="pic ion">&#xf47f;</span><span><b>Notificaciones</b><span>Para avisarte cuando publican tus lugares</span></span></div>
+          </div>
+          <div class="btn gl">Continuar</div>
+        </div>
+      </div></div></div><p class="cap2"><b>Permisos</b> · uno por fila</p></div>
+    <div class="z84"><div class="phone"><div class="screen"><div class="vp">
+        <div class="fhero">
+          <div class="sb" style="color:#fff"><span>13:18</span><span><i class="ion">&#xf208;</i><i class="ion">&#xf631;</i><i class="ion">&#xf187;</i></span></div>
+          <span class="gc ion" style="left:20px">&#xf229;</span><span class="gc ion" style="right:20px;font-size:17px">&#xf572;</span>
+          <div class="fid"><p class="nm">Fonda Poblana</p><p class="ds">Comida corrida casera desde 1998</p>
+            <div class="fmeta"><span><b>240</b> seguidores</span><span class="follow">Seguir</span></div></div>
+        </div>
+        <div class="fsheet">
+          <div class="fsum"><span>Narvarte · 450 m</span><b>$95</b></div>
+          <div class="fnot"><i class="ion">&#xf44f;</i><div><p>2×1 en aguas frescas de la casa, hoy hasta las 4 pm.</p><span class="go"><i class="ion">&#xf4fd;</i>Mostrar en caja</span></div></div>
+          <div class="mg"><p class="ml">Sopas</p>
+            <div class="mi"><div class="nmb"><b>Sopa de fideo</b></div><span class="hb ion">&#xf377;</span></div></div>
+          <div class="mg"><p class="ml">Platos fuertes</p>
+            <div class="mi"><div class="nmb"><b>Milanesa de res empanizada con papas a la francesa</b><small>Con ensalada de la casa</small></div><span class="pr">$120</span><span class="hb ion">&#xf377;</span></div>
+            <div class="mi"><div class="nmb"><p class="feat"><i class="ion">&#xf595;</i>Recomendado</p><b>Mole</b></div><span class="pr">$95</span><span class="hb ion" style="color:var(--accent)">&#xf36a;</span></div></div>
+        </div>
+      </div></div></div><p class="cap2"><b>Ficha</b> · la promo arriba del menú</p></div>
+    <div class="z84"><div class="phone"><div class="screen"><div class="vp">
+        <div class="sb"><span>13:18</span><span><i class="ion">&#xf208;</i><i class="ion">&#xf631;</i><i class="ion">&#xf187;</i></span></div>
+        <div class="fsheet" style="margin-top:0;border-radius:0;padding-top:12px">
+          <div class="mg"><p class="ml">Bebidas</p>
+            <div class="mi"><div class="nmb"><b>Agua de horchata</b></div><span class="pr">$25</span><span class="hb ion">&#xf377;</span></div>
+            <div class="mi"><div class="nmb"><b>Agua de jamaica</b><small>Sin azúcar si la pides</small></div><span class="pr">$25</span><span class="hb ion">&#xf377;</span></div></div>
+          <div class="facts"><span class="fc"><i class="ion">&#xf1d6;</i>Abre lun a sáb</span><span class="fc c"><i class="ion">&#xf206;</i><i class="ion">&#xf1e8;</i></span><span class="fc r"><i class="ion">&#xf5de;</i>1–5 pm<i class="ion" style="font-size:11px">&#xf232;</i></span></div>
+          <p class="ml">Qué tan lleno</p>
+          <div class="card busy">
+            <p class="bl"><i></i>Ahora: más lleno de lo normal</p>
+            <p class="bt">Los viernes suele llenarse de 2 a 3 pm</p>
+            <div class="bz"><i style="height:16%"></i><i style="height:24%"></i><i style="height:38%"></i><i style="height:52%"></i><i style="height:70%"></i><i class="on" style="height:84%"></i><i style="height:94%"></i><i style="height:86%"></i><i style="height:62%"></i><i style="height:40%"></i><i style="height:24%"></i><i style="height:12%"></i></div>
+            <div class="bzl"><span>12</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div>
+          </div>
+          <div class="map"><span class="mk ion">&#xf46c;</span></div>
+          <p class="t-section" style="margin-top:32px">Reseñas</p>
+        </div>
+      </div></div></div><p class="cap2"><b>Ficha</b> · datos, qué tan lleno y mapa</p></div>
+  </div>
+  <span class="pn">17</span>
+</section>
+
+<section class="pg" id="p-p03" data-part="2">
+  <span class="rt r1">Producto</span><span class="rt r2">Patio · Sistema</span>
+  <div class="head"><p class="ey">Producto<em>03</em></p><h2 class="hl"><b>El negocio.</b> Del alta a sus números del día.</h2></div>
+  <div class="prow2" style="left:120px;top:236px;gap:40px">
+    <div class="z84"><div class="phone"><div class="screen"><div class="vp">
+        <div class="sb"><span>9:41</span><span><i class="ion">&#xf208;</i><i class="ion">&#xf631;</i><i class="ion">&#xf187;</i></span></div>
+        <div class="nav"><span class="bx ion">&#xf229;</span><span class="tt">Tu negocio</span><span class="bx" style="font:400 13px/17px var(--ui);color:var(--mute);width:auto">3 de 4</span></div>
+        <div style="position:absolute;left:24px;right:24px;top:122px;bottom:34px;display:flex;flex-direction:column">
+          <p class="t-title">La foto de tu lugar</p>
+          <p class="body15" style="margin:8px 0 20px">Es lo primero que ve la gente en el mapa: tu fachada o lo que mejor te sale.</p>
+          <div class="drop"><i class="ion">&#xf1dc;</i>Tomar foto o elegir de Fotos</div>
+          <p style="font:400 13px/17px var(--ui);color:var(--mute);margin-top:10px">Horizontal, con luz de día y sin texto encima.</p>
+          <div style="flex:1"></div>
+          <div class="btn or">Continuar</div>
+          <div class="btn tx">Después</div>
+        </div>
+      </div></div></div><p class="cap2"><b>Alta</b> · foto del lugar en 16:9</p></div>
+    <div class="z84"><div class="phone"><div class="screen"><div class="vp">
+        <div class="sb"><span>18:04</span><span><i class="ion">&#xf208;</i><i class="ion">&#xf631;</i><i class="ion">&#xf187;</i></span></div>
+        <div class="nav"><span class="bx ion">&#xf229;</span><span class="tt">Hoy</span><span class="bx"></span></div>
+        <div class="ct">
+          <div class="card kpi">
+            <div class="kh"><i class="ion">&#xf2ea;</i>Vistas de tu menú<span class="r">vie 7 nov</span></div>
+            <div class="kv"><b>34</b><span>personas</span></div>
+            <div class="kc"><i class="ion">&#xf149;</i>8 más que un viernes normal</div>
+            <div class="chart">
+              <div class="avg" style="bottom:56%"><span>prom. 26</span></div>
+              <i style="height:44%"></i><i style="height:60%"></i><i style="height:38%"></i><i style="height:68%"></i><i class="on" style="height:88%"></i><i style="height:0"></i><i style="height:0"></i>
+            </div>
+            <div class="xl"><span>L</span><span>M</span><span>M</span><span>J</span><span class="on">V</span><span>S</span><span>D</span></div>
+          </div>
+          <p class="glabel">Hoy también</p>
+          <div class="card">
+            <div class="srow"><span class="ibox acc"><i class="ion">&#xf313;</i></span><div class="sbody"><p class="stitle">Racha</p></div><span class="trail">12 días<i class="ion">&#xf23b;</i></span></div>
+            <div class="srow"><span class="ibox"><i class="ion">&#xf4a7;</i></span><div class="sbody"><p class="stitle">Seguidores nuevos</p></div><span class="trail">5<i class="ion">&#xf23b;</i></span></div>
+            <div class="srow"><span class="ibox"><i class="ion">&#xf377;</i></span><div class="sbody"><p class="stitle">Me gusta en platillos</p></div><span class="trail">11<i class="ion">&#xf23b;</i></span></div>
+          </div>
+          <p class="glabel">Lo que más gustó</p>
+          <div class="card">
+            <div class="rk"><span class="n">1</span><span class="nm">Milanesa de res empanizada con papas a la francesa</span><span class="ct2"><i class="ion">&#xf36a;</i>6</span></div>
+          </div>
+        </div>
+      </div></div></div><p class="cap2"><b>Hoy</b> · el número, su comparación y la semana</p></div>
+    <div class="z84"><div class="phone"><div class="screen"><div class="vp">
+        <div class="sb"><span>18:04</span><span><i class="ion">&#xf208;</i><i class="ion">&#xf631;</i><i class="ion">&#xf187;</i></span></div>
+        <div class="nav"><span class="bx ion">&#xf229;</span><span class="tt">Notificaciones</span><span class="bx"></span></div>
+        <div class="ct">
+          <div class="card" style="margin-top:8px"><div class="srow"><span class="ibox"><i class="ion">&#xf47f;</i></span><div class="sbody"><p class="stitle">Pausar todo</p></div><span class="tg off"></span></div></div>
+          <p class="glabel">Tu negocio</p>
+          <div class="card">
+            <div class="srow"><span class="ibox"><i class="ion">&#xf599;</i></span><div class="sbody"><p class="stitle">Reseñas y comentarios</p></div><span class="tg"></span></div>
+            <div class="srow"><span class="ibox"><i class="ion">&#xf59c;</i></span><div class="sbody"><p class="stitle">Resumen de hoy</p></div><span class="tp">18:00</span></div>
+            <div class="srow"><span class="ibox"><i class="ion">&#xf5de;</i></span><div class="sbody"><p class="stitle">Recordatorio para publicar</p></div><span class="tp">10:00</span></div>
+          </div>
+          <p class="glabel">Lugares que sigues</p>
+          <div class="card"><div class="srow"><span class="ibox"><i class="ion">&#xf536;</i></span><div class="sbody"><p class="stitle">Menús y avisos</p><p class="ssub">Silencia un lugar desde su ficha</p></div><span class="tg"></span></div></div>
+        </div>
+      </div></div></div><p class="cap2"><b>Notificaciones</b> · «Pausar todo» y pocas filas</p></div>
+  </div>
+  <span class="pn">18</span>
+</section>
+
+<section class="pg" id="p-p04" data-part="2">
+  <span class="rt r1">Producto</span><span class="rt r2">Patio · Sistema</span>
+  <div class="head n"><p class="ey">Producto<em>04</em></p><h2 class="hl"><b>Avisos.</b> Título: quién. Cuerpo: el hecho, en una línea.</h2></div>
+  <div class="a" style="left:120px;top:380px;width:400px"><p class="note">El aviso ya es el aviso: nunca repite «Aviso», «Patio» ni «notificación».</p></div>
+  <div class="prow2" style="left:820px;top:110px;gap:40px">
+    <div class="z9"><div class="phone"><div class="screen"><div class="vp lock">
+        <div class="sb"><span></span><span><i class="ion">&#xf208;</i><i class="ion">&#xf631;</i><i class="ion">&#xf187;</i></span></div>
+        <p class="ldate">viernes 7 de noviembre</p>
+        <p class="ltime">13:02</p>
+        <div class="nt"><img src="img/p-app.png" alt=""><div class="tx"><div class="hd"><b>Fonda Poblana</b><small>ahora</small></div><p>Publicó su menú de hoy.</p></div></div>
+        <div class="nt"><img src="img/p-app.png" alt=""><div class="tx"><div class="hd"><b>Cocina Económica Doña Mary</b><small>12:40</small></div><p>Hoy abrimos a las 8 pm.</p></div></div>
+        <div class="nt"><img src="img/p-app.png" alt=""><div class="tx"><div class="hd"><b>¿Qué hay hoy?</b><small>13:00</small></div><p>Saaaaaaabes.</p></div></div>
+        <div class="nt"><img src="img/p-app.png" alt=""><div class="tx"><div class="hd"><b>Ana y 2 más</b><small>11:15</small></div><p>Les gustó tu reseña.</p></div></div>
+      </div></div></div><p class="cap2"><b>Quien busca</b></p></div>
+    <div class="z9"><div class="phone"><div class="screen"><div class="vp lock">
+        <div class="sb"><span></span><span><i class="ion">&#xf208;</i><i class="ion">&#xf631;</i><i class="ion">&#xf187;</i></span></div>
+        <p class="ldate">viernes 7 de noviembre</p>
+        <p class="ltime">18:00</p>
+        <div class="nt"><img src="img/p-app.png" alt=""><div class="tx"><div class="hd"><b>Hoy</b><small>ahora</small></div><p>34 personas vieron tu menú.</p></div></div>
+        <div class="nt"><img src="img/p-app.png" alt=""><div class="tx"><div class="hd"><b>Nueva reseña</b><small>15:22</small></div><p>★★★★★ · Toca para responder.</p></div></div>
+        <div class="nt"><img src="img/p-app.png" alt=""><div class="tx"><div class="hd"><b>Ana P.</b><small>14:05</small></div><p>Empezó a seguirte.</p></div></div>
+        <div class="nt"><img src="img/p-app.png" alt=""><div class="tx"><div class="hd"><b>¿Ya publicaste lo de hoy?</b><small>10:00</small></div><p>Una foto de tu menú y listo.</p></div></div>
+      </div></div></div><p class="cap2"><b>El negocio</b> · 10:00 y 18:00</p></div>
+  </div>
+  <span class="pn">19</span>
+</section>
+
+<section class="pg" id="p-p05" data-part="2">
+  <span class="rt r1">Producto</span><span class="rt r2">Patio · Sistema</span>
+  <div class="head n"><p class="ey">Producto<em>05</em></p><h2 class="hl"><b>Aviso y promo.</b> Avisar es gratis. Promocionar con imagen es Pro.</h2></div>
+  <div class="a" style="left:120px;top:380px;width:400px"><p class="note"><b>Aviso</b><br>Texto, uno al día: «abrimos tarde» o «se acabó».</p><p class="note"><b>Promo</b><br>Plantilla con imagen, poco texto y un fondo.</p></div>
+  <div class="prow2" style="left:820px;top:110px;gap:40px">
+    <div class="z9"><div class="phone"><div class="screen"><div class="vp" style="background:#E9E7E1">
+        <div class="sb"><span>12:31</span><span><i class="ion">&#xf208;</i><i class="ion">&#xf631;</i><i class="ion">&#xf187;</i></span></div>
+        <div class="dim"></div>
+        <div class="sheet">
+          <div class="grab"></div>
+          <p class="t-section">Avisar a quienes te siguen</p>
+          <p class="body15" style="margin-top:6px">Les llega como aviso y se ve en tu ficha hoy.</p>
+          <div class="chips"><span class="chip on">Abrimos tarde</span><span class="chip">Cerramos temprano</span><span class="chip">Hoy no abrimos</span><span class="chip">Se acabó</span></div>
+          <p class="flabel">Hora</p>
+          <div class="field"><span>Abrimos a las</span><span class="tp">8:00 p.m.</span></div>
+          <p class="glabel" style="margin-top:20px;padding-left:0">Así les llega</p>
+          <div class="nt" style="margin:0;background:var(--surface2)"><img src="img/p-app.png" alt=""><div class="tx"><div class="hd"><b>Doña Mary</b><small>ahora</small></div><p>Hoy abrimos a las 8 pm.</p></div></div>
+          <div class="btn or" style="margin-top:24px">Avisar a 48 personas</div>
+        </div>
+      </div></div></div><p class="cap2"><b>Aviso</b> · gratis</p></div>
+    <div class="z9"><div class="phone"><div class="screen"><div class="vp">
+        <div class="sb"><span>12:31</span><span><i class="ion">&#xf208;</i><i class="ion">&#xf631;</i><i class="ion">&#xf187;</i></span></div>
+        <div class="nav"><span class="bx ion">&#xf229;</span><span class="tt">Nueva promo</span><span class="bx"></span></div>
+        <div style="padding:0 20px">
+          <div style="display:flex;justify-content:center"><div class="fly negro" style="width:200px;height:250px"><div class="fvp" style="transform:scale(.185185)"><div class="fk"><span>Promoción</span></div><div class="fbody"><p class="ftt fit">2×1 en aguas frescas de la casa</p><p class="fs">Solo hoy, de 2 a 4 pm</p></div><div class="ff"><b>Fonda Poblana</b><img src="img/p-blanco.png" alt="Patio"></div></div></div></div>
+          <div class="tchips"><span class="chip">Platillo especial</span><span class="chip on">Promoción</span><span class="chip">Evento</span><span class="chip">Nuevo en el menú</span></div>
+          <p class="flabel">Título</p>
+          <div class="field"><span>2×1 en aguas frescas de la casa</span><span class="cnt">31/32</span></div>
+          <p class="flabel">Detalle</p>
+          <div class="field"><span>Solo hoy, de 2 a 4 pm</span><span class="cnt">21/40</span></div>
+          <p class="flabel">Fondo</p>
+          <div class="swr">
+            <span class="swi"><i class="sq s-blanco" data-r=".2237" data-stroke="rgba(17,18,20,.16)"></i>Blanco</span>
+            <span class="swi"><i class="sq s-gris" data-r=".2237" data-stroke="rgba(17,18,20,.16)"><b></b></i>Gris</span>
+            <span class="swi on"><i class="sq s-negro" data-r=".2237" data-stroke="#F2612F" data-stroke-width="4"></i>Negro</span>
+            <span class="swi"><i class="sq s-foto ion" data-r=".2237">&#xf1dc;</i>Tu foto</span>
+          </div>
+        </div>
+        <div style="position:absolute;left:20px;right:20px;bottom:34px">
+          <div class="btn or">Publicar y avisar a 48</div>
+          <div class="btn tx">Solo descargar la imagen</div>
+        </div>
+      </div></div></div><p class="cap2"><b>Promo</b> · Pro</p></div>
+  </div>
+  <span class="pn">20</span>
+</section>
+
+<section class="pg" id="p-p06" data-part="2">
+  <span class="rt r1">Producto</span><span class="rt r2">Patio · Sistema</span>
+  <div class="head n"><p class="ey">Producto<em>06</em></p><h2 class="hl"><b>Prueba Pro.</b> Dentro de «Hoy», junto al dato que la justifica.</h2></div>
+  <div class="prow2" style="left:640px;top:110px"><div class="z9"><div class="phone"><div class="screen"><div class="vp">
+        <div class="sb"><span>18:04</span><span><i class="ion">&#xf208;</i><i class="ion">&#xf631;</i><i class="ion">&#xf187;</i></span></div>
+        <div class="nav"><span class="bx ion">&#xf229;</span><span class="tt">Hoy</span><span class="bx"></span></div>
+        <div class="ct" style="padding-top:0">
+          <div class="card">
+            <div class="srow"><span class="ibox"><i class="ion">&#xf377;</i></span><div class="sbody"><p class="stitle">Me gusta en platillos</p></div><span class="trail">11<i class="ion">&#xf23b;</i></span></div>
+            <div class="srow"><span class="ibox"><i class="ion">&#xf215;</i></span><div class="sbody"><p class="stitle">Reseñas nuevas</p></div><span class="trail">1<i class="ion">&#xf23b;</i></span></div>
+          </div>
+          <div class="card ups" style="margin-top:16px">
+            <span class="ibox acc"><i class="ion">&#xf44f;</i></span>
+            <div><b>Anuncia tu promo de mañana</b><p>Con Pro les llega a tus 48 seguidores. Los primeros 30 días son gratis.</p><span class="go">Prueba Pro</span></div>
+            <span class="x ion">&#xf24a;</span>
+          </div>
+          <p class="glabel">Lo que más gustó</p>
+          <div class="card">
+            <div class="rk"><span class="n">1</span><span class="nm">Milanesa de res empanizada con papas a la francesa</span><span class="ct2"><i class="ion">&#xf36a;</i>6</span></div>
+            <div class="rk"><span class="n">2</span><span class="nm">Agua de horchata</span><span class="ct2"><i class="ion">&#xf36a;</i>4</span></div>
+            <div class="rk"><span class="n">3</span><span class="nm">Pastel de tres leches</span><span class="ct2"><i class="ion">&#xf36a;</i>3</span></div>
+          </div>
+        </div>
+      </div></div></div></div></div>
+  <ul class="a rl" style="left:1010px;top:150px;width:470px">
+    <li><b>Después del valor</b>Aparece con 10 seguidores y 5 menús publicados.</li>
+    <li><b>En contexto</b>Junto al dato; fuera del flujo de publicar.</li>
+    <li><b>Siempre se cierra</b>Con la ×. Cerrada, vuelve en 30 días.</li>
+    <li><b>Sin presión</b>Sin cuenta regresiva ni precio tachado.</li>
+    <li><b>Una a la vez</b>Una sola en la app. Nunca por notificación.</li>
+    <li><b>Al tocar</b>Abre Tu plan con precio, periodo y enlaces.</li>
+  </ul>
+  <span class="pn">21</span>
+</section>
+
+<section class="pg" id="p-p07" data-part="2">
+  <span class="rt r1">Producto</span><span class="rt r2">Patio · Sistema</span>
+  <div class="head n"><p class="ey">Producto<em>07</em></p><h2 class="hl"><b>Mostrar en caja.</b> Quien atiende toca «Canjear».</h2></div>
+  <div class="a" style="left:120px;top:380px;width:400px"><p class="note">El sello se gana al escanear el cartel del lugar. Un canje por persona y promoción.</p></div>
+  <div class="prow2" style="left:820px;top:110px;gap:40px">
+    <div class="z9"><div class="phone"><div class="screen"><div class="vp">
+        <div class="sb"><span>13:20</span><span><i class="ion">&#xf208;</i><i class="ion">&#xf631;</i><i class="ion">&#xf187;</i></span></div>
+        <div class="nav"><span class="bx"></span><span class="tt">Mostrar en caja</span><span class="act">Listo</span></div>
+        <div class="ct">
+          <div class="card pass">
+            <div class="ph"><img src="img/p-negro.png" alt=""><b>Fonda Poblana</b><span class="lb">Promo</span></div>
+            <p class="t-title" style="margin-top:14px">2×1 en aguas frescas de la casa</p>
+            <div class="pmeta"><i class="ion">&#xf5de;</i>Hoy hasta las 4 pm</div>
+            <div class="hair"></div>
+            <div class="redeem"><p>Para quien atiende</p><div class="btn or">Canjear</div></div>
+            <div class="hair"></div>
+            <div class="ms"><i class="sq on" data-r=".2237"></i><i class="sq on" data-r=".2237"></i><i class="sq on" data-r=".2237"></i><i class="sq on" data-r=".2237"></i><i class="sq on" data-r=".2237"></i><i class="sq" data-r=".2237"></i><i class="sq" data-r=".2237"></i><i class="sq" data-r=".2237"></i><span>5 de 8 sellos</span></div>
+          </div>
+        </div>
+      </div></div></div><p class="cap2"><b>Pase</b></p></div>
+    <div class="z9"><div class="phone"><div class="screen"><div class="vp">
+        <div class="sb"><span>13:20</span><span><i class="ion">&#xf208;</i><i class="ion">&#xf631;</i><i class="ion">&#xf187;</i></span></div>
+        <div class="nav"><span class="bx ion">&#xf229;</span><span class="tt">Tus sellos</span><span class="bx"></span></div>
+        <div class="ct">
+          <div class="card stamp">
+            <div class="ph"><b>Fonda Poblana</b><span class="lb" style="text-transform:none;letter-spacing:0;font-size:13px;font-weight:400;color:var(--soft)">5 de 8</span></div>
+            <div class="slots">
+              <span class="slot sq on" data-r=".2237"><img src="img/p-blanco.png" alt=""></span><span class="slot sq on" data-r=".2237"><img src="img/p-blanco.png" alt=""></span><span class="slot sq on" data-r=".2237"><img src="img/p-blanco.png" alt=""></span><span class="slot sq on" data-r=".2237"><img src="img/p-blanco.png" alt=""></span>
+              <span class="slot sq on" data-r=".2237"><img src="img/p-blanco.png" alt=""></span><span class="slot sq" data-r=".2237"></span><span class="slot sq" data-r=".2237"></span><span class="slot sq" data-r=".2237"></span>
+            </div>
+            <div class="reward"><i class="ion">&#xf338;</i>Al juntar 8: una comida corrida gratis</div>
+          </div>
+          <div class="card stamp" style="margin-top:12px">
+            <div class="ph"><b>Cocina Económica Doña Mary</b><span class="lb" style="text-transform:none;letter-spacing:0;font-size:13px;font-weight:400;color:var(--soft)">6 de 6</span></div>
+            <div class="slots">
+              <span class="slot sq on" data-r=".2237"><img src="img/p-blanco.png" alt=""></span><span class="slot sq on" data-r=".2237"><img src="img/p-blanco.png" alt=""></span><span class="slot sq on" data-r=".2237"><img src="img/p-blanco.png" alt=""></span><span class="slot sq on" data-r=".2237"><img src="img/p-blanco.png" alt=""></span>
+              <span class="slot sq on" data-r=".2237"><img src="img/p-blanco.png" alt=""></span><span class="slot sq on" data-r=".2237"><img src="img/p-blanco.png" alt=""></span>
+            </div>
+            <div class="reward"><i class="ion">&#xf338;</i>Agua del día gratis · lista para canjear</div>
+          </div>
+        </div>
+      </div></div></div><p class="cap2"><b>Tus sellos</b></p></div>
+  </div>
+  <span class="pn">22</span>
+</section>
+
+<!-- ═════════ PARTE 3 · PIEZAS ═════════ -->
+<section class="pg dk" id="p-i" data-part="3">
+  <div class="photo" style="background-image:url('../assets/hero/botanica-8.jpg')"></div>
+  <span class="rt r1">Parte 3</span><span class="rt r2">Patio · Sistema</span>
+  <p class="ch-num">3</p><p class="ch-t">Piezas</p>
+  <p class="ch-l">Todo lo que Patio muestra o imprime, con su estado.</p>
+  <span class="pn">23</span>
+</section>
+
+<section class="pg" id="p-i01" data-part="3">
+  <span class="rt r1">Piezas</span><span class="rt r2">Patio · Sistema</span>
+  <div class="head"><p class="ey">Piezas<em>01</em></p><h2 class="hl"><b>Inventario.</b> Lo que ya corre, lo diseñado y lo que falta.</h2></div>
+  <div class="legend" id="legend"></div>
+  <div class="inv2" id="inv"></div>
+  <span class="pn">24</span>
+</section>
+
+</div></main>
+
+<script>
+  const STATUS = { app: ['En la app', 's-app'], dis: ['Diseñado', 's-dis'], falta: ['Falta', 's-falta'], ren: ['Renovar', 's-ren'] };
+  const ITEMS = [
+    ['Marca', 'Logotipo y la P', 'app'], ['Marca', 'Ícono de la app', 'app'], ['Marca', 'Pantalla de arranque', 'app'], ['Marca', 'Tipografía con licencia', 'ren'], ['Marca', 'Iconos de giros', 'app'], ['Marca', 'Ícono de Mi Patio', 'app'],
+    ['Entrada', 'Fotos botánicas', 'app'], ['Entrada', 'Onboarding', 'app'],
+    ['Mapa', 'Pines', 'app'], ['Mapa', 'Tianguis', 'falta'],
+    ['Menú', 'Póster del menú', 'app'], ['Menú', 'Página web del lugar', 'falta'],
+    ['Ficha', 'Foto del lugar', 'app'], ['Ficha', 'Línea de datos', 'app'], ['Ficha', 'Logros', 'falta'], ['Ficha', 'Sello de verificación', 'dis'], ['Ficha', 'Sello Fundador', 'dis'], ['Ficha', 'Número del lugar', 'falta'],
+    ['Avisos', 'Aviso de operación', 'app'], ['Avisos', 'Flyers', 'dis'], ['Avisos', 'Notificaciones', 'app'],
+    ['Negocio', 'Hoy', 'app'], ['Negocio', 'Prueba Pro', 'dis'], ['Negocio', 'Resumen de las 18:00', 'app'],
+    ['Caja', 'Pase «Canjear»', 'dis'], ['Caja', 'Tarjeta de sellos', 'dis'],
+    ['Calle', 'Cartel con QR', 'dis'], ['Calle', 'Sticker de ventana', 'dis'], ['Calle', 'Sello Fundador impreso', 'dis'],
+    ['Tiendas', 'Gráfico destacado de Play', 'ren'], ['Tiendas', 'Capturas de App Store y Play', 'falta'], ['Tiendas', 'Video de ubicación', 'falta'],
+    ['Redes', 'Artes de junio', 'ren'], ['Redes', 'Redes y publicaciones', 'falta'],
+    ['Web', 'Página de descarga', 'falta'], ['Web', 'Privacidad, términos y eliminar cuenta', 'dis'],
+  ];
+  document.getElementById('legend').innerHTML = Object.entries(STATUS).map(([k, [l, c]]) => `<span><i class="dot ${c}"></i>${l} <b>${ITEMS.filter((i) => i[2] === k).length}</b></span>`).join('');
+  document.getElementById('inv').innerHTML = [...new Set(ITEMS.map((i) => i[0]))].map((g) => `<div class="g"><h4>${g}</h4>${ITEMS.filter((i) => i[0] === g).map(([, n, s]) => `<div class="i"><span>${n}</span><i class="dot ${STATUS[s][1]}" title="${STATUS[s][0]}"></i></div>`).join('')}</div>`).join('');
+
+  const PARTS = [['p-sumario', 'Sumario'], ['p-m', 'Marca'], ['p-p', 'Producto'], ['p-i', 'Piezas']];
+  const pages = [...document.querySelectorAll('.pg')];
+  const book = document.getElementById('book'), stage = document.getElementById('stage');
+  const caps = document.getElementById('caps');
+  caps.innerHTML = PARTS.map(([id, n], k) => `<button data-go="${id}" data-part-n="${k}">${n}</button>`).join('');
+  let cur = 0;
+  const idx = (id) => pages.findIndex((p) => p.id === id);
+
+  function fitStage() {
+    if (document.body.classList.contains('ov')) return;
+    const W = stage.clientWidth, H = stage.clientHeight, m = 24;
+    const s = Math.min((W - m * 2) / 1600, (H - m * 2) / 900);
+    book.style.transform = `scale(${s})`;
+    book.style.left = (W - 1600 * s) / 2 + 'px';
+    book.style.top = Math.max(m / 2, (H - 900 * s) / 2) + 'px';
+  }
+  function go(i) {
+    cur = Math.max(0, Math.min(pages.length - 1, i));
+    pages.forEach((p, k) => p.classList.toggle('on', k === cur));
+    const part = +pages[cur].dataset.part;
+    caps.querySelectorAll('button').forEach((b) => b.setAttribute('aria-current', String(+b.dataset.partN === part && (part > 0 || pages[cur].id === 'p-sumario'))));
+    document.getElementById('pc').textContent = `${cur + 1} / ${pages.length}`;
+    document.getElementById('prev').disabled = cur === 0;
+    document.getElementById('next').disabled = cur === pages.length - 1;
+    document.getElementById('prog').style.width = (cur / (pages.length - 1)) * 100 + '%';
+    history.replaceState(null, '', '#' + (cur + 1));
+  }
+  function overview(on) {
+    document.body.classList.toggle('ov', on);
+    document.getElementById('ov').setAttribute('aria-pressed', String(on));
+    if (on) { book.style.transform = ''; pages[cur].scrollIntoView({ block: 'center' }); } else { stage.scrollTop = 0; fitStage(); }
+  }
+  document.addEventListener('click', (e) => {
+    const t = e.target.closest('[data-go]');
+    if (t) { e.preventDefault(); overview(false); go(idx(t.dataset.go)); return; }
+    const p = e.target.closest('.pg');
+    if (p && document.body.classList.contains('ov')) { overview(false); go(pages.indexOf(p)); }
+  });
+  document.getElementById('prev').onclick = () => go(cur - 1);
+  document.getElementById('next').onclick = () => go(cur + 1);
+  document.getElementById('ov').onclick = () => overview(!document.body.classList.contains('ov'));
+  document.addEventListener('keydown', (e) => {
+    if (['ArrowRight', 'PageDown', ' '].includes(e.key)) { e.preventDefault(); go(cur + 1); }
+    else if (['ArrowLeft', 'PageUp'].includes(e.key)) { e.preventDefault(); go(cur - 1); }
+    else if (e.key === 'Home') go(0); else if (e.key === 'End') go(pages.length - 1);
+    else if (e.key === 'Escape' || e.key === 'g') overview(!document.body.classList.contains('ov'));
+  });
+  window.addEventListener('resize', fitStage);
+
+  function squirclePath(w, h, R, s) {
+    const rad = (d) => d * Math.PI / 180, budget = Math.min(w, h) / 2;
+    R = Math.min(R, budget);
+    let p = (1 + s) * R;
+    if (p > budget) { s = Math.min(s, budget / R - 1); p = Math.min(p, budget); }
+    const arcMeasure = 90 * (1 - s), arc = Math.sin(rad(arcMeasure / 2)) * R * Math.SQRT2;
+    const alpha = (90 - arcMeasure) / 2, p34 = R * Math.tan(rad(alpha / 2)), beta = 45 * s;
+    const c = p34 * Math.cos(rad(beta)), d = c * Math.tan(rad(beta)), b = (p - arc - c - d) / 3, a = 2 * b;
+    const f = (n) => +n.toFixed(3);
+    return [`M ${f(w - p)} 0`, `c ${f(a)} 0 ${f(a + b)} 0 ${f(a + b + c)} ${f(d)}`, `a ${f(R)} ${f(R)} 0 0 1 ${f(arc)} ${f(arc)}`,
+      `c ${f(d)} ${f(c)} ${f(d)} ${f(b + c)} ${f(d)} ${f(a + b + c)}`, `L ${f(w)} ${f(h - p)}`, `c 0 ${f(a)} 0 ${f(a + b)} ${f(-d)} ${f(a + b + c)}`,
+      `a ${f(R)} ${f(R)} 0 0 1 ${f(-arc)} ${f(arc)}`, `c ${f(-c)} ${f(d)} ${f(-(b + c))} ${f(d)} ${f(-(a + b + c))} ${f(d)}`, `L ${f(p)} ${f(h)}`,
+      `c ${f(-a)} 0 ${f(-(a + b))} 0 ${f(-(a + b + c))} ${f(-d)}`, `a ${f(R)} ${f(R)} 0 0 1 ${f(-arc)} ${f(-arc)}`,
+      `c ${f(-d)} ${f(-c)} ${f(-d)} ${f(-(b + c))} ${f(-d)} ${f(-(a + b + c))}`, `L 0 ${f(p)}`, `c 0 ${f(-a)} 0 ${f(-(a + b))} ${f(d)} ${f(-(a + b + c))}`,
+      `a ${f(R)} ${f(R)} 0 0 1 ${f(arc)} ${f(-arc)}`, `c ${f(c)} ${f(-d)} ${f(b + c)} ${f(-d)} ${f(a + b + c)} ${f(-d)}`, 'Z'].join(' ');
+  }
+  function shape(el) {
+    const w = el.offsetWidth, h = el.offsetHeight;
+    if (!w || !h) return;
+    const path = squirclePath(w, h, Math.min(w, h) * parseFloat(el.dataset.r || '0.2237'), 0.6);
+    el.style.clipPath = `path('${path}')`;
+    const ns = 'http://www.w3.org/2000/svg';
+    if ((el.dataset.stroke || el.dataset.rim) && !el.querySelector('.rim')) {
+      const svg = document.createElementNS(ns, 'svg');
+      svg.setAttribute('class', 'rim'); svg.setAttribute('width', w); svg.setAttribute('height', h);
+      if (el.dataset.stroke) svg.innerHTML = `<path d="${path}" fill="none" stroke="${el.dataset.stroke}" stroke-width="${el.dataset.strokeWidth || 2}"/>`;
+      else { const id = 'g' + Math.random().toString(36).slice(2); svg.innerHTML = `<defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset=".35" stop-color="#fff" stop-opacity=".08"/><stop offset="1" stop-color="#fff" stop-opacity=".18"/></linearGradient></defs><path d="${path}" fill="none" stroke="url(#${id})" stroke-width="2"/>`; }
+      el.appendChild(svg);
+    }
+  }
+  function qr(el) {
+    const n = 25, size = +el.dataset.size, m = size / n;
+    let seed = +el.dataset.seed || 1;
+    const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    const inF = (x, y) => [[0, 0], [n - 7, 0], [0, n - 7]].some(([fx, fy]) => x >= fx - 1 && x <= fx + 7 && y >= fy - 1 && y <= fy + 7);
+    let r = '';
+    for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) if (!inF(x, y) && rnd() < .48) r += `<rect x="${x * m}" y="${y * m}" width="${m}" height="${m}"/>`;
+    for (const [fx, fy] of [[0, 0], [n - 7, 0], [0, n - 7]]) r += `<rect x="${fx * m}" y="${fy * m}" width="${7 * m}" height="${7 * m}" rx="${m * 1.6}"/><rect x="${(fx + 1) * m}" y="${(fy + 1) * m}" width="${5 * m}" height="${5 * m}" rx="${m * 1.1}" fill="#fff"/><rect x="${(fx + 2) * m}" y="${(fy + 2) * m}" width="${3 * m}" height="${3 * m}" rx="${m * .7}"/>`;
+    el.outerHTML = `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" fill="#111214">${r}</svg>`;
+  }
+  function fit(el) {
+    for (const [fs, lh] of [[128, 156], [112, 136], [96, 118], [84, 104], [72, 90]]) {
+      el.style.fontSize = fs + 'px'; el.style.lineHeight = lh + 'px';
+      if (el.scrollWidth <= el.clientWidth + 1 && el.scrollHeight <= lh * 3 + 2) return;
+    }
+  }
+  function noWidow(root) {
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    const nodes = []; while (walker.nextNode()) nodes.push(walker.currentNode);
+    for (const node of nodes) {
+      const host = node.parentElement;
+      if (host.closest('script,style,.ion,.ftt,code,.hdr,.rt,.vlbl')) continue;
+      const text = node.nodeValue;
+      if (!/\S\s+\S/.test(text)) continue;
+      const lead = text.match(/^\s*/)[0], tail = text.match(/\s*$/)[0];
+      const parts = text.trim().split(/\s+/);
+      const joined = parts.length <= 2 ? parts.join(' ') : [...parts.slice(0, -2), parts.slice(-2).join(' ')].join(' ');
+      node.nodeValue = lead + joined + tail;
+      const box = host.closest('p,div,li,h1,h2,h3,h4,figcaption') || host;
+      if (box.scrollWidth > box.clientWidth + 1) node.nodeValue = text;
+    }
+  }
+  document.getElementById('guides').onclick = (e) => {
+    const on = e.currentTarget.getAttribute('aria-pressed') !== 'true';
+    e.currentTarget.setAttribute('aria-pressed', String(on));
+    document.getElementById('brand').classList.toggle('on-guides', on);
+  };
+
+  fitStage();
+  go(Math.max(0, (parseInt(location.hash.slice(1), 10) || 1) - 1));
+  (document.fonts ? document.fonts.ready : Promise.resolve()).then(() => {
+    book.classList.add('measure');
+    noWidow(book);
+    document.querySelectorAll('.qr[data-size]').forEach(qr);
+    document.querySelectorAll('.ftt.fit').forEach(fit);
+    document.querySelectorAll('.sq').forEach(shape);
+    book.classList.remove('measure');
+  });
+</script>
+</body>
+</html>

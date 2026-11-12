@@ -120,8 +120,21 @@ export default function AvisosScreen() {
     }
   };
 
+  // Google exige un aviso propio antes del permiso en segundo plano: qué se usa,
+  // que sigue con la app cerrada y para qué, con una aceptación explícita.
+  // El mismo aviso corre en iOS para que las dos plataformas digan lo mismo.
+  const confirmVisits = () => new Promise<boolean>((resolve) => {
+    Alert.alert(
+      noWidow('Tus visitas'),
+      noWidow('Patio usa tu ubicación, también con la app cerrada, para notar cuándo visitas un lugar del mapa. Así te preguntamos qué te pareció y contamos la visita, sin tu nombre, para «Qué tan lleno». Puedes apagarlo cuando quieras.'),
+      [{ text: 'Ahora no', style: 'cancel', onPress: () => resolve(false) }, { text: 'Continuar', onPress: () => resolve(true) }],
+      { cancelable: true, onDismiss: () => resolve(false) },
+    );
+  });
+
   // «Tus visitas»: necesita ubicación «Siempre» para notar visitas reales.
   const updateVisits = async (value: boolean) => {
+    if (value && !(await confirmVisits())) return;
     setVisits(value);
     setUpdating('visits');
     try {

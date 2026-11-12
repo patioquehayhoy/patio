@@ -1,5 +1,62 @@
 # Pendientes y roadmap de lanzamiento — actualizado 2026-11-07
 
+## Corte 2026-11-11 (Claude)
+
+- [x] Decidido por Parco: datos legales y candidato firmado van al final,
+  con la app completa. Colonia piloto: Polanco («las favelas»; falta fijar
+  las calles exactas).
+- [x] DENUE (INEGI, edición mayo 2026) descargado y filtrado: 449 negocios
+  chicos de comida en Polanco, Granada, Anáhuac, Pensil e Irrigación.
+- [x] `quehayhoy.mx` y `quehayhoy.com.mx` libres (NIC México, 2026-11-11).
+- [ ] Parco: firmar Paid Apps (Apple) y perfil de pagos (Play); no requiere
+  planes definidos. Después, inscribirse al Small Business Program.
+- [ ] Cuenta de revisión con código fijo en servidor (ver
+  [consolas](STORE_CONSOLES_2026-11-11.md) §7).
+- [ ] Decidir: WhatsApp del negocio en la ficha (recomendado) y documento de
+  estrategia (piloto, Fundadores, creadores, redes).
+- [x] Piloto ubicado: «las favelas de Polanco» (así las llama Lalo Villar) son
+  la **Cerrada Lago Andrómaco**, Ampliación Granada (≈ 19.4421, −99.2008),
+  detrás de Plaza Carso y junto a las vías. DENUE: 8 cocinas económicas en la
+  cerrada (TikTok de Azteca: 14 cocinas y 50 familias). Tianguis a 230 m los
+  viernes y lunes (Miguel de Cervantes Saavedra).
+- [x] Tianguis: Sedeco publica 1,367 tianguis con colonia, calles, día,
+  horario y punto (datos abiertos CDMX, actualizado 2026-08-28). No hace
+  falta API: se importa una vez al año.
+- [x] Nombre de la «tarjeta de Pro»: patrón «Prueba Premium» de LinkedIn.
+  Como el plan se llama Pro, el texto visible propuesto es «Prueba Pro».
+- [x] Logros: solo automáticos con datos. Reconocimientos de marcas
+  registradas (Michelin) solo con convenio.
+- [x] Dominios (NIC México y whois, 2026-11-11): ocupados `patio.com`,
+  `patio.com.mx`, `patio.mx`, `mipatio.mx`; libres `patiomx.com`,
+  `patiomx.mx`, `patioapp.mx`, `holapatio.mx`, `quehayhoy.mx`, `patio.lat`.
+- [x] Chat dentro de Patio contra WhatsApp: consulta de Jev
+  (`docs/research/jev-chat-2026-11-11.json`, asesoría, no aprobación). Solo
+  chat dentro de la app es lo peor para los 4 negocios (contestan menos, más
+  carga, menos clientes; lo eligen 1–15 %). WhatsApp gana en 3 de 4 negocios
+  (52–83 %), incluido el del callejón. Foodies: «ambos» los hace volver un
+  poco más (+0.27 de 4); solo chat, menos (−0.21).
+- [x] Contacto del negocio (Parco, 2026-11-11): solo su número, opcional y
+  declarado en privacidad. Sin redes sociales ni chat. En la ficha, el
+  número abre llamar o WhatsApp (el que tenga el negocio, personal o
+  Business). Chat propio solo cuando exista «apartar» o «pedir».
+- [ ] Dominio: pendiente de Parco con la lista de 10 opciones (11 nov).
+- [ ] Small Business Program de Apple: solicitud aparte, después de aceptar
+  Paid Apps; no se activa sola ni se pierde al aceptar el contrato.
+- [x] Dominio: Jev (`docs/research/jev-dominio-2026-11-11.json`) elige
+  `quehayhoy.mx` en las 5 personas (56–84 %); es el que más se recuerda y el
+  que menos se asocia con «Patio». `holapatio.com` lo usa otra empresa llamada
+  Patio (software para obras y veterinarias, registrado 2026-09-21).
+- [ ] Parco: comprar `quehayhoy.mx` (principal), `quehayhoy.com.mx` y un
+  dominio con el nombre (`alpatio.mx` o `patiomx.com`) para redirigir.
+- [x] Documento único: `artifacts/patio-sistema.html` (marca, tipografía,
+  pantallas y flujos, promociones, calle y piezas). Reemplaza al catálogo.
+- [x] Artifacts anteriores y `docs/design/previews/` borrados (aprobado por
+  Parco); recuperables desde Git, ver `artifacts/README.md`.
+- [x] Paid Apps: datos legales actualizados y contrato aceptado por Parco.
+- [ ] Parco: cuenta bancaria en App Store Connect y perfil de pagos en Play.
+- [ ] Build Android con «Tus visitas» (junto con el siguiente build que haga
+  falta) y video de 30 s para Google.
+
 ## Corte 2026-11-09 (Claude)
 
 - [x] Ficha: nada se corta, precio típico, «Qué tan lleno» sin título,
@@ -13,11 +70,15 @@
 - [x] «Pausar todo» y «Resumen de hoy» en Avisos.
 - [x] Build iOS development (para Metro, con visitas y cobro):
   https://expo.dev/accounts/patio-quehayhoy/projects/lafondita/builds/f78a296a-4a85-4e6c-bba8-5e7ca4dc9358
-- [ ] Build Android QA (APK con todo lo de hoy), en cola:
-  https://expo.dev/accounts/patio-quehayhoy/projects/lafondita/builds/37b53388-a21b-462a-bbc4-654a8067d697
-  Los dos primeros
-  intentos fallaron sin culpa del código: GitHub respondió 504 al bajar
-  Gradle 8.14.3; el tercero se lanzó cuando la descarga ya respondía.
+- [x] Build Android QA (APK con todo lo del 9 nov), terminado (verificado
+  2026-11-11): https://expo.dev/artifacts/eas/sk-X9sDvN2mBC7A1dIArzQb9YdLlP6_2LeZTfcAAjwQ.apk
+- [x] Respuestas para App Privacy, Data Safety, clasificación y notas del
+  revisor: [STORE_CONSOLES_2026-11-11](STORE_CONSOLES_2026-11-11.md).
+- [x] «Tus visitas» también en Android (decisión de Parco): se quitó el
+  bloqueo de `ACCESS_BACKGROUND_LOCATION`, el control de release lo exige y
+  hay un aviso propio antes del permiso. 270 pruebas y 31 verificaciones.
+- [ ] Parco: grabar el video de 30 s con el build Android nuevo (guion en
+  consolas §5) y subirlo a YouTube como «No listado».
 - [x] Producción del 9 nov aplicada por Parco (verificado 16:42 UTC): las 5
   migraciones (existe `cron_secret`) y las 7 funciones nuevas o cambiadas.
 - [ ] **Parco, producción, en este orden** (sin SQL a mano: la migración

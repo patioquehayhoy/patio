@@ -1,0 +1,2506 @@
+{
+ "app": "Patio es una app mexicana donde las fondas, cocinas económicas y personas que venden comida en casa publican su menú del día; la gente cercana lo ve en un mapa. Su frase de marca es «¿Qué hay hoy? Saaaaaaabes.». En cada fonda habrá un cartel con un QR y una dirección web corta para ver el menú de hoy sin instalar nada.",
+ "dominios": {
+  "quehayhoy": "quehayhoy.mx",
+  "holapatio": "holapatio.mx",
+  "patiomx": "patiomx.com",
+  "patiomexico": "patiomexico.mx",
+  "alpatio": "alpatio.mx",
+  "patiocdmx": "patiocdmx.com",
+  "patiolat": "patio.lat"
+ },
+ "por_dominio": {
+  "oficinista": {
+   "quehayhoy": {
+    "recuerda": {
+     "type": "score",
+     "score": 3.23,
+     "confidence": 0.52,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.05,
+      "2": 0.07,
+      "3": 0.48,
+      "4": 0.4
+     }
+    },
+    "confia": {
+     "type": "score",
+     "score": 2.33,
+     "confidence": 0.42,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.17,
+      "2": 0.34,
+      "3": 0.47,
+      "4": 0.02
+     }
+    },
+    "claro": {
+     "type": "score",
+     "score": 3.16,
+     "confidence": 0.28,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.02,
+      "1": 0.1,
+      "2": 0.08,
+      "3": 0.32,
+      "4": 0.48
+     }
+    }
+   },
+   "holapatio": {
+    "recuerda": {
+     "type": "score",
+     "score": 2.98,
+     "confidence": 0.57,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.08,
+      "2": 0.1,
+      "3": 0.56,
+      "4": 0.26
+     }
+    },
+    "confia": {
+     "type": "score",
+     "score": 2.24,
+     "confidence": 0.35,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.2,
+      "2": 0.37,
+      "3": 0.42,
+      "4": 0.01
+     }
+    },
+    "claro": {
+     "type": "score",
+     "score": 3.5,
+     "confidence": 0.59,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.04,
+      "2": 0.05,
+      "3": 0.27,
+      "4": 0.64
+     }
+    }
+   },
+   "patiomx": {
+    "recuerda": {
+     "type": "score",
+     "score": 3.12,
+     "confidence": 0.62,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.05,
+      "2": 0.07,
+      "3": 0.59,
+      "4": 0.29
+     }
+    },
+    "confia": {
+     "type": "score",
+     "score": 2.32,
+     "confidence": 0.43,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.16,
+      "2": 0.36,
+      "3": 0.47,
+      "4": 0.01
+     }
+    },
+    "claro": {
+     "type": "score",
+     "score": 3.49,
+     "confidence": 0.57,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.05,
+      "2": 0.04,
+      "3": 0.25,
+      "4": 0.65
+     }
+    }
+   },
+   "patiomexico": {
+    "recuerda": {
+     "type": "score",
+     "score": 2.82,
+     "confidence": 0.58,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.1,
+      "2": 0.13,
+      "3": 0.6,
+      "4": 0.17
+     }
+    },
+    "confia": {
+     "type": "score",
+     "score": 2.42,
+     "confidence": 0.5,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.14,
+      "2": 0.3,
+      "3": 0.54,
+      "4": 0.02
+     }
+    },
+    "claro": {
+     "type": "score",
+     "score": 3.48,
+     "confidence": 0.57,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.04,
+      "2": 0.05,
+      "3": 0.29,
+      "4": 0.62
+     }
+    }
+   },
+   "alpatio": {
+    "recuerda": {
+     "type": "score",
+     "score": 3.12,
+     "confidence": 0.56,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.06,
+      "2": 0.08,
+      "3": 0.53,
+      "4": 0.33
+     }
+    },
+    "confia": {
+     "type": "score",
+     "score": 2.33,
+     "confidence": 0.42,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.17,
+      "2": 0.34,
+      "3": 0.47,
+      "4": 0.02
+     }
+    },
+    "claro": {
+     "type": "score",
+     "score": 3.7,
+     "confidence": 0.73,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.03,
+      "2": 0.03,
+      "3": 0.13,
+      "4": 0.8
+     }
+    }
+   },
+   "patiocdmx": {
+    "recuerda": {
+     "type": "score",
+     "score": 2.77,
+     "confidence": 0.59,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.11,
+      "2": 0.14,
+      "3": 0.62,
+      "4": 0.13
+     }
+    },
+    "confia": {
+     "type": "score",
+     "score": 2.25,
+     "confidence": 0.36,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.19,
+      "2": 0.38,
+      "3": 0.42,
+      "4": 0.01
+     }
+    },
+    "claro": {
+     "type": "score",
+     "score": 3.36,
+     "confidence": 0.48,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.06,
+      "2": 0.06,
+      "3": 0.32,
+      "4": 0.56
+     }
+    }
+   },
+   "patiolat": {
+    "recuerda": {
+     "type": "score",
+     "score": 3.09,
+     "confidence": 0.56,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.07,
+      "2": 0.08,
+      "3": 0.54,
+      "4": 0.31
+     }
+    },
+    "confia": {
+     "type": "score",
+     "score": 2.15,
+     "confidence": 0.48,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.23,
+      "2": 0.39,
+      "3": 0.37,
+      "4": 0.01
+     }
+    },
+    "claro": {
+     "type": "score",
+     "score": 3.57,
+     "confidence": 0.65,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.04,
+      "2": 0.04,
+      "3": 0.18,
+      "4": 0.73
+     }
+    }
+   }
+  },
+  "estudiante": {
+   "quehayhoy": {
+    "recuerda": {
+     "type": "score",
+     "score": 3.24,
+     "confidence": 0.53,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.05,
+      "2": 0.06,
+      "3": 0.49,
+      "4": 0.4
+     }
+    },
+    "confia": {
+     "type": "score",
+     "score": 2.22,
+     "confidence": 0.33,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.22,
+      "2": 0.35,
+      "3": 0.42,
+      "4": 0.01
+     }
+    },
+    "claro": {
+     "type": "score",
+     "score": 2.68,
+     "confidence": 0.25,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.04,
+      "1": 0.18,
+      "2": 0.13,
+      "3": 0.36,
+      "4": 0.29
+     }
+    }
+   },
+   "holapatio": {
+    "recuerda": {
+     "type": "score",
+     "score": 2.95,
+     "confidence": 0.58,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.08,
+      "2": 0.11,
+      "3": 0.58,
+      "4": 0.23
+     }
+    },
+    "confia": {
+     "type": "score",
+     "score": 2.12,
+     "confidence": 0.48,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.25,
+      "2": 0.38,
+      "3": 0.36,
+      "4": 0.01
+     }
+    },
+    "claro": {
+     "type": "score",
+     "score": 3.27,
+     "confidence": 0.38,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.07,
+      "2": 0.08,
+      "3": 0.34,
+      "4": 0.5
+     }
+    }
+   },
+   "patiomx": {
+    "recuerda": {
+     "type": "score",
+     "score": 2.79,
+     "confidence": 0.57,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.11,
+      "2": 0.14,
+      "3": 0.6,
+      "4": 0.15
+     }
+    },
+    "confia": {
+     "type": "score",
+     "score": 2.15,
+     "confidence": 0.48,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.23,
+      "2": 0.39,
+      "3": 0.37,
+      "4": 0.01
+     }
+    },
+    "claro": {
+     "type": "score",
+     "score": 3.39,
+     "confidence": 0.48,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.05,
+      "2": 0.06,
+      "3": 0.31,
+      "4": 0.57
+     }
+    }
+   },
+   "patiomexico": {
+    "recuerda": {
+     "type": "score",
+     "score": 2.69,
+     "confidence": 0.52,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.14,
+      "2": 0.16,
+      "3": 0.57,
+      "4": 0.13
+     }
+    },
+    "confia": {
+     "type": "score",
+     "score": 2.24,
+     "confidence": 0.36,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.21,
+      "2": 0.34,
+      "3": 0.44,
+      "4": 0.01
+     }
+    },
+    "claro": {
+     "type": "score",
+     "score": 3.18,
+     "confidence": 0.3,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.08,
+      "2": 0.08,
+      "3": 0.4,
+      "4": 0.43
+     }
+    }
+   },
+   "alpatio": {
+    "recuerda": {
+     "type": "score",
+     "score": 2.97,
+     "confidence": 0.57,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.08,
+      "2": 0.11,
+      "3": 0.57,
+      "4": 0.24
+     }
+    },
+    "confia": {
+     "type": "score",
+     "score": 2.27,
+     "confidence": 0.38,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.19,
+      "2": 0.36,
+      "3": 0.44,
+      "4": 0.01
+     }
+    },
+    "claro": {
+     "type": "score",
+     "score": 3.48,
+     "confidence": 0.58,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.04,
+      "2": 0.05,
+      "3": 0.28,
+      "4": 0.63
+     }
+    }
+   },
+   "patiocdmx": {
+    "recuerda": {
+     "type": "score",
+     "score": 2.48,
+     "confidence": 0.48,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.17,
+      "2": 0.23,
+      "3": 0.54,
+      "4": 0.06
+     }
+    },
+    "confia": {
+     "type": "score",
+     "score": 2.1,
+     "confidence": 0.48,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.26,
+      "2": 0.38,
+      "3": 0.35,
+      "4": 0.01
+     }
+    },
+    "claro": {
+     "type": "score",
+     "score": 3.07,
+     "confidence": 0.47,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.09,
+      "2": 0.1,
+      "3": 0.45,
+      "4": 0.36
+     }
+    }
+   },
+   "patiolat": {
+    "recuerda": {
+     "type": "score",
+     "score": 2.96,
+     "confidence": 0.57,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.09,
+      "2": 0.09,
+      "3": 0.58,
+      "4": 0.24
+     }
+    },
+    "confia": {
+     "type": "score",
+     "score": 2.13,
+     "confidence": 0.48,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.24,
+      "2": 0.39,
+      "3": 0.36,
+      "4": 0.01
+     }
+    },
+    "claro": {
+     "type": "score",
+     "score": 3.25,
+     "confidence": 0.35,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.07,
+      "2": 0.08,
+      "3": 0.37,
+      "4": 0.47
+     }
+    }
+   }
+  },
+  "mama": {
+   "quehayhoy": {
+    "recuerda": {
+     "type": "score",
+     "score": 3.14,
+     "confidence": 0.52,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.07,
+      "2": 0.08,
+      "3": 0.49,
+      "4": 0.36
+     }
+    },
+    "confia": {
+     "type": "score",
+     "score": 2.29,
+     "confidence": 0.39,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.18,
+      "2": 0.35,
+      "3": 0.45,
+      "4": 0.02
+     }
+    },
+    "claro": {
+     "type": "score",
+     "score": 2.62,
+     "confidence": 0.23,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.05,
+      "1": 0.18,
+      "2": 0.14,
+      "3": 0.36,
+      "4": 0.27
+     }
+    }
+   },
+   "holapatio": {
+    "recuerda": {
+     "type": "score",
+     "score": 2.97,
+     "confidence": 0.6,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.07,
+      "2": 0.11,
+      "3": 0.59,
+      "4": 0.23
+     }
+    },
+    "confia": {
+     "type": "score",
+     "score": 2.25,
+     "confidence": 0.35,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.21,
+      "2": 0.34,
+      "3": 0.43,
+      "4": 0.02
+     }
+    },
+    "claro": {
+     "type": "score",
+     "score": 3.26,
+     "confidence": 0.4,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.06,
+      "2": 0.08,
+      "3": 0.38,
+      "4": 0.48
+     }
+    }
+   },
+   "patiomx": {
+    "recuerda": {
+     "type": "score",
+     "score": 2.92,
+     "confidence": 0.58,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.09,
+      "2": 0.11,
+      "3": 0.59,
+      "4": 0.21
+     }
+    },
+    "confia": {
+     "type": "score",
+     "score": 2.16,
+     "confidence": 0.5,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.21,
+      "2": 0.41,
+      "3": 0.37,
+      "4": 0.01
+     }
+    },
+    "claro": {
+     "type": "score",
+     "score": 3.29,
+     "confidence": 0.43,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.05,
+      "2": 0.06,
+      "3": 0.41,
+      "4": 0.48
+     }
+    }
+   },
+   "patiomexico": {
+    "recuerda": {
+     "type": "score",
+     "score": 2.75,
+     "confidence": 0.54,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.13,
+      "2": 0.14,
+      "3": 0.58,
+      "4": 0.15
+     }
+    },
+    "confia": {
+     "type": "score",
+     "score": 2.3,
+     "confidence": 0.41,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.17,
+      "2": 0.36,
+      "3": 0.46,
+      "4": 0.01
+     }
+    },
+    "claro": {
+     "type": "score",
+     "score": 3.1,
+     "confidence": 0.48,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.08,
+      "2": 0.1,
+      "3": 0.45,
+      "4": 0.37
+     }
+    }
+   },
+   "alpatio": {
+    "recuerda": {
+     "type": "score",
+     "score": 3.0,
+     "confidence": 0.6,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.07,
+      "2": 0.1,
+      "3": 0.59,
+      "4": 0.24
+     }
+    },
+    "confia": {
+     "type": "score",
+     "score": 2.24,
+     "confidence": 0.35,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.19,
+      "2": 0.39,
+      "3": 0.41,
+      "4": 0.01
+     }
+    },
+    "claro": {
+     "type": "score",
+     "score": 3.38,
+     "confidence": 0.49,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.04,
+      "2": 0.07,
+      "3": 0.35,
+      "4": 0.54
+     }
+    }
+   },
+   "patiocdmx": {
+    "recuerda": {
+     "type": "score",
+     "score": 2.55,
+     "confidence": 0.5,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.16,
+      "2": 0.2,
+      "3": 0.56,
+      "4": 0.08
+     }
+    },
+    "confia": {
+     "type": "score",
+     "score": 2.18,
+     "confidence": 0.32,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.22,
+      "2": 0.37,
+      "3": 0.4,
+      "4": 0.01
+     }
+    },
+    "claro": {
+     "type": "score",
+     "score": 2.89,
+     "confidence": 0.47,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.11,
+      "2": 0.13,
+      "3": 0.49,
+      "4": 0.26
+     }
+    }
+   },
+   "patiolat": {
+    "recuerda": {
+     "type": "score",
+     "score": 2.97,
+     "confidence": 0.59,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.07,
+      "2": 0.11,
+      "3": 0.58,
+      "4": 0.24
+     }
+    },
+    "confia": {
+     "type": "score",
+     "score": 2.1,
+     "confidence": 0.52,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.23,
+      "2": 0.43,
+      "3": 0.33,
+      "4": 0.01
+     }
+    },
+    "claro": {
+     "type": "score",
+     "score": 3.38,
+     "confidence": 0.46,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.06,
+      "2": 0.06,
+      "3": 0.31,
+      "4": 0.56
+     }
+    }
+   }
+  },
+  "fondera": {
+   "quehayhoy": {
+    "recuerda": {
+     "type": "score",
+     "score": 2.85,
+     "confidence": 0.5,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.12,
+      "2": 0.13,
+      "3": 0.52,
+      "4": 0.23
+     }
+    },
+    "confia": {
+     "type": "score",
+     "score": 2.09,
+     "confidence": 0.45,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.27,
+      "2": 0.36,
+      "3": 0.35,
+      "4": 0.01
+     }
+    },
+    "claro": {
+     "type": "score",
+     "score": 2.68,
+     "confidence": 0.26,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.03,
+      "1": 0.19,
+      "2": 0.13,
+      "3": 0.36,
+      "4": 0.29
+     }
+    }
+   },
+   "holapatio": {
+    "recuerda": {
+     "type": "score",
+     "score": 2.78,
+     "confidence": 0.5,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.13,
+      "2": 0.14,
+      "3": 0.53,
+      "4": 0.2
+     }
+    },
+    "confia": {
+     "type": "score",
+     "score": 2.06,
+     "confidence": 0.44,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.29,
+      "2": 0.35,
+      "3": 0.34,
+      "4": 0.01
+     }
+    },
+    "claro": {
+     "type": "score",
+     "score": 3.06,
+     "confidence": 0.4,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.1,
+      "2": 0.11,
+      "3": 0.4,
+      "4": 0.38
+     }
+    }
+   },
+   "patiomx": {
+    "recuerda": {
+     "type": "score",
+     "score": 2.68,
+     "confidence": 0.49,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.14,
+      "2": 0.15,
+      "3": 0.55,
+      "4": 0.15
+     }
+    },
+    "confia": {
+     "type": "score",
+     "score": 2.02,
+     "confidence": 0.48,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.29,
+      "2": 0.39,
+      "3": 0.3,
+      "4": 0.01
+     }
+    },
+    "claro": {
+     "type": "score",
+     "score": 3.07,
+     "confidence": 0.39,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.1,
+      "2": 0.11,
+      "3": 0.39,
+      "4": 0.39
+     }
+    }
+   },
+   "patiomexico": {
+    "recuerda": {
+     "type": "score",
+     "score": 2.46,
+     "confidence": 0.38,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.21,
+      "2": 0.19,
+      "3": 0.49,
+      "4": 0.1
+     }
+    },
+    "confia": {
+     "type": "score",
+     "score": 2.14,
+     "confidence": 0.26,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.25,
+      "2": 0.35,
+      "3": 0.38,
+      "4": 0.01
+     }
+    },
+    "claro": {
+     "type": "score",
+     "score": 2.95,
+     "confidence": 0.4,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.12,
+      "2": 0.11,
+      "3": 0.42,
+      "4": 0.34
+     }
+    }
+   },
+   "alpatio": {
+    "recuerda": {
+     "type": "score",
+     "score": 2.73,
+     "confidence": 0.43,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.16,
+      "2": 0.13,
+      "3": 0.49,
+      "4": 0.21
+     }
+    },
+    "confia": {
+     "type": "score",
+     "score": 2.09,
+     "confidence": 0.45,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.27,
+      "2": 0.36,
+      "3": 0.35,
+      "4": 0.01
+     }
+    },
+    "claro": {
+     "type": "score",
+     "score": 3.11,
+     "confidence": 0.28,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.1,
+      "2": 0.09,
+      "3": 0.35,
+      "4": 0.45
+     }
+    }
+   },
+   "patiocdmx": {
+    "recuerda": {
+     "type": "score",
+     "score": 2.33,
+     "confidence": 0.34,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.24,
+      "2": 0.23,
+      "3": 0.47,
+      "4": 0.05
+     }
+    },
+    "confia": {
+     "type": "score",
+     "score": 2.04,
+     "confidence": 0.44,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.3,
+      "2": 0.35,
+      "3": 0.33,
+      "4": 0.01
+     }
+    },
+    "claro": {
+     "type": "score",
+     "score": 2.93,
+     "confidence": 0.4,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.12,
+      "2": 0.13,
+      "3": 0.42,
+      "4": 0.32
+     }
+    }
+   },
+   "patiolat": {
+    "recuerda": {
+     "type": "score",
+     "score": 2.6,
+     "confidence": 0.42,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.17,
+      "2": 0.18,
+      "3": 0.5,
+      "4": 0.14
+     }
+    },
+    "confia": {
+     "type": "score",
+     "score": 1.79,
+     "confidence": 0.5,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.39,
+      "2": 0.41,
+      "3": 0.19,
+      "4": 0.0
+     }
+    },
+    "claro": {
+     "type": "score",
+     "score": 3.03,
+     "confidence": 0.19,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.11,
+      "2": 0.11,
+      "3": 0.38,
+      "4": 0.39
+     }
+    }
+   }
+  },
+  "callejon": {
+   "quehayhoy": {
+    "recuerda": {
+     "type": "score",
+     "score": 3.2,
+     "confidence": 0.49,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.06,
+      "2": 0.08,
+      "3": 0.45,
+      "4": 0.41
+     }
+    },
+    "confia": {
+     "type": "score",
+     "score": 2.32,
+     "confidence": 0.38,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.2,
+      "2": 0.29,
+      "3": 0.47,
+      "4": 0.03
+     }
+    },
+    "claro": {
+     "type": "score",
+     "score": 2.74,
+     "confidence": 0.25,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.04,
+      "1": 0.17,
+      "2": 0.13,
+      "3": 0.35,
+      "4": 0.31
+     }
+    }
+   },
+   "holapatio": {
+    "recuerda": {
+     "type": "score",
+     "score": 3.04,
+     "confidence": 0.57,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.07,
+      "2": 0.1,
+      "3": 0.55,
+      "4": 0.28
+     }
+    },
+    "confia": {
+     "type": "score",
+     "score": 2.32,
+     "confidence": 0.37,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.21,
+      "2": 0.28,
+      "3": 0.47,
+      "4": 0.03
+     }
+    },
+    "claro": {
+     "type": "score",
+     "score": 3.31,
+     "confidence": 0.43,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.06,
+      "2": 0.07,
+      "3": 0.36,
+      "4": 0.51
+     }
+    }
+   },
+   "patiomx": {
+    "recuerda": {
+     "type": "score",
+     "score": 2.94,
+     "confidence": 0.6,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.08,
+      "2": 0.11,
+      "3": 0.6,
+      "4": 0.21
+     }
+    },
+    "confia": {
+     "type": "score",
+     "score": 2.21,
+     "confidence": 0.3,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.23,
+      "2": 0.33,
+      "3": 0.41,
+      "4": 0.02
+     }
+    },
+    "claro": {
+     "type": "score",
+     "score": 3.45,
+     "confidence": 0.54,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.04,
+      "2": 0.05,
+      "3": 0.33,
+      "4": 0.58
+     }
+    }
+   },
+   "patiomexico": {
+    "recuerda": {
+     "type": "score",
+     "score": 2.82,
+     "confidence": 0.57,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.1,
+      "2": 0.14,
+      "3": 0.58,
+      "4": 0.18
+     }
+    },
+    "confia": {
+     "type": "score",
+     "score": 2.38,
+     "confidence": 0.42,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.18,
+      "2": 0.28,
+      "3": 0.5,
+      "4": 0.03
+     }
+    },
+    "claro": {
+     "type": "score",
+     "score": 3.37,
+     "confidence": 0.5,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.04,
+      "2": 0.06,
+      "3": 0.36,
+      "4": 0.54
+     }
+    }
+   },
+   "alpatio": {
+    "recuerda": {
+     "type": "score",
+     "score": 3.07,
+     "confidence": 0.58,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.06,
+      "2": 0.09,
+      "3": 0.56,
+      "4": 0.29
+     }
+    },
+    "confia": {
+     "type": "score",
+     "score": 2.38,
+     "confidence": 0.42,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.18,
+      "2": 0.27,
+      "3": 0.5,
+      "4": 0.04
+     }
+    },
+    "claro": {
+     "type": "score",
+     "score": 3.37,
+     "confidence": 0.45,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.06,
+      "2": 0.07,
+      "3": 0.3,
+      "4": 0.56
+     }
+    }
+   },
+   "patiocdmx": {
+    "recuerda": {
+     "type": "score",
+     "score": 2.68,
+     "confidence": 0.52,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.14,
+      "2": 0.17,
+      "3": 0.57,
+      "4": 0.12
+     }
+    },
+    "confia": {
+     "type": "score",
+     "score": 2.22,
+     "confidence": 0.3,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.23,
+      "2": 0.33,
+      "3": 0.41,
+      "4": 0.02
+     }
+    },
+    "claro": {
+     "type": "score",
+     "score": 3.27,
+     "confidence": 0.38,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.06,
+      "2": 0.07,
+      "3": 0.39,
+      "4": 0.47
+     }
+    }
+   },
+   "patiolat": {
+    "recuerda": {
+     "type": "score",
+     "score": 3.01,
+     "confidence": 0.54,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.08,
+      "2": 0.1,
+      "3": 0.53,
+      "4": 0.29
+     }
+    },
+    "confia": {
+     "type": "score",
+     "score": 2.16,
+     "confidence": 0.26,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.25,
+      "2": 0.34,
+      "3": 0.38,
+      "4": 0.02
+     }
+    },
+    "claro": {
+     "type": "score",
+     "score": 3.06,
+     "confidence": 0.43,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.09,
+      "2": 0.11,
+      "3": 0.42,
+      "4": 0.37
+     }
+    }
+   }
+  }
+ },
+ "elecciones": {
+  "oficinista": [
+   {
+    "orden": [
+     "quehayhoy",
+     "alpatio",
+     "patiolat",
+     "holapatio",
+     "patiocdmx",
+     "patiomx",
+     "patiomexico"
+    ],
+    "respuesta": {
+     "elige": {
+      "type": "choice",
+      "choice": "quehayhoy",
+      "confidence": 0.58,
+      "probabilities": {
+       "quehayhoy": 0.64,
+       "alpatio": 0.15,
+       "patiolat": 0.0,
+       "holapatio": 0.0,
+       "patiocdmx": 0.12,
+       "patiomx": 0.08,
+       "patiomexico": 0.01
+      }
+     }
+    }
+   },
+   {
+    "orden": [
+     "holapatio",
+     "patiomx",
+     "patiomexico",
+     "quehayhoy",
+     "alpatio",
+     "patiocdmx",
+     "patiolat"
+    ],
+    "respuesta": {
+     "elige": {
+      "type": "choice",
+      "choice": "quehayhoy",
+      "confidence": 0.53,
+      "probabilities": {
+       "holapatio": 0.03,
+       "patiomx": 0.15,
+       "patiomexico": 0.01,
+       "quehayhoy": 0.6,
+       "alpatio": 0.05,
+       "patiocdmx": 0.16,
+       "patiolat": 0.0
+      }
+     }
+    }
+   },
+   {
+    "orden": [
+     "alpatio",
+     "holapatio",
+     "patiolat",
+     "patiomx",
+     "patiocdmx",
+     "patiomexico",
+     "quehayhoy"
+    ],
+    "respuesta": {
+     "elige": {
+      "type": "choice",
+      "choice": "quehayhoy",
+      "confidence": 0.49,
+      "probabilities": {
+       "alpatio": 0.08,
+       "holapatio": 0.03,
+       "patiolat": 0.01,
+       "patiomx": 0.15,
+       "patiocdmx": 0.15,
+       "patiomexico": 0.02,
+       "quehayhoy": 0.56
+      }
+     }
+    }
+   }
+  ],
+  "estudiante": [
+   {
+    "orden": [
+     "holapatio",
+     "patiocdmx",
+     "patiomexico",
+     "patiolat",
+     "alpatio",
+     "quehayhoy",
+     "patiomx"
+    ],
+    "respuesta": {
+     "elige": {
+      "type": "choice",
+      "choice": "quehayhoy",
+      "confidence": 0.68,
+      "probabilities": {
+       "holapatio": 0.07,
+       "patiocdmx": 0.03,
+       "patiomexico": 0.01,
+       "patiolat": 0.01,
+       "alpatio": 0.02,
+       "quehayhoy": 0.73,
+       "patiomx": 0.13
+      }
+     }
+    }
+   },
+   {
+    "orden": [
+     "patiomx",
+     "alpatio",
+     "patiomexico",
+     "patiolat",
+     "holapatio",
+     "patiocdmx",
+     "quehayhoy"
+    ],
+    "respuesta": {
+     "elige": {
+      "type": "choice",
+      "choice": "quehayhoy",
+      "confidence": 0.59,
+      "probabilities": {
+       "patiomx": 0.23,
+       "alpatio": 0.07,
+       "patiomexico": 0.01,
+       "patiolat": 0.0,
+       "holapatio": 0.03,
+       "patiocdmx": 0.01,
+       "quehayhoy": 0.65
+      }
+     }
+    }
+   },
+   {
+    "orden": [
+     "alpatio",
+     "holapatio",
+     "patiomexico",
+     "quehayhoy",
+     "patiomx",
+     "patiolat",
+     "patiocdmx"
+    ],
+    "respuesta": {
+     "elige": {
+      "type": "choice",
+      "choice": "quehayhoy",
+      "confidence": 0.81,
+      "probabilities": {
+       "alpatio": 0.03,
+       "holapatio": 0.05,
+       "patiomexico": 0.01,
+       "quehayhoy": 0.84,
+       "patiomx": 0.06,
+       "patiolat": 0.0,
+       "patiocdmx": 0.01
+      }
+     }
+    }
+   }
+  ],
+  "mama": [
+   {
+    "orden": [
+     "quehayhoy",
+     "patiolat",
+     "alpatio",
+     "patiomx",
+     "holapatio",
+     "patiocdmx",
+     "patiomexico"
+    ],
+    "respuesta": {
+     "elige": {
+      "type": "choice",
+      "choice": "quehayhoy",
+      "confidence": 0.8,
+      "probabilities": {
+       "quehayhoy": 0.83,
+       "patiolat": 0.0,
+       "alpatio": 0.03,
+       "patiomx": 0.06,
+       "holapatio": 0.01,
+       "patiocdmx": 0.03,
+       "patiomexico": 0.04
+      }
+     }
+    }
+   },
+   {
+    "orden": [
+     "alpatio",
+     "quehayhoy",
+     "patiomx",
+     "holapatio",
+     "patiolat",
+     "patiocdmx",
+     "patiomexico"
+    ],
+    "respuesta": {
+     "elige": {
+      "type": "choice",
+      "choice": "quehayhoy",
+      "confidence": 0.72,
+      "probabilities": {
+       "alpatio": 0.04,
+       "quehayhoy": 0.76,
+       "patiomx": 0.08,
+       "holapatio": 0.03,
+       "patiolat": 0.0,
+       "patiocdmx": 0.03,
+       "patiomexico": 0.06
+      }
+     }
+    }
+   },
+   {
+    "orden": [
+     "alpatio",
+     "patiocdmx",
+     "quehayhoy",
+     "patiomx",
+     "patiomexico",
+     "patiolat",
+     "holapatio"
+    ],
+    "respuesta": {
+     "elige": {
+      "type": "choice",
+      "choice": "quehayhoy",
+      "confidence": 0.71,
+      "probabilities": {
+       "alpatio": 0.03,
+       "patiocdmx": 0.06,
+       "quehayhoy": 0.75,
+       "patiomx": 0.12,
+       "patiomexico": 0.02,
+       "patiolat": 0.0,
+       "holapatio": 0.02
+      }
+     }
+    }
+   }
+  ],
+  "fondera": [
+   {
+    "orden": [
+     "patiocdmx",
+     "alpatio",
+     "quehayhoy",
+     "patiomx",
+     "patiolat",
+     "holapatio",
+     "patiomexico"
+    ],
+    "respuesta": {
+     "elige": {
+      "type": "choice",
+      "choice": "quehayhoy",
+      "confidence": 0.5,
+      "probabilities": {
+       "patiocdmx": 0.3,
+       "alpatio": 0.03,
+       "quehayhoy": 0.57,
+       "patiomx": 0.07,
+       "patiolat": 0.0,
+       "holapatio": 0.02,
+       "patiomexico": 0.01
+      }
+     }
+    }
+   },
+   {
+    "orden": [
+     "holapatio",
+     "patiocdmx",
+     "quehayhoy",
+     "patiolat",
+     "patiomexico",
+     "patiomx",
+     "alpatio"
+    ],
+    "respuesta": {
+     "elige": {
+      "type": "choice",
+      "choice": "quehayhoy",
+      "confidence": 0.5,
+      "probabilities": {
+       "holapatio": 0.1,
+       "patiocdmx": 0.25,
+       "quehayhoy": 0.57,
+       "patiolat": 0.0,
+       "patiomexico": 0.03,
+       "patiomx": 0.03,
+       "alpatio": 0.02
+      }
+     }
+    }
+   },
+   {
+    "orden": [
+     "holapatio",
+     "patiocdmx",
+     "patiolat",
+     "alpatio",
+     "patiomexico",
+     "quehayhoy",
+     "patiomx"
+    ],
+    "respuesta": {
+     "elige": {
+      "type": "choice",
+      "choice": "quehayhoy",
+      "confidence": 0.51,
+      "probabilities": {
+       "holapatio": 0.13,
+       "patiocdmx": 0.22,
+       "patiolat": 0.0,
+       "alpatio": 0.02,
+       "patiomexico": 0.01,
+       "quehayhoy": 0.58,
+       "patiomx": 0.04
+      }
+     }
+    }
+   }
+  ],
+  "callejon": [
+   {
+    "orden": [
+     "patiolat",
+     "quehayhoy",
+     "patiomexico",
+     "holapatio",
+     "alpatio",
+     "patiocdmx",
+     "patiomx"
+    ],
+    "respuesta": {
+     "elige": {
+      "type": "choice",
+      "choice": "quehayhoy",
+      "confidence": 0.66,
+      "probabilities": {
+       "patiolat": 0.0,
+       "quehayhoy": 0.71,
+       "patiomexico": 0.05,
+       "holapatio": 0.01,
+       "alpatio": 0.04,
+       "patiocdmx": 0.08,
+       "patiomx": 0.11
+      }
+     }
+    }
+   },
+   {
+    "orden": [
+     "quehayhoy",
+     "holapatio",
+     "patiocdmx",
+     "alpatio",
+     "patiolat",
+     "patiomx",
+     "patiomexico"
+    ],
+    "respuesta": {
+     "elige": {
+      "type": "choice",
+      "choice": "quehayhoy",
+      "confidence": 0.66,
+      "probabilities": {
+       "quehayhoy": 0.71,
+       "holapatio": 0.03,
+       "patiocdmx": 0.11,
+       "alpatio": 0.08,
+       "patiolat": 0.0,
+       "patiomx": 0.06,
+       "patiomexico": 0.01
+      }
+     }
+    }
+   },
+   {
+    "orden": [
+     "alpatio",
+     "patiomx",
+     "patiomexico",
+     "patiolat",
+     "quehayhoy",
+     "holapatio",
+     "patiocdmx"
+    ],
+    "respuesta": {
+     "elige": {
+      "type": "choice",
+      "choice": "quehayhoy",
+      "confidence": 0.63,
+      "probabilities": {
+       "alpatio": 0.06,
+       "patiomx": 0.08,
+       "patiomexico": 0.01,
+       "patiolat": 0.0,
+       "quehayhoy": 0.68,
+       "holapatio": 0.02,
+       "patiocdmx": 0.15
+      }
+     }
+    }
+   }
+  ]
+ }
+}

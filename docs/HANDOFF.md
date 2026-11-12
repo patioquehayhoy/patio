@@ -1,5 +1,13 @@
 # HANDOFF
 
+## Continuidad 2026-11-11 — consolas, Paid Apps, piloto y sistema (Claude)
+
+Leer el [heads-up](HEADS_UP_2026-10-12.md), bloque «Cierre 2026-11-11», y
+los pendientes en [PENDING_LAUNCH](PENDING_LAUNCH_2026-10-12.md). Siguiente,
+con Parco: cuenta bancaria en App Store Connect (Paid Apps ya aceptado),
+solicitud del Small Business Program y decisión de dominio (10 opciones).
+Documento único en `artifacts/patio-sistema.html`. Producción sin cambios.
+
 ## Continuidad 2026-11-09 — foto del lugar, avisos gratis, «Hoy» y builds (Claude)
 
 Leer el [heads-up](HEADS_UP_2026-10-12.md), bloque «Cierre 2026-11-09», y

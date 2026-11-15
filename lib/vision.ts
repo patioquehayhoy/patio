@@ -20,6 +20,8 @@ export interface MenuSeccion {
 export interface MenuVisualResult {
   secciones: MenuSeccion[];
   precio: string;
+  /** Formas de cobrar el menú del día («Completo $95», «Solo guisado $70»). */
+  precios?: { nombre: string; precio: string }[];
   advertencias?: string[];
   error?: string;
 }
@@ -53,5 +55,5 @@ export async function leerMenuDeFoto(imageUri: string): Promise<MenuVisualResult
 
   if (error) throw await aiFunctionError(error, 'No se pudo leer el menú. Inténtalo de nuevo.');
   if (!isMenuVisualResult(data)) throw new Error('La lectura devolvió un formato inválido');
-  return { ...data, precio: data.precio ?? '' };
+  return { ...data, precio: data.precio ?? '', precios: Array.isArray(data.precios) ? data.precios : [] };
 }

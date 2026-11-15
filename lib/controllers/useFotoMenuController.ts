@@ -1,3 +1,4 @@
+import { markCartaSections } from '@/lib/menu-carta';
 import * as ImagePicker from 'expo-image-picker';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, Linking } from 'react-native';
@@ -5,6 +6,7 @@ import { Alert, Linking } from 'react-native';
 import {
   clearMenuExtractionSnapshot,
   makePlatilloId,
+  makePrecioId,
   makeSectionId,
   setMenuExtractionSnapshot,
   type MenuData,
@@ -50,7 +52,7 @@ function visionSize(width?: number, height?: number): { width: number; height: n
     : { width: Math.max(1, Math.round(low * ratio)), height: low };
 }
 
-function visionToMenu(sections: MenuSeccion[], menuPrice: string): MenuData {
+function visionToMenu(sections: MenuSeccion[], menuPrice: string, menuPrices: { nombre: string; precio: string }[] = []): MenuData {
   const price = (value?: string) => {
     const matches = (value ?? '').match(/\d+(?:[.,]\d{1,2})?/g) ?? [];
     // Dos cifras suelen ser tamaños/variantes. No las concatenamos: deben
@@ -76,16 +78,25 @@ function visionToMenu(sections: MenuSeccion[], menuPrice: string): MenuData {
     return value.replace(/(?:\s*[·•-]?\s*)?\$\s*\d+(?:[.,]\d{1,2})?\s*[.]?/g, '').trim();
   };
 
+  // Precios del menú (2026-11-14): varias formas de cobrarlo si la foto las
+  // trae; si no, el precio general. El proveedor puede clasificar un precio
+  // alineado con la primera sección como general o como de sección: si no
+  // hay otro precio del menú, ese también es el del día.
+  const named = menuPrices
+    .map((item) => ({ nombre: clean(item.nombre), precio: price(item.precio) }))
+    .filter((item) => item.precio);
+  const general = price(menuPrice);
+  const firstSectionAsDay = !named.length && !general ? price(sections[0]?.precioSeccion) : '';
+  const precios = (named.length ? named : general || firstSectionAsDay ? [{ nombre: '', precio: general || firstSectionAsDay }] : [])
+    .map((item) => ({ id: makePrecioId(), ...item }));
+
   return {
-    secciones: sections.map((section, index) => ({
+    precios,
+    // Lo que va desde «CARTA» hacia abajo es la carta (lo de siempre).
+    secciones: markCartaSections(sections.map((section, index) => ({
       id: makeSectionId(),
       nombre: (clean(section.nombre) || 'MENÚ DE HOY').toUpperCase(),
-      // El proveedor puede clasificar un precio alineado con la primera
-      // sección como precio general o como precio de sección. En ambos casos
-      // la revisión de Patio debe conservarlo en el campo visible del día.
-      precio: index === 0
-        ? price(menuPrice || section.precioSeccion)
-        : price(section.precioSeccion),
+      precio: index === 0 && firstSectionAsDay ? '' : price(section.precioSeccion),
       platillos: section.platillos.map((dish) => {
         const description = cleanDescription(dish.descripcion ?? '');
         const extractedPrice = price(dish.precio) || descriptionPrice(description);
@@ -100,7 +111,7 @@ function visionToMenu(sections: MenuSeccion[], menuPrice: string): MenuData {
           : undefined,
         };
       }),
-    })),
+    }))),
   };
 }
 
@@ -144,7 +155,7 @@ export function useFotoMenuController(handlers?: FotoMenuHandlers) {
       if (request !== requestRef.current) return;
       const hasDishes = result.secciones.some((section) => section.platillos.some((dish) => dish.nombre.trim()));
       if (result.error || !hasDishes) throw new Error(result.error || 'sin platillos');
-      const extractedMenu = visionToMenu(result.secciones, result.precio);
+      const extractedMenu = visionToMenu(result.secciones, result.precio, result.precios);
       setMenuExtractionSnapshot({
         menu: extractedMenu,
         warnings: result.advertencias ?? [],

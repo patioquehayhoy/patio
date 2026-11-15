@@ -1,5 +1,75 @@
 # Pendientes y roadmap de lanzamiento — actualizado 2026-11-07
 
+## Corte 2026-11-15 (Claude)
+
+- [x] La carta va en el mismo editor que el menú del día, debajo, como en el
+  pizarrón: «MENÚ $100» arriba y «CARTA $110» abajo, con solo las
+  excepciones con precio propio. Se guarda al publicar si cambió. Se quitó
+  «Agregar otro precio» y la pantalla aparte de Perfil → «La carta».
+- [x] Ficha: el contacto queda como un solo ícono de WhatsApp a la derecha de
+  la dirección (sin número ni «Llamar»). Logros: los componentes de abajo ya
+  no se mueven. Barra de secciones: baja desde arriba con su curva.
+- [x] Fotos de platillos: mantener presionado un platillo en la ficha abre su
+  foto con nombre, precio y descripción; nunca queda bajo el dedo. Si solo
+  algunos tienen foto, un ícono discreto dice cuáles. El negocio la sube
+  desde el editor («Agregar foto») y se recuerda por nombre del platillo.
+- [x] Jev ([datos](research/jev-fotos-platillos-2026-11-15.json)): la
+  descripción la escribe el negocio (91–99 %); la foto, los dos (primero la
+  del negocio y aparte las de clientes); los clientes le creen más a la foto
+  de otro cliente. Fotos de clientes: segunda versión, desde sus reseñas.
+- [x] Correos de acceso rediseñados (código primero, sin tarjeta, letra
+  chica en dos renglones) — [README](../supabase/templates/README.md).
+- [x] Fotos de clientes: en la reseña, después de la foto, «¿De qué
+  platillo es?»; en la ficha, si el negocio no tiene foto de ese platillo,
+  sale la del cliente con su nombre; si sí tiene, abajo «De clientes».
+- [x] «Incluye…» (prueba) en editor, ficha y póster; el editor ahora tiene
+  dos bloques con la misma etiqueta: MENÚ DEL DÍA y LA CARTA. Ficha: el
+  botón Seguir ya no parpadea de naranja a «Siguiendo».
+- [ ] **Parco, producción:** `npx supabase db push` (contacto del negocio,
+  bucket `dish-photos` y fotos de reseñas `review-photos`) y
+  `npx supabase functions deploy read-menu`.
+- [ ] **Parco, Supabase:** subir `assets/images/p-icon-correo.png` al
+  bucket «Patio ID»; luego, en Authentication → Email Templates, pegar los
+  6 correos de `supabase/templates/` con el asunto que trae cada uno
+  (acceso: «{{ .Token }} es tu código para entrar a Patio») y mandarse un
+  código de prueba (Gmail en el cel, Mail en la compu, modo oscuro).
+- [ ] Aviso de privacidad: en cuanto exista su URL pública
+  (`EXPO_PUBLIC_PRIVACY_URL`), la línea «Al continuar aceptas el Aviso de
+  privacidad» aparece sola en los dos accesos.
+- [x] Piloto de menús reales (96 lugares de 12 giros, 1,371 fotos, 1.45 USD):
+  [hallazgos](research/MENUS_REALES_2026-11-15.md). El precio por platillo
+  es la base; en las fondas, «precio por guisado con sopa y arroz
+  incluidos»; el 82 % de las fotos de platillos en Maps las suben clientes.
+- [x] Apple: banco Nu, impuestos de México y W-8BEN enviados (Active);
+  banco y Paid Apps en Processing.
+- [ ] Parco con su contador: actividad de software en el SAT y declaraciones
+  mensuales de RESICO desde abril 2026.
+- [ ] Estudio completo (≈8 USD, el mes que entra) con las dos opciones
+  nuevas de precio y 20 fotos revisadas a mano.
+
+## Corte 2026-11-14 (Claude)
+
+- [x] Número del negocio: opcional en «Editar mi negocio» (CONTACTO), con
+  «Este número tiene WhatsApp». En la ficha, «Llamar» y «WhatsApp» bajo la
+  dirección. Declarado en el aviso de privacidad y en
+  [consolas](STORE_CONSOLES_2026-11-11.md) §1.
+- [x] Varios precios del menú del día («Comida corrida $95», «Solo guisado
+  $70») en editor, ficha, tarjeta y póster. Corregido: tocar el precio del
+  menú borraba los precios de sección que leía la foto.
+- [x] Precio de sección («CARTA $110») editable desde «···».
+- [x] La carta (lo de siempre): Perfil → «La carta». Se guarda sin publicar;
+  la ficha la muestra debajo de lo de hoy.
+- [x] Lectura de foto: `max_tokens` 2,200 → 12,000 (un menú largo se cortaba
+  y fallaba) y espera de 45 s → 110 s; ahora devuelve varios precios.
+- [x] Jev ([datos](research/jev-menu-precios-2026-11-14.json)): la mayoría
+  cobra un solo precio (57–81 %), varios 10–27 %; la carta aparte gana en los
+  4 negocios (87–92 %); la palabra que más usan es «Comida corrida».
+- [ ] **Parco, producción:** `npx supabase db push` (contacto del negocio) y
+  `npx supabase functions deploy read-menu`.
+- [ ] Parco: QA en el iPhone con Metro: varios precios, carta, número en la
+  ficha y leer un menú desde Fotos.
+- [x] Alta del negocio: el número va en el paso de pagos (mismo `BusinessContactEditor`, opcional; 2026-11-15).
+
 ## Corte 2026-11-11 (Claude)
 
 - [x] Decidido por Parco: datos legales y candidato firmado van al final,

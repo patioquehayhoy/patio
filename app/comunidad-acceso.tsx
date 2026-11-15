@@ -18,6 +18,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { EmailCodeForm } from '@/components/email-code-form';
+import { PrivacyConsentLine } from '@/components/privacy-consent-line';
 import { AgentSpinner } from '@/components/agent-spinner';
 import { LOGIN_CALLBACK_URL } from '@/lib/auth';
 import { isValidEmail, safeReturnTo } from '@/lib/auth-links';
@@ -113,6 +114,7 @@ export default function ComunidadAccesoScreen() {
                   ? <AgentSpinner variant="dots" size={18} color="#FFFFFF" />
                   : <Text style={s.buttonText}>{noWidow('Enviar código')}</Text>}
               </TouchableOpacity>
+              <PrivacyConsentLine />
             </>
           ) : (
             <>

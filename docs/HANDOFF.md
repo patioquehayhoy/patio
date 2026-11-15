@@ -1,5 +1,13 @@
 # HANDOFF
 
+## Continuidad 2026-11-15 — carta y precios, fotos de platillos, correos y Apple (Claude)
+
+Leer el [heads-up](HEADS_UP_2026-10-12.md), bloque «Cierre 2026-11-15», y
+[PENDING_LAUNCH](PENDING_LAUNCH_2026-10-12.md) («Corte 2026-11-15»).
+Producción pendiente: `db push` y deploy de `read-menu`; pegar los 6 correos.
+Siguiente: QA de Parco en el iPhone (editor, fotos, reseña con foto) y
+decidir si «Incluye…» se queda.
+
 ## Continuidad 2026-11-11 — consolas, Paid Apps, piloto y sistema (Claude)
 
 Leer el [heads-up](HEADS_UP_2026-10-12.md), bloque «Cierre 2026-11-11», y

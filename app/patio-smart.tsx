@@ -41,6 +41,9 @@ import { useTheme, Type } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
 import { TEXT_LIMITS } from '@/lib/text-limits';
 import { PlacePhotoPicker } from '@/components/place-photo-picker';
+import { BusinessContactEditor } from '@/components/business-contact-editor';
+import { isCompletePhone } from '@/lib/business-contact';
+import { supabase } from '@/lib/supabase';
 import { getFonditaId } from '@/lib/user-store';
 
 type Stage = 'name' | 'category' | 'location' | 'schedule' | 'payments' | 'photo' | 'finish';
@@ -162,6 +165,9 @@ export default function PatioSmartScreen() {
   const isPreview = __DEV__ && preview === '1';
   const [locating, setLocating] = useState(false);
   const [result, setResult] = useState<SmartSetupResult>(INITIAL_RESULT);
+  // Número del negocio (opcional): el mismo editor que «Editar mi negocio».
+  const [telefono, setTelefono] = useState('');
+  const [whatsapp, setWhatsapp] = useState(false);
 
   useEffect(() => {
     saveUserRole('fondero').catch(() => {});
@@ -252,6 +258,13 @@ export default function PatioSmartScreen() {
     setPagosEfectivo(result.pagos.efectivo);
     setPagosTrans(result.pagos.transferencia);
     setPagosTarjeta(result.pagos.tarjeta);
+    const negocioId = getFonditaId();
+    if (negocioId && telefono) {
+      const { error } = await supabase.from('negocios')
+        .update({ contacto_telefono: telefono, contacto_whatsapp: whatsapp })
+        .eq('id', negocioId);
+      if (error) throw error;
+    }
   };
 
   const confirmSchedule = () => {
@@ -266,6 +279,10 @@ export default function PatioSmartScreen() {
   const confirmPayments = async () => {
     if (!Object.values(result.pagos).some(Boolean)) {
       Alert.alert(noWidow('Elige una forma de pago'), noWidow('Selecciona por lo menos una opción para continuar.'));
+      return;
+    }
+    if (telefono && !isCompletePhone(telefono)) {
+      Alert.alert(noWidow('Revisa el número'), noWidow('Escribe los 10 dígitos o déjalo vacío.'));
       return;
     }
 
@@ -618,6 +635,18 @@ export default function PatioSmartScreen() {
                 onChange={(pagos) => update({ pagos })}
               />
             </View>
+            {/* Número del negocio, opcional, en el mismo paso: si tiene
+                WhatsApp, la gente puede escribirle desde la ficha. */}
+            <View style={s.contactEditor}>
+              <Text style={[s.contactLabel, { color: colors.textMute }]} allowFontScaling={true}>{noWidow('NÚMERO DEL NEGOCIO · OPCIONAL')}</Text>
+              <BusinessContactEditor
+                colors={colors}
+                telefono={telefono}
+                whatsapp={whatsapp}
+                onChangeTelefono={setTelefono}
+                onChangeWhatsapp={setWhatsapp}
+              />
+            </View>
             <ContinueButton
               colors={colors}
               missing={Object.values(result.pagos).some(Boolean) ? undefined : 'Elige cómo te pagan'}
@@ -702,6 +731,8 @@ const s = StyleSheet.create({
   locationHint: { marginTop: 3, fontSize: 12, lineHeight: 16, fontWeight: '400' },
   scheduleEditor: { marginTop: 24 },
   paymentEditor: { marginTop: 30 },
+  contactEditor: { marginTop: 24, gap: 6 },
+  contactLabel: { fontSize: 11, lineHeight: 14, fontWeight: '700', letterSpacing: 0.8 },
   finishRoot: { flex: 1, backgroundColor: '#0B0B0C' },
   finishBack: { position: 'absolute', left: 16, width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(0,0,0,0.28)', alignItems: 'center', justifyContent: 'center', zIndex: 2 },
   finishIdentity: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 28 },

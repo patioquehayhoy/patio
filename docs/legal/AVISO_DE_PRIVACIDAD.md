@@ -33,6 +33,9 @@ Patio. Contacto para todo lo relacionado con tus datos:
   de pago aceptadas del negocio. Estos datos son públicos por naturaleza: sirven
   para que la gente te encuentre.
 - Fotos de tus menús y los menús que publicas.
+- El número de teléfono del negocio, si decides agregarlo, y si tiene
+  WhatsApp. Es público: aparece en tu ficha para que la gente te llame o te
+  escriba. Puedes quitarlo cuando quieras desde «Editar mi negocio».
 - Respuestas a reseñas.
 
 **De tu teléfono:**

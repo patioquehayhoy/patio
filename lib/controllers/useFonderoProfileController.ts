@@ -10,6 +10,7 @@ import { signOutAccount } from '@/lib/account-session';
 import { noWidow } from '@/lib/typography';
 import { isNameChangeLimited, NAME_CHANGE_LIMIT_MESSAGE, writeErrorMessage } from '@/lib/content-safety';
 import { nameLockEnd } from '@/lib/name-changes';
+import { isCompletePhone } from '@/lib/business-contact';
 import {
   deserialize,
   horarioDefault,
@@ -52,6 +53,8 @@ type SavedProfileValues = {
   pagosTrans: boolean;
   pagosTarjeta: boolean;
   tipoNegocio: string;
+  telefono: string;
+  whatsapp: boolean;
 };
 
 const FONDITA_SELECT = 'id, nombre, nombre_updated_at, descripcion, direccion, direccion_visible, horario, horario_semanal, pagos_efectivo, pagos_transferencia, pagos_tarjeta, tipo_negocio, latitude, longitude';
@@ -70,6 +73,8 @@ function savedFromLocal(semanal: HorarioSemanal): SavedProfileValues {
     pagosTrans: getPagosTrans(),
     pagosTarjeta: getPagosTarjeta(),
     tipoNegocio: getTipoNegocio() ?? 'otro',
+    telefono: '',
+    whatsapp: false,
   };
 }
 
@@ -88,6 +93,9 @@ export function useFonderoProfileController() {
   const [tipoNegocio, setTipoNegocioState] = useState(getTipoNegocio() ?? 'otro');
   const [email, setEmail] = useState('');
   const [fotoUrl, setFotoUrl] = useState<string | null>(null);
+  // Número del negocio: opcional; vacío o diez dígitos.
+  const [telefono, setTelefono] = useState('');
+  const [whatsapp, setWhatsapp] = useState(false);
   const [ready, setReady] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [savedFlash, setSavedFlash] = useState(false);
@@ -118,6 +126,7 @@ export function useFonderoProfileController() {
     nombre.trim().length < 2 ? 'el nombre' : null,
     !pagosEfectivo && !pagosTrans && !pagosTarjeta ? 'cómo cobras' : null,
     semanal.every((dia) => dia.cerrado) ? 'los días que abres' : null,
+    telefono && !isCompletePhone(telefono) ? 'el número completo' : null,
   ].filter((item): item is string => !!item);
   const missingLabel = missing.length
     ? `${missing.length > 1 || missing[0].startsWith('los ') ? 'Faltan' : 'Falta'} ${missing.length > 1 ? `${missing.slice(0, -1).join(', ')} y ${missing[missing.length - 1]}` : missing[0]}`
@@ -130,7 +139,9 @@ export function useFonderoProfileController() {
     pagosEfectivo !== savedValues.pagosEfectivo ||
     pagosTrans !== savedValues.pagosTrans ||
     pagosTarjeta !== savedValues.pagosTarjeta ||
-    tipoNegocio !== savedValues.tipoNegocio;
+    tipoNegocio !== savedValues.tipoNegocio ||
+    telefono !== savedValues.telefono ||
+    whatsapp !== savedValues.whatsapp;
   useEffect(() => { if (isDirty) setSavedFlash(false); }, [isDirty]);
   useEffect(() => { setNameError(null); }, [nombre]);
 
@@ -226,6 +237,12 @@ export function useFonderoProfileController() {
         // columna (migración 20261109090000), lo demás carga igual.
         const photo = await supabase.from('negocios').select('foto_url').eq('id', fondita.id).maybeSingle();
         if (!photo.error && active) setFotoUrl((photo.data as { foto_url?: string | null } | null)?.foto_url ?? null);
+        // El número también va aparte (migración 20261114090000).
+        const contact = await supabase.from('negocios').select('contacto_telefono, contacto_whatsapp').eq('id', fondita.id).maybeSingle();
+        const contactRow = contact.error ? null : contact.data as { contacto_telefono?: string | null; contacto_whatsapp?: boolean | null } | null;
+        const nextTelefono = contactRow?.contacto_telefono ?? '';
+        const nextWhatsapp = !!contactRow?.contacto_whatsapp;
+        if (active) { setTelefono(nextTelefono); setWhatsapp(nextWhatsapp); }
 
         const nextNombre = fondita.nombre ?? getFonditaName();
         const nextDescripcion = fondita.descripcion ?? getFonditaDescription();
@@ -267,6 +284,8 @@ export function useFonderoProfileController() {
           pagosTrans: nextPagosTrans,
           pagosTarjeta: nextPagosTarjeta,
           tipoNegocio: nextTipoNegocio,
+          telefono: nextTelefono,
+          whatsapp: nextWhatsapp,
         });
 
         const since = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString();
@@ -343,6 +362,14 @@ export function useFonderoProfileController() {
         payload.tipo_negocio = tipoNegocio;
         newSaved.tipoNegocio = tipoNegocio;
       }
+      if (telefono !== savedValues.telefono || whatsapp !== savedValues.whatsapp) {
+        payload.contacto_telefono = telefono || null;
+        // Sin número no hay WhatsApp que abrir.
+        payload.contacto_whatsapp = !!telefono && whatsapp;
+        newSaved.telefono = telefono;
+        newSaved.whatsapp = !!telefono && whatsapp;
+        if (!telefono) setWhatsapp(false);
+      }
 
       if (Object.keys(payload).length > 0) {
         if (!fonditaId && !__DEV__) throw new Error('No hay un negocio activo.');
@@ -396,8 +423,10 @@ export function useFonderoProfileController() {
     savedValues,
     semanal,
     semanalJSON,
+    telefono,
     tipoNegocio,
     ubicacion,
+    whatsapp,
   ]);
 
   const handleSignOut = useCallback(async () => {
@@ -437,6 +466,10 @@ export function useFonderoProfileController() {
   return {
     fotoUrl,
     setFotoUrl,
+    telefono,
+    setTelefono,
+    whatsapp,
+    setWhatsapp,
     negocioId: fonditaIdRef.current,
     apertura,
     aplicarATodos,

@@ -4,21 +4,35 @@ import { withStorageLock } from './storage-queue';
 
 const FAVORITES_KEY = 'patio:favorites';
 
+// Copia en memoria (2026-11-15): la ficha sabe al instante si ya sigues el
+// lugar y el botón sale completo con todo lo demás, sin esperar al disco.
+let memory: string[] | null = null;
+
+/** Lo último que se leyó o escribió; null si aún no se ha leído en esta sesión. */
+export function peekFavoritePatioIds(): string[] | null {
+  return memory;
+}
+
 export async function getFavoritePatioIds() {
   const raw = await AsyncStorage.getItem(FAVORITES_KEY);
-  if (!raw) return [];
+  if (!raw) { memory = []; return []; }
 
   try {
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed.filter((id): id is string => typeof id === 'string') : [];
+    memory = Array.isArray(parsed) ? parsed.filter((id): id is string => typeof id === 'string') : [];
   } catch {
-    return [];
+    memory = [];
   }
+  return memory;
 }
 
 async function writeFavorites(ids: string[]) {
-  await AsyncStorage.setItem(FAVORITES_KEY, JSON.stringify(Array.from(new Set(ids))));
+  memory = Array.from(new Set(ids));
+  await AsyncStorage.setItem(FAVORITES_KEY, JSON.stringify(memory));
 }
+
+// Se lee una vez al abrir la app: al entrar a la primera ficha ya se sabe.
+void getFavoritePatioIds().catch(() => {});
 
 export async function setFavoritePatioIds(ids: string[]) {
   return withStorageLock(FAVORITES_KEY, () => writeFavorites(ids));

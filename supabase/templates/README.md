@@ -17,11 +17,17 @@ que **pegarlos a mano** en el dashboard de Supabase.
 3. **Magic Link** y **Confirm signup** son obligatorios hoy. La app usa
    `signInWithOtp({ shouldCreateUser: true })`: la primera entrada dispara
    Confirm signup y las siguientes Magic Link.
-4. **Subject** sugerido para acceso:
+4. **Subject** de Magic Link y de Confirm signup (2026-11-15): el código va
+   primero, así se lee en la notificación sin abrir el correo:
 
    ```
-   Tu enlace para entrar a Patio
+   {{ .Token }} es tu código para entrar a Patio
    ```
+
+   Supabase ya usa `{{ .Token }}` en el asunto de su correo de
+   reautenticación. Al pegarlo, mándate un código de prueba: si el asunto
+   llega con el texto `{{ .Token }}` literal, usa «Tu código para entrar a
+   Patio» (el código igual sale en la vista previa del buzón).
 
 ## Variables de Supabase
 
@@ -34,8 +40,26 @@ que **pegarlos a mano** en el dashboard de Supabase.
 
 - La P oficial es el único logo del encabezado y está embebida como PNG. Cuando
   exista un CDN público de Patio debe migrarse a HTTPS para reducir peso.
-- Fondo neutro, tarjeta blanca, una sola acción y texto utilitario alineado a la
-  izquierda: minimalismo funcional, no decoración “tipo Apple”.
+- **Los 6 correos salen de `generar.py` (2026-11-15).** Mismas medidas en
+  todos; se cambia ahí y se vuelve a correr (`python3
+  supabase/templates/generar.py`). Antes, cambio de correo, invitación,
+  reautenticación y contraseña eran copias viejas del de acceso con su texto.
+- **Medidas** (Parco: «100 % Apple», cel y compu):
+  - Columna centrada de 600 (Outlook con tabla fija de 600), margen de 24
+    a los lados y 40 arriba y abajo. Todo a un solo borde izquierdo, logo y
+    pie incluidos.
+  - Logo: el ícono de la app a 48 con esquinas de 11
+    (`assets/images/p-icon-correo.png`, subirlo al bucket «Patio ID»
+    antes de pegar). Una P negra transparente desaparece en el modo oscuro
+    de Gmail, que oscurece el fondo pero no la imagen.
+  - Tipografía del sistema, interlineado en px: título 24/30 seminegrita,
+    cuerpo 17/24, código 34/40 seminegrita (lo más grande), pie 12/16 gris.
+    Enlaces `#0066CC` sin subrayar; línea del pie `#D2D2D7`.
+  - Espacios: 32 bajo el logo, 8 bajo el título, 16 entre bloques, 8 entre
+    párrafos seguidos, 32 antes del pie.
+  - Sin viudas: los dos últimos términos de cada texto van con `&nbsp;`,
+    también «Enviado a [correo]».
+  - El código va también en la vista previa del buzón y en el asunto.
 - Copy regido por `docs/design/foundations/IDENTITY_VERBAL.md`: humano, local,
   sin "fonda/fondero" paraguas, sin lenguaje comparativo.
 - `"¿Qué hay hoy?"` y `"Saaaaaaabes."` van SIEMPRE juntos como par de marca —

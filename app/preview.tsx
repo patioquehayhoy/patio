@@ -12,6 +12,7 @@ import { fonderoPalette, type FonderoColors } from '@/lib/fondero-palette';
 import { GlassIconButton } from '@/components/glass-button';
 import { NewMenuSheet } from '@/components/new-menu-sheet';
 import { noWidow } from '@/lib/typography';
+import { isCartaName } from '@/lib/menu-carta';
 
 // Vista canónica del menú publicado. Vive dentro de Patio y siempre conserva la
 // misma identidad; compartir distribuye un enlace a esta publicación.
@@ -29,7 +30,7 @@ export function MenuPoster({ justPublished = false }: { justPublished?: boolean 
   const { theme } = useTheme();
   const c = fonderoPalette(theme.isDark);
   const s = makeStyles(c);
-  const { businessName, fecha, handleBack, handleOpenProfile, handleShare, patioId, priceLabel, sections } = useMenuPreviewController();
+  const { businessName, fecha, handleBack, handleOpenProfile, handleShare, menuPrices, patioId, priceLabel, priceName, sections, carta, includes } = useMenuPreviewController();
   const posterRef = useRef<View>(null);
   const [sharing, setSharing] = useState(false);
   const [newMenuSheetVisible, setNewMenuSheetVisible] = useState(false);
@@ -111,8 +112,8 @@ export function MenuPoster({ justPublished = false }: { justPublished?: boolean 
             {/* Precio del menú completo (comida corrida): a la derecha, como
                 en la pizarra de la fonda — visible, un paso abajo del nombre. */}
             {!!priceLabel && (
-              <View style={s.posterPrice} accessible accessibilityLabel={`Menú del día, ${priceLabel}`}>
-                <Text style={s.posterPriceLabel} allowFontScaling={true}>MENÚ</Text>
+              <View style={s.posterPrice} accessible accessibilityLabel={`${priceName}, ${priceLabel}`}>
+                <Text style={s.posterPriceLabel} allowFontScaling={true}>{priceName.toLocaleUpperCase('es-MX')}</Text>
                 <Text style={s.posterPriceValue} allowFontScaling={true}>{priceLabel}</Text>
               </View>
             )}
@@ -120,9 +121,27 @@ export function MenuPoster({ justPublished = false }: { justPublished?: boolean 
 
           {/* Card de menú: las secciones hablan solas, sin label redundante. */}
           <View style={s.menuCard}>
+            {/* «Incluye…» (prueba 15 nov), antes de las secciones. */}
+            {!!includes && <Text style={s.posterIncludes} allowFontScaling={true}>{noWidow(includes)}</Text>}
+            {/* Con varios precios del menú, la lista completa va primero; el
+                de arriba a la derecha es el principal. */}
+            {menuPrices.length > 1 && (
+              <View>
+                <Text style={s.menuSectionTitle}>PRECIOS</Text>
+                {menuPrices.map((item, index) => (
+                  <View key={`${index}-${item.label}`} style={s.menuRow}>
+                    <Text style={[s.menuRowName, { flex: 1 }]} allowFontScaling={true}>{noWidow(item.label || 'Menú')}</Text>
+                    <Text style={s.menuRowPrice} allowFontScaling={true}>{item.price}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
             {sections.map((section, sectionIndex) => (
-              <View key={section.id} style={sectionIndex > 0 && s.menuSection}>
-                <Text style={s.menuSectionTitle}>{section.nombre}</Text>
+              <View key={section.id} style={(sectionIndex > 0 || menuPrices.length > 1) && s.menuSection}>
+                <View style={s.menuSectionHead}>
+                  <Text style={[s.menuSectionTitle, { flex: 1 }]}>{section.nombre}</Text>
+                  {!!section.precio.trim() && <Text style={s.menuSectionTitle}>${section.precio.trim()}</Text>}
+                </View>
                 {section.platillos.map((dish) => (
                   <View key={dish.id} style={s.menuRow}>
                     <View style={{ flex: 1 }}>
@@ -134,6 +153,38 @@ export function MenuPoster({ justPublished = false }: { justPublished?: boolean 
                 ))}
               </View>
             ))}
+            {/* La carta, debajo de lo de hoy, como en el pizarrón: «CARTA
+                $110» en su encabezado; solo las excepciones llevan precio. */}
+            {carta.map((section, sectionIndex) => {
+              const first = sectionIndex === 0;
+              const merged = first && isCartaName(section.nombre);
+              const price = section.precio.trim() ? `$${section.precio.trim()}` : '';
+              return (
+                <View key={`carta-${section.id}`} style={[s.menuSection, first && s.cartaStart]}>
+                  {first && (
+                    <View style={s.menuSectionHead}>
+                      <Text style={[s.menuSectionTitle, { flex: 1 }]}>LA CARTA</Text>
+                      {merged && !!price && <Text style={s.menuSectionTitle}>{price}</Text>}
+                    </View>
+                  )}
+                  {!merged && (
+                    <View style={s.menuSectionHead}>
+                      <Text style={[s.menuSectionTitle, { flex: 1 }]}>{section.nombre}</Text>
+                      {!!price && <Text style={s.menuSectionTitle}>{price}</Text>}
+                    </View>
+                  )}
+                  {section.platillos.map((dish) => (
+                    <View key={dish.id} style={s.menuRow}>
+                      <View style={{ flex: 1 }}>
+                        <Text style={s.menuRowName} allowFontScaling={true}>{dish.nombre}</Text>
+                        {dish.descripcion ? <Text style={s.menuRowDescription}>{noWidow(dish.descripcion)}</Text> : null}
+                      </View>
+                      {dish.precio ? <Text style={s.menuRowPrice} allowFontScaling={true}>${dish.precio}</Text> : null}
+                    </View>
+                  ))}
+                </View>
+              );
+            })}
           </View>
 
           {/* Firma de marca: minimalista — una línea sutil en light, nada más. */}
@@ -205,6 +256,7 @@ function makeStyles(c: FonderoColors) {
   posterHead: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, paddingHorizontal: 22, paddingTop: 26, paddingBottom: 18 },
   posterHeadLeft: { flex: 1 },
   posterPrice: { alignItems: 'flex-end' },
+  menuSectionHead: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
   posterPriceLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, color: LIGHT.inkSoft, marginBottom: 7 },
   posterPriceValue: { ...Type.section, color: LIGHT.ink, fontVariant: ['tabular-nums'] },
   posterDate: { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase', color: LIGHT.accent, marginBottom: 7 },
@@ -215,6 +267,9 @@ function makeStyles(c: FonderoColors) {
   // grupos, nunca dentro de ellos.
   menuCard: { marginHorizontal: 18, padding: 18, borderRadius: 18, borderCurve: 'continuous', backgroundColor: LIGHT.card, borderWidth: StyleSheet.hairlineWidth, borderColor: LIGHT.sep },
   menuSection: { marginTop: 10 },
+  posterIncludes: { marginBottom: 10, fontSize: 13, lineHeight: 18, fontWeight: '400', color: LIGHT.inkSoft },
+  // La carta se separa de lo de hoy con una línea, como en la ficha.
+  cartaStart: { marginTop: 14, paddingTop: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: LIGHT.sep },
   menuSectionTitle: { marginBottom: 2, fontSize: 11, fontWeight: '700', letterSpacing: 0.8, color: LIGHT.accent, textTransform: 'uppercase', lineHeight: 14 },
   menuRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', paddingVertical: 5, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: LIGHT.sep },
   menuRowName: { fontSize: 14, lineHeight: 18, fontWeight: '500', color: LIGHT.ink, marginRight: 10 },

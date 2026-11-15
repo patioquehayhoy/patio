@@ -88,7 +88,21 @@ function amountsOf(price?: string | null): number[] {
  * caro lo dicen el menú y la etiqueta de accesibilidad: sus extremos suelen
  * ser un agua y un platillo para compartir (auditoría 2026-11-08).
  */
-export function patioCardPrice(patio: Pick<Patio, 'price' | 'menu'>): PatioCardPrice {
+export function patioCardPrice(patio: Pick<Patio, 'price' | 'menu'> & Pick<Partial<Patio>, 'menuPrices'>): PatioCardPrice {
+  // Precios del menú (2026-11-14): el primero es la forma principal de
+  // cobrarlo («Completo»); los demás los dice la ficha.
+  const menuPrices = (patio.menuPrices ?? []).filter((item) => amountsOf(item.price).length);
+  if (menuPrices.length) {
+    const [low, high = low] = amountsOf(menuPrices[0].price);
+    const main = menuPrices[0].label ? `${menuPrices[0].label}, ` : '';
+    return {
+      label: rangeLabel(low, high),
+      source: 'menu-day',
+      value: (low + high) / 2,
+      accessibilityLabel: `Precio del menú, ${main}${amountLabel(low)}${low === high ? '' : ` a ${amountLabel(high)}`} pesos`,
+    };
+  }
+
   // El editor guarda el «Precio del menú» en una sola sección; varias
   // secciones con precio son precios por sección (menús leídos de foto).
   const pricedSections = patio.menu.filter((section) => amountsOf(section.price).length);

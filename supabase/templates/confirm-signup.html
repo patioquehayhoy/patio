@@ -1,59 +1,59 @@
 <html>
 <head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light only">
 <meta name="supported-color-schemes" content="light">
 </head>
-<body style="margin:0;background:#F3F3F0;padding:28px 16px;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif;color:#1C1C1E;">
-  <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+<!--
+  Acceso por código (Magic Link y Confirm signup). Asunto: «[código] es tu código para entrar a Patio».
+  Generado por supabase/templates/generar.py: no editar a mano.
+-->
+<body style="margin:0;padding:0;background:#FFFFFF;-webkit-text-size-adjust:100%;">
+  <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:#FFFFFF;">{{ .Token }} es tu código para entrar a Patio.&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;</div>
+  <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background:#FFFFFF;">
     <tr>
-      <td align="center">
-        <table width="420" cellpadding="0" cellspacing="0" role="presentation" style="width:420px;max-width:100%;background:#FFFFFF;border-radius:30px;border:1px solid #E7E7E2;box-shadow:0 12px 34px rgba(28,28,30,0.05);">
-
+      <td align="center" style="padding:40px 24px 40px 24px;">
+        <!--[if mso]><table width="600" cellpadding="0" cellspacing="0" role="presentation"><tr><td><![endif]-->
+        <table cellpadding="0" cellspacing="0" role="presentation" style="width:100%;max-width:600px;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',Helvetica,Arial,sans-serif;color:#1D1D1F;text-align:left;">
           <tr>
-            <td align="center" style="padding:50px 32px 0 32px;">
-              <img src="https://gjfjsjlrgycrgmcbjrus.supabase.co/storage/v1/object/public/Patio%20ID/logo-negro.png" width="176" alt="Patio" style="display:block;border:0;" />
+            <td style="padding:0 0 32px 0;">
+              <img src="https://gjfjsjlrgycrgmcbjrus.supabase.co/storage/v1/object/public/Patio%20ID/p-icon-correo.png" width="48" height="48" alt="Patio" style="display:block;border:1px solid #E5E5E0;border-radius:11px;" />
             </td>
           </tr>
-
           <tr>
-            <td align="center" style="padding:34px 32px 0 32px;">
-              <div style="font-size:32px;line-height:1.04;font-weight:700;letter-spacing:-0.8px;color:#1C1C1E;">
-                Accede a tu cuenta
-              </div>
+            <td style="padding:0 0 8px 0;font-size:24px;line-height:30px;font-weight:600;letter-spacing:-0.2px;color:#1D1D1F;">
+              Tu código para entrar a&nbsp;Patio
             </td>
           </tr>
-
           <tr>
-            <td align="center" style="padding:14px 32px 0 32px;">
-              <div style="max-width:320px;font-size:16px;line-height:1.35;font-weight:400;color:#6E6E73;">
-                Escribe este código en Patio o abre el enlace de abajo.
-              </div>
+            <td style="padding:0 0 16px 0;font-size:17px;line-height:24px;font-weight:400;color:#1D1D1F;">
+              Escríbelo en la&nbsp;app:
             </td>
           </tr>
-
-          <tr><td align="center" style="padding:24px 32px 0;font-size:32px;font-weight:700;letter-spacing:6px;">{{ .Token }}</td></tr>
-
           <tr>
-            <td align="center" style="padding:30px 32px 0 32px;">
-              <a href="{{ .ConfirmationURL }}" style="display:inline-block;min-width:260px;background:#1C1C1E;color:#FFFFFF;text-decoration:none;text-align:center;padding:18px 28px;border-radius:18px;font-size:16px;line-height:1;font-weight:600;">
-                Abrir Patio
-              </a>
+            <td style="padding:0 0 16px 0;font-size:34px;line-height:40px;font-weight:600;letter-spacing:3px;color:#1D1D1F;">
+              {{ .Token }}
             </td>
           </tr>
-
           <tr>
-            <td align="center" style="padding:28px 32px 40px 32px;">
-              <div style="max-width:320px;font-size:11px;line-height:1.35;color:rgba(110,110,115,0.72);">
-                Si no solicitaste este correo, puedes ignorarlo.
-              </div>
-              <div style="padding-top:4px;font-size:11px;line-height:1.35;color:rgba(110,110,115,0.72);">
-                Si tienes algún problema, escribe a
-                <a href="mailto:quehayhoy.patio@gmail.com" style="color:rgba(110,110,115,0.88);text-decoration:underline;">quehayhoy.patio@gmail.com</a>.
-              </div>
+            <td style="padding:0 0 8px 0;font-size:17px;line-height:24px;font-weight:400;color:#1D1D1F;">
+              Si abriste este correo en tu celular, puedes <a href="{{ .ConfirmationURL }}" style="color:#0066CC;text-decoration:none;">entrar con un&nbsp;toque</a>.
             </td>
           </tr>
-
+          <tr>
+            <td style="padding:0 0 32px 0;font-size:17px;line-height:24px;font-weight:400;color:#1D1D1F;">
+              No lo compartas: nadie de Patio te lo va a pedir. Si no lo pediste, ignora este&nbsp;correo.
+            </td>
+          </tr>
+          <tr>
+            <td style="border-top:1px solid #D2D2D7;padding:16px 0 0 0;font-size:12px;line-height:16px;font-weight:400;color:#6E6E73;">
+              Enviado a&nbsp;{{ .Email }}<br>
+              <a href="mailto:quehayhoy.patio@gmail.com" style="color:#0066CC;text-decoration:none;">Ayuda</a>&nbsp;&nbsp;|&nbsp;&nbsp;Patio, Ciudad de&nbsp;México
+            </td>
+          </tr>
         </table>
+        <!--[if mso]></td></tr></table><![endif]-->
       </td>
     </tr>
   </table>

@@ -22,6 +22,7 @@ import { TEXT_LIMITS } from '@/lib/text-limits';
 import { GlassIconButton } from '@/components/glass-button';
 import { PlacePhotoPicker } from '@/components/place-photo-picker';
 import { BusinessPaymentSelector } from '@/components/business-payment-selector';
+import { BusinessContactEditor } from '@/components/business-contact-editor';
 import { BusinessScheduleEditor } from '@/components/business-schedule-editor';
 import { SettingsGroup, SettingsRow, settingsColors } from '@/components/settings-list';
 
@@ -71,6 +72,10 @@ export default function PerfilScreen() {
     fotoUrl,
     negocioId,
     setFotoUrl,
+    telefono,
+    setTelefono,
+    whatsapp,
+    setWhatsapp,
     handleBack,
     handleMarkLocation,
     handleSaveAll,
@@ -231,6 +236,20 @@ export default function PerfilScreen() {
               setPagosTransState(pagos.transferencia);
               setPagosTarjetaState(pagos.tarjeta);
             }}
+          />
+        </View>
+
+        {/* ── CONTACTO ── opcional; en la ficha abre llamar o WhatsApp. */}
+        <View style={s.block}>
+          <Text style={s.blockLabel} allowFontScaling={true}>CONTACTO</Text>
+          <Text style={s.blockHelp} allowFontScaling={true}>{noWidow('Opcional. Si tiene WhatsApp, la gente podrá escribirte desde tu ficha para preguntar qué hay.')}</Text>
+          <BusinessContactEditor
+            colors={theme}
+            telefono={telefono}
+            whatsapp={whatsapp}
+            editable={ready}
+            onChangeTelefono={setTelefono}
+            onChangeWhatsapp={setWhatsapp}
           />
         </View>
 

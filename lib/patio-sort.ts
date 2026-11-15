@@ -14,7 +14,7 @@ export function patioDistance(origin: Coordinates | null, patio: Coordinates): n
 }
 
 /** Orders by the same typical price the card shows (2026-11-08), never by a menu extreme. */
-export function patioTypicalPrice(patio: Pick<Patio, 'price' | 'menu'>): number | null {
+export function patioTypicalPrice(patio: Pick<Patio, 'price' | 'menu'> & Pick<Partial<Patio>, 'menuPrices'>): number | null {
   return patioCardPrice(patio).value;
 }
 

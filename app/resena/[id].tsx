@@ -52,6 +52,7 @@ function makeStyles(t: Theme) {
 
     photoRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 14, borderCurve: 'continuous', backgroundColor: t.isDark ? 'rgba(255,255,255,0.04)' : 'rgba(17,18,20,0.04)', borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
     photoText: { fontSize: 13, color: t.textSecondary, flex: 1 },
+    dishPick: { marginTop: 18 },
     photoThumb: { width: 56, height: 56, borderRadius: 12, borderCurve: 'continuous' },
 
     ctaWrap: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 20, paddingTop: 14 },
@@ -88,6 +89,9 @@ export default function ResenaScreen() {
   const [selected, setSelected] = useState<string[]>([]);
   const [note, setNote] = useState('');
   const [photoUri, setPhotoUri] = useState<string | undefined>(undefined);
+  // ¿De qué platillo es la foto? (2026-11-15): así sale en la ficha al
+  // mantener presionado ese platillo. Opcional.
+  const [photoDish, setPhotoDish] = useState<string | undefined>(undefined);
   const [saving, setSaving] = useState(false);
   // Después de publicar: «Parecidos cerca» para seguir buscando lugares.
   const [similar, setSimilar] = useState<Patio[] | null>(null);
@@ -132,6 +136,8 @@ export default function ResenaScreen() {
     }
   };
 
+  const dishOptions = [...new Set([...(patio?.menu ?? []), ...(patio?.carta ?? [])].flatMap((section) => section.items.map((item) => item.name)))].slice(0, 24);
+
   const subtitle = (() => {
     const dishes = patio?.menu?.[0]?.items?.slice(0, 2).map((it) => it.name).join(' · ');
     const price = patio ? patioCardPrice(patio) : null;
@@ -147,7 +153,7 @@ export default function ResenaScreen() {
     }
     setSaving(true);
     try {
-      await savePatioRating(cleanId, { stars, reasons: selected, note, photoUri });
+      await savePatioRating(cleanId, { stars, reasons: selected, note, photoUri, photoDish });
       const suggestions = patio
         ? await Promise.all([fetchPublicFonditas(), getRatedPatioIds()])
           .then(([all, rated]) => similarPlaces(patio, all, rated))
@@ -156,7 +162,9 @@ export default function ResenaScreen() {
       if (suggestions.length) setSimilar(suggestions);
       else router.back();
     } catch (error) {
-      Alert.alert(noWidow('No pudimos publicar tu reseña'), noWidow(writeErrorMessage(error, 'Revisa tu conexión e inténtalo otra vez.')));
+      Alert.alert(noWidow('No pudimos publicar tu reseña'), noWidow(error instanceof Error && error.message === 'REVIEW_PHOTO_UPLOAD_FAILED'
+        ? 'No se pudo subir la foto. Revisa tu conexión o quítala y publica sin ella.'
+        : writeErrorMessage(error, 'Revisa tu conexión e inténtalo otra vez.')));
     } finally {
       setSaving(false);
     }
@@ -266,6 +274,22 @@ export default function ResenaScreen() {
           </Text>
           {photoUri ? <Ionicons name="checkmark-circle" size={18} color={theme.accent} /> : null}
         </TouchableOpacity>
+        {/* Con foto: ¿de qué platillo es? Los del menú de hoy y la carta. */}
+        {!!photoUri && dishOptions.length > 0 && (
+          <View style={s.dishPick}>
+            <Text style={s.sectionLabel}>{noWidow('¿De qué platillo es?')}</Text>
+            <View style={s.tagsWrap}>
+              {dishOptions.map((name) => {
+                const on = photoDish === name;
+                return (
+                  <TouchableOpacity key={name} activeOpacity={0.85} onPress={() => setPhotoDish(on ? undefined : name)} style={[s.tag, on ? s.tagOn : s.tagOff]} hitSlop={{ top: 6, bottom: 6, left: 4, right: 4 }} accessibilityRole="button" accessibilityState={{ selected: on }}>
+                    <Text style={[s.tagText, on && s.tagTextOn]} allowFontScaling={true}>{name}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+        )}
       </ScrollView>
 
       <View style={[s.ctaWrap, { paddingBottom: insets.bottom + 20 }]}>

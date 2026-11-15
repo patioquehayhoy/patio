@@ -53,3 +53,6 @@ app-example
 design-source/**/node_modules/
 design-source/**/dist/
 design-source/fuentes-prueba/paquetes/
+
+# Fotos de terceros para estudio interno (docs/research/menus_gmaps_*.py)
+docs/research/menus-gmaps/

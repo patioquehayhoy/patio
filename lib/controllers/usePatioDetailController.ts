@@ -1,3 +1,4 @@
+import { menuIncludesLine } from '@/lib/menu-prices';
 import { patioCardOpenState } from '@/lib/patio-card-info';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -5,7 +6,7 @@ import { Alert, Linking, Platform, Share } from 'react-native';
 import * as Haptics from 'expo-haptics';
 
 import { syncSavedPatioNotificationSubscriptions } from '@/lib/community-notifications';
-import { getFavoritePatioIds, toggleFavoritePatio } from '@/lib/favorites';
+import { getFavoritePatioIds, peekFavoritePatioIds, toggleFavoritePatio } from '@/lib/favorites';
 import { offerLunchReminderOnce } from '@/lib/first-save-offer';
 import {
   DIA_CORTO,
@@ -15,12 +16,13 @@ import {
   proximaApertura,
   resumenHorario,
 } from '@/lib/horario';
-import { cleanMenuDescription, cleanMenuText, fetchMenuForFondita } from '@/lib/menu';
+import { cleanMenuDescription, cleanMenuText, fetchMenuForFondita, type FonditaPublicMenu } from '@/lib/menu';
 import { fetchFonditaById, getPatioById, type Patio, type PatioMenuSection } from '@/lib/patios';
 import { publicCurrency, publicPrice } from '@/lib/prices';
 import { getPatioRating, getPublicPatioReviews, type PatioRating, type PublicPatioReview } from '@/lib/ratings';
 import { registerPatioView } from '@/lib/stats';
 import { noWidow } from '@/lib/typography';
+import { phoneCallUrl, whatsappUrl } from '@/lib/business-contact';
 
 type PatioParam = string | string[] | undefined;
 
@@ -73,8 +75,17 @@ const DEMO_LONGTIME_PATIO_REVIEWS: PublicPatioReview[] = [
   { userId: 'demo-longtime-2', author: 'Marco V.', stars: 4, reasons: ['Ambiente tranquilo'], note: 'Buen desayuno y atención constante desde hace tiempo.', timestamp: Date.now() - 1000 * 60 * 60 * 92, isMine: false },
 ];
 
+// Fotos de clientes en DEV (Unsplash, uso libre): Gringa solo tiene la de un
+// cliente; Al pastor tiene la del negocio y, abajo, más de clientes.
+const devCustomerPhoto = (id: string) => `https://images.unsplash.com/photo-${id}?w=900&q=75`;
+const DEMO_DEV1_REVIEWS: PublicPatioReview[] = [
+  { userId: 'demo-dev1-1', author: 'Caro M.', stars: 5, reasons: ['Sabor casero'], note: 'La gringa de pastor está buenísima, pídela con piña.', timestamp: Date.now() - 1000 * 60 * 60 * 5, photoUrl: devCustomerPhoto('1565299585323-38d6b0865b47'), photoDish: 'Gringa de pastor con queso', isMine: false },
+  { userId: 'demo-dev1-2', author: 'Iván R.', stars: 4, reasons: ['Buena porción'], note: 'Los de pastor llegan calientitos.', timestamp: Date.now() - 1000 * 60 * 60 * 26, photoUrl: devCustomerPhoto('1624300629298-e9de39c13be5'), photoDish: 'Al pastor', isMine: false },
+];
+
 function withDemoProfileReviews(patioId: string, reviews: PublicPatioReview[]) {
   if (!__DEV__) return reviews;
+  if (patioId === 'demo-dev-1') return [...reviews, ...DEMO_DEV1_REVIEWS];
   if (patioId === 'demo-mi-patio') return [...reviews, ...DEMO_PROFILE_REVIEWS];
   if (patioId === 'demo-patio-2') return [...reviews, ...DEMO_CRITICAL_REVIEWS];
   if (patioId === 'demo-patio-3') return [...reviews, ...DEMO_ESTABLISHED_REVIEWS];
@@ -93,8 +104,11 @@ function patioStatus(patio: Patio): boolean | null {
 export function usePatioDetailController(id: PatioParam) {
   const [patio, setPatio] = useState<Patio | null>(null);
   const [loading, setLoading] = useState(true);
-  const [liveMenu, setLiveMenu] = useState<PatioMenuSection[] | null>(null);
-  const [isSaved, setIsSaved] = useState(false);
+  const [liveMenu, setLiveMenu] = useState<FonditaPublicMenu | null>(null);
+  const [isSaved, setIsSaved] = useState(() => !!cleanParam(id) && !!peekFavoritePatioIds()?.includes(cleanParam(id)!));
+  // Hasta saber si ya lo sigues, el botón no se muestra: antes salía
+  // «Seguir» en naranja y medio segundo después cambiaba a «Siguiendo».
+  const [savedKnown, setSavedKnown] = useState(() => peekFavoritePatioIds() !== null);
   const [userReview, setUserReview] = useState<PatioRating | null>(null);
   const [reviews, setReviews] = useState<PublicPatioReview[]>([]);
   const cleanId = cleanParam(id);
@@ -106,7 +120,10 @@ export function usePatioDetailController(id: PatioParam) {
     setLiveMenu(null);
     setUserReview(null);
     setReviews([]);
-    setIsSaved(false);
+    // Con la copia en memoria se sabe de inmediato; si no, se espera al disco.
+    const known = peekFavoritePatioIds();
+    setIsSaved(!!cleanId && !!known?.includes(cleanId));
+    setSavedKnown(known !== null);
     setLoading(true);
     if (!cleanId) {
       setLoading(false);
@@ -132,9 +149,12 @@ export function usePatioDetailController(id: PatioParam) {
     if (!patioId) return;
     let active = true;
     void registerPatioView(patioId).catch(() => {});
-    getFavoritePatioIds().then((ids) => { if (active) setIsSaved(ids.includes(patioId)); }).catch(() => {});
-    fetchMenuForFondita(patioId).then((sections) => {
-      if (active) setLiveMenu(sections.length ? sections : null);
+    getFavoritePatioIds()
+      .then((ids) => { if (active) setIsSaved(ids.includes(patioId)); })
+      .catch(() => {})
+      .finally(() => { if (active) setSavedKnown(true); });
+    fetchMenuForFondita(patioId).then((menu) => {
+      if (active) setLiveMenu(menu.sections.length ? menu : null);
     }).catch(() => {});
     return () => { active = false; };
   }, [patioId]);
@@ -166,8 +186,7 @@ export function usePatioDetailController(id: PatioParam) {
     return min != null && min <= 30 ? min : null;
   }, [patio, status]);
   const soldOut = patio?.soldOut === true;
-  const sections = useMemo(
-    () => (liveMenu ?? patio?.menu ?? []).map((section) => ({
+  const tidy = (list: PatioMenuSection[]) => list.map((section) => ({
       ...section,
       section: cleanMenuText(section.section) || section.section,
       items: section.items.map((item) => ({
@@ -182,9 +201,12 @@ export function usePatioDetailController(id: PatioParam) {
           };
         })(),
       })),
-    })),
-    [liveMenu, patio],
-  );
+    }));
+  const sections = useMemo(() => tidy(liveMenu?.sections ?? patio?.menu ?? []), [liveMenu, patio]);
+  // Precios del menú de hoy y la carta de siempre (2026-11-14).
+  const menuPrices = useMemo(() => (liveMenu ? liveMenu.prices : patio?.menuPrices) ?? [], [liveMenu, patio]);
+  const carta = useMemo(() => tidy(liveMenu ? liveMenu.carta : patio?.carta ?? []), [liveMenu, patio]);
+  const menuIncludes = (liveMenu ? liveMenu.includes : menuIncludesLine(patio?.menuIncludes)) || '';
   const hoy = useMemo(() => (patio ? horarioDeHoy(patio.weeklyHours) : null), [patio]);
   const rangoHoy = useMemo(() => {
     if (!patio) return '';
@@ -198,7 +220,7 @@ export function usePatioDetailController(id: PatioParam) {
     const prox = patio ? proximaApertura(patio.weeklyHours) : null;
     return prox ? `${DIA_CORTO[prox.dia]} abre a las ${formatHHMM12(prox.abre)}` : null;
   }, [patio]);
-  const menuPrice = sections.find((section) => publicPrice(section.price))?.price;
+  const menuPrice = menuPrices[0]?.price ?? sections.find((section) => publicPrice(section.price))?.price;
   const priceLabel = menuPrice ? publicCurrency(menuPrice) : publicPrice(patio?.price);
   const todayLabel = DIA_CORTO[hoy?.dia ?? new Date().getDay()];
 
@@ -206,6 +228,23 @@ export function usePatioDetailController(id: PatioParam) {
     if (router.canGoBack()) router.back();
     else router.replace('/explorar');
   }, []);
+
+  // Número del negocio: llamar o WhatsApp, lo que el negocio tenga.
+  const handleCall = useCallback(() => {
+    if (!patio?.phone) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    Linking.openURL(phoneCallUrl(patio.phone)).catch(() => {
+      Alert.alert(noWidow('No pudimos abrir el teléfono'), noWidow('Inténtalo de nuevo.'));
+    });
+  }, [patio]);
+
+  const handleWhatsapp = useCallback(() => {
+    if (!patio?.phone) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    Linking.openURL(whatsappUrl(patio.phone, patio.name)).catch(() => {
+      Alert.alert(noWidow('No pudimos abrir WhatsApp'), noWidow('Revisa que esté instalado e inténtalo de nuevo.'));
+    });
+  }, [patio]);
 
   const handleComoLlegar = useCallback(() => {
     if (!patio) return;
@@ -255,16 +294,22 @@ export function usePatioDetailController(id: PatioParam) {
     cleanId,
     handleBack,
     handleComoLlegar,
+    handleCall,
+    handleWhatsapp,
     handleShare,
     handleStarPress,
     handleToggleSaved,
     hoy,
     isClosed,
     isSaved,
+    savedKnown,
     loading,
     patio,
     patioId,
     priceLabel,
+    menuPrices,
+    menuIncludes,
+    carta,
     proxTexto,
     rangoHoy,
     reviews,

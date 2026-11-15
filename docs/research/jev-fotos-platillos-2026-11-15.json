@@ -1,0 +1,660 @@
+{
+ "app": "Una app mexicana de celular donde las fondas, cocinas económicas y personas que venden comida en casa publican su menú del día y su carta. La gente cercana lo ve en un mapa y va al lugar. El menú se ve como lista de texto; si mantienes presionado un platillo, aparece una foto grande del platillo con una descripción corta.",
+ "negocios": {
+  "fondera": {
+   "quien_foto": {
+    "type": "choice",
+    "choice": "negocio",
+    "confidence": 0.31,
+    "probabilities": {
+     "ambos": 0.43,
+     "negocio": 0.54,
+     "comensales": 0.03
+    }
+   },
+   "quien_desc": {
+    "type": "choice",
+    "choice": "negocio",
+    "confidence": 0.98,
+    "probabilities": {
+     "negocio": 0.99,
+     "comensales": 0.01
+    }
+   },
+   "cuando_foto": {
+    "type": "choice",
+    "choice": "carta",
+    "confidence": 0.1,
+    "probabilities": {
+     "diario": 0.45,
+     "carta": 0.55
+    }
+   },
+   "escalas": {
+    "subiria": {
+     "type": "score",
+     "score": 2.07,
+     "confidence": 0.02,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.06,
+      "1": 0.37,
+      "2": 0.15,
+      "3": 0.29,
+      "4": 0.13
+     }
+    },
+    "miedo_cliente": {
+     "type": "score",
+     "score": 1.91,
+     "confidence": 0.02,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.14,
+      "1": 0.27,
+      "2": 0.17,
+      "3": 0.37,
+      "4": 0.05
+     }
+    },
+    "trabajo": {
+     "type": "score",
+     "score": 2.08,
+     "confidence": 0.19,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.35,
+      "2": 0.22,
+      "3": 0.4,
+      "4": 0.02
+     }
+    }
+   }
+  },
+  "callejon": {
+   "quien_foto": {
+    "type": "choice",
+    "choice": "ambos",
+    "confidence": 0.14,
+    "probabilities": {
+     "ambos": 0.43,
+     "negocio": 0.43,
+     "comensales": 0.14
+    }
+   },
+   "quien_desc": {
+    "type": "choice",
+    "choice": "negocio",
+    "confidence": 0.98,
+    "probabilities": {
+     "negocio": 0.99,
+     "comensales": 0.01
+    }
+   },
+   "cuando_foto": {
+    "type": "choice",
+    "choice": "carta",
+    "confidence": 0.2,
+    "probabilities": {
+     "diario": 0.4,
+     "carta": 0.6
+    }
+   },
+   "escalas": {
+    "subiria": {
+     "type": "score",
+     "score": 1.8,
+     "confidence": 0.17,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.09,
+      "1": 0.44,
+      "2": 0.13,
+      "3": 0.25,
+      "4": 0.09
+     }
+    },
+    "miedo_cliente": {
+     "type": "score",
+     "score": 1.87,
+     "confidence": 0.0,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.13,
+      "1": 0.3,
+      "2": 0.18,
+      "3": 0.36,
+      "4": 0.03
+     }
+    },
+    "trabajo": {
+     "type": "score",
+     "score": 1.87,
+     "confidence": 0.24,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.03,
+      "1": 0.46,
+      "2": 0.16,
+      "3": 0.33,
+      "4": 0.02
+     }
+    }
+   }
+  },
+  "cocina": {
+   "quien_foto": {
+    "type": "choice",
+    "choice": "ambos",
+    "confidence": 0.76,
+    "probabilities": {
+     "comensales": 0.01,
+     "negocio": 0.15,
+     "ambos": 0.84
+    }
+   },
+   "quien_desc": {
+    "type": "choice",
+    "choice": "negocio",
+    "confidence": 0.96,
+    "probabilities": {
+     "comensales": 0.02,
+     "negocio": 0.98
+    }
+   },
+   "cuando_foto": {
+    "type": "choice",
+    "choice": "diario",
+    "confidence": 0.52,
+    "probabilities": {
+     "diario": 0.76,
+     "carta": 0.24
+    }
+   },
+   "escalas": {
+    "subiria": {
+     "type": "score",
+     "score": 2.42,
+     "confidence": 0.2,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.05,
+      "1": 0.24,
+      "2": 0.14,
+      "3": 0.38,
+      "4": 0.19
+     }
+    },
+    "miedo_cliente": {
+     "type": "score",
+     "score": 1.82,
+     "confidence": 0.0,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.15,
+      "1": 0.31,
+      "2": 0.16,
+      "3": 0.34,
+      "4": 0.04
+     }
+    },
+    "trabajo": {
+     "type": "score",
+     "score": 1.44,
+     "confidence": 0.6,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.02,
+      "1": 0.7,
+      "2": 0.11,
+      "3": 0.16,
+      "4": 0.01
+     }
+    }
+   }
+  },
+  "casa": {
+   "quien_foto": {
+    "type": "choice",
+    "choice": "ambos",
+    "confidence": 0.34,
+    "probabilities": {
+     "comensales": 0.03,
+     "negocio": 0.41,
+     "ambos": 0.56
+    }
+   },
+   "quien_desc": {
+    "type": "choice",
+    "choice": "negocio",
+    "confidence": 0.96,
+    "probabilities": {
+     "comensales": 0.02,
+     "negocio": 0.98
+    }
+   },
+   "cuando_foto": {
+    "type": "choice",
+    "choice": "diario",
+    "confidence": 0.64,
+    "probabilities": {
+     "diario": 0.82,
+     "carta": 0.18
+    }
+   },
+   "escalas": {
+    "subiria": {
+     "type": "score",
+     "score": 2.19,
+     "confidence": 0.11,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.05,
+      "1": 0.31,
+      "2": 0.17,
+      "3": 0.34,
+      "4": 0.13
+     }
+    },
+    "miedo_cliente": {
+     "type": "score",
+     "score": 1.89,
+     "confidence": 0.0,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.15,
+      "1": 0.29,
+      "2": 0.14,
+      "3": 0.37,
+      "4": 0.05
+     }
+    },
+    "trabajo": {
+     "type": "score",
+     "score": 1.42,
+     "confidence": 0.61,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.02,
+      "1": 0.7,
+      "2": 0.12,
+      "3": 0.15,
+      "4": 0.01
+     }
+    }
+   }
+  }
+ },
+ "foodies": {
+  "oficinista": {
+   "quien_foto": {
+    "type": "choice",
+    "choice": "ambos",
+    "confidence": 0.31,
+    "probabilities": {
+     "negocio": 0.02,
+     "comensales": 0.44,
+     "ambos": 0.54
+    }
+   },
+   "quien_desc": {
+    "type": "choice",
+    "choice": "negocio",
+    "confidence": 0.92,
+    "probabilities": {
+     "comensales": 0.04,
+     "negocio": 0.96
+    }
+   },
+   "escalas": {
+    "ayuda_decidir": {
+     "type": "score",
+     "score": 2.58,
+     "confidence": 0.58,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.12,
+      "2": 0.19,
+      "3": 0.64,
+      "4": 0.04
+     }
+    },
+    "confia_negocio": {
+     "type": "score",
+     "score": 1.38,
+     "confidence": 0.68,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.64,
+      "2": 0.33,
+      "3": 0.03,
+      "4": 0.0
+     }
+    },
+    "confia_cliente": {
+     "type": "score",
+     "score": 1.76,
+     "confidence": 0.58,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.36,
+      "2": 0.51,
+      "3": 0.12,
+      "4": 0.0
+     }
+    },
+    "descubre": {
+     "type": "score",
+     "score": 3.32,
+     "confidence": 0.44,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.06,
+      "2": 0.07,
+      "3": 0.35,
+      "4": 0.52
+     }
+    }
+   }
+  },
+  "mama": {
+   "quien_foto": {
+    "type": "choice",
+    "choice": "ambos",
+    "confidence": 0.52,
+    "probabilities": {
+     "negocio": 0.01,
+     "comensales": 0.31,
+     "ambos": 0.68
+    }
+   },
+   "quien_desc": {
+    "type": "choice",
+    "choice": "negocio",
+    "confidence": 0.96,
+    "probabilities": {
+     "negocio": 0.98,
+     "comensales": 0.02
+    }
+   },
+   "escalas": {
+    "ayuda_decidir": {
+     "type": "score",
+     "score": 2.73,
+     "confidence": 0.72,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.07,
+      "2": 0.16,
+      "3": 0.73,
+      "4": 0.04
+     }
+    },
+    "confia_negocio": {
+     "type": "score",
+     "score": 1.55,
+     "confidence": 0.54,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.49,
+      "2": 0.47,
+      "3": 0.04,
+      "4": 0.0
+     }
+    },
+    "confia_cliente": {
+     "type": "score",
+     "score": 1.82,
+     "confidence": 0.69,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.27,
+      "2": 0.63,
+      "3": 0.1,
+      "4": 0.0
+     }
+    },
+    "descubre": {
+     "type": "score",
+     "score": 2.97,
+     "confidence": 0.53,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.08,
+      "2": 0.14,
+      "3": 0.52,
+      "4": 0.26
+     }
+    }
+   }
+  },
+  "foraneo": {
+   "quien_foto": {
+    "type": "choice",
+    "choice": "comensales",
+    "confidence": 0.56,
+    "probabilities": {
+     "ambos": 0.17,
+     "comensales": 0.71,
+     "negocio": 0.12
+    }
+   },
+   "quien_desc": {
+    "type": "choice",
+    "choice": "negocio",
+    "confidence": 0.82,
+    "probabilities": {
+     "negocio": 0.91,
+     "comensales": 0.09
+    }
+   },
+   "escalas": {
+    "ayuda_decidir": {
+     "type": "score",
+     "score": 3.01,
+     "confidence": 0.81,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.02,
+      "2": 0.07,
+      "3": 0.79,
+      "4": 0.12
+     }
+    },
+    "confia_negocio": {
+     "type": "score",
+     "score": 1.79,
+     "confidence": 0.61,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.34,
+      "2": 0.53,
+      "3": 0.13,
+      "4": 0.0
+     }
+    },
+    "confia_cliente": {
+     "type": "score",
+     "score": 2.25,
+     "confidence": 0.55,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.14,
+      "2": 0.47,
+      "3": 0.38,
+      "4": 0.01
+     }
+    },
+    "descubre": {
+     "type": "score",
+     "score": 3.46,
+     "confidence": 0.54,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.04,
+      "2": 0.05,
+      "3": 0.33,
+      "4": 0.58
+     }
+    }
+   }
+  }
+ }
+}

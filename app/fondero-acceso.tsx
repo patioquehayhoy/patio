@@ -20,6 +20,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { EmailCodeForm } from '@/components/email-code-form';
+import { PrivacyConsentLine } from '@/components/privacy-consent-line';
 import { AgentSpinner } from '@/components/agent-spinner';
 import { LOGIN_CALLBACK_URL } from '@/lib/auth';
 import { isValidEmail } from '@/lib/auth-links';
@@ -203,6 +204,7 @@ export default function FonderoAccesoScreen() {
                 </BlurView>
               </View>
               {error ? <Text style={s.errorText} allowFontScaling={true}>{error}</Text> : null}
+              <PrivacyConsentLine />
             </View>
           ) : (
             <View style={s.actionArea}>

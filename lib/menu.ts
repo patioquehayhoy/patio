@@ -1,8 +1,10 @@
+import { isDishPhotoUrl } from './dish-photo-url';
 import { supabase } from './supabase';
 import type { Patio, PatioMenuSection, PatioDishMatch } from './patios';
 import { normalizeMenuData, type MenuData } from './menu-store';
 import { localMenuDate } from './menu-date';
 import { publicCurrency } from './prices';
+import { menuIncludesLine, publicMenuPrices, withMenuPrecios, type PublicMenuPrice } from './menu-prices';
 
 export function cleanMenuText(value?: string): string | undefined {
   if (!value) return undefined;
@@ -19,8 +21,8 @@ export function cleanMenuText(value?: string): string | undefined {
 
 export const cleanMenuDescription = cleanMenuText;
 
-function menuDataToSections(data: MenuData): PatioMenuSection[] {
-  return data.secciones
+function menuDataToSections(data: MenuData, kind: 'hoy' | 'carta' = 'hoy'): PatioMenuSection[] {
+  return (kind === 'carta' ? data : withMenuPrecios(data)).secciones
     .filter((sec) => sec.platillos.some((p) => p.nombre))
     .map((sec) => ({
       section: cleanMenuText(sec.nombre) || sec.nombre,
@@ -31,33 +33,37 @@ function menuDataToSections(data: MenuData): PatioMenuSection[] {
           name: cleanMenuText(p.nombre) || p.nombre,
           description: cleanMenuDescription(p.descripcion),
           price: publicCurrency(p.precio) || undefined,
+          ...(isDishPhotoUrl(p.foto) ? { photo: p.foto } : {}),
         })),
     }));
 }
 
-export async function fetchMenuForFondita(fonditaId: string): Promise<PatioMenuSection[]> {
-  // Lo publicado hoy manda; la carta permanente es el fallback para el
-  // negocio que no cambia menú todos los días.
-  const { data: menuHoy } = await supabase
-    .from('menus')
-    .select('secciones')
-    .eq('negocio_id', fonditaId)
-    .eq('fecha', localMenuDate())
-    .maybeSingle();
+export type FonditaPublicMenu = {
+  /** Lo de hoy; sin menú de hoy, la carta. */
+  sections: PatioMenuSection[];
+  /** Precios del menú de hoy. */
+  prices: PublicMenuPrice[];
+  /** «Incluye sopa, arroz y agua.» del menú de hoy, si lo escribió. */
+  includes?: string;
+  /** La carta de siempre, debajo del menú de hoy. Vacía si `sections` ya es la carta. */
+  carta: PatioMenuSection[];
+};
 
-  const today = normalizeMenuData(menuHoy?.secciones);
-  if (today?.secciones.some((section) => section.platillos.some((dish) => dish.nombre.trim()))) return menuDataToSections(today);
-
-  const { data: carta } = await supabase
-    .from('cartas')
-    .select('secciones')
-    .eq('negocio_id', fonditaId)
-    .maybeSingle();
+export async function fetchMenuForFondita(fonditaId: string): Promise<FonditaPublicMenu> {
+  // Lo de hoy (lo que cambia) arriba, con sus precios; la carta (lo de
+  // siempre) abajo. Sin menú de hoy, la carta ocupa su lugar.
+  const [{ data: menuHoy }, { data: carta }] = await Promise.all([
+    supabase.from('menus').select('secciones').eq('negocio_id', fonditaId).eq('fecha', localMenuDate()).maybeSingle(),
+    supabase.from('cartas').select('secciones').eq('negocio_id', fonditaId).maybeSingle(),
+  ]);
 
   const permanent = normalizeMenuData(carta?.secciones);
-  if (permanent) return menuDataToSections(permanent);
-
-  return [];
+  const cartaSections = permanent ? menuDataToSections(permanent, 'carta') : [];
+  const today = normalizeMenuData(menuHoy?.secciones);
+  if (today?.secciones.some((section) => section.platillos.some((dish) => dish.nombre.trim()))) {
+    return { sections: menuDataToSections(today), prices: publicMenuPrices(today), includes: menuIncludesLine(today.incluye) || undefined, carta: cartaSections };
+  }
+  return { sections: cartaSections, prices: [], carta: [] };
 }
 
 function normalize(s: string): string {

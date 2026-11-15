@@ -1,8 +1,10 @@
+import { isDishPhotoUrl } from './dish-photo-url';
 import { supabase } from './supabase';
 import { localMenuDate } from './menu-date';
 import { normalizeMenuData } from './menu-store';
 import { cleanMenuText } from './menu';
 import { publicCurrency } from './prices';
+import { publicMenuPrices, withMenuPrecios, type PublicMenuPrice } from './menu-prices';
 import {
   deserialize,
   migrarStringLegacy,
@@ -16,6 +18,8 @@ export type PatioMenuItem = {
   description?: string;
   price?: string;
   tags?: string[];
+  /** Foto del platillo: se ve manteniéndolo presionado en la ficha. */
+  photo?: string;
 };
 
 export type PatioMenuSection = {
@@ -61,6 +65,16 @@ export type Patio = {
   // Foto del lugar que subió el negocio (alta o «Editar mi negocio»); sin ella
   // la ficha usa su foto botánica de siempre.
   photoUrl?: string;
+  // Número del negocio (opcional): llamar y, si lo marca, WhatsApp.
+  phone?: string;
+  whatsapp?: boolean;
+  // Precios del menú de hoy («Completo $95», «Solo guisado $70»).
+  menuPrices?: PublicMenuPrice[];
+  // La carta de siempre, cuando además hay menú de hoy (sin menú de hoy, la
+  // carta ocupa `menu`).
+  carta?: PatioMenuSection[];
+  /** «Incluye…» del menú del día (DEV y ficha). */
+  menuIncludes?: string;
 };
 
 // Deriva el horario semanal de una fila: jsonb nuevo, o fallback al string viejo.
@@ -303,13 +317,20 @@ async function withDevPatios(reales: Patio[]): Promise<Patio[]> {
 
 const FONDITAS_BASE_COLUMNS = 'id, nombre, descripcion, direccion, horario, horario_semanal, tipo_negocio, pagos_efectivo, pagos_transferencia, pagos_tarjeta, latitude, longitude';
 
-function publicMenuSections(value: unknown): PatioMenuSection[] {
+type PublicMenuEntry = { menu: PatioMenuSection[]; hasTodayMenu: boolean; menuPrices: PublicMenuPrice[]; carta: PatioMenuSection[] };
+
+function publicMenuSections(value: unknown, kind: 'hoy' | 'carta' = 'hoy'): PatioMenuSection[] {
   const normalized = normalizeMenuData(value);
-  return (normalized?.secciones ?? []).flatMap((section) => {
+  // Un menú del día guardado antes del 14 nov tiene el precio del menú en su
+  // primera sección: sale como precio del menú, no como precio de esa
+  // sección. La carta no tiene precios del menú: sus secciones quedan igual.
+  const sections = !normalized ? [] : kind === 'carta' ? normalized.secciones : withMenuPrecios(normalized).secciones;
+  return sections.flatMap((section) => {
     const items = section.platillos.filter((item) => item.nombre.trim()).map((item) => ({
       name: cleanMenuText(item.nombre) || item.nombre,
       description: cleanMenuText(item.descripcion),
       price: publicCurrency(item.precio) || undefined,
+      ...(isDishPhotoUrl(item.foto) ? { photo: item.foto } : {}),
     }));
     return items.length ? [{ section: cleanMenuText(section.nombre) || section.nombre, price: publicCurrency(section.precio) || undefined, items }] : [];
   });
@@ -317,8 +338,8 @@ function publicMenuSections(value: unknown): PatioMenuSection[] {
 
 // Two batched reads hydrate both Map and Saved consistently. A permanent menu
 // provides useful dishes but must never advertise a publication made today.
-async function fetchPublicMenus(ids: string[]): Promise<Map<string, { menu: PatioMenuSection[]; hasTodayMenu: boolean }>> {
-  const result = new Map<string, { menu: PatioMenuSection[]; hasTodayMenu: boolean }>();
+async function fetchPublicMenus(ids: string[]): Promise<Map<string, PublicMenuEntry>> {
+  const result = new Map<string, PublicMenuEntry>();
   if (!ids.length) return result;
   const today = localMenuDate();
   const [daily, permanent] = await Promise.allSettled([
@@ -327,14 +348,17 @@ async function fetchPublicMenus(ids: string[]): Promise<Map<string, { menu: Pati
   ]);
   if (permanent.status === 'fulfilled' && !permanent.value.error) {
     for (const row of permanent.value.data ?? []) {
-      result.set(row.negocio_id, { menu: publicMenuSections(row.secciones), hasTodayMenu: false });
+      result.set(row.negocio_id, { menu: publicMenuSections(row.secciones, 'carta'), hasTodayMenu: false, menuPrices: [], carta: [] });
     }
   }
   if (daily.status === 'fulfilled' && !daily.value.error) {
     for (const row of daily.value.data ?? []) {
       if (row.fecha !== today) continue;
       const menu = publicMenuSections(row.secciones);
-      if (menu.length) result.set(row.negocio_id, { menu, hasTodayMenu: true });
+      const normalized = normalizeMenuData(row.secciones);
+      // La carta de siempre sigue debajo del menú de hoy.
+      const carta = result.get(row.negocio_id)?.menu ?? [];
+      if (menu.length) result.set(row.negocio_id, { menu, hasTodayMenu: true, menuPrices: normalized ? publicMenuPrices(normalized) : [], carta });
     }
   }
   return result;
@@ -383,6 +407,8 @@ export async function fetchPublicFonditas(options: { throwOnError?: boolean } = 
       y: 0,
       menu: menus.get(row.id)?.menu ?? [],
       hasTodayMenu: menus.get(row.id)?.hasTodayMenu ?? false,
+      menuPrices: menus.get(row.id)?.menuPrices ?? [],
+      carta: menus.get(row.id)?.carta ?? [],
       payments: [
         ...(row.pagos_efectivo ? ['Efectivo'] : []),
         ...(row.pagos_transferencia ? ['Transferencia'] : []),
@@ -421,15 +447,19 @@ export async function fetchFonditaById(id: string, options: { throwOnError?: boo
 
   const weekly = weeklyFromRow(row.horario_semanal, (row.horario as string | null) ?? null);
   // La foto va aparte: si el servidor aún no tiene la columna, la ficha sale igual.
-  const [menus, photo] = await Promise.all([
+  const [menus, photo, contact] = await Promise.all([
     fetchPublicMenus([id]),
     supabase.from('negocios').select('foto_url').eq('id', id).maybeSingle(),
+    supabase.from('negocios').select('contacto_telefono, contacto_whatsapp').eq('id', id).maybeSingle(),
   ]);
+  const contactRow = contact.error ? null : contact.data as { contacto_telefono?: string | null; contacto_whatsapp?: boolean | null } | null;
   const menu = menus.get(id);
   const photoUrl = photo.error ? undefined : (photo.data as { foto_url?: string | null } | null)?.foto_url ?? undefined;
   return {
     id: row.id as string,
     photoUrl,
+    phone: contactRow?.contacto_telefono ?? undefined,
+    whatsapp: !!contactRow?.contacto_telefono && !!contactRow?.contacto_whatsapp,
     name: (row.nombre as string | null) ?? 'Sin nombre',
     categories: categoriasFromRow(row.categorias, row.tipo_negocio as string | null),
     area: '',
@@ -443,6 +473,8 @@ export async function fetchFonditaById(id: string, options: { throwOnError?: boo
     x: 0, y: 0,
     menu: menu?.menu ?? [],
     hasTodayMenu: menu?.hasTodayMenu ?? false,
+    menuPrices: menu?.menuPrices ?? [],
+    carta: menu?.carta ?? [],
     payments: [
       ...(row.pagos_efectivo ? ['Efectivo'] : []),
       ...(row.pagos_transferencia ? ['Transferencia'] : []),

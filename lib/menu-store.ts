@@ -4,6 +4,9 @@ import type { HorarioSemanal } from './horario';
 export function makeSectionId(): string {
   return Date.now().toString(36) + Math.random().toString(36).slice(2);
 }
+export function makePrecioId(): string {
+  return 'm' + Date.now().toString(36) + Math.random().toString(36).slice(2);
+}
 export function makePlatilloId(): string {
   return 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2);
 }
@@ -16,6 +19,8 @@ export interface Platillo {
   precio: string;
   confianza?: number;
   revision?: string;
+  /** Foto del platillo (bucket `dish-photos`): se ve al mantenerlo presionado en la ficha. */
+  foto?: string;
 }
 
 export interface Seccion {
@@ -23,11 +28,28 @@ export interface Seccion {
   nombre: string;
   precio: string;
   platillos: Platillo[];
+  /** En el editor: la sección es de la carta (lo de siempre), no de hoy. */
+  carta?: boolean;
+}
+
+/**
+ * Un precio del menú del día (2026-11-14): las fondas cobran el menú en
+ * varias formas — «Completo» $95, «Solo guisado» $70, «Ejecutivo» $120. El
+ * nombre es opcional cuando hay uno solo.
+ */
+export interface MenuPrecio {
+  id: string;
+  nombre: string;
+  precio: string;
 }
 
 export type MenuData = {
   /** Solo contexto local del editor; cleanMenu lo excluye del menú público. */
   localDraftId?: string;
+  /** Precios del menú completo. Los precios de sección y de platillo viven en su lugar. */
+  precios?: MenuPrecio[];
+  /** «Incluye…» del menú del día (2026-11-15, prueba): «sopa, arroz y agua». */
+  incluye?: string;
   secciones: Seccion[];
 };
 
@@ -57,6 +79,18 @@ const SECCION_DEFAULTS: Record<string, string[]> = {
 // su menú. Con el tiempo esto puede alimentarse de su historial real.
 export function seccionSugerencias(tipo?: string | null): string[] {
   return (tipo ? SECCION_DEFAULTS[tipo] : null) ?? SECCION_DEFAULTS['fondita'];
+}
+
+// La carta es lo de siempre: en una fonda, lo que se pide aparte del menú
+// del día. En los demás giros la carta ya es su menú de siempre.
+const CARTA_DEFAULTS: Record<string, string[]> = {
+  fondita:     ['DESAYUNOS', 'PLATOS FUERTES', 'ANTOJITOS', 'BEBIDAS'],
+  casa:        ['DE SIEMPRE', 'POR ENCARGO', 'BEBIDAS'],
+  restaurante: ['ENTRADAS', 'PLATOS FUERTES', 'POSTRES', 'BEBIDAS'],
+};
+
+export function cartaSugerencias(tipo?: string | null): string[] {
+  return (tipo ? CARTA_DEFAULTS[tipo] ?? SECCION_DEFAULTS[tipo] : null) ?? CARTA_DEFAULTS['fondita'];
 }
 
 // Forma canónica de un nombre de sección para comparar equivalencias:
@@ -140,18 +174,26 @@ export function normalizeMenuData(raw: unknown): MenuData | null {
           precio: text(dish.precio),
           ...(typeof dish.confianza === 'number' && Number.isFinite(dish.confianza) ? { confianza: dish.confianza } : {}),
           ...(typeof dish.revision === 'string' ? { revision: dish.revision } : {}),
+          ...(typeof dish.foto === 'string' && dish.foto ? { foto: dish.foto } : {}),
         }];
       });
     } else if (Array.isArray(sec.items)) {
       platillos = sec.items.map(legacyDish).filter((dish): dish is Platillo => dish !== null);
     } else return null;
-    return { id: uniqueId(sec.id, makeSectionId), nombre: text(sec.nombre), precio: text(sec.precio), platillos };
+    return { id: uniqueId(sec.id, makeSectionId), nombre: text(sec.nombre), precio: text(sec.precio), platillos, ...(sec.carta === true ? { carta: true } : {}) };
   };
 
   // Normalize every section, including mixed legacy/current storage. Never
   // trust the first item as proof that all nested arrays and strings exist.
   if (Array.isArray(value.secciones)) {
-    return { secciones: value.secciones.map(section).filter((sec): sec is Seccion => sec !== null) };
+    const secciones = value.secciones.map(section).filter((sec): sec is Seccion => sec !== null);
+    const incluye = text(value.incluye).trim().slice(0, 120);
+    if (!Array.isArray(value.precios)) return { ...(incluye ? { incluye } : {}), secciones };
+    const precios = value.precios.flatMap((item): MenuPrecio[] => {
+      const price = object(item);
+      return price ? [{ id: uniqueId(price.id, makePrecioId), nombre: text(price.nombre), precio: text(price.precio) }] : [];
+    });
+    return { precios, ...(incluye ? { incluye } : {}), secciones };
   }
   if (value.primerTiempo || value.segundoTiempo) {
     const legacy: [string, unknown][] = [

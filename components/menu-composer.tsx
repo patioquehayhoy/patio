@@ -1,9 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { Image } from 'expo-image';
 import { Stack } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   InputAccessoryView,
   Keyboard,
   KeyboardAvoidingView,
@@ -15,10 +17,12 @@ import {
   TouchableOpacity,
   View,
   LayoutAnimation,
+  Linking,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { cleanMenu, emptyMenu, useFonderoMenuDraftController } from '@/lib/controllers/useFonderoMenuDraftController';
+import { splitCarta } from '@/lib/menu-carta';
 import { fonderoPalette, type FonderoColors } from '@/lib/fondero-palette';
 import { getTipoNegocio, type MenuData, type Platillo, type Seccion } from '@/lib/menu-store';
 import { useTheme } from '@/lib/theme';
@@ -28,6 +32,8 @@ import { mergeDescription, suggestDishSplit } from '@/lib/dish-split';
 import { GlassIconButton } from '@/components/glass-button';
 import { noWidow } from '@/lib/typography';
 import { TEXT_LIMITS } from '@/lib/text-limits';
+import { DishPhotoPermissionError, pickDishPhoto, uploadDishPhoto } from '@/lib/dish-photo';
+import { getFonditaId } from '@/lib/user-store';
 
 const PRICE_ACCESSORY = 'dish-price-keyboard';
 // Giros donde se cobra el menú completo (comida corrida): ahí el precio del
@@ -35,6 +41,10 @@ const PRICE_ACCESSORY = 'dish-price-keyboard';
 const MENU_PRICE_TYPES = new Set(['fondita', 'casa', 'restaurante']);
 
 export { emptyMenu };
+
+// Nombres de ejemplo para cada forma de cobrar el menú. «Comida corrida» es
+// la palabra que más usan las fondas (Jev, 2026-11-14); «Completo» casi no.
+const PRICE_NAME_EXAMPLES = ['Comida corrida', 'Solo guisado', 'Sin sopa', 'Paquete'];
 
 type Props = {
   initialData: MenuData;
@@ -52,16 +62,22 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
     addDish,
     addSection,
     closeSectionActions,
+    addPrecio,
     data,
-    dayPrice,
     details,
+    dismissUndo,
+    fillKnownPhotos,
+    lastRemoved,
     moveSection,
     nombre,
     patchDish,
+    patchPrecio,
     patchSection,
+    precios,
     publish,
     publishing,
     removeDish,
+    removePrecio,
     removeSection,
     revealDetails,
     saveDraft,
@@ -69,12 +85,54 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
     savedFlash,
     sectionActions,
     sectionSuggestions,
-    setDayPrice,
+    setDishPhoto,
+    setIncluye,
     setNombre,
     toggleSectionActions,
+    undoRemove,
   } = useFonderoMenuDraftController(initialData, source);
+
+  // Foto del platillo (2026-11-15): opcional. La gente la ve en la ficha al
+  // mantener presionado el platillo. Se sube al elegirla; no espera a publicar.
+  const photoRefs = useRef<Map<string, View | null>>(new Map());
+  const [photoMenu, setPhotoMenu] = useState<{ sectionId: string; dishId: string } | null>(null);
+  const [photoBusy, setPhotoBusy] = useState<Record<string, boolean>>({});
+  const photoTarget = photoMenu
+    ? data.secciones.find((section) => section.id === photoMenu.sectionId)?.platillos.find((dish) => dish.id === photoMenu.dishId) ?? null
+    : null;
+  const choosePhoto = async (sectionId: string, dish: Platillo, source: 'camera' | 'library') => {
+    setPhotoMenu(null);
+    if (!getFonditaId()) {
+      Alert.alert(noWidow('Primero entra a tu negocio'), noWidow('Inicia sesión para poner fotos de tus platillos.'));
+      return;
+    }
+    try {
+      const asset = await pickDishPhoto(source);
+      if (!asset) return;
+      setPhotoBusy((current) => ({ ...current, [dish.id]: true }));
+      setDishPhoto(sectionId, dish.id, await uploadDishPhoto(asset, dish.nombre));
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+    } catch (error) {
+      if (error instanceof DishPhotoPermissionError) {
+        Alert.alert(
+          noWidow(source === 'camera' ? 'Patio no tiene acceso a la cámara' : 'Patio no tiene acceso a tus fotos'),
+          noWidow('Puedes darle permiso en Ajustes.'),
+          [{ text: 'Ahora no', style: 'cancel' }, { text: 'Abrir Ajustes', onPress: () => { Linking.openSettings().catch(() => {}); } }],
+        );
+      } else {
+        Alert.alert(noWidow('No pudimos subir la foto'), noWidow('Revisa tu conexión e inténtalo otra vez.'));
+      }
+    } finally {
+      setPhotoBusy((current) => ({ ...current, [dish.id]: false }));
+    }
+  };
+  const photoOptions = photoMenu && photoTarget ? [
+    { label: 'Tomar foto', icon: 'camera-outline' as const, onPress: () => { void choosePhoto(photoMenu.sectionId, photoTarget, 'camera'); } },
+    { label: 'Elegir de Fotos', icon: 'images-outline' as const, onPress: () => { void choosePhoto(photoMenu.sectionId, photoTarget, 'library'); } },
+    ...(photoTarget.foto ? [{ label: 'Quitar foto', icon: 'trash-outline' as const, destructive: true, onPress: () => { setDishPhoto(photoMenu.sectionId, photoTarget.id, null); setPhotoMenu(null); } }] : []),
+  ] : [];
   // El botón dice qué falta en vez de fallar al tocarlo.
-  const menuEmpty = !cleanMenu(data).secciones.length;
+  const menuEmpty = !splitCarta(cleanMenu(data)).hoy.secciones.length;
 
   // Palomita al salir del campo de nombre — mismo ícono que el check de
   // "Guardado" del botón Guardar (abajo), pero sin su auto-ocultado por
@@ -111,9 +169,12 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
   // "pegado" en pantalla porque nada escuchaba el toque afuera.
   const sectionMoreRefs = useRef<Map<string, View | null>>(new Map());
   const activeSectionIndex = data.secciones.findIndex((section) => section.id === sectionActions);
+  const activeSectionData = activeSectionIndex >= 0 ? data.secciones[activeSectionIndex] : null;
   const sectionActionOptions = activeSectionIndex >= 0 ? [
-    ...(activeSectionIndex > 0 ? [{ label: 'Subir', icon: 'arrow-up' as const, onPress: () => moveSection(sectionActions!, -1) }] : []),
-    ...(activeSectionIndex < data.secciones.length - 1 ? [{ label: 'Bajar', icon: 'arrow-down' as const, onPress: () => moveSection(sectionActions!, 1) }] : []),
+    // Precio común de la sección («CARTA $110», «GUISADOS $85»).
+    ...(activeSectionData && !activeSectionData.precio.trim() ? [{ label: 'Precio de la sección', icon: 'pricetag-outline' as const, onPress: () => openSectionPrice(sectionActions!) }] : []),
+    ...(activeSectionIndex > 0 && !data.secciones[activeSectionIndex - 1].carta === !activeSectionData?.carta ? [{ label: 'Subir', icon: 'arrow-up' as const, onPress: () => moveSection(sectionActions!, -1) }] : []),
+    ...(activeSectionIndex < data.secciones.length - 1 && !data.secciones[activeSectionIndex + 1].carta === !activeSectionData?.carta ? [{ label: 'Bajar', icon: 'arrow-down' as const, onPress: () => moveSection(sectionActions!, 1) }] : []),
     { label: 'Eliminar', icon: 'trash-outline' as const, destructive: true, onPress: () => removeSection(sectionActions!) },
   ] : [];
 
@@ -190,15 +251,29 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
   // de abajo (sirve para llenar varios o saltarse uno) y «Listo» cierra (para
   // cambiar solo uno). En Android, la tecla de acción del teclado hace «Siguiente».
   const [priceFocus, setPriceFocus] = useState<string | null>(null);
+  // Precios del menú (2026-11-14): una o varias formas de cobrar el menú
+  // completo. La carta no los lleva: ahí cada platillo tiene su precio.
   const menuPriceSuggested = MENU_PRICE_TYPES.has(getTipoNegocio() ?? '');
   const [dayPriceOpen, setDayPriceOpen] = useState(false);
-  const [dayPriceFocused, setDayPriceFocused] = useState(false);
-  const dayPriceRef = useRef<TextInput | null>(null);
-  const showDayPrice = menuPriceSuggested || !!dayPrice || dayPriceOpen;
+  const [dayPriceFocus, setDayPriceFocus] = useState<string | null>(null);
+  const showDayPrice = (menuPriceSuggested || precios.length > 0 || dayPriceOpen);
+  // Con el bloque visible siempre hay un renglón para escribir.
+  useEffect(() => {
+    if (showDayPrice && precios.length === 0) addPrecio();
+  }, [showDayPrice, precios.length, addPrecio]);
   const openDayPrice = () => {
     smoothly();
+    const first = precios[0];
+    if (first) { focusKey(`mp-${first.id}`); return; }
     setDayPriceOpen(true);
-    requestAnimationFrame(() => dayPriceRef.current?.focus());
+    pendingFocus.current = 'mp-first';
+  };
+  // Precio de la sección: aparece si se pide desde «···» o si ya tiene valor.
+  const [sectionPriceOpen, setSectionPriceOpen] = useState<Record<string, boolean>>({});
+  const openSectionPrice = (sectionId: string) => {
+    smoothly();
+    pendingFocus.current = `sp-${sectionId}`;
+    setSectionPriceOpen((current) => ({ ...current, [sectionId]: true }));
   };
   const priceOrder = () => data.secciones.flatMap((section) => section.platillos.map((dish) => dish.id));
   const nextPriceDish = (dishId: string | null) => {
@@ -233,108 +308,19 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
     else addDishFocused(section);
   };
 
-  return (
-    <View style={s.root}>
-      <Stack.Screen options={{ headerShown: false }} />
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <View style={[s.nav, { paddingTop: insets.top + 6 }]}>
-          <GlassIconButton icon="close" accessibilityLabel="Cerrar" onPress={onBack} />
-          {/* Título del menú de hoy, como el de una nota: en blanco muestra el
-              placeholder de siempre, y en cuanto el fondero le pone nombre
-              (aquí mismo, sin salir a Menús) ese nombre se queda — ley
-              dictada 2026-09-06. Alineado a la izquierda, ocupando el ancho
-              disponible (un TextInput sin ancho fijo no se encoge a su
-              contenido de forma confiable en RN — intentarlo dejaba el check
-              flotando a medio camino, ni pegado al texto ni al borde;
-              corregido el mismo día). La confirmación vive en el slot fijo
-              de la derecha, como botón real (mismo GlassIconButton que sus
-              vecinos), no como ícono suelto. */}
-          <TextInput
-            ref={nombreInputRef}
-            style={[s.navTitle, { color: nombre.trim() ? c.text : c.textSecondary }]}
-            value={nombre}
-            onChangeText={setNombre}
-            onFocus={focusNombre}
-            onBlur={confirmNombre}
-            onSubmitEditing={() => nombreInputRef.current?.blur()}
-            // Sin nombre, el título se ve suave (como «Título» en Notas) y dice
-            // qué va ahí; al guardar sin nombre, Menús lo titula con sus platillos.
-            placeholder="Nombre del menú"
-            placeholderTextColor={c.textMute}
-            maxLength={TEXT_LIMITS.menuName}
-            returnKeyType="done"
-            accessibilityLabel="Nombre del menú"
-          />
-          {nombreSaved ? (
-            <GlassIconButton
-              icon="checkmark"
-              accessibilityLabel="Nombre guardado, toca para continuar"
-              onPress={() => {
-                Haptics.selectionAsync().catch(() => {});
-                setNombreSaved(false);
-              }}
-            />
-          ) : source === 'foto' && onRetake ? (
-            <GlassIconButton icon="camera-outline" accessibilityLabel="Tomar otra foto" onPress={onRetake} />
-          ) : <View style={s.navButton} />}
-        </View>
-
-        {data.secciones.length >= 4 && !keyboardOpen && (
-          <SectionBar
-            names={data.secciones.map((section) => section.nombre)}
-            active={activeSection}
-            onSelect={jumpToSection}
-            colors={{ text: c.text, textSecondary: c.textSecondary, bg: c.bg, border: c.border, glass: theme.glass, isDark: theme.isDark }}
-          />
-        )}
-        <ScrollView
-          ref={scrollRef}
-          onScroll={(event) => { if (data.secciones.length >= 4) followSections(event.nativeEvent.contentOffset.y); }}
-          scrollEventThrottle={32}
-          contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: insets.bottom + 32 }}
-          keyboardDismissMode="interactive"
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}>
-          {/* Precio del menú del día (comida corrida): un precio para todo el
-              menú, guardado en la primera sección; los platillos con precio
-              propio se cobran aparte. Aparece solo en los giros de comida
-              corrida (fondita, venta en casa, restaurante) o si ya tiene
-              precio; en los demás se ofrece como sugerencia junto a las
-              secciones. Es un dato del menú, no una sección: fila de
-              lista (etiqueta a la izquierda, valor a la derecha) con el mismo
-              chip que el precio de un platillo, en su misma columna. */}
-          {showDayPrice && (
-            <View style={s.dayPriceRow}>
-              <Text style={s.dayPriceLabel} numberOfLines={1}>Precio del menú</Text>
-              <TouchableOpacity
-                style={[s.priceChip, !dayPrice && !dayPriceFocused && s.priceChipEmpty]}
-                activeOpacity={0.7}
-                hitSlop={{ top: 10, bottom: 10, left: 6, right: 6 }}
-                onPress={() => dayPriceRef.current?.focus()}
-                accessible={false}>
-                <Text style={s.currency}>$</Text>
-                <TextInput
-                  ref={dayPriceRef}
-                  style={s.dishPrice}
-                  value={dayPrice}
-                  onChangeText={(precio) => setDayPrice(precio.slice(0, TEXT_LIMITS.dishPrice))}
-                  onFocus={() => setDayPriceFocused(true)}
-                  onBlur={() => {
-                    setDayPriceFocused(false);
-                    if (!Number(dayPrice)) { setDayPrice(''); if (!menuPriceSuggested) { smoothly(); setDayPriceOpen(false); } }
-                  }}
-                  keyboardType="decimal-pad"
-                  returnKeyType="done"
-                  inputAccessoryViewID={Platform.OS === 'ios' ? PRICE_ACCESSORY : undefined}
-                  selectTextOnFocus
-                  accessibilityLabel="Precio del menú del día"
-                  accessibilityHint="Si cobras todo el menú junto. Los platillos con precio propio se cobran aparte."
-                />
-              </TouchableOpacity>
-              <View style={s.removeDish} />
-            </View>
-          )}
-          {data.secciones.map((section, sectionIndex) => {
+  // Lo de hoy arriba y la carta (lo de siempre) abajo, como en el pizarrón:
+  // «MENÚ $100» y «CARTA $110». Mismo renglón de sección para los dos.
+  const dailySections = data.secciones.filter((section) => !section.carta);
+  const cartaSections = data.secciones.filter((section) => section.carta);
+  const addCartaSection = () => {
+    smoothly();
+    const first = !cartaSections.length;
+    const id = addSection(first ? 'CARTA' : '', true);
+    // La primera sección de la carta nace con su precio abierto: es lo que
+    // la distingue («CARTA $110»); los platillos solo llevan el suyo si cambia.
+    if (first) openSectionPrice(id);
+  };
+  const renderSection = (section: Seccion, sectionIndex: number) => {
             const actionsOpen = sectionActions === section.id;
             return (
               <View key={section.id} style={s.section} onLayout={(event) => { sectionY.current[section.id] = event.nativeEvent.layout.y; }}>
@@ -343,10 +329,35 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                     style={s.sectionName}
                     value={section.nombre}
                     onChangeText={nombre => patchSection(section.id, { nombre: nombre.toUpperCase().slice(0, TEXT_LIMITS.sectionName) })}
-                    placeholder={sectionIndex === 0 ? 'PRIMER TIEMPO' : 'SECCIÓN'}
+                    placeholder={sectionIndex === 0 ? (section.carta ? 'CARTA' : 'PRIMER TIEMPO') : 'SECCIÓN'}
                     placeholderTextColor={c.textMute}
                     returnKeyType="done"
                   />
+                  {/* Precio común de la sección («CARTA $110»): se conserva tal
+                      como lo leyó la foto y se cambia aquí. */}
+                  {(!!section.precio || sectionPriceOpen[section.id]) && (
+                    <View style={s.priceChip}>
+                      <Text style={s.currency}>$</Text>
+                      <TextInput
+                        ref={registerInput(`sp-${section.id}`)}
+                        style={s.dishPrice}
+                        value={section.precio}
+                        onChangeText={(precio) => patchSection(section.id, { precio: precio.replace(/[^0-9.]/g, '').slice(0, TEXT_LIMITS.dishPrice) })}
+                        onBlur={() => {
+                          if (!Number(section.precio)) {
+                            if (section.precio) patchSection(section.id, { precio: '' });
+                            smoothly(); setSectionPriceOpen((current) => ({ ...current, [section.id]: false }));
+                          }
+                        }}
+                        keyboardType="decimal-pad"
+                        returnKeyType="done"
+                        inputAccessoryViewID={Platform.OS === 'ios' ? PRICE_ACCESSORY : undefined}
+                        selectTextOnFocus
+                        accessibilityLabel={`Precio de la sección ${section.nombre || sectionIndex + 1}`}
+                        accessibilityHint="Lo que cuesta cada platillo de esta sección, si todos cuestan lo mismo."
+                      />
+                    </View>
+                  )}
                   <TouchableOpacity
                     ref={(el) => { sectionMoreRefs.current.set(section.id, el); }}
                     style={s.moreButton}
@@ -381,7 +392,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                                 value={dish.nombre}
                                 onChangeText={nombre => patchDish(section.id, dish.id, { nombre: nombre.slice(0, TEXT_LIMITS.dishName) })}
                                 onFocus={() => setEditingName(dish.id)}
-                                onBlur={() => { smoothly(); setEditingName((current) => current === dish.id ? null : current); }}
+                                onBlur={() => { smoothly(); setEditingName((current) => current === dish.id ? null : current); fillKnownPhotos(); }}
                                 placeholder="Platillo"
                                 placeholderTextColor={c.textMute}
                                 multiline
@@ -500,7 +511,38 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                                 <Text style={s.addDetail}>Agregar descripción</Text>
                               </TouchableOpacity>
                             )}
+                            {!dish.foto && !photoBusy[dish.id] && (
+                              <TouchableOpacity
+                                ref={(el) => { photoRefs.current.set(dish.id, el); }}
+                                hitSlop={{ top: 6, bottom: 6, left: 4, right: 4 }}
+                                onPress={() => { Keyboard.dismiss(); setPhotoMenu({ sectionId: section.id, dishId: dish.id }); }}
+                                activeOpacity={0.7}
+                                accessibilityRole="button"
+                                accessibilityLabel={`Agregar foto a ${dish.nombre || 'platillo'}`}>
+                                <Text style={s.addDetail}>Agregar foto</Text>
+                              </TouchableOpacity>
+                            )}
                           </View>
+                          {/* Con foto: miniatura y para qué sirve. Tocarla la
+                              cambia o la quita. */}
+                          {(!!dish.foto || photoBusy[dish.id]) && (
+                            <TouchableOpacity
+                              ref={(el) => { photoRefs.current.set(dish.id, el); }}
+                              style={s.photoRow}
+                              disabled={photoBusy[dish.id]}
+                              onPress={() => { Keyboard.dismiss(); setPhotoMenu({ sectionId: section.id, dishId: dish.id }); }}
+                              activeOpacity={0.7}
+                              accessibilityRole="button"
+                              accessibilityLabel={photoBusy[dish.id] ? 'Subiendo foto' : `Foto de ${dish.nombre || 'platillo'}. Cambiar o quitar`}
+                              accessibilityState={{ busy: !!photoBusy[dish.id] }}>
+                              <View style={s.photoThumb}>
+                                {photoBusy[dish.id]
+                                  ? <ActivityIndicator size="small" color={c.textSecondary} />
+                                  : <Image source={{ uri: dish.foto }} style={StyleSheet.absoluteFill} contentFit="cover" accessibilityIgnoresInvertColors />}
+                              </View>
+                              <Text style={s.photoHint}>{noWidow(photoBusy[dish.id] ? 'Subiendo foto…' : 'Se ve al mantenerlo presionado')}</Text>
+                            </TouchableOpacity>
+                          )}
                         </View>
                       );
                     })}
@@ -518,7 +560,177 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                 </>
               </View>
             );
-          })}
+  };
+
+  return (
+    <View style={s.root}>
+      <Stack.Screen options={{ headerShown: false }} />
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <View style={[s.nav, { paddingTop: insets.top + 6 }]}>
+          <GlassIconButton icon="close" accessibilityLabel="Cerrar" onPress={onBack} />
+          {/* Título del menú de hoy, como el de una nota: en blanco muestra el
+              placeholder de siempre, y en cuanto el fondero le pone nombre
+              (aquí mismo, sin salir a Menús) ese nombre se queda — ley
+              dictada 2026-09-06. Alineado a la izquierda, ocupando el ancho
+              disponible (un TextInput sin ancho fijo no se encoge a su
+              contenido de forma confiable en RN — intentarlo dejaba el check
+              flotando a medio camino, ni pegado al texto ni al borde;
+              corregido el mismo día). La confirmación vive en el slot fijo
+              de la derecha, como botón real (mismo GlassIconButton que sus
+              vecinos), no como ícono suelto. */}
+          {<TextInput
+            ref={nombreInputRef}
+            style={[s.navTitle, { color: nombre.trim() ? c.text : c.textSecondary }]}
+            value={nombre}
+            onChangeText={setNombre}
+            onFocus={focusNombre}
+            onBlur={confirmNombre}
+            onSubmitEditing={() => nombreInputRef.current?.blur()}
+            // Sin nombre, el título se ve suave (como «Título» en Notas) y dice
+            // qué va ahí; al guardar sin nombre, Menús lo titula con sus platillos.
+            placeholder="Nombre del menú"
+            placeholderTextColor={c.textMute}
+            maxLength={TEXT_LIMITS.menuName}
+            returnKeyType="done"
+            accessibilityLabel="Nombre del menú"
+          />}
+          {nombreSaved ? (
+            <GlassIconButton
+              icon="checkmark"
+              accessibilityLabel="Nombre guardado, toca para continuar"
+              onPress={() => {
+                Haptics.selectionAsync().catch(() => {});
+                setNombreSaved(false);
+              }}
+            />
+          ) : source === 'foto' && onRetake ? (
+            <GlassIconButton icon="camera-outline" accessibilityLabel="Tomar otra foto" onPress={onRetake} />
+          ) : <View style={s.navButton} />}
+        </View>
+
+        {data.secciones.length >= 4 && !keyboardOpen && (
+          <SectionBar
+            names={data.secciones.map((section) => section.nombre)}
+            active={activeSection}
+            onSelect={jumpToSection}
+            colors={{ text: c.text, textSecondary: c.textSecondary, bg: c.bg, border: c.border, glass: theme.glass, isDark: theme.isDark }}
+          />
+        )}
+        <ScrollView
+          ref={scrollRef}
+          onScroll={(event) => { if (data.secciones.length >= 4) followSections(event.nativeEvent.contentOffset.y); }}
+          scrollEventThrottle={32}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: insets.bottom + 32 + (lastRemoved ? 64 : 0) }}
+          keyboardDismissMode="interactive"
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}>
+          {/* Precio del menú del día (comida corrida): un precio para todo el
+              menú, guardado en la primera sección; los platillos con precio
+              propio se cobran aparte. Aparece solo en los giros de comida
+              corrida (fondita, venta en casa, restaurante) o si ya tiene
+              precio; en los demás se ofrece como sugerencia junto a las
+              secciones. Es un dato del menú, no una sección: fila de
+              lista (etiqueta a la izquierda, valor a la derecha) con el mismo
+              chip que el precio de un platillo, en su misma columna. */}
+          {showDayPrice && (
+            <View style={s.menuPrices}>
+              <Text style={s.menuPricesLabel} accessibilityRole="header">MENÚ DEL DÍA</Text>
+              {precios.map((item, index) => {
+                const empty = !item.precio && dayPriceFocus !== item.id;
+                const canRemove = precios.length > 1 || !menuPriceSuggested;
+                return (
+                  <View key={item.id} style={[s.dayPriceRow, index > 0 && s.dishDivider]}>
+                    {/* Un precio para todo el menú del día, como «MENÚ $100» en
+                        el pizarrón. Los menús de antes con varios precios
+                        conservan su nombre para no perderlos. */}
+                    {precios.length > 1 ? (
+                    <TextInput
+                      ref={registerInput(`mn-${item.id}`)}
+                      style={s.dayPriceName}
+                      value={item.nombre}
+                      onChangeText={(nombre) => patchPrecio(item.id, { nombre: nombre.slice(0, TEXT_LIMITS.sectionName) })}
+                      placeholder={precios.length > 1 ? PRICE_NAME_EXAMPLES[index] ?? 'Otro precio' : 'Comida corrida'}
+                      placeholderTextColor={c.textMute}
+                      returnKeyType="next"
+                      submitBehavior="submit"
+                      onSubmitEditing={() => focusKey(`mp-${item.id}`)}
+                      accessibilityLabel={`Nombre del precio ${index + 1}`}
+                      accessibilityHint="Opcional. Por ejemplo, Comida corrida o Solo guisado."
+                    />
+                    ) : (
+                      <Text style={[s.dayPriceName, s.rowPrefix]}>Precio</Text>
+                    )}
+                    <TouchableOpacity
+                      style={[s.priceChip, empty && s.priceChipEmpty]}
+                      activeOpacity={0.7}
+                      hitSlop={{ top: 10, bottom: 10, left: 6, right: 6 }}
+                      onPress={() => focusKey(`mp-${item.id}`)}
+                      accessible={false}>
+                      <Text style={s.currency}>$</Text>
+                      <TextInput
+                        ref={(ref) => {
+                          registerInput(`mp-${item.id}`)(ref);
+                          if (ref && index === 0 && pendingFocus.current === 'mp-first') {
+                            pendingFocus.current = null;
+                            requestAnimationFrame(() => ref.focus());
+                          }
+                        }}
+                        style={s.dishPrice}
+                        value={item.precio}
+                        onChangeText={(precio) => patchPrecio(item.id, { precio: precio.slice(0, TEXT_LIMITS.dishPrice) })}
+                        onFocus={() => setDayPriceFocus(item.id)}
+                        onBlur={() => {
+                          setDayPriceFocus((current) => current === item.id ? null : current);
+                          // Vacío o «0» al salir nunca se guarda.
+                          if (!Number(item.precio) && item.precio) patchPrecio(item.id, { precio: '' });
+                        }}
+                        keyboardType="decimal-pad"
+                        returnKeyType="done"
+                        inputAccessoryViewID={Platform.OS === 'ios' ? PRICE_ACCESSORY : undefined}
+                        selectTextOnFocus
+                        accessibilityLabel={`Precio de ${item.nombre || (precios.length > 1 ? `la opción ${index + 1}` : 'el menú completo')}`}
+                        accessibilityHint="Lo que cuesta el menú completo. Los platillos con precio propio se cobran aparte."
+                      />
+                    </TouchableOpacity>
+                    {canRemove ? (
+                      <TouchableOpacity
+                        style={s.removeDish}
+                        hitSlop={{ top: 7, bottom: 7, left: 7, right: 7 }}
+                        onPress={() => {
+                          smoothly();
+                          removePrecio(item.id);
+                          if (precios.length === 1) setDayPriceOpen(false);
+                        }}
+                        activeOpacity={0.7}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Quitar ${item.nombre || 'este precio'}`}>
+                        <Ionicons name="close" size={15} color={c.textMute} />
+                      </TouchableOpacity>
+                    ) : <View style={s.removeDish} />}
+                  </View>
+                );
+              })}
+              {/* «Incluye…» (prueba 15 nov): lo que viene con el menú o con
+                  cada guisado (sopa, arroz, agua). Opcional. */}
+              <View style={[s.dayPriceRow, s.dishDivider]}>
+                <Text style={s.includesPrefix}>Incluye</Text>
+                <TextInput
+                  style={s.dayPriceName}
+                  value={data.incluye ?? ''}
+                  onChangeText={(value) => setIncluye(value.slice(0, 120))}
+                  placeholder="sopa, arroz y agua"
+                  placeholderTextColor={c.textMute}
+                  returnKeyType="done"
+                  accessibilityLabel="Qué incluye el menú"
+                  accessibilityHint="Opcional. Por ejemplo, sopa, arroz y agua."
+                />
+              </View>
+            </View>
+          )}
+          {!showDayPrice && (
+            <Text style={[s.blockLabel, s.dailyLabel]} accessibilityRole="header">MENÚ DEL DÍA</Text>
+          )}
+          {dailySections.map((section, index) => renderSection(section, index))}
 
           {/* Secciones sugeridas según el giro. Con el menú vacío se muestran
               directas (es la acción esencial); en cuanto ya hay al menos una
@@ -600,9 +812,31 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
             )}
           </View>
 
+          {/* La carta (lo de siempre): mismo lenguaje que el resto del
+              editor — etiqueta chica arriba, sus secciones con su precio y
+              «Agregar sección a la carta» al final. Se guarda al publicar. */}
+          <View style={s.cartaBlock}>
+            <Text style={s.blockLabel} accessibilityRole="header">LA CARTA</Text>
+            <Text style={s.cartaHint}>{noWidow(cartaSections.length ? 'Se queda para los días que siguen.' : 'Lo de siempre, con su precio. Se queda para los días que siguen.')}</Text>
+          </View>
+          {cartaSections.map((section, index) => renderSection(section, index))}
+          <View style={[s.addSectionBlock, !cartaSections.length && s.cartaEmptyAdd]}>
+            <TouchableOpacity
+              style={s.addSectionToggle}
+              hitSlop={{ top: 2, bottom: 2 }}
+              onPress={addCartaSection}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel={cartaSections.length ? 'Agregar sección a la carta' : 'Agregar la carta'}>
+              <Ionicons name="add" size={18} color={c.accent} />
+              <Text style={s.addText}>{noWidow(cartaSections.length ? 'Agregar sección a la carta' : 'Agregar la carta')}</Text>
+            </TouchableOpacity>
+          </View>
+
           {/* Cierre del flujo: una primaria y una secundaria, como el alta y
               el póster. «Publicar menú» es la cápsula naranja de 54 (única
               acción prominente); «Guardar sin publicar» es texto debajo. */}
+          {(
           <View style={s.actionsBlock}>
             <TouchableOpacity
               style={[s.publishButton, menuEmpty && s.publishIdle]}
@@ -627,6 +861,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
               <Text style={s.saveText}>{noWidow(savedFlash ? 'Guardado' : 'Guardar sin publicar')}</Text>
             </TouchableOpacity>
           </View>
+          )}
         </ScrollView>
       </KeyboardAvoidingView>
       {Platform.OS === 'ios' && (
@@ -645,6 +880,28 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
         </InputAccessoryView>
       )}
 
+      {/* Deshacer lo último que se borró: se queda hasta que lo regresas, lo
+          cierras o borras otra cosa (sin temporizador). */}
+      {!!lastRemoved && (
+        <View style={[s.undoBar, { bottom: insets.bottom + 12 }]} accessibilityLiveRegion="polite">
+          <Text style={s.undoText} numberOfLines={1}>
+            {`Se borró «${lastRemoved.kind === 'section' ? lastRemoved.section.nombre || 'la sección' : lastRemoved.dish.nombre || 'el platillo'}»`}
+          </Text>
+          <TouchableOpacity onPress={() => { smoothly(); undoRemove(); Haptics.selectionAsync().catch(() => {}); }} hitSlop={{ top: 10, bottom: 10, left: 8, right: 8 }} accessibilityRole="button" accessibilityLabel="Deshacer">
+            <Text style={s.undoAction}>Deshacer</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={dismissUndo} hitSlop={{ top: 10, bottom: 10, left: 8, right: 8 }} accessibilityRole="button" accessibilityLabel="Cerrar">
+            <Ionicons name="close" size={16} color={c.textMute} />
+          </TouchableOpacity>
+        </View>
+      )}
+      <ActionSheet
+        visible={!!photoMenu}
+        anchorRef={{ current: photoMenu ? photoRefs.current.get(photoMenu.dishId) ?? null : null }}
+        title="Foto del platillo"
+        onDismiss={() => setPhotoMenu(null)}
+        options={photoOptions}
+      />
       <ActionSheet
         visible={!!sectionActions}
         anchorRef={{ current: sectionActions ? sectionMoreRefs.current.get(sectionActions) ?? null : null }}
@@ -661,8 +918,21 @@ function makeStyles(c: FonderoColors) {
     nav: { minHeight: 54, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
     navButton: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
     navTitle: { flex: 1, textAlign: 'left', paddingHorizontal: 8, fontSize: 17, fontWeight: '700', color: c.textSecondary },
-    dayPriceRow: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 8, paddingBottom: 8 },
-    dayPriceLabel: { flex: 1, fontSize: 16, lineHeight: 21, fontWeight: '400', color: c.text },
+    menuPrices: { paddingBottom: 8 },
+    menuPricesLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, color: c.textMute, marginBottom: 2 },
+    dayPriceRow: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 8 },
+    rowPrefix: { color: c.textSecondary },
+    includesPrefix: { fontSize: 16, lineHeight: 21, fontWeight: '400', color: c.textSecondary },
+    dayPriceName: { flex: 1, paddingVertical: 6, fontSize: 16, lineHeight: 21, fontWeight: '400', color: c.text },
+    // Etiqueta de bloque (MENÚ DEL DÍA / LA CARTA): la misma que «PRECIO DEL MENÚ».
+    undoBar: { position: 'absolute', left: 16, right: 16, minHeight: 48, paddingHorizontal: 16, borderRadius: 24, borderCurve: 'continuous', flexDirection: 'row', alignItems: 'center', gap: 16, backgroundColor: c.surface2, borderWidth: StyleSheet.hairlineWidth, borderColor: c.border, shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 4 },
+    undoText: { flex: 1, fontSize: 15, fontWeight: '400', color: c.text },
+    undoAction: { fontSize: 15, fontWeight: '700', color: c.accent },
+    blockLabel: { fontSize: 11, lineHeight: 14, fontWeight: '700', letterSpacing: 0.8, color: c.textMute },
+    dailyLabel: { marginBottom: 6 },
+    cartaBlock: { marginTop: 32, marginBottom: 6, gap: 2 },
+    cartaEmptyAdd: { borderTopWidth: 0, paddingTop: 0 },
+    cartaHint: { fontSize: 12, lineHeight: 16, fontWeight: '300', color: c.textSecondary },
     section: { borderTopWidth: StyleSheet.hairlineWidth, borderColor: c.border, paddingVertical: 12 },
     sectionHeader: { minHeight: 44, flexDirection: 'row', alignItems: 'center' },
     sectionName: { flex: 1, paddingVertical: 6, fontSize: 14, lineHeight: 20, fontWeight: '700', letterSpacing: 0.6, color: c.text },
@@ -680,6 +950,9 @@ function makeStyles(c: FonderoColors) {
     dishName: { flex: 1, paddingVertical: 3, fontSize: 16, lineHeight: 21, fontWeight: '700', color: c.text },
     removeDish: { width: 30, height: 30, marginTop: -1, alignItems: 'flex-end', justifyContent: 'center' },
     addDetail: { paddingTop: 3, fontSize: 12, fontWeight: '300', color: c.textSecondary },
+    photoRow: { marginTop: 6, flexDirection: 'row', alignItems: 'center', gap: 8, alignSelf: 'flex-start' },
+    photoThumb: { width: 40, height: 40, borderRadius: 8, borderCurve: 'continuous', overflow: 'hidden', alignItems: 'center', justifyContent: 'center', backgroundColor: c.border },
+    photoHint: { fontSize: 12, fontWeight: '300', color: c.textSecondary },
     detailRow: { marginTop: 2, flexDirection: 'row', alignItems: 'center' },
     description: { flex: 1, paddingVertical: 3, fontSize: 13, fontWeight: '300', color: c.textSecondary },
     // Alto de la línea del nombre (21) + 3: el chip se centra en esa línea y

@@ -277,9 +277,11 @@ test('search does not revive an old permanent-menu dish when a current menu is l
 test('public menu loading tolerates malformed sections and falls back to permanent menu', async () => {
   const f = fixture({ overrides: { '@/lib/supabase': { supabase: { from: (table) => queryBuilder({ data: { secciones: table === 'menus' ? { secciones: [null, { nombre: 'Broken' }] } : menu() } }) } } } });
   const { fetchMenuForFondita } = f.load('lib/menu.ts');
-  const sections = await fetchMenuForFondita('business-id');
+  const { sections, prices, carta } = await fetchMenuForFondita('business-id');
   assert.equal(sections[0].items[0].name, 'Mole con pollo');
-  assert.equal(sections[0].price, '$120');
+  assert.equal(sections[0].price, '$120', 'a permanent menu keeps its section price');
+  assert.deepEqual(prices, []);
+  assert.deepEqual(carta, [], 'the permanent menu is already the main list');
 });
 
 function hookRuntime() {
@@ -460,4 +462,19 @@ test('AI response errors expose quota/auth messages and keep internal errors pri
   assert.equal(internal.message, 'Inténtalo de nuevo.');
   const malformed = await aiFunctionError({ context: new Response('not json', { status: 429 }) }, 'Fallback');
   assert.match(malformed.message, /límite/);
+});
+
+test('dish photos: only Patio dish-photos URLs reach the ficha, outside links are dropped', async () => {
+  const ours = 'https://gjfjsjlrgycrgmcbjrus.supabase.co/storage/v1/object/public/dish-photos/owner/tacos-dorados-abc.jpg';
+  const today = { precios: [], secciones: [{ id: 's', nombre: 'GUISADOS', precio: '', platillos: [
+    { id: 'a', nombre: 'Tacos dorados', descripcion: '', precio: '', foto: ours },
+    { id: 'b', nombre: 'Pozole', descripcion: '', precio: '', foto: 'https://evil.example/x.jpg' },
+    { id: 'c', nombre: 'Agua', descripcion: '', precio: '', foto: `${ours.replace('tacos-dorados-abc.jpg', '')}../place-photos/x.jpg` },
+  ] }] };
+  const f = fixture({ overrides: { '@/lib/supabase': { supabase: { from: (table) => queryBuilder({ data: table === 'menus' ? { secciones: today } : null }) } } } });
+  const { fetchMenuForFondita } = f.load('lib/menu.ts');
+  const { sections } = await fetchMenuForFondita('business-id');
+  assert.equal(sections[0].items[0].photo, ours);
+  assert.equal(sections[0].items[1].photo, undefined, 'an outside URL is never shown');
+  assert.equal(sections[0].items[2].photo, undefined, 'a path that climbs out of the bucket is never shown');
 });

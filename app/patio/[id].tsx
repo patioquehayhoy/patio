@@ -5,7 +5,7 @@ import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Animated, Easing, Share, StyleSheet, Text, TextInput, TouchableOpacity, View, useWindowDimensions, type ScrollView } from 'react-native';
+import { Alert, Animated, Easing, Pressable, Share, StyleSheet, Text, TextInput, TouchableOpacity, View, useWindowDimensions, type ScrollView } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -38,7 +38,10 @@ import { MAP_STYLE_DARK, MAP_STYLE_LIGHT } from '@/lib/map-style';
 import { Fonts, Radius, useTheme, type Theme, Type } from '@/lib/theme';
 import { recordRecentPatio } from '@/lib/recent-patios';
 import { noWidow } from '@/lib/typography';
+import { menuPricesAccessibilityLabel } from '@/lib/menu-prices';
 import { sectionDisplayName } from '@/lib/section-names';
+import { DishPeek, type DishPeekItem } from '@/components/dish-peek';
+import { isCartaName } from '@/lib/menu-carta';
 import { useKnownLocation } from '@/lib/use-known-location';
 import { patioDistance } from '@/lib/patio-sort';
 import { formatDistance } from '@/lib/geo';
@@ -151,7 +154,10 @@ function makeStyles(t: Theme) {
     heroBio: { marginTop: 2 },
     heroFacts: { marginTop: 8, fontSize: 14, lineHeight: 19, fontWeight: '400', color: 'rgba(255,255,255,0.86)', textShadowColor: 'rgba(0,0,0,0.25)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 6 },
     heroFactsUnderName: { marginTop: 4 },
-    address: { marginTop: 8, fontSize: 13, lineHeight: 17, fontWeight: '400', color: t.textSecondary },
+    addressRow: { marginTop: 8, flexDirection: 'row', alignItems: 'center', gap: 12 },
+    address: { flex: 1, fontSize: 13, lineHeight: 17, fontWeight: '400', color: t.textSecondary },
+    contactIcons: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+    contactIcon: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
     // Sin descripción, el nombre ya trae su propio aire abajo (los rasgos
     // descendentes de Monument): 4 se ve igual de separado que 16 tras texto.
     heroMetaUnderName: { marginTop: 4 },
@@ -186,9 +192,18 @@ function makeStyles(t: Theme) {
     group: { marginBottom: 24 },
     groupHead: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
     groupTitle: { ...Type.section, color: t.text },
+    groupPrice: { fontSize: 17, lineHeight: 22, fontWeight: '700', color: t.text, fontVariant: ['tabular-nums'] },
+    cartaTitleRow: { flexDirection: 'row', alignItems: 'baseline', gap: 8 },
+    cartaHead: { paddingTop: 16, marginBottom: 16, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border, gap: 2 },
+    cartaTitle: { ...Type.title, color: t.text },
+    cartaNote: { fontSize: 13, lineHeight: 18, fontWeight: '400', color: t.textSecondary },
     sectionBar: { position: 'absolute', top: 0, left: 0, right: 0, zIndex: 30 },
     groupItem: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 12 },
     groupItemName: { flex: 1, fontSize: 16, fontWeight: '700', color: t.text, lineHeight: 21 },
+    dishPhotoMark: { fontSize: 14 },
+    dishPhotoHint: { marginBottom: 16, fontSize: 13, lineHeight: 18, fontWeight: '400', color: t.textSecondary },
+    menuIncludes: { fontSize: 14, lineHeight: 19, fontWeight: '400', color: t.textSecondary },
+    menuIncludesUnderPrice: { marginTop: -10 },
     groupItemDescription: { marginTop: 2, fontSize: 13, lineHeight: 18, fontWeight: '400', color: t.textSecondary },
     groupItemPrice: { fontSize: 15, lineHeight: 21, fontWeight: '700', color: t.text },
     dishLikeCount: { minWidth: 21, height: 21, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 3 },
@@ -249,14 +264,18 @@ function makeStyles(t: Theme) {
     facts: { marginBottom: 8 },
     // Alto mínimo, nunca fijo: con letra grande o un dato largo la franja
     // crece en vez de recortar (antes 48 fijos con overflow oculto).
-    factsStage: { minHeight: 48, justifyContent: 'center' },
+    // Arriba y al borde izquierdo, como la fila de datos: al abrir o cerrar
+    // un reconocimiento ni la caja ni el texto cambian de lugar.
+    factsStage: { minHeight: 48, justifyContent: 'flex-start' },
     factsLine: { minHeight: 48, flexDirection: 'row', alignItems: 'center' },
     factColumn: { flex: 1, minWidth: 0, minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 4 },
     factColumnCenter: { justifyContent: 'center' },
     factColumnRight: { justifyContent: 'flex-end' },
     historyMetaText: { fontSize: 12, lineHeight: 16, color: t.textMute, flexShrink: 1 },
     factRight: { textAlign: 'right' },
-    badgeInline: { minHeight: 48, alignItems: 'flex-start', justifyContent: 'center', paddingHorizontal: 12, paddingVertical: 6 },
+    badgeInline: { minHeight: 48, alignItems: 'flex-start', justifyContent: 'flex-start', paddingHorizontal: 0, paddingVertical: 7 },
+    badgeOverlay: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, zIndex: 1 },
+    badgeMeasure: { position: 'absolute', top: 0, left: 0, right: 0, opacity: 0 },
     badgeInlineTitle: { fontSize: 13, fontWeight: '700', color: t.text, textAlign: 'left' },
     badgeInlineText: { marginTop: 1, fontSize: 12, lineHeight: 16, color: t.textSecondary, textAlign: 'left' },
     // «Qué tan lleno»: tarjeta como el horario; barras del color de las
@@ -297,6 +316,9 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
   const [showSchedule, setShowSchedule] = useState(false);
   const [ratingFilter, setRatingFilter] = useState<number | null>(null);
   const [activeBadgeId, setActiveBadgeId] = useState<string | null>(null);
+  // Alto fijo de la fila de datos: el del texto de reconocimiento más alto.
+  const [badgeStageHeight, setBadgeStageHeight] = useState(0);
+  const badgeHeights = useRef<Record<string, number>>({});
   const [reviewLikes, setReviewLikes] = useState<Record<string, { count: number; mine: boolean }>>({});
   const [reviewReplies, setReviewReplies] = useState<Record<string, ReviewThreadReply[]>>({});
   const [replyLikes, setReplyLikes] = useState<Record<string, { count: number; mine: boolean }>>({});
@@ -314,10 +336,12 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
     cleanId,
     handleBack,
     handleComoLlegar,
+    handleWhatsapp,
     handleShare,
     handleStarPress,
     handleToggleSaved,
     isSaved,
+    savedKnown,
     loading,
     patio,
     patioId,
@@ -325,9 +349,52 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
     rangoHoy,
     reviews: fetchedReviews,
     sections,
+    menuPrices,
+    menuIncludes,
+    carta,
     soldOut,
     userReview,
   } = usePatioDetailController(id);
+  // Lo de hoy y, debajo, la carta de siempre: una sola lista para la barra
+  // de secciones y el recorrido.
+  const menuGroups = useMemo(() => [...sections, ...carta], [sections, carta]);
+  // Cuántos platillos traen foto: ninguno, algunos o todos.
+  // Fotos de clientes (2026-11-15): las de reseñas que dicen de qué platillo
+  // son. Se juntan por nombre canónico; la más nueva primero.
+  const customerPhotos = useMemo(() => {
+    const byDish = new Map<string, { url: string; author: string }[]>();
+    [...fetchedReviews].sort((a, b) => b.timestamp - a.timestamp).forEach((review) => {
+      if (!review.photoUrl || !review.photoDish) return;
+      const key = canonicalDishName(review.photoDish);
+      byDish.set(key, [...(byDish.get(key) ?? []), { url: review.photoUrl, author: review.author }]);
+    });
+    return byDish;
+  }, [fetchedReviews]);
+  const hasPhoto = (item: { name: string; photo?: string }) => !!item.photo || customerPhotos.has(canonicalDishName(item.name));
+  const dishPhotos = useMemo<'none' | 'some' | 'all'>(() => {
+    const items = menuGroups.flatMap((group) => group.items);
+    const withPhoto = items.filter((item) => item.photo || customerPhotos.has(canonicalDishName(item.name))).length;
+    return !withPhoto ? 'none' : withPhoto === items.length ? 'all' : 'some';
+  }, [menuGroups, customerPhotos]);
+  const [dishPeek, setDishPeek] = useState<{ item: DishPeekItem; sticky: boolean; touchY?: number } | null>(null);
+  const openDishPeek = (item: { name: string; description?: string; price?: string | false; photo?: string }, sticky = false, touchY?: number) => {
+    const fromCustomers = customerPhotos.get(canonicalDishName(item.name)) ?? [];
+    if (!item.photo && !fromCustomers.length) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    setDishPeek({
+      item: {
+        name: item.name,
+        description: item.description,
+        price: item.price || undefined,
+        // La del negocio va primero; sin ella, la más nueva de un cliente.
+        photo: item.photo ?? fromCustomers[0].url,
+        byCustomer: item.photo ? undefined : fromCustomers[0].author,
+        customerPhotos: (item.photo ? fromCustomers : fromCustomers.slice(1)).slice(0, 3).map((photo) => photo.url),
+      },
+      sticky,
+      touchY,
+    });
+  };
   const recentRecordedId = useRef<string | null>(null);
   useEffect(() => {
     if (own || !patio || recentRecordedId.current === patio.id) return;
@@ -511,7 +578,14 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
     if (visible !== barVisibleRef.current) {
       barVisibleRef.current = visible;
       setBarVisible(true);
-      Animated.timing(barOpacity, { toValue: visible ? 1 : 0, duration: 200, useNativeDriver: true }).start(() => {
+      // Baja desde arriba y se asienta (sale más rápido de lo que entra),
+      // como la barra de una app de comida; antes solo se desvanecía.
+      Animated.timing(barOpacity, {
+        toValue: visible ? 1 : 0,
+        duration: visible ? 280 : 180,
+        easing: visible ? Easing.out(Easing.cubic) : Easing.in(Easing.cubic),
+        useNativeDriver: true,
+      }).start(() => {
         if (!barVisibleRef.current) setBarVisible(false);
       });
     }
@@ -880,7 +954,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
             useNativeDriver: true,
             listener: (event: any) => {
               const y = event.nativeEvent.contentOffset.y;
-              if (sections.length >= 4) followSections(y);
+              if (menuGroups.length >= 4) followSections(y);
               updateBackToTop(y);
               if (followToast) {
                 if (toastScrollY.current === null) toastScrollY.current = y;
@@ -959,7 +1033,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
                 </Text>
               </View>
               {!own && (
-                <View ref={followAnchor} collapsable={false}>
+                <View ref={followAnchor} collapsable={false} style={{ opacity: savedKnown ? 1 : 0 }} pointerEvents={savedKnown ? 'auto' : 'none'}>
                   <TouchableOpacity
                     style={[s.followPill, isSaved ? s.followPillGlass : { backgroundColor: theme.accent }]}
                     activeOpacity={isSaved ? 0.7 : 0.85}
@@ -1007,13 +1081,57 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
               atenúa: el aviso de arriba ya lo dice, sin caja ni etiqueta extra. */}
           <View onLayout={(event) => { menuFrame.current.menuY = event.nativeEvent.layout.y; menuFrame.current.menuHeight = event.nativeEvent.layout.height; }}>
             <View style={soldOut ? { opacity: 0.42 } : undefined}>
-              {sections.map((section, sectionIndex) => (
-                <View key={section.section} style={s.group} onLayout={(event) => { groupY.current[sectionIndex] = event.nativeEvent.layout.y; }}>
+              {/* Precios del menú de hoy: cómo se cobra el menú completo
+                  («Completo $95», «Solo guisado $70»). */}
+              {(!!menuPrices.length || !!menuIncludes) && (
+                <View style={s.group} accessible accessibilityLabel={[menuPrices.length ? menuPricesAccessibilityLabel(menuPrices) : '', menuIncludes].filter(Boolean).join('. ')}>
+                  {menuPrices.map((item, index) => (
+                    <View key={`${index}-${item.label}`} style={s.groupItem}>
+                      <Text style={s.groupItemName} allowFontScaling={true}>{noWidow(item.label || 'Precio del menú')}</Text>
+                      <Text style={s.groupItemPrice} allowFontScaling={true}>{item.price}</Text>
+                    </View>
+                  ))}
+                  {/* «Incluye…» (prueba 15 nov): pegado al precio, como
+                      su explicación; sin precio, solo la línea. */}
+                  {!!menuIncludes && (
+                    <Text style={[s.menuIncludes, !!menuPrices.length && s.menuIncludesUnderPrice]} allowFontScaling={true}>{noWidow(menuIncludes)}</Text>
+                  )}
+                </View>
+              )}
+              {/* Fotos de platillos: el menú sigue en texto; se ven
+                  manteniendo presionado. Si todos tienen foto basta esta
+                  línea; si solo algunos, la marca junto al nombre dice cuáles. */}
+              {dishPhotos !== 'none' && (
+                <Text style={s.dishPhotoHint} allowFontScaling={true}>
+                  {dishPhotos === 'all'
+                    ? noWidow('Mantén presionado un platillo para ver su foto.')
+                    : <>{'Mantén presionado un platillo con '}<Ionicons name="image-outline" size={13} color={theme.textSecondary} />{noWidow(' para ver su foto.')}</>}
+                </Text>
+              )}
+              {menuGroups.map((section, sectionIndex) => (
+                <View key={`${sectionIndex}-${section.section}`} style={s.group} onLayout={(event) => { groupY.current[sectionIndex] = event.nativeEvent.layout.y; }}>
+                  {/* La carta (lo de siempre) empieza después de lo de hoy. */}
+                  {/* Como en el pizarrón, «CARTA $110»: si la primera sección de
+                      la carta se llama así, su precio va junto al título. */}
+                  {!!carta.length && sectionIndex === sections.length && (
+                    <View style={s.cartaHead}>
+                      <View style={s.cartaTitleRow}>
+                        <Text style={[s.cartaTitle, { flex: 1 }]} accessibilityRole="header" allowFontScaling={true}>La carta</Text>
+                        {isCartaName(section.section) && !!section.price && (
+                          <Text style={s.groupPrice} allowFontScaling={true}>{section.price}</Text>
+                        )}
+                      </View>
+                      <Text style={s.cartaNote} allowFontScaling={true}>{noWidow('Lo que hay todos los días.')}</Text>
+                    </View>
+                  )}
                   {!['menu del dia', 'menu de hoy'].includes(
                     section.section.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim(),
-                  ) && (
+                  ) && !(sectionIndex >= sections.length && isCartaName(section.section)) && (
                     <View style={s.groupHead}>
-                      <Text style={s.groupTitle} accessibilityRole="header" allowFontScaling={true}>{noWidow(sectionDisplayName(section.section))}</Text>
+                      <Text style={[s.groupTitle, { flex: 1 }]} accessibilityRole="header" allowFontScaling={true}>{noWidow(sectionDisplayName(section.section))}</Text>
+                      {/* Precio común de la sección: cada platillo cuesta eso
+                          salvo el que trae el suyo. */}
+                      {!!section.price && <Text style={s.groupPrice} allowFontScaling={true}>{section.price}</Text>}
                     </View>
                   )}
                   {section.items.map((item) => {
@@ -1021,7 +1139,14 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
                     const dishLikes = dishLikeCounts[canonicalDishName(item.name)] ?? 0;
                     const featured = highlights.featuredDish === canonicalDishName(item.name);
                     return (
-                      <View key={`${section.section}-${item.name}`} style={s.groupItem}>
+                      <Pressable
+                        key={`${section.section}-${item.name}`}
+                        style={s.groupItem}
+                        disabled={!hasPhoto(item)}
+                        delayLongPress={280}
+                        onLongPress={(event) => openDishPeek(item, false, event.nativeEvent.pageY)}
+                        onPressOut={() => setDishPeek((current) => (current && !current.sticky ? null : current))}
+                        accessible={false}>
                         <View style={{ flex: 1 }}>
                           {featured && (
                             <View style={s.featuredLabel}>
@@ -1029,7 +1154,19 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
                               <Text style={s.featuredLabelText} allowFontScaling={true}>Recomendado</Text>
                             </View>
                           )}
-                          <Text style={s.groupItemName} allowFontScaling={true}>{item.name}</Text>
+                          {/* Con VoiceOver la foto se abre con una acción del nombre. */}
+                          <Text
+                            style={s.groupItemName}
+                            allowFontScaling={true}
+                            accessibilityHint={hasPhoto(item) ? 'Tiene foto. Usa la acción Ver foto.' : undefined}
+                            accessibilityActions={hasPhoto(item) ? [{ name: 'activate', label: 'Ver foto' }] : undefined}
+                            onAccessibilityAction={() => openDishPeek(item, true)}>
+                            {item.name}
+                            {/* Solo si algunos tienen foto: la marca dice cuáles. */}
+                            {hasPhoto(item) && dishPhotos === 'some' && (
+                              <Text style={s.dishPhotoMark}>{'  '}<Ionicons name="image-outline" size={14} color={theme.textMute} /></Text>
+                            )}
+                          </Text>
                           {!!item.description && (
                             <Text style={s.groupItemDescription} allowFontScaling={true}>{noWidow(item.description)}</Text>
                           )}
@@ -1066,7 +1203,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
                             <Ionicons name={dishLiked ? 'heart' : 'heart-outline'} size={17} color={dishLiked ? theme.accent : theme.textMute} />
                           </TouchableOpacity>
                         )}
-                      </View>
+                      </Pressable>
                     );
                   })}
                 </View>
@@ -1092,13 +1229,39 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
               </View>
             )}
             <View style={s.facts}>
-              <View style={s.factsStage}>
-                {activeBadge ? (
-                  <TouchableOpacity style={s.badgeInline} onPress={() => setActiveBadgeId(null)} accessibilityRole="button" accessible accessibilityLabel={`${activeBadge.title}. ${activeBadge.detail}. Toca para cerrar`}>
+              {/* Al tocar un reconocimiento, su significado ocupa el lugar de
+                  la fila de datos (pagos y horario) sin mover lo de abajo: la
+                  fila mide siempre lo que mide el texto más alto de todos los
+                  reconocimientos (se miden ocultos), y la explicación se pone
+                  encima de la fila, que solo se oculta. */}
+              <View style={[s.factsStage, { minHeight: Math.max(48, badgeStageHeight) }]}>
+                <View pointerEvents="none" style={s.badgeMeasure} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
+                  {earnedBadges.map((badge) => (
+                    <View
+                      key={badge.id}
+                      style={s.badgeInline}
+                      onLayout={(event) => {
+                        const height = Math.ceil(event.nativeEvent.layout.height);
+                        badgeHeights.current[badge.id] = height;
+                        const tallest = Math.max(0, ...Object.values(badgeHeights.current));
+                        setBadgeStageHeight((current) => current === tallest ? current : tallest);
+                      }}>
+                      <Text style={s.badgeInlineTitle}>{badge.title}</Text>
+                      <Text style={s.badgeInlineText}>{noWidow(badge.detail)}</Text>
+                    </View>
+                  ))}
+                </View>
+                {activeBadge && (
+                  <TouchableOpacity style={[s.badgeInline, s.badgeOverlay]} onPress={() => setActiveBadgeId(null)} accessibilityRole="button" accessible accessibilityLabel={`${activeBadge.title}. ${activeBadge.detail}. Toca para cerrar`}>
                     <Text style={s.badgeInlineTitle}>{activeBadge.title}</Text>
                     <Text style={s.badgeInlineText}>{noWidow(activeBadge.detail)}</Text>
                   </TouchableOpacity>
-                ) : <View style={s.factsLine}>
+                )}
+                <View
+                  style={[s.factsLine, activeBadge && { opacity: 0 }]}
+                  pointerEvents={activeBadge ? 'none' : 'auto'}
+                  importantForAccessibility={activeBadge ? 'no-hide-descendants' : 'auto'}
+                  accessibilityElementsHidden={!!activeBadge}>
                 {/* Tres lugares fijos (izquierda, centro, derecha): si falta un
                     dato, su hueco se queda y los demás no se recorren. */}
                 {businessOpeningLabel ? (
@@ -1123,7 +1286,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
                   <Text style={[s.historyMetaText, s.factRight]}>{rangoHoy}</Text>
                   {!!patio.weeklyHours?.length && <Ionicons name={showSchedule ? 'chevron-up' : 'chevron-down'} size={11} color={theme.textMute} />}
                   </TouchableOpacity>
-                </View>}
+                </View>
               </View>
               {showSchedule && !!patio.weeklyHours?.length && (
                 <View style={s.schedule}>
@@ -1199,9 +1362,28 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
                 </MapView>
               </TouchableOpacity>
             )}
-            {/* Dirección y colonia completas bajo el mapa: nunca se cortan. */}
-            {!!placeAddress && (
-              <Text style={s.address} allowFontScaling={true}>{noWidow(placeAddress)}</Text>
+            {/* Dirección completa bajo el mapa (nunca se corta) y, a su derecha,
+                si el negocio tiene WhatsApp, solo su ícono: abre el chat. Sin
+                número, sin llamar y sin texto de botón (decisión de Parco, 15 nov). */}
+            {(!!placeAddress || (!!patio.phone && patio.whatsapp)) && (
+              <View style={s.addressRow}>
+                <Text style={s.address} allowFontScaling={true}>{placeAddress ? noWidow(placeAddress) : ''}</Text>
+                {!!patio.phone && patio.whatsapp && (
+                  <View style={s.contactIcons}>
+                    {patio.whatsapp && (
+                      <TouchableOpacity
+                        style={s.contactIcon}
+                        onPress={handleWhatsapp}
+                        hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                        activeOpacity={0.6}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Escribir por WhatsApp a ${patio.name}`}>
+                        <Ionicons name="logo-whatsapp" size={17} color={theme.textSecondary} />
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                )}
+              </View>
             )}
           </View>
 
@@ -1455,10 +1637,10 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
 
         </View>
       </Animated.ScrollView>
-      {sections.length >= 4 && barVisible && (
-        <Animated.View style={[s.sectionBar, { opacity: barOpacity }]} pointerEvents={barVisibleRef.current ? 'auto' : 'none'}>
+      {menuGroups.length >= 4 && barVisible && (
+        <Animated.View style={[s.sectionBar, { opacity: barOpacity.interpolate({ inputRange: [0, 0.4, 1], outputRange: [0, 1, 1] }), transform: [{ translateY: barOpacity.interpolate({ inputRange: [0, 1], outputRange: [-barHeight, 0] }) }] }]} pointerEvents={barVisibleRef.current ? 'auto' : 'none'}>
           <SectionBar
-            names={sections.map((section) => section.section)}
+            names={menuGroups.map((section) => section.section)}
             active={activeSection}
             onSelect={jumpToSection}
             colors={{ text: theme.text, textSecondary: theme.textSecondary, bg: theme.bg, border: theme.border, glass: theme.glass, isDark: theme.isDark }}
@@ -1482,6 +1664,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
           </View>
         </Animated.View>
       )}
+      <DishPeek item={dishPeek?.item ?? null} sticky={!!dishPeek?.sticky} touchY={dishPeek?.touchY} onClose={() => setDishPeek(null)} />
       {followToast && (
         <View style={[s.followToast, { bottom: insets.bottom + 16 }, floatingSurfaceShadow(theme.isDark)]} accessibilityLiveRegion="polite">
           <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={[s.followToastInner, { backgroundColor: sheetSurfaceTint(theme.isDark), borderColor: theme.isDark ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.18)' }]}>

@@ -37,8 +37,14 @@ la app recoge.
 | Ubicación del Foodie | Solo en el teléfono (distancias y mapa) | — | **No sale del teléfono**: no se declara |
 
 **No hay** anuncios, SDK de analítica, reporte de fallos, rastreo entre apps
-ni venta de datos. Teléfono: la columna se borró el 2026-11-01; si se agrega
-el WhatsApp del negocio, se declara aquí como «Número de teléfono» (ligado).
+ni venta de datos.
+
+| Número de teléfono del negocio (opcional, 2026-11-14) | `negocios.contacto_telefono` y `contacto_whatsapp` | Sí | Funcionamiento: aparece en la ficha para llamar o escribir por WhatsApp |
+
+App Privacy: marcar **Contact Info → Phone Number**, ligado a la identidad,
+propósito App Functionality, sin rastreo. Data Safety: **Personal info →
+Phone number**, recopilado, opcional, compartido no (es público por decisión
+del negocio, no se entrega a terceros).
 
 Proveedores que procesan datos por cuenta de Patio (no cuentan como
 «compartir»): Supabase (base y archivos), Anthropic (lee la foto del menú y el

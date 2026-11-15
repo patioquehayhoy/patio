@@ -2,6 +2,8 @@ import { withStorageLock } from './storage-queue';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '@/lib/supabase';
 import { localMenuDate } from './menu-date';
+import { isReviewPhotoUrl } from './dish-photo-url';
+import { uploadReviewPhoto } from './dish-photo';
 
 const KEY = '@patio_ratings';
 
@@ -10,6 +12,9 @@ export type PatioRating = {
   reasons?: string[];
   note?: string;
   photoUri?: string;
+  /** Foto pública de la reseña (bucket `review-photos`) y de qué platillo es. */
+  photoUrl?: string;
+  photoDish?: string;
   timestamp: number;
 };
 
@@ -69,7 +74,7 @@ export async function getPublicPatioReviews(patioId: string): Promise<PublicPati
     supabase.auth.getSession(),
     supabase
       .from('reviews')
-      .select('id,user_id,stars,reasons,note,created_at,updated_at,business_reply,business_replied_at')
+      .select('id,user_id,stars,reasons,note,created_at,updated_at,business_reply,business_replied_at,foto_url,foto_platillo')
       .eq('negocio_id', patioId)
       .eq('status', 'published')
       .order('created_at', { ascending: false }),
@@ -96,6 +101,7 @@ export async function getPublicPatioReviews(patioId: string): Promise<PublicPati
       note: row.note || undefined,
       timestamp: new Date(row.created_at || row.updated_at).getTime(),
       businessReply: row.business_reply || undefined,
+      ...(isReviewPhotoUrl(row.foto_url) ? { photoUrl: row.foto_url, photoDish: row.foto_platillo || undefined } : {}),
       businessRepliedAt: row.business_replied_at || undefined,
       isMine,
     }];
@@ -117,6 +123,8 @@ export type SaveRatingInput = {
   reasons?: string[];
   note?: string;
   photoUri?: string;
+  /** De qué platillo es la foto (opcional). */
+  photoDish?: string;
 };
 
 /** Lugares que ya reseñaste desde este teléfono. */
@@ -151,18 +159,26 @@ export async function savePatioRating(
     reasons: data.reasons,
     note: data.note?.trim() || undefined,
     photoUri: data.photoUri || undefined,
+    photoDish: data.photoUri && data.photoDish?.trim() ? data.photoDish.trim() : undefined,
     timestamp: Date.now(),
   };
   if (/^[0-9a-f-]{36}$/i.test(patioId)) {
     const { data: user } = await supabase.auth.getUser();
     if (!user.user) throw new Error('Inicia sesión para publicar tu reseña.');
     if (user.user) {
+      // La foto se sube antes de publicar; si falla, la reseña no sale a medias.
+      let fotoUrl: string | null = null;
+      if (data.photoUri) {
+        try { fotoUrl = await uploadReviewPhoto(data.photoUri); } catch { throw new Error('REVIEW_PHOTO_UPLOAD_FAILED'); }
+      }
       const { error } = await supabase.from('reviews').insert({
         user_id: user.user.id,
         negocio_id: patioId,
         stars: data.stars,
         reasons: data.reasons ?? [],
         note: data.note?.trim() || null,
+        foto_url: fotoUrl,
+        foto_platillo: fotoUrl && data.photoDish?.trim() ? data.photoDish.trim().slice(0, 120) : null,
         visit_date: localMenuDate(),
         updated_at: new Date().toISOString(),
       });

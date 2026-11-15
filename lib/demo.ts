@@ -135,12 +135,18 @@ export async function getDevPublishedPatio(): Promise<Patio | null> {
 //   Café Dev 3             menú corto, sin reseñas y sin visitas suficientes (no hay gráfica)
 //   Pastelería Dev 4       «Se acabó por hoy», como de costumbre, aviso especial
 //   Mariscos y Cocteles Dev 5  nombre de 29 letras, platillos larguísimos, solo precio del menú
+// Número del negocio (2026-11-14): Fondita Dev, Pastelería Dev 4 y Cocina
+// Grande Dev 6 con llamar y WhatsApp; Taquería Dev 2 y Mariscos Dev 5 solo
+// llamar; Café Dev 3 sin número. Fondita Dev además trae tres precios del
+// menú y la carta debajo de lo de hoy.
 type DevBusy = 'busy' | 'quiet' | 'usual' | 'none';
 type DevQa = { patio: Patio; busy: DevBusy; notice?: string; featured?: string };
 
-const item = (name: string, price?: string, description?: string): PatioMenuSection['items'][number] => ({
-  name, price, description, tags: name.toLowerCase().split(/\s+/).slice(0, 3),
+const item = (name: string, price?: string, description?: string, photo?: string): PatioMenuSection['items'][number] => ({
+  name, price, description, tags: name.toLowerCase().split(/\s+/).slice(0, 3), ...(photo ? { photo } : {}),
 });
+// Fotos de muestra (Unsplash, uso libre) para ver «mantén presionado» en DEV.
+const demoPhoto = (id: string) => `https://images.unsplash.com/photo-${id}?w=900&q=75`;
 const section = (title: string, items: PatioMenuSection['items'], price?: string): PatioMenuSection => ({ section: title, price, items });
 const week = (abre: string, cierra: string, closedDays: number[] = []) => Array.from({ length: 7 }, (_, dia) => (
   closedDays.includes(dia) ? { dia, cerrado: true, abre: null, cierra: null } : { dia, cerrado: false, abre, cierra }
@@ -170,6 +176,21 @@ const DEV_QA: DevQa[] = [
     patio: devPatio('demo-dev-1', {
       name: 'Fondita Dev',
       categories: ['Fondita', 'Tacos', 'Café', 'Postres'],
+      phone: '5512345678',
+      menuIncludes: 'sopa del día, arroz y agua de sabor',
+      whatsapp: true,
+      menuPrices: [
+        { label: 'Comida corrida', price: '$95' },
+        { label: 'Solo guisado', price: '$70' },
+        { label: 'Ejecutivo', price: '$1,250' },
+      ],
+      carta: [
+        section('DE SIEMPRE', [
+          item('Milanesa de pollo con arroz y ensalada', '$110'),
+          item('Enchiladas suizas', '$85', 'Con crema, queso gratinado y frijoles'),
+        ]),
+        section('PARA LLEVAR', [item('Litro de agua fresca', '$45'), item('Orden de tortillas', '$15')]),
+      ],
       rating: '4.8',
       ratingCount: 126,
       isVerifiedBusiness: true,
@@ -194,7 +215,13 @@ const DEV_QA: DevQa[] = [
           item('Pechuga a la plancha', '$105'),
           item('Chile relleno de queso en caldillo de jitomate', '$115'),
         ]),
-        section('TACOS', [item('Al pastor', '$60', 'Orden de cuatro, con piña'), item('Suadero', '$60'), item('Campechanos', '$65'), item('Gringa de pastor con queso', '$70')]),
+        // Algunos con foto: la ficha marca cuáles.
+        section('TACOS', [
+          item('Al pastor', '$60', 'Orden de cuatro, con piña', demoPhoto('1613514785940-daed07799d9b')),
+          item('Suadero', '$60', 'Con cebolla y cilantro', demoPhoto('1599974579688-8dbdd335c77f')),
+          item('Campechanos', '$65', undefined, demoPhoto('1551504734-5ee1c4a1479b')),
+          item('Gringa de pastor con queso', '$70'),
+        ]),
         section('ANTOJITOS', [item('Quesadilla de huitlacoche', '$45'), item('Sope de tinga', '$40'), item('Tlacoyo de frijol con nopales y queso fresco', '$40')]),
         section('VEGETARIANO', [item('Bowl de quinoa con verduras asadas y hummus', '$110'), item('Tacos de coliflor al pastor', '$75')]),
         section('BEBIDAS', [item('Agua de horchata', '$25'), item('Agua de jamaica', '$25', 'Sin azúcar si la pides'), item('Limonada mineral', '$35'), item('Refresco', '$25')]),
@@ -208,6 +235,7 @@ const DEV_QA: DevQa[] = [
     patio: devPatio('demo-dev-2', {
       name: 'Taquería Dev 2',
       categories: ['Tacos', 'Antojitos'],
+      phone: '5587654321',
       area: 'San Pedro de los Pinos',
       price: '$18–$145',
       rating: '4.3',
@@ -262,6 +290,8 @@ const DEV_QA: DevQa[] = [
     patio: devPatio('demo-dev-4', {
       name: 'Pastelería Dev 4',
       categories: ['Postres', 'Café'],
+      phone: '2221234567',
+      whatsapp: true,
       area: 'Santa María la Ribera',
       price: '$40–$480',
       rating: '4.9',
@@ -284,6 +314,7 @@ const DEV_QA: DevQa[] = [
     patio: devPatio('demo-dev-5', {
       name: 'Mariscos y Cocteles Dev Cinco',
       categories: ['Mariscos'],
+      phone: '3312345678',
       area: 'Jardines del Pedregal de San Ángel',
       price: '$150–$1,250',
       latitude: 19.3285,
@@ -341,6 +372,8 @@ DEV_QA.push({
   patio: devPatio('demo-dev-6', {
     name: 'Cocina Grande Dev 6',
     categories: ['Restaurante', 'Fondita'],
+    phone: '5598765432',
+    whatsapp: true,
     area: 'Unidad Habitacional Vicente Guerrero',
     price: '$25–$260',
     rating: '4.5',

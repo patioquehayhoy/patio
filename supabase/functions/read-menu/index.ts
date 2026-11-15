@@ -40,6 +40,13 @@ function normalizeResult(value: unknown) {
     // El modelo suele omitir precio cuando no existe un precio único. El contrato
     // móvil siempre recibe string para que una lectura válida no se descarte.
     precio: text(raw.precio),
+    // Varias formas de cobrar el menú del día (2026-11-14): «Completo $95»,
+    // «Solo guisado $70». Solo las que traen cantidad.
+    precios: (Array.isArray(raw.precios) ? raw.precios : []).flatMap((entry) => {
+      const item = entry && typeof entry === 'object' ? entry as UnknownRecord : {};
+      const precio = text(item.precio);
+      return /\d/.test(precio) ? [{ nombre: text(item.nombre), precio }] : [];
+    }),
     advertencias: Array.isArray(raw.advertencias)
       ? raw.advertencias.filter((warning): warning is string => typeof warning === 'string')
       : [],
@@ -73,6 +80,7 @@ EJEMPLOS DE LA REGLA GENERAL (no son una lista cerrada):
 - "Agua de jamaica, 1 L" / "".
 Aplica el mismo análisis a cualquier platillo, no copies estos ejemplos si no aparecen.
 
+REGLA PRECIOS DEL MENÚ: En fondas y cocinas económicas el menú del día suele cobrarse de varias formas (por ejemplo "Completo $95", "Sin sopa $85", "Solo guisado $70", "Ejecutivo $120", "Para llevar $100"). Pon cada forma en "precios" con su nombre tal como aparece y su cantidad. Si hay una sola forma, ponla también en "precio". Nunca inventes formas que no estén escritas.
 REGLA PRECIO: Si todo el menú tiene un precio único, ponlo en "precio". Si una sección tiene precio común, usa "precioSeccion". Si un platillo tiene precio propio, ponlo exclusivamente en "platillo.precio". Nunca escondas un precio en la descripción. Cuando exista un precio general o de sección, no marques para revisión un platillo solo porque no tenga precio individual: se entiende incluido. Textos como "Carta" o "a la carta" sí distinguen platillos independientes y deben conservarse en la descripción.
 
 REGLA ASOCIACIÓN ESPACIAL DE PRECIO: Lee la posición, no solo el texto. Un precio en el mismo renglón, columna derecha o inmediatamente debajo de un platillo pertenece a ese platillo. Una secuencia de productos con una secuencia de precios debe conservar cada pareja. No promociones un precio individual a "precio" general salvo que la imagen diga explícitamente menú, paquete, precio único, incluye o equivalente.
@@ -139,6 +147,15 @@ const MENU_SCHEMA = {
   additionalProperties: false,
   properties: {
     precio: { type: 'string' },
+    precios: {
+      type: 'array',
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        properties: { nombre: { type: 'string' }, precio: { type: 'string' } },
+        required: ['nombre', 'precio'],
+      },
+    },
     advertencias: { type: 'array', items: { type: 'string' } },
     secciones: {
       type: 'array',
@@ -176,7 +193,7 @@ const MENU_SCHEMA = {
       },
     },
   },
-  required: ['precio', 'advertencias', 'secciones'],
+  required: ['precio', 'precios', 'advertencias', 'secciones'],
 } as const;
 
 function buildPrompt(tipo: string | null | undefined) {
@@ -204,7 +221,7 @@ Deno.serve(async (request) => {
     await consumeAIRequest(auth, 'read-menu');
     const anthropic = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      signal: AbortSignal.timeout(45_000),
+      signal: AbortSignal.timeout(110_000),
       headers: {
         'content-type': 'application/json',
         'x-api-key': apiKey,
@@ -212,7 +229,7 @@ Deno.serve(async (request) => {
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
-        max_tokens: 2200,
+        max_tokens: 12000,
         output_config: {
           format: {
             type: 'json_schema',
@@ -244,6 +261,7 @@ Deno.serve(async (request) => {
 
     const payload = await anthropic.json();
     if (payload?.stop_reason === 'max_tokens' || payload?.stop_reason === 'refusal') {
+      console.error('Lectura incompleta', payload?.stop_reason, payload?.usage);
       throw new Error('La lectura no pudo completarse');
     }
     const text = payload?.content?.find((item: { type?: string }) => item.type === 'text')?.text ?? '';

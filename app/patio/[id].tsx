@@ -41,6 +41,9 @@ import { noWidow } from '@/lib/typography';
 import { menuPricesAccessibilityLabel } from '@/lib/menu-prices';
 import { sectionDisplayName } from '@/lib/section-names';
 import { DishPeek, type DishPeekItem } from '@/components/dish-peek';
+import { DishSheet, type DishSheetDish } from '@/components/dish-sheet';
+import { orderDishPhotos, type DishPhoto } from '@/lib/dish-photos-order';
+import { removeMyReviewPhoto, updateMyReviewPhoto } from '@/lib/ratings';
 import { isCartaName } from '@/lib/menu-carta';
 import { useKnownLocation } from '@/lib/use-known-location';
 import { patioDistance } from '@/lib/patio-sort';
@@ -361,15 +364,33 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
   // Cuántos platillos traen foto: ninguno, algunos o todos.
   // Fotos de clientes (2026-11-15): las de reseñas que dicen de qué platillo
   // son. Se juntan por nombre canónico; la más nueva primero.
+  // Personas bloqueadas: ni sus reseñas ni sus fotos.
+  const [hiddenAuthors, setHiddenAuthors] = useState<string[]>([]);
+  // Correcciones hechas aquí mismo (cambió de platillo, la frase o la quitó):
+  // se ven al momento, sin recargar la ficha.
+  const [photoEdits, setPhotoEdits] = useState<Record<string, { dish?: string; note?: string; removed?: boolean }>>({});
   const customerPhotos = useMemo(() => {
-    const byDish = new Map<string, { url: string; author: string }[]>();
-    [...fetchedReviews].sort((a, b) => b.timestamp - a.timestamp).forEach((review) => {
-      if (!review.photoUrl || !review.photoDish) return;
-      const key = canonicalDishName(review.photoDish);
-      byDish.set(key, [...(byDish.get(key) ?? []), { url: review.photoUrl, author: review.author }]);
+    const byDish = new Map<string, DishPhoto[]>();
+    fetchedReviews.forEach((review) => {
+      if (hiddenAuthors.includes(review.userId)) return;
+      const edit = review.reviewId ? photoEdits[review.reviewId] : undefined;
+      const dish = edit && 'dish' in edit ? edit.dish : review.photoDish;
+      if (!review.photoUrl || !dish || edit?.removed) return;
+      const key = canonicalDishName(dish);
+      byDish.set(key, [...(byDish.get(key) ?? []), {
+        url: review.photoUrl,
+        by: review.author,
+        note: edit && 'note' in edit ? edit.note : review.photoNote,
+        at: review.timestamp,
+        reviewId: review.reviewId,
+        userId: review.userId,
+        mine: review.isMine,
+      }]);
     });
     return byDish;
-  }, [fetchedReviews]);
+  }, [fetchedReviews, hiddenAuthors, photoEdits]);
+  // Todas las fotos de un platillo, en orden (`lib/dish-photos-order.ts`).
+  const photosFor = (item: { name: string; photo?: string }) => orderDishPhotos(item.photo, customerPhotos.get(canonicalDishName(item.name)) ?? []);
   const hasPhoto = (item: { name: string; photo?: string }) => !!item.photo || customerPhotos.has(canonicalDishName(item.name));
   const dishPhotos = useMemo<'none' | 'some' | 'all'>(() => {
     const items = menuGroups.flatMap((group) => group.items);
@@ -377,31 +398,39 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
     return !withPhoto ? 'none' : withPhoto === items.length ? 'all' : 'some';
   }, [menuGroups, customerPhotos]);
   const [dishPeek, setDishPeek] = useState<{ item: DishPeekItem; sticky: boolean; touchY?: number } | null>(null);
+  // Vistazo: mantener presionado muestra la mejor foto; «+N» si hay más.
   const openDishPeek = (item: { name: string; description?: string; price?: string | false; photo?: string }, sticky = false, touchY?: number) => {
-    const fromCustomers = customerPhotos.get(canonicalDishName(item.name)) ?? [];
-    if (!item.photo && !fromCustomers.length) return;
+    const photos = photosFor(item);
+    if (!photos.length) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     setDishPeek({
       item: {
         name: item.name,
         description: item.description,
         price: item.price || undefined,
-        // La del negocio va primero; sin ella, la más nueva de un cliente.
-        photo: item.photo ?? fromCustomers[0].url,
-        byCustomer: item.photo ? undefined : fromCustomers[0].author,
-        customerPhotos: (item.photo ? fromCustomers : fromCustomers.slice(1)).slice(0, 3).map((photo) => photo.url),
+        photo: photos[0].url,
+        by: photos[0].by,
+        more: photos.length - 1 || undefined,
       },
       sticky,
       touchY,
     });
   };
+  // Hoja del platillo: tocarlo muestra todas sus fotos y deja subir la tuya.
+  const [dishSheet, setDishSheet] = useState<DishSheetDish | null>(null);
+  const dishSheetItem = dishSheet ? menuGroups.flatMap((group) => group.items).find((item) => item.name === dishSheet.name) : undefined;
+  const dishSheetPhotos = dishSheet ? photosFor({ name: dishSheet.name, photo: dishSheetItem?.photo }) : [];
+  const openDishSheet = (item: { name: string; description?: string; price?: string | false }) => {
+    setDishPeek(null);
+    setDishSheet({ name: item.name, description: item.description, price: item.price || undefined });
+  };
+  const dishNames = useMemo(() => [...new Set(menuGroups.flatMap((group) => group.items.map((item) => item.name)))], [menuGroups]);
   const recentRecordedId = useRef<string | null>(null);
   useEffect(() => {
     if (own || !patio || recentRecordedId.current === patio.id) return;
     recentRecordedId.current = patio.id;
     void recordRecentPatio(patio, 'opened').catch(() => {});
   }, [own, patio]);
-  const [hiddenAuthors, setHiddenAuthors] = useState<string[]>([]);
   const reviews = useMemo(() => fetchedReviews.filter((review) => !hiddenAuthors.includes(review.userId)), [fetchedReviews, hiddenAuthors]);
   useEffect(() => { setHiddenAuthors([]); }, [patioId]);
   const heroPhoto = useMemo(() => heroPhotoFor(patioId ?? cleanId ?? ''), [patioId, cleanId]);
@@ -1101,11 +1130,15 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
               {/* Fotos de platillos: el menú sigue en texto; se ven
                   manteniendo presionado. Si todos tienen foto basta esta
                   línea; si solo algunos, la marca junto al nombre dice cuáles. */}
-              {dishPhotos !== 'none' && (
+              {/* Quien visita: tocar abre las fotos del platillo (y subir la
+                  suya); sin fotos todavía, la línea invita a subir la primera. */}
+              {(dishPhotos !== 'none' || !own) && (
                 <Text style={s.dishPhotoHint} allowFontScaling={true}>
-                  {dishPhotos === 'all'
-                    ? noWidow('Mantén presionado un platillo para ver su foto.')
-                    : <>{'Mantén presionado un platillo con '}<Ionicons name="image-outline" size={13} color={theme.textSecondary} />{noWidow(' para ver su foto.')}</>}
+                  {dishPhotos === 'none'
+                    ? noWidow('Toca un platillo para subir su foto.')
+                    : dishPhotos === 'all'
+                      ? noWidow(own ? 'Mantén presionado un platillo para ver su foto.' : 'Mantén presionado un platillo para ver su foto; tócalo para ver todas.')
+                      : <>{'Mantén presionado un platillo con '}<Ionicons name="image-outline" size={13} color={theme.textSecondary} />{noWidow(own ? ' para ver su foto.' : ' para ver su foto; tócalo para ver todas.')}</>}
                 </Text>
               )}
               {menuGroups.map((section, sectionIndex) => (
@@ -1142,7 +1175,9 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
                       <Pressable
                         key={`${section.section}-${item.name}`}
                         style={s.groupItem}
-                        disabled={!hasPhoto(item)}
+                        // Quien visita toca cualquier platillo: ve sus fotos o sube la primera.
+                        disabled={own && !hasPhoto(item)}
+                        onPress={own ? undefined : () => openDishSheet(item)}
                         delayLongPress={280}
                         onLongPress={(event) => openDishPeek(item, false, event.nativeEvent.pageY)}
                         onPressOut={() => setDishPeek((current) => (current && !current.sticky ? null : current))}
@@ -1158,9 +1193,9 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
                           <Text
                             style={s.groupItemName}
                             allowFontScaling={true}
-                            accessibilityHint={hasPhoto(item) ? 'Tiene foto. Usa la acción Ver foto.' : undefined}
-                            accessibilityActions={hasPhoto(item) ? [{ name: 'activate', label: 'Ver foto' }] : undefined}
-                            onAccessibilityAction={() => openDishPeek(item, true)}>
+                            accessibilityHint={own ? (hasPhoto(item) ? 'Tiene foto. Usa la acción Ver foto.' : undefined) : (hasPhoto(item) ? 'Tiene fotos. Usa la acción Ver fotos.' : 'Usa la acción Ver fotos para subir la tuya.')}
+                            accessibilityActions={own ? (hasPhoto(item) ? [{ name: 'activate', label: 'Ver foto' }] : undefined) : [{ name: 'activate', label: 'Ver fotos' }]}
+                            onAccessibilityAction={() => (own ? openDishPeek(item, true) : openDishSheet(item))}>
                             {item.name}
                             {/* Solo si algunos tienen foto: la marca dice cuáles. */}
                             {hasPhoto(item) && dishPhotos === 'some' && (
@@ -1665,6 +1700,37 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
         </Animated.View>
       )}
       <DishPeek item={dishPeek?.item ?? null} sticky={!!dishPeek?.sticky} touchY={dishPeek?.touchY} onClose={() => setDishPeek(null)} />
+      <DishSheet
+        dish={dishSheet}
+        photos={dishSheetPhotos}
+        dishOptions={dishNames}
+        canAdd={!own}
+        onClose={() => setDishSheet(null)}
+        onAdd={() => {
+          const name = dishSheet?.name;
+          setDishSheet(null);
+          if (patio && name) router.push({ pathname: '/resena/[id]', params: { id: patio.id, dish: name } });
+        }}
+        onFix={async (photo, dish, note) => {
+          if (!photo.reviewId) return;
+          await updateMyReviewPhoto(photo.reviewId, dish, note);
+          setPhotoEdits((current) => ({ ...current, [photo.reviewId!]: { dish, note: note.trim() || undefined } }));
+        }}
+        onRemove={async (photo) => {
+          if (!photo.reviewId) return;
+          await removeMyReviewPhoto(photo.reviewId, photo.url);
+          setPhotoEdits((current) => ({ ...current, [photo.reviewId!]: { removed: true } }));
+        }}
+        onReport={(photo, reason) => {
+          if (!photo.reviewId) return;
+          reportContent('review', photo.reviewId, reason, reason === 'inaccurate' ? `Foto que no es de ${dishSheet?.name ?? 'este platillo'}` : 'Foto de platillo')
+            .then(() => Alert.alert(noWidow('Gracias por avisarnos'), noWidow('Revisaremos esta foto.')))
+            .catch((error: Error) => {
+              if (/Inicia sesión/.test(error.message)) { setDishSheet(null); askToSignIn(); }
+              else Alert.alert(noWidow('No se envió el reporte'), noWidow(error.message));
+            });
+        }}
+      />
       {followToast && (
         <View style={[s.followToast, { bottom: insets.bottom + 16 }, floatingSurfaceShadow(theme.isDark)]} accessibilityLiveRegion="polite">
           <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={[s.followToastInner, { backgroundColor: sheetSurfaceTint(theme.isDark), borderColor: theme.isDark ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.18)' }]}>

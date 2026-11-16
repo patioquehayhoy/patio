@@ -14,4 +14,5 @@ export const TEXT_LIMITS = {
   dishDescription: 140,
   dishPrice: 7,
   reviewNote: 600,
+  reviewPhotoNote: 140,
 } as const;

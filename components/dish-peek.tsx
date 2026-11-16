@@ -12,11 +12,12 @@ export type DishPeekItem = {
   name: string;
   description?: string;
   price?: string;
+  /** La mejor foto: la del negocio o, sin ella, la primera de un cliente. */
   photo: string;
-  /** Si la foto grande es de un cliente, su nombre. */
-  byCustomer?: string;
-  /** Más fotos de clientes, chicas abajo (hasta 3). */
-  customerPhotos?: string[];
+  /** Nombre del cliente que la subió; sin él es del negocio y no lleva crédito. */
+  by?: string;
+  /** Cuántas fotos más hay del platillo (se ven al tocarlo). */
+  more?: number;
 };
 
 // Foto del platillo al mantenerlo presionado (2026-11-15, idea de Parco): el
@@ -26,6 +27,10 @@ export type DishPeekItem = {
 // cierra tocando (`sticky`).
 // La foto nunca sale debajo del dedo: si se presionó en la mitad de abajo
 // aparece arriba, y al revés (`touchY` = dónde se presionó).
+// Una sola foto: es un vistazo («¿qué es esto?»), no una galería. Si hay más,
+// «+N» dice que tocando el platillo se ven todas (`DishSheet`). El crédito del
+// cliente va en un lugar fijo arriba a la izquierda, dentro de la foto: nunca
+// empuja nada. La del negocio no lleva crédito.
 export function DishPeek({ item, sticky, touchY, onClose }: { item: DishPeekItem | null; sticky: boolean; touchY?: number; onClose: () => void }) {
   const { theme } = useTheme();
   const { width, height } = useWindowDimensions();
@@ -34,7 +39,6 @@ export function DishPeek({ item, sticky, touchY, onClose }: { item: DishPeekItem
   const [shown, setShown] = useState<DishPeekItem | null>(item);
   // Al cerrarse conserva su lugar: no brinca al centro mientras se va.
   const [shownY, setShownY] = useState(touchY);
-
   useEffect(() => {
     if (item) { setShown(item); setShownY(touchY); }
     // Entra con resorte suave (crece desde donde está el dedo); sale rápido.
@@ -43,6 +47,7 @@ export function DishPeek({ item, sticky, touchY, onClose }: { item: DishPeekItem
       : Animated.timing(progress, { toValue: 0, duration: 140, easing: Easing.in(Easing.cubic), useNativeDriver: true });
     animation.start(({ finished }) => { if (finished && !item) setShown(null); });
   }, [item, touchY, progress]);
+
 
   if (!shown) return null;
   const cardWidth = Math.min(width - 48, 380);
@@ -75,14 +80,26 @@ export function DishPeek({ item, sticky, touchY, onClose }: { item: DishPeekItem
             },
           ]}>
           <View style={[s.card, { width: cardWidth, backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <Image
-            source={{ uri: shown.photo }}
-            style={{ width: cardWidth, height: cardWidth * 0.75, backgroundColor: theme.border }}
-            contentFit="cover"
-            transition={120}
-            accessibilityIgnoresInvertColors
-            accessibilityLabel={`Foto de ${shown.name}`}
-          />
+          <View style={{ width: cardWidth, height: cardWidth * 0.75, backgroundColor: theme.border }}>
+            <Image
+              source={{ uri: shown.photo }}
+              style={StyleSheet.absoluteFillObject}
+              contentFit="cover"
+              transition={120}
+              accessibilityIgnoresInvertColors
+              accessibilityLabel={shown.by ? `Foto de ${shown.name}, de ${shown.by}` : `Foto de ${shown.name}`}
+            />
+            {!!shown.by && (
+              <View style={[s.chip, s.chipCredit]}>
+                <Text style={s.chipText} allowFontScaling={true} maxFontSizeMultiplier={1.4}>{shown.by}</Text>
+              </View>
+            )}
+            {!!shown.more && (
+              <View style={[s.chip, s.chipMore]}>
+                <Text style={s.chipText} allowFontScaling={true} maxFontSizeMultiplier={1.4}>{`+${shown.more.toLocaleString('es-MX')}`}</Text>
+              </View>
+            )}
+          </View>
           <View style={s.body}>
             <View style={s.titleRow}>
               <Text style={[s.name, { color: theme.text }]} allowFontScaling={true}>{noWidow(shown.name)}</Text>
@@ -90,19 +107,6 @@ export function DishPeek({ item, sticky, touchY, onClose }: { item: DishPeekItem
             </View>
             {!!shown.description && (
               <Text style={[s.description, { color: theme.textSecondary }]} allowFontScaling={true}>{noWidow(shown.description)}</Text>
-            )}
-            {!!shown.byCustomer && (
-              <Text style={[s.credit, { color: theme.textSecondary }]} allowFontScaling={true}>{noWidow(`Foto de un cliente · ${shown.byCustomer}`)}</Text>
-            )}
-            {!!shown.customerPhotos?.length && (
-              <View style={s.more}>
-                <Text style={[s.credit, { color: theme.textSecondary }]} allowFontScaling={true}>{shown.byCustomer ? 'Más de clientes' : 'De clientes'}</Text>
-                <View style={s.thumbs}>
-                  {shown.customerPhotos.map((url) => (
-                    <Image key={url} source={{ uri: url }} style={[s.thumb, { backgroundColor: theme.border }]} contentFit="cover" accessibilityIgnoresInvertColors />
-                  ))}
-                </View>
-              </View>
             )}
           </View>
           </View>
@@ -121,8 +125,9 @@ const s = StyleSheet.create({
   name: { flex: 1, fontSize: 17, lineHeight: 22, fontWeight: '700' },
   price: { fontSize: 17, lineHeight: 22, fontWeight: '500', fontVariant: ['tabular-nums'] },
   description: { fontSize: 14, lineHeight: 19, fontWeight: '400' },
-  credit: { marginTop: 6, fontSize: 12, lineHeight: 16, fontWeight: '400' },
-  more: { marginTop: 4 },
-  thumbs: { marginTop: 6, flexDirection: 'row', gap: 6 },
-  thumb: { width: 56, height: 56, borderRadius: 10, borderCurve: 'continuous' },
+  // Cápsulas oscuras en esquinas fijas: se leen sobre cualquier foto y no se mueven.
+  chip: { position: 'absolute', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 100, backgroundColor: 'rgba(0,0,0,0.5)' },
+  chipCredit: { top: 10, left: 10, maxWidth: '70%' },
+  chipMore: { bottom: 10, right: 10 },
+  chipText: { color: '#FFFFFF', fontSize: 12, lineHeight: 16, fontWeight: '600', fontVariant: ['tabular-nums'] },
 });

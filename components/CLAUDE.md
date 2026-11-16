@@ -36,9 +36,21 @@
 - Se recuerdan por nombre (`canonicalDishName`): la carta y los menús
   anteriores la traen sola al escribir el mismo platillo. Quitarla la olvida
   para ese nombre mientras dura la edición.
-- Ficha: `components/dish-peek.tsx`. Mantener presionado abre la foto en la
-  mitad contraria al dedo; soltar la cierra. Ícono junto al nombre solo si
-  algunos tienen foto; con todos, solo la línea de arriba.
+- Ficha, vistazo (`components/dish-peek.tsx`): mantener presionado abre UNA
+  foto (la mejor) en la mitad contraria al dedo; soltar la cierra. Crédito
+  del cliente en cápsula fija arriba a la izquierda; «+N» abajo a la derecha
+  si hay más. Sin carrusel: con el dedo apretado no se navega (se probó
+  ruleta y miniaturas, 2026-11-15, y no convencieron).
+- Ficha, hoja del platillo (`components/dish-sheet.tsx`): tocar un platillo
+  (quien visita) abre todas sus fotos en cuadrícula; tocar una la abre
+  grande con carrusel normal y pie fijo (quién · cuándo · frase · «3 de
+  12»). Tu foto: Corregir (de qué platillo es, la frase) o Quitar; la de
+  otro: Reportar («No es de este platillo» / ofensiva). «Agregar tu foto»
+  lleva a la reseña con el platillo elegido y abre cámara/Fotos.
+- Orden: `lib/dish-photos-order.ts` — negocio, luego clientes de 90 días
+  (una por persona primero), luego las viejas. Las estrellas no ordenan.
+- Ícono junto al nombre solo si algunos tienen foto; con todos, solo la
+  línea de arriba.
 
 El precio por platillo es el mismo chip; si se cambia uno, se cambia el otro.
 

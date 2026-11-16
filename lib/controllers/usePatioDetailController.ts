@@ -80,7 +80,11 @@ const DEMO_LONGTIME_PATIO_REVIEWS: PublicPatioReview[] = [
 const devCustomerPhoto = (id: string) => `https://images.unsplash.com/photo-${id}?w=900&q=75`;
 const DEMO_DEV1_REVIEWS: PublicPatioReview[] = [
   { userId: 'demo-dev1-1', author: 'Caro M.', stars: 5, reasons: ['Sabor casero'], note: 'La gringa de pastor está buenísima, pídela con piña.', timestamp: Date.now() - 1000 * 60 * 60 * 5, photoUrl: devCustomerPhoto('1565299585323-38d6b0865b47'), photoDish: 'Gringa de pastor con queso', isMine: false },
-  { userId: 'demo-dev1-2', author: 'Iván R.', stars: 4, reasons: ['Buena porción'], note: 'Los de pastor llegan calientitos.', timestamp: Date.now() - 1000 * 60 * 60 * 26, photoUrl: devCustomerPhoto('1624300629298-e9de39c13be5'), photoDish: 'Al pastor', isMine: false },
+  { userId: 'demo-dev1-2', author: 'Iván R.', stars: 4, reasons: ['Buena porción'], note: 'Los de pastor llegan calientitos.', timestamp: Date.now() - 1000 * 60 * 60 * 26, photoUrl: devCustomerPhoto('1624300629298-e9de39c13be5'), photoDish: 'Al pastor', photoNote: 'Pídelos con piña y salsa verde', isMine: false },
+  // Varias del mismo platillo, para ver la cuadrícula, «+N» y el orden (una por persona, las viejas al final).
+  { userId: 'demo-dev1-3', author: 'María Guadalupe Hernández', stars: 5, reasons: ['Sabor casero'], note: 'Volvería.', timestamp: Date.now() - 1000 * 60 * 60 * 24 * 3, photoUrl: `${devCustomerPhoto('1565299585323-38d6b0865b47')}&v=3`, photoDish: 'Al pastor', photoNote: 'La tortilla hecha a mano se nota', isMine: false },
+  { userId: 'demo-dev1-2', author: 'Iván R.', stars: 4, reasons: ['Rápido'], note: 'Otra vez bien.', timestamp: Date.now() - 1000 * 60 * 60 * 24 * 9, photoUrl: `${devCustomerPhoto('1624300629298-e9de39c13be5')}&v=4`, photoDish: 'Al pastor', isMine: false },
+  { userId: 'demo-dev1-4', author: 'Leo', stars: 3, reasons: ['Precio justo'], note: 'Bien, sin más.', timestamp: Date.now() - 1000 * 60 * 60 * 24 * 200, photoUrl: `${devCustomerPhoto('1565299585323-38d6b0865b47')}&v=5`, photoDish: 'Al pastor', isMine: false },
 ];
 
 function withDemoProfileReviews(patioId: string, reviews: PublicPatioReview[]) {

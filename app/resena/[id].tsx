@@ -1,14 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
-import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { Alert, Animated, Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActionSheetIOS, Alert, Animated, Image, KeyboardAvoidingView, Linking, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { fetchFonditaById, fetchPublicFonditas, getPatioById, type Patio } from '@/lib/patios';
 import { patioCardPrice } from '@/lib/patio-card-info';
 import { getRatedPatioIds, savePatioRating } from '@/lib/ratings';
+import { pickPlacePhoto, PlacePhotoPermissionError, type PlacePhotoSource } from '@/lib/place-photo';
 import { similarPlaces } from '@/lib/recommendations';
 import { writeErrorMessage } from '@/lib/content-safety';
 import { reviewTags } from '@/lib/review-tags';
@@ -53,6 +53,9 @@ function makeStyles(t: Theme) {
     photoRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 14, borderCurve: 'continuous', backgroundColor: t.isDark ? 'rgba(255,255,255,0.04)' : 'rgba(17,18,20,0.04)', borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
     photoText: { fontSize: 13, color: t.textSecondary, flex: 1 },
     dishPick: { marginTop: 18 },
+    photoNoteCard: { marginTop: 6, paddingHorizontal: 16, paddingVertical: 12, borderRadius: 14, borderCurve: 'continuous', backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
+    photoNoteInput: { fontSize: 14, lineHeight: 20, color: t.text, padding: 0 },
+    fieldLabel: { fontSize: 13, fontWeight: '400', color: t.textSecondary, marginBottom: 6 },
     photoThumb: { width: 56, height: 56, borderRadius: 12, borderCurve: 'continuous' },
 
     ctaWrap: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 20, paddingTop: 14 },
@@ -80,7 +83,10 @@ export default function ResenaScreen() {
   const { theme } = useTheme();
   const s = makeStyles(theme);
   const insets = useSafeAreaInsets();
-  const { id, stars: starsParam } = useLocalSearchParams<{ id?: string; stars?: string }>();
+  // `dish`: llega desde la hoja de un platillo («Agregar tu foto»): la foto
+  // ya sabe de qué platillo es y se abre la cámara o Fotos de inmediato.
+  const { id, stars: starsParam, dish: dishParam } = useLocalSearchParams<{ id?: string; stars?: string; dish?: string }>();
+  const presetDish = (Array.isArray(dishParam) ? dishParam[0] : dishParam) || undefined;
   const cleanId = Array.isArray(id) ? id[0] : id;
   const initialStars = Number(Array.isArray(starsParam) ? starsParam[0] : starsParam) || 0;
 
@@ -91,7 +97,9 @@ export default function ResenaScreen() {
   const [photoUri, setPhotoUri] = useState<string | undefined>(undefined);
   // ¿De qué platillo es la foto? (2026-11-15): así sale en la ficha al
   // mantener presionado ese platillo. Opcional.
-  const [photoDish, setPhotoDish] = useState<string | undefined>(undefined);
+  const [photoDish, setPhotoDish] = useState<string | undefined>(presetDish);
+  // Frase corta que va como pie de la foto en la ficha. Opcional.
+  const [photoNote, setPhotoNote] = useState('');
   const [saving, setSaving] = useState(false);
   // Después de publicar: «Parecidos cerca» para seguir buscando lugares.
   const [similar, setSimilar] = useState<Patio[] | null>(null);
@@ -127,16 +135,58 @@ export default function ResenaScreen() {
     setSelected((prev) => (prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]));
   };
 
-  const pickPhoto = async () => {
+  const choosePhoto = async (source: PlacePhotoSource) => {
     try {
-      const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.7 });
-      if (!res.canceled && res.assets[0]) setPhotoUri(res.assets[0].uri);
-    } catch {
-      Alert.alert(noWidow('No pudimos abrir tus fotos'), noWidow('Revisa los permisos de Patio en Ajustes e inténtalo otra vez.'));
+      const asset = await pickPlacePhoto(source);
+      if (asset) setPhotoUri(asset.uri);
+    } catch (error) {
+      if (error instanceof PlacePhotoPermissionError) {
+        Alert.alert(
+          noWidow(source === 'camera' ? 'Patio no tiene acceso a la cámara' : 'Patio no tiene acceso a tus fotos'),
+          noWidow('Puedes darle permiso en Ajustes.'),
+          [{ text: 'Ahora no', style: 'cancel' }, { text: 'Abrir Ajustes', onPress: () => { Linking.openSettings().catch(() => {}); } }],
+        );
+      } else {
+        Alert.alert(noWidow('No pudimos abrir la foto'), noWidow('Inténtalo otra vez.'));
+      }
     }
   };
+  // Tomarla ahí mismo o elegir de Fotos; con foto, también quitarla.
+  const pickPhoto = () => {
+    const options = ['Tomar foto', 'Elegir de Fotos', ...(photoUri ? ['Quitar foto'] : []), 'Cancelar'];
+    const run = (index: number) => {
+      if (index === 0) void choosePhoto('camera');
+      else if (index === 1) void choosePhoto('library');
+      else if (photoUri && index === 2) { setPhotoUri(undefined); setPhotoNote(''); if (!presetDish) setPhotoDish(undefined); }
+    };
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        { options, cancelButtonIndex: options.length - 1, destructiveButtonIndex: photoUri ? 2 : undefined },
+        run,
+      );
+    } else {
+      Alert.alert(noWidow(presetDish ? `Foto de ${presetDish}` : 'Foto de tu visita'), undefined, [
+        { text: 'Tomar foto', onPress: () => run(0) },
+        { text: 'Elegir de Fotos', onPress: () => run(1) },
+        ...(photoUri ? [{ text: 'Quitar foto', style: 'destructive' as const, onPress: () => run(2) }] : []),
+        { text: 'Cancelar', style: 'cancel' as const },
+      ]);
+    }
+  };
+  // Desde la hoja del platillo, la cámara o Fotos se ofrecen de inmediato.
+  const askedPreset = useRef(false);
+  useEffect(() => {
+    if (!presetDish || askedPreset.current) return;
+    askedPreset.current = true;
+    const timer = setTimeout(pickPhoto, 450);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [presetDish]);
 
-  const dishOptions = [...new Set([...(patio?.menu ?? []), ...(patio?.carta ?? [])].flatMap((section) => section.items.map((item) => item.name)))].slice(0, 24);
+  const dishOptions = [...new Set([
+    ...(presetDish ? [presetDish] : []),
+    ...[...(patio?.menu ?? []), ...(patio?.carta ?? [])].flatMap((section) => section.items.map((item) => item.name)),
+  ])].slice(0, 24);
 
   const subtitle = (() => {
     const dishes = patio?.menu?.[0]?.items?.slice(0, 2).map((it) => it.name).join(' · ');
@@ -153,7 +203,7 @@ export default function ResenaScreen() {
     }
     setSaving(true);
     try {
-      await savePatioRating(cleanId, { stars, reasons: selected, note, photoUri, photoDish });
+      await savePatioRating(cleanId, { stars, reasons: selected, note, photoUri, photoDish, photoNote });
       const suggestions = patio
         ? await Promise.all([fetchPublicFonditas(), getRatedPatioIds()])
           .then(([all, rated]) => similarPlaces(patio, all, rated))
@@ -265,12 +315,12 @@ export default function ResenaScreen() {
           />
         </View>
 
-        <TouchableOpacity style={s.photoRow} activeOpacity={0.85} onPress={pickPhoto} accessibilityRole="button" accessibilityLabel={photoUri ? 'Cambiar foto de la reseña' : 'Agregar foto opcional a la reseña'}>
+        <TouchableOpacity style={s.photoRow} activeOpacity={0.85} onPress={pickPhoto} accessibilityRole="button" accessibilityLabel={photoUri ? 'Cambiar foto de la reseña' : presetDish ? `Agregar foto de ${presetDish}` : 'Agregar foto opcional a la reseña'}>
           {photoUri
             ? <Image source={{ uri: photoUri }} style={s.photoThumb} />
             : <Ionicons name="camera-outline" size={16} color={theme.accent} />}
           <Text style={s.photoText} allowFontScaling={true}>
-            {photoUri ? 'Cambiar foto' : 'Foto opcional · le ayuda a quien busca'}
+            {photoUri ? 'Cambiar foto' : presetDish ? noWidow(`Agregar foto de ${presetDish}`) : 'Foto opcional · le ayuda a quien busca'}
           </Text>
           {photoUri ? <Ionicons name="checkmark-circle" size={18} color={theme.accent} /> : null}
         </TouchableOpacity>
@@ -287,6 +337,25 @@ export default function ResenaScreen() {
                   </TouchableOpacity>
                 );
               })}
+            </View>
+          </View>
+        )}
+        {/* Con foto: una frase del platillo, va como pie de la foto en la ficha. */}
+        {!!photoUri && (
+          <View style={s.dishPick}>
+            <Text style={s.fieldLabel} allowFontScaling={true}>{noWidow(photoDish ? `Algo de ${photoDish} (opcional)` : 'Algo del platillo (opcional)')}</Text>
+            <View style={s.photoNoteCard}>
+              <TextInput
+                style={s.photoNoteInput}
+                value={photoNote}
+                onChangeText={(value) => setPhotoNote(value.slice(0, TEXT_LIMITS.reviewPhotoNote))}
+                placeholder="Ej. La salsa verde pica en serio"
+                placeholderTextColor={theme.textSecondary}
+                accessibilityLabel="Frase del platillo"
+                selectionColor={theme.accent}
+                returnKeyType="done"
+                allowFontScaling={true}
+              />
             </View>
           </View>
         )}

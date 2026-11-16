@@ -15,6 +15,8 @@ export type PatioRating = {
   /** Foto pública de la reseña (bucket `review-photos`) y de qué platillo es. */
   photoUrl?: string;
   photoDish?: string;
+  /** Frase corta del platillo que va como pie de la foto. */
+  photoNote?: string;
   timestamp: number;
 };
 
@@ -74,7 +76,7 @@ export async function getPublicPatioReviews(patioId: string): Promise<PublicPati
     supabase.auth.getSession(),
     supabase
       .from('reviews')
-      .select('id,user_id,stars,reasons,note,created_at,updated_at,business_reply,business_replied_at,foto_url,foto_platillo')
+      .select('id,user_id,stars,reasons,note,created_at,updated_at,business_reply,business_replied_at,foto_url,foto_platillo,foto_nota')
       .eq('negocio_id', patioId)
       .eq('status', 'published')
       .order('created_at', { ascending: false }),
@@ -101,7 +103,7 @@ export async function getPublicPatioReviews(patioId: string): Promise<PublicPati
       note: row.note || undefined,
       timestamp: new Date(row.created_at || row.updated_at).getTime(),
       businessReply: row.business_reply || undefined,
-      ...(isReviewPhotoUrl(row.foto_url) ? { photoUrl: row.foto_url, photoDish: row.foto_platillo || undefined } : {}),
+      ...(isReviewPhotoUrl(row.foto_url) ? { photoUrl: row.foto_url, photoDish: row.foto_platillo || undefined, photoNote: row.foto_nota || undefined } : {}),
       businessRepliedAt: row.business_replied_at || undefined,
       isMine,
     }];
@@ -125,6 +127,8 @@ export type SaveRatingInput = {
   photoUri?: string;
   /** De qué platillo es la foto (opcional). */
   photoDish?: string;
+  /** Frase corta del platillo (opcional). */
+  photoNote?: string;
 };
 
 /** Lugares que ya reseñaste desde este teléfono. */
@@ -160,6 +164,7 @@ export async function savePatioRating(
     note: data.note?.trim() || undefined,
     photoUri: data.photoUri || undefined,
     photoDish: data.photoUri && data.photoDish?.trim() ? data.photoDish.trim() : undefined,
+    photoNote: data.photoUri && data.photoNote?.trim() ? data.photoNote.trim() : undefined,
     timestamp: Date.now(),
   };
   if (/^[0-9a-f-]{36}$/i.test(patioId)) {
@@ -179,6 +184,7 @@ export async function savePatioRating(
         note: data.note?.trim() || null,
         foto_url: fotoUrl,
         foto_platillo: fotoUrl && data.photoDish?.trim() ? data.photoDish.trim().slice(0, 120) : null,
+        foto_nota: fotoUrl && data.photoNote?.trim() ? data.photoNote.trim().slice(0, 140) : null,
         visit_date: localMenuDate(),
         updated_at: new Date().toISOString(),
       });
@@ -190,4 +196,23 @@ export async function savePatioRating(
   map[patioId] = [...(map[patioId] ?? []), rating];
   await AsyncStorage.setItem(KEY, JSON.stringify(map));
   });
+}
+
+/** Quien subió la foto la corrige: de qué platillo es y su frase. */
+export async function updateMyReviewPhoto(reviewId: string, dish: string | undefined, note: string | undefined): Promise<void> {
+  const { error } = await supabase.rpc('update_my_review_photo', {
+    target_review_id: reviewId,
+    dish: dish?.trim() || null,
+    photo_note: note?.trim() || null,
+  });
+  if (error) throw error;
+}
+
+/** Quita la foto de tu reseña; la reseña se queda. */
+export async function removeMyReviewPhoto(reviewId: string, photoUrl: string): Promise<void> {
+  const { error } = await supabase.rpc('remove_my_review_photo', { target_review_id: reviewId });
+  if (error) throw error;
+  // El archivo, de mejor esfuerzo: la foto ya no sale aunque esto falle.
+  const path = photoUrl.split('/storage/v1/object/public/review-photos/')[1]?.split('?')[0];
+  if (path) void supabase.storage.from('review-photos').remove([decodeURIComponent(path)]).then(() => {}, () => {});
 }

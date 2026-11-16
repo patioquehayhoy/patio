@@ -11,15 +11,17 @@ const code = ts.transpileModule(fs.readFileSync(path.join(root, 'lib/dish-photos
 }).outputText;
 const mod = { exports: {} };
 new Function('module', 'exports', 'require', code)(mod, mod.exports, () => ({}));
-const { orderDishPhotos, photoAge } = mod.exports;
+const { orderDishPhotos, photoDate } = mod.exports;
 
 const DAY = 24 * 60 * 60 * 1000;
 const NOW = 1_800_000_000_000;
 const photo = (url, userId, daysAgo) => ({ url, userId, by: userId, at: NOW - daysAgo * DAY });
 
 test('the business photo goes first, then recent customer photos newest first', () => {
-  const order = orderDishPhotos('negocio.jpg', [photo('a', 'ana', 10), photo('b', 'beto', 2)], NOW);
+  const order = orderDishPhotos({ url: 'negocio.jpg', hash: 'ab'.repeat(12) }, [photo('a', 'ana', 10), photo('b', 'beto', 2)], NOW);
   assert.deepEqual(order.map((p) => p.url), ['negocio.jpg', 'b', 'a']);
+  assert.equal(order[0].hash, 'ab'.repeat(12), 'the business photo keeps its instant preview');
+  assert.equal(order[0].by, undefined, 'the business photo has no customer credit');
 });
 
 test('one photo per person before repeating anyone', () => {
@@ -34,16 +36,13 @@ test('photos older than 90 days go after the recent ones, even if they are many'
 
 test('40 photos keep every one, without duplicates', () => {
   const many = Array.from({ length: 40 }, (_, i) => photo(`p${i}`, `u${i % 7}`, i * 5));
-  const order = orderDishPhotos('negocio.jpg', [...many, many[0]], NOW);
+  const order = orderDishPhotos({ url: 'negocio.jpg' }, [...many, many[0]], NOW);
   assert.equal(order.length, 41);
   assert.equal(new Set(order.map((p) => p.url)).size, 41);
 });
 
-test('photo age reads like people talk', () => {
-  assert.equal(photoAge(NOW - 2 * 60 * 60 * 1000, NOW), 'hoy');
-  assert.equal(photoAge(NOW - DAY, NOW), 'ayer');
-  assert.equal(photoAge(NOW - 3 * DAY, NOW), 'hace 3 días');
-  assert.equal(photoAge(NOW - 40 * DAY, NOW), 'hace un mes');
-  assert.equal(photoAge(NOW - 800 * DAY, NOW), 'hace 2 años');
-  assert.equal(photoAge(undefined, NOW), undefined);
+test('a photo is dated like its review', () => {
+  const at = new Date(2026, 10, 15, 13, 0).getTime();
+  assert.equal(photoDate(at), new Date(at).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' }));
+  assert.equal(photoDate(undefined), undefined);
 });

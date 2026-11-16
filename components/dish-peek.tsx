@@ -1,11 +1,13 @@
 import { BlurView } from 'expo-blur';
 import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { floatingSurfaceShadow } from '@/lib/surface-styles';
 import { useTheme } from '@/lib/theme';
+import { photoPlaceholder } from '@/lib/photo-hash';
 import { noWidow } from '@/lib/typography';
 
 export type DishPeekItem = {
@@ -14,10 +16,12 @@ export type DishPeekItem = {
   price?: string;
   /** La mejor foto: la del negocio o, sin ella, la primera de un cliente. */
   photo: string;
-  /** Nombre del cliente que la subió; sin él es del negocio y no lleva crédito. */
+  /** Vista previa instantánea (lib/photo-hash.ts). */
+  hash?: string;
+  /** Quién subió la foto (el lugar o la persona). */
   by?: string;
-  /** Cuántas fotos más hay del platillo (se ven al tocarlo). */
-  more?: number;
+  /** Cuántas fotos tiene el platillo; con varias se dice dentro de la foto. */
+  count?: number;
 };
 
 // Foto del platillo al mantenerlo presionado (2026-11-15, idea de Parco): el
@@ -27,10 +31,9 @@ export type DishPeekItem = {
 // cierra tocando (`sticky`).
 // La foto nunca sale debajo del dedo: si se presionó en la mitad de abajo
 // aparece arriba, y al revés (`touchY` = dónde se presionó).
-// Una sola foto: es un vistazo («¿qué es esto?»), no una galería. Si hay más,
-// «+N» dice que tocando el platillo se ven todas (`DishSheet`). El crédito del
-// cliente va en un lugar fijo arriba a la izquierda, dentro de la foto: nunca
-// empuja nada. La del negocio no lleva crédito.
+// Una sola foto: es un vistazo («¿qué es esto?»). Dentro de la foto, fundidos
+// abajo, solo quién la subió y «1/5», igual que en el carrusel
+// (`DishGallery`), que se abre al tocar el platillo. Sin frases encima.
 export function DishPeek({ item, sticky, touchY, onClose }: { item: DishPeekItem | null; sticky: boolean; touchY?: number; onClose: () => void }) {
   const { theme } = useTheme();
   const { width, height } = useWindowDimensions();
@@ -83,21 +86,25 @@ export function DishPeek({ item, sticky, touchY, onClose }: { item: DishPeekItem
           <View style={{ width: cardWidth, height: cardWidth * 0.75, backgroundColor: theme.border }}>
             <Image
               source={{ uri: shown.photo }}
+              placeholder={photoPlaceholder(shown.hash)}
+              placeholderContentFit="cover"
               style={StyleSheet.absoluteFillObject}
               contentFit="cover"
+              cachePolicy="memory-disk"
+              priority="high"
               transition={120}
               accessibilityIgnoresInvertColors
-              accessibilityLabel={shown.by ? `Foto de ${shown.name}, de ${shown.by}` : `Foto de ${shown.name}`}
+              accessibilityLabel={`Foto de ${shown.name}${shown.by ? `, de ${shown.by}` : ''}${(shown.count ?? 0) > 1 ? `, 1 de ${shown.count}` : ''}`}
             />
-            {!!shown.by && (
-              <View style={[s.chip, s.chipCredit]}>
-                <Text style={s.chipText} allowFontScaling={true} maxFontSizeMultiplier={1.4}>{shown.by}</Text>
-              </View>
-            )}
-            {!!shown.more && (
-              <View style={[s.chip, s.chipMore]}>
-                <Text style={s.chipText} allowFontScaling={true} maxFontSizeMultiplier={1.4}>{`+${shown.more.toLocaleString('es-MX')}`}</Text>
-              </View>
+            {(!!shown.by || (shown.count ?? 0) > 1) && (
+              <LinearGradient colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.5)']} style={s.fade} pointerEvents="none">
+                <View style={s.fadeFoot}>
+                  <Text style={s.fadeAuthor} allowFontScaling={true} maxFontSizeMultiplier={1.4}>{shown.by ?? ''}</Text>
+                  {(shown.count ?? 0) > 1 && (
+                    <Text style={s.fadeCount} allowFontScaling={true} maxFontSizeMultiplier={1.4}>{`1/${shown.count!.toLocaleString('es-MX')}`}</Text>
+                  )}
+                </View>
+              </LinearGradient>
             )}
           </View>
           <View style={s.body}>
@@ -125,9 +132,9 @@ const s = StyleSheet.create({
   name: { flex: 1, fontSize: 17, lineHeight: 22, fontWeight: '700' },
   price: { fontSize: 17, lineHeight: 22, fontWeight: '500', fontVariant: ['tabular-nums'] },
   description: { fontSize: 14, lineHeight: 19, fontWeight: '400' },
-  // Cápsulas oscuras en esquinas fijas: se leen sobre cualquier foto y no se mueven.
-  chip: { position: 'absolute', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 100, backgroundColor: 'rgba(0,0,0,0.5)' },
-  chipCredit: { top: 10, left: 10, maxWidth: '70%' },
-  chipMore: { bottom: 10, right: 10 },
-  chipText: { color: '#FFFFFF', fontSize: 12, lineHeight: 16, fontWeight: '600', fontVariant: ['tabular-nums'] },
+  // Velo abajo de la foto, como en el carrusel: quién a la izquierda, cuántas a la derecha.
+  fade: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingTop: 28, paddingBottom: 10, paddingHorizontal: 12, gap: 4 },
+  fadeFoot: { flexDirection: 'row', alignItems: 'flex-end', gap: 12 },
+  fadeAuthor: { flex: 1, color: '#FFFFFF', fontSize: 13, lineHeight: 17, fontWeight: '600', textShadowColor: 'rgba(0,0,0,0.35)', textShadowRadius: 4 },
+  fadeCount: { color: '#FFFFFF', fontSize: 13, lineHeight: 17, fontWeight: '500', fontVariant: ['tabular-nums'], textShadowColor: 'rgba(0,0,0,0.35)', textShadowRadius: 4 },
 });

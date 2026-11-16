@@ -1,4 +1,5 @@
 import type { HorarioSemanal } from './horario';
+import { isPhotoHash } from './photo-hash';
 
 // ─── ID helpers ───────────────────────────────────────────────────────────────
 export function makeSectionId(): string {
@@ -21,6 +22,13 @@ export interface Platillo {
   revision?: string;
   /** Foto del platillo (bucket `dish-photos`): se ve al mantenerlo presionado en la ficha. */
   foto?: string;
+  /** Vista previa instantánea de la foto (ThumbHash en hexadecimal, lib/photo-hash.ts). */
+  fotoHash?: string;
+  /**
+   * Otros nombres del mismo platillo que el negocio confirmó («Pozole» para
+   * «Pozole rojo»): sus fotos y «me gusta» se juntan (lib/dish-identity.ts).
+   */
+  antes?: string[];
 }
 
 export interface Seccion {
@@ -114,6 +122,20 @@ export function canonicalSeccion(nombre: string): string {
 // pasada deben contar como el mismo platillo, no como dos objetos sueltos
 // (hoy cada Platillo nace con un id nuevo por publicación — makePlatilloId()
 // — sin ninguna liga entre días). Mismo criterio que canonicalSeccion.
+/** Otros nombres de un platillo, guardados con él: texto limpio, sin repetir ni el propio, máximo 8. */
+export function cleanAntes(value: unknown[], nombre: string): string[] {
+  const own = canonicalDishName(nombre);
+  const seen = new Set<string>();
+  return value.flatMap((item) => {
+    if (typeof item !== 'string') return [];
+    const text = item.trim().replace(/\s+/g, ' ').slice(0, 60);
+    const key = canonicalDishName(text);
+    if (!text || key === own || seen.has(key)) return [];
+    seen.add(key);
+    return [text];
+  }).slice(0, 8);
+}
+
 export function canonicalDishName(nombre: string): string {
   return nombre
     .trim()
@@ -175,6 +197,8 @@ export function normalizeMenuData(raw: unknown): MenuData | null {
           ...(typeof dish.confianza === 'number' && Number.isFinite(dish.confianza) ? { confianza: dish.confianza } : {}),
           ...(typeof dish.revision === 'string' ? { revision: dish.revision } : {}),
           ...(typeof dish.foto === 'string' && dish.foto ? { foto: dish.foto } : {}),
+          ...(typeof dish.foto === 'string' && dish.foto && isPhotoHash(dish.fotoHash) ? { fotoHash: dish.fotoHash } : {}),
+          ...(Array.isArray(dish.antes) && cleanAntes(dish.antes, text(dish.nombre)).length ? { antes: cleanAntes(dish.antes, text(dish.nombre)) } : {}),
         }];
       });
     } else if (Array.isArray(sec.items)) {

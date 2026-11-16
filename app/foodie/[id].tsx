@@ -1,12 +1,16 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image as PhotoImage } from 'expo-image';
+import { ActivityIndicator, Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ContentSafetyMenu } from '@/components/content-safety-menu';
 import { supabase } from '@/lib/supabase';
 import { followProfile, getFollowStatus, getProfileStats, getTopPlaces, unfollowProfile, type FollowStatus, type ProfileStats, type TopPlace } from '@/lib/profile-privacy';
+import { demoReviewsByAuthor } from '@/lib/controllers/usePatioDetailController';
+import { photoPlaceholder } from '@/lib/photo-hash';
+import { getReviewsByAuthor, type AuthorReview } from '@/lib/ratings';
 import { useTheme, Type } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
 
@@ -15,8 +19,11 @@ type PublicCollection = { id: string; title: string; description: string };
 type LoadState = 'loading' | 'ready' | 'missing' | 'error';
 
 export default function FoodieProfile() {
-  const params = useLocalSearchParams<{ id: string | string[] }>();
+  const params = useLocalSearchParams<{ id: string | string[]; name?: string | string[] }>();
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
+  // Perfil de prueba (solo en desarrollo): la gente de las reseñas «Dev».
+  const demo = typeof __DEV__ !== 'undefined' && __DEV__ && !!id?.startsWith('demo-');
+  const demoName = Array.isArray(params.name) ? params.name[0] : params.name;
   const { theme } = useTheme();
   const ins = useSafeAreaInsets();
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -24,6 +31,9 @@ export default function FoodieProfile() {
   // Sus lugares: lo primero que se quiere ver de alguien que recomienda
   // dónde comer, aunque no haya armado ninguna lista.
   const [places, setPlaces] = useState<TopPlace[]>([]);
+  // Sus fotos y sus reseñas (2026-11-15): lo que comió y lo que contó.
+  const [activity, setActivity] = useState<AuthorReview[]>([]);
+  const { width: screenWidth } = useWindowDimensions();
   const [follow, setFollow] = useState<FollowStatus>('none');
   const [own, setOwn] = useState(false);
   const [counts, setCounts] = useState<ProfileStats>({ reviews: 0, likes: 0, followers: 0, following: 0 });
@@ -38,19 +48,29 @@ export default function FoodieProfile() {
     setProfile(null);
     setLists([]);
     setPlaces([]);
+    setActivity([]);
     setFollow('none');
     setOwn(false);
     try {
       if (!id) { setState('missing'); return; }
+      if (demo) {
+        const reviews = demoReviewsByAuthor(id);
+        setProfile({ user_id: id, display_name: demoName || 'Persona de prueba', visibility: 'public' });
+        setActivity(reviews);
+        setCounts({ reviews: reviews.length, likes: 12, followers: 48, following: 31 });
+        setState('ready');
+        return;
+      }
       // Las listas de un perfil privado solo llegan si ya lo sigues: el
       // servidor las filtra; aquí solo se explica por qué no se ven.
-      const [person, collections, auth, followCounts, relation, topPlaces] = await Promise.all([
+      const [person, collections, auth, followCounts, relation, topPlaces, reviews] = await Promise.all([
         supabase.from('user_profiles').select('user_id,display_name,handle,avatar_url,bio,visibility').eq('user_id', id).maybeSingle(),
         supabase.from('collections').select('id,title,description').eq('owner_id', id).eq('visibility', 'public'),
         supabase.auth.getUser(),
         getProfileStats(id),
         getFollowStatus(id),
         getTopPlaces(id).catch(() => [] as TopPlace[]),
+        getReviewsByAuthor(id).catch(() => [] as AuthorReview[]),
       ]);
       if (request !== requestRef.current) return;
       if (person.error || collections.error) throw new Error('Profile unavailable');
@@ -59,6 +79,7 @@ export default function FoodieProfile() {
       setProfile(person.data);
       setLists(collections.data ?? []);
       setPlaces(topPlaces);
+      setActivity(reviews);
       setOwn(user?.id === id);
       setFollow(relation);
       setCounts(followCounts);
@@ -66,7 +87,7 @@ export default function FoodieProfile() {
     } catch {
       if (request === requestRef.current) setState('error');
     }
-  }, [id]);
+  }, [id, demo, demoName]);
 
   useFocusEffect(useCallback(() => {
     void load();
@@ -75,6 +96,12 @@ export default function FoodieProfile() {
 
   const toggleFollow = async () => {
     if (!profile || own || savingRef.current) return;
+    // De prueba: solo cambia aquí, sin servidor.
+    if (demo) {
+      setFollow((current) => (current === 'none' ? 'accepted' : 'none'));
+      setCounts((current) => ({ ...current, followers: current.followers + (follow === 'none' ? 1 : -1) }));
+      return;
+    }
     savingRef.current = true;
     setSaving(true);
     const request = requestRef.current;
@@ -111,7 +138,10 @@ export default function FoodieProfile() {
   };
 
   const back = () => { if (router.canGoBack()) router.back(); else router.replace('/explorar'); };
-  const blocked = () => { requestRef.current += 1; setProfile(null); setLists([]); setFollow('none'); setState('missing'); };
+  const blocked = () => { requestRef.current += 1; setProfile(null); setLists([]); setActivity([]); setFollow('none'); setState('missing'); };
+  const photos = activity.filter((review) => !!review.photoUrl);
+  // Cuadrícula de 3, como un perfil de fotos; el ancho sale de la pantalla.
+  const tile = Math.floor((screenWidth - 40 - 4) / 3);
   const locked = !!profile && profile.visibility === 'private' && !own && follow !== 'accepted';
   const followLabel = follow === 'accepted' ? 'Siguiendo' : follow === 'pending' ? 'Solicitado' : 'Seguir';
 
@@ -165,7 +195,7 @@ export default function FoodieProfile() {
             <View style={[s.locked, { borderColor: theme.border }]}>
               <Ionicons name="lock-closed-outline" size={22} color={theme.textSecondary} />
               <Text style={[s.listName, { color: theme.text, marginTop: 8 }]}>{noWidow('Este perfil es privado')}</Text>
-              <Text style={[s.desc, { color: theme.textSecondary, textAlign: 'center' }]}>{noWidow(follow === 'pending' ? 'Cuando acepte tu solicitud, verás sus listas.' : 'Síguelo para ver sus listas.')}</Text>
+              <Text style={[s.desc, { color: theme.textSecondary, textAlign: 'center' }]}>{noWidow(follow === 'pending' ? 'Cuando acepte tu solicitud, verás sus fotos, reseñas y listas.' : 'Síguelo para ver sus fotos, reseñas y listas.')}</Text>
             </View>
           ) : <>
           {!!places.length && <>
@@ -181,6 +211,56 @@ export default function FoodieProfile() {
               </View>}
               <Ionicons name="chevron-forward" size={17} color={theme.textMute} />
             </TouchableOpacity>)}
+          </>}
+          {/* Lo que comió: tocar una foto abre el lugar con ese platillo abierto. */}
+          {!!photos.length && <>
+            <Text style={[s.label, { color: theme.textSecondary }]}>SUS FOTOS</Text>
+            <View style={s.grid}>
+              {photos.map((review) => (
+                <TouchableOpacity
+                  key={review.reviewId}
+                  activeOpacity={0.85}
+                  accessibilityRole="imagebutton"
+                  accessibilityLabel={`${review.photoDish ?? 'Foto'} en ${review.placeName}`}
+                  onPress={() => router.push({ pathname: '/patio/[id]', params: { id: review.placeId, ...(review.photoDish ? { platillo: review.photoDish } : {}) } })}>
+                  <PhotoImage
+                    source={{ uri: review.photoUrl }}
+                    placeholder={photoPlaceholder(review.photoHash)}
+                    placeholderContentFit="cover"
+                    style={[s.gridPhoto, { width: tile, height: tile, backgroundColor: theme.border }]}
+                    contentFit="cover"
+                    cachePolicy="memory-disk"
+                    transition={120}
+                    accessibilityIgnoresInvertColors
+                  />
+                </TouchableOpacity>
+              ))}
+            </View>
+          </>}
+          {/* Lo que contó, completo: tocar una reseña abre el lugar. */}
+          {!!activity.length && <>
+            <Text style={[s.label, { color: theme.textSecondary }]}>SUS RESEÑAS</Text>
+            {activity.map((review) => (
+              <TouchableOpacity
+                key={review.reviewId}
+                activeOpacity={0.7}
+                style={[s.reviewRow, { borderColor: theme.border }]}
+                accessibilityRole="button"
+                accessibilityLabel={`${review.placeName}, ${review.stars} estrellas${review.note ? `. ${review.note}` : ''}`}
+                onPress={() => router.push({ pathname: '/patio/[id]', params: { id: review.placeId } })}>
+                <View style={s.reviewHead}>
+                  <Text style={[s.listName, { flex: 1, minWidth: 0, color: theme.text }]}>{noWidow(review.placeName)}</Text>
+                  <View style={s.placeStars}>
+                    <Ionicons name="star" size={13} color={theme.accent} />
+                    <Text style={[s.placeStarsText, { color: theme.textSecondary }]}>{review.stars}</Text>
+                  </View>
+                </View>
+                <Text style={[s.desc, { color: theme.textSecondary }]}>
+                  {new Date(review.timestamp).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' })}
+                </Text>
+                {!!review.note && <Text style={[s.reviewNote, { color: theme.text }]}>{review.note}</Text>}
+              </TouchableOpacity>
+            ))}
           </>}
           <Text style={[s.label, { color: theme.textSecondary }]}>LISTAS</Text>
           {lists.map((list) => <TouchableOpacity key={list.id} accessibilityRole="button" accessibilityLabel={`Abrir ${list.title}`} style={[s.row, { borderColor: theme.border }]} onPress={() => router.push({ pathname: '/coleccion-publica/[id]', params: { id: list.id } })}><View style={{ flex: 1 }}><Text style={[s.listName, { color: theme.text }]}>{noWidow(list.title)}</Text>{!!list.description && <Text style={[s.desc, { color: theme.textSecondary }]}>{noWidow(list.description)}</Text>}</View><Ionicons name="chevron-forward" size={17} color={theme.textMute} /></TouchableOpacity>)}
@@ -210,6 +290,11 @@ const s = StyleSheet.create({
   placeStars: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   placeStarsText: { fontSize: 13, fontWeight: '700', fontVariant: ['tabular-nums'] },
   row: { minHeight: 70, borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center' },
+  grid: { marginTop: 8, flexDirection: 'row', flexWrap: 'wrap', gap: 2 },
+  gridPhoto: { borderRadius: 4 },
+  reviewRow: { paddingVertical: 12, borderBottomWidth: StyleSheet.hairlineWidth },
+  reviewHead: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  reviewNote: { marginTop: 6, fontSize: 14, lineHeight: 20 },
   listName: { fontSize: 16, fontWeight: '700' },
   desc: { fontSize: 12, marginTop: 3 },
   stats: { flexDirection: 'row', justifyContent: 'center', gap: 24, marginTop: 16 },

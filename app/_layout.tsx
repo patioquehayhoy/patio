@@ -9,6 +9,8 @@ import { AppState, Platform } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { routeForNotification, type NotificationRoute } from '@/lib/notification-routes';
 import '@/lib/visits-task';
+// Tu nombre público en memoria desde el arranque (ver lib/my-public-name.ts).
+import '@/lib/my-public-name';
 import 'react-native-reanimated';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 

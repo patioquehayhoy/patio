@@ -2,14 +2,15 @@ import { Ionicons } from '@expo/vector-icons';
 import { SymbolView } from 'expo-symbols';
 import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Animated, Easing, Pressable, Share, StyleSheet, Text, TextInput, TouchableOpacity, View, useWindowDimensions, type ScrollView } from 'react-native';
+import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Alert, Animated, Easing, LayoutAnimation, Pressable, Share, StyleSheet, Text, TextInput, TouchableOpacity, View, useWindowDimensions, type ScrollView } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { ActionSheet } from '@/components/action-sheet';
+import { ActionSheet, type ActionSheetOption } from '@/components/action-sheet';
 import { SectionBar } from '@/components/section-bar';
 import { GlassIconButton } from '@/components/glass-button';
 import { recordPatioView } from '@/lib/patio-views';
@@ -23,6 +24,7 @@ import { patioCardPrice } from '@/lib/patio-card-info';
 import { usePatioDetailController } from '@/lib/controllers/usePatioDetailController';
 import { getLikedDishNames, toggleDishLike } from '@/lib/dish-likes';
 import { canonicalDishName } from '@/lib/menu-store';
+import { dishKey, dishKeysOf } from '@/lib/dish-identity';
 import { getLikedReviewIds, getReviewLikeCounts, toggleReviewLike } from '@/lib/review-likes';
 import { CommentSignInRequiredError, commentTimeLabel, deleteReviewComment, getReviewComments, isRealReviewId, postReviewComment, setCommentLike } from '@/lib/review-comments';
 import { reportContent, writeErrorMessage, type ReportReason } from '@/lib/content-safety';
@@ -41,7 +43,11 @@ import { noWidow } from '@/lib/typography';
 import { menuPricesAccessibilityLabel } from '@/lib/menu-prices';
 import { sectionDisplayName } from '@/lib/section-names';
 import { DishPeek, type DishPeekItem } from '@/components/dish-peek';
-import { DishSheet, type DishSheetDish } from '@/components/dish-sheet';
+import { DishGallery, type DishGalleryLike } from '@/components/dish-gallery';
+import { DishPhotoFix } from '@/components/dish-photo-fix';
+import { ReviewPhoto } from '@/components/review-photo';
+import { createStore, useStore, type Store } from '@/lib/tiny-store';
+import { loadMyPublicName, peekMyPublicName } from '@/lib/my-public-name';
 import { orderDishPhotos, type DishPhoto } from '@/lib/dish-photos-order';
 import { removeMyReviewPhoto, updateMyReviewPhoto } from '@/lib/ratings';
 import { isCartaName } from '@/lib/menu-carta';
@@ -66,7 +72,10 @@ type ReviewThreadReply = {
 
 // Solo las cuentas reales tienen perfil que abrir (no las de demostración).
 const isAccountId = (id?: string) => !!id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
-const openProfile = (id: string) => router.push({ pathname: '/foodie/[id]', params: { id } });
+// Tocar a una persona abre su perfil. En desarrollo, la gente de prueba
+// también abre un perfil de prueba, para revisar el recorrido completo.
+const canOpenProfile = (id?: string) => isAccountId(id) || (__DEV__ && !!id?.startsWith('demo-'));
+const openProfile = (id: string, name?: string) => router.push({ pathname: '/foodie/[id]', params: name ? { id, name } : { id } });
 
 const SYNTHETIC_THREAD_NAMES = ['Mariana L.', 'Diego M.', 'Sofía R.', 'Carlos N.', 'Pilar N.', 'Jorge A.'];
 const SYNTHETIC_THREAD_COMMENTS = {
@@ -122,6 +131,20 @@ const HERO_PHOTOS = [
   require('../../assets/hero/botanica-7.jpg'),
   require('../../assets/hero/botanica-8.jpg'),
 ];
+
+type PeekState = { item: DishPeekItem; sticky: boolean; touchY?: number } | null;
+
+// El vistazo y las fotos abiertas viven en su propio estado (lib/tiny-store):
+// abrirlos repinta solo esto, nunca la ficha entera.
+function PeekLayer({ store }: { store: Store<PeekState> }) {
+  const peek = useStore(store, (value) => value);
+  return <DishPeek item={peek?.item ?? null} sticky={!!peek?.sticky} touchY={peek?.touchY} onClose={() => store.set(null)} />;
+}
+
+function DishPhotosSlot({ store, dishKey, render }: { store: Store<string | null>; dishKey: string; render: () => React.ReactNode }) {
+  const open = useStore(store, (value) => value === dishKey);
+  return open ? <View style={{ marginBottom: 8 }}>{render()}</View> : null;
+}
 
 function heroPhotoFor(id: string) {
   let h = 0;
@@ -202,15 +225,18 @@ function makeStyles(t: Theme) {
     cartaNote: { fontSize: 13, lineHeight: 18, fontWeight: '400', color: t.textSecondary },
     sectionBar: { position: 'absolute', top: 0, left: 0, right: 0, zIndex: 30 },
     groupItem: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 12 },
+    // Platillo y, si se abren, sus fotos debajo; abiertas dejan más aire antes del siguiente.
+    dishBlock: { marginBottom: 12 },
+    dishRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 },
     groupItemName: { flex: 1, fontSize: 16, fontWeight: '700', color: t.text, lineHeight: 21 },
     dishPhotoMark: { fontSize: 14 },
-    dishPhotoHint: { marginBottom: 16, fontSize: 13, lineHeight: 18, fontWeight: '400', color: t.textSecondary },
     menuIncludes: { fontSize: 14, lineHeight: 19, fontWeight: '400', color: t.textSecondary },
     menuIncludesUnderPrice: { marginTop: -10 },
     groupItemDescription: { marginTop: 2, fontSize: 13, lineHeight: 18, fontWeight: '400', color: t.textSecondary },
     groupItemPrice: { fontSize: 15, lineHeight: 21, fontWeight: '700', color: t.text },
     dishLikeCount: { minWidth: 21, height: 21, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 3 },
     dishLikeCountText: { fontSize: 12, fontWeight: '500', color: t.textSecondary, fontVariant: ['tabular-nums'] },
+    dishHeartBox: { width: 21, height: 21, alignItems: 'center', justifyContent: 'center' },
     reviewSection: { paddingTop: 32, marginBottom: 24 },
     reviewsSummary: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
     reviewsTitle: { ...Type.section, color: t.text },
@@ -288,6 +314,12 @@ function makeStyles(t: Theme) {
     // abajo, como una pestaña (capa de control, decisión de Parco).
     backToTopDock: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
     backToTop: { width: 40, height: 40, borderRadius: 20, backgroundColor: t.surface },
+    returnPillShadow: { borderRadius: 100 },
+    returnPill: {
+      minHeight: 40, paddingHorizontal: 16, borderRadius: 100, overflow: 'hidden', flexDirection: 'row', alignItems: 'center', gap: 6,
+      borderWidth: StyleSheet.hairlineWidth, borderColor: t.isDark ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.18)',
+    },
+    returnPillText: { fontSize: 15, fontWeight: '600', color: t.text },
     busyCard: { borderRadius: Radius.card, borderCurve: 'continuous', backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, padding: 16 },
     busyLive: { flexDirection: 'row', alignItems: 'center', gap: 8 },
     busyDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: t.accent },
@@ -305,13 +337,15 @@ function makeStyles(t: Theme) {
 }
 
 export default function PatioDetailScreen() {
-  const { id } = useLocalSearchParams<{ id?: string }>();
-  return <PatioDetailView id={id} />;
+  // `platillo`: llega desde una foto en el perfil de alguien; la ficha abre
+  // las fotos de ese platillo y lleva ahí.
+  const { id, platillo } = useLocalSearchParams<{ id?: string; platillo?: string }>();
+  return <PatioDetailView id={id} focusDish={platillo} />;
 }
 
 // `own`: la pestaña «Mi Patio» del negocio. Es la misma ficha que ve la gente,
 // sin regresar, guardar, reportar ni reseñar, y con la barra del negocio.
-export function PatioDetailView({ id, own = false }: { id?: string; own?: boolean }) {
+export function PatioDetailView({ id, own = false, focusDish }: { id?: string; own?: boolean; focusDish?: string }) {
   const { theme } = useTheme();
   const s = makeStyles(theme);
   const insets = useSafeAreaInsets();
@@ -366,21 +400,48 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
   // son. Se juntan por nombre canónico; la más nueva primero.
   // Personas bloqueadas: ni sus reseñas ni sus fotos.
   const [hiddenAuthors, setHiddenAuthors] = useState<string[]>([]);
+  // Lo tuyo lleva tu nombre, como lo ven los demás (como en Facebook o
+  // Instagram): la app nunca firma «Tú». Sabes que es tuyo por tu nombre y
+  // porque sus opciones son corregir o quitar en vez de reportar.
+  const [me, setMe] = useState(peekMyPublicName);
+  useEffect(() => {
+    let active = true;
+    loadMyPublicName().then((value) => { if (active) setMe(value); }).catch(() => {});
+    return () => { active = false; };
+  }, []);
+  // En reseñas reales tu nombre ya llega con la reseña; las de prueba dicen «Tú».
+  const shownName = (author: string | undefined, mine?: boolean) => (mine && (!author || author === 'Tú') ? me?.name : author);
   // Correcciones hechas aquí mismo (cambió de platillo, la frase o la quitó):
-  // se ven al momento, sin recargar la ficha.
+  // se ven al momento, sin recargar la ficha. La llave es la de la reseña.
   const [photoEdits, setPhotoEdits] = useState<Record<string, { dish?: string; note?: string; removed?: boolean }>>({});
+  // La foto de una reseña: la pública o, en un lugar de prueba, la tuya
+  // guardada en este teléfono (así se puede probar todo el flujo en DEV).
+  const reviewPhotoOf = (review: (typeof fetchedReviews)[number]) => {
+    const edit = photoEdits[`${review.userId}-${review.timestamp}`];
+    if (edit?.removed) return undefined;
+    const url = review.photoUrl ?? (review.isMine && !isAccountId(patioId ?? '') ? review.photoUri : undefined);
+    if (!url) return undefined;
+    return {
+      url,
+      hash: review.photoHash,
+      dish: edit && 'dish' in edit ? edit.dish : review.photoDish,
+      note: edit && 'note' in edit ? edit.note : review.photoNote,
+    };
+  };
   const customerPhotos = useMemo(() => {
     const byDish = new Map<string, DishPhoto[]>();
     fetchedReviews.forEach((review) => {
       if (hiddenAuthors.includes(review.userId)) return;
-      const edit = review.reviewId ? photoEdits[review.reviewId] : undefined;
-      const dish = edit && 'dish' in edit ? edit.dish : review.photoDish;
-      if (!review.photoUrl || !dish || edit?.removed) return;
-      const key = canonicalDishName(dish);
+      const photo = reviewPhotoOf(review);
+      if (!photo?.dish) return;
+      // Por la identidad del platillo, no por el texto exacto (lib/dish-identity.ts).
+      const key = dishKey(photo.dish);
       byDish.set(key, [...(byDish.get(key) ?? []), {
-        url: review.photoUrl,
+        url: photo.url,
+        hash: photo.hash,
         by: review.author,
-        note: edit && 'note' in edit ? edit.note : review.photoNote,
+        avatar: review.avatarUrl,
+        note: photo.note,
         at: review.timestamp,
         reviewId: review.reviewId,
         userId: review.userId,
@@ -388,41 +449,236 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
       }]);
     });
     return byDish;
-  }, [fetchedReviews, hiddenAuthors, photoEdits]);
-  // Todas las fotos de un platillo, en orden (`lib/dish-photos-order.ts`).
-  const photosFor = (item: { name: string; photo?: string }) => orderDishPhotos(item.photo, customerPhotos.get(canonicalDishName(item.name)) ?? []);
-  const hasPhoto = (item: { name: string; photo?: string }) => !!item.photo || customerPhotos.has(canonicalDishName(item.name));
-  const dishPhotos = useMemo<'none' | 'some' | 'all'>(() => {
-    const items = menuGroups.flatMap((group) => group.items);
-    const withPhoto = items.filter((item) => item.photo || customerPhotos.has(canonicalDishName(item.name))).length;
-    return !withPhoto ? 'none' : withPhoto === items.length ? 'all' : 'some';
-  }, [menuGroups, customerPhotos]);
-  const [dishPeek, setDishPeek] = useState<{ item: DishPeekItem; sticky: boolean; touchY?: number } | null>(null);
-  // Vistazo: mantener presionado muestra la mejor foto; «+N» si hay más.
-  const openDishPeek = (item: { name: string; description?: string; price?: string | false; photo?: string }, sticky = false, touchY?: number) => {
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fetchedReviews, hiddenAuthors, photoEdits, patioId]);
+  // Todas las fotos de un platillo, en orden (`lib/dish-photos-order.ts`): las
+  // de su nombre y las de sus otros nombres confirmados por el negocio.
+  const photosFor = (item: { name: string; aliases?: string[]; photo?: string; photoHash?: string }) => orderDishPhotos(
+    item.photo ? { url: item.photo, hash: item.photoHash } : undefined,
+    dishKeysOf(item).flatMap((key) => customerPhotos.get(key) ?? []),
+  );
+  const peekStore = useRef(createStore<PeekState>(null)).current;
+  // Vistazo: mantener presionado muestra la mejor foto, con quién y cuántas.
+  const openDishPeek = (item: { name: string; aliases?: string[]; description?: string; price?: string | false; photo?: string; photoHash?: string }, sticky = false, touchY?: number) => {
     const photos = photosFor(item);
     if (!photos.length) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-    setDishPeek({
+    peekStore.set({
       item: {
         name: item.name,
         description: item.description,
         price: item.price || undefined,
         photo: photos[0].url,
-        by: photos[0].by,
-        more: photos.length - 1 || undefined,
+        hash: photos[0].hash,
+        by: photos[0].by ? shownName(photos[0].by, photos[0].mine) ?? photos[0].by : patio?.name,
+        count: photos.length,
       },
       sticky,
       touchY,
     });
   };
-  // Hoja del platillo: tocarlo muestra todas sus fotos y deja subir la tuya.
-  const [dishSheet, setDishSheet] = useState<DishSheetDish | null>(null);
-  const dishSheetItem = dishSheet ? menuGroups.flatMap((group) => group.items).find((item) => item.name === dishSheet.name) : undefined;
-  const dishSheetPhotos = dishSheet ? photosFor({ name: dishSheet.name, photo: dishSheetItem?.photo }) : [];
-  const openDishSheet = (item: { name: string; description?: string; price?: string | false }) => {
-    setDishPeek(null);
-    setDishSheet({ name: item.name, description: item.description, price: item.price || undefined });
+  // Fotos en su lugar: tocar un platillo con fotos las abre ahí mismo, dentro
+  // del menú (una a la vez); tocarlo otra vez las cierra.
+  const openDishStore = useRef(createStore<string | null>(null)).current;
+  const openDishPhotos = (key: string | null) => {
+    peekStore.set(null);
+    LayoutAnimation.configureNext(LayoutAnimation.create(200, 'easeInEaseOut', 'opacity'));
+    openDishStore.set(key);
+  };
+  const toggleDish = (key: string) => openDishPhotos(openDishStore.get() === key ? null : key);
+  useEffect(() => { openDishStore.set(null); peekStore.set(null); }, [patioId, openDishStore, peekStore]);
+  // Todas las fotos de cada platillo, ordenadas una sola vez (no en cada pintada).
+  const dishPhotosByKey = useMemo(() => {
+    const byKey = new Map<string, DishPhoto[]>();
+    menuGroups.forEach((group, groupIndex) => group.items.forEach((item) => {
+      const photos = photosFor(item);
+      if (photos.length) byKey.set(`${groupIndex}-${item.name}`, photos);
+    }));
+    return byKey;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [menuGroups, customerPhotos]);
+  // Corregir platillo de tu foto (de qué platillo es): hoja propia, es otra tarea.
+  const [fixingPhoto, setFixingPhoto] = useState<{ photo: DishPhoto; dish: string } | null>(null);
+  // Dónde quedó cada platillo y cada reseña, para llevar de una a otra.
+  const dishY = useRef<Record<string, number>>({});
+  const reviewCardY = useRef<Record<string, number>>({});
+  const photoKey = (photo: DishPhoto) => `${photo.userId}-${photo.at}`;
+  // Carga de fotos: primero lo que se ve, y un poco antes de que se necesite.
+  // · Al poner el dedo en un platillo ya empieza a bajar su foto (le gana
+  //   unos 200 ms al toque y al vistazo).
+  // · Al dejar de desplazarte, bajan las portadas de los platillos en
+  //   pantalla: si te detuviste, es que los estás leyendo.
+  // · Las fotos de las reseñas, solo cuando las reseñas están cerca.
+  const prefetched = useRef(new Set<string>());
+  const prefetchPhotos = (urls: string[]) => {
+    const fresh = urls.filter((url) => !prefetched.current.has(url));
+    if (!fresh.length) return;
+    fresh.forEach((url) => prefetched.current.add(url));
+    void Image.prefetch(fresh, { cachePolicy: 'memory-disk' }).catch(() => {});
+  };
+  const prefetchVisibleCovers = (scrollY: number) => {
+    const { cardY, menuY } = menuFrame.current;
+    const urls: string[] = [];
+    menuGroups.forEach((group, groupIndex) => {
+      const groupTop = groupY.current[groupIndex];
+      if (groupTop == null) return;
+      group.items.forEach((item) => {
+        const key = `${groupIndex}-${item.name}`;
+        const dishTop = dishY.current[key];
+        if (dishTop == null) return;
+        const y = cardY + menuY + groupTop + dishTop;
+        if (y < scrollY - 80 || y > scrollY + windowHeight + 80) return;
+        const cover = dishPhotosByKey.get(key)?.[0]?.url;
+        if (cover) urls.push(cover);
+      });
+    });
+    prefetchPhotos(urls);
+  };
+  const [reviewsNear, setReviewsNear] = useState(false);
+  const reviewsNearRef = useRef(false);
+  const markReviewsNear = () => {
+    if (reviewsNearRef.current) return;
+    reviewsNearRef.current = true;
+    setReviewsNear(true);
+  };
+  // Me gusta de una foto = me gusta de la reseña de donde sale: una visita,
+  // un solo «me gusta». Sin corazón en las del lugar ni en las tuyas.
+  const photoLike = (photo: DishPhoto): DishGalleryLike | undefined => (
+    photo.by && !photo.mine ? (reviewLikes[photoKey(photo)] ?? { count: 0, mine: false }) : undefined
+  );
+  const togglePhotoLike = (photo: DishPhoto) => {
+    const key = photoKey(photo);
+    // La galería ya pintó el corazón; la ficha se pone al día sin frenarla.
+    startTransition(() => {
+      setReviewLikes((current) => {
+        const like = current[key] ?? { count: 0, mine: false };
+        return { ...current, [key]: { mine: !like.mine, count: Math.max(0, like.count + (like.mine ? -1 : 1)) } };
+      });
+    });
+    if (photo.reviewId) void toggleReviewLike(photo.reviewId);
+  };
+  const dishTarget = (name: string) => {
+    const key = dishKey(name);
+    for (let group = 0; group < menuGroups.length; group++) {
+      const found = menuGroups[group].items.find((candidate) => dishKeysOf(candidate).includes(key));
+      if (found) return { key: `${group}-${found.name}`, group };
+    }
+    return null;
+  };
+  // Saltos dentro de la ficha (de la reseña al platillo y al revés): siempre
+  // con una cápsula para regresar a donde estabas (orientación). Se va al
+  // tocarla, o sola si regresas desplazándote.
+  const [returnTo, setReturnTo] = useState<{ label: string; y: number; icon: 'arrow-up' | 'arrow-down' } | null>(null);
+  const returnRef = useRef<{ y: number; armed: boolean } | null>(null);
+  const offerReturn = (label: string, icon: 'arrow-up' | 'arrow-down') => {
+    const origin = { y: lastScrollY.current, armed: false };
+    returnRef.current = origin;
+    setReturnTo({ label, y: origin.y, icon });
+    // Se arma cuando ya terminó el salto: antes, la posición aún está cerca del origen.
+    setTimeout(() => { if (returnRef.current === origin) origin.armed = true; }, 900);
+  };
+  const clearReturn = () => {
+    returnRef.current = null;
+    setReturnTo(null);
+  };
+  const goBackFromJump = () => {
+    if (!returnTo) return;
+    Haptics.selectionAsync().catch(() => {});
+    scrollRef.current?.scrollTo({ y: Math.max(0, returnTo.y), animated: true });
+    clearReturn();
+  };
+  // De la foto a su reseña (más abajo en la ficha), con todas las reseñas a la vista.
+  const jumpToReview = (key: string) => {
+    offerReturn('Volver al platillo', 'arrow-up');
+    markReviewsNear();
+    setRatingFilter(null);
+    setTimeout(() => {
+      const y = reviewCardY.current[key];
+      if (y == null) return;
+      scrollRef.current?.scrollTo({ y: Math.max(0, menuFrame.current.cardY + reviewsY.current + y - insets.top - 8), animated: true });
+    }, 80);
+  };
+  // De la foto de una reseña a su platillo en el menú (opcional, desde «Ver en
+  // el menú»): abre sus fotos ahí y ofrece volver a la reseña.
+  const showDishInMenu = (dishName: string) => {
+    const target = dishTarget(dishName);
+    if (!target) return;
+    offerReturn('Volver a la reseña', 'arrow-down');
+    openDishPhotos(target.key);
+    setTimeout(() => {
+      const { cardY, menuY } = menuFrame.current;
+      const groupTop = groupY.current[target.group];
+      const dishTop = dishY.current[target.key];
+      if (groupTop == null || dishTop == null) return;
+      scrollRef.current?.scrollTo({ y: Math.max(0, cardY + menuY + groupTop + dishTop - barHeight - 8), animated: true });
+    }, 260);
+  };
+  // Llegaste desde una foto (perfil de alguien): se abre ese platillo y se va ahí.
+  const focusedDish = useRef<string | null>(null);
+  useEffect(() => {
+    if (!focusDish || !menuGroups.length || focusedDish.current === focusDish) return;
+    const target = dishTarget(focusDish);
+    if (!target) return;
+    focusedDish.current = focusDish;
+    openDishPhotos(target.key);
+    let tries = 0;
+    const goThere = () => {
+      const { cardY, menuY } = menuFrame.current;
+      const groupTop = groupY.current[target.group];
+      const dishTop = dishY.current[target.key];
+      if (groupTop == null || dishTop == null || !cardY) {
+        if (tries++ < 10) setTimeout(goThere, 150);
+        return;
+      }
+      scrollRef.current?.scrollTo({ y: Math.max(0, cardY + menuY + groupTop + dishTop - barHeight - 8), animated: true });
+    };
+    const timer = setTimeout(goThere, 350);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusDish, menuGroups]);
+  const reportPhoto = (photo: DishPhoto, reason: 'inaccurate' | 'abuse', dishName: string) => {
+    const thanks = () => Alert.alert(noWidow('Gracias por avisarnos'), noWidow('Revisaremos esta foto.'));
+    // Fotos de prueba (sin reseña real): mismo aviso, para probar el flujo.
+    if (!photo.reviewId || !isRealReviewId(photo.reviewId)) { thanks(); return; }
+    reportContent('review', photo.reviewId, reason, reason === 'inaccurate' ? `Foto que no es de ${dishName}` : 'Foto de platillo')
+      .then(thanks)
+      .catch((error: Error) => {
+        if (/Inicia sesión/.test(error.message)) askToSignIn();
+        else Alert.alert(noWidow('No se envió el reporte'), noWidow(error.message));
+      });
+  };
+  const askRemovePhoto = (photo: DishPhoto) => {
+    Alert.alert(noWidow('¿Quitar tu foto?'), noWidow('Tu reseña se queda; solo deja de verse la foto.'), [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Quitar foto',
+        style: 'destructive',
+        onPress: () => {
+          const remote = photo.reviewId && isRealReviewId(photo.reviewId) ? removeMyReviewPhoto(photo.reviewId, photo.url) : Promise.resolve();
+          remote.then(
+            () => setPhotoEdits((current) => ({ ...current, [photoKey(photo)]: { removed: true } })),
+            () => Alert.alert(noWidow('No se quitó la foto'), noWidow('Revisa tu conexión e inténtalo otra vez.')),
+          );
+        },
+      },
+    ]);
+  };
+  // «···» de cada foto de cliente: la tuya se corrige o se quita; la de otro se reporta.
+  const photoMenu = (photo: DishPhoto, dishName: string): ActionSheetOption[] => {
+    if (!photo.by) return [];
+    const seeReview: ActionSheetOption = { label: photo.mine ? 'Ver mi reseña' : 'Ver la reseña', icon: 'chatbubble-outline', onPress: () => jumpToReview(photoKey(photo)) };
+    if (photo.mine) {
+      return [
+        seeReview,
+        { label: 'Corregir platillo', icon: 'create-outline', afterDismiss: true, onPress: () => setFixingPhoto({ photo, dish: dishName }) },
+        { label: 'Quitar mi foto', icon: 'trash-outline', destructive: true, afterDismiss: true, onPress: () => askRemovePhoto(photo) },
+      ];
+    }
+    return [
+      seeReview,
+      { label: 'No es de este platillo', icon: 'help-circle-outline', afterDismiss: true, onPress: () => reportPhoto(photo, 'inaccurate', dishName) },
+      { label: 'Reportar foto', icon: 'flag-outline', afterDismiss: true, onPress: () => reportPhoto(photo, 'abuse', dishName) },
+    ];
   };
   const dishNames = useMemo(() => [...new Set(menuGroups.flatMap((group) => group.items.map((item) => item.name)))], [menuGroups]);
   const recentRecordedId = useRef<string | null>(null);
@@ -567,7 +823,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
   // final, y se va al seguir bajando. Círculo de vidrio sin texto, al centro,
   // que sube desde el borde de abajo y ahí se queda quieto (decisión de Parco);
   // VoiceOver dice «Volver arriba».
-  const { height: windowHeight } = useWindowDimensions();
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const [contentHeight, setContentHeight] = useState(0);
   const longFicha = contentHeight > windowHeight * 4;
   const lastScrollY = useRef(0);
@@ -642,9 +898,20 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
     getPlaceBusyness(patio.id, patio.weeklyHours).then((value) => { if (active) setBusyness(value); }).catch(() => {});
     return () => { active = false; };
   }, [patio?.id, patio?.weeklyHours]);
-  const handleFeatureDish = async (dishName: string) => {
+  // «Me gusta» y recomendado por la identidad del platillo: si te gustó
+  // «Pozole» y hoy es «Pozole rojo» (mismo platillo para el negocio), sale con
+  // tu corazón y suma sus «me gusta».
+  const likedKeys = useMemo(() => new Set([...likedDishNames].map(dishKey)), [likedDishNames]);
+  const likeCountByKey = useMemo(() => {
+    const byKey = new Map<string, number>();
+    Object.entries(dishLikeCounts).forEach(([name, count]) => byKey.set(dishKey(name), (byKey.get(dishKey(name)) ?? 0) + count));
+    return byKey;
+  }, [dishLikeCounts]);
+  const featuredKey = highlights.featuredDish ? dishKey(highlights.featuredDish) : null;
+  const handleFeatureDish = async (item: { name: string; aliases?: string[] }) => {
     if (!patio?.id) return;
-    const next = highlights.featuredDish === canonicalDishName(dishName) ? null : dishName;
+    const dishName = item.name;
+    const next = featuredKey && dishKeysOf(item).includes(featuredKey) ? null : dishName;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     try {
       await setFeaturedDish(patio.id, next);
@@ -654,17 +921,23 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
     }
   };
 
-  const handleToggleDishLike = async (dishName: string) => {
+  const handleToggleDishLike = async (item: { name: string; aliases?: string[] }) => {
     if (!patio?.id) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-    const nowLiked = await toggleDishLike(patio.id, dishName);
-    const key = canonicalDishName(dishName);
-    setLikedDishNames((current) => {
-      const next = new Set(current);
-      if (nowLiked) next.add(key); else next.delete(key);
-      return next;
-    });
-    setDishLikeCounts((current) => ({ ...current, [key]: Math.max(0, (current[key] ?? 0) + (nowLiked ? 1 : -1)) }));
+    const keys = dishKeysOf(item);
+    // Si ya te gustaba con otro de sus nombres, se quita ese; si no, se da con el de hoy.
+    const likedNames = [...likedDishNames].filter((name) => keys.includes(dishKey(name)));
+    const names = likedNames.length ? likedNames : [item.name];
+    for (const name of names) {
+      const nowLiked = await toggleDishLike(patio.id, name);
+      const key = canonicalDishName(name);
+      setLikedDishNames((current) => {
+        const next = new Set(current);
+        if (nowLiked) next.add(key); else next.delete(key);
+        return next;
+      });
+      setDishLikeCounts((current) => ({ ...current, [key]: Math.max(0, (current[key] ?? 0) + (nowLiked ? 1 : -1)) }));
+    }
   };
 
   useEffect(() => {
@@ -674,7 +947,10 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
       const key = `${review.userId}-${review.timestamp}`;
       const synthetic = review.userId.startsWith('demo-');
       likes[key] = {
-        count: review.userId === 'demo-critical-1'
+        // Caso límite de «me gusta» en una foto (Cocina Grande Dev 6).
+        count: review.photoUrl?.endsWith('v=dev6-0')
+          ? 12480
+          : review.userId === 'demo-critical-1'
           ? 14
           : review.userId === 'demo-critical-2'
             ? 6
@@ -977,6 +1253,8 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={16}
         onContentSizeChange={(_width, height) => setContentHeight(height)}
+        onScrollEndDrag={(event) => prefetchVisibleCovers(event.nativeEvent.contentOffset.y)}
+        onMomentumScrollEnd={(event) => prefetchVisibleCovers(event.nativeEvent.contentOffset.y)}
         onScroll={Animated.event(
           [{ nativeEvent: { contentOffset: { y: heroPullY } } }],
           {
@@ -984,6 +1262,8 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
             listener: (event: any) => {
               const y = event.nativeEvent.contentOffset.y;
               if (menuGroups.length >= 4) followSections(y);
+              if (!reviewsNearRef.current && y + windowHeight * 1.5 >= menuFrame.current.cardY + reviewsY.current) markReviewsNear();
+              if (returnRef.current?.armed && Math.abs(y - returnRef.current.y) < 120) clearReturn();
               updateBackToTop(y);
               if (followToast) {
                 if (toastScrollY.current === null) toastScrollY.current = y;
@@ -1130,17 +1410,6 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
               {/* Fotos de platillos: el menú sigue en texto; se ven
                   manteniendo presionado. Si todos tienen foto basta esta
                   línea; si solo algunos, la marca junto al nombre dice cuáles. */}
-              {/* Quien visita: tocar abre las fotos del platillo (y subir la
-                  suya); sin fotos todavía, la línea invita a subir la primera. */}
-              {(dishPhotos !== 'none' || !own) && (
-                <Text style={s.dishPhotoHint} allowFontScaling={true}>
-                  {dishPhotos === 'none'
-                    ? noWidow('Toca un platillo para subir su foto.')
-                    : dishPhotos === 'all'
-                      ? noWidow(own ? 'Mantén presionado un platillo para ver su foto.' : 'Mantén presionado un platillo para ver su foto; tócalo para ver todas.')
-                      : <>{'Mantén presionado un platillo con '}<Ionicons name="image-outline" size={13} color={theme.textSecondary} />{noWidow(own ? ' para ver su foto.' : ' para ver su foto; tócalo para ver todas.')}</>}
-                </Text>
-              )}
               {menuGroups.map((section, sectionIndex) => (
                 <View key={`${sectionIndex}-${section.section}`} style={s.group} onLayout={(event) => { groupY.current[sectionIndex] = event.nativeEvent.layout.y; }}>
                   {/* La carta (lo de siempre) empieza después de lo de hoy. */}
@@ -1168,19 +1437,26 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
                     </View>
                   )}
                   {section.items.map((item) => {
-                    const dishLiked = likedDishNames.has(canonicalDishName(item.name));
-                    const dishLikes = dishLikeCounts[canonicalDishName(item.name)] ?? 0;
-                    const featured = highlights.featuredDish === canonicalDishName(item.name);
+                    const itemKeys = dishKeysOf(item);
+                    const dishLiked = itemKeys.some((key) => likedKeys.has(key));
+                    const dishLikes = itemKeys.reduce((sum, key) => sum + (likeCountByKey.get(key) ?? 0), 0);
+                    const featured = !!featuredKey && itemKeys.includes(featuredKey);
+                    const dishKey = `${sectionIndex}-${item.name}`;
+                    const photos = dishPhotosByKey.get(dishKey) ?? [];
                     return (
-                      <Pressable
+                      <View
                         key={`${section.section}-${item.name}`}
-                        style={s.groupItem}
-                        // Quien visita toca cualquier platillo: ve sus fotos o sube la primera.
-                        disabled={own && !hasPhoto(item)}
-                        onPress={own ? undefined : () => openDishSheet(item)}
+                        style={s.dishBlock}
+                        onLayout={(event) => { dishY.current[dishKey] = event.nativeEvent.layout.y; }}>
+                      <Pressable
+                        style={s.dishRow}
+                        // Con fotos: tocarlo las abre aquí mismo; mantenerlo, un vistazo.
+                        disabled={!photos.length}
+                        onPressIn={() => prefetchPhotos(photos.slice(0, 2).map((photo) => photo.url))}
+                        onPress={() => toggleDish(dishKey)}
                         delayLongPress={280}
                         onLongPress={(event) => openDishPeek(item, false, event.nativeEvent.pageY)}
-                        onPressOut={() => setDishPeek((current) => (current && !current.sticky ? null : current))}
+                        onPressOut={() => peekStore.set((current) => (current && !current.sticky ? null : current))}
                         accessible={false}>
                         <View style={{ flex: 1 }}>
                           {featured && (
@@ -1193,13 +1469,16 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
                           <Text
                             style={s.groupItemName}
                             allowFontScaling={true}
-                            accessibilityHint={own ? (hasPhoto(item) ? 'Tiene foto. Usa la acción Ver foto.' : undefined) : (hasPhoto(item) ? 'Tiene fotos. Usa la acción Ver fotos.' : 'Usa la acción Ver fotos para subir la tuya.')}
-                            accessibilityActions={own ? (hasPhoto(item) ? [{ name: 'activate', label: 'Ver foto' }] : undefined) : [{ name: 'activate', label: 'Ver fotos' }]}
-                            onAccessibilityAction={() => (own ? openDishPeek(item, true) : openDishSheet(item))}>
+                            accessibilityHint={photos.length ? `${photos.length === 1 ? 'Tiene una foto' : `Tiene ${photos.length} fotos`}. Usa la acción Ver fotos para abrirlas o cerrarlas.` : undefined}
+                            accessibilityActions={photos.length ? [{ name: 'activate', label: 'Ver fotos' }] : undefined}
+                            onAccessibilityAction={() => toggleDish(dishKey)}>
                             {item.name}
-                            {/* Solo si algunos tienen foto: la marca dice cuáles. */}
-                            {hasPhoto(item) && dishPhotos === 'some' && (
-                              <Text style={s.dishPhotoMark}>{'  '}<Ionicons name="image-outline" size={14} color={theme.textMute} /></Text>
+                            {/* Solo el ícono dice que tiene fotos (sin número ni leyenda:
+                                sería demasiado). Espacios que no se parten: nunca baja solo. */}
+                            {photos.length > 0 && (
+                              <Text style={s.dishPhotoMark}>
+                                {'\u00A0\u00A0'}<Ionicons name="image-outline" size={14} color={theme.textMute} />
+                              </Text>
                             )}
                           </Text>
                           {!!item.description && (
@@ -1210,7 +1489,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
                         {own && ownPro && (
                           <TouchableOpacity
                             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                            onPress={() => handleFeatureDish(item.name)}
+                            onPress={() => handleFeatureDish(item)}
                             activeOpacity={0.7}
                             accessibilityRole="button"
                             accessibilityLabel={featured ? `Quitar ${item.name} como recomendado` : `Recomendar ${item.name}`}
@@ -1222,14 +1501,15 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
                         {own ? (
                           !!dishLikes && (
                             <View style={s.dishLikeCount} accessible accessibilityLabel={`${dishLikes} me gusta`}>
-                              <Ionicons name="heart" size={13} color={theme.accent} />
+                              {/* El número a la izquierda: el corazón queda en la columna de todos. */}
                               <Text style={s.dishLikeCountText}>{dishLikes}</Text>
+                              <View style={s.dishHeartBox}><Ionicons name="heart" size={13} color={theme.accent} /></View>
                             </View>
                           )
                         ) : (
                           <TouchableOpacity
                             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                            onPress={() => handleToggleDishLike(item.name)}
+                            onPress={() => handleToggleDishLike(item)}
                             activeOpacity={0.7}
                             accessibilityRole="button"
                             accessibilityLabel={dishLiked ? `Quitar me gusta a ${item.name}` : `Me gusta ${item.name}`}
@@ -1239,6 +1519,27 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
                           </TouchableOpacity>
                         )}
                       </Pressable>
+                      {!!photos.length && (
+                        <DishPhotosSlot store={openDishStore} dishKey={dishKey} render={() => (
+                        <DishGallery
+                          dishName={item.name}
+                          photos={photos}
+                          initialWidth={windowWidth - 40}
+                          authorFor={(photo) => (photo.by
+                            ? {
+                              name: shownName(photo.by, photo.mine) ?? photo.by,
+                              onPress: photo.mine
+                                ? (me && isAccountId(me.id) ? () => openProfile(me.id) : undefined)
+                                : (canOpenProfile(photo.userId) ? () => openProfile(photo.userId!, photo.by) : undefined),
+                            }
+                            : { name: patio.name })}
+                          likeFor={photoLike}
+                          onToggleLike={togglePhotoLike}
+                          menuFor={(photo) => photoMenu(photo, item.name)}
+                        />
+                        )} />
+                      )}
+                      </View>
                     );
                   })}
                 </View>
@@ -1422,7 +1723,13 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
             )}
           </View>
 
-          <View style={s.reviewSection} onLayout={(event) => { reviewsY.current = event.nativeEvent.layout.y; }}>
+          <View
+            style={s.reviewSection}
+            onLayout={(event) => {
+              reviewsY.current = event.nativeEvent.layout.y;
+              // Ficha corta: las reseñas ya se ven sin desplazarse.
+              if (event.nativeEvent.layout.y < windowHeight) markReviewsNear();
+            }}>
             <View style={s.reviewsSummary}>
               <View>
                 <Text style={s.reviewsTitle}>Reseñas</Text>
@@ -1468,13 +1775,14 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
             {visibleReviews.map((review, index) => (
               <View
                 key={`${review.userId}-${review.timestamp}`}
-                style={[s.reviewCard, index > 0 && s.reviewCardGap]}>
+                style={[s.reviewCard, index > 0 && s.reviewCardGap]}
+                onLayout={(event) => { reviewCardY.current[`${review.userId}-${review.timestamp}`] = event.nativeEvent.layout.y; }}>
                 <View style={s.reviewAuthorRow}>
-                  {!review.isMine && isAccountId(review.userId) ? (
-                    <TouchableOpacity style={{ flex: 1 }} onPress={() => openProfile(review.userId)} accessibilityRole="link" accessibilityLabel={`Ver perfil de ${review.author}`} hitSlop={{ top: 6, bottom: 6 }}>
+                  {!review.isMine && canOpenProfile(review.userId) ? (
+                    <TouchableOpacity style={{ flex: 1 }} onPress={() => openProfile(review.userId, review.author)} accessibilityRole="link" accessibilityLabel={`Ver perfil de ${review.author}`} hitSlop={{ top: 6, bottom: 6 }}>
                       <Text style={s.reviewAuthor}>{review.author}</Text>
                     </TouchableOpacity>
-                  ) : <Text style={s.reviewAuthor}>{review.isMine ? 'Tu reseña' : review.author}</Text>}
+                  ) : <Text style={s.reviewAuthor}>{review.isMine ? shownName(review.author, true) ?? 'Tu reseña' : review.author}</Text>}
                   <Text style={s.reviewDate}>
                     {new Date(review.timestamp).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' })}
                   </Text>
@@ -1493,6 +1801,20 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
                   </View>
                 )}
                 {!!review.note && <Text style={s.reviewNote}>{review.note}</Text>}
+                {(() => {
+                  // La foto de la visita, con su platillo y su frase: la misma que
+                  // sale en el menú. Se abre aquí mismo; ir al menú es opcional.
+                  const photo = reviewPhotoOf(review);
+                  if (!photo) return null;
+                  const inMenu = photo.dish ? dishTarget(photo.dish) : null;
+                  return (
+                    <ReviewPhoto
+                      photo={photo}
+                      load={reviewsNear}
+                      onOpenInMenu={inMenu && photo.dish ? () => showDishInMenu(photo.dish!) : undefined}
+                    />
+                  );
+                })()}
                 {!review.isMine && (() => {
                   const reviewKey = `${review.userId}-${review.timestamp}`;
                   const like = reviewLikes[reviewKey] ?? { count: 0, mine: false };
@@ -1559,7 +1881,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
                                     <TouchableOpacity onPress={() => openProfile(reply.userId!)} accessibilityRole="link" accessibilityLabel={`Ver perfil de ${reply.author}`} hitSlop={{ top: 6, bottom: 6 }} style={s.reviewThreadAuthorLink}>
                                       <Text style={s.reviewThreadAuthor}>{reply.author}</Text>
                                     </TouchableOpacity>
-                                  ) : <Text style={s.reviewThreadAuthor}>{reply.mine ? 'Tú' : reply.author}</Text>}
+                                  ) : <Text style={s.reviewThreadAuthor}>{reply.mine && !reply.patio ? shownName(reply.author, true) ?? 'Tú' : reply.author}</Text>}
                                   {reply.patio && (
                                     <View style={s.reviewThreadSeal}>
                                       <SymbolView name="checkmark.seal.fill" size={13} weight="medium" tintColor={theme.accent} fallback={<TintIcon source={ANDROID_ICONS.verified} size={13} color={theme.accent} />} />
@@ -1583,7 +1905,7 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
                                   style={s.reviewThreadTextAction}
                                   hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
                                   onPress={() => {
-                                    setReplyingToComment({ reviewKey, parentId, author: reply.mine ? 'Tú' : reply.author });
+                                    setReplyingToComment({ reviewKey, parentId, author: reply.mine && !reply.patio ? shownName(reply.author, true) ?? 'Tú' : reply.author });
                                     setReplyingTo(null);
                                     setReplyDraft('');
                                   }}
@@ -1683,7 +2005,20 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
           />
         </Animated.View>
       )}
-      {longFicha && !followToast && (
+      {/* Volver a donde estabas después de un salto: va en el lugar de «Volver
+          arriba» (un solo control flotante a la vez). */}
+      {!!returnTo && !followToast && (
+        <View style={[s.backToTopDock, { bottom: backToTopBottom }]} pointerEvents="box-none">
+          <View style={[s.returnPillShadow, floatingSurfaceShadow(theme.isDark)]}>
+            <TouchableOpacity style={s.returnPill} onPress={goBackFromJump} activeOpacity={0.8} accessibilityRole="button" accessibilityLabel={returnTo.label}>
+              <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+              <Ionicons name={returnTo.icon} size={16} color={theme.text} />
+              <Text style={s.returnPillText} allowFontScaling={true}>{returnTo.label}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+      {longFicha && !followToast && !returnTo && (
         <Animated.View
           pointerEvents={backToTopVisible ? 'box-none' : 'none'}
           accessibilityElementsHidden={!backToTopVisible}
@@ -1699,36 +2034,23 @@ export function PatioDetailView({ id, own = false }: { id?: string; own?: boolea
           </View>
         </Animated.View>
       )}
-      <DishPeek item={dishPeek?.item ?? null} sticky={!!dishPeek?.sticky} touchY={dishPeek?.touchY} onClose={() => setDishPeek(null)} />
-      <DishSheet
-        dish={dishSheet}
-        photos={dishSheetPhotos}
+      <PeekLayer store={peekStore} />
+      <DishPhotoFix
+        photo={fixingPhoto?.photo ?? null}
+        dish={fixingPhoto?.dish ?? ''}
         dishOptions={dishNames}
-        canAdd={!own}
-        onClose={() => setDishSheet(null)}
-        onAdd={() => {
-          const name = dishSheet?.name;
-          setDishSheet(null);
-          if (patio && name) router.push({ pathname: '/resena/[id]', params: { id: patio.id, dish: name } });
-        }}
-        onFix={async (photo, dish, note) => {
-          if (!photo.reviewId) return;
-          await updateMyReviewPhoto(photo.reviewId, dish, note);
-          setPhotoEdits((current) => ({ ...current, [photo.reviewId!]: { dish, note: note.trim() || undefined } }));
-        }}
-        onRemove={async (photo) => {
-          if (!photo.reviewId) return;
-          await removeMyReviewPhoto(photo.reviewId, photo.url);
-          setPhotoEdits((current) => ({ ...current, [photo.reviewId!]: { removed: true } }));
-        }}
-        onReport={(photo, reason) => {
-          if (!photo.reviewId) return;
-          reportContent('review', photo.reviewId, reason, reason === 'inaccurate' ? `Foto que no es de ${dishSheet?.name ?? 'este platillo'}` : 'Foto de platillo')
-            .then(() => Alert.alert(noWidow('Gracias por avisarnos'), noWidow('Revisaremos esta foto.')))
-            .catch((error: Error) => {
-              if (/Inicia sesión/.test(error.message)) { setDishSheet(null); askToSignIn(); }
-              else Alert.alert(noWidow('No se envió el reporte'), noWidow(error.message));
-            });
+        onClose={() => setFixingPhoto(null)}
+        onSave={async (dish) => {
+          if (!fixingPhoto) return;
+          const { photo } = fixingPhoto;
+          // Solo cambia de qué platillo es; una frase que ya tuviera se queda igual.
+          if (photo.reviewId && isRealReviewId(photo.reviewId)) await updateMyReviewPhoto(photo.reviewId, dish, photo.note);
+          setPhotoEdits((current) => ({ ...current, [photoKey(photo)]: { dish, note: photo.note } }));
+          // Si cambió de platillo, se abre ese para ver dónde quedó.
+          if (dishKey(dish) !== dishKey(fixingPhoto.dish)) {
+            const target = dishTarget(dish);
+            if (target) openDishPhotos(target.key);
+          }
         }}
       />
       {followToast && (

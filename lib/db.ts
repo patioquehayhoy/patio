@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from './supabase';
 import type { MenuData } from './menu-store';
 import { localMenuDate } from './menu-date';
+import { dishKey } from './dish-identity';
 
 export const FONDITA_ID_KEY = '@lafondita_fondita_id';
 
@@ -89,6 +90,23 @@ export async function loadMenuHoy(fonditaId: string): Promise<MenuData | null> {
   return data ? (data.secciones as MenuData) : null;
 }
 
+/**
+ * Menús publicados en los últimos días (2026-11-15), del más nuevo al más
+ * viejo. El editor aprende de aquí qué foto tiene cada platillo, así la foto
+ * vuelve sola aunque el negocio cambie de teléfono.
+ */
+export async function loadRecentMenus(fonditaId: string, days = 60): Promise<MenuData[]> {
+  if (!isUuid(fonditaId)) return [];
+  const { data, error } = await supabase
+    .from('menus')
+    .select('secciones')
+    .eq('negocio_id', fonditaId)
+    .order('fecha', { ascending: false })
+    .limit(days);
+  if (error || !data) return [];
+  return (data as { secciones: MenuData | null }[]).flatMap((row) => (row.secciones ? [row.secciones] : []));
+}
+
 export async function deleteCarta(fonditaId: string): Promise<void> {
   if (!isUuid(fonditaId)) {
     throw new Error('No se pudo identificar tu Patio para retirar la carta.');
@@ -127,4 +145,31 @@ export async function loadCarta(fonditaId: string): Promise<MenuData | null> {
   if (error) { console.error('[db] loadCarta error:', error); return null; }
   debugLog('[db] loadCarta result:', data ? 'encontrado' : 'null');
   return data ? (data.secciones as MenuData) : null;
+}
+
+/**
+ * Cuántas fotos de clientes tiene cada platillo de un lugar, por su llave
+ * (lib/dish-identity.ts): el editor del negocio las usa para sugerir unir un
+ * nombre nuevo con uno parecido que ya tiene fotos.
+ */
+export async function getDishPhotoCounts(placeId: string): Promise<Map<string, { name: string; count: number }>> {
+  const counts = new Map<string, { name: string; count: number }>();
+  if (!/^[0-9a-f-]{36}$/i.test(placeId)) return counts;
+  const { data, error } = await supabase
+    .from('reviews')
+    .select('foto_platillo')
+    .eq('negocio_id', placeId)
+    .eq('status', 'published')
+    .not('foto_url', 'is', null)
+    .not('foto_platillo', 'is', null)
+    .limit(500);
+  if (error || !data) return counts;
+  for (const row of data as { foto_platillo: string | null }[]) {
+    const name = row.foto_platillo?.trim();
+    if (!name) continue;
+    const key = dishKey(name);
+    const current = counts.get(key);
+    counts.set(key, { name: current?.name ?? name, count: (current?.count ?? 0) + 1 });
+  }
+  return counts;
 }

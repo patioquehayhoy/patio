@@ -9,6 +9,8 @@
 
 export type DishPhoto = {
   url: string;
+  /** Vista previa instantánea (ThumbHash en hexadecimal, lib/photo-hash.ts). */
+  hash?: string;
   /** Nombre de quien la subió; sin él es del negocio. */
   by?: string;
   /** Frase del platillo que va como pie. */
@@ -17,6 +19,8 @@ export type DishPhoto = {
   at?: number;
   reviewId?: string;
   userId?: string;
+  /** Foto de perfil de quien la subió. */
+  avatar?: string;
   mine?: boolean;
 };
 
@@ -34,27 +38,23 @@ function onePerPersonFirst(photos: DishPhoto[]): DishPhoto[] {
   return [...first, ...repeats];
 }
 
-export function orderDishPhotos(businessPhoto: string | undefined, customerPhotos: DishPhoto[], now = Date.now()): DishPhoto[] {
+export function orderDishPhotos(businessPhoto: { url: string; hash?: string } | undefined, customerPhotos: DishPhoto[], now = Date.now()): DishPhoto[] {
   const newest = [...customerPhotos].sort((a, b) => (b.at ?? 0) - (a.at ?? 0));
   const recent = newest.filter((photo) => now - (photo.at ?? 0) <= RECENT_MS);
   const older = newest.filter((photo) => now - (photo.at ?? 0) > RECENT_MS);
   const seenUrls = new Set<string>();
   return [
-    ...(businessPhoto ? [{ url: businessPhoto }] : []),
+    ...(businessPhoto ? [{ url: businessPhoto.url, ...(businessPhoto.hash ? { hash: businessPhoto.hash } : {}) }] : []),
     ...onePerPersonFirst(recent),
     ...onePerPersonFirst(older),
   ].filter((photo) => (seenUrls.has(photo.url) ? false : (seenUrls.add(photo.url), true)));
 }
 
-/** «hoy», «ayer», «hace 3 días», «hace 2 meses»… para el crédito de la foto. */
-export function photoAge(at: number | undefined, now = Date.now()): string | undefined {
+/**
+ * Fecha de la foto con el mismo formato que la reseña de donde sale y que el
+ * perfil («15 nov 2026»): una sola forma de fechar en la ficha.
+ */
+export function photoDate(at: number | undefined): string | undefined {
   if (!at) return undefined;
-  const days = Math.floor((now - at) / (24 * 60 * 60 * 1000));
-  if (days <= 0) return 'hoy';
-  if (days === 1) return 'ayer';
-  if (days < 30) return `hace ${days} días`;
-  const months = Math.floor(days / 30);
-  if (months < 12) return months === 1 ? 'hace un mes' : `hace ${months} meses`;
-  const years = Math.floor(months / 12);
-  return years === 1 ? 'hace un año' : `hace ${years} años`;
+  return new Date(at).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' });
 }

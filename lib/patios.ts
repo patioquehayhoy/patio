@@ -1,4 +1,6 @@
 import { isDishPhotoUrl } from './dish-photo-url';
+import { isPhotoHash } from './photo-hash';
+import { cleanAliases } from './dish-identity';
 import { supabase } from './supabase';
 import { localMenuDate } from './menu-date';
 import { normalizeMenuData } from './menu-store';
@@ -20,6 +22,10 @@ export type PatioMenuItem = {
   tags?: string[];
   /** Foto del platillo: se ve manteniéndolo presionado en la ficha. */
   photo?: string;
+  /** Vista previa instantánea de la foto (lib/photo-hash.ts). */
+  photoHash?: string;
+  /** Otros nombres del mismo platillo confirmados por el negocio (lib/dish-identity.ts). */
+  aliases?: string[];
 };
 
 export type PatioMenuSection = {
@@ -330,7 +336,8 @@ function publicMenuSections(value: unknown, kind: 'hoy' | 'carta' = 'hoy'): Pati
       name: cleanMenuText(item.nombre) || item.nombre,
       description: cleanMenuText(item.descripcion),
       price: publicCurrency(item.precio) || undefined,
-      ...(isDishPhotoUrl(item.foto) ? { photo: item.foto } : {}),
+      ...(isDishPhotoUrl(item.foto) ? { photo: item.foto, ...(isPhotoHash(item.fotoHash) ? { photoHash: item.fotoHash } : {}) } : {}),
+      ...(cleanAliases(item.antes, item.nombre).length ? { aliases: cleanAliases(item.antes, item.nombre) } : {}),
     }));
     return items.length ? [{ section: cleanMenuText(section.nombre) || section.nombre, price: publicCurrency(section.precio) || undefined, items }] : [];
   });

@@ -1,4 +1,6 @@
 import { isDishPhotoUrl } from './dish-photo-url';
+import { isPhotoHash } from './photo-hash';
+import { cleanAliases } from './dish-identity';
 import { supabase } from './supabase';
 import type { Patio, PatioMenuSection, PatioDishMatch } from './patios';
 import { normalizeMenuData, type MenuData } from './menu-store';
@@ -33,7 +35,8 @@ function menuDataToSections(data: MenuData, kind: 'hoy' | 'carta' = 'hoy'): Pati
           name: cleanMenuText(p.nombre) || p.nombre,
           description: cleanMenuDescription(p.descripcion),
           price: publicCurrency(p.precio) || undefined,
-          ...(isDishPhotoUrl(p.foto) ? { photo: p.foto } : {}),
+          ...(isDishPhotoUrl(p.foto) ? { photo: p.foto, ...(isPhotoHash(p.fotoHash) ? { photoHash: p.fotoHash } : {}) } : {}),
+          ...(cleanAliases(p.antes, p.nombre).length ? { aliases: cleanAliases(p.antes, p.nombre) } : {}),
         })),
     }));
 }

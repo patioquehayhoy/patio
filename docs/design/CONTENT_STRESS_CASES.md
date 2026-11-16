@@ -40,6 +40,11 @@ mostrarla.
 | Descripción de platillo (140) | — | Con ensalada de la casa | Con frijoles refritos, crema y queso | Hasta 140 letras: dos o tres renglones |
 | Aviso (Pro) | Hoy abrimos a las 8 pm. | 2×1 en aguas frescas, hoy de 2 a 4 pm. | Hoy pozole rojo o verde con tostadas, crema y orégano hasta agotar. | 140 |
 | Reseña (600) | ¡Rico! | Dos renglones | Un párrafo | 600 |
+| Nombre de quien publica (40 + inicial) | Leo | Caro M. | María Guadalupe H. | María Guadalupe del Socorro Josefina H. |
+| Fotos de un platillo | 1 (del lugar, sin número) | 3 («1/3» dentro de la foto) | 12 («3/12») | 40 («12/40»; «1/40» en el vistazo) |
+| «Me gusta» de una foto | 0 | 3 | 128 | 12,480 |
+| Fecha de una foto (como su reseña) | 1 nov 2026 | 15 nov 2026 | 30 sept 2026 | 31 dic 2025 |
+| Pregunta «¿Es el mismo platillo?» (editor) | ¿Es el mismo platillo que «Mole»? | … Se juntan su foto y 3 fotos de clientes. | … «Chile relleno de queso en caldillo de jitomate»? … | nombre de 60 y «1,234 fotos de clientes»: baja de renglón, nunca se corta |
 
 ## 3. Dónde verlos en el teléfono
 
@@ -52,6 +57,15 @@ En desarrollo, los lugares «Dev» (`lib/demo.ts`) traen estos casos. Busca «de
 - **Mariscos y Cocteles Dev Cinco:** nombre de 29, Jardines del Pedregal de
   San Ángel, precio del menú $150, 12,480 seguidores, a más de 12 km.
 - **Cocina Grande Dev 6:** Unidad Habitacional Vicente Guerrero, 24 secciones.
+  «Chiles en nogada» trae 40 fotos de clientes (orden, carga y una con
+  12,480 «me gusta»).
+- **Fotos de clientes en Fondita Dev:** «Al pastor» con el nombre de 39,
+  una foto de hace 200 días y la misma persona dos veces; «Suadero» con la reseña de 591 letras; «Campechanos» con una foto
+  tuya para probar Corregir y Quitar.
+- **Reseñas sin foto en Fondita Dev** (como serán la mayoría): «¡Rico!», una
+  típica, una de 487 letras, una de 2 estrellas y una solo con estrellas.
+- **Personas de prueba:** tocar su nombre (en la foto o en la reseña) abre un
+  perfil de prueba; solo en desarrollo.
 
 ## 4. Qué nunca se corta y qué sí, a propósito
 

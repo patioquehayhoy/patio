@@ -22,9 +22,9 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { cleanMenu, emptyMenu, useFonderoMenuDraftController } from '@/lib/controllers/useFonderoMenuDraftController';
-import { splitCarta } from '@/lib/menu-carta';
+import { isCartaName, splitCarta } from '@/lib/menu-carta';
 import { fonderoPalette, type FonderoColors } from '@/lib/fondero-palette';
-import { getTipoNegocio, type MenuData, type Platillo, type Seccion } from '@/lib/menu-store';
+import { getTipoNegocio, seccionSugerencias, type MenuData, type Platillo, type Seccion } from '@/lib/menu-store';
 import { useTheme } from '@/lib/theme';
 import { ActionSheet } from '@/components/action-sheet';
 import { SectionBar } from '@/components/section-bar';
@@ -67,7 +67,10 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
     details,
     dismissUndo,
     fillKnownPhotos,
+    declineLink,
     lastRemoved,
+    linkDish,
+    linkSuggestion,
     moveSection,
     nombre,
     patchDish,
@@ -110,7 +113,8 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
       const asset = await pickDishPhoto(source);
       if (!asset) return;
       setPhotoBusy((current) => ({ ...current, [dish.id]: true }));
-      setDishPhoto(sectionId, dish.id, await uploadDishPhoto(asset, dish.nombre));
+      const uploaded = await uploadDishPhoto(asset, dish.nombre);
+      setDishPhoto(sectionId, dish.id, { foto: uploaded.url, ...(uploaded.hash ? { fotoHash: uploaded.hash } : {}) });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
     } catch (error) {
       if (error instanceof DishPhotoPermissionError) {
@@ -234,6 +238,21 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
     pendingFocus.current = key;
     if (key.startsWith('n-')) { smoothly(); setEditingName(key.slice(2)); }
   };
+  // Menú nuevo y vacío, hecho a mano: el cursor espera en el primer platillo.
+  // La pantalla dice por dónde empezar sin pasos ni instrucciones (se pensó
+  // en un recorrido por pasos y se descartó: el menú se publica a diario y
+  // cada paso extra se pagaría todos los días).
+  const startedRef = useRef(false);
+  useEffect(() => {
+    if (startedRef.current || source !== 'manual') return;
+    startedRef.current = true;
+    if (data.secciones.some((section) => section.platillos.some((dish) => dish.nombre.trim()))) return;
+    const first = data.secciones.find((section) => !section.carta)?.platillos[0];
+    if (!first) return;
+    const timer = setTimeout(() => focusKey(`n-${first.id}`), 400);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   // Nombre largo: completo mientras se escribe, en una línea con «…» al salir,
   // como el campo de un chat. El precio propio aparece solo si se pide o si ya
   // tiene valor, igual que la descripción («Agregar precio», «Agregar descripción»).
@@ -312,6 +331,17 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
   // «MENÚ $100» y «CARTA $110». Mismo renglón de sección para los dos.
   const dailySections = data.secciones.filter((section) => !section.carta);
   const cartaSections = data.secciones.filter((section) => section.carta);
+  // Los dos bloques se arman igual (2026-11-15, Parco): etiqueta fija, su
+  // precio y su contenido. «MENÚ DEL DÍA» y «LA CARTA» no se renombran. La
+  // primera sección de la carta («CARTA») no lleva título propio: su precio
+  // es el precio de la carta, como «CARTA $110» en el pizarrón; las demás
+  // secciones de la carta sí llevan su nombre, igual que las de hoy.
+  const mainCarta = cartaSections[0] && isCartaName(cartaSections[0].nombre) ? cartaSections[0] : null;
+  const otherCarta = mainCarta ? cartaSections.slice(1) : cartaSections;
+  const [cartaPriceFocused, setCartaPriceFocused] = useState(false);
+  // La primera sección de hoy sugiere el nombre que usa el giro («TACOS»,
+  // «PRIMER TIEMPO»…), el mismo de las sugerencias de abajo.
+  const firstSectionHint = seccionSugerencias(getTipoNegocio())[0] ?? 'PRIMER TIEMPO';
   const addCartaSection = () => {
     smoothly();
     const first = !cartaSections.length;
@@ -320,56 +350,58 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
     // la distingue («CARTA $110»); los platillos solo llevan el suyo si cambia.
     if (first) openSectionPrice(id);
   };
-  const renderSection = (section: Seccion, sectionIndex: number) => {
+  const renderSection = (section: Seccion, sectionIndex: number, headless = false) => {
             const actionsOpen = sectionActions === section.id;
             return (
               <View key={section.id} style={s.section} onLayout={(event) => { sectionY.current[section.id] = event.nativeEvent.layout.y; }}>
-                <View style={s.sectionHeader}>
-                  <TextInput
-                    style={s.sectionName}
-                    value={section.nombre}
-                    onChangeText={nombre => patchSection(section.id, { nombre: nombre.toUpperCase().slice(0, TEXT_LIMITS.sectionName) })}
-                    placeholder={sectionIndex === 0 ? (section.carta ? 'CARTA' : 'PRIMER TIEMPO') : 'SECCIÓN'}
-                    placeholderTextColor={c.textMute}
-                    returnKeyType="done"
-                  />
-                  {/* Precio común de la sección («CARTA $110»): se conserva tal
-                      como lo leyó la foto y se cambia aquí. */}
-                  {(!!section.precio || sectionPriceOpen[section.id]) && (
-                    <View style={s.priceChip}>
-                      <Text style={s.currency}>$</Text>
-                      <TextInput
-                        ref={registerInput(`sp-${section.id}`)}
-                        style={s.dishPrice}
-                        value={section.precio}
-                        onChangeText={(precio) => patchSection(section.id, { precio: precio.replace(/[^0-9.]/g, '').slice(0, TEXT_LIMITS.dishPrice) })}
-                        onBlur={() => {
-                          if (!Number(section.precio)) {
-                            if (section.precio) patchSection(section.id, { precio: '' });
-                            smoothly(); setSectionPriceOpen((current) => ({ ...current, [section.id]: false }));
-                          }
-                        }}
-                        keyboardType="decimal-pad"
-                        returnKeyType="done"
-                        inputAccessoryViewID={Platform.OS === 'ios' ? PRICE_ACCESSORY : undefined}
-                        selectTextOnFocus
-                        accessibilityLabel={`Precio de la sección ${section.nombre || sectionIndex + 1}`}
-                        accessibilityHint="Lo que cuesta cada platillo de esta sección, si todos cuestan lo mismo."
-                      />
-                    </View>
-                  )}
-                  <TouchableOpacity
-                    ref={(el) => { sectionMoreRefs.current.set(section.id, el); }}
-                    style={s.moreButton}
-                    hitSlop={3}
-                    onPress={() => toggleSectionActions(section.id)}
-                    accessibilityRole="button"
-                    accessibilityLabel="Más acciones de la sección"
-                    accessibilityState={{ expanded: actionsOpen }}
-                    activeOpacity={0.7}>
-                    <Ionicons name="ellipsis-horizontal" size={19} color={c.textSecondary} />
-                  </TouchableOpacity>
-                </View>
+                {!headless && (
+                  <View style={s.sectionHeader}>
+                    <TextInput
+                      style={s.sectionName}
+                      value={section.nombre}
+                      onChangeText={nombre => patchSection(section.id, { nombre: nombre.toUpperCase().slice(0, TEXT_LIMITS.sectionName) })}
+                      placeholder={sectionIndex === 0 && !section.carta ? firstSectionHint : 'SECCIÓN'}
+                      placeholderTextColor={c.textMute}
+                      returnKeyType="done"
+                    />
+                    {/* Precio común de la sección («CARTA $110»): se conserva tal
+                        como lo leyó la foto y se cambia aquí. */}
+                    {(!!section.precio || sectionPriceOpen[section.id]) && (
+                      <View style={s.priceChip}>
+                        <Text style={s.currency}>$</Text>
+                        <TextInput
+                          ref={registerInput(`sp-${section.id}`)}
+                          style={s.dishPrice}
+                          value={section.precio}
+                          onChangeText={(precio) => patchSection(section.id, { precio: precio.replace(/[^0-9.]/g, '').slice(0, TEXT_LIMITS.dishPrice) })}
+                          onBlur={() => {
+                            if (!Number(section.precio)) {
+                              if (section.precio) patchSection(section.id, { precio: '' });
+                              smoothly(); setSectionPriceOpen((current) => ({ ...current, [section.id]: false }));
+                            }
+                          }}
+                          keyboardType="decimal-pad"
+                          returnKeyType="done"
+                          inputAccessoryViewID={Platform.OS === 'ios' ? PRICE_ACCESSORY : undefined}
+                          selectTextOnFocus
+                          accessibilityLabel={`Precio de la sección ${section.nombre || sectionIndex + 1}`}
+                          accessibilityHint="Lo que cuesta cada platillo de esta sección, si todos cuestan lo mismo."
+                        />
+                      </View>
+                    )}
+                    <TouchableOpacity
+                      ref={(el) => { sectionMoreRefs.current.set(section.id, el); }}
+                      style={s.moreButton}
+                      hitSlop={3}
+                      onPress={() => toggleSectionActions(section.id)}
+                      accessibilityRole="button"
+                      accessibilityLabel="Más acciones de la sección"
+                      accessibilityState={{ expanded: actionsOpen }}
+                      activeOpacity={0.7}>
+                      <Ionicons name="ellipsis-horizontal" size={19} color={c.textSecondary} />
+                    </TouchableOpacity>
+                  </View>
+                )}
 
                 {/* Todas las secciones abiertas, como la ficha: para moverse
                     en menús largos está la barra de secciones de arriba. */}
@@ -481,6 +513,45 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                               </TouchableOpacity>
                             );
                           })()}
+                          {/* Identidad del platillo (lib/dish-identity.ts): si el nombre se
+                              parece a otro que ya tiene fotos («Pozole rojo» y «Pozole»),
+                              se pregunta una vez. Sí: se juntan su foto y las de clientes.
+                              No: no vuelve a salir para ese par. */}
+                          {editingName !== dish.id && (() => {
+                            const link = linkSuggestion(dish);
+                            if (!link) return null;
+                            const what = [
+                              link.foto && !dish.foto ? 'su foto' : null,
+                              link.customerPhotos ? `${link.customerPhotos.toLocaleString('es-MX')} ${link.customerPhotos === 1 ? 'foto' : 'fotos'} de clientes` : null,
+                            ].filter(Boolean).join(' y ');
+                            return (
+                              <View style={s.linkHint}>
+                                <Text style={s.linkHintText}>{noWidow(`¿Es el mismo platillo que «${link.name}»?${what ? ` Se juntan ${what}.` : ''}`)}</Text>
+                                <View style={s.linkActions}>
+                                  <TouchableOpacity
+                                    hitSlop={{ top: 8, bottom: 8, left: 4, right: 8 }}
+                                    onPress={() => {
+                                      smoothly();
+                                      linkDish(section.id, dish.id, link);
+                                      Haptics.selectionAsync().catch(() => {});
+                                    }}
+                                    activeOpacity={0.7}
+                                    accessibilityRole="button"
+                                    accessibilityLabel={`Sí, ${dish.nombre} es el mismo platillo que ${link.name}`}>
+                                    <Text style={s.linkYes}>Sí, es el mismo</Text>
+                                  </TouchableOpacity>
+                                  <TouchableOpacity
+                                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                                    onPress={() => { smoothly(); declineLink(dish, link); }}
+                                    activeOpacity={0.7}
+                                    accessibilityRole="button"
+                                    accessibilityLabel={`No, ${dish.nombre} es otro platillo`}>
+                                    <Text style={s.linkNo}>No</Text>
+                                  </TouchableOpacity>
+                                </View>
+                              </View>
+                            );
+                          })()}
                           {showDetails ? (
                             <View style={s.detailRow}>
                               <TextInput
@@ -540,7 +611,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                                   ? <ActivityIndicator size="small" color={c.textSecondary} />
                                   : <Image source={{ uri: dish.foto }} style={StyleSheet.absoluteFill} contentFit="cover" accessibilityIgnoresInvertColors />}
                               </View>
-                              <Text style={s.photoHint}>{noWidow(photoBusy[dish.id] ? 'Subiendo foto…' : 'Se ve al mantenerlo presionado')}</Text>
+                              <Text style={s.photoHint}>{noWidow(photoBusy[dish.id] ? 'Subiendo foto…' : 'La gente la ve al tocar el platillo')}</Text>
                             </TouchableOpacity>
                           )}
                         </View>
@@ -634,7 +705,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
               chip que el precio de un platillo, en su misma columna. */}
           {showDayPrice && (
             <View style={s.menuPrices}>
-              <Text style={s.menuPricesLabel} accessibilityRole="header">MENÚ DEL DÍA</Text>
+              <Text style={[s.blockLabel, s.blockLabelBeforeRow]} accessibilityRole="header">MENÚ DEL DÍA</Text>
               {precios.map((item, index) => {
                 const empty = !item.precio && dayPriceFocus !== item.id;
                 const canRemove = precios.length > 1 || !menuPriceSuggested;
@@ -728,7 +799,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
             </View>
           )}
           {!showDayPrice && (
-            <Text style={[s.blockLabel, s.dailyLabel]} accessibilityRole="header">MENÚ DEL DÍA</Text>
+            <Text style={[s.blockLabel, s.blockLabelBeforeSection]} accessibilityRole="header">MENÚ DEL DÍA</Text>
           )}
           {dailySections.map((section, index) => renderSection(section, index))}
 
@@ -812,14 +883,48 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
             )}
           </View>
 
-          {/* La carta (lo de siempre): mismo lenguaje que el resto del
-              editor — etiqueta chica arriba, sus secciones con su precio y
-              «Agregar sección a la carta» al final. Se guarda al publicar. */}
+          {/* La carta (lo de siempre), armada igual que el menú del día:
+              etiqueta fija, su precio en el mismo renglón y columna, y debajo
+              sus platillos y secciones. Se guarda al publicar. */}
           <View style={s.cartaBlock}>
-            <Text style={s.blockLabel} accessibilityRole="header">LA CARTA</Text>
-            <Text style={s.cartaHint}>{noWidow(cartaSections.length ? 'Se queda para los días que siguen.' : 'Lo de siempre, con su precio. Se queda para los días que siguen.')}</Text>
+            <Text style={[s.blockLabel, mainCarta ? s.blockLabelBeforeRow : s.blockLabelBeforeSection]} accessibilityRole="header">LA CARTA</Text>
+            {mainCarta ? (
+              <View style={s.dayPriceRow}>
+                <Text style={[s.dayPriceName, s.rowPrefix]}>Precio</Text>
+                <TouchableOpacity
+                  style={[s.priceChip, !mainCarta.precio && !cartaPriceFocused && s.priceChipEmpty]}
+                  activeOpacity={0.7}
+                  hitSlop={{ top: 10, bottom: 10, left: 6, right: 6 }}
+                  onPress={() => focusKey(`sp-${mainCarta.id}`)}
+                  accessible={false}>
+                  <Text style={s.currency}>$</Text>
+                  <TextInput
+                    ref={registerInput(`sp-${mainCarta.id}`)}
+                    style={s.dishPrice}
+                    value={mainCarta.precio}
+                    onChangeText={(precio) => patchSection(mainCarta.id, { precio: precio.replace(/[^0-9.]/g, '').slice(0, TEXT_LIMITS.dishPrice) })}
+                    onFocus={() => setCartaPriceFocused(true)}
+                    onBlur={() => {
+                      setCartaPriceFocused(false);
+                      // Vacío o «0» al salir nunca se guarda.
+                      if (!Number(mainCarta.precio) && mainCarta.precio) patchSection(mainCarta.id, { precio: '' });
+                    }}
+                    keyboardType="decimal-pad"
+                    returnKeyType="done"
+                    inputAccessoryViewID={Platform.OS === 'ios' ? PRICE_ACCESSORY : undefined}
+                    selectTextOnFocus
+                    accessibilityLabel="Precio de la carta"
+                    accessibilityHint="Lo que cuesta cada platillo de la carta, salvo los que traen su propio precio."
+                  />
+                </TouchableOpacity>
+                <View style={s.removeDish} />
+              </View>
+            ) : !cartaSections.length ? (
+              <Text style={s.cartaHint}>{noWidow('Lo de siempre. Se queda para los días que siguen.')}</Text>
+            ) : null}
           </View>
-          {cartaSections.map((section, index) => renderSection(section, index))}
+          {mainCarta && renderSection(mainCarta, 0, true)}
+          {otherCarta.map((section, index) => renderSection(section, index + (mainCarta ? 1 : 0)))}
           <View style={[s.addSectionBlock, !cartaSections.length && s.cartaEmptyAdd]}>
             <TouchableOpacity
               style={s.addSectionToggle}
@@ -919,7 +1024,6 @@ function makeStyles(c: FonderoColors) {
     navButton: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
     navTitle: { flex: 1, textAlign: 'left', paddingHorizontal: 8, fontSize: 17, fontWeight: '700', color: c.textSecondary },
     menuPrices: { paddingBottom: 8 },
-    menuPricesLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, color: c.textMute, marginBottom: 2 },
     dayPriceRow: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 8 },
     rowPrefix: { color: c.textSecondary },
     includesPrefix: { fontSize: 16, lineHeight: 21, fontWeight: '400', color: c.textSecondary },
@@ -929,8 +1033,12 @@ function makeStyles(c: FonderoColors) {
     undoText: { flex: 1, fontSize: 15, fontWeight: '400', color: c.text },
     undoAction: { fontSize: 15, fontWeight: '700', color: c.accent },
     blockLabel: { fontSize: 11, lineHeight: 14, fontWeight: '700', letterSpacing: 0.8, color: c.textMute },
-    dailyLabel: { marginBottom: 6 },
-    cartaBlock: { marginTop: 32, marginBottom: 6, gap: 2 },
+    // Mismo espacio en los dos bloques: poco antes de su renglón de precio,
+    // un poco más antes de una sección (que trae su propia línea).
+    blockLabelBeforeRow: { marginBottom: 2 },
+    blockLabelBeforeSection: { marginBottom: 6 },
+    // Igual que el bloque del menú del día: su etiqueta, su renglón de precio y 8 antes de sus platillos.
+    cartaBlock: { marginTop: 32, paddingBottom: 8 },
     cartaEmptyAdd: { borderTopWidth: 0, paddingTop: 0 },
     cartaHint: { fontSize: 12, lineHeight: 16, fontWeight: '300', color: c.textSecondary },
     section: { borderTopWidth: StyleSheet.hairlineWidth, borderColor: c.border, paddingVertical: 12 },
@@ -942,6 +1050,12 @@ function makeStyles(c: FonderoColors) {
     dishDivider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: c.border },
     splitHint: { minHeight: 32, marginTop: 2, flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start' },
     splitHintText: { flexShrink: 1, fontSize: 13, lineHeight: 17, fontWeight: '700', color: c.accent },
+    // Pregunta de identidad: texto secundario y dos respuestas, en la retícula del platillo.
+    linkHint: { marginTop: 4, marginBottom: 2, gap: 4 },
+    linkHintText: { fontSize: 13, lineHeight: 18, fontWeight: '400', color: c.textSecondary },
+    linkActions: { minHeight: 32, flexDirection: 'row', alignItems: 'center', gap: 20 },
+    linkYes: { fontSize: 13, lineHeight: 17, fontWeight: '700', color: c.accent },
+    linkNo: { fontSize: 13, lineHeight: 17, fontWeight: '400', color: c.textSecondary },
     reviewNote: { marginBottom: 3, flexDirection: 'row', alignItems: 'center', gap: 4 },
     reviewNoteText: { flex: 1, fontSize: 11, lineHeight: 15, fontWeight: '300', color: c.accent },
     dishMainRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },

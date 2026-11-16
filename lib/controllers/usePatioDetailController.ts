@@ -19,8 +19,9 @@ import {
 import { cleanMenuDescription, cleanMenuText, fetchMenuForFondita, type FonditaPublicMenu } from '@/lib/menu';
 import { fetchFonditaById, getPatioById, type Patio, type PatioMenuSection } from '@/lib/patios';
 import { publicCurrency, publicPrice } from '@/lib/prices';
-import { getPatioRating, getPublicPatioReviews, type PatioRating, type PublicPatioReview } from '@/lib/ratings';
+import { getPatioRating, getPublicPatioReviews, type AuthorReview, type PatioRating, type PublicPatioReview } from '@/lib/ratings';
 import { registerPatioView } from '@/lib/stats';
+import { demoPhotoHash } from '@/lib/demo-photo-hashes';
 import { noWidow } from '@/lib/typography';
 import { phoneCallUrl, whatsappUrl } from '@/lib/business-contact';
 
@@ -78,23 +79,85 @@ const DEMO_LONGTIME_PATIO_REVIEWS: PublicPatioReview[] = [
 // Fotos de clientes en DEV (Unsplash, uso libre): Gringa solo tiene la de un
 // cliente; Al pastor tiene la del negocio y, abajo, más de clientes.
 const devCustomerPhoto = (id: string) => `https://images.unsplash.com/photo-${id}?w=900&q=75`;
+const HOUR = 1000 * 60 * 60;
+const DAY = HOUR * 24;
+// Casos de largo para las fotos de clientes (docs/design/CONTENT_STRESS_CASES.md):
+// nombre de 39; foto de hace 200 días (va al final); la misma persona dos
+// veces (va después de las demás); una reseña de 591 letras (la historia) y
+// una foto tuya para probar Corregir y Quitar.
 const DEMO_DEV1_REVIEWS: PublicPatioReview[] = [
-  { userId: 'demo-dev1-1', author: 'Caro M.', stars: 5, reasons: ['Sabor casero'], note: 'La gringa de pastor está buenísima, pídela con piña.', timestamp: Date.now() - 1000 * 60 * 60 * 5, photoUrl: devCustomerPhoto('1565299585323-38d6b0865b47'), photoDish: 'Gringa de pastor con queso', isMine: false },
-  { userId: 'demo-dev1-2', author: 'Iván R.', stars: 4, reasons: ['Buena porción'], note: 'Los de pastor llegan calientitos.', timestamp: Date.now() - 1000 * 60 * 60 * 26, photoUrl: devCustomerPhoto('1624300629298-e9de39c13be5'), photoDish: 'Al pastor', photoNote: 'Pídelos con piña y salsa verde', isMine: false },
-  // Varias del mismo platillo, para ver la cuadrícula, «+N» y el orden (una por persona, las viejas al final).
-  { userId: 'demo-dev1-3', author: 'María Guadalupe Hernández', stars: 5, reasons: ['Sabor casero'], note: 'Volvería.', timestamp: Date.now() - 1000 * 60 * 60 * 24 * 3, photoUrl: `${devCustomerPhoto('1565299585323-38d6b0865b47')}&v=3`, photoDish: 'Al pastor', photoNote: 'La tortilla hecha a mano se nota', isMine: false },
-  { userId: 'demo-dev1-2', author: 'Iván R.', stars: 4, reasons: ['Rápido'], note: 'Otra vez bien.', timestamp: Date.now() - 1000 * 60 * 60 * 24 * 9, photoUrl: `${devCustomerPhoto('1624300629298-e9de39c13be5')}&v=4`, photoDish: 'Al pastor', isMine: false },
-  { userId: 'demo-dev1-4', author: 'Leo', stars: 3, reasons: ['Precio justo'], note: 'Bien, sin más.', timestamp: Date.now() - 1000 * 60 * 60 * 24 * 200, photoUrl: `${devCustomerPhoto('1565299585323-38d6b0865b47')}&v=5`, photoDish: 'Al pastor', isMine: false },
+  { userId: 'demo-dev1-1', author: 'Caro M.', stars: 5, reasons: ['Sabor casero'], note: 'La gringa de pastor está buenísima, pídela con piña.', timestamp: Date.now() - HOUR * 5, photoUrl: devCustomerPhoto('1565299585323-38d6b0865b47'), photoDish: 'Gringas de pastor con queso', isMine: false },
+  { userId: 'demo-dev1-2', author: 'Iván R.', stars: 4, reasons: ['Buena porción'], note: 'Los de pastor llegan calientitos.', timestamp: Date.now() - HOUR * 26, photoUrl: devCustomerPhoto('1624300629298-e9de39c13be5'), photoDish: 'Al pastor', isMine: false },
+  { userId: 'demo-dev1-3', author: 'María Guadalupe del Socorro Josefina H.', stars: 5, reasons: ['Sabor casero'], note: 'Volvería.', timestamp: Date.now() - DAY * 3, photoUrl: `${devCustomerPhoto('1565299585323-38d6b0865b47')}&v=3`, photoDish: 'Al pastor', isMine: false },
+  { userId: 'demo-dev1-2', author: 'Iván R.', stars: 4, reasons: ['Rápido'], note: 'Otra vez bien.', timestamp: Date.now() - DAY * 9, photoUrl: `${devCustomerPhoto('1624300629298-e9de39c13be5')}&v=4`, photoDish: 'Al pastor', isMine: false },
+  { userId: 'demo-dev1-4', author: 'Leo', stars: 3, reasons: ['Precio justo'], note: 'Bien, sin más.', timestamp: Date.now() - DAY * 200, photoUrl: `${devCustomerPhoto('1565299585323-38d6b0865b47')}&v=5`, photoDish: 'Al pastor', isMine: false },
+  { userId: 'demo-dev1-5', author: 'Sofía P.', stars: 5, reasons: ['Sabor casero', 'Buena porción'], note: 'Llegué a la una y media, justo cuando salía la primera tanda de suadero. Doña Mary me reconoció de la semana pasada y me guardó lugar en la barra. Pedí tres de suadero y uno de pastor para comparar: el suadero gana, doradito de las orillas y suave por dentro. La salsa verde es de molcajete y se nota. El agua de horchata no está empalagosa. Pagué con tarjeta sin problema. Lo único: a las dos ya no cabe nadie, así que lleguen temprano o pidan para llevar. Volví el jueves con mi hermano y también salimos felices. Ya es mi lugar de los martes y, desde hoy, también de los jueves, sin duda.', timestamp: Date.now() - DAY * 2, photoUrl: `${devCustomerPhoto('1599974579688-8dbdd335c77f')}&v=6`, photoDish: 'Suadero', isMine: false },
+  { userId: 'demo-dev1-me', author: 'Tú', stars: 4, reasons: ['Rápido'], note: 'Rico y rápido.', timestamp: Date.now() - DAY, photoUrl: `${devCustomerPhoto('1551504734-5ee1c4a1479b')}&v=7`, photoDish: 'Campechanos', isMine: true },
+  // Identidad del platillo: foto de cuando el menú decía «Tacos de suadero»
+  // (sale en «Suadero», que guarda ese otro nombre) y la de arriba escrita en
+  // plural, «Gringas…» (se junta sola con «Gringa…»).
+  { userId: 'demo-dev1-11', author: 'Arturo V.', stars: 5, reasons: ['Sabor casero'], note: 'De los mejores suaderos de la Narvarte.', timestamp: Date.now() - DAY * 8, photoUrl: `${devCustomerPhoto('1613514785940-daed07799d9b')}&v=8`, photoDish: 'Tacos de suadero', isMine: false },
+  // Reseñas sin foto, como serán la mayoría: corta, típica, larga, crítica y solo estrellas.
+  { userId: 'demo-dev1-6', author: 'Rubén T.', stars: 5, reasons: ['Sabor casero'], note: '¡Rico!', timestamp: Date.now() - HOUR * 3, isMine: false },
+  { userId: 'demo-dev1-7', author: 'Daniela F.', stars: 4, reasons: ['Buena porción', 'Rápido'], note: 'La comida corrida alcanza para dos: sopa de fideo, arroz y el guisado del día. El agua de jamaica sin tanta azúcar.', timestamp: Date.now() - DAY * 4, isMine: false },
+  { userId: 'demo-dev1-8', author: 'Jorge Alberto R.', stars: 5, reasons: ['Sabor casero', 'Precio justo'], note: 'Vengo desde hace años, desde que la fonda era solo una barra con cuatro bancos. Doña Mary sigue haciendo el mole los jueves y el chile relleno los viernes, y se acuerda de cómo le gusta el café a cada quien. Subieron un poco los precios, como todo, pero la porción sigue siendo generosa y las tortillas salen calientes del comal. Si van en quincena, lleguen antes de la una o esperen tantito: vale la pena. Lo que más extraño es el pozole de los sábados, que ya solo hacen en septiembre.', timestamp: Date.now() - DAY * 6, isMine: false },
+  { userId: 'demo-dev1-9', author: 'Mónica S.', stars: 2, reasons: ['Tardaron'], note: 'El caldo llegó tibio y tardaron mucho en traer la cuenta.', timestamp: Date.now() - DAY * 11, isMine: false },
+  { userId: 'demo-dev1-10', author: 'Pablo N.', stars: 5, reasons: ['Sabor casero'], timestamp: Date.now() - DAY * 15, isMine: false },
 ];
+// 40 fotos de un solo platillo (Chiles en nogada), para ver «12 de 40», el
+// orden y una foto con 12,480 «me gusta» (ver la ficha, caso demo-dev6-1).
+const DEV6_AUTHORS = ['Ana L.', 'Beto S.', 'Carmen R.', 'Diego M.', 'Elena V.', 'Fer G.', 'Gaby T.', 'Hugo P.', 'Inés C.', 'Jorge A.', 'Karla N.', 'Luis E.'];
+const DEV6_PHOTOS = ['1565299585323-38d6b0865b47', '1624300629298-e9de39c13be5', '1613514785940-daed07799d9b', '1599974579688-8dbdd335c77f', '1551504734-5ee1c4a1479b'];
+const DEMO_DEV6_REVIEWS: PublicPatioReview[] = Array.from({ length: 40 }, (_, i) => ({
+  userId: `demo-dev6-${(i % DEV6_AUTHORS.length) + 1}`,
+  author: DEV6_AUTHORS[i % DEV6_AUTHORS.length],
+  stars: 3 + (i % 3),
+  reasons: [],
+  note: i % 5 === 0 ? 'Vale cada peso.' : undefined,
+  timestamp: Date.now() - DAY * (i * 6 + 1),
+  photoUrl: `${devCustomerPhoto(DEV6_PHOTOS[i % DEV6_PHOTOS.length])}&v=dev6-${i}`,
+  photoDish: 'Chiles en nogada',
+  isMine: false,
+}));
+
+// Las fotos de muestra traen su vista previa, como las reales.
+const withDemoPhotoHashes = (reviews: PublicPatioReview[]) => reviews.map((review) => {
+  const photoHash = demoPhotoHash(review.photoUrl);
+  return photoHash ? { ...review, photoHash } : review;
+});
+
+// Reseñas de prueba de cada lugar «Dev» (solo en desarrollo).
+const DEMO_REVIEWS_BY_PATIO: Record<string, () => PublicPatioReview[]> = {
+  'demo-dev-1': () => withDemoPhotoHashes(DEMO_DEV1_REVIEWS),
+  'demo-dev-6': () => withDemoPhotoHashes(DEMO_DEV6_REVIEWS),
+  'demo-mi-patio': () => DEMO_PROFILE_REVIEWS,
+  'demo-patio-2': () => DEMO_CRITICAL_REVIEWS,
+  'demo-patio-3': () => DEMO_ESTABLISHED_REVIEWS,
+  'demo-patio-4': () => DEMO_LONGTIME_PATIO_REVIEWS,
+};
 
 function withDemoProfileReviews(patioId: string, reviews: PublicPatioReview[]) {
   if (!__DEV__) return reviews;
-  if (patioId === 'demo-dev-1') return [...reviews, ...DEMO_DEV1_REVIEWS];
-  if (patioId === 'demo-mi-patio') return [...reviews, ...DEMO_PROFILE_REVIEWS];
-  if (patioId === 'demo-patio-2') return [...reviews, ...DEMO_CRITICAL_REVIEWS];
-  if (patioId === 'demo-patio-3') return [...reviews, ...DEMO_ESTABLISHED_REVIEWS];
-  if (patioId === 'demo-patio-4') return [...reviews, ...DEMO_LONGTIME_PATIO_REVIEWS];
-  return reviews;
+  const demo = DEMO_REVIEWS_BY_PATIO[patioId];
+  return demo ? [...reviews, ...demo()] : reviews;
+}
+
+/** Perfil de prueba: lo que una persona «Dev» reseñó, como lo daría el servidor. */
+export function demoReviewsByAuthor(userId: string): AuthorReview[] {
+  if (!__DEV__) return [];
+  return Object.entries(DEMO_REVIEWS_BY_PATIO)
+    .flatMap(([placeId, reviews]) => reviews()
+      .filter((review) => review.userId === userId)
+      .map((review) => ({
+        reviewId: `${review.userId}-${review.timestamp}`,
+        placeId,
+        placeName: getPatioById(placeId)?.name ?? 'Lugar de prueba',
+        stars: review.stars,
+        note: review.note,
+        timestamp: review.timestamp,
+        ...(review.photoUrl ? { photoUrl: review.photoUrl, photoDish: review.photoDish, photoHash: review.photoHash } : {}),
+      })))
+    .sort((a, b) => b.timestamp - a.timestamp);
 }
 
 function cleanParam(id: PatioParam): string | undefined {

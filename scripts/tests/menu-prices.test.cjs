@@ -7,7 +7,7 @@ const ts = require('typescript');
 
 const root = path.resolve(__dirname, '../..');
 
-// Loads lib/menu-prices.ts with its two real dependencies.
+// Loads lib/menu-prices.ts with its real dependencies.
 function load() {
   const cache = {};
   const compile = (file) => {
@@ -21,6 +21,7 @@ function load() {
       if (name === './prices') return compile('lib/prices.ts');
       if (name === './menu-store') return compile('lib/menu-store.ts');
       if (name === './horario') return {};
+      if (name === './photo-hash') return compile('lib/photo-hash.ts');
       throw new Error(`unexpected import ${name}`);
     };
     new Function('module', 'exports', 'require', code)(module, module.exports, requireLocal);

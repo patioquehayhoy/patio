@@ -55,7 +55,12 @@ function screenFixture(kind, { signedIn = true, failRead = false, missing = fals
   const mocks = {
     react,
     'react/jsx-runtime': { jsx, jsxs: jsx },
-    'react-native': { ...native, Alert: { alert: (...args) => alerts.push(args) }, Share: { share: async () => {} }, StyleSheet: { create: (style) => style, hairlineWidth: 0.5 } },
+    'react-native': { ...native, Alert: { alert: (...args) => alerts.push(args) }, Share: { share: async () => {} }, StyleSheet: { create: (style) => style, hairlineWidth: 0.5 }, useWindowDimensions: () => ({ width: 390, height: 844 }) },
+    // El perfil también muestra sus fotos y reseñas (2026-11-15).
+    'expo-image': { Image: 'Image' },
+    '@/lib/photo-hash': { photoPlaceholder: () => undefined },
+    '@/lib/ratings': { getReviewsByAuthor: async () => { if (failRead) throw new Error('Network failed'); return []; } },
+    '@/lib/controllers/usePatioDetailController': { demoReviewsByAuthor: () => [] },
     'react-native-safe-area-context': { useSafeAreaInsets: () => ({ top: 0, bottom: 0 }) },
     '@expo/vector-icons': { Ionicons: 'Icon' },
     '@/components/place-icon': { PlaceIcon: 'Icon' },

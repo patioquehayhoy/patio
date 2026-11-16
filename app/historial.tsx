@@ -14,6 +14,7 @@ import { ActionSheet } from '@/components/action-sheet';
 import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { bottomActionClearance, bottomTabClearance } from '@/lib/layout-metrics';
 import { SelectionActions } from '@/components/selection-actions';
+import { SelectionHeader } from '@/components/selection-header';
 import { FoodieLoading } from '@/components/foodie-loading';
 import { MenuListsSheet } from '@/components/menu-lists-sheet';
 import { NewMenuSheet } from '@/components/new-menu-sheet';
@@ -175,13 +176,14 @@ export default function HistorialScreen() {
           sería redundante. */}
       {menus.length > 0 && (
         selecting ? (
-          <View style={s.selectRow}>
-            <Text style={{ flex: 1, color: c.textSecondary }}>{noWidow(selectedFechas.size ? `${selectedFechas.size} ${selectedFechas.size === 1 ? 'menú seleccionado' : 'menús seleccionados'}` : 'Seleccionar menús')}</Text>
-            <TouchableOpacity style={s.selectToggle} accessibilityRole="checkbox" accessibilityLabel="Seleccionar todos los menús" accessibilityState={{ checked: visibleMenus.length > 0 && visibleMenus.every((menu) => selectedFechas.has(menu.id)) }} onPress={() => setSelectedFechas((current) => { const next = new Set(current); const all = visibleMenus.every((menu) => current.has(menu.id)); visibleMenus.forEach((menu) => all ? next.delete(menu.id) : next.add(menu.id)); return next; })}><Text style={{ color: c.textSecondary }}>{visibleMenus.length > 0 && visibleMenus.every((menu) => selectedFechas.has(menu.id)) ? 'Ninguno' : 'Todos'}</Text></TouchableOpacity>
-            <TouchableOpacity onPress={exitSelecting} accessibilityRole="button" accessibilityLabel="Cancelar selección" hitSlop={8} style={s.selectToggle}>
-              <Text style={[s.selectToggleText, { color: c.accent }]}>Cancelar</Text>
-            </TouchableOpacity>
-          </View>
+          <SelectionHeader
+            style={s.selectRow}
+            label={selectedFechas.size ? `${selectedFechas.size} ${selectedFechas.size === 1 ? 'menú seleccionado' : 'menús seleccionados'}` : 'Seleccionar menús'}
+            allSelected={visibleMenus.length > 0 && visibleMenus.every((menu) => selectedFechas.has(menu.id))}
+            canSelectAll={visibleMenus.length > 0}
+            onToggleAll={() => setSelectedFechas((current) => { const next = new Set(current); const all = visibleMenus.every((menu) => current.has(menu.id)); visibleMenus.forEach((menu) => all ? next.delete(menu.id) : next.add(menu.id)); return next; })}
+            onCancel={exitSelecting}
+          />
         ) : (
           <View style={s.headerRow}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
@@ -330,9 +332,9 @@ const s = StyleSheet.create({
   // Homologado con navButton de coleccion/[id].tsx: ícono suelto, sin caja
   // de fondo, círculo completo — mismo botón "···" en toda la app.
   iconBtn: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
-  selectRow: { paddingHorizontal: 20, paddingTop: 12, flexDirection: 'row', justifyContent: 'flex-end' },
-  selectToggle: { minHeight: 32, justifyContent: 'center' },
-  selectToggleText: { fontSize: 14, fontWeight: '700' },
+  // Misma altura que la cabecera normal (8 + 44 = 8 + 40 + 4): entrar o salir
+  // de la selección no mueve la lista.
+  selectRow: { paddingHorizontal: 20, paddingTop: 8 },
   // Barra de acciones en lote — copiada 1:1 de favoritos.tsx (Guardados).
   actionBar: {
     position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 20, paddingTop: 14, overflow: 'hidden',

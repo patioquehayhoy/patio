@@ -3,14 +3,14 @@ import { router } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert } from 'react-native';
 
-import { loadCarta, saveCarta, saveMenuHoy } from '@/lib/db';
+import { getDishPhotoCounts, loadCarta, loadRecentMenus, saveCarta, saveMenuHoy } from '@/lib/db';
 import { announceMenuPublication } from '@/lib/community-notifications';
 import { saveDevPublishedMenu } from '@/lib/demo';
 import { getLocalMenus, newMenuDraftId, renameLocalMenu, saveMenuPublication, saveLocalMenu } from '@/lib/menu-history';
 import { recordMenuCorrection } from '@/lib/menu-learning';
 import {
-  canonicalDishName,
   canonicalSeccion,
+  cleanAntes,
   clearMenuExtractionSnapshot,
   getMenuExtractionSnapshot,
   getTipoNegocio,
@@ -30,6 +30,20 @@ import { syncPublishReminder } from '@/lib/local-reminders';
 import { getFonditaId } from '@/lib/user-store';
 import { cleanMenuPrecios, withMenuPrecios } from '@/lib/menu-prices';
 import { cartaSignature, joinCarta, splitCarta } from '@/lib/menu-carta';
+import { compareDishNames, dishKey } from '@/lib/dish-identity';
+import { declineDishPair, getDeclinedDishPairs, isDeclinedPair } from '@/lib/dish-links';
+
+/** Sugerencia de unir un platillo nuevo con uno parecido que ya tiene fotos. */
+export type DishLinkSuggestion = {
+  /** Cómo se llama el otro (el que se muestra en la pregunta). */
+  name: string;
+  /** Todos sus nombres: pasan a ser otros nombres de este platillo. */
+  names: string[];
+  foto?: string;
+  fotoHash?: string;
+  /** Fotos de clientes que pasarían a verse en este platillo. */
+  customerPhotos: number;
+};
 
 const blankDish = (): Platillo => ({
   id: makePlatilloId(),
@@ -126,6 +140,8 @@ export function cleanMenu(data: MenuData): MenuData {
             descripcion: dish.descripcion.trim(),
             precio: dish.precio.trim(),
             ...(dish.foto ? { foto: dish.foto } : {}),
+            ...(dish.foto && dish.fotoHash ? { fotoHash: dish.fotoHash } : {}),
+            ...(dish.antes?.length ? { antes: dish.antes } : {}),
           })),
       }))
       .filter((section) => section.platillos.length),
@@ -141,34 +157,66 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
   // `cartaBase` dice si cambió: solo entonces se vuelve a guardar.
   const cartaBase = useRef<string | null>(null);
 
-  // Fotos de platillos (2026-11-15): se recuerdan por nombre. Si mañana vuelve
-  // «Tacos dorados», su foto vuelve sola (de la carta o de menús anteriores).
-  // Quitar una foto la olvida para ese nombre mientras dura la edición.
-  const knownPhotos = useRef(new Map<string, string>());
+  // Identidad de los platillos (2026-11-15, lib/dish-identity.ts). Lo que se
+  // sabe de cada platillo —su foto y sus otros nombres— se recuerda por su
+  // llave, no por el texto exacto: «Tacos de pastor» recupera la foto de
+  // «Taco al pastor» sola. Aprende de la carta, de los menús guardados en este
+  // teléfono y de los publicados en los últimos 60 días (servidor), así
+  // funciona aunque el negocio cambie de teléfono. Un nombre parecido a otro
+  // con fotos («Pozole rojo» y «Pozole») se sugiere unir; el negocio decide.
+  // Quitar una foto la olvida para ese platillo mientras dura la edición.
+  type KnownDish = { names: string[]; foto?: string; fotoHash?: string };
+  const knownDishes = useRef(new Map<string, KnownDish>());
   const forgottenPhotos = useRef(new Set<string>());
+  const customerPhotoCounts = useRef(new Map<string, { name: string; count: number }>());
+  const declinedPairs = useRef(new Set<string>());
+  // Cambia cuando se aprende algo nuevo: las sugerencias se vuelven a calcular.
+  const [identityVersion, setIdentityVersion] = useState(0);
+  const rememberDish = useCallback((nombre: string, photo?: { foto?: string; fotoHash?: string }, antes: string[] = []) => {
+    const names = [nombre, ...antes].map((name) => name.trim()).filter(Boolean);
+    const keys = [...new Set(names.map(dishKey))];
+    if (!keys.length) return;
+    // Todos los nombres de un mismo platillo comparten lo que se sabe de él.
+    const found = keys.map((key) => knownDishes.current.get(key)).filter((item): item is KnownDish => !!item);
+    const merged: KnownDish = { names: [] };
+    for (const item of [...found, { names, ...(photo?.foto ? { foto: photo.foto, fotoHash: photo.fotoHash } : {}) }]) {
+      merged.names = cleanAntes([...merged.names, ...item.names], '__ninguno__');
+      if (!merged.foto && item.foto) { merged.foto = item.foto; merged.fotoHash = item.fotoHash; }
+    }
+    for (const key of new Set([...keys, ...merged.names.map(dishKey)])) knownDishes.current.set(key, merged);
+  }, []);
   const learnPhotos = useCallback((menu: MenuData | null | undefined) => {
     for (const section of menu?.secciones ?? []) {
       for (const dish of section.platillos) {
-        const key = canonicalDishName(dish.nombre);
-        if (dish.foto && key && !knownPhotos.current.has(key)) knownPhotos.current.set(key, dish.foto);
+        if (!dish.nombre.trim() || (!dish.foto && !dish.antes?.length)) continue;
+        // La primera foto que se aprende manda (el borrador de hoy va primero).
+        const known = knownDishes.current.get(dishKey(dish.nombre));
+        rememberDish(dish.nombre, known?.foto ? undefined : { foto: dish.foto, fotoHash: dish.fotoHash }, dish.antes);
       }
     }
-  }, []);
+  }, [rememberDish]);
   const fillKnownPhotos = useCallback(() => {
     setData((prev) => {
       let changed = false;
       const secciones = prev.secciones.map((section) => ({
         ...section,
         platillos: section.platillos.map((dish) => {
-          const key = canonicalDishName(dish.nombre);
-          const foto = !dish.foto && key && !forgottenPhotos.current.has(key) ? knownPhotos.current.get(key) : undefined;
-          if (!foto) return dish;
-          changed = true;
-          return { ...dish, foto };
+          const key = dishKey(dish.nombre);
+          const known = key ? knownDishes.current.get(key) : undefined;
+          if (!known) return dish;
+          let next = dish;
+          if (!dish.foto && known.foto && !forgottenPhotos.current.has(key)) {
+            next = { ...next, foto: known.foto, ...(known.fotoHash ? { fotoHash: known.fotoHash } : {}) };
+          }
+          const antes = cleanAntes([...(dish.antes ?? []), ...known.names], dish.nombre);
+          if (antes.join('|') !== (dish.antes ?? []).join('|')) next = { ...next, ...(antes.length ? { antes } : {}) };
+          if (next !== dish) changed = true;
+          return next;
         }),
       }));
       return changed ? { ...prev, secciones } : prev;
     });
+    setIdentityVersion((version) => version + 1);
   }, []);
   useEffect(() => {
     let active = true;
@@ -180,24 +228,109 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
         fillKnownPhotos();
       })
       .catch(() => {});
+    const fonditaId = getFonditaId();
+    if (fonditaId) {
+      loadRecentMenus(fonditaId)
+        .then((menus) => {
+          if (!active) return;
+          menus.forEach((menu) => learnPhotos(normalizeMenuData(menu)));
+          fillKnownPhotos();
+        })
+        .catch(() => {});
+      getDishPhotoCounts(fonditaId)
+        .then((counts) => {
+          if (!active) return;
+          customerPhotoCounts.current = counts;
+          setIdentityVersion((version) => version + 1);
+        })
+        .catch(() => {});
+    }
+    getDeclinedDishPairs()
+      .then((pairs) => { if (active) { declinedPairs.current = pairs; setIdentityVersion((version) => version + 1); } })
+      .catch(() => {});
     return () => { active = false; };
   }, [initialData, learnPhotos, fillKnownPhotos]);
-  const setDishPhoto = useCallback((sectionId: string, dishId: string, foto: string | null) => {
+
+  // ¿Este platillo nuevo se parece a otro que ya tiene fotos? Solo se sugiere
+  // si el otro trae algo (su foto o fotos de clientes) y si el negocio no dijo
+  // antes que son distintos.
+  const linkSuggestion = useCallback((dish: Platillo): DishLinkSuggestion | null => {
+    void identityVersion;
+    const name = dish.nombre.trim();
+    if (name.length < 3 || dish.antes?.length) return null;
+    const ownKey = dishKey(name);
+    // Cada platillo conocido (con todos sus nombres) y cada nombre con fotos de clientes.
+    const families: { names: string[]; foto?: string; fotoHash?: string }[] = [...new Set(knownDishes.current.values())];
+    for (const [key, entry] of customerPhotoCounts.current) {
+      if (!knownDishes.current.has(key)) families.push({ names: [entry.name] });
+    }
+    let best: DishLinkSuggestion | null = null;
+    let bestScore = 0;
+    for (const family of families) {
+      if (family.names.some((other) => dishKey(other) === ownKey)) continue;
+      const match = family.names.find((other) => compareDishNames(name, other) === 'maybe' && !isDeclinedPair(declinedPairs.current, name, other));
+      if (!match) continue;
+      const customers = family.names.reduce((sum, other) => sum + (customerPhotoCounts.current.get(dishKey(other))?.count ?? 0), 0);
+      // Solo si trae algo: su foto (si este no tiene) o fotos de clientes.
+      const score = (family.foto && !dish.foto ? 1 : 0) + customers;
+      if (score > bestScore) {
+        bestScore = score;
+        best = { name: match, names: family.names, foto: family.foto, fotoHash: family.fotoHash, customerPhotos: customers };
+      }
+    }
+    return best;
+  }, [identityVersion]);
+  // «Sí, es el mismo»: el platillo guarda el otro nombre (sus fotos de clientes
+  // se juntan en la ficha) y, si no tenía foto, toma la suya.
+  const linkDish = useCallback((sectionId: string, dishId: string, suggestion: DishLinkSuggestion) => {
     setData((prev) => ({
       ...prev,
       secciones: prev.secciones.map((section) => section.id !== sectionId ? section : {
         ...section,
         platillos: section.platillos.map((dish) => {
           if (dish.id !== dishId) return dish;
-          const key = canonicalDishName(dish.nombre);
-          if (foto) { forgottenPhotos.current.delete(key); knownPhotos.current.set(key, foto); return { ...dish, foto }; }
+          const antes = cleanAntes([...(dish.antes ?? []), ...suggestion.names], dish.nombre);
+          const photo = !dish.foto && suggestion.foto ? { foto: suggestion.foto, ...(suggestion.fotoHash ? { fotoHash: suggestion.fotoHash } : {}) } : {};
+          rememberDish(dish.nombre, dish.foto ? { foto: dish.foto, fotoHash: dish.fotoHash } : suggestion.foto ? { foto: suggestion.foto, fotoHash: suggestion.fotoHash } : undefined, antes);
+          return { ...dish, ...photo, antes };
+        }),
+      }),
+    }));
+    setIdentityVersion((version) => version + 1);
+  }, [rememberDish]);
+  // «No»: son distintos; no se vuelve a sugerir este par.
+  const declineLink = useCallback((dish: Platillo, suggestion: DishLinkSuggestion) => {
+    void declineDishPair(dish.nombre, suggestion.name).then((pairs) => {
+      declinedPairs.current = pairs;
+      setIdentityVersion((version) => version + 1);
+    });
+    declinedPairs.current = new Set([...declinedPairs.current, [dishKey(dish.nombre), dishKey(suggestion.name)].sort().join('|')]);
+    setIdentityVersion((version) => version + 1);
+  }, []);
+  const setDishPhoto = useCallback((sectionId: string, dishId: string, photo: { foto: string; fotoHash?: string } | null) => {
+    setData((prev) => ({
+      ...prev,
+      secciones: prev.secciones.map((section) => section.id !== sectionId ? section : {
+        ...section,
+        platillos: section.platillos.map((dish) => {
+          if (dish.id !== dishId) return dish;
+          const key = dishKey(dish.nombre);
+          if (photo) {
+            forgottenPhotos.current.delete(key);
+            // La foto nueva manda para este platillo y sus otros nombres.
+            const known = knownDishes.current.get(key);
+            if (known) { known.foto = photo.foto; known.fotoHash = photo.fotoHash; }
+            else rememberDish(dish.nombre, photo, dish.antes);
+            const { fotoHash: _previous, ...base } = dish;
+            return { ...base, ...photo };
+          }
           forgottenPhotos.current.add(key);
-          const { foto: _removed, ...rest } = dish;
+          const { foto: _removed, fotoHash: _removedHash, ...rest } = dish;
           return rest;
         }),
       }),
     }));
-  }, []);
+  }, [rememberDish]);
   useEffect(() => {
     if (initialData.secciones.some((section) => section.carta)) return;
     const fonditaId = getFonditaId();
@@ -522,6 +655,9 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
     details,
     dismissUndo,
     fillKnownPhotos,
+    linkSuggestion,
+    linkDish,
+    declineLink,
     lastRemoved,
     moveSection,
     nombre,

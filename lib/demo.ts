@@ -10,6 +10,7 @@ import { registerPatioView, getViewedPatioIds } from './stats';
 import type { Patio, PatioMenuSection } from './patios';
 import { publicCurrency } from './prices';
 import { ahoraCDMX } from './horario';
+import { demoPhotoHash } from './demo-photo-hashes';
 
 export const DEV_MY_PATIO_ID = 'demo-mi-patio';
 const DEV_PUBLISHED_MENU_KEY = '@patio_demo_published_menu';
@@ -142,8 +143,10 @@ export async function getDevPublishedPatio(): Promise<Patio | null> {
 type DevBusy = 'busy' | 'quiet' | 'usual' | 'none';
 type DevQa = { patio: Patio; busy: DevBusy; notice?: string; featured?: string };
 
-const item = (name: string, price?: string, description?: string, photo?: string): PatioMenuSection['items'][number] => ({
-  name, price, description, tags: name.toLowerCase().split(/\s+/).slice(0, 3), ...(photo ? { photo } : {}),
+const item = (name: string, price?: string, description?: string, photo?: string, aliases?: string[]): PatioMenuSection['items'][number] => ({
+  name, price, description, tags: name.toLowerCase().split(/\s+/).slice(0, 3),
+  ...(photo ? { photo, ...(demoPhotoHash(photo) ? { photoHash: demoPhotoHash(photo) } : {}) } : {}),
+  ...(aliases?.length ? { aliases } : {}),
 });
 // Fotos de muestra (Unsplash, uso libre) para ver «mantén presionado» en DEV.
 const demoPhoto = (id: string) => `https://images.unsplash.com/photo-${id}?w=900&q=75`;
@@ -218,7 +221,9 @@ const DEV_QA: DevQa[] = [
         // Algunos con foto: la ficha marca cuáles.
         section('TACOS', [
           item('Al pastor', '$60', 'Orden de cuatro, con piña', demoPhoto('1613514785940-daed07799d9b')),
-          item('Suadero', '$60', 'Con cebolla y cilantro', demoPhoto('1599974579688-8dbdd335c77f')),
+          // Antes lo escribían «Tacos de suadero»: el negocio confirmó que es el
+          // mismo platillo y sus fotos de clientes se juntan aquí.
+          item('Suadero', '$60', 'Con cebolla y cilantro', demoPhoto('1599974579688-8dbdd335c77f'), ['Tacos de suadero']),
           item('Campechanos', '$65', undefined, demoPhoto('1551504734-5ee1c4a1479b')),
           item('Gringa de pastor con queso', '$70'),
         ]),

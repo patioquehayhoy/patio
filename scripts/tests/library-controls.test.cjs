@@ -122,6 +122,7 @@ function fixture(file, overrides = {}) {
     '@/lib/use-pull-refresh': { usePullRefresh: () => ({ refreshing: false, onRefresh() {} }) },
     '@/lib/use-known-location': { useKnownLocation: () => [null, () => {}] },
     '@/components/selection-actions': { SelectionActions: 'SelectionActions' },
+    '@/components/selection-header': { SelectionHeader: 'SelectionHeader' },
     '@/components/patio-card-info': { PatioCardInfo: 'PatioCardInfo', PatioCardPrice: 'PatioCardPrice' },
     ...overrides,
   };
@@ -426,6 +427,7 @@ test('Patios index scrolls without filtering and hides for search, grid and sele
     '@/components/bottom-tab-bar': { BottomTabBar: 'BottomTabBar' },
     '@/components/save-to-list-sheet': { SaveToListSheet: 'SaveToListSheet' },
     '@/components/selection-actions': { SelectionActions: 'SelectionActions' },
+    '@/components/selection-header': { SelectionHeader: 'SelectionHeader' },
     '@/components/foodie-filter-bar': { FoodieFilterBar: 'FoodieFilterBar', matchesFoodieFilters: () => true },
     '@/components/following-rows': { FollowingActivityRow: 'FollowingActivityRow' },
     '@/components/business-category-icon': { PatioGiros: 'PatioGiros' },

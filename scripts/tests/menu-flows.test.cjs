@@ -467,7 +467,7 @@ test('AI response errors expose quota/auth messages and keep internal errors pri
 test('dish photos: only Patio dish-photos URLs reach the ficha, outside links are dropped', async () => {
   const ours = 'https://gjfjsjlrgycrgmcbjrus.supabase.co/storage/v1/object/public/dish-photos/owner/tacos-dorados-abc.jpg';
   const today = { precios: [], secciones: [{ id: 's', nombre: 'GUISADOS', precio: '', platillos: [
-    { id: 'a', nombre: 'Tacos dorados', descripcion: '', precio: '', foto: ours },
+    { id: 'a', nombre: 'Tacos dorados', descripcion: '', precio: '', foto: ours, fotoHash: 'da590a16025f78c865863ab6878c576bc6962f77b1c30b' },
     { id: 'b', nombre: 'Pozole', descripcion: '', precio: '', foto: 'https://evil.example/x.jpg' },
     { id: 'c', nombre: 'Agua', descripcion: '', precio: '', foto: `${ours.replace('tacos-dorados-abc.jpg', '')}../place-photos/x.jpg` },
   ] }] };
@@ -475,6 +475,7 @@ test('dish photos: only Patio dish-photos URLs reach the ficha, outside links ar
   const { fetchMenuForFondita } = f.load('lib/menu.ts');
   const { sections } = await fetchMenuForFondita('business-id');
   assert.equal(sections[0].items[0].photo, ours);
+  assert.equal(sections[0].items[0].photoHash, 'da590a16025f78c865863ab6878c576bc6962f77b1c30b', 'the instant preview travels with the photo');
   assert.equal(sections[0].items[1].photo, undefined, 'an outside URL is never shown');
   assert.equal(sections[0].items[2].photo, undefined, 'a path that climbs out of the bucket is never shown');
 });

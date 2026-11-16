@@ -1,5 +1,34 @@
 # Pendientes y roadmap de lanzamiento — actualizado 2026-11-07
 
+## Corte 2026-11-16 (Claude)
+
+- [x] Fotos en su lugar dentro del menú (sin hoja encima) y vistazo limpio:
+  autor y «3/12» dentro de la foto; fecha y corazón debajo, en la columna de
+  los del menú; «me gusta» = el de su reseña; tocar la foto de un cliente
+  abre «Ver la reseña», corregir/quitar la tuya o reportar.
+- [x] Sin frases sobre la foto: la reseña ya no pide «Algo del platillo».
+- [x] Foto en la reseña: se abre ahí mismo; «Ver en el menú» con cápsula
+  «Volver a la reseña» / «Volver al platillo».
+- [x] Rapidez de fotos y de la ficha (vista previa, prioridad, precarga,
+  carga diferida, caché, estado aparte, nombre en memoria).
+- [x] Lo tuyo con tu nombre, nunca «Tú». Perfil con «Sus fotos» y «Sus
+  reseñas»; perfiles de prueba en desarrollo.
+- [x] Identidad del platillo: se junta solo lo mismo escrito distinto; lo
+  parecido se pregunta una vez en el editor; la foto vuelve aunque cambie
+  de teléfono.
+- [x] Editor: MENÚ DEL DÍA y LA CARTA armados igual; sin pasos; cursor en el
+  primer platillo de un menú nuevo. Cabecera de selección compartida
+  (Guardados y Menús) y auditoría de encimados.
+- [ ] **Parco, producción:** `npx supabase db push`
+  (`20261115120000_review_photo_hash`, vista previa de fotos de reseñas).
+- [ ] Parco decide: [FOTOS_Y_RED](FOTOS_Y_RED_2026-11-15.md) — «Se me antoja
+  → Hoy hay», varias fotos por visita, Jev revisa cada foto, foto de cliente
+  en el menú del negocio, visita verificada.
+- [ ] Reseñas por partes (20 y «Ver más») con el promedio calculado en el
+  servidor, antes de que un lugar tenga cientos.
+- [ ] Estadísticas de «me gusta» por platillo (Actividad) por identidad del
+  platillo; hoy separan nombres.
+
 ## Corte 2026-11-15 (Claude)
 
 - [x] La carta va en el mismo editor que el menú del día, debajo, como en el
@@ -25,11 +54,10 @@
 - [x] «Incluye…» (prueba) en editor, ficha y póster; el editor ahora tiene
   dos bloques con la misma etiqueta: MENÚ DEL DÍA y LA CARTA. Ficha: el
   botón Seguir ya no parpadea de naranja a «Siguiendo».
-- [ ] **Parco, producción:** `npx supabase db push` (contacto del negocio,
-  bucket `dish-photos` y fotos de reseñas `review-photos`) y
-  `npx supabase functions deploy read-menu`.
-- [ ] **Parco, Supabase:** subir `assets/images/p-icon-correo.png` al
-  bucket «Patio ID»; luego, en Authentication → Email Templates, pegar los
+- [x] **Producción (15 nov):** migraciones de contacto, `dish-photos`,
+  `review-photos` y correcciones de fotos aplicadas; `read-menu` desplegada.
+- [ ] **Parco, Supabase:** logo `p-icon-correo.png` ya subido a «Patio ID»;
+  falta, en Authentication → Email Templates, pegar los
   6 correos de `supabase/templates/` con el asunto que trae cada uno
   (acceso: «{{ .Token }} es tu código para entrar a Patio») y mandarse un
   código de prueba (Gmail en el cel, Mail en la compu, modo oscuro).

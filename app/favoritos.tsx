@@ -17,6 +17,7 @@ import { bottomActionClearance, bottomTabClearance, patioGridColumns } from '@/l
 import { AlphabetIndex } from '@/components/alphabet-index';
 import { EMPTY_FOODIE_FILTERS, FoodieFilterBar, matchesFoodieFilters } from '@/components/foodie-filter-bar';
 import { SelectionActions } from '@/components/selection-actions';
+import { SelectionHeader } from '@/components/selection-header';
 import { SaveToListSheet } from '@/components/save-to-list-sheet';
 import { SearchField } from '@/components/search-field';
 import { PatioIdentityIcon } from '@/components/patio-identity-icon';
@@ -57,8 +58,7 @@ function makeStyles(t: Theme) {
 
     // Selección rápida: link a la derecha, arriba del filtro — mismo lugar
     // donde iOS pone "Seleccionar" en Fotos/Archivos (esquina superior).
-    selectToggle: { minWidth: 44, minHeight: 44, justifyContent: 'center' },
-    selectToggleText: { fontSize: 14, fontWeight: '700', color: t.textSecondary },
+    selectionHeader: { paddingHorizontal: 16 },
 
     // Lista continua y compacta; el índice lateral sustituye los encabezados por letra.
     list: { paddingHorizontal: 16 },
@@ -407,18 +407,20 @@ export default function FavoritosScreen() {
             else if (event.placeId) router.push(`/patio/${event.placeId}`);
           }} />
         </>}
-        {patios.length > 0 && <View style={s.libraryHeader}>
-          <Text style={s.libraryCount}>{noWidow(selecting
-            ? selectedIds.size ? `${selectedIds.size} ${selectedIds.size === 1 ? 'lugar seleccionado' : 'lugares seleccionados'}` : 'Seleccionar lugares'
-            : filtered.length === patios.length ? `${patios.length} ${patios.length === 1 ? 'lugar' : 'lugares'}` : `${filtered.length} de ${patios.length} lugares`)}</Text>
-          {selecting && <>
-            <TouchableOpacity disabled={!filtered.length} accessibilityRole="checkbox" accessibilityLabel="Seleccionar todos los resultados" accessibilityState={{ checked: filtered.length > 0 && filtered.every((item) => selectedIds.has(item.id)) }} style={s.selectToggle}
-              onPress={() => setSelectedIds((current) => { const next = new Set(current); const all = filtered.every((item) => current.has(item.id)); filtered.forEach((item) => all ? next.delete(item.id) : next.add(item.id)); return next; })}>
-              <Text style={s.selectToggleText}>{filtered.length > 0 && filtered.every((item) => selectedIds.has(item.id)) ? 'Ninguno' : 'Todos'}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={exitSelecting} style={s.selectToggle} accessibilityRole="button" accessibilityLabel="Cancelar selección"><Text style={s.selectToggleText}>Cancelar</Text></TouchableOpacity>
-          </>}
-        </View>}
+        {patios.length > 0 && (selecting ? (
+          <SelectionHeader
+            style={s.selectionHeader}
+            label={selectedIds.size ? `${selectedIds.size} ${selectedIds.size === 1 ? 'lugar seleccionado' : 'lugares seleccionados'}` : 'Seleccionar lugares'}
+            allSelected={filtered.length > 0 && filtered.every((item) => selectedIds.has(item.id))}
+            canSelectAll={filtered.length > 0}
+            onToggleAll={() => setSelectedIds((current) => { const next = new Set(current); const all = filtered.every((item) => current.has(item.id)); filtered.forEach((item) => all ? next.delete(item.id) : next.add(item.id)); return next; })}
+            onCancel={exitSelecting}
+          />
+        ) : (
+          <View style={s.libraryHeader}>
+            <Text style={s.libraryCount}>{noWidow(filtered.length === patios.length ? `${patios.length} ${patios.length === 1 ? 'lugar' : 'lugares'}` : `${filtered.length} de ${patios.length} lugares`)}</Text>
+          </View>
+        ))}
         {loadError && patios.length > 0 && <TouchableOpacity style={s.resetButton} onPress={reload} accessibilityRole="button" accessibilityLabel="Reintentar actualización"><Text style={s.resetText}>{noWidow('No pudimos actualizar. Reintentar')}</Text></TouchableOpacity>}
         {loading && patios.length === 0 ? <View style={{ minHeight: 240 }}><FoodieLoading label="Cargando lugares que sigues" /></View> : loadError && patios.length === 0 ? <View style={s.empty}>
           <Text style={s.emptyTitle}>{noWidow('No pudimos cargar los lugares que sigues')}</Text>

@@ -67,12 +67,22 @@ export function joinCarta(hoy: MenuData, carta: MenuData | null): MenuData {
   return { ...hoy, secciones: [...daily, ...saved] };
 }
 
-/** Firma del contenido de la carta para saber si cambió (sin ids). */
+/**
+ * Firma del contenido de la carta para saber si cambió (sin ids). Cuenta la
+ * foto y los otros nombres del platillo: ponerle foto a un platillo de la
+ * carta también es un cambio que se guarda.
+ */
 export function cartaSignature(carta: MenuData): string {
   return JSON.stringify(carta.secciones.map((section) => [
     section.nombre.trim(),
     section.precio.trim(),
-    section.platillos.filter((dish) => dish.nombre.trim()).map((dish) => [dish.nombre.trim(), dish.descripcion.trim(), dish.precio.trim()]),
+    section.platillos.filter((dish) => dish.nombre.trim()).map((dish) => [
+      dish.nombre.trim(),
+      dish.descripcion.trim(),
+      dish.precio.trim(),
+      dish.foto ?? '',
+      (dish.antes ?? []).join('|'),
+    ]),
   ]));
 }
 

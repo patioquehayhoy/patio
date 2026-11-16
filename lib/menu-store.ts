@@ -80,7 +80,7 @@ const SECCION_DEFAULTS: Record<string, string[]> = {
   cafeteria:  ['CAFÉ', 'PAN', 'DESAYUNOS'],
   restaurante:['ENTRADAS', 'PLATOS FUERTES', 'POSTRES', 'BEBIDAS'],
   casa:       ['LO DE HOY', 'POR ENCARGO', 'BEBIDAS'],
-  otro:       ['SECCIÓN 1'],
+  otro:       ['PLATILLOS', 'EXTRAS', 'BEBIDAS'],
 };
 
 // Nombres de sección típicos del giro, para sugerir mientras el fondero arma
@@ -90,7 +90,8 @@ export function seccionSugerencias(tipo?: string | null): string[] {
 }
 
 // La carta es lo de siempre: en una fonda, lo que se pide aparte del menú
-// del día. En los demás giros la carta ya es su menú de siempre.
+// del día. En los demás giros la carta ya es su menú de siempre. El editor
+// los sugiere al nombrar una sección de la carta.
 const CARTA_DEFAULTS: Record<string, string[]> = {
   fondita:     ['DESAYUNOS', 'PLATOS FUERTES', 'ANTOJITOS', 'BEBIDAS'],
   casa:        ['DE SIEMPRE', 'POR ENCARGO', 'BEBIDAS'],

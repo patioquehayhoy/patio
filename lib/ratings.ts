@@ -68,32 +68,101 @@ export async function getPatioRating(patioId: string): Promise<PatioRating | nul
   } : null;
 }
 
+/** Reseñas que la ficha pide por página (2026-11-16): 20 y «Ver más». */
+export const REVIEW_PAGE_SIZE = 20;
+
+export type ReviewSummary = {
+  total: number;
+  average: number;
+  /** Cuántas hay de cada estrella, de 5 a 1. */
+  byStars: { stars: number; count: number }[];
+};
+
+export function summarizeReviews(reviews: { stars: number }[]): ReviewSummary {
+  const total = reviews.length;
+  return {
+    total,
+    average: total ? reviews.reduce((sum, review) => sum + review.stars, 0) / total : 0,
+    byStars: [5, 4, 3, 2, 1].map((stars) => ({ stars, count: reviews.filter((review) => review.stars === stars).length })),
+  };
+}
+
+/**
+ * Promedio, total y estrellas calculados en el servidor
+ * (migración 20261116120000_review_summary). `null` si el servidor todavía no
+ * tiene esa función: la ficha entonces baja todas, como antes.
+ */
+export async function getPatioReviewSummary(patioId: string): Promise<ReviewSummary | null> {
+  if (!/^[0-9a-f-]{36}$/i.test(patioId)) return null;
+  const { data, error } = await supabase.rpc('review_summary', { target_negocio: patioId });
+  const row: any = Array.isArray(data) ? data[0] : data;
+  if (error || !row) return null;
+  const count = (value: unknown) => Number(value) || 0;
+  return {
+    total: count(row.total),
+    average: Number(row.average) || 0,
+    byStars: [5, 4, 3, 2, 1].map((stars) => ({ stars, count: count(row[`stars${stars}`]) })),
+  };
+}
+
+export type ReviewPageOptions = {
+  /** Sin límite baja todas (Actividad del negocio). */
+  limit?: number;
+  /** `created_at` de la última reseña ya cargada: trae las anteriores. */
+  cursor?: string | null;
+  /** Solo las de esa estrella (barras del resumen). */
+  stars?: number | null;
+  /** Solo las que tienen foto (fotos de clientes en el menú). */
+  photosOnly?: boolean;
+};
+
+export type ReviewPage = {
+  reviews: PublicPatioReview[];
+  /** Para pedir la siguiente página; `null` cuando ya no hay más. */
+  nextCursor: string | null;
+};
+
 export async function getPublicPatioReviews(patioId: string): Promise<PublicPatioReview[]> {
+  return (await getPublicPatioReviewPage(patioId)).reviews;
+}
+
+export async function getPublicPatioReviewPage(patioId: string, options: ReviewPageOptions = {}): Promise<ReviewPage> {
+  const { limit, cursor, stars, photosOnly } = options;
   if (!/^[0-9a-f-]{36}$/i.test(patioId)) {
     const map = await getMap();
-    return (map[patioId] ?? [])
+    const reviews = (map[patioId] ?? [])
       .map((review) => ({ ...review, userId: `local-${review.timestamp}`, author: 'Tú', isMine: true }))
       .sort((a, b) => b.timestamp - a.timestamp);
+    return { reviews, nextCursor: null };
   }
   // La vista previa de la foto (foto_hash) llegó el 15 nov: si el servidor aún
   // no tiene esa columna, las reseñas salen igual, sin vista previa.
   const columns = 'id,user_id,stars,reasons,note,created_at,updated_at,business_reply,business_replied_at,foto_url,foto_platillo,foto_nota';
-  const query = (select: string) => supabase
-    .from('reviews')
-    .select(select)
-    .eq('negocio_id', patioId)
-    .eq('status', 'published')
-    .order('created_at', { ascending: false });
+  const query = (select: string) => {
+    let request = supabase
+      .from('reviews')
+      .select(select)
+      .eq('negocio_id', patioId)
+      .eq('status', 'published');
+    if (stars) request = request.eq('stars', stars);
+    if (photosOnly) request = request.not('foto_url', 'is', null);
+    if (cursor) request = request.lt('created_at', cursor);
+    request = request.order('created_at', { ascending: false });
+    return limit ? request.limit(limit) : request;
+  };
   const [{ data: session }, first] = await Promise.all([supabase.auth.getSession(), query(`${columns},foto_hash`)]);
   const { data, error } = first.error && /foto_hash/.test(first.error.message ?? '') ? await query(columns) : first;
-  if (error) return [];
-  const userIds = [...new Set((data ?? []).map((row: any) => row.user_id))];
+  if (error) return { reviews: [], nextCursor: null };
+  const rows: any[] = data ?? [];
+  // Se decide con las filas del servidor, antes de quitar las que no tienen nombre.
+  const nextCursor = limit && rows.length === limit ? rows[rows.length - 1].created_at ?? null : null;
+  const userIds = [...new Set(rows.map((row: any) => row.user_id))];
   const { data: profiles } = userIds.length
     ? await supabase.from('user_profiles').select('user_id,display_name,avatar_url').in('user_id', userIds)
     : { data: [] };
   const profilesById = new Map((profiles ?? []).map((profile: any) => [profile.user_id, profile]));
   const currentUserId = session.session?.user.id;
-  return (data ?? []).flatMap((row: any) => {
+  const reviews = rows.flatMap((row: any): PublicPatioReview[] => {
     const profile: any = profilesById.get(row.user_id);
     const isMine = row.user_id === currentUserId;
     // Lo tuyo lleva tu nombre, como lo ven los demás; «Tú» solo si aún no tienes nombre.
@@ -114,6 +183,7 @@ export async function getPublicPatioReviews(patioId: string): Promise<PublicPati
       isMine,
     }];
   });
+  return { reviews, nextCursor };
 }
 
 export async function replyToReview(reviewId: string, reply: string): Promise<void> {

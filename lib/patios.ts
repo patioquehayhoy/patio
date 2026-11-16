@@ -79,8 +79,6 @@ export type Patio = {
   // La carta de siempre, cuando además hay menú de hoy (sin menú de hoy, la
   // carta ocupa `menu`).
   carta?: PatioMenuSection[];
-  /** «Incluye…» del menú del día (DEV y ficha). */
-  menuIncludes?: string;
 };
 
 // Deriva el horario semanal de una fila: jsonb nuevo, o fallback al string viejo.

@@ -8,7 +8,7 @@ import { loadCarta } from '@/lib/db';
 import { splitCarta } from '@/lib/menu-carta';
 import { getFonditaName, getMenuData, normalizeMenuData, type MenuData } from '@/lib/menu-store';
 import { getFonditaId } from '@/lib/user-store';
-import { menuIncludesLine, publicMenuPrices, withMenuPrecios } from '@/lib/menu-prices';
+import { publicMenuPrices, withMenuPrecios } from '@/lib/menu-prices';
 
 export function useMenuPreviewController() {
   const [menuData, setMenuData] = useState<MenuData | null>(null);
@@ -53,7 +53,6 @@ export function useMenuPreviewController() {
   const carta = tidy(split?.carta.secciones.length ? split.carta.secciones : savedCarta?.secciones ?? []);
   const menuPrices = withPrices ? publicMenuPrices(withPrices) : [];
   const priceLabel = menuPrices[0]?.price ?? null;
-  const includes = menuIncludesLine(withPrices?.incluye);
   const priceName = menuPrices[0]?.label || 'Menú';
   const fecha = new Date().toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' }).toUpperCase();
 
@@ -88,6 +87,5 @@ export function useMenuPreviewController() {
     menuPrices,
     sections,
     carta,
-    includes,
   };
 }

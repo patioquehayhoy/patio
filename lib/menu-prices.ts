@@ -6,17 +6,6 @@ import { makePrecioId, type MenuData, type MenuPrecio } from './menu-store';
 // cobrar el menú («Completo», «Solo guisado», «Ejecutivo»). Los precios de
 // sección («CARTA $110») y de platillo se quedan donde estaban.
 
-/**
- * «Incluye…» del menú del día, listo para mostrarse: «sopa, arroz y agua» →
- * «Incluye sopa, arroz y agua.» Acepta que la persona ya haya escrito
- * «Incluye» o un punto final.
- */
-export function menuIncludesLine(value: string | null | undefined): string {
-  const text = (value ?? '').trim().replace(/^incluye\s*:?\s*/i, '').replace(/[.\s]+$/, '');
-  if (!text) return '';
-  return `Incluye ${text.charAt(0).toLocaleLowerCase('es-MX')}${text.slice(1)}.`;
-}
-
 export type PublicMenuPrice = {
   /** Vacío cuando el negocio no le puso nombre (un solo precio). */
   label: string;

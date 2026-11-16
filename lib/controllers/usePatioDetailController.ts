@@ -1,4 +1,3 @@
-import { menuIncludesLine } from '@/lib/menu-prices';
 import { patioCardOpenState } from '@/lib/patio-card-info';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -19,8 +18,9 @@ import {
 import { cleanMenuDescription, cleanMenuText, fetchMenuForFondita, type FonditaPublicMenu } from '@/lib/menu';
 import { fetchFonditaById, getPatioById, type Patio, type PatioMenuSection } from '@/lib/patios';
 import { publicCurrency, publicPrice } from '@/lib/prices';
-import { getPatioRating, getPublicPatioReviews, type AuthorReview, type PatioRating, type PublicPatioReview } from '@/lib/ratings';
+import { getPatioRating, type AuthorReview, type PatioRating, type PublicPatioReview } from '@/lib/ratings';
 import { registerPatioView } from '@/lib/stats';
+import { usePatioReviews } from '@/lib/controllers/usePatioReviews';
 import { demoPhotoHash } from '@/lib/demo-photo-hashes';
 import { noWidow } from '@/lib/typography';
 import { phoneCallUrl, whatsappUrl } from '@/lib/business-contact';
@@ -177,16 +177,16 @@ export function usePatioDetailController(id: PatioParam) {
   // «Seguir» en naranja y medio segundo después cambiaba a «Siguiendo».
   const [savedKnown, setSavedKnown] = useState(() => peekFavoritePatioIds() !== null);
   const [userReview, setUserReview] = useState<PatioRating | null>(null);
-  const [reviews, setReviews] = useState<PublicPatioReview[]>([]);
   const cleanId = cleanParam(id);
   const patioId = patio?.id;
+  const reviewsPaged = usePatioReviews(patioId, withDemoProfileReviews);
+  const refreshReviews = reviewsPaged.refresh;
 
   useEffect(() => {
     let active = true;
     setPatio(null);
     setLiveMenu(null);
     setUserReview(null);
-    setReviews([]);
     // Con la copia en memoria se sabe de inmediato; si no, se espera al disco.
     const known = peekFavoritePatioIds();
     setIsSaved(!!cleanId && !!known?.includes(cleanId));
@@ -230,17 +230,17 @@ export function usePatioDetailController(id: PatioParam) {
     useCallback(() => {
       if (!patioId) return undefined;
       let active = true;
-      Promise.all([getPatioRating(patioId), getPublicPatioReviews(patioId), getFavoritePatioIds()]).then(([rating, publicReviews, favoriteIds]) => {
+      void refreshReviews();
+      Promise.all([getPatioRating(patioId), getFavoritePatioIds()]).then(([rating, favoriteIds]) => {
         if (active) {
           setUserReview(rating);
-          setReviews(withDemoProfileReviews(patioId, publicReviews));
           setIsSaved(favoriteIds.includes(patioId));
         }
       }).catch(() => {});
       return () => {
         active = false;
       };
-    }, [patioId]),
+    }, [patioId, refreshReviews]),
   );
 
   const status = useMemo(() => (patio ? patioStatus(patio) : null), [patio]);
@@ -273,7 +273,6 @@ export function usePatioDetailController(id: PatioParam) {
   // Precios del menú de hoy y la carta de siempre (2026-11-14).
   const menuPrices = useMemo(() => (liveMenu ? liveMenu.prices : patio?.menuPrices) ?? [], [liveMenu, patio]);
   const carta = useMemo(() => tidy(liveMenu ? liveMenu.carta : patio?.carta ?? []), [liveMenu, patio]);
-  const menuIncludes = (liveMenu ? liveMenu.includes : menuIncludesLine(patio?.menuIncludes)) || '';
   const hoy = useMemo(() => (patio ? horarioDeHoy(patio.weeklyHours) : null), [patio]);
   const rangoHoy = useMemo(() => {
     if (!patio) return '';
@@ -375,11 +374,11 @@ export function usePatioDetailController(id: PatioParam) {
     patioId,
     priceLabel,
     menuPrices,
-    menuIncludes,
     carta,
     proxTexto,
     rangoHoy,
-    reviews,
+    reviews: reviewsPaged.known,
+    reviewsPaged,
     sections,
     soldOut,
     status,

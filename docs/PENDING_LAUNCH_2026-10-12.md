@@ -25,13 +25,25 @@
   carta) y secciones completas; sin «···» ni flechas.
 - [ ] **Parco, QA en el iPhone:** arrastrar platillos y secciones (que
   deslizar siga desplazando y que un toque corto siga escribiendo).
-- [ ] **Parco, producción:** `npx supabase db push`
-  (`20261115120000_review_photo_hash`, vista previa de fotos de reseñas).
-- [ ] Parco decide: [FOTOS_Y_RED](FOTOS_Y_RED_2026-11-15.md) — «Se me antoja
-  → Hoy hay», varias fotos por visita, Jev revisa cada foto, foto de cliente
-  en el menú del negocio, visita verificada.
-- [ ] Reseñas por partes (20 y «Ver más») con el promedio calculado en el
-  servidor, antes de que un lugar tenga cientos.
+- [x] **Producción:** `20261115120000_review_photo_hash` ya estaba aplicada.
+- [ ] [FOTOS_Y_RED](FOTOS_Y_RED_2026-11-15.md): Parco aprobó las seis
+  (16 nov). Orden: Jev revisa la foto → «Hoy hay» → varias fotos por visita
+  → foto de cliente en el menú → visita verificada.
+- [x] Reseñas por partes: la ficha baja 20 y «Ver más»; promedio, total y
+  estrellas salen del servidor (`review_summary`); las fotos de clientes del
+  menú se bajan aparte; «Ver la reseña» desde una foto trae las que falten.
+- [x] **Producción (16 nov):** `20261116120000_review_summary` aplicada.
+- [ ] Editor del menú: se regresó al pizarrón del commit f477845 (las
+  versiones «sin ×» y «como una nota» no convencieron). Se rehace con
+  tarjetas y todos los usos de llenado:
+  [EDITOR_MENU_INVESTIGACION](EDITOR_MENU_INVESTIGACION_2026-11-16.md).
+- [x] Arreglado: la foto o los otros nombres de un platillo de la carta, sin
+  más cambios, no se guardaban (`cartaSignature`). Fuera el «Incluye…» de
+  prueba de ficha y póster.
+- [ ] Parco decide: [navegación y perfiles](NAVEGACION_Y_PERFILES_2026-11-16.md)
+  §0 — buscador y Patios igual; Perfil = perfil público con campana y
+  engrane; el «＋» del negocio se vuelve «Crear» (menú, aviso, aviso
+  especial) y Actividad queda solo con lo que pasó.
 - [ ] Estadísticas de «me gusta» por platillo (Actividad) por identidad del
   platillo; hoy separan nombres.
 

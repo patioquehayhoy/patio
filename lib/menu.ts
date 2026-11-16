@@ -6,7 +6,7 @@ import type { Patio, PatioMenuSection, PatioDishMatch } from './patios';
 import { normalizeMenuData, type MenuData } from './menu-store';
 import { localMenuDate } from './menu-date';
 import { publicCurrency } from './prices';
-import { menuIncludesLine, publicMenuPrices, withMenuPrecios, type PublicMenuPrice } from './menu-prices';
+import { publicMenuPrices, withMenuPrecios, type PublicMenuPrice } from './menu-prices';
 
 export function cleanMenuText(value?: string): string | undefined {
   if (!value) return undefined;
@@ -47,8 +47,6 @@ export type FonditaPublicMenu = {
   sections: PatioMenuSection[];
   /** Precios del menú de hoy. */
   prices: PublicMenuPrice[];
-  /** «Incluye sopa, arroz y agua.» del menú de hoy, si lo escribió. */
-  includes?: string;
   /** La carta de siempre, debajo del menú de hoy. Vacía si `sections` ya es la carta. */
   carta: PatioMenuSection[];
 };
@@ -65,7 +63,7 @@ export async function fetchMenuForFondita(fonditaId: string): Promise<FonditaPub
   const cartaSections = permanent ? menuDataToSections(permanent, 'carta') : [];
   const today = normalizeMenuData(menuHoy?.secciones);
   if (today?.secciones.some((section) => section.platillos.some((dish) => dish.nombre.trim()))) {
-    return { sections: menuDataToSections(today), prices: publicMenuPrices(today), includes: menuIncludesLine(today.incluye) || undefined, carta: cartaSections };
+    return { sections: menuDataToSections(today), prices: publicMenuPrices(today), carta: cartaSections };
   }
   return { sections: cartaSections, prices: [], carta: [] };
 }

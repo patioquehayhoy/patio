@@ -83,11 +83,8 @@ test('one unnamed price reads as the menu price', () => {
   assert.equal(menuPricesAccessibilityLabel(prices), 'Precio del menú, 1250 pesos');
 });
 
-test('«Incluye…» reads naturally and survives storage', () => {
-  const { menuIncludesLine, store } = load();
-  assert.equal(menuIncludesLine('sopa, arroz y agua'), 'Incluye sopa, arroz y agua.');
-  assert.equal(menuIncludesLine('Incluye: Sopa del día.'), 'Incluye sopa del día.');
-  assert.equal(menuIncludesLine('   '), '');
+test('an old «Incluye…» still reads from storage (the editor drops it)', () => {
+  const { store } = load();
   const stored = store.normalizeMenuData(JSON.parse(JSON.stringify({ incluye: ' sopa y arroz ', precios: [], secciones: [] })));
   assert.equal(stored.incluye, 'sopa y arroz');
   assert.equal(store.normalizeMenuData({ secciones: [] }).incluye, undefined);

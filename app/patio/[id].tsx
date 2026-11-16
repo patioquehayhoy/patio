@@ -6,7 +6,7 @@ import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Animated, Easing, LayoutAnimation, Pressable, Share, StyleSheet, Text, TextInput, TouchableOpacity, View, useWindowDimensions, type ScrollView } from 'react-native';
+import { ActivityIndicator, Alert, Animated, Easing, LayoutAnimation, Pressable, Share, StyleSheet, Text, TextInput, TouchableOpacity, View, useWindowDimensions, type ScrollView } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -230,8 +230,6 @@ function makeStyles(t: Theme) {
     dishRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 },
     groupItemName: { flex: 1, fontSize: 16, fontWeight: '700', color: t.text, lineHeight: 21 },
     dishPhotoMark: { fontSize: 14 },
-    menuIncludes: { fontSize: 14, lineHeight: 19, fontWeight: '400', color: t.textSecondary },
-    menuIncludesUnderPrice: { marginTop: -10 },
     groupItemDescription: { marginTop: 2, fontSize: 13, lineHeight: 18, fontWeight: '400', color: t.textSecondary },
     groupItemPrice: { fontSize: 15, lineHeight: 21, fontWeight: '700', color: t.text },
     dishLikeCount: { minWidth: 21, height: 21, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 3 },
@@ -254,6 +252,8 @@ function makeStyles(t: Theme) {
     ratingCount: { width: 15, fontSize: 11, color: t.textMute, textAlign: 'right' },
     reviewCard: { paddingHorizontal: 16, paddingTop: 11, paddingBottom: 4, borderRadius: 18, borderCurve: 'continuous', backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
     reviewCardGap: { marginTop: 10 },
+    moreReviews: { marginTop: 10, minHeight: 44, borderRadius: 22, borderCurve: 'continuous', borderWidth: 1.5, borderColor: t.border, alignItems: 'center', justifyContent: 'center' },
+    moreReviewsText: { fontSize: 14, fontWeight: '700', color: t.text },
     reviewAuthorRow: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: 8, marginBottom: 8 },
     reviewAuthor: { flex: 1, fontSize: 14, fontWeight: '700', color: t.text },
     reviewDate: { fontSize: 12, color: t.textMute },
@@ -351,7 +351,6 @@ export function PatioDetailView({ id, own = false, focusDish }: { id?: string; o
   const insets = useSafeAreaInsets();
   const [here] = useKnownLocation();
   const [showSchedule, setShowSchedule] = useState(false);
-  const [ratingFilter, setRatingFilter] = useState<number | null>(null);
   const [activeBadgeId, setActiveBadgeId] = useState<string | null>(null);
   // Alto fijo de la fila de datos: el del texto de reconocimiento más alto.
   const [badgeStageHeight, setBadgeStageHeight] = useState(0);
@@ -385,13 +384,16 @@ export function PatioDetailView({ id, own = false, focusDish }: { id?: string; o
     proxTexto,
     rangoHoy,
     reviews: fetchedReviews,
+    reviewsPaged,
     sections,
     menuPrices,
-    menuIncludes,
     carta,
     soldOut,
     userReview,
   } = usePatioDetailController(id);
+  // Filtro por estrellas de la lista de reseñas: lo pide al servidor por partes.
+  const ratingFilter = reviewsPaged.filter;
+  const setRatingFilter = reviewsPaged.setFilter;
   // Lo de hoy y, debajo, la carta de siempre: una sola lista para la barra
   // de secciones y el recorrido.
   const menuGroups = useMemo(() => [...sections, ...carta], [sections, carta]);
@@ -588,10 +590,13 @@ export function PatioDetailView({ id, own = false, focusDish }: { id?: string; o
     clearReturn();
   };
   // De la foto a su reseña (más abajo en la ficha), con todas las reseñas a la vista.
-  const jumpToReview = (key: string) => {
+  const jumpToReview = async (key: string) => {
     offerReturn('Volver al platillo', 'arrow-up');
     markReviewsNear();
-    setRatingFilter(null);
+    if (ratingFilter !== null) setRatingFilter(null);
+    // Con reseñas por partes, la de esa foto puede no estar cargada aún.
+    const target = fetchedReviews.find((review) => `${review.userId}-${review.timestamp}` === key);
+    if (target) await reviewsPaged.ensureListed(target).catch(() => {});
     setTimeout(() => {
       const y = reviewCardY.current[key];
       if (y == null) return;
@@ -690,17 +695,11 @@ export function PatioDetailView({ id, own = false, focusDish }: { id?: string; o
   const reviews = useMemo(() => fetchedReviews.filter((review) => !hiddenAuthors.includes(review.userId)), [fetchedReviews, hiddenAuthors]);
   useEffect(() => { setHiddenAuthors([]); }, [patioId]);
   const heroPhoto = useMemo(() => heroPhotoFor(patioId ?? cleanId ?? ''), [patioId, cleanId]);
-  const ratingAverage = useMemo(
-    () => reviews.length ? reviews.reduce((sum, review) => sum + review.stars, 0) / reviews.length : 0,
-    [reviews],
-  );
-  const ratingDistribution = useMemo(
-    () => [5, 4, 3, 2, 1].map((stars) => ({ stars, count: reviews.filter((review) => review.stars === stars).length })),
-    [reviews],
-  );
+  // Promedio, total y estrellas del servidor; la lista llega de 20 en 20.
+  const { average: ratingAverage, total: reviewTotal, byStars: ratingDistribution } = reviewsPaged.summary;
   const visibleReviews = useMemo(
-    () => ratingFilter ? reviews.filter((review) => review.stars === ratingFilter) : reviews,
-    [ratingFilter, reviews],
+    () => reviewsPaged.list.filter((review) => !hiddenAuthors.includes(review.userId)),
+    [reviewsPaged.list, hiddenAuthors],
   );
   const businessOpeningLabel = useMemo(() => {
     if (!patio?.businessOpenedAt) return null;
@@ -1206,7 +1205,7 @@ export function PatioDetailView({ id, own = false, focusDish }: { id?: string; o
   // Calificación arriba y reseñas completas abajo (Jev, 8 nov: «resumen
   // arriba» 68–92 % en tres perfiles; como Google y Apple Maps). Tocarla baja
   // a las reseñas.
-  const ratingFact = reviews.length ? `★\u00A0${ratingAverage.toFixed(1)}\u00A0(${reviews.length.toLocaleString('es-MX')})` : null;
+  const ratingFact = reviewTotal ? `★\u00A0${ratingAverage.toFixed(1)}\u00A0(${reviewTotal.toLocaleString('es-MX')})` : null;
   const factParts = [distance, heroPrice.source === 'missing' ? null : heroPrice.label].filter((part): part is string => !!part);
   const heroFacts = [ratingFact, ...factParts].filter(Boolean).join(' · ');
   const jumpToReviews = () => {
@@ -1216,7 +1215,7 @@ export function PatioDetailView({ id, own = false, focusDish }: { id?: string; o
     <>
       {lead}
       {ratingFact && (
-        <Text suppressHighlighting onPress={jumpToReviews} accessibilityLabel={`${ratingAverage.toFixed(1)} de 5, ${reviews.length} reseñas`}>{ratingFact}</Text>
+        <Text suppressHighlighting onPress={jumpToReviews} accessibilityLabel={`${ratingAverage.toFixed(1)} de 5, ${reviewTotal} reseñas`}>{ratingFact}</Text>
       )}
       {factParts.length ? `${ratingFact ? ' · ' : ''}${factParts.join(' · ')}` : ''}
     </>
@@ -1392,19 +1391,14 @@ export function PatioDetailView({ id, own = false, focusDish }: { id?: string; o
             <View style={soldOut ? { opacity: 0.42 } : undefined}>
               {/* Precios del menú de hoy: cómo se cobra el menú completo
                   («Completo $95», «Solo guisado $70»). */}
-              {(!!menuPrices.length || !!menuIncludes) && (
-                <View style={s.group} accessible accessibilityLabel={[menuPrices.length ? menuPricesAccessibilityLabel(menuPrices) : '', menuIncludes].filter(Boolean).join('. ')}>
+              {!!menuPrices.length && (
+                <View style={s.group} accessible accessibilityLabel={menuPricesAccessibilityLabel(menuPrices)}>
                   {menuPrices.map((item, index) => (
                     <View key={`${index}-${item.label}`} style={s.groupItem}>
                       <Text style={s.groupItemName} allowFontScaling={true}>{noWidow(item.label || 'Precio del menú')}</Text>
                       <Text style={s.groupItemPrice} allowFontScaling={true}>{item.price}</Text>
                     </View>
                   ))}
-                  {/* «Incluye…» (prueba 15 nov): pegado al precio, como
-                      su explicación; sin precio, solo la línea. */}
-                  {!!menuIncludes && (
-                    <Text style={[s.menuIncludes, !!menuPrices.length && s.menuIncludesUnderPrice]} allowFontScaling={true}>{noWidow(menuIncludes)}</Text>
-                  )}
                 </View>
               )}
               {/* Fotos de platillos: el menú sigue en texto; se ven
@@ -1741,32 +1735,32 @@ export function PatioDetailView({ id, own = false, focusDish }: { id?: string; o
                 <Text style={s.reviewPromptText}>{reviewedToday ? 'Reseña de hoy' : userReview ? 'Otra visita' : 'Reseñar'}</Text>
               </TouchableOpacity>}
             </View>
-            {!!reviews.length && (
+            {!!reviewTotal && (
               <View style={s.ratingOverview}>
                 <TouchableOpacity
                   style={s.ratingScore}
                   onPress={() => setRatingFilter(null)}
                   accessibilityRole="button"
-                  accessibilityLabel={`${ratingAverage.toFixed(1)} de 5, ${reviews.length} reseñas. Mostrar todas`}>
+                  accessibilityLabel={`${ratingAverage.toFixed(1)} de 5, ${reviewTotal} reseñas. Mostrar todas`}>
                   <Text style={s.ratingAverage}>{ratingAverage.toFixed(1)}</Text>
                   <View style={s.ratingStars}>
                     {[1, 2, 3, 4, 5].map((star) => <Ionicons key={star} name={star <= Math.round(ratingAverage) ? 'star' : 'star-outline'} size={9} color={theme.accent} />)}
                   </View>
-                  <Text style={[s.ratingAll, ratingFilter === null && { color: theme.accent }]}>({reviews.length})</Text>
+                  <Text style={[s.ratingAll, ratingFilter === null && { color: theme.accent }]}>({reviewTotal.toLocaleString('es-MX')})</Text>
                 </TouchableOpacity>
                 <View style={s.ratingBars}>
                   {ratingDistribution.map(({ stars, count }) => (
                     <TouchableOpacity
                       key={stars}
                       style={[s.ratingBarRow, (ratingFilter === null || ratingFilter === stars) && s.ratingBarRowActive]}
-                      onPress={() => setRatingFilter((current) => current === stars ? null : stars)}
+                      onPress={() => setRatingFilter(ratingFilter === stars ? null : stars)}
                       disabled={!count}
                       hitSlop={{ top: 3, bottom: 3, left: 0, right: 0 }}
                       accessibilityRole="button"
                       accessibilityLabel={`${stars} estrellas, ${count} reseñas`}>
                       <Text style={s.ratingBarLabel}>{stars}</Text>
                       <View style={s.ratingTrack}>
-                        <View style={[s.ratingFill, { width: `${reviews.length ? (count / reviews.length) * 100 : 0}%` }]} />
+                        <View style={[s.ratingFill, { width: `${reviewTotal ? (count / reviewTotal) * 100 : 0}%` }]} />
                       </View>
                       <Text style={s.ratingCount}>{count}</Text>
                     </TouchableOpacity>
@@ -1989,7 +1983,20 @@ export function PatioDetailView({ id, own = false, focusDish }: { id?: string; o
                 })()}
               </View>
             ))}
-            {!reviews.length && userReview && (
+            {reviewsPaged.hasMore && (
+              <TouchableOpacity
+                style={s.moreReviews}
+                onPress={reviewsPaged.loadMore}
+                disabled={reviewsPaged.loadingMore}
+                activeOpacity={0.7}
+                accessibilityRole="button"
+                accessibilityLabel="Ver más reseñas">
+                {reviewsPaged.loadingMore
+                  ? <ActivityIndicator size="small" color={theme.textSecondary} />
+                  : <Text style={s.moreReviewsText}>Ver más</Text>}
+              </TouchableOpacity>
+            )}
+            {!reviewTotal && userReview && (
               <Text style={s.reviewNote}>{noWidow('Tu reseña será la primera experiencia compartida sobre este Patio.')}</Text>
             )}
           </View>

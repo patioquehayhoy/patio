@@ -52,6 +52,15 @@ test('the saved carta comes back below today, and an untouched carta is not save
   assert.notEqual(cartaSignature(splitCarta(joined).carta), before);
 });
 
+test('a new photo or another name on a carta dish counts as a carta change', () => {
+  const saved = { secciones: [section('CARTA', '110', ['Pechuga'])] };
+  const before = cartaSignature(saved);
+  const withPhoto = { secciones: [{ ...saved.secciones[0], platillos: [{ ...saved.secciones[0].platillos[0], foto: 'https://x/dish-photos/a.jpg' }] }] };
+  assert.notEqual(cartaSignature(withPhoto), before);
+  const withAlias = { secciones: [{ ...saved.secciones[0], platillos: [{ ...saved.secciones[0].platillos[0], antes: ['Pechuga asada'] }] }] };
+  assert.notEqual(cartaSignature(withAlias), before);
+});
+
 test('the editor is a board: everything below the CARTA heading is carta', () => {
   const board = cartaByHeading([section('MENÚ DEL DÍA', '100'), section('GUISADOS'), section('CARTA', '110'), section('PARA LLEVAR')]);
   assert.deepEqual(board.map((s) => !!s.carta), [false, false, true, true]);

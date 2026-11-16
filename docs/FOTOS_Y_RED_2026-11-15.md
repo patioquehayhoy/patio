@@ -8,6 +8,23 @@ Base: estudio de menús reales ([MENUS_REALES](research/MENUS_REALES_2026-11-15.
 en Google Maps el 82 % de las fotos de platillos las suben clientes. Con solo
 las del negocio, la mayoría de los platillos se queda sin foto.
 
+## Decisiones de Parco (2026-11-16)
+
+- Las seis ideas van. Orden: Jev revisa la foto → «Hoy hay» → varias fotos
+  por visita → el negocio usa la foto de un cliente → visita verificada.
+- **«Hoy hay»:** un aviso al día como máximo, a la hora de comer del lugar,
+  juntando lugares; nunca dos días seguidos del mismo platillo en el mismo
+  lugar, y se apaga desde el aviso.
+- **Foto de cliente en el menú del negocio:** sin pedir permiso (va en los
+  términos de uso); crédito automático («Foto de Ana») y aviso a quien la
+  tomó. El negocio puede elegir la de alguien conocido y presumirla.
+- **Jev revisa cada foto** antes de publicarla.
+- **Visita verificada:** automática, la resuelve Patio con la visita real
+  (el aviso «¿Qué te pareció?» ya sabe quién estuvo); quien no tiene
+  ubicación puede reseñar, pero sin la marca.
+- Pendiente de diseño: perfiles y navegación cuando haya varias fotos por
+  visita (dónde se ven las fotos de una persona: platillo, reseña y perfil).
+
 ## 1. Lo que ya existe
 
 | Objeto | Verbos | Dónde |

@@ -30,7 +30,7 @@ export function MenuPoster({ justPublished = false }: { justPublished?: boolean 
   const { theme } = useTheme();
   const c = fonderoPalette(theme.isDark);
   const s = makeStyles(c);
-  const { businessName, fecha, handleBack, handleOpenProfile, handleShare, menuPrices, patioId, priceLabel, priceName, sections, carta, includes } = useMenuPreviewController();
+  const { businessName, fecha, handleBack, handleOpenProfile, handleShare, menuPrices, patioId, priceLabel, priceName, sections, carta } = useMenuPreviewController();
   const posterRef = useRef<View>(null);
   const [sharing, setSharing] = useState(false);
   const [newMenuSheetVisible, setNewMenuSheetVisible] = useState(false);
@@ -121,8 +121,6 @@ export function MenuPoster({ justPublished = false }: { justPublished?: boolean 
 
           {/* Card de menú: las secciones hablan solas, sin label redundante. */}
           <View style={s.menuCard}>
-            {/* «Incluye…» (prueba 15 nov), antes de las secciones. */}
-            {!!includes && <Text style={s.posterIncludes} allowFontScaling={true}>{noWidow(includes)}</Text>}
             {/* Con varios precios del menú, la lista completa va primero; el
                 de arriba a la derecha es el principal. */}
             {menuPrices.length > 1 && (
@@ -267,7 +265,6 @@ function makeStyles(c: FonderoColors) {
   // grupos, nunca dentro de ellos.
   menuCard: { marginHorizontal: 18, padding: 18, borderRadius: 18, borderCurve: 'continuous', backgroundColor: LIGHT.card, borderWidth: StyleSheet.hairlineWidth, borderColor: LIGHT.sep },
   menuSection: { marginTop: 10 },
-  posterIncludes: { marginBottom: 10, fontSize: 13, lineHeight: 18, fontWeight: '400', color: LIGHT.inkSoft },
   // La carta se separa de lo de hoy con una línea, como en la ficha.
   cartaStart: { marginTop: 14, paddingTop: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: LIGHT.sep },
   menuSectionTitle: { marginBottom: 2, fontSize: 11, fontWeight: '700', letterSpacing: 0.8, color: LIGHT.accent, textTransform: 'uppercase', lineHeight: 14 },

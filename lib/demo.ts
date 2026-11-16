@@ -180,7 +180,6 @@ const DEV_QA: DevQa[] = [
       name: 'Fondita Dev',
       categories: ['Fondita', 'Tacos', 'Café', 'Postres'],
       phone: '5512345678',
-      menuIncludes: 'sopa del día, arroz y agua de sabor',
       whatsapp: true,
       menuPrices: [
         { label: 'Comida corrida', price: '$95' },

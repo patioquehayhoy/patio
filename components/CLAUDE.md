@@ -115,8 +115,7 @@
   la ficha entera; viven en su propio estado (`lib/tiny-store.ts`). Las
   fotos de cada platillo se ordenan una sola vez (`dishPhotosByKey`).
 - Sin botón para subir fotos en el menú (se probó «Agregar tu foto» y no
-  gustó): las fotos se suben en la reseña. La reseña muestra su foto con el
-  platillo y la frase; tocarla abre ese platillo en el menú.
+  gustó): las fotos se suben en la reseña.
 - Carga de fotos (que nunca se sienta lenta):
   - Vista previa instantánea: ThumbHash de ~25 bytes calculado al subir
     (`lib/photo-hash.ts`, en hexadecimal) que viaja con el menú y la reseña;
@@ -162,7 +161,7 @@ El precio por platillo es el mismo chip; si se cambia uno, se cambia el otro.
 ## Retícula del editor (2026-11-03)
 
 - Un solo borde izquierdo (20): nombre de sección, platillo, descripción,
-  «Agregar platillo», «Agregar sección», «Precio del menú» y «La carta».
+  «Agregar platillo» y «Agregar sección».
 - Sin ocultar secciones (2026-11-08, decisión de Parco): todas abiertas, como
   la ficha; para moverse en menús largos está la barra de secciones. (Se
   probaron la flecha en «···», la flecha visible y el índice lateral tipo
@@ -170,7 +169,7 @@ El precio por platillo es el mismo chip; si se cambia uno, se cambia el otro.
 - Con 4 secciones o más, **barra de secciones** bajo la barra de navegación
   (`components/section-bar.tsx`, la misma de la ficha): nombre completo, la
   sección en pantalla marcada, tocar lleva a ella; se esconde con el teclado.
-- Un solo borde derecho: «···», «×» y los chips de precio en su columna.
+- Un solo borde derecho: «×» y los chips de precio en su columna.
 - Toda acción «agregar»: ícono `add` 18 + texto 15/700 en acento.
 - Cierre: «Publicar menú» cápsula naranja de 54 a todo el ancho del
   contenido; «Guardar sin publicar» texto 16/400 debajo.

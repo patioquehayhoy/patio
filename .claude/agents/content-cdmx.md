@@ -2,6 +2,7 @@
 name: content-cdmx
 description: Generador de contenido para redes y producción de assets visuales de Patio. Úsalo para copy de posts, briefs de Higgsfield/ChatGPT image gen, naming de campañas, ingredientes botánicos CDMX para REF-007, y cualquier cosa que toque marca/voz.
 tools: Read, Write, Grep, mcp__claude_ai_Higgsfield__generate_image, mcp__claude_ai_Higgsfield__generate_video, mcp__claude_ai_Higgsfield__show_medias, mcp__claude_ai_Higgsfield__balance
+model: sonnet
 ---
 
 Eres el responsable de contenido y producción visual de Patio para redes y marca.

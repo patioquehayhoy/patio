@@ -8,6 +8,7 @@ de fotos, identidad del platillo y editor como pizarrón (con arrastrar) en
 `components/CLAUDE.md`. Producción pendiente: `db push` (vista previa de
 fotos de reseñas) y pegar los 6 correos. Siguiente: QA de Parco del arrastre
 en el iPhone y decisiones de [FOTOS_Y_RED](FOTOS_Y_RED_2026-11-15.md).
+El mantenimiento de Claude Code (/doctor) también está en el heads-up.
 
 ## Continuidad 2026-11-15 — carta y precios, fotos de platillos, correos y Apple (Claude)
 

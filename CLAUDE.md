@@ -53,10 +53,6 @@ Antes de cualquier cambio de UI, copy o flujo, leer los siguientes documentos en
 
 ## Tipografía
 
-> Corregido 2026-07-22 tras auditoría de contenido: esta sección describía un
-> sistema aspiracional que nunca coincidió con lo que corre en producción.
-> Lo de abajo es lo real, verificado contra 40+ estilos en `app/` y `components/`.
-
 - **`Fonts.brand`** (Plus Jakarta Sans 800 ExtraBold, `lib/theme.tsx`) para
   identidad ≥ 20pt: títulos de pantalla, nombre de fondita, hero text, precios
   destacados. Es el sistema real — no SF Pro Display.
@@ -138,17 +134,14 @@ Paleta, tokens claro/oscuro y usos: `lib/colors.ts`. En oscuro usar los tokens d
 > rompería como pareja. No uses esta excepción como precedente para otras
 > pantallas — es específica a esas dos.
 
-- **Botón de confirmación prominente** (la única acción destacada de la pantalla, sea cual sea su verbo — guardar/publicar/continuar/enviar/comenzar): **cápsula completa** — `borderRadius` = altura del botón / 2 (nunca 14; corregido 2026-09-06 tras auditoría: ningún botón de confirmación real en el código usa 14, y 6 de 11 instancias auditadas comparten radio-igual-a-mitad-de-altura de forma exacta e independiente, lo que confirma que es el patrón real homologado, no los 4 outliers en `Radius.card`/18 ni el caso aislado en 16). Fondo `ACCENT` (naranja), texto blanco `fontWeight '700'`.
+- **Botón de confirmación prominente** (la única acción destacada de la pantalla, sea cual sea su verbo — guardar/publicar/continuar/enviar/comenzar): **cápsula completa** — `borderRadius` = altura del botón / 2 (nunca 14). Fondo `ACCENT` (naranja), texto blanco `fontWeight '700'`.
 - **Botones primarios compactos genéricos** (cuando no hay una única acción prominente que destacar): `borderRadius 14`, fondo `BLACK (#292929)`, texto blanco `fontWeight '700'`.
-- **Botones de contorno**: `borderWidth 1.5`, fondo transparente. **Corregido 2026-09-06:**
-  esta entrada decía `borderColor BLACK` (literal) — no es lo que corre en el código real.
+- **Botones de contorno**: `borderWidth 1.5`, fondo transparente.
   El borde siempre sale del token de paleta `border`/`t.border`/`c.border`
   (`rgba(17,18,20,0.08)` claro · `rgba(255,255,255,0.10)` oscuro, mismo valor que
   "Líneas y separadores" abajo), nunca un negro sólido. Un botón de contorno sin ese
   color explícito no "hereda" nada razonable — sale con el borde por defecto de RN, que
-  no es ninguno de los dos tonos de la paleta (bug real encontrado y corregido en
-  `historial.tsx`: los botones "Lista"/"Eliminar" de la barra de selección en lote eran
-  los únicos elementos con borde en todo el archivo sin `borderColor` explícito).
+  no es ninguno de los dos tonos de la paleta.
 - **Segmented control**: `borderRadius 14`, `borderWidth 1`, `overflow hidden`
 - **Separadores**: `StyleSheet.hairlineWidth`, color `t.sep`
 - **Placeholders**: `BLACK60`
@@ -248,7 +241,7 @@ Usar `LinearGradient` de `expo-linear-gradient` para:
 - Sheets y panels grandes: `borderRadius 28-32` (solo esquinas superiores cuando están pegados al borde)
 - Botones de acción flotantes (cuadrados): `borderRadius 16`
 - Pills y cápsulas de estado: `borderRadius 100`
-- Cards de contenido: `borderRadius 18` (corregido 2026-08-17: `Radius.card` real en `lib/theme.tsx` es 18, la documentación decía 20 por error)
+- Cards de contenido: `borderRadius 18`
 
 ## Convenciones de código
 

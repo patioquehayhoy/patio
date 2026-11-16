@@ -1,40 +1,43 @@
-## Precios y carta en menu-composer.tsx
+## El editor es un pizarrón (menu-composer.tsx, 2026-11-16)
 
-> Reescrito 2026-11-15 con el pizarrón real de Parco: «MENÚ $100» arriba (lo
-> que cambia cada día) y «CARTA $110» abajo (lo de siempre), con solo las
-> excepciones con precio propio (filete $125, arrachera $150). El precio va
-> pegado a su bloque; la lista suelta de «varios precios» del 14 nov
-> confundía (se terminaba escribiendo la carta como un precio).
+> Decisión de Parco tras probar dos bloques fijos («MENÚ DEL DÍA» / «LA
+> CARTA» con su renglón de precio): se sentía parchado. Ahora el editor es
+> como el pizarrón: solo secciones, cada una con su título y su precio.
 
-- **Menú del día:** un solo precio, bloque «PRECIO DEL MENÚ» arriba de las
-  secciones (`MenuData.precios[0]`). Ya no se agregan más precios; un menú
-  de antes con varios los conserva con su nombre para no perderlos.
-- **La carta va en el mismo editor, debajo de lo de hoy.** Son secciones
-  marcadas `carta` (`lib/menu-carta.ts`). La carta guardada se carga sola al
-  abrir el editor; si la foto del pizarrón ya trae «CARTA», manda la de la
-  foto (desde ese encabezado hacia abajo todo es carta: `markCartaSections`).
-- **Dos bloques armados igual (2026-11-16, Parco):** «MENÚ DEL DÍA» y «LA
-  CARTA» son etiquetas fijas (no se renombran), con el mismo estilo y
-  espacio; debajo, cada uno su renglón «Precio $» en la misma columna y luego
-  su contenido. La primera sección de la carta («CARTA») va sin título
-  propio: su precio es el renglón «Precio» del bloque; las demás secciones de
-  la carta sí llevan nombre, igual que las de hoy. (Antes «CARTA» parecía un
-  título renombrable junto a un «MENÚ DEL DÍA» fijo.) Cada platillo de la
-  carta solo lleva precio si cambia.
-- **Sin pasos (decisión 2026-11-16):** se pensó en un recorrido por pasos
-  (nombre → qué vendes → precio) y se descartó: el menú se publica a diario y
-  cada paso extra se pagaría todos los días. La misma pantalla guía con su
-  orden (como el pizarrón: precio arriba, platillos, carta, publicar), el
-  nombre de la primera sección sugiere el del giro y, en un menú nuevo
-  hecho a mano, el cursor ya espera en el primer platillo.
+- **Todo es sección:** título + «$» (el mismo chip vacío que el de cada
+  platillo; al tocarlo se escribe) + «×» (quitar, se puede deshacer), igual
+  que cada platillo. Sin «···» ni flechas (2026-11-16, Parco).
+- **Mover = mantener presionado y arrastrar** (`components/board-drag.tsx`,
+  gestos nativos de RNGH + Reanimated, sin librerías nuevas): un platillo
+  (sosteniendo su nombre) va a cualquier lugar, también a otra sección o a
+  la carta; una sección (sosteniendo su título) se mueve completa. Lo que se
+  arrastra se levanta; una línea naranja marca dónde caerá; cerca de la
+  orilla la lista se desplaza sola. Tocar el nombre o el título sigue
+  siendo escribirlo. Con VoiceOver: acciones «Subir» y «Bajar».
+  «MENÚ DEL DÍA $100» es una sección, con o sin platillos debajo (un
+  encabezado con precio se guarda aunque no tenga platillos); «GUISADOS
+  $85», otra; «CARTA $110», otra. Sin etiquetas de bloque, sin renglones de
+  «Precio» ni «Incluye» aparte (lo que incluye lo dicen los platillos).
+- **La carta se reconoce por su encabezado** (`lib/menu-carta.ts`,
+  `cartaByHeading`): desde la sección «CARTA» (o «A LA CARTA», «LO DE
+  SIEMPRE») hacia abajo todo es carta y se queda para los días que siguen; lo
+  de arriba es lo de hoy. Debajo del título «CARTA», una sola línea lo dice.
+  Renombrarla o moverla cambia qué es carta, como en el pizarrón. Se
+  agrega con el chip «CARTA» de las sugerencias; después, «Agregar sección»
+  al final agrega secciones a la carta.
+- **Menús de antes** (`boardFromMenu`): los precios del menú (`precios`,
+  también los que lee una foto) pasan a encabezados arriba de lo de hoy; uno
+  solo sin nombre bautiza la primera sección como «MENÚ DEL DÍA». Una carta
+  guardada sin encabezado recibe «CARTA». «Incluye…» se quita.
+- **Sin pasos:** se pensó en un recorrido por pasos y se descartó (el menú se
+  publica a diario). La primera sección sugiere su título («MENÚ DEL DÍA» en
+  la comida corrida; el del giro en los demás) y, en un menú nuevo hecho a
+  mano, el cursor espera en el primer platillo.
 - Al publicar: lo de hoy se publica y la carta se guarda en `cartas` solo si
-  cambió (`cartaSignature`). Si la carta falla, el menú ya quedó publicado y
-  se avisa. «Guardar sin publicar» guarda el borrador completo, con carta.
-- Las secciones se suben/bajan dentro de su bloque; nunca cruzan.
-- Ficha y póster: «La carta» con su precio en el título cuando su primera
-  sección se llama «CARTA»; las demás secciones muestran su precio común.
-- Precio de sección («GUISADOS $85»): chip junto al nombre; se agrega desde
-  «···» → «Precio de la sección». Vacío o «0» al salir nunca se guarda.
+  cambió (`cartaSignature`). Para publicar o guardar hace falta un platillo
+  de hoy. Ficha, tarjeta y póster muestran el encabezado con precio; la
+  tarjeta toma como precio del menú el de la sección que se llama «MENÚ…» o
+  «COMIDA CORRIDA».
 
 ## Fotos de platillos (2026-11-15)
 

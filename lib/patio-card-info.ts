@@ -103,11 +103,15 @@ export function patioCardPrice(patio: Pick<Patio, 'price' | 'menu'> & Pick<Parti
     };
   }
 
-  // El editor guarda el «Precio del menú» en una sola sección; varias
-  // secciones con precio son precios por sección (menús leídos de foto).
+  // El precio del menú vive en su encabezado (2026-11-16, editor como
+  // pizarrón): una sola sección con precio, o la que se llama como menú
+  // («MENÚ DEL DÍA $100», «COMIDA CORRIDA $95») aunque haya otras con precio.
   const pricedSections = patio.menu.filter((section) => amountsOf(section.price).length);
-  if (pricedSections.length === 1) {
-    const [low, high = low] = amountsOf(pricedSections[0].price);
+  const menuHeading = pricedSections.length === 1
+    ? pricedSections[0]
+    : pricedSections.find((section) => /^(?:men[uú]\b|comida corrida\b)/i.test(section.section.trim()));
+  if (menuHeading) {
+    const [low, high = low] = amountsOf(menuHeading.price);
     return {
       label: rangeLabel(low, high),
       source: 'menu-day',

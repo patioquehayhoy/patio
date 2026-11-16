@@ -14,6 +14,43 @@ export function isCartaName(name: string): boolean {
   return /^(?:la |a la )?carta\b/.test(plain(name));
 }
 
+/**
+ * Encabezado que empieza lo de siempre en el editor: la carta («CARTA», «A LA
+ * CARTA», «Carta $110») o «LO DE SIEMPRE» / «DE SIEMPRE».
+ */
+export function isCartaHeading(name: string): boolean {
+  return isCartaName(name) || /^(?:lo )?de siempre\b/.test(plain(name));
+}
+
+/**
+ * El editor es un pizarrón (2026-11-16, Parco): solo secciones con su título
+ * y su precio. Desde el encabezado de la carta hacia abajo todo es carta (se
+ * queda para los días que siguen); lo de arriba es lo de hoy. La marca
+ * `carta` sale de la posición, nunca de un bloque aparte.
+ */
+export function cartaByHeading(secciones: Seccion[]): Seccion[] {
+  const start = secciones.findIndex((section) => isCartaHeading(section.nombre));
+  return secciones.map((section, index) => {
+    // Si «CARTA» es lo primero, no hay nada de hoy arriba: todo se publica
+    // como el menú (igual que una foto que solo trae la carta).
+    const carta = start > 0 && index >= start;
+    if (!!section.carta === carta) return section;
+    if (carta) return { ...section, carta: true };
+    const { carta: _flag, ...rest } = section;
+    return rest;
+  });
+}
+
+/**
+ * Una carta guardada empieza con su encabezado. Si no lo trae (por ejemplo,
+ * la leída de una foto con «ESPECIALIDADES» abajo de «CARTA»), se le pone
+ * «CARTA» sin precio, para que siga siendo carta en el editor.
+ */
+export function withCartaHeading(carta: Seccion[], makeId: () => string): Seccion[] {
+  if (!carta.length || isCartaHeading(carta[0].nombre)) return carta;
+  return [{ id: makeId(), nombre: 'CARTA', precio: '', platillos: [], carta: true }, ...carta];
+}
+
 /** Separa lo de hoy de la carta; la carta sale sin la marca. */
 export function splitCarta(data: MenuData): { hoy: MenuData; carta: MenuData } {
   const hoy = data.secciones.filter((section) => !section.carta);

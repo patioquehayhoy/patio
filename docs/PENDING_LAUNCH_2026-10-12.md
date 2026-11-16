@@ -16,9 +16,15 @@
 - [x] Identidad del platillo: se junta solo lo mismo escrito distinto; lo
   parecido se pregunta una vez en el editor; la foto vuelve aunque cambie
   de teléfono.
-- [x] Editor: MENÚ DEL DÍA y LA CARTA armados igual; sin pasos; cursor en el
-  primer platillo de un menú nuevo. Cabecera de selección compartida
-  (Guardados y Menús) y auditoría de encimados.
+- [x] Editor como pizarrón: solo secciones con título, «$» y «×»; la carta
+  es lo que queda abajo de su título «CARTA»; sin bloques ni «Incluye»;
+  menús de antes convertidos solos. Cursor en el primer platillo de un menú
+  nuevo. Cabecera de selección compartida (Guardados y Menús) y auditoría
+  de encimados.
+- [x] Mantener presionado y arrastrar platillos (a cualquier sección o a la
+  carta) y secciones completas; sin «···» ni flechas.
+- [ ] **Parco, QA en el iPhone:** arrastrar platillos y secciones (que
+  deslizar siga desplazando y que un toque corto siga escribiendo).
 - [ ] **Parco, producción:** `npx supabase db push`
   (`20261115120000_review_photo_hash`, vista previa de fotos de reseñas).
 - [ ] Parco decide: [FOTOS_Y_RED](FOTOS_Y_RED_2026-11-15.md) — «Se me antoja

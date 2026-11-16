@@ -11,7 +11,7 @@ const code = ts.transpileModule(fs.readFileSync(path.join(root, 'lib/menu-carta.
 }).outputText;
 const mod = { exports: {} };
 new Function('module', 'exports', 'require', code)(mod, mod.exports, () => ({}));
-const { isCartaName, splitCarta, joinCarta, cartaSignature, markCartaSections } = mod.exports;
+const { isCartaName, splitCarta, joinCarta, cartaSignature, markCartaSections, cartaByHeading, withCartaHeading } = mod.exports;
 
 const section = (nombre, precio = '', dishes = ['Sopa'], carta) => ({
   id: nombre, nombre, precio, platillos: dishes.map((n, i) => ({ id: `${nombre}-${i}`, nombre: n, descripcion: '', precio: '' })),
@@ -50,4 +50,26 @@ test('the saved carta comes back below today, and an untouched carta is not save
   assert.equal(cartaSignature(splitCarta(joined).carta), before);
   joined.secciones[1] = { ...joined.secciones[1], platillos: [joined.secciones[1].platillos[0], { ...joined.secciones[1].platillos[1], precio: '150' }] };
   assert.notEqual(cartaSignature(splitCarta(joined).carta), before);
+});
+
+test('the editor is a board: everything below the CARTA heading is carta', () => {
+  const board = cartaByHeading([section('MENÚ DEL DÍA', '100'), section('GUISADOS'), section('CARTA', '110'), section('PARA LLEVAR')]);
+  assert.deepEqual(board.map((s) => !!s.carta), [false, false, true, true]);
+  // «Lo de siempre» también empieza la carta; sin encabezado, todo es de hoy.
+  assert.deepEqual(cartaByHeading([section('SOPAS'), section('LO DE SIEMPRE')]).map((s) => !!s.carta), [false, true]);
+  const renamed = cartaByHeading([{ ...board[0] }, { ...board[2], nombre: 'ESPECIALES' }, { ...board[3] }]);
+  assert.ok(renamed.every((s) => !s.carta), 'renaming the heading turns the carta back into today');
+  // Si el menú empieza con «CARTA», todo es lo de hoy (se puede publicar).
+  assert.ok(cartaByHeading([section('CARTA', '110'), section('POSTRES')]).every((s) => !s.carta));
+  // Una sección que sube arriba del encabezado vuelve a ser de hoy.
+  const moved = cartaByHeading([board[0], board[3], board[2]]);
+  assert.deepEqual(moved.map((s) => !!s.carta), [false, false, true]);
+});
+
+test('a saved carta without its heading gets «CARTA» so it stays carta', () => {
+  let n = 0;
+  const withHeading = withCartaHeading([section('ESPECIALIDADES', '', ['Arrachera'], true)], () => `id-${++n}`);
+  assert.deepEqual(withHeading.map((s) => [s.nombre, !!s.carta]), [['CARTA', true], ['ESPECIALIDADES', true]]);
+  const already = [section('CARTA', '110', ['Pechuga'], true)];
+  assert.equal(withCartaHeading(already, () => 'x'), already);
 });

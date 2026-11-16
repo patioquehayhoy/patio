@@ -1426,9 +1426,11 @@ export function PatioDetailView({ id, own = false, focusDish }: { id?: string; o
                       <Text style={s.cartaNote} allowFontScaling={true}>{noWidow('Lo que hay todos los días.')}</Text>
                     </View>
                   )}
-                  {!['menu del dia', 'menu de hoy'].includes(
+                  {/* «MENÚ DEL DÍA» sin precio no repite título; con precio es el
+                      «MENÚ $100» del pizarrón y sí sale. */}
+                  {(!!section.price || !['menu del dia', 'menu de hoy'].includes(
                     section.section.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim(),
-                  ) && !(sectionIndex >= sections.length && isCartaName(section.section)) && (
+                  )) && !(sectionIndex >= sections.length && isCartaName(section.section)) && (
                     <View style={s.groupHead}>
                       <Text style={[s.groupTitle, { flex: 1 }]} accessibilityRole="header" allowFontScaling={true}>{noWidow(sectionDisplayName(section.section))}</Text>
                       {/* Precio común de la sección: cada platillo cuesta eso

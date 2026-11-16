@@ -47,7 +47,8 @@ export function useMenuPreviewController() {
   const withPrices = split ? withMenuPrecios(split.hoy) : null;
   const tidy = (list: MenuData['secciones']) => list
     .map((section) => ({ ...section, platillos: section.platillos.filter((dish) => dish.nombre.trim()) }))
-    .filter((section) => section.platillos.length);
+    // Un encabezado con precio («MENÚ DEL DÍA $100») sale aunque no tenga platillos debajo.
+    .filter((section) => section.platillos.length || Number(section.precio.replace(/[^0-9.]/g, '')) > 0);
   const sections = tidy(withPrices?.secciones ?? []);
   const carta = tidy(split?.carta.secciones.length ? split.carta.secciones : savedCarta?.secciones ?? []);
   const menuPrices = withPrices ? publicMenuPrices(withPrices) : [];

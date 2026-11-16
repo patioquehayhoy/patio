@@ -479,3 +479,24 @@ test('dish photos: only Patio dish-photos URLs reach the ficha, outside links ar
   assert.equal(sections[0].items[1].photo, undefined, 'an outside URL is never shown');
   assert.equal(sections[0].items[2].photo, undefined, 'a path that climbs out of the bucket is never shown');
 });
+
+test('editor board: menu prices become headings, «Incluye» goes away and a priced heading survives cleaning', () => {
+  const f = publicationFixture();
+  const { boardFromMenu, cleanMenu } = f.load('lib/controllers/useFonderoMenuDraftController.ts');
+  // Un solo precio y la primera sección sin nombre propio: «MENÚ DEL DÍA $100».
+  const single = boardFromMenu({ precios: [{ id: 'p', nombre: '', precio: '100' }], incluye: 'sopa y agua', secciones: [{ id: 's', nombre: 'MENÚ DE HOY', precio: '', platillos: [{ id: 'd', nombre: 'Mole', descripcion: '', precio: '' }] }] });
+  assert.deepEqual(single.secciones.map((x) => [x.nombre, x.precio]), [['MENÚ DEL DÍA', '100']]);
+  assert.deepEqual(single.precios, []);
+  assert.equal(single.incluye, undefined);
+  // Varios precios con nombre: cada uno es su encabezado, arriba de lo de hoy.
+  const several = boardFromMenu({ precios: [{ id: 'a', nombre: 'Comida corrida', precio: '95' }, { id: 'b', nombre: 'Solo guisado', precio: '70' }], secciones: [{ id: 's', nombre: 'GUISADOS', precio: '', platillos: [] }] });
+  assert.deepEqual(several.secciones.map((x) => [x.nombre, x.precio]), [['COMIDA CORRIDA', '95'], ['SOLO GUISADO', '70'], ['GUISADOS', '']]);
+  // Un encabezado con precio se guarda aunque no tenga platillos; uno vacío, no.
+  const clean = cleanMenu({ secciones: [
+    { id: 'h', nombre: 'MENÚ DEL DÍA', precio: '100', platillos: [] },
+    { id: 'e', nombre: 'VACÍA', precio: '', platillos: [] },
+    { id: 'g', nombre: 'GUISADOS', precio: '', platillos: [{ id: 'd', nombre: 'Mole', descripcion: '', precio: '' }] },
+  ] });
+  assert.deepEqual(clean.secciones.map((x) => x.nombre), ['MENÚ DEL DÍA', 'GUISADOS']);
+  assert.deepEqual(clean.precios, []);
+});

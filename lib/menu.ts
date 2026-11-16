@@ -25,7 +25,8 @@ export const cleanMenuDescription = cleanMenuText;
 
 function menuDataToSections(data: MenuData, kind: 'hoy' | 'carta' = 'hoy'): PatioMenuSection[] {
   return (kind === 'carta' ? data : withMenuPrecios(data)).secciones
-    .filter((sec) => sec.platillos.some((p) => p.nombre))
+    // Un encabezado con precio («MENÚ DEL DÍA $100») sale aunque no tenga platillos debajo.
+    .filter((sec) => sec.platillos.some((p) => p.nombre) || !!publicCurrency(sec.precio))
     .map((sec) => ({
       section: cleanMenuText(sec.nombre) || sec.nombre,
       price: publicCurrency(sec.precio) || undefined,

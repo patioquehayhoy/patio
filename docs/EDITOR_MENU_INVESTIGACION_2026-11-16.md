@@ -130,3 +130,45 @@ script [jev_editor_navegacion](research/jev_editor_navegacion_2026-11-16.py).
 | ¿Se entiende «＋ Platillo» en otra tarjeta? | 2.9 de 4 («bastante», casi) | Se queda |
 | ¿Ayudan «Descripción» y «$» en gris? | 2.5 de 4 (entre «a medias» y «bastante») | Se quedan; revisar en el iPhone si estorban |
 
+
+## 9. Guardar, publicar, ordenar y modificar como Apple (16 nov, segunda vuelta)
+
+Parco: las secciones y los platillos ya le gustan; lo que no, cómo se guarda,
+se publica, se arrastra y se modifica. Pidió copiar a Apple sin romper cómo
+están diseñados los platillos y las secciones (eso no se tocó).
+
+Fuente: el HIG que está en el repo (`docs/hig.pdf`, iOS 26 con Liquid Glass;
+se lee con `pdftotext -layout`). Lo que se aplicó, en paráfrasis:
+
+- **Toolbars:** una sola acción destacada, del lado derecho de la barra. A la
+  izquierda, el botón estándar de regresar (o de cerrar, en algo modal), con
+  su símbolo y sin la palabra; el título de la vista va junto a él.
+- **Menú Archivo:** guardar solo, cada tanto, para que la persona no tenga
+  que pedirlo.
+- **Accesibilidad / listas:** «editar y tocar para eliminar» (el modo edición
+  con su botón rojo) es la manera con botones de lo que también se hace con
+  un gesto.
+- **Color (Liquid Glass):** el color va de fondo solo en la acción principal,
+  nunca en varios controles. Es la misma regla naranja de Patio.
+
+| | Antes | Ahora |
+|---|---|---|
+| Guardar | «Listo» arriba a la derecha guardaba y cerraba; sin platillos, «¿Salir sin guardar?» | Se guarda solo (al hacer una pausa, al irse la app al fondo y al salir). «‹» sale sin preguntar y llega a Menús, donde el menú dice «Guardado» |
+| Publicar | Cápsula al final de la lista: con el teclado arriba no se veía y en un menú largo había que bajar | Cápsula naranja arriba a la derecha, siempre a la vista; apagada sin un platillo de hoy |
+| Modificar el de hoy | Se abría como copia: quedaban dos renglones del mismo día en Menús | Se abre en su lugar: «×» y «Actualizar», que se enciende solo con cambios. «×» con cambios pregunta ahí mismo «Actualizar menú» o «Descartar cambios». No vuelve a avisar a quienes te siguen; la confirmación dice «Actualizado» |
+| Ordenar | «Ordenar» a la izquierda y «Listo» a la derecha; el botón rojo borraba al primer toque; una línea naranja marcaba dónde caía | Mientras ordenas, arriba solo queda «Listo». El botón rojo abre «Eliminar» (dos toques, como iOS). Lo levantado sigue al dedo y los demás se recorren para abrirle su hueco; al soltar, se asienta |
+| Palabras | «Borrar», «Se borró» | «Eliminar», «Se eliminó» (las de iOS en español) |
+
+**Contra lo que dijo Jev (§8):** Jev prefería un «Listo» que guarda (53 %),
+porque así el negocio siente que no pierde nada. Con el autoguardado no hay
+qué perder, y el lado derecho es para la única acción destacada («Publicar»).
+Si en el iPhone se extraña «Listo», se revisa.
+
+**Pendiente, QA de Parco en el iPhone:**
+
+- [ ] Ordenar: que los demás se recorran suave y que nada brinque al soltar,
+  también al pasar un platillo a otra tarjeta o mover una sección completa.
+- [ ] «Eliminar» de dos toques en Ordenar.
+- [ ] Salir con «‹» y ver el menú «Guardado» en Menús.
+- [ ] Abrir el menú de hoy: «×» y «Actualizar»; cambiar un precio,
+  «Actualizar» y ver «Actualizado».

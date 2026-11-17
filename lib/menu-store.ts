@@ -54,6 +54,8 @@ export interface MenuPrecio {
 export type MenuData = {
   /** Solo contexto local del editor; cleanMenu lo excluye del menú público. */
   localDraftId?: string;
+  /** Solo contexto local: es el menú publicado hoy y se cambia con «Actualizar». */
+  localLive?: boolean;
   /** Precios del menú completo. Los precios de sección y de platillo viven en su lugar. */
   precios?: MenuPrecio[];
   /** «Incluye…» del menú del día (2026-11-15, prueba): «sopa, arroz y agua». */

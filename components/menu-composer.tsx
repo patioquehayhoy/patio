@@ -4,8 +4,11 @@ import { Image } from 'expo-image';
 import { Stack } from 'expo-router';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
+  AccessibilityInfo,
   ActivityIndicator,
   Alert,
+  AppState,
+  BackHandler,
   InputAccessoryView,
   Keyboard,
   KeyboardAvoidingView,
@@ -30,8 +33,10 @@ import { fonderoPalette, type FonderoColors } from '@/lib/fondero-palette';
 import { canonicalSeccion, cartaSugerencias, getTipoNegocio, seccionSugerencias, type MenuData, type Platillo, type Seccion } from '@/lib/menu-store';
 import { useTheme } from '@/lib/theme';
 import { ActionSheet } from '@/components/action-sheet';
+import { GlassIconButton } from '@/components/glass-button';
 import { SectionBar } from '@/components/section-bar';
-import { useBoardDrag } from '@/components/board-drag';
+import { useBoardDrag, type BoardDragItem } from '@/components/board-drag';
+import { closeOpenSwipeRow, closeSwipeRowOnTouch, SwipeRow } from '@/components/swipe-row';
 import { mergeDescription, suggestDishSplit } from '@/lib/dish-split';
 import { noWidow } from '@/lib/typography';
 import { TEXT_LIMITS } from '@/lib/text-limits';
@@ -46,11 +51,18 @@ import { getFonditaId } from '@/lib/user-store';
 //   nombre, la descripción debajo y el precio a la derecha. Lo vacío se ve en
 //   gris: se ve que se puede llenar.
 // - Escribir no mueve nada: cada campo está siempre en su lugar.
-// - Sobre el teclado, lo del campo donde estás («Borrar», «Siguiente»,
+// - Sobre el teclado, lo del campo donde estás («Eliminar», «Siguiente»,
 //   títulos sugeridos) y «Listo».
-// - Arriba: «Ordenar» (modo con manijas para mover y botón rojo para borrar)
-//   y «Listo» (guarda y cierra). Jev, 16 nov: «Listo» 53 % frente a «×» 29 %;
-//   modo «Ordenar» 61 % frente a mantener presionado 38 %.
+// - Arriba, como una barra de iOS (HIG, Toolbars; segunda vuelta del 16 nov,
+//   docs/EDITOR_MENU_INVESTIGACION_2026-11-16.md §9): a la izquierda «‹» y el
+//   nombre del menú; a la derecha «Ordenar» y la única acción destacada,
+//   «Publicar» (o «Actualizar» en el menú que ya está publicado hoy).
+// - Guardar no es un botón: el borrador se guarda solo. «‹» sale sin
+//   preguntar. El menú publicado hoy lleva «×»: si cambiaste algo, pregunta
+//   si actualizarlo o descartar.
+// - «Ordenar» es el modo edición de iOS: botón rojo y «Eliminar» para quitar,
+//   manija para mover, y los demás se recorren para abrir lugar. «Listo»
+//   termina. (Jev, 16 nov: modo «Ordenar» 61 % frente a mantener presionado 38 %.)
 // Una barra sobre el teclado por tipo de campo. Cada una trae sus botones
 // fijos (en un precio, «Siguiente» siempre está): no dependen de que la barra
 // se vuelva a dibujar al pasar de un campo a otro.
@@ -58,6 +70,17 @@ const BAR_TEXT = 'menu-bar-text';
 const BAR_PRICE = 'menu-bar-price';
 const BAR_TITLE = 'menu-bar-title';
 const NAV_HEIGHT = 54;
+// «Deshacer» se va solo, como el aviso de Mail o Fotos: tiempo para leerlo y
+// tocarlo sin que se quede pegado (Parco, 16 nov). Con VoiceOver no se va
+// solo (WCAG 2.2.1: quien necesita más tiempo, lo tiene).
+const UNDO_MS = 6000;
+// Mantener presionado en el panel (sin modo Ordenar) antes de levantar: el
+// medio segundo de iOS. Con 280 ms un toque normal un poco lento ya levantaba
+// el platillo y se sentía «atorado» (Parco, 16 nov).
+const HOLD_IN_PLACE_MS = 450;
+// Prueba de Parco (16 nov): mover y eliminar ahí mismo, como Recordatorios.
+// El modo «Ordenar» se queda en el código por si se regresa.
+const SHOW_ORDER_MODE = false;
 // Giros de comida corrida: la primera sección sugiere «MENÚ DEL DÍA», que con
 // su precio es el «MENÚ $100» del pizarrón.
 const MENU_PRICE_TYPES = new Set(['fondita', 'casa', 'restaurante']);
@@ -79,16 +102,17 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
   const s = useMemo(() => makeStyles(c), [c]);
   const {
     addSection,
-    canSaveDraft,
     data,
     declineLink,
     dismissUndo,
     fillKnownPhotos,
+    flushDraft,
     hasUnsavedChanges,
     insertDishAfter,
     lastRemoved,
     linkDish,
     linkSuggestion,
+    live,
     moveDishTo,
     moveSectionTo,
     nombre,
@@ -98,7 +122,6 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
     publishing,
     removeDish,
     removeSection,
-    saveDraft,
     saveNombre,
     setDishPhoto,
     setNombre,
@@ -231,36 +254,60 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
     { label: 'Elegir de Fotos', icon: 'images-outline' as const, onPress: () => { void choosePhoto(photoMenu.sectionId, photoTarget, 'library'); } },
     ...(photoTarget.foto ? [{ label: 'Quitar foto', icon: 'trash-outline' as const, destructive: true, onPress: () => { setDishPhoto(photoMenu.sectionId, photoTarget.id, null); closePhotoMenu(); } }] : []),
   ] : [];
-  // El botón dice qué falta en vez de fallar al tocarlo.
+  // Sin un platillo de hoy no hay qué publicar: «Publicar» se ve apagado.
   const menuEmpty = !splitCarta(cleanMenu(data)).hoy.secciones.some((section) => section.platillos.length);
+  // En el menú publicado hoy, «Actualizar» se enciende cuando algo cambió.
+  const changed = hasUnsavedChanges();
 
   // ─── Nombre del menú (nav) ───────────────────────────────────────────────
-  // Como el título de una nota: se guarda al salir del campo.
+  // Como el título de una nota: se guarda al salir del campo. Es solo tuyo
+  // (no sale en el menú), así que en el menú publicado no pide «Actualizar».
   const nombreInputRef = useRef<TextInput | null>(null);
   const nombreOnFocus = useRef('');
   const focusNombre = () => { nombreOnFocus.current = nombre; };
   const confirmNombre = async () => {
     if (nombre === nombreOnFocus.current) return;
-    await saveNombre();
+    if (live) await saveNombre(); else await flushDraft();
   };
 
   // ─── Ordenar ─────────────────────────────────────────────────────────────
-  // «Ordenar» arriba: cada platillo y cada título muestran un botón rojo para
-  // borrar y su manija (≡) para moverlos (components/board-drag.tsx). Escribir
-  // y ordenar son dos momentos distintos: así ningún gesto pelea con el texto.
+  // El modo edición de iOS (HIG, Lists and tables): cada platillo y cada
+  // título muestran el botón rojo a la izquierda y su manija (≡) a la derecha
+  // (components/board-drag.tsx). Escribir y ordenar son dos momentos
+  // distintos: así ningún gesto pelea con el texto. Arriba, «Listo» termina.
   const [ordering, setOrdering] = useState(false);
+  // Eliminar pide dos toques, como en iOS: el botón rojo abre «Eliminar» a la
+  // derecha del renglón y «Eliminar» lo quita (con «Deshacer»).
+  const [confirming, setConfirming] = useState<string | null>(null);
   const startOrdering = () => {
     Keyboard.dismiss();
     smoothly();
+    setConfirming(null);
     setOrdering(true);
+    Haptics.selectionAsync().catch(() => {});
+  };
+  const finishOrdering = () => {
+    smoothly();
+    setConfirming(null);
+    setOrdering(false);
+  };
+  // Las opciones de la pantalla solo cambian cuando de verdad cambian (no en
+  // cada letra ni a medio arrastre).
+  const swipeBack = !ordering && !(live && changed);
+  const screenOptions = useMemo(() => ({ headerShown: false, gestureEnabled: swipeBack }), [swipeBack]);
+  const toggleConfirm = (key: string) => {
+    smoothly();
+    setConfirming((current) => (current === key ? null : key));
     Haptics.selectionAsync().catch(() => {});
   };
   const sectionY = useRef<Record<string, number>>({});
   const board = useBoardDrag({
     sections: data.secciones,
     scrollRef,
-    onMoveDish: (dishId, toSectionId, toIndex) => { smoothly(); moveDishTo(dishId, toSectionId, toIndex); },
-    onMoveSection: (sectionId, toIndex) => { smoothly(); moveSectionTo(sectionId, toIndex); },
+    // Al soltar, el menú cambia de una vez: lo levantado ya se asentó en su hueco.
+    onMoveDish: moveDishTo,
+    onMoveSection: moveSectionTo,
+    onLift: () => { setConfirming(null); closeOpenSwipeRow(); },
   });
   // Con VoiceOver, «Subir» y «Bajar» hacen lo mismo que arrastrar un lugar.
   const nudgeDish = (sectionId: string, dishId: string, direction: -1 | 1) => {
@@ -371,7 +418,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
     }
     patchSection(section.id, { nombre: clean.slice(0, TEXT_LIMITS.sectionName) });
   };
-  // «Borrar» sobre el teclado: se va el platillo y el cursor pasa al de abajo
+  // «Eliminar» sobre el teclado: se va el platillo y el cursor pasa al de abajo
   // (o al de arriba), así se limpian varios seguidos (el menú de ayer). Lo que
   // tenía algo se puede deshacer.
   const deleteFocusedDish = (section: Seccion, dish: Platillo) => {
@@ -459,21 +506,61 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
     pendingFocus.current = `t-${addSection('', carta)}`;
   };
 
-  // ─── Listo ───────────────────────────────────────────────────────────────
-  // «Listo» arriba a la derecha: en Ordenar, termina de ordenar; si no, guarda
-  // lo escrito y cierra (Jev: es con lo que más seguro se siente el negocio de
-  // no perder nada). Publicar sigue siendo la cápsula naranja de abajo.
-  const done = () => {
-    if (ordering) { smoothly(); setOrdering(false); return; }
+  // ─── Salir ───────────────────────────────────────────────────────────────
+  // «‹» (borrador): sale sin preguntar; lo escrito ya está guardado (HIG: el
+  // botón estándar de regresar, sin texto).
+  // «×» (el menú publicado hoy): si cambiaste algo, pregunta ahí mismo si
+  // actualizarlo o descartar los cambios, como Calendario al editar.
+  const leaveRef = useRef<View>(null);
+  const [leaveMenu, setLeaveMenu] = useState(false);
+  const leavingRef = useRef(false);
+  const leave = () => {
     Keyboard.dismiss();
-    if (!hasUnsavedChanges()) { onBack(); return; }
-    if (canSaveDraft) { void saveDraft().then((saved) => { if (saved) onBack(); }); return; }
-    // Sin un platillo de hoy no hay qué guardar: lo demás se perdería.
-    Alert.alert(noWidow('¿Salir sin guardar?'), noWidow('Para guardar, escribe al menos un platillo de hoy.'), [
-      { text: 'Seguir escribiendo', style: 'cancel' },
-      { text: 'Salir', style: 'destructive', onPress: onBack },
-    ]);
+    if (live) {
+      if (!hasUnsavedChanges()) { onBack(); return; }
+      setLeaveMenu(true);
+      return;
+    }
+    if (leavingRef.current) return;
+    leavingRef.current = true;
+    void flushDraft(true).then((saved) => {
+      leavingRef.current = false;
+      if (saved) { onBack(); return; }
+      Alert.alert(noWidow('No se pudo guardar el menú'), noWidow('Inténtalo otra vez.'), [
+        { text: 'Quedarme', style: 'cancel' },
+        { text: 'Salir sin guardar', style: 'destructive', onPress: onBack },
+      ]);
+    });
   };
+  const leaveOptions = [
+    ...(menuEmpty ? [] : [{ label: 'Actualizar menú', icon: 'checkmark-circle-outline' as const, afterDismiss: true, onPress: () => { void publish(); } }]),
+    { label: 'Descartar cambios', icon: 'trash-outline' as const, destructive: true, afterDismiss: true, onPress: onBack },
+  ];
+  // Android: el botón de atrás hace lo mismo que «‹», «×» o, en Ordenar, «Listo».
+  const backRef = useRef(leave);
+  backRef.current = ordering ? finishOrdering : leave;
+  useEffect(() => {
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => { backRef.current(); return true; });
+    return () => subscription.remove();
+  }, []);
+  // «Deshacer» se va solo; cada eliminación nueva vuelve a contar. Mientras
+  // arrastras no corre (el aviso está escondido).
+  useEffect(() => {
+    if (!lastRemoved || board.drag) return;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let active = true;
+    AccessibilityInfo.isScreenReaderEnabled()
+      .then((reading) => { if (active && !reading) timer = setTimeout(dismissUndo, UNDO_MS); })
+      .catch(() => { if (active) timer = setTimeout(dismissUndo, UNDO_MS); });
+    return () => { active = false; if (timer) clearTimeout(timer); };
+  }, [lastRemoved, board.drag, dismissUndo]);
+  // Si la app se va al fondo (una llamada, otra app), lo escrito se guarda.
+  const flushRef = useRef(flushDraft);
+  flushRef.current = flushDraft;
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (state) => { if (state !== 'active') void flushRef.current(); });
+    return () => subscription.remove();
+  }, []);
 
   // ─── Barra sobre el teclado ──────────────────────────────────────────────
   const barButton = (label: string, onPress: () => void, options: { strong?: boolean; icon?: keyof typeof Ionicons.glyphMap; a11y?: string } = {}) => (
@@ -519,7 +606,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
       }
       return (
         <>
-          {barButton('Borrar', () => deleteFocusedSection(section), { a11y: `Borrar la sección ${section.nombre || ''}`.trim() })}
+          {barButton('Eliminar', () => deleteFocusedSection(section), { a11y: `Eliminar la sección ${section.nombre || ''}`.trim() })}
           <View style={s.barSpacer} />
           {doneKey}
         </>
@@ -538,7 +625,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
     if (!found) return doneKey;
     return (
       <>
-        {barButton('Borrar', () => deleteFocusedDish(found.section, found.dish), { a11y: `Borrar ${found.dish.nombre || 'platillo'}` })}
+        {barButton('Eliminar', () => deleteFocusedDish(found.section, found.dish), { a11y: `Eliminar ${found.dish.nombre || 'platillo'}` })}
         <View style={s.barSpacer} />
         {doneKey}
       </>
@@ -571,7 +658,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
     },
   };
   const listoKey = barButton('Listo', () => Keyboard.dismiss(), { strong: true });
-  // Barra de un título: vacío, los títulos sugeridos; con nombre, «Borrar».
+  // Barra de un título: vacío, los títulos sugeridos; con nombre, «Eliminar».
   const renderTitleBar = (): ReactNode => {
     const key = focused ?? lastFocused.current;
     const section = key?.startsWith('t-') ? data.secciones.find((item) => item.id === key.slice(2)) : undefined;
@@ -598,7 +685,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
     }
     return (
       <>
-        {barButton('Borrar', () => barActions.current.remove(), { a11y: 'Borrar la sección' })}
+        {barButton('Eliminar', () => barActions.current.remove(), { a11y: 'Eliminar la sección' })}
         <View style={s.barSpacer} />
         {listoKey}
       </>
@@ -606,12 +693,167 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
   };
 
   // ─── Render ──────────────────────────────────────────────────────────────
-  // Botón rojo de borrar y manija de mover, en el modo Ordenar.
-  const removeButton = (label: string, onPress: () => void) => (
-    <TouchableOpacity style={s.minus} onPress={onPress} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} activeOpacity={0.6} accessibilityRole="button" accessibilityLabel={label}>
-      <View style={s.minusCircle}><View style={s.minusBar} /></View>
+  // Modo Ordenar, como una lista de iOS en modo edición: el botón rojo a la
+  // izquierda abre «Eliminar» a la derecha del renglón (el botón rojo gira);
+  // otro toque en el botón rojo lo cierra. La manija va a la derecha.
+  const minusMark = (turned = false) => (
+    <View style={[s.minusCircle, turned && s.minusTurned]}><View style={s.minusBar} /></View>
+  );
+  const removeButton = (key: string, label: string) => (
+    <TouchableOpacity
+      style={s.minus}
+      onPress={() => toggleConfirm(key)}
+      hitSlop={{ top: 11, bottom: 11, left: 11, right: 11 }}
+      activeOpacity={0.6}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ expanded: confirming === key }}>
+      {minusMark(confirming === key)}
     </TouchableOpacity>
   );
+  const deleteButton = (label: string, onPress: () => void) => (
+    <TouchableOpacity
+      style={s.deleteButton}
+      onPress={() => {
+        setConfirming(null);
+        smoothly();
+        onPress();
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => {});
+      }}
+      activeOpacity={0.8}
+      accessibilityRole="button"
+      accessibilityLabel={label}>
+      <Text style={s.deleteText} maxFontSizeMultiplier={1.2}>Eliminar</Text>
+    </TouchableOpacity>
+  );
+  const handleMark = (
+    <View style={s.handle}><Ionicons name="reorder-three" size={24} color={c.textMute} /></View>
+  );
+  // Lo que se ve de un platillo y de un título en Ordenar; también en la copia
+  // que sigue al dedo. La foto se queda en su columna, como al escribir.
+  const orderDishContent = (dish: Platillo) => (
+    <>
+      <View style={s.slot}>
+        {dish.foto
+          ? <Image source={{ uri: dish.foto }} style={StyleSheet.absoluteFill} contentFit="cover" cachePolicy="memory-disk" accessibilityIgnoresInvertColors />
+          : <Ionicons name="camera-outline" size={19} color={c.textMute} />}
+      </View>
+      <View style={s.body}>
+        <Text style={s.dishName} numberOfLines={2}>{dish.nombre || 'Platillo'}</Text>
+        {!!dish.descripcion && <Text style={s.description} numberOfLines={1}>{dish.descripcion}</Text>}
+      </View>
+      {!!dish.precio && <Text style={[s.currency, s.currencyOn]}>{`$${dish.precio}`}</Text>}
+    </>
+  );
+  const orderTitleContent = (section: Seccion) => {
+    const todayIndex = todaySections.findIndex((item) => item.id === section.id);
+    return (
+      <>
+        <View style={s.body}>
+          <Text style={[s.title, !section.nombre && { color: c.textMute }]}>{section.nombre || (todayIndex === 0 ? firstSectionHint : 'SECCIÓN')}</Text>
+        </View>
+        {!!section.precio && <Text style={[s.currency, s.currencyOn]}>{`$${section.precio}`}</Text>}
+      </>
+    );
+  };
+  // La copia de lo que arrastras, encima de la lista: igual al renglón (mismas
+  // líneas, «Descripción» y «$» en gris, misma columna de precio), así al
+  // levantar y al soltar ninguna letra se mueve. Solo cambia la sombra.
+  const ghostDishRow = (dish: Platillo, divider: boolean) => (
+    <View key={dish.id} style={s.dish}>
+      {divider && <View style={s.dishDivider} />}
+      <View style={s.slot}>
+        {dish.foto
+          ? <Image source={{ uri: dish.foto }} style={StyleSheet.absoluteFill} contentFit="cover" cachePolicy="memory-disk" accessibilityIgnoresInvertColors />
+          : <Ionicons name="camera-outline" size={19} color={c.textMute} />}
+      </View>
+      <View style={s.body}>
+        {!!dish.revision && !/precio|\$|importe/i.test(dish.revision) && (
+          <View style={s.reviewNote}>
+            <Ionicons name="alert-circle-outline" size={13} color={c.accent} />
+            <Text style={s.reviewNoteText}>{dish.revision}</Text>
+          </View>
+        )}
+        <Text style={[s.dishName, !dish.nombre && { color: c.textMute }]}>{dish.nombre || 'Platillo'}</Text>
+        <Text style={[s.description, !dish.descripcion && { color: c.textMute }]}>{dish.descripcion || 'Descripción'}</Text>
+      </View>
+      <View style={s.price}>
+        <Text style={[s.currency, !!dish.precio && s.currencyOn]}>$</Text>
+        <Text style={s.priceInput}>{dish.precio}</Text>
+      </View>
+    </View>
+  );
+  const renderGhost = (item: BoardDragItem) => {
+    if (item.kind === 'dish') {
+      const dish = data.secciones.find((section) => section.id === item.sectionId)?.platillos.find((entry) => entry.id === item.dishId);
+      if (!dish) return null;
+      if (!ordering) return ghostDishRow(dish, false);
+      return (
+        <View style={[s.dish, s.orderRow]}>
+          <View style={s.minus}>{minusMark()}</View>
+          <View style={s.orderGrab}>{orderDishContent(dish)}</View>
+          {handleMark}
+        </View>
+      );
+    }
+    const section = data.secciones.find((entry) => entry.id === item.sectionId);
+    if (!section) return null;
+    if (!ordering) {
+      const todayIndex = todaySections.findIndex((entry) => entry.id === section.id);
+      return (
+        <>
+          <View style={s.head}>
+            <View style={s.body}>
+              <Text style={[s.title, !section.nombre && { color: c.textMute }]}>{section.nombre || (todayIndex === 0 ? firstSectionHint : 'SECCIÓN')}</Text>
+            </View>
+            <View style={s.price}>
+              <Text style={[s.currency, !!section.precio && s.currencyOn]}>$</Text>
+              <Text style={s.priceInput}>{section.precio}</Text>
+            </View>
+          </View>
+          {section.platillos.map((dish, index) => ghostDishRow(dish, index > 0))}
+          <View style={[s.addDish, !!section.platillos.length && s.addDishDivider]}>
+            <Ionicons name="add" size={18} color={c.accent} />
+            <Text style={s.addText}>Platillo</Text>
+          </View>
+        </>
+      );
+    }
+    return (
+      <>
+        <View style={[s.head, s.orderRow]}>
+          <View style={s.minus}>{minusMark()}</View>
+          <View style={s.orderGrab}>{orderTitleContent(section)}</View>
+          {handleMark}
+        </View>
+        {section.platillos.map((dish, index) => (
+          <View key={dish.id} style={[s.dish, s.orderRow]}>
+            {index > 0 && <View style={s.orderDivider} />}
+            <View style={s.minus}>{minusMark()}</View>
+            <View style={s.orderGrab}>{orderDishContent(dish)}</View>
+            {handleMark}
+          </View>
+        ))}
+      </>
+    );
+  };
+  // Mientras arrastras un platillo, cada tarjeta abre su hueco donde caería.
+  const dishTarget = board.drag?.kind === 'dish' && board.target?.kind === 'dish' && !board.atOrigin ? board.target : null;
+  const draggedDishId = board.drag?.kind === 'dish' ? board.drag.dishId : null;
+  const sectionTarget = board.drag?.kind === 'section' && board.target?.kind === 'section' && !board.atOrigin ? board.target : null;
+  const draggedSectionId = board.drag?.kind === 'section' ? board.drag.sectionId : null;
+  // Un hueco: siempre montado, solo cambia de alto (así nada se desmonta mientras arrastras).
+  const gap = (open: boolean, line: boolean) => (
+    <View pointerEvents="none" style={{ height: open ? board.gapHeight : 0 }}>
+      {open && line && <View style={ordering ? s.orderDivider : s.dishDivider} />}
+    </View>
+  );
+  // Sin modo aparte (2026-11-16, como Recordatorios): en el panel mismo,
+  // mantener presionado un platillo o un título lo levanta para moverlo y
+  // deslizarlo a la izquierda abre «Eliminar». Escribiendo no hay gestos: el
+  // texto se selecciona como siempre (y «Eliminar» está en la barra del teclado).
+  // Ojo: no apagarlos mientras arrastras (apagar un gesto activo lo cancela).
+  const gesturesOn = !keyboardOpen;
   const moveHandle = (item: Parameters<typeof board.handleFor>[0], label: string, onUp: () => void, onDown: () => void) => (
     <GestureDetector gesture={board.handleFor(item)}>
       <View
@@ -632,35 +874,61 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
 
   const renderDish = (section: Seccion, dish: Platillo, index: number) => {
     const nameKey = `n-${dish.id}`;
-    const dragging = board.drag?.kind === 'dish' && board.drag.dishId === dish.id;
     const busy = !!photoBusy[dish.id];
     if (ordering) {
+      const lifted = draggedDishId === dish.id;
+      // Su lugar entre los demás, sin contar lo que se mueve.
+      const before = section.platillos.slice(0, index).filter((item) => item.id !== draggedDishId).length;
+      const gapAbove = !lifted && !!dishTarget && dishTarget.sectionId === section.id && dishTarget.index === before;
+      // Línea arriba si algo queda encima en la tarjeta: otro platillo, el
+      // hueco o el lugar del que se levantó.
+      const belowLifted = board.atOrigin && index > 0 && section.platillos[index - 1].id === draggedDishId;
+      const key = `dish:${dish.id}`;
+      const item = { kind: 'dish' as const, dishId: dish.id, sectionId: section.id };
+      const label = dish.nombre || 'platillo';
       return (
-        <ReAnimated.View
-          key={dish.id}
-          style={[s.dish, s.orderRow, dragging && [s.dragging, board.dragStyle]]}
-          onLayout={board.onDishLayout(dish.id)}>
-          {index > 0 && !dragging && <View pointerEvents="none" style={s.orderDivider} />}
-          {removeButton(`Borrar ${dish.nombre || 'platillo'}`, () => { smoothly(); removeDish(section.id, dish.id); })}
-          {/* En Ordenar no se escribe: todo el renglón se arrastra. */}
-          <GestureDetector gesture={board.rowFor({ kind: 'dish', dishId: dish.id, sectionId: section.id })}>
-            <View style={s.orderGrab} collapsable={false}>
-              <View style={s.body}>
-                <Text style={s.dishName}>{dish.nombre || 'Platillo'}</Text>
-                {!!dish.descripcion && <Text style={s.description} numberOfLines={1}>{dish.descripcion}</Text>}
-              </View>
-              {!!dish.precio && <Text style={[s.currency, s.currencyOn]}>{`$${dish.precio}`}</Text>}
-            </View>
-          </GestureDetector>
-          {moveHandle({ kind: 'dish', dishId: dish.id, sectionId: section.id }, dish.nombre || 'platillo', () => nudgeDish(section.id, dish.id, -1), () => nudgeDish(section.id, dish.id, 1))}
-        </ReAnimated.View>
+        // Lo levantado sigue montado (su gesto vive aquí): invisible y, si el
+        // hueco está en otro lado, encogido. `collapsable={false}` en todo el
+        // camino del dedo a la lista: sin eso, al ponerle opacidad o recorte a
+        // una vista «aplanada», React Native saca sus hijos y los vuelve a
+        // meter, y iOS cancela el toque (el arrastre «se reseteaba» al
+        // levantar).
+        <View key={dish.id} collapsable={false} onLayout={board.onDishLayout(dish.id)} style={lifted && !board.atOrigin && s.collapsed}>
+          {!lifted && gap(gapAbove, before > 0)}
+          <View collapsable={false} style={[s.dish, s.orderRow, lifted && s.away]}>
+            {(before > 0 || gapAbove || belowLifted) && <View pointerEvents="none" style={s.orderDivider} />}
+            {removeButton(key, `Eliminar ${label}`)}
+            {/* En Ordenar no se escribe: todo el renglón se arrastra. */}
+            <GestureDetector gesture={board.rowFor(item)}>
+              <View style={s.orderGrab} collapsable={false}>{orderDishContent(dish)}</View>
+            </GestureDetector>
+            {confirming === key
+              ? deleteButton(`Eliminar ${label}`, () => removeDish(section.id, dish.id))
+              : moveHandle(item, label, () => nudgeDish(section.id, dish.id, -1), () => nudgeDish(section.id, dish.id, 1))}
+          </View>
+        </View>
       );
     }
     const split = !keyboardOpen ? suggestDishSplit(dish.nombre) : null;
     const link = !keyboardOpen ? linkSuggestion(dish) : null;
+    // Mientras arrastras: lo levantado se queda montado (invisible, y encogido
+    // si el hueco está en otro lado) y los demás abren su hueco.
+    const lifted = draggedDishId === dish.id;
+    const before = section.platillos.slice(0, index).filter((item) => item.id !== draggedDishId).length;
+    const gapAbove = !lifted && !!dishTarget && dishTarget.sectionId === section.id && dishTarget.index === before;
+    const belowLifted = board.atOrigin && index > 0 && section.platillos[index - 1].id === draggedDishId;
     return (
-      <View key={dish.id} style={s.dish} onLayout={board.onDishLayout(dish.id)}>
-        {index > 0 && <View pointerEvents="none" style={s.dishDivider} />}
+      <View key={dish.id} collapsable={false} onLayout={board.onDishLayout(dish.id)} style={lifted && !board.atOrigin && s.collapsed}>
+        {!lifted && gap(gapAbove, before > 0)}
+        <SwipeRow
+          drag={board.rowFor({ kind: 'dish', dishId: dish.id, sectionId: section.id }, HOLD_IN_PLACE_MS).enabled(gesturesOn)}
+          enabled={gesturesOn}
+          fullSwipe
+          actions={[{ label: 'Eliminar', color: c.danger, accessibilityLabel: `Eliminar ${dish.nombre || 'platillo'}`, onPress: () => { smoothly(); removeDish(section.id, dish.id); } }]}
+          background={[c.bg, c.surface]}
+          scrollRef={scrollRef}
+          style={[s.dish, lifted && s.away]}>
+        {(before > 0 || gapAbove || belowLifted) && <View pointerEvents="none" style={s.dishDivider} />}
         {/* La foto: el cuadro de la izquierda. Tocarlo abre ahí mismo
             Tomar foto, Elegir de Fotos y Quitar foto. */}
         <Pressable
@@ -674,7 +942,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
           {busy
             ? <ActivityIndicator size="small" color={c.textSecondary} />
             : dish.foto
-              ? <Image source={{ uri: dish.foto }} style={StyleSheet.absoluteFill} contentFit="cover" accessibilityIgnoresInvertColors />
+              ? <Image source={{ uri: dish.foto }} style={StyleSheet.absoluteFill} contentFit="cover" cachePolicy="memory-disk" accessibilityIgnoresInvertColors />
               : <Ionicons name="camera-outline" size={19} color={c.textMute} />}
         </Pressable>
         <View style={s.body}>
@@ -797,6 +1065,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
             accessibilityElementsHidden
           />
         </Pressable>
+        </SwipeRow>
       </View>
     );
   };
@@ -804,39 +1073,54 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
   const renderSection = (section: Seccion, index: number) => {
     const titleKey = `t-${section.id}`;
     const todayIndex = todaySections.findIndex((item) => item.id === section.id);
-    const draggingSection = board.drag?.kind === 'section' && board.drag.sectionId === section.id;
-    const holdsDraggedDish = board.drag?.kind === 'dish' && board.drag.sectionId === section.id;
     // «Sección» va después de la última tarjeta de hoy y de la última de la carta.
     const lastToday = !section.carta && index === todaySections.length - 1;
     const lastOverall = index === data.secciones.length - 1;
+    // Ordenar: la tarjeta levantada se queda montada (invisible y, si el hueco
+    // está en otro lado, encogida); las demás abren su hueco arriba de ellas.
+    const lifted = draggedSectionId === section.id;
+    const sectionBefore = data.secciones.slice(0, index).filter((item) => item.id !== draggedSectionId).length;
+    const sectionGapAbove = !lifted && !!sectionTarget && sectionTarget.index === sectionBefore;
+    const sectionKey = `section:${section.id}`;
+    const sectionLabel = section.nombre || `la sección ${index + 1}`;
+    const remaining = section.platillos.filter((item) => item.id !== draggedDishId).length;
     return (
       // El envoltorio mide la sección dentro de la lista (para ordenar y para
-      // la barra de secciones) y la pone encima de las demás mientras se mueve.
+      // la barra de secciones).
       <View
         key={section.id}
-        style={[holdsDraggedDish && s.raised, draggingSection && s.lifted]}
+        collapsable={false}
+        style={lifted && !board.atOrigin && s.collapsed}
         onLayout={(event) => {
           sectionY.current[section.id] = event.nativeEvent.layout.y;
           board.onSectionLayout(section.id)(event);
         }}>
-        <ReAnimated.View style={[s.card, draggingSection && [s.cardDragging, board.dragStyle]]}>
+        {!lifted && gap(sectionGapAbove, false)}
+        <View collapsable={false} style={[s.card, lifted && s.away]}>
           {ordering ? (
-            <View style={[s.head, s.orderRow]} onLayout={board.onHeaderLayout(section.id)}>
-              {removeButton(`Borrar la sección ${section.nombre || index + 1}`, () => { smoothly(); removeSection(section.id); })}
+            <View collapsable={false} style={[s.head, s.orderRow]} onLayout={board.onHeaderLayout(section.id)}>
+              {removeButton(sectionKey, `Eliminar ${sectionLabel}`)}
               <GestureDetector gesture={board.rowFor({ kind: 'section', sectionId: section.id })}>
-                <View style={s.orderGrab} collapsable={false}>
-                  <View style={s.body}>
-                    <Text style={[s.title, !section.nombre && { color: c.textMute }]}>{section.nombre || (todayIndex === 0 ? firstSectionHint : 'SECCIÓN')}</Text>
-                  </View>
-                  {!!section.precio && <Text style={[s.currency, s.currencyOn]}>{`$${section.precio}`}</Text>}
-                </View>
+                <View style={s.orderGrab} collapsable={false}>{orderTitleContent(section)}</View>
               </GestureDetector>
-              {moveHandle({ kind: 'section', sectionId: section.id }, section.nombre || 'la sección',
-                () => { if (index > 0) { smoothly(); moveSectionTo(section.id, index - 1); } },
-                () => { if (index < data.secciones.length - 1) { smoothly(); moveSectionTo(section.id, index + 1); } })}
+              {confirming === sectionKey
+                ? deleteButton(`Eliminar ${sectionLabel}`, () => removeSection(section.id))
+                : moveHandle({ kind: 'section', sectionId: section.id }, section.nombre || 'la sección',
+                  () => { if (index > 0) { smoothly(); moveSectionTo(section.id, index - 1); } },
+                  () => { if (index < data.secciones.length - 1) { smoothly(); moveSectionTo(section.id, index + 1); } })}
             </View>
           ) : (
-            <View style={s.head} onLayout={board.onHeaderLayout(section.id)}>
+            // El título también: mantenerlo presionado mueve la sección
+            // completa; deslizarlo, la elimina (con «Deshacer»).
+            <SwipeRow
+              drag={board.rowFor({ kind: 'section', sectionId: section.id }, HOLD_IN_PLACE_MS).enabled(gesturesOn)}
+              enabled={gesturesOn}
+              fullSwipe
+              actions={[{ label: 'Eliminar', color: c.danger, accessibilityLabel: `Eliminar ${sectionLabel}`, onPress: () => { smoothly(); removeSection(section.id); } }]}
+              background={[c.bg, c.surface]}
+              scrollRef={scrollRef}
+              onLayout={board.onHeaderLayout(section.id)}
+              style={s.head}>
               <View style={s.body}>
                 <TextInput
                   ref={registerInput(titleKey)}
@@ -886,9 +1170,11 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                   accessibilityElementsHidden
                 />
               </Pressable>
-            </View>
+            </SwipeRow>
           )}
           {section.platillos.map((dish, dishIndex) => renderDish(section, dish, dishIndex))}
+          {/* Al arrastrar: el hueco al final de la tarjeta (también en una vacía). */}
+          {gap(!!dishTarget && dishTarget.sectionId === section.id && dishTarget.index === remaining, remaining > 0)}
           {!ordering && (
             <TouchableOpacity
               style={[s.addDish, !!section.platillos.length && s.addDishDivider]}
@@ -900,7 +1186,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
               <Text style={s.addText}>Platillo</Text>
             </TouchableOpacity>
           )}
-        </ReAnimated.View>
+        </View>
         {!ordering && (lastToday || (lastOverall && !!section.carta)) && (
           <TouchableOpacity
             style={s.addSection}
@@ -918,16 +1204,25 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
 
   return (
     <View style={s.root}>
-      <Stack.Screen options={{ headerShown: false }} />
+      {/* Deslizar para regresar hace lo mismo que «‹» (lo escrito ya está
+          guardado); no se permite mientras ordenas ni con cambios sin
+          actualizar en el menú publicado hoy (ahí «×» pregunta). */}
+      <Stack.Screen options={screenOptions} />
       <KeyboardAvoidingView style={{ flex: 1 }} behavior="height" enabled={Platform.OS === 'android'}>
-        {/* Arriba: «Ordenar» a la izquierda, el nombre del menú y «Listo» a la
-            derecha (guarda y cierra; en Ordenar, termina de ordenar). */}
+        {/* Arriba, como una barra de iOS (HIG, Toolbars): a la izquierda «‹»
+            (o «×» en el menú publicado hoy) y el nombre del menú; a la derecha
+            «Ordenar» y la única acción destacada, «Publicar» o «Actualizar».
+            En Ordenar solo queda «Listo». */}
         <View style={[s.nav, { paddingTop: insets.top + 6 }]}>
-          {ordering ? <View style={s.navSide} /> : (
-            <TouchableOpacity style={s.navSide} onPress={startOrdering} hitSlop={{ top: 8, bottom: 8 }} activeOpacity={0.6} accessibilityRole="button" accessibilityLabel="Ordenar el menú">
-              <Text style={s.navText}>Ordenar</Text>
-            </TouchableOpacity>
-          )}
+          <View ref={leaveRef} collapsable={false} style={s.navLead}>
+            {!ordering && (
+              <GlassIconButton
+                icon={live ? 'close' : 'chevron-back'}
+                accessibilityLabel={live ? 'Cerrar' : 'Volver a Menús'}
+                onPress={leave}
+              />
+            )}
+          </View>
           <TextInput
             ref={nombreInputRef}
             style={[s.navTitle, { color: nombre.trim() ? c.text : c.textSecondary }]}
@@ -940,12 +1235,44 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
             placeholder="Nombre del menú"
             placeholderTextColor={c.textMute}
             maxLength={TEXT_LIMITS.menuName}
+            maxFontSizeMultiplier={1.2}
             returnKeyType="done"
             accessibilityLabel="Nombre del menú"
           />
-          <TouchableOpacity style={[s.navSide, s.navSideEnd]} onPress={done} hitSlop={{ top: 8, bottom: 8 }} activeOpacity={0.6} accessibilityRole="button" accessibilityLabel={ordering ? 'Terminar de ordenar' : 'Listo: guardar y cerrar'}>
-            <Text style={s.navDone}>Listo</Text>
-          </TouchableOpacity>
+          {ordering ? (
+            <TouchableOpacity style={s.navTextButton} onPress={finishOrdering} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} activeOpacity={0.6} accessibilityRole="button" accessibilityLabel="Listo, terminar de ordenar">
+              <Text style={s.navDone} maxFontSizeMultiplier={1.2}>Listo</Text>
+            </TouchableOpacity>
+          ) : (
+            <>
+              {SHOW_ORDER_MODE && (
+                <TouchableOpacity style={s.navTextButton} onPress={startOrdering} hitSlop={{ top: 8, bottom: 8, left: 8, right: 4 }} activeOpacity={0.6} accessibilityRole="button" accessibilityLabel="Ordenar el menú">
+                  <Text style={s.navText} maxFontSizeMultiplier={1.2}>Ordenar</Text>
+                </TouchableOpacity>
+              )}
+              {(() => {
+                // Apagado sin un platillo de hoy y, en el menú publicado, sin cambios.
+                const idle = menuEmpty || (live && !changed);
+                const label = live ? 'Actualizar' : 'Publicar';
+                return (
+                  <TouchableOpacity
+                    style={[s.primary, idle && s.primaryIdle]}
+                    onPress={publish}
+                    disabled={idle || publishing}
+                    hitSlop={{ top: 4, bottom: 4, left: 4, right: 8 }}
+                    activeOpacity={0.85}
+                    accessibilityRole="button"
+                    accessibilityLabel={publishing ? (live ? 'Actualizando menú' : 'Publicando menú') : `${label} menú`}
+                    accessibilityHint={menuEmpty ? 'Escribe al menos un platillo de hoy.' : live && !changed ? 'Cambia algo de tu menú para actualizarlo.' : undefined}
+                    accessibilityState={{ disabled: idle || publishing, busy: publishing }}>
+                    {/* Mientras publica, el indicador ocupa el lugar del texto: el botón no cambia de tamaño. */}
+                    <Text style={[s.primaryText, idle && s.primaryTextIdle, publishing && s.invisible]} maxFontSizeMultiplier={1.2}>{label}</Text>
+                    {publishing && <ActivityIndicator style={StyleSheet.absoluteFill} size="small" color="#fff" />}
+                  </TouchableOpacity>
+                );
+              })()}
+            </>
+          )}
         </View>
 
         {data.secciones.length >= 4 && !keyboardOpen && (
@@ -956,51 +1283,48 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
             colors={{ text: c.text, textSecondary: c.textSecondary, bg: c.bg, border: c.border, glass: theme.glass, isDark: theme.isDark }}
           />
         )}
-        {/* El ScrollView de gesture-handler: cada arrastre de Ordenar lo bloquea
-            mientras puede empezar (components/board-drag.tsx). */}
-        <GestureScrollView
-          ref={scrollRef}
-          onLayout={board.onViewportLayout}
-          onScroll={(event) => {
-            board.onScroll(event);
-            scrollY.current = event.nativeEvent.contentOffset.y;
-            if (data.secciones.length >= 4) followSections(event.nativeEvent.contentOffset.y);
-          }}
-          scrollEventThrottle={16}
-          scrollEnabled={!board.drag}
-          automaticallyAdjustKeyboardInsets
-          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: insets.bottom + 32 + (lastRemoved ? 64 : 0) }}
-          keyboardDismissMode="interactive"
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}>
-          {/* Menú leído de una foto: si salió mal, otra foto. */}
-          {source === 'foto' && onRetake && !ordering && (
-            <TouchableOpacity style={s.retake} onPress={onRetake} activeOpacity={0.6} accessibilityRole="button" accessibilityLabel="Tomar otra foto">
-              <Ionicons name="camera-outline" size={16} color={c.textSecondary} />
-              <Text style={s.retakeText}>Tomar otra foto</Text>
-            </TouchableOpacity>
-          )}
-          {board.lineY != null && <View pointerEvents="none" style={[s.dropLine, { top: board.lineY - 1 }]} />}
-          {data.secciones.map((section, index) => renderSection(section, index))}
-
-          {/* La única acción prominente: publicar (cápsula naranja). «Listo»,
-              arriba, guarda sin publicar. */}
-          {!ordering && (
-            <View style={s.actionsBlock}>
-              <TouchableOpacity
-                style={[s.publishButton, menuEmpty && s.publishIdle]}
-                onPress={publish}
-                disabled={publishing || menuEmpty}
-                activeOpacity={0.85}
-                accessibilityRole="button"
-                accessibilityLabel={publishing ? 'Publicando menú' : menuEmpty ? 'Falta un platillo' : 'Publicar menú'}
-                accessibilityState={{ disabled: publishing || menuEmpty, busy: publishing }}>
-                {publishing && <ActivityIndicator size="small" color="#fff" />}
-                <Text style={[s.publishText, menuEmpty && { color: c.textSecondary }]}>{noWidow(publishing ? 'Publicando…' : menuEmpty ? 'Falta un platillo' : 'Publicar menú')}</Text>
+        {/* La lista y, encima, la copia de lo que arrastras (recortada a la
+            lista: nunca tapa la barra de arriba). */}
+        <View style={s.listArea}>
+          {/* El ScrollView de gesture-handler: cada arrastre de Ordenar lo
+              bloquea mientras puede empezar (components/board-drag.tsx). */}
+          <GestureScrollView
+            ref={scrollRef}
+            onLayout={board.onViewportLayout}
+            onScroll={(event) => {
+              board.onScroll(event);
+              scrollY.current = event.nativeEvent.contentOffset.y;
+              if (data.secciones.length >= 4) followSections(event.nativeEvent.contentOffset.y);
+            }}
+            // Desplazar o tocar fuera cierra un «Eliminar» abierto, como en iOS.
+            onScrollBeginDrag={() => { if (confirming) setConfirming(null); closeOpenSwipeRow(); }}
+            onTouchStart={(event) => closeSwipeRowOnTouch(event.nativeEvent.pageX, event.nativeEvent.pageY)}
+            scrollEventThrottle={16}
+            scrollEnabled={!board.drag}
+            automaticallyAdjustKeyboardInsets
+            contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: insets.bottom + 32 + (lastRemoved ? 64 : 0) }}
+            keyboardDismissMode="interactive"
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}>
+            {/* Menú leído de una foto: si salió mal, otra foto. */}
+            {source === 'foto' && onRetake && !ordering && (
+              <TouchableOpacity style={s.retake} onPress={onRetake} activeOpacity={0.6} accessibilityRole="button" accessibilityLabel="Tomar otra foto">
+                <Ionicons name="camera-outline" size={16} color={c.textSecondary} />
+                <Text style={s.retakeText}>Tomar otra foto</Text>
               </TouchableOpacity>
-            </View>
+            )}
+            {data.secciones.map((section, index) => renderSection(section, index))}
+            {/* Ordenar: el hueco al final del menú, para una sección que va al último. */}
+            {gap(!!sectionTarget && sectionTarget.index === data.secciones.filter((item) => item.id !== draggedSectionId).length, false)}
+          </GestureScrollView>
+          {board.drag && (
+            <ReAnimated.View pointerEvents="none" style={[s.ghost, board.drag.kind === 'dish' ? s.ghostRow : s.ghostCard, board.ghostStyle]}>
+              {/* El mismo fondo que la tarjeta: el lienzo y encima la superficie. */}
+              <View style={[StyleSheet.absoluteFill, s.ghostTint, board.drag.kind === 'dish' ? s.ghostRow : s.ghostCardTint]} />
+              {renderGhost(board.drag)}
+            </ReAnimated.View>
           )}
-        </GestureScrollView>
+        </View>
         {/* Android: la barra va arriba del teclado, dentro de la pantalla. */}
         {Platform.OS === 'android' && keyboardOpen && <View style={s.bar}>{renderBar()}</View>}
       </KeyboardAvoidingView>
@@ -1008,7 +1332,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
         <>
           <InputAccessoryView nativeID={BAR_TEXT}>
             <View style={s.bar}>
-              {barButton('Borrar', () => barActions.current.remove(), { a11y: 'Borrar el platillo' })}
+              {barButton('Eliminar', () => barActions.current.remove(), { a11y: 'Eliminar el platillo' })}
               <View style={s.barSpacer} />
               {listoKey}
             </View>
@@ -1026,13 +1350,13 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
         </>
       )}
 
-      {/* Deshacer lo último que se borró: se queda hasta que lo regresas, lo
-          cierras o borras otra cosa (sin temporizador). Con el teclado abierto,
-          va arriba de él. */}
+      {/* Deshacer lo último que se eliminó: se va solo a los pocos segundos
+          (`UNDO_MS`), al cerrarlo o al eliminar otra cosa. Con el teclado
+          abierto, va arriba de él. */}
       {!!lastRemoved && !board.drag && (
         <View style={[s.undoBar, { bottom: keyboardHeight ? keyboardHeight + 8 : insets.bottom + 12 }]} accessibilityLiveRegion="polite">
           <Text style={s.undoText} numberOfLines={1}>
-            {`Se borró «${lastRemoved.kind === 'section' ? lastRemoved.section.nombre || 'la sección' : lastRemoved.dish.nombre || 'el platillo'}»`}
+            {`Se eliminó «${lastRemoved.kind === 'section' ? lastRemoved.section.nombre || 'la sección' : lastRemoved.dish.nombre || 'el platillo'}»`}
           </Text>
           <TouchableOpacity onPress={() => { smoothly(); undoRemove(); Haptics.selectionAsync().catch(() => {}); }} hitSlop={{ top: 10, bottom: 10, left: 8, right: 8 }} accessibilityRole="button" accessibilityLabel="Deshacer">
             <Text style={s.undoAction}>Deshacer</Text>
@@ -1049,6 +1373,15 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
         onDismiss={closePhotoMenu}
         options={photoOptions}
       />
+      {/* «×» con cambios en el menú publicado hoy: ahí mismo, actualizarlo o
+          descartar (tocar fuera es seguir editando). */}
+      <ActionSheet
+        visible={leaveMenu}
+        anchorRef={leaveRef}
+        title="Tus clientes todavía ven el menú de antes"
+        onDismiss={() => setLeaveMenu(false)}
+        options={leaveOptions}
+      />
     </View>
   );
 }
@@ -1061,21 +1394,34 @@ const flat = Platform.select({
 // Cuadro de la foto (44) + su espacio (12) + la orilla de la tarjeta (16):
 // las líneas entre platillos empiezan donde empieza el texto.
 const TEXT_INSET = 16 + 44 + 12;
+// En Ordenar el contenido se recorre lo que ocupa el botón rojo (22 + 12).
+const ORDER_TEXT_INSET = TEXT_INSET + 22 + 12;
 
 function makeStyles(c: FonderoColors) {
   return StyleSheet.create({
     root: { flex: 1, backgroundColor: c.bg },
-    nav: { minHeight: NAV_HEIGHT, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 8 },
-    // Lados del nav del mismo ancho: el nombre del menú queda centrado.
-    navSide: { minWidth: 72, minHeight: 44, justifyContent: 'center' },
-    navSideEnd: { alignItems: 'flex-end' },
+    // Barra de arriba (HIG, Toolbars): «‹» y el nombre a la izquierda;
+    // «Ordenar» y la acción destacada a la derecha, separados.
+    nav: { minHeight: NAV_HEIGHT, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 12 },
+    // El lugar de «‹» se queda aunque se oculte (Ordenar): el nombre no se mueve.
+    navLead: { width: 40, minHeight: 44, justifyContent: 'center' },
+    navTitle: { flex: 1, minWidth: 0, paddingVertical: 0, fontSize: 17, fontWeight: '700', color: c.textSecondary },
+    navTextButton: { minHeight: 44, justifyContent: 'center' },
     navText: { fontSize: 16, fontWeight: '400', color: c.text },
     navDone: { fontSize: 16, fontWeight: '700', color: c.accent },
-    navTitle: { flex: 1, textAlign: 'center', fontSize: 17, fontWeight: '700', color: c.textSecondary },
+    // «Publicar» / «Actualizar»: cápsula naranja, la única con color.
+    primary: { minHeight: 36, paddingHorizontal: 14, borderRadius: 18, borderCurve: 'continuous', alignItems: 'center', justifyContent: 'center', backgroundColor: c.accent },
+    primaryIdle: { backgroundColor: c.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: c.border },
+    primaryText: { fontSize: 15, fontWeight: '700', color: '#fff' },
+    primaryTextIdle: { color: c.textMute },
+    invisible: { opacity: 0 },
+    listArea: { flex: 1, overflow: 'hidden' },
     retake: { minHeight: 36, marginBottom: 8, flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start' },
     retakeText: { fontSize: 14, fontWeight: '400', color: c.textSecondary },
-    // Tarjeta de sección: sin recortar, para que lo que se arrastra salga de ella.
-    card: { marginBottom: 14, borderRadius: 18, borderCurve: 'continuous', backgroundColor: c.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: c.border },
+    // Tarjeta de sección: recorta sus esquinas, así lo que se desliza (la fila
+    // y su «Eliminar») queda dentro, como en una lista agrupada de iOS. Lo que
+    // se arrastra va en una copia encima de la lista, no dentro.
+    card: { marginBottom: 14, borderRadius: 18, borderCurve: 'continuous', overflow: 'hidden', backgroundColor: c.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: c.border },
     head: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingHorizontal: 16, paddingTop: 13, paddingBottom: 11, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: c.border },
     title: { ...flat, margin: 0, fontSize: 14, fontWeight: '700', letterSpacing: 0.6, color: c.text },
     body: { flex: 1, minWidth: 0 },
@@ -1102,24 +1448,33 @@ function makeStyles(c: FonderoColors) {
     addDishDivider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: c.border },
     addSection: { minHeight: 44, marginTop: -4, marginBottom: 14, paddingHorizontal: 4, flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start' },
     addText: { fontSize: 15, fontWeight: '700', color: c.accent },
-    // Lo que se arrastra se levanta un poco, sobre lo demás.
-    dragging: {
-      zIndex: 20, backgroundColor: c.surface, borderRadius: 14, borderCurve: 'continuous',
-      shadowColor: '#000', shadowOpacity: 0.14, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 6,
+    // Ordenar: lo levantado deja su lugar (invisible) y, si el hueco está en
+    // otro lado, se encoge; la copia que sigue al dedo va encima de la lista.
+    collapsed: { height: 0, overflow: 'hidden' },
+    away: { opacity: 0 },
+    // La copia: el mismo fondo que la tarjeta (lienzo + superficie, opaco
+    // también en oscuro) y una sombra que aparece al levantar
+    // (`ghostStyle` anima su opacidad).
+    ghost: {
+      position: 'absolute', top: 0, left: 16, right: 16, backgroundColor: c.bg,
+      shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowRadius: 18, elevation: 8,
     },
-    cardDragging: { shadowColor: '#000', shadowOpacity: 0.14, shadowRadius: 14, shadowOffset: { width: 0, height: 6 }, elevation: 6 },
-    raised: { zIndex: 10 },
-    lifted: { zIndex: 20 },
-    // Dónde caerá: línea de acento dentro de la tarjeta.
-    dropLine: { position: 'absolute', left: 32, right: 32, height: 2, borderRadius: 1, backgroundColor: c.accent, zIndex: 30 },
-    // Modo Ordenar: botón rojo para borrar a la izquierda, manija a la derecha.
+    ghostTint: { backgroundColor: c.surface },
+    ghostRow: { borderRadius: 12, borderCurve: 'continuous' },
+    ghostCard: { borderRadius: 18, borderCurve: 'continuous', borderWidth: StyleSheet.hairlineWidth, borderColor: c.border },
+    ghostCardTint: { borderRadius: 18, borderCurve: 'continuous' },
+    // Modo Ordenar: botón rojo a la izquierda, manija o «Eliminar» a la derecha.
     orderRow: { alignItems: 'center' },
-    orderDivider: { position: 'absolute', top: 0, left: 16 + 22 + 12, right: 0, height: StyleSheet.hairlineWidth, backgroundColor: c.border },
+    orderDivider: { position: 'absolute', top: 0, left: ORDER_TEXT_INSET, right: 0, height: StyleSheet.hairlineWidth, backgroundColor: c.border },
     minus: { width: 22, height: 22, alignItems: 'center', justifyContent: 'center' },
     minusCircle: { width: 22, height: 22, borderRadius: 11, backgroundColor: c.danger, alignItems: 'center', justifyContent: 'center' },
+    // Al abrir «Eliminar», el botón rojo gira (como en iOS).
+    minusTurned: { transform: [{ rotate: '90deg' }] },
     minusBar: { width: 10, height: 2, borderRadius: 1, backgroundColor: '#fff' },
-    orderGrab: { flex: 1, minWidth: 0, minHeight: 32, flexDirection: 'row', alignItems: 'center', gap: 10 },
+    orderGrab: { flex: 1, minWidth: 0, minHeight: 32, flexDirection: 'row', alignItems: 'center', gap: 12 },
     handle: { width: 44, height: 44, marginRight: -10, alignItems: 'center', justifyContent: 'center' },
+    deleteButton: { minHeight: 34, paddingHorizontal: 14, borderRadius: 17, borderCurve: 'continuous', alignItems: 'center', justifyContent: 'center', backgroundColor: c.danger },
+    deleteText: { fontSize: 15, fontWeight: '700', color: '#fff' },
     // Barra sobre el teclado: lo del campo donde estás y «Listo».
     bar: { minHeight: 44, paddingHorizontal: 6, flexDirection: 'row', alignItems: 'center', backgroundColor: c.surface2, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: c.border },
     barButton: { minHeight: 44, paddingHorizontal: 10, flexDirection: 'row', alignItems: 'center', gap: 4 },
@@ -1132,10 +1487,5 @@ function makeStyles(c: FonderoColors) {
     undoBar: { position: 'absolute', left: 16, right: 16, minHeight: 48, paddingHorizontal: 16, borderRadius: 24, borderCurve: 'continuous', flexDirection: 'row', alignItems: 'center', gap: 16, backgroundColor: c.surface2, borderWidth: StyleSheet.hairlineWidth, borderColor: c.border, shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 4 },
     undoText: { flex: 1, fontSize: 15, fontWeight: '400', color: c.text },
     undoAction: { fontSize: 15, fontWeight: '700', color: c.accent },
-    actionsBlock: { marginTop: 18, alignItems: 'center', gap: 8 },
-    publishButton: { alignSelf: 'stretch', minHeight: 54, borderRadius: 27, borderCurve: 'continuous', paddingHorizontal: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: c.accent },
-    // Falta algo (gris, dice qué), listo (naranja), publicando (naranja con indicador).
-    publishIdle: { backgroundColor: c.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: c.border },
-    publishText: { fontSize: 16, fontWeight: '700', color: '#fff' },
   });
 }

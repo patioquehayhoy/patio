@@ -25,7 +25,8 @@ export default function PreviewScreen() {
 // Recién publicado: la misma pantalla del póster con la confirmación arriba.
 // Un solo paso: ves lo que publicaste, lo compartes, y «Editar» queda junto
 // al menú que estás viendo.
-export function MenuPoster({ justPublished = false }: { justPublished?: boolean }) {
+// `updated`: se cambió el menú que ya estaba publicado hoy («Actualizado»).
+export function MenuPoster({ justPublished = false, updated = false }: { justPublished?: boolean; updated?: boolean }) {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
   const c = fonderoPalette(theme.isDark);
@@ -85,11 +86,11 @@ export function MenuPoster({ justPublished = false }: { justPublished?: boolean 
       <View style={[s.top, { top: insets.top + 6 }]}>
         <GlassIconButton icon="chevron-back" accessibilityLabel="Volver" onPress={handleBack} />
         {justPublished ? (
-          <View style={s.publishedTitle} accessibilityRole="header" accessibilityLabel="Menú publicado">
+          <View style={s.publishedTitle} accessibilityRole="header" accessibilityLabel={updated ? 'Menú actualizado' : 'Menú publicado'}>
             <Animated.View style={[s.publishedCheck, { transform: [{ scale: checkScale }] }]}>
               <Ionicons name="checkmark" size={13} color="#FFFFFF" />
             </Animated.View>
-            <Text style={s.topTitle} allowFontScaling={true}>Publicado</Text>
+            <Text style={s.topTitle} allowFontScaling={true}>{updated ? 'Actualizado' : 'Publicado'}</Text>
           </View>
         ) : <Text style={s.topTitle} allowFontScaling={true}>Póster</Text>}
         {justPublished ? (

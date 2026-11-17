@@ -15,6 +15,7 @@ import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { bottomActionClearance, bottomTabClearance } from '@/lib/layout-metrics';
 import { SelectionActions } from '@/components/selection-actions';
 import { SelectionHeader } from '@/components/selection-header';
+import { closeOpenSwipeRow, closeSwipeRowOnTouch, SwipeRow } from '@/components/swipe-row';
 import { FoodieLoading } from '@/components/foodie-loading';
 import { MenuListsSheet } from '@/components/menu-lists-sheet';
 import { NewMenuSheet } from '@/components/new-menu-sheet';
@@ -132,19 +133,40 @@ export default function HistorialScreen() {
   })();
   const showGroupLabels = groups.length > 1;
 
-  // Filas continuas como Guardados; toda la fila abre el menú.
+  // Filas continuas como Guardados; toda la fila abre el menú. Sin «···»
+  // (2026-11-16, como Mail y Recordatorios): deslizar a la izquierda muestra
+  // «Más» (las demás acciones, ahí mismo) y «Eliminar»; mantener presionado
+  // selecciona varios, igual que en Guardados.
   const renderMenuRow = (menu: (typeof menus)[number]) => {
     const key = menu.id;
     const isSelected = selectedFechas.has(key);
     return (
-      <TouchableOpacity
+      <SwipeRow
         key={key}
+        enabled={!selecting}
+        background={[c.bg]}
+        // A todo lo ancho: los botones llegan a la orilla de la pantalla (como
+        // iOS) y el texto y la línea se quedan donde estaban.
+        outerStyle={s.swipeOuter}
+        style={s.swipeContent}
+        rowRef={(el) => { moreRefs.current.set(key, el); }}
+        actions={[
+          { label: 'Más', color: c.textMute, accessibilityLabel: 'Más acciones del menú', onPress: () => setActionsFor(menu) },
+          { label: 'Eliminar', color: c.danger, accessibilityLabel: 'Eliminar el menú', onPress: () => deleteMenu(menu) },
+        ]}>
+      <TouchableOpacity
         style={[s.card, { borderColor: c.border }]}
         onPress={() => (selecting ? toggleSelect(key) : reuse(menu))}
         onLongPress={() => { if (!selecting) { Haptics.selectionAsync().catch(() => {}); setSelecting(true); toggleSelect(key); } }}
         activeOpacity={0.85}
         accessibilityRole="button"
-        accessibilityLabel={selecting ? `${isSelected ? 'Quitar de la selección' : 'Seleccionar'} menú de ${dateLabel(menu.fecha)}` : `Usar menú de ${dateLabel(menu.fecha)}`}>
+        accessibilityLabel={selecting ? `${isSelected ? 'Quitar de la selección' : 'Seleccionar'} menú de ${dateLabel(menu.fecha)}` : `Usar menú de ${dateLabel(menu.fecha)}`}
+        // Con VoiceOver, lo mismo que deslizar.
+        accessibilityActions={selecting ? undefined : [{ name: 'more', label: 'Más acciones' }, { name: 'delete', label: 'Eliminar' }]}
+        onAccessibilityAction={(event) => {
+          if (event.nativeEvent.actionName === 'more') setActionsFor(menu);
+          if (event.nativeEvent.actionName === 'delete') deleteMenu(menu);
+        }}>
         {selecting && (
           <Ionicons name={isSelected ? 'checkmark-circle' : 'ellipse-outline'} size={22} color={isSelected ? c.accent : c.textMute} />
         )}
@@ -152,18 +174,8 @@ export default function HistorialScreen() {
           <Text style={[s.summary, { color: c.text }]}>{noWidow(menu.nombre || defaultHistoryTitle(menu))}</Text>
           <Text style={[s.date, { color: c.textMute }]}>{noWidow(`${menu.published ? 'Publicado' : 'Guardado'} · ${dateLabel(menu.fecha)}`)}</Text>
         </View>
-        {!selecting && (
-          <TouchableOpacity
-            ref={(el) => { moreRefs.current.set(key, el); }}
-            accessibilityRole="button"
-            accessibilityLabel="Acciones del menú"
-            style={s.iconBtn}
-            onPress={() => setActionsFor(menu)}
-            activeOpacity={0.7}>
-            <Ionicons name="ellipsis-horizontal" size={17} color={c.textSecondary} />
-          </TouchableOpacity>
-        )}
       </TouchableOpacity>
+      </SwipeRow>
     );
   };
 
@@ -217,7 +229,7 @@ export default function HistorialScreen() {
         )
       )}
       <View style={{ flex: 1 }}>
-      <ScrollView refreshControl={<RefreshControl refreshing={pull.refreshing} onRefresh={pull.onRefresh} tintColor={theme.textSecondary} />} onLayout={edges.onLayout} onContentSizeChange={edges.onContentSizeChange} onScroll={(event) => { edges.onScroll?.(event); onScroll?.(event); }} scrollEventThrottle={16} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: selecting ? bottomActionClearance(insets.bottom, selectionBarHeight) : bottomTabClearance(insets.bottom) }} showsVerticalScrollIndicator indicatorStyle={theme.isDark ? 'white' : 'black'}>
+      <ScrollView refreshControl={<RefreshControl refreshing={pull.refreshing} onRefresh={pull.onRefresh} tintColor={theme.textSecondary} />} onLayout={edges.onLayout} onContentSizeChange={edges.onContentSizeChange} onScroll={(event) => { edges.onScroll?.(event); onScroll?.(event); }} onScrollBeginDrag={() => closeOpenSwipeRow()} onTouchStart={(event) => closeSwipeRowOnTouch(event.nativeEvent.pageX, event.nativeEvent.pageY)} scrollEventThrottle={16} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: selecting ? bottomActionClearance(insets.bottom, selectionBarHeight) : bottomTabClearance(insets.bottom) }} showsVerticalScrollIndicator indicatorStyle={theme.isDark ? 'white' : 'black'}>
         {loading ? <View style={{ minHeight: 240 }}><FoodieLoading label="Cargando menús" /></View> : menus.length === 0 ? (
           <View style={s.empty}>
             <View style={[s.emptyIcon, { borderColor: c.border, backgroundColor: c.surface }]}>
@@ -274,7 +286,6 @@ export default function HistorialScreen() {
           { label: 'Renombrar', icon: 'pencil', sectionLabel: 'Organizar', onPress: () => openRename(actionsFor) },
           { label: 'Añadir a lista', icon: 'folder-outline', onPress: () => { setAssignFechas([actionsFor.id]); setSheetMode('assign'); } },
           { label: 'Seleccionar varios', icon: 'checkmark-circle-outline', onPress: () => { setSelecting(true); toggleSelect(actionsFor.id); } },
-          { label: 'Eliminar', icon: 'trash-outline', destructive: true, onPress: () => deleteMenu(actionsFor) },
         ] : []}
       />
       <MenuListsSheet
@@ -317,6 +328,9 @@ const s = StyleSheet.create({
   filterEmptyText: { marginTop: 10, fontSize: 14, lineHeight: 20, fontWeight: '400', textAlign: 'center' },
   // Filas separadas por una línea fina, con espacio entre grupos.
   list: { gap: 0 },
+  // La lista tiene 20 de orilla; la fila deslizable la cruza para llegar al borde.
+  swipeOuter: { marginHorizontal: -20 },
+  swipeContent: { paddingHorizontal: 20 },
   card: { minHeight: 68, flexDirection: 'row', alignItems: 'center', gap: 12, borderBottomWidth: StyleSheet.hairlineWidth, paddingVertical: 12 },
   groupLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase' },
   // Nombre = identidad del menú, lidera la fila (antes iba abajo, más chico
@@ -331,7 +345,6 @@ const s = StyleSheet.create({
   date: { marginTop: 2, fontSize: 13, fontWeight: '400' },
   // Homologado con navButton de coleccion/[id].tsx: ícono suelto, sin caja
   // de fondo, círculo completo — mismo botón "···" en toda la app.
-  iconBtn: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
   // Misma altura que la cabecera normal (8 + 44 = 8 + 40 + 4): entrar o salir
   // de la selección no mueve la lista.
   selectRow: { paddingHorizontal: 20, paddingTop: 8 },

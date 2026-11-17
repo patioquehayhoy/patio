@@ -240,6 +240,17 @@ test('successful remote publication survives optional local-cache and learning f
   assert.equal(store.getMenuExtractionSnapshot(), null);
 });
 
+test('after publishing, «Editar» reopens that same menu to update it in place', async () => {
+  const f = publicationFixture();
+  await f.publish(menu(), { draftId: 'draft:abc' });
+  const current = f.load('lib/menu-store.ts').getMenuData();
+  assert.equal(current.localDraftId, 'draft:abc');
+  assert.equal(current.localLive, true);
+  const [entry] = await f.load('lib/menu-history.ts').getLocalMenus();
+  assert.equal(entry.id, 'draft:abc');
+  assert.equal(entry.published, true);
+});
+
 test('publication streak ignores future/invalid dates and stops at a missed day', () => {
   const f = fixture({ overrides: { '@/lib/supabase': { supabase: {} } } });
   const { computeStreak } = f.load('lib/controllers/useMenuHistoryController.ts');
@@ -408,6 +419,85 @@ test('editor with cards: next opens a line right below, a new section starts wit
   const added = render().addSection('', false);
   assert.deepEqual(render().data.secciones.find((section) => section.id === added).platillos, []);
   runtime.unmount();
+});
+
+test('drafts save themselves: opening without touching saves nothing, typing saves, and an emptied draft goes away on leaving', async () => {
+  const runtime = hookRuntime();
+  const f = fixture({ overrides: { react: runtime.react, '@/lib/db': {} } });
+  const history = f.load('lib/menu-history.ts');
+  const { useFonderoMenuDraftController } = f.load('lib/controllers/useFonderoMenuDraftController.ts');
+  const id = history.newMenuDraftId();
+  const initial = { ...menu('Mole con pollo'), localDraftId: id };
+  const render = () => runtime.render(() => useFonderoMenuDraftController(initial));
+  assert.equal(render().live, false);
+  // Abrir un menú y salir sin tocar nada no crea otro en Menús.
+  assert.equal(await render().flushDraft(true), true);
+  assert.deepEqual(await history.getLocalMenus(), []);
+  // Escribir: se guarda solo, sin botón.
+  render().patchDish('section', 'dish', { nombre: 'Mole poblano' });
+  assert.equal(await render().flushDraft(), true);
+  const [saved] = await history.getLocalMenus();
+  assert.equal(saved.id, id);
+  assert.equal(saved.published, false);
+  assert.equal(saved.secciones.secciones[0].platillos[0].nombre, 'Mole poblano');
+  assert.equal(render().hasUnsavedChanges(), false);
+  // Sin platillos al salir: el borrador se va, como una nota vacía.
+  render().removeDish('section', 'dish');
+  await render().flushDraft(true);
+  assert.deepEqual(await history.getLocalMenus(), []);
+  runtime.unmount();
+});
+
+test('the menu published today changes in place: it never saves itself and knows when «Actualizar» has something to send', async () => {
+  const runtime = hookRuntime();
+  const f = fixture({ overrides: { react: runtime.react, '@/lib/db': {} } });
+  const history = f.load('lib/menu-history.ts');
+  const { useFonderoMenuDraftController } = f.load('lib/controllers/useFonderoMenuDraftController.ts');
+  const id = history.newMenuDraftId();
+  await history.saveMenuPublication(menu('Mole con pollo'), 'Comida', id, async () => {});
+  const initial = { ...menu('Mole con pollo'), localDraftId: id, localLive: true };
+  const render = () => runtime.render(() => useFonderoMenuDraftController(initial));
+  assert.equal(render().live, true);
+  assert.equal(render().hasUnsavedChanges(), false);
+  render().patchDish('section', 'dish', { precio: '95' });
+  assert.equal(render().hasUnsavedChanges(), true);
+  await render().flushDraft(true);
+  const [stored] = await history.getLocalMenus();
+  assert.equal(stored.published, true);
+  assert.equal(stored.secciones.secciones[0].platillos[0].precio, '');
+  runtime.unmount();
+});
+
+test('an autosave never writes over a menu that is already published', async () => {
+  const runtime = hookRuntime();
+  const f = fixture({ overrides: { react: runtime.react, '@/lib/db': {} } });
+  const history = f.load('lib/menu-history.ts');
+  const { useFonderoMenuDraftController } = f.load('lib/controllers/useFonderoMenuDraftController.ts');
+  const id = history.newMenuDraftId();
+  const render = () => runtime.render(() => useFonderoMenuDraftController({ ...menu('Original'), localDraftId: id }));
+  render().patchDish('section', 'dish', { nombre: 'Cambio sin publicar' });
+  await history.saveMenuPublication(menu('Publicado'), undefined, id, async () => {});
+  await render().flushDraft(true);
+  const [stored] = await history.getLocalMenus();
+  assert.equal(stored.published, true);
+  assert.equal(stored.secciones.secciones[0].platillos[0].nombre, 'Publicado');
+  runtime.unmount();
+});
+
+test('opening from Menús: today\'s publication is edited in place, another day is copied, a draft keeps going', () => {
+  const f = fixture({ overrides: { '@/lib/supabase': { supabase: {} } } });
+  const { editorSeed } = f.load('lib/controllers/useMenuHistoryController.ts');
+  const entry = (id, fecha, published) => ({ id, fecha, published, secciones: menu() });
+  const today = editorSeed(entry('hoy', '2026-09-09', true), '2026-09-09');
+  assert.equal(today.localDraftId, 'hoy');
+  assert.equal(today.localLive, true);
+  const yesterday = editorSeed(entry('ayer', '2026-09-08', true), '2026-09-09');
+  assert.equal(yesterday.localDraftId, undefined);
+  assert.equal(yesterday.localLive, undefined);
+  const draft = editorSeed(entry('draft:x', '2026-09-08', false), '2026-09-09');
+  assert.equal(draft.localDraftId, 'draft:x');
+  assert.equal(draft.localLive, undefined);
+  assert.equal(today.secciones[0].platillos[0].nombre, 'Mole con pollo');
 });
 
 function photoFixture({ vision, picker, handlers } = {}) {

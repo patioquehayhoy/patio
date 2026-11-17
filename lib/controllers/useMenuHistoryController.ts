@@ -53,6 +53,16 @@ export function computeStreak(fechas: string[]): number {
   return streak;
 }
 
+/**
+ * Con qué abre el editor un menú de la lista (2026-11-16): el publicado hoy se
+ * cambia en su lugar («Actualizar», sin otro renglón en Menús); uno publicado
+ * otro día se copia como borrador nuevo; un borrador se sigue escribiendo.
+ */
+export function editorSeed(menu: PublishedMenu, today = localMenuDate()): MenuData {
+  if (menu.published && menu.fecha === today) return { ...menu.secciones, localDraftId: menu.id, localLive: true };
+  return { ...menu.secciones, localDraftId: menu.published ? undefined : menu.id };
+}
+
 export function defaultHistoryTitle(menu: PublishedMenu): string {
   // La fecha ya se muestra por separado en la fila (dateLabel) — repetirla
   // aquí era redundante (ley dictada 2026-07-22: quitar la fecha al inicio).
@@ -109,7 +119,7 @@ export function useMenuHistoryController() {
   }, [load]));
 
   const reuse = useCallback((menu: PublishedMenu) => {
-    setMenuData({ ...menu.secciones, localDraftId: menu.published ? undefined : menu.id });
+    setMenuData(editorSeed(menu));
     router.push({ pathname: '/menu-editar', params: { reuse: '1' } });
   }, []);
 

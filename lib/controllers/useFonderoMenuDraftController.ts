@@ -1,12 +1,12 @@
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert } from 'react-native';
 
 import { getDishPhotoCounts, loadCarta, loadRecentMenus, saveCarta, saveMenuHoy } from '@/lib/db';
 import { announceMenuPublication } from '@/lib/community-notifications';
 import { saveDevPublishedMenu } from '@/lib/demo';
-import { getLocalMenus, newMenuDraftId, renameLocalMenu, saveMenuPublication, saveLocalMenu } from '@/lib/menu-history';
+import { deleteLocalMenu, getLocalMenus, newMenuDraftId, renameLocalMenu, saveMenuPublication, saveLocalMenu } from '@/lib/menu-history';
 import { recordMenuCorrection } from '@/lib/menu-learning';
 import {
   cleanAntes,
@@ -47,6 +47,9 @@ const blankDish = (): Platillo => ({
   precio: '',
 });
 
+// Una pausa al escribir y el borrador ya quedó guardado.
+const AUTOSAVE_MS = 700;
+
 // El menú nuevo trae un renglón vacío donde espera el cursor; una sección que
 // se agrega después nace sin renglones: primero se escribe su título.
 const blankSection = (name = 'MENÚ DE HOY', carta = false, withDish = true): Seccion => ({
@@ -69,7 +72,8 @@ export async function publishMenuNow(data: MenuData, opts: { source?: 'foto' | '
   if (!clean.secciones.length) throw new Error('El menú necesita al menos un platillo.');
   const fonditaId = getFonditaId();
   if (!fonditaId && !__DEV__) throw new Error('Entra a tu cuenta de negocio para publicar.');
-  await saveMenuPublication(clean, opts.nombre, opts.draftId ?? newMenuDraftId(), async (saved) => {
+  const id = opts.draftId ?? newMenuDraftId();
+  await saveMenuPublication(clean, opts.nombre, id, async (saved) => {
   if (!fonditaId && !saved) throw new Error('No se pudo guardar el menú.');
   if (fonditaId) {
     // Solo el guardado remoto confirma que el menú está publicado.
@@ -81,7 +85,9 @@ export async function publishMenuNow(data: MenuData, opts: { source?: 'foto' | '
   } else if (__DEV__) {
     await saveDevPublishedMenu(clean);
   }
-  setMenuData(clean);
+  // El menú de hoy en memoria sabe cuál es: «Editar» lo cambia en su lugar
+  // («Actualizar»), sin crear otro en Menús.
+  setMenuData({ ...clean, localDraftId: id, localLive: true });
   if (opts.source === 'foto') {
     const snapshot = getMenuExtractionSnapshot();
     if (snapshot) {
@@ -190,14 +196,29 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
   );
   // Cada cambio vuelve a leer el pizarrón: lo que queda abajo del encabezado
   // de la carta es carta, lo de arriba es lo de hoy.
-  const setData = useCallback((update: MenuData | ((current: MenuData) => MenuData)) => {
+  // Lo que cambia la persona (escribir, mover, eliminar) cuenta para guardar y
+  // para «Actualizar». Lo que el sistema completa solo al abrir (las fotos que
+  // ya conoce, la carta) es parte de lo que ya había mientras no toque nada:
+  // abrir un menú y salir no crea otro ni enciende «Actualizar».
+  const touched = useRef(false);
+  const applyData = useCallback((update: MenuData | ((current: MenuData) => MenuData), quiet: boolean) => {
     setRawData((prev) => {
-      const next = typeof update === 'function' ? update(prev) : update;
-      if (next === prev) return prev;
-      const secciones = cartaByHeading(next.secciones);
-      return secciones.every((section, index) => section === next.secciones[index]) ? next : { ...next, secciones };
+      const raw = typeof update === 'function' ? update(prev) : update;
+      if (raw === prev) return prev;
+      const secciones = cartaByHeading(raw.secciones);
+      const next = secciones.every((section, index) => section === raw.secciones[index]) ? raw : { ...raw, secciones };
+      if (quiet && !touched.current) {
+        const split = splitCarta(cleanMenu(next));
+        savedBase.current = { hoy: cartaSignature(split.hoy), carta: cartaSignature(split.carta) };
+      }
+      return next;
     });
   }, []);
+  const setData = useCallback((update: MenuData | ((current: MenuData) => MenuData)) => {
+    touched.current = true;
+    applyData(update, false);
+  }, [applyData]);
+  const setDataQuietly = useCallback((update: MenuData | ((current: MenuData) => MenuData)) => applyData(update, true), [applyData]);
   // La carta guardada aparece debajo de lo de hoy, lista para cambiarse. Si
   // el borrador ya la trae (foto del pizarrón o borrador guardado), manda esa.
   // `cartaBase` dice si cambió: solo entonces se vuelve a guardar.
@@ -211,6 +232,10 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
     savedBase.current = { hoy: cartaSignature(split.hoy), carta: cartaSignature(split.carta) };
   }
   const savedOnce = useRef(false);
+  // El menú publicado hoy (`localLive`): lo que cambias no se ve en la calle
+  // hasta «Actualizar»; no se guarda solo. Lo demás es un borrador que se
+  // guarda solo, como una nota.
+  const live = initialData.localLive === true;
 
   // Identidad de los platillos (2026-11-15, lib/dish-identity.ts). Lo que se
   // sabe de cada platillo —su foto y sus otros nombres— se recuerda por su
@@ -251,7 +276,7 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
     }
   }, [rememberDish]);
   const fillKnownPhotos = useCallback(() => {
-    setData((prev) => {
+    setDataQuietly((prev) => {
       let changed = false;
       const secciones = prev.secciones.map((section) => ({
         ...section,
@@ -272,7 +297,7 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
       return changed ? { ...prev, secciones } : prev;
     });
     setIdentityVersion((version) => version + 1);
-  }, [setData]);
+  }, [setDataQuietly]);
   useEffect(() => {
     let active = true;
     learnPhotos(initialData);
@@ -397,7 +422,7 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
         if (!active || !carta?.secciones.length) return;
         const withHeading = { ...carta, secciones: withCartaHeading(carta.secciones, makeSectionId) };
         cartaBase.current = cartaSignature(splitCarta(cleanMenu(joinCarta({ secciones: [] }, withHeading))).carta);
-        setData((prev) => {
+        setDataQuietly((prev) => {
           if (prev.secciones.some((section) => section.carta)) return prev;
           if (savedBase.current) savedBase.current = { ...savedBase.current, carta: cartaBase.current ?? '' };
           return joinCarta(prev, withHeading);
@@ -407,7 +432,7 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
       })
       .catch(() => {});
     return () => { active = false; };
-  }, [initialData, learnPhotos, fillKnownPhotos, setData]);
+  }, [initialData, learnPhotos, fillKnownPhotos, setDataQuietly]);
   const draftId = useRef(initialData.localDraftId ?? newMenuDraftId()).current;
   const [publishing, setPublishing] = useState(false);
 
@@ -419,8 +444,11 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
   const [nombre, updateNombre] = useState('');
   const nombreEdited = useRef(false);
   const savingRef = useRef(false);
+  // El nombre que ya está guardado: cambiarlo también cuenta para guardar.
+  const savedName = useRef('');
   const setNombre = useCallback((value: string) => {
     nombreEdited.current = true;
+    touched.current = true;
     updateNombre(value);
   }, []);
   useEffect(() => {
@@ -428,6 +456,7 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
     getLocalMenus().then((list) => {
       if (!active || nombreEdited.current) return;
       const today = list.find((menu) => menu.id === draftId);
+      savedName.current = today?.nombre?.trim() ?? '';
       if (today?.nombre) updateNombre(today.nombre);
     });
     return () => { active = false; };
@@ -608,34 +637,6 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
     return section.id;
   }, [setData]);
 
-  // Guardar sin publicar («Listo» en el editor): para el fondero que ajusta su
-  // menú de mañana o sube un precio, sin anunciarlo todavía. Publicar sigue
-  // siendo el acto final.
-  const saveDraft = useCallback(async (): Promise<boolean> => {
-    if (savingRef.current) return false;
-    const clean = cleanMenu(data);
-    if (!splitCarta(clean).hoy.secciones.some((section) => section.platillos.length)) {
-      Alert.alert(noWidow('Nada que guardar'), noWidow('Escribe al menos un platillo de hoy.'));
-      return false;
-    }
-    savingRef.current = true;
-    try {
-      const ok = await saveLocalMenu(clean, nombre, { id: draftId });
-      if (!ok) {
-        Alert.alert(noWidow('No se pudo guardar'), noWidow('Inténtalo otra vez.'));
-        return false;
-      }
-      setMenuData(clean);
-      const split = splitCarta(clean);
-      savedBase.current = { hoy: cartaSignature(split.hoy), carta: cartaSignature(split.carta) };
-      savedOnce.current = true;
-      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-      return true;
-    } finally {
-      savingRef.current = false;
-    }
-  }, [data, nombre, draftId]);
-
   // La carta se guarda al publicar y solo si cambió. Si falla, lo de hoy
   // ya quedó publicado: se avisa sin deshacerlo.
   const saveCartaIfChanged = useCallback(async (clean: MenuData): Promise<boolean> => {
@@ -654,8 +655,9 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
   }, []);
 
   /**
-   * ¿Se perdería algo al cerrar? Lo que cambió desde que se abrió o se guardó;
-   * un menú leído de una foto cuenta como nuevo hasta guardarlo (la lectura cuesta).
+   * ¿Qué cambió desde que se abrió o se guardó? En el menú publicado hoy, lo
+   * que «Actualizar» llevaría a la calle. Un menú leído de una foto cuenta
+   * como nuevo hasta guardarlo (la lectura cuesta).
    */
   const hasUnsavedChanges = useCallback((): boolean => {
     const split = splitCarta(cleanMenu(data));
@@ -664,8 +666,52 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
     const base = savedBase.current;
     return !!base && (cartaSignature(split.hoy) !== base.hoy || cartaSignature(split.carta) !== base.carta);
   }, [data, source]);
-  /** Hay al menos un platillo de hoy: se puede guardar sin publicar. */
-  const canSaveDraft = useMemo(() => splitCarta(cleanMenu(data)).hoy.secciones.some((section) => section.platillos.length), [data]);
+
+  // Guardar (2026-11-16, como Notas y Recordatorios; HIG: guardar solo, sin
+  // pedirlo): el borrador se guarda mientras escribes y al salir. No hay botón
+  // de guardar ni «¿Salir sin guardar?». Nunca escribe encima de un menú ya
+  // publicado: ese cambia con «Actualizar».
+  const publishedRef = useRef(false);
+  const flushQueue = useRef<Promise<boolean>>(Promise.resolve(true));
+  const persistDraft = useCallback(async (final: boolean): Promise<boolean> => {
+    if (live || publishedRef.current) return true;
+    // Sin tocar nada no se guarda (un menú leído de una foto sí: la lectura cuesta).
+    if (!touched.current && !(source === 'foto' && !savedOnce.current)) return true;
+    const clean = cleanMenu(data);
+    const split = splitCarta(clean);
+    const stored = (await getLocalMenus()).find((menu) => menu.id === draftId);
+    if (stored?.published) return true;
+    if (!split.hoy.secciones.some((section) => section.platillos.length)) {
+      // Como una nota vacía: si sales con el menú sin platillos, el borrador se va.
+      if (final && stored) await deleteLocalMenu(draftId).catch(() => {});
+      return true;
+    }
+    // Abrir un menú y salir sin cambiar nada no crea otro en Menús.
+    if (!hasUnsavedChanges() && savedName.current === nombre.trim()) return true;
+    const ok = await saveLocalMenu(clean, nombre, { id: draftId });
+    if (ok) {
+      savedBase.current = { hoy: cartaSignature(split.hoy), carta: cartaSignature(split.carta) };
+      savedOnce.current = true;
+      savedName.current = nombre.trim();
+    }
+    return ok;
+  }, [data, nombre, draftId, live, source, hasUnsavedChanges]);
+  /** Guarda ya lo escrito (al salir, al irse la app al fondo). Uno a la vez. */
+  const flushDraft = useCallback((final = false): Promise<boolean> => {
+    const run = flushQueue.current.then(() => persistDraft(final), () => persistDraft(final));
+    flushQueue.current = run.catch(() => false);
+    return run;
+  }, [persistDraft]);
+  const flushRef = useRef(flushDraft);
+  flushRef.current = flushDraft;
+  // Mientras escribes: se guarda en cuanto haces una pausa.
+  useEffect(() => {
+    if (live) return;
+    const timer = setTimeout(() => { void flushRef.current(); }, AUTOSAVE_MS);
+    return () => clearTimeout(timer);
+  }, [data, nombre, live]);
+  // Al salir de la pantalla (también deslizando hacia atrás).
+  useEffect(() => () => { void flushRef.current(true); }, []);
 
   const publish = useCallback(async () => {
     if (savingRef.current) return;
@@ -683,34 +729,40 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
     }
 
     savingRef.current = true;
+    // Desde aquí nada se guarda solo encima de la publicación.
+    publishedRef.current = true;
     setPublishing(true);
     try {
       await publishMenuNow(clean, { source, nombre, draftId });
       const cartaSaved = await saveCartaIfChanged(clean);
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-      router.replace('/menu-publicado');
+      // Cambiar el de hoy no vuelve a avisar a quienes te siguen (el servidor
+      // avisa una vez al día): solo se confirma que ya está al día.
+      router.replace(live ? { pathname: '/menu-publicado', params: { actualizado: '1' } } : '/menu-publicado');
       if (!cartaSaved) Alert.alert(noWidow('Tu menú ya está publicado'), noWidow('La carta no se guardó. Ábrela otra vez y publica cuando tengas conexión.'));
     } catch {
-      Alert.alert(noWidow('No se pudo publicar'), noWidow('Revisa tu conexión e inténtalo otra vez.'));
+      publishedRef.current = false;
+      Alert.alert(noWidow(live ? 'No se pudo actualizar' : 'No se pudo publicar'), noWidow('Revisa tu conexión e inténtalo otra vez.'));
     } finally {
       savingRef.current = false;
       setPublishing(false);
     }
-  }, [data, nombre, source, draftId, saveCartaIfChanged]);
+  }, [data, nombre, source, draftId, live, saveCartaIfChanged]);
 
   return {
     addDish,
     addSection,
-    canSaveDraft,
     data,
     declineLink,
     dismissUndo,
     fillKnownPhotos,
+    flushDraft,
     hasUnsavedChanges,
     insertDishAfter,
     lastRemoved,
     linkDish,
     linkSuggestion,
+    live,
     moveDishTo,
     moveSectionTo,
     nombre,
@@ -720,7 +772,6 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
     publishing,
     removeDish,
     removeSection,
-    saveDraft,
     saveNombre,
     setDishPhoto,
     setNombre,

@@ -1,5 +1,14 @@
 # HANDOFF
 
+## Continuidad 2026-11-16 (noche, segunda parte) — el editor y Menús como las listas de iOS (Claude)
+
+Leer el [heads-up](HEADS_UP_2026-10-12.md), bloque «Noche 2026-11-16, segunda parte».
+Reglas del editor, del arrastre y de deslizar en `components/CLAUDE.md`
+(`components/board-drag.tsx` y `components/swipe-row.tsx`). Siguiente: QA de
+Parco en el iPhone (levantar y soltar, deslizar en el editor y en Menús,
+autoguardado, «Actualizar»); si un arrastre falla, el log de Metro dice
+`suelta` o `cancela` con los milisegundos. Producción al día.
+
 ## Continuidad 2026-11-16 (noche) — editor con tarjetas, Ordenar, Perfil y Crear (Claude)
 
 Leer el [heads-up](HEADS_UP_2026-10-12.md), bloque «Noche 2026-11-16», y

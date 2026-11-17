@@ -39,37 +39,118 @@
 - **Barra sobre el teclado, una por tipo de campo** (`BAR_TEXT`,
   `BAR_PRICE`, `BAR_TITLE`), con sus botones fijos; lo que hacen se lee del
   campo con el cursor en ese momento (`barActions`), así no dependen de que la
-  barra se redibuje. En un platillo, «Borrar · Listo» (borrar pasa el cursor
-  al de abajo, para limpiar el menú de ayer de corrido); en un precio,
+  barra se redibuje. En un platillo, «Eliminar · Listo» (pasa el cursor al
+  de abajo, para limpiar el menú de ayer de corrido); en un precio,
   «Siguiente · Listo», siempre; en un título vacío, los títulos del giro y
-  «CARTA» si no hay; en un título con nombre, «Borrar · Listo».
-- **Arriba:** «Ordenar» a la izquierda, el nombre del menú al centro y
-  «Listo» a la derecha, que guarda y cierra (Jev: 53 % frente a «×» 29 %).
-  No hay «Guardar sin publicar»: lo hace «Listo». Si no hay un platillo de
-  hoy, pregunta antes de salir sin guardar.
+  «CARTA» si no hay; en un título con nombre, «Eliminar · Listo».
+- **Arriba, como una barra de iOS** (HIG, Toolbars; segunda vuelta del 16
+  nov, docs/EDITOR_MENU_INVESTIGACION_2026-11-16.md §9): a la izquierda «‹»
+  (vidrio, sin texto) y el nombre del menú; a la derecha «Ordenar» y la
+  única acción destacada, la cápsula naranja «Publicar». Sin un platillo de
+  hoy, «Publicar» se ve apagado. Ya no hay «Publicar menú» al final de la
+  lista ni «Listo» que guarda.
+- **Guardar no es un botón** (como Notas): el borrador se guarda solo al
+  hacer una pausa (`AUTOSAVE_MS`), al irse la app al fondo y al salir; «‹»
+  sale sin preguntar, y deslizar para regresar también guarda. Lo que el
+  sistema completa al abrir (fotos conocidas, la carta) no cuenta como cambio
+  (`setDataQuietly`): abrir un menú y salir sin tocar nada no crea otro en
+  Menús. Si sales sin platillos, el borrador se va (como una nota vacía). El
+  autoguardado nunca escribe encima de un menú ya publicado.
+- **El menú publicado hoy se cambia en su lugar** (`localLive`): se abre así
+  desde Menús (`editorSeed`) y desde «Editar» después de publicar. Arriba
+  lleva «×» y «Actualizar», que se enciende cuando algo cambió; no se guarda
+  solo (lo que cambias no se ve en la calle hasta «Actualizar»). «×» con
+  cambios pregunta ahí mismo «Actualizar menú» o «Descartar cambios», y
+  deslizar para regresar se desactiva. Actualizar no vuelve a avisar a
+  quienes te siguen (el servidor avisa una vez al día) y la confirmación dice
+  «Actualizado». Un menú publicado otro día se abre como copia nueva.
 - **Foto:** tocar el cuadro abre ahí mismo Tomar foto, Elegir de Fotos y
   Quitar foto (anclado al cuadro).
-- **Ordenar** (Jev: 61 % frente a mantener presionado 38 %): es un modo
-  aparte, como en las listas de iOS. Cada platillo y cada título muestran un
-  botón rojo para borrar a la izquierda y su manija (≡) a la derecha. Como en
-  Ordenar no se escribe, arrastrar ya no pelea con el texto: desde la manija,
-  al instante (`handleFor`), o desde cualquier parte del renglón con un toque
-  sostenido corto (`rowFor`, 180 ms; deslizar sigue desplazando la lista).
+- **En prueba (Parco, 16 nov): sin modo Ordenar, como Recordatorios.** En el
+  panel mismo, con el teclado cerrado: mantener presionado un platillo o un
+  título (`HOLD_IN_PLACE_MS`, 450 ms, el medio segundo de iOS; con 280 un
+  toque lento ya levantaba y se sentía atorado) lo levanta y se mueve igual
+  que en Ordenar (huecos, copia que sigue al dedo); soltarlo donde estaba lo
+  regresa al instante. Deslizarlo a la izquierda abre
+  «Eliminar» y hasta el fondo lo elimina (`components/swipe-row.tsx`;
+  mantener y deslizar compiten con `Gesture.Race`).
+- **Deslizar, como las listas de iOS al pie de la letra** (`SwipeRow`, el
+  mismo en el editor y en Menús): se desliza la fila completa con su fondo
+  (`background`: el lienzo y encima la tarjeta; la tarjeta recorta sus
+  esquinas) y las acciones aparecen detrás, a todo lo alto. Los botones están
+  quietos detrás de la fila y ella los destapa (cortina): las palabras no se
+  mueven ni se estiran, y cada botón mide lo que su palabra (mínimo 76; así
+  «Eliminar» no se corta). Más allá de los botones solo crece el color. En
+  Menús la fila cruza la orilla de la lista (`outerStyle`) para que los
+  botones lleguen al borde de la pantalla; el texto y la línea no se mueven.
+  Al soltar se abre o se cierra, nunca a medias. Una sola fila abierta a la vez: tocar
+  otra fila, tocar fuera, desplazar o arrastrar la cierra, y tocar la fila
+  abierta solo la cierra. Hasta el fondo (`fullSwipe`, solo donde hay
+  «Deshacer») hace «Eliminar» con un golpecito al pasar el punto; si la
+  acción no se pudo, la fila regresa. En Menús no hay «···»: deslizar
+  muestra «Más» (lo demás, en el mismo menú anclado) y «Eliminar» (pide
+  confirmar: no tiene «Deshacer»); mantener presionado sigue seleccionando
+  varios, igual que en Guardados. Con VoiceOver, «Más acciones» y
+  «Eliminar» son acciones de la fila. Si la app se va al fondo a medio
+  arrastre, todo regresa a su lugar. Con el teclado abierto no
+  hay gestos (se selecciona texto; «Eliminar» está en la barra). No apagar
+  los gestos a medio arrastre: apagar un gesto activo lo cancela. El botón
+  «Ordenar» está oculto (`SHOW_ORDER_MODE`); su modo sigue en el código por
+  si se regresa.
+- **Ordenar** (Jev: 61 % frente a mantener presionado 38 %): es el modo
+  edición de las listas de iOS. «Ordenar» arriba y, mientras ordenas, arriba
+  solo queda «Listo» (el lugar de «‹» se guarda vacío para que el nombre no
+  se mueva). Cada platillo (con su foto, en su columna) y cada título se
+  recorren a la derecha para mostrar el botón rojo; a la derecha, su manija
+  (≡). Eliminar pide dos toques, como en iOS: el botón rojo gira y abre
+  «Eliminar» en lugar de la manija; desplazar, levantar algo u otro botón
+  rojo lo cierran. Como en Ordenar no se escribe, arrastrar ya no pelea con
+  el texto: desde la manija, al instante (`handleFor`), o desde cualquier
+  parte del renglón con un toque sostenido corto (`rowFor`, 180 ms; deslizar
+  sigue desplazando la lista).
+  Al arrastrar, como en iOS: lo levantado sube y sigue al dedo (una copia
+  encima de la lista, recortada a ella) y los demás se recorren para abrirle
+  su hueco; sin línea de «aquí cae». El renglón original sigue montado
+  (invisible y encogido) porque su gesto vive en él, y los huecos son vistas
+  siempre montadas que solo cambian de alto (si algo se desmonta a medio
+  arrastre, el gesto se cancela). El lugar se elige con lo medido al
+  levantar (`slots`), así el hueco no brinca. Al soltar, la copia se asienta
+  y el menú cambia en el mismo instante que se cierran los huecos (sin
+  animación de por medio).
+  Levantar y soltar (16 nov): la copia es idéntica al renglón (mismas líneas,
+  «Descripción» y «$» en gris, misma columna de precio, mismo fondo de la
+  tarjeta) y no crece: al levantar solo aparece la sombra (`LIFT_MS`) y al
+  soltar la copia se desliza a su lugar mientras la sombra se apaga
+  (`SETTLE_MS`); ninguna letra brinca. Si lo sueltas donde estaba o el toque
+  se cancela, su lugar se vuelve a abrir mientras regresa. Las fotos del
+  editor van con `cachePolicy="memory-disk"`: al pasar a otra tarjeta no
+  parpadean.
+  **La regla que lo rompía** («presiono el platillo y al segundo se
+  resetea», 16 nov): en el camino del dedo a la lista (el renglón, su
+  envoltorio, la tarjeta y la sección) ninguna vista puede pasar de
+  «aplanada» a no aplanada a medio arrastre. React Native no le da vista
+  propia a un View sin color ni efectos; en cuanto recibe opacidad,
+  transform, zIndex o recorte, saca a sus hijos y los vuelve a meter, y iOS
+  cancela el toque. Por eso esas vistas llevan `collapsable={false}` desde
+  el principio: no quitarlo ni agregar estilos de arrastre a una vista sin
+  él. Un toque cancelado regresa todo a su lugar (`onEnd` con `success`).
   La lista es el `ScrollView` de gesture-handler y cada arrastre lo bloquea
   (`blocksExternalGesture`): la lista espera a que el arrastre falle antes de
   desplazarse. Sin esa relación la lista empezaba a moverse y cancelaba el
-  arrastre (no quitarla). Si la lista aún no se midió, se usa la pantalla: la
-  línea siempre aparece.
-  Una línea naranja marca dónde cae; cerca de la orilla la lista se desplaza
-  sola. «Listo» termina. Mientras escribes
-  no hay gestos sobre el texto. Con VoiceOver, la manija se ajusta con
-  «Subir» y «Bajar».
-- **Borrar:** «Borrar» de la barra del teclado o el botón rojo de Ordenar;
-  siempre con «Deshacer» (con el teclado abierto, el aviso va arriba de él).
+  arrastre (no quitarla). Si la lista aún no se midió, se usa la pantalla.
+  Cerca de la orilla la lista se desplaza sola. «Listo» termina. Mientras
+  escribes no hay gestos sobre el texto. Con VoiceOver, la manija se ajusta
+  con «Subir» y «Bajar».
+- **Eliminar** (la palabra de iOS): «Eliminar» de la barra del teclado o el
+  botón rojo de Ordenar y su «Eliminar», o deslizar; siempre con «Deshacer»
+  (con el teclado abierto, el aviso va arriba de él). «Deshacer» se va solo a
+  los 6 s (`UNDO_MS`, como el aviso de Mail); con VoiceOver no se va solo.
+  Excepción pedida por Parco a la regla de no quitar avisos con temporizador:
+  esa regla es para confirmaciones; un «Deshacer» pegado estorba.
   Lo que se queda vacío se va solo al salir de él (un renglón; una sección
   nueva sin título ni platillos).
-- Un menú leído de una foto cuenta como cambio hasta guardarlo; arriba de la
-  primera tarjeta, «Tomar otra foto».
+- Un menú leído de una foto se guarda solo en cuanto llega (la lectura
+  cuesta); arriba de la primera tarjeta, «Tomar otra foto».
 - **La carta se reconoce por su encabezado** (`lib/menu-carta.ts`,
   `cartaByHeading`): desde la sección «CARTA» (o «A LA CARTA», «LO DE
   SIEMPRE») hacia abajo todo es carta y se queda para los días que siguen.
@@ -218,5 +299,6 @@ El precio por platillo es el mismo chip; si se cambia uno, se cambia el otro.
   sección en pantalla marcada, tocar lleva a ella; se esconde con el teclado.
 - Un solo borde derecho: «×» y los chips de precio en su columna.
 - Toda acción «agregar»: ícono `add` 18 + texto 15/700 en acento.
-- Cierre: «Publicar menú» cápsula naranja de 54 a todo el ancho del
-  contenido; «Guardar sin publicar» texto 16/400 debajo.
+- «Publicar» / «Actualizar» vive arriba a la derecha: cápsula naranja de 36
+  (radio 18, texto 15/700). Ya no va al final del contenido (con el teclado
+  arriba no se veía).

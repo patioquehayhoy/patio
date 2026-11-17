@@ -38,9 +38,23 @@
   «siguiente» nombre → descripción → platillo de abajo, y los precios de
   precio en precio («Siguiente» fijo en la barra)
   ([investigación](EDITOR_MENU_INVESTIGACION_2026-11-16.md) §8).
-- [ ] **Parco, QA en el iPhone — arrastrar en «Ordenar»** (manija y renglón
-  sostenido; mover a otra tarjeta y mover una sección). Si falla, el log de
-  Metro trae `[ordenar] levanta / lista / suelta` para ver dónde se corta.
+- [x] El arrastre ya no se resetea (Parco lo confirmó el 16 nov). Causa: al levantar, el renglón (o la tarjeta)
+  recibía opacidad o transform y React Native sacaba y volvía a meter lo que
+  estaba bajo el dedo; iOS cancelaba el toque (en el log, cada arrastre
+  terminaba en su mismo lugar). Arreglo: `collapsable={false}` en ese camino
+  (regla en `components/CLAUDE.md`). El log de Metro ahora dice `suelta` o
+  `cancela` y los milisegundos desde que se levantó.
+- [ ] **Parco, QA en el iPhone — guardar, publicar y modificar como Apple**
+  ([investigación](EDITOR_MENU_INVESTIGACION_2026-11-16.md) §9): se guarda
+  solo y «‹» sale; «Publicar» arriba a la derecha; el menú de hoy se abre con
+  «×» y «Actualizar».
+- [ ] **Parco, QA en el iPhone — mover y eliminar sin modo Ordenar** (como
+  Recordatorios, en prueba): mantener presionado y soltar sin que brinque
+  nada; deslizar a la izquierda en el editor y en Menús («Más» y
+  «Eliminar»); «Deshacer» se va a los 6 s. Si no convence, el modo Ordenar
+  vuelve con `SHOW_ORDER_MODE`.
+- [ ] Si se queda: deslizar para quitar un lugar en Guardados (mismo
+  `SwipeRow`), para que las dos bibliotecas se sigan pareciendo.
 - [ ] En su momento (Parco, 16 nov): probar separar las secciones del editor
   con tipografía (título de marca y aire) en lugar de tarjetas.
 - [x] Arreglado: la foto o los otros nombres de un platillo de la carta, sin

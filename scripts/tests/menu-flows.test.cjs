@@ -385,6 +385,31 @@ test('a late title blur cannot overwrite newly saved dishes or erase publication
   runtime.unmount();
 });
 
+test('editor with cards: next opens a line right below, a new section starts without lines, and closing knows what changed', async () => {
+  const runtime = hookRuntime();
+  const f = fixture({ overrides: { react: runtime.react, '@/lib/db': {} } });
+  const { useFonderoMenuDraftController } = f.load('lib/controllers/useFonderoMenuDraftController.ts');
+  const initial = { secciones: [
+    { id: 'a', nombre: 'SOPAS', precio: '', platillos: [{ id: 'd1', nombre: 'Fideo', descripcion: '', precio: '' }, { id: 'd2', nombre: 'Consomé', descripcion: '', precio: '' }] },
+    { id: 'b', nombre: 'GUISADOS', precio: '', platillos: [{ id: 'd3', nombre: 'Mole', descripcion: '', precio: '' }] },
+  ] };
+  const render = () => runtime.render(() => useFonderoMenuDraftController(initial));
+  const ids = (index) => render().data.secciones[index].platillos.map((dish) => dish.id);
+  assert.equal(render().hasUnsavedChanges(), false);
+  // «siguiente» en Fideo: el renglón nuevo queda entre Fideo y Consomé.
+  const middle = render().insertDishAfter('a', 'd1');
+  assert.deepEqual(ids(0), ['d1', middle, 'd2']);
+  // «Platillo» de GUISADOS (brincar de la sopa al guisado): al final de esa tarjeta.
+  const end = render().insertDishAfter('b', null);
+  assert.deepEqual(ids(1), ['d3', end]);
+  render().patchDish('b', end, { nombre: 'Tinga' });
+  assert.equal(render().hasUnsavedChanges(), true);
+  // Una sección nueva nace sin renglones: primero se escribe su título.
+  const added = render().addSection('', false);
+  assert.deepEqual(render().data.secciones.find((section) => section.id === added).platillos, []);
+  runtime.unmount();
+});
+
 function photoFixture({ vision, picker, handlers } = {}) {
   const runtime = hookRuntime();
   const alerts = [];

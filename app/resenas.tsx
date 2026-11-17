@@ -18,8 +18,7 @@ import { getFonditaId, getFonditaName } from '@/lib/menu-store';
 import { getPublicPatioReviews, replyToReview, type PublicPatioReview } from '@/lib/ratings';
 import { writeErrorMessage } from '@/lib/content-safety';
 import { getBusinessInsights, getDishLikeCounts, type BusinessInsights, type DishLikeCount } from '@/lib/business-stats';
-import { getPeakTime, getProStatus, type ProStatus } from '@/lib/business-pro';
-import { PLANS } from '@/lib/plans';
+import { getPeakTime, getProStatus } from '@/lib/business-pro';
 import { getDemoPatioStats, type PatioStatsSnapshot } from '@/lib/patio-stats';
 import { useTabBarScroll } from '@/lib/tab-bar-visibility';
 import { Type, useTheme } from '@/lib/theme';
@@ -65,8 +64,7 @@ export default function ResenasScreen() {
   // gusta» en platillos y lo que más gusta. Solo el dueño lo ve.
   const [insights, setInsights] = useState<BusinessInsights | null>(null);
   const [topDishes, setTopDishes] = useState<DishLikeCount[]>([]);
-  // Pro: cuándo hay más interés, avisos especiales y platillo destacado.
-  const [pro, setPro] = useState<ProStatus | null>(null);
+  // Pro: cuándo hay más interés (los avisos especiales se crean en «Crear»).
   const [peak, setPeak] = useState<{ day: string; hour: number } | null>(null);
   const load = useCallback(() => {
     const fonditaId = getFonditaId();
@@ -78,7 +76,6 @@ export default function ResenasScreen() {
       setDishLikes([]);
       setInsights(null);
       setTopDishes([]);
-      setPro(null);
       setPeak(null);
       return Promise.resolve();
     }
@@ -88,9 +85,8 @@ export default function ResenasScreen() {
       getBusinessInsights(fonditaId).then(setInsights).catch(() => setInsights(null)),
       getDishLikeCounts(fonditaId).then((counts) => setTopDishes(counts.slice(0, 3))).catch(() => setTopDishes([])),
       getProStatus(fonditaId).then(async (status) => {
-        setPro(status?.proUntil ? status : null);
         setPeak(status?.proUntil ? await getPeakTime(fonditaId).catch(() => null) : null);
-      }).catch(() => { setPro(null); setPeak(null); }),
+      }).catch(() => { setPeak(null); }),
     ]);
   }, []);
   useFocusEffect(useCallback(() => { void load(); }, [load]));
@@ -319,7 +315,8 @@ export default function ResenasScreen() {
             )}
           </View>
         )}
-        {/* Gratis para todos los negocios: «Hoy» (v4 §3) y avisos de operación (§4). */}
+        {/* «Hoy» (v4 §3): cuántos vieron tu menú y qué les gustó. Crear avisos
+            vive en «Crear» (el «＋» de abajo): aquí solo está lo que pasó. */}
         <View style={[s.list, { borderColor: c.border, marginBottom: 24 }]}>
           <TouchableOpacity style={s.proRow} activeOpacity={0.7} onPress={() => router.push('/hoy')} accessibilityRole="button">
             <Ionicons name="stats-chart-outline" size={21} color={c.text} />
@@ -329,35 +326,7 @@ export default function ResenasScreen() {
             </View>
             <Ionicons name="chevron-forward" size={16} color={c.textMute} />
           </TouchableOpacity>
-          <TouchableOpacity style={[s.proRow, { borderTopColor: c.border, borderTopWidth: StyleSheet.hairlineWidth }]} activeOpacity={0.7} onPress={() => router.push('/avisar')} accessibilityRole="button">
-            <Ionicons name="notifications-outline" size={21} color={c.text} />
-            <View style={s.rowBody}>
-              <Text style={[s.proTitle, { color: c.text }]}>{noWidow('Avisar a quienes te siguen')}</Text>
-              <Text style={[s.proSub, { color: c.textSecondary }]}>{noWidow('Abrimos tarde, hoy no abrimos… Gratis, uno al día')}</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={16} color={c.textMute} />
-          </TouchableOpacity>
         </View>
-        {!!pro && (
-          <View style={[s.list, { borderColor: c.border, marginBottom: 24 }]}>
-            <TouchableOpacity style={s.proRow} activeOpacity={0.7} onPress={() => router.push('/aviso-especial')} accessibilityRole="button">
-              <Ionicons name="megaphone-outline" size={21} color={c.text} />
-              <View style={s.rowBody}>
-                <Text style={[s.proTitle, { color: c.text }]}>Aviso especial</Text>
-                <Text style={[s.proSub, { color: c.textSecondary }]}>{noWidow(`Te quedan ${pro.noticesLeft} de ${PLANS.pro.specialNotices} este mes`)}</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={16} color={c.textMute} />
-            </TouchableOpacity>
-            <TouchableOpacity style={[s.proRow, { borderTopColor: c.border, borderTopWidth: StyleSheet.hairlineWidth }]} activeOpacity={0.7} onPress={() => router.replace('/mi-patio')} accessibilityRole="button">
-              <Ionicons name="star-outline" size={21} color={c.text} />
-              <View style={s.rowBody}>
-                <Text style={[s.proTitle, { color: c.text }]}>Platillo destacado</Text>
-                <Text style={[s.proSub, { color: c.textSecondary }]}>{noWidow('Toca la estrella de un platillo en Mi Patio')}</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={16} color={c.textMute} />
-            </TouchableOpacity>
-          </View>
-        )}
         {groups.length ? (
           groups.map((group, groupIndex) => (
             <View key={group.key} style={{ marginTop: groupIndex === 0 ? 0 : 24 }}>

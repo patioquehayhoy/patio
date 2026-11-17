@@ -6,7 +6,10 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, Animated, Modal, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { getProStatus } from '@/lib/business-pro';
 import { fonderoPalette } from '@/lib/fondero-palette';
+import { getFonditaId } from '@/lib/menu-store';
+import { PLANS } from '@/lib/plans';
 import { Radius, useTheme } from '@/lib/theme';
 import { SHEET_DISMISS_MS, SHEET_SPRING } from '@/lib/sheet-motion';
 import { useTabBarScroll } from '@/lib/tab-bar-visibility';
@@ -28,12 +31,18 @@ import { noWidow } from '@/lib/typography';
 // composición real del action sheet nativo; el lenguaje visual (glass,
 // tipografía de marca) es 100% Patio, nunca chrome de iOS literal — mismo
 // criterio que ya usa components/action-sheet.tsx.
-export function NewMenuSheet({ visible, onClose, onCancel, replaceOnNavigate }: {
+// «Crear» (2026-11-16, Parco: el negocio crea varias cosas, no solo el menú):
+// con `create`, el «＋» de la barra junta todo lo que el negocio puede
+// publicar. Arriba, el menú de hoy (sus tres caminos); abajo, los avisos a
+// quienes lo siguen. Actividad queda solo con lo que pasó.
+export function NewMenuSheet({ visible, onClose, onCancel, replaceOnNavigate, create = false }: {
   visible: boolean;
   onClose: () => void;
   /** Solo al cancelar (no al elegir una opción): p. ej. salir del alta a Menús. */
   onCancel?: () => void;
   replaceOnNavigate?: boolean;
+  /** «Crear» del negocio: además del menú, los avisos. */
+  create?: boolean;
 }) {
   const { theme } = useTheme();
   const c = fonderoPalette(theme.isDark);
@@ -44,6 +53,16 @@ export function NewMenuSheet({ visible, onClose, onCancel, replaceOnNavigate }: 
   const contentHeightRef = useRef(contentHeight);
   contentHeightRef.current = contentHeight;
   const translateY = useRef(new Animated.Value(contentHeight)).current;
+  // Avisos especiales: solo con Pro; dice cuántos quedan este mes.
+  const [noticesLeft, setNoticesLeft] = useState<number | null>(null);
+  useEffect(() => {
+    if (!visible || !create) return;
+    const id = getFonditaId();
+    if (!id) return;
+    let active = true;
+    getProStatus(id).then((status) => { if (active) setNoticesLeft(status?.proUntil ? status.noticesLeft : null); }).catch(() => {});
+    return () => { active = false; };
+  }, [visible, create]);
   const [rendered, setRendered] = useState(visible);
   const deferredNavigation = useRef<(() => void) | null>(null);
   const { hide: hideTabBar, reveal: revealTabBar } = useTabBarScroll();
@@ -99,11 +118,37 @@ export function NewMenuSheet({ visible, onClose, onCancel, replaceOnNavigate }: 
     onClose();
   };
 
-  const options = [
-    { label: 'Tomar foto', icon: 'camera-outline' as const, onPress: () => go({ pathname: '/foto-menu', params: { source: 'camera' } }) },
-    { label: 'Elegir de Fotos', icon: 'images-outline' as const, onPress: pickFromLibrary },
-    { label: 'Escribir a mano', icon: 'create-outline' as const, onPress: () => go('/menu-editar') },
+  type Option = { label: string; sub?: string; icon: keyof typeof Ionicons.glyphMap; onPress: () => void };
+  const options: Option[] = [
+    { label: 'Tomar foto', icon: 'camera-outline', onPress: () => go({ pathname: '/foto-menu', params: { source: 'camera' } }) },
+    { label: 'Elegir de Fotos', icon: 'images-outline', onPress: pickFromLibrary },
+    { label: 'Escribir a mano', icon: 'create-outline', onPress: () => go('/menu-editar') },
   ];
+  const notices: Option[] = create ? [
+    { label: 'Avisar a quienes te siguen', sub: 'Abrimos tarde, hoy no abrimos, se acabó', icon: 'notifications-outline', onPress: () => go('/avisar') },
+    ...(noticesLeft !== null ? [{ label: 'Aviso especial', sub: `Promoción de 24 horas · te quedan ${noticesLeft} de ${PLANS.pro.specialNotices}`, icon: 'megaphone-outline' as const, onPress: () => go('/aviso-especial') }] : []),
+  ] : [];
+  const renderGroup = (label: string | null, list: Option[]) => (
+    <View style={s.group} key={label ?? 'menu'}>
+      <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
+      <View pointerEvents="none" style={[s.groupTint, { backgroundColor: theme.isDark ? 'rgba(20,21,24,0.90)' : 'rgba(255,255,255,0.88)' }]} />
+      {!!label && <Text style={[s.groupLabel, { color: c.textSecondary }]} accessibilityRole="header">{label}</Text>}
+      {list.map((option, index) => (
+        <TouchableOpacity
+          key={option.label}
+          onPress={option.onPress}
+          style={[s.row, (index > 0 || !!label) && { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: c.border }]}
+          accessibilityRole="button"
+          accessibilityLabel={option.sub ? `${option.label}. ${option.sub}` : option.label}>
+          <Ionicons name={option.icon} size={20} color={c.text} />
+          <View style={s.rowBody}>
+            <Text style={[s.rowText, { color: c.text }]}>{noWidow(option.label)}</Text>
+            {!!option.sub && <Text style={[s.rowSub, { color: c.textSecondary }]}>{noWidow(option.sub)}</Text>}
+          </View>
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
 
   return (
     <Modal transparent visible={rendered} animationType="none" onDismiss={finishDismiss} onRequestClose={() => { onCancel?.(); onClose(); }} statusBarTranslucent>
@@ -112,21 +157,8 @@ export function NewMenuSheet({ visible, onClose, onCancel, replaceOnNavigate }: 
           <TouchableOpacity activeOpacity={1} style={s.backdrop} onPress={() => { onCancel?.(); onClose(); }} accessibilityRole="button" accessibilityLabel="Cerrar" />
         </Animated.View>
         <Animated.View accessibilityViewIsModal onAccessibilityEscape={() => { onCancel?.(); onClose(); }} onLayout={(event) => setContentHeight(event.nativeEvent.layout.height)} style={[s.wrap, { paddingBottom: bottomPadding, transform: [{ translateY }] }]}>
-          <View style={s.group}>
-            <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
-            <View pointerEvents="none" style={[s.groupTint, { backgroundColor: theme.isDark ? 'rgba(20,21,24,0.90)' : 'rgba(255,255,255,0.88)' }]} />
-            {options.map((option, index) => (
-              <TouchableOpacity
-                key={option.label}
-                onPress={option.onPress}
-                style={[s.row, index > 0 && { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: c.border }]}
-                accessibilityRole="button"
-                accessibilityLabel={option.label}>
-                <Ionicons name={option.icon} size={20} color={c.text} />
-                <Text style={[s.rowText, { color: c.text }]}>{option.label}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+          {renderGroup(create ? 'MENÚ DE HOY' : null, options)}
+          {!!notices.length && renderGroup('AVISOS', notices)}
           <TouchableOpacity onPress={() => { onCancel?.(); onClose(); }} style={s.cancelGroup} accessibilityRole="button" accessibilityLabel="Cancelar">
             <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
             <View pointerEvents="none" style={[s.groupTint, { backgroundColor: theme.isDark ? 'rgba(20,21,24,0.90)' : 'rgba(255,255,255,0.88)' }]} />
@@ -147,7 +179,10 @@ function makeStyles(isDark: boolean) {
     group: { borderRadius: Radius.card, borderCurve: 'continuous', overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: border },
     groupTint: StyleSheet.absoluteFillObject,
     row: { minHeight: 56, flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 18 },
+    rowBody: { flex: 1, minWidth: 0, paddingVertical: 10 },
     rowText: { fontSize: 16, fontWeight: '500' },
+    rowSub: { marginTop: 2, fontSize: 13, lineHeight: 17, fontWeight: '400' },
+    groupLabel: { paddingHorizontal: 18, paddingTop: 12, paddingBottom: 8, fontSize: 11, fontWeight: '700', letterSpacing: 0.8 },
     cancelGroup: { minHeight: 56, borderRadius: Radius.card, borderCurve: 'continuous', overflow: 'hidden', alignItems: 'center', justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth, borderColor: border },
     cancelText: { fontSize: 16, fontWeight: '700' },
   });

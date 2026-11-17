@@ -33,17 +33,25 @@
   estrellas salen del servidor (`review_summary`); las fotos de clientes del
   menú se bajan aparte; «Ver la reseña» desde una foto trae las que falten.
 - [x] **Producción (16 nov):** `20261116120000_review_summary` aplicada.
-- [ ] Editor del menú: se regresó al pizarrón del commit f477845 (las
-  versiones «sin ×» y «como una nota» no convencieron). Se rehace con
-  tarjetas y todos los usos de llenado:
-  [EDITOR_MENU_INVESTIGACION](EDITOR_MENU_INVESTIGACION_2026-11-16.md).
+- [x] Editor con tarjetas: «＋ Platillo» en cada tarjeta; foto, nombre,
+  descripción y precio siempre en su lugar; «Listo» guarda y cierra;
+  «siguiente» nombre → descripción → platillo de abajo, y los precios de
+  precio en precio («Siguiente» fijo en la barra)
+  ([investigación](EDITOR_MENU_INVESTIGACION_2026-11-16.md) §8).
+- [ ] **Parco, QA en el iPhone — arrastrar en «Ordenar»** (manija y renglón
+  sostenido; mover a otra tarjeta y mover una sección). Si falla, el log de
+  Metro trae `[ordenar] levanta / lista / suelta` para ver dónde se corta.
+- [ ] En su momento (Parco, 16 nov): probar separar las secciones del editor
+  con tipografía (título de marca y aire) en lugar de tarjetas.
 - [x] Arreglado: la foto o los otros nombres de un platillo de la carta, sin
   más cambios, no se guardaban (`cartaSignature`). Fuera el «Incluye…» de
   prueba de ficha y póster.
-- [ ] Parco decide: [navegación y perfiles](NAVEGACION_Y_PERFILES_2026-11-16.md)
-  §0 — buscador y Patios igual; Perfil = perfil público con campana y
-  engrane; el «＋» del negocio se vuelve «Crear» (menú, aviso, aviso
-  especial) y Actividad queda solo con lo que pasó.
+- [ ] **Parco, QA — Perfil y «Crear»**: la pestaña Perfil es
+  tu perfil público (`Fotos · Reseñas · Listas`, campana de Actividad y
+  engrane de Ajustes, `app/ajustes.tsx`); el «＋» del negocio es «Crear»
+  (menú de hoy y avisos), Actividad queda solo con lo que pasó y la
+  última pestaña del negocio se llama «Ajustes» (Jev)
+  ([navegación](NAVEGACION_Y_PERFILES_2026-11-16.md) §0).
 - [ ] Estadísticas de «me gusta» por platillo (Actividad) por identidad del
   platillo; hoy separan nombres.
 

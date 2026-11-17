@@ -1,49 +1,96 @@
-## El editor es un pizarrón (menu-composer.tsx, 2026-11-16)
+## El editor del menú: tarjetas con todo a la vista (menu-composer.tsx, 2026-11-16)
 
-> Decisión de Parco tras probar dos bloques fijos («MENÚ DEL DÍA» / «LA
-> CARTA» con su renglón de precio): se sentía parchado. Ahora el editor es
-> como el pizarrón: solo secciones, cada una con su título y su precio.
+> Tres versiones ese día: el pizarrón con «×» (la «×» del título confundía),
+> herramientas solo en el renglón activo (todo se movía y el teclado tapaba)
+> y «como una nota» (la descripción y la foto dejaron de verse). La que queda
+> sale de cómo lo hacen Square, Google, Uber Eats, DoorDash, Recordatorios y
+> Contactos (docs/EDITOR_MENU_INVESTIGACION_2026-11-16.md).
 
-- **Todo es sección:** título + «$» (el mismo chip vacío que el de cada
-  platillo; al tocarlo se escribe) + «×» (quitar, se puede deshacer), igual
-  que cada platillo. Sin «···» ni flechas (2026-11-16, Parco).
-- **Mover = mantener presionado y arrastrar** (`components/board-drag.tsx`,
-  gestos nativos de RNGH + Reanimated, sin librerías nuevas): un platillo
-  (sosteniendo su nombre) va a cualquier lugar, también a otra sección o a
-  la carta; una sección (sosteniendo su título) se mueve completa. Lo que se
-  arrastra se levanta; una línea naranja marca dónde caerá; cerca de la
-  orilla la lista se desplaza sola. Tocar el nombre o el título sigue
-  siendo escribirlo. Con VoiceOver: acciones «Subir» y «Bajar».
-  «MENÚ DEL DÍA $100» es una sección, con o sin platillos debajo (un
-  encabezado con precio se guarda aunque no tenga platillos); «GUISADOS
-  $85», otra; «CARTA $110», otra. Sin etiquetas de bloque, sin renglones de
-  «Precio» ni «Incluye» aparte (lo que incluye lo dicen los platillos).
+- **Cada sección es una tarjeta** (radio 18, superficie, sin recortar para
+  que lo que se arrastra salga de ella): arriba su título y su precio,
+  adentro sus platillos y, al final, «＋ Platillo». Debajo de la última
+  tarjeta de hoy, «＋ Sección» (y otro al final de la carta).
+- **Cada platillo tiene siempre sus cuatro lugares:** el cuadro de la foto a
+  la izquierda (foto o cámara gris), el nombre, la descripción debajo
+  («Descripción» en gris) y el precio a la derecha («$» en gris). Los íconos
+  forman una columna y los precios otra; las líneas entre platillos empiezan
+  donde empieza el texto.
+- **Nada se mueve al escribir:** cada campo está siempre montado (nada de
+  cambiar texto por campo); solo se anima lo que llega o se va. Las
+  sugerencias del sistema («Mover a la descripción», «¿Es el mismo
+  platillo?») salen con el teclado cerrado. El renglón que escribes nunca
+  queda bajo el teclado (`automaticallyAdjustKeyboardInsets` y
+  `ensureVisible`).
+- **Llenar en cualquier orden** (Parco: «se brinca de sopa a guisado»):
+  - «＋ Platillo» de cualquier tarjeta escribe ahí mismo;
+  - «siguiente» en un nombre abre un renglón justo debajo (de corrido o a la
+    mitad); en un renglón vacío termina;
+  - «siguiente» en una descripción pasa a la del platillo de abajo; en un
+    precio, al precio de abajo («Siguiente» sobre el teclado);
+  - «siguiente» en un título va a su primer platillo;
+  - escribir «$» en un nombre lleva a su precio («Pastor $25»).
+- **«siguiente»** (Parco, 16 nov; Jev proponía depender del giro y no le
+  convenció): del nombre a su descripción; de la descripción al platillo de
+  abajo, o a uno nuevo al final de la tarjeta. El precio va aparte, de precio
+  en precio por todo el menú en el orden en que se ve (el de cada sección y
+  los de sus platillos). El teclado de números no trae «siguiente»: lo da
+  «Siguiente» en la barra, siempre visible; después del último precio abre
+  un platillo nuevo. En un nombre vacío, «siguiente» termina.
+- **Barra sobre el teclado, una por tipo de campo** (`BAR_TEXT`,
+  `BAR_PRICE`, `BAR_TITLE`), con sus botones fijos; lo que hacen se lee del
+  campo con el cursor en ese momento (`barActions`), así no dependen de que la
+  barra se redibuje. En un platillo, «Borrar · Listo» (borrar pasa el cursor
+  al de abajo, para limpiar el menú de ayer de corrido); en un precio,
+  «Siguiente · Listo», siempre; en un título vacío, los títulos del giro y
+  «CARTA» si no hay; en un título con nombre, «Borrar · Listo».
+- **Arriba:** «Ordenar» a la izquierda, el nombre del menú al centro y
+  «Listo» a la derecha, que guarda y cierra (Jev: 53 % frente a «×» 29 %).
+  No hay «Guardar sin publicar»: lo hace «Listo». Si no hay un platillo de
+  hoy, pregunta antes de salir sin guardar.
+- **Foto:** tocar el cuadro abre ahí mismo Tomar foto, Elegir de Fotos y
+  Quitar foto (anclado al cuadro).
+- **Ordenar** (Jev: 61 % frente a mantener presionado 38 %): es un modo
+  aparte, como en las listas de iOS. Cada platillo y cada título muestran un
+  botón rojo para borrar a la izquierda y su manija (≡) a la derecha. Como en
+  Ordenar no se escribe, arrastrar ya no pelea con el texto: desde la manija,
+  al instante (`handleFor`), o desde cualquier parte del renglón con un toque
+  sostenido corto (`rowFor`, 180 ms; deslizar sigue desplazando la lista).
+  La lista es el `ScrollView` de gesture-handler y cada arrastre lo bloquea
+  (`blocksExternalGesture`): la lista espera a que el arrastre falle antes de
+  desplazarse. Sin esa relación la lista empezaba a moverse y cancelaba el
+  arrastre (no quitarla). Si la lista aún no se midió, se usa la pantalla: la
+  línea siempre aparece.
+  Una línea naranja marca dónde cae; cerca de la orilla la lista se desplaza
+  sola. «Listo» termina. Mientras escribes
+  no hay gestos sobre el texto. Con VoiceOver, la manija se ajusta con
+  «Subir» y «Bajar».
+- **Borrar:** «Borrar» de la barra del teclado o el botón rojo de Ordenar;
+  siempre con «Deshacer» (con el teclado abierto, el aviso va arriba de él).
+  Lo que se queda vacío se va solo al salir de él (un renglón; una sección
+  nueva sin título ni platillos).
+- Un menú leído de una foto cuenta como cambio hasta guardarlo; arriba de la
+  primera tarjeta, «Tomar otra foto».
 - **La carta se reconoce por su encabezado** (`lib/menu-carta.ts`,
   `cartaByHeading`): desde la sección «CARTA» (o «A LA CARTA», «LO DE
-  SIEMPRE») hacia abajo todo es carta y se queda para los días que siguen; lo
-  de arriba es lo de hoy. Debajo del título «CARTA», una sola línea lo dice.
-  Renombrarla o moverla cambia qué es carta, como en el pizarrón. Se
-  agrega con el chip «CARTA» de las sugerencias; después, «Agregar sección»
-  al final agrega secciones a la carta.
-- **Menús de antes** (`boardFromMenu`): los precios del menú (`precios`,
-  también los que lee una foto) pasan a encabezados arriba de lo de hoy; uno
-  solo sin nombre bautiza la primera sección como «MENÚ DEL DÍA». Una carta
-  guardada sin encabezado recibe «CARTA». «Incluye…» se quita.
-- **Sin pasos:** se pensó en un recorrido por pasos y se descartó (el menú se
-  publica a diario). La primera sección sugiere su título («MENÚ DEL DÍA» en
-  la comida corrida; el del giro en los demás) y, en un menú nuevo hecho a
-  mano, el cursor espera en el primer platillo.
+  SIEMPRE») hacia abajo todo es carta y se queda para los días que siguen.
+- **Menús de antes** (`boardFromMenu`): los precios del menú pasan a
+  encabezados arriba de lo de hoy; una carta guardada sin encabezado recibe
+  «CARTA». «Incluye…» se quita.
 - Al publicar: lo de hoy se publica y la carta se guarda en `cartas` solo si
-  cambió (`cartaSignature`). Para publicar o guardar hace falta un platillo
-  de hoy. Ficha, tarjeta y póster muestran el encabezado con precio; la
-  tarjeta toma como precio del menú el de la sección que se llama «MENÚ…» o
-  «COMIDA CORRIDA».
+  cambió (`cartaSignature`, que cuenta también fotos y otros nombres).
+
+## «Crear» del negocio (new-menu-sheet.tsx, 2026-11-16)
+
+- El «＋» de la barra del negocio es «Crear»: arriba «MENÚ DE HOY» (Tomar
+  foto, Elegir de Fotos, Escribir a mano); abajo «AVISOS» (Avisar a quienes
+  te siguen y, con Pro, Aviso especial con los que quedan). Actividad queda
+  solo con lo que pasó.
 
 ## Fotos de platillos (2026-11-15)
 
-- Opcionales. En cada platillo, «Agregar foto» junto a «Agregar
-  descripción»; con foto, miniatura de 40 y «Se ve al mantenerlo
-  presionado». Tocarla: Tomar foto / Elegir de Fotos / Quitar foto.
+- Opcionales. En el editor, el cuadro de la izquierda de cada platillo (foto
+  o cámara gris), sin leyenda. Tocarlo: Tomar foto / Elegir de Fotos /
+  Quitar foto.
 - Se sube al elegirla (bucket `dish-photos`, carpeta del dueño,
   `lib/dish-photo.ts`) y la URL va en `Platillo.foto`. La ficha solo muestra
   fotos de ese bucket (`lib/dish-photo-url.ts`).

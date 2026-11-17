@@ -1,23 +1,39 @@
 import * as Haptics from 'expo-haptics';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, ScrollView } from 'react-native';
+import { Dimensions, type LayoutChangeEvent, type NativeScrollEvent, type NativeSyntheticEvent, type ScrollView } from 'react-native';
 import { Gesture } from 'react-native-gesture-handler';
 import { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 
-// Arrastrar en el pizarrón del editor (2026-11-16, Parco): mantener presionado
-// un platillo o el título de una sección y moverlo con el dedo, en lugar de
-// «···» con flechas. Un platillo va a cualquier lugar (también a otra sección
-// o a la carta); una sección se mueve completa. Una línea marca dónde caerá;
-// cerca de la orilla de arriba o de abajo, la lista se desplaza sola.
+// Ordenar el menú (2026-11-16, noche; Jev: 61 % prefiere un modo «Ordenar»):
+// en el modo Ordenar no se escribe, así que arrastrar ya no pelea con el texto.
+// Se arrastra desde la manija (≡), al instante, o desde cualquier parte del
+// renglón con un toque sostenido corto (así deslizar sigue desplazando la
+// lista). Un platillo va a cualquier lugar (también a otra sección o a la
+// carta); una sección se mueve completa. Una línea marca dónde caerá; cerca de
+// la orilla de arriba o de abajo, la lista se desplaza sola.
+//
+// Como las listas de iOS en modo Edición (HIG, Lists and tables): botón rojo a
+// la izquierda, manija a la derecha.
+//
+// Quién gana el dedo: la lista es el ScrollView de gesture-handler y cada
+// arrastre lo bloquea (`blocksExternalGesture`): la lista espera a que el
+// arrastre falle antes de desplazarse. En la manija el arrastre empieza al
+// primer movimiento, así que la lista nunca se lo gana; en el renglón espera
+// un toque sostenido corto y, si el dedo se mueve antes, falla y la lista se
+// desplaza. Sin esa relación, la lista empezaba a desplazarse y cancelaba el
+// arrastre (por eso «no servía»).
 
 export type BoardDragItem = { kind: 'dish'; dishId: string; sectionId: string } | { kind: 'section'; sectionId: string };
 type Layout = { y: number; height: number };
 type BoardSection = { id: string; platillos: { id: string }[] };
 type Target = { kind: 'dish'; sectionId: string; index: number } | { kind: 'section'; index: number };
 
-const HOLD_MS = 320;
 const EDGE = 72;
+// Toque sostenido para levantar un renglón desde cualquier parte.
+const ROW_HOLD_MS = 180;
 const MAX_SPEED = 14;
+// Rastro en Metro (solo en desarrollo) para revisar un arrastre que no cae.
+const trace = (...args: unknown[]) => { if (__DEV__) console.log('[ordenar]', ...args); };
 
 export function useBoardDrag({ sections, scrollRef, onMoveDish, onMoveSection }: {
   /** En el orden del menú. */
@@ -59,6 +75,17 @@ export function useBoardDrag({ sections, scrollRef, onMoveDish, onMoveSection }:
   const onDishLayout = useCallback((id: string) => (event: LayoutChangeEvent) => {
     dishLayouts.current.set(id, { y: event.nativeEvent.layout.y, height: event.nativeEvent.layout.height });
   }, []);
+  // Dónde está la lista en la pantalla: se mide al acomodarse y al empezar cada
+  // arrastre (el teclado o la barra de secciones pudieron moverla).
+  const measureViewport = useCallback((then?: () => void) => {
+    const host = scrollRef.current as unknown as { measureInWindow?: (callback: (x: number, y: number, width: number, height: number) => void) => void } | null;
+    if (!host?.measureInWindow) { then?.(); return; }
+    host.measureInWindow((_x, y, _width, height) => {
+      if (height) viewport.current = { top: y, height };
+      then?.();
+    });
+  }, [scrollRef]);
+  const onViewportLayout = useCallback(() => { measureViewport(); }, [measureViewport]);
   const onScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
     scrollY.current = event.nativeEvent.contentOffset.y;
     contentHeight.current = event.nativeEvent.contentSize.height;
@@ -107,7 +134,7 @@ export function useBoardDrag({ sections, scrollRef, onMoveDish, onMoveSection }:
     const item = dragRef.current;
     if (!item) return;
     translateY.value = pageY - start.current.pageY + (scrollY.current - start.current.scrollY);
-    const found = locate(pageY - viewport.current.top + scrollY.current, item);
+    const found = locate(pageY - viewportNow().top + scrollY.current, item);
     if (!found) return;
     if (!same(found.target, target.current)) {
       if (target.current) Haptics.selectionAsync().catch(() => {});
@@ -120,8 +147,10 @@ export function useBoardDrag({ sections, scrollRef, onMoveDish, onMoveSection }:
     timer.current = null;
     speed.current = 0;
   };
+  // Si aún no se midió, la lista ocupa la pantalla: nunca se deja de marcar.
+  const viewportNow = () => (viewport.current.height ? viewport.current : { top: 0, height: Dimensions.get('window').height });
   const autoScroll = (pageY: number) => {
-    const { top, height } = viewport.current;
+    const { top, height } = viewportNow();
     const fromTop = pageY - top;
     const fromBottom = top + height - pageY;
     speed.current = fromTop < EDGE ? -MAX_SPEED * (1 - Math.max(0, fromTop) / EDGE)
@@ -130,7 +159,7 @@ export function useBoardDrag({ sections, scrollRef, onMoveDish, onMoveSection }:
     if (!speed.current) { stopAutoScroll(); return; }
     if (timer.current) return;
     timer.current = setInterval(() => {
-      const max = Math.max(0, contentHeight.current - viewport.current.height);
+      const max = Math.max(0, contentHeight.current - viewportNow().height);
       const next = Math.max(0, Math.min(max, scrollY.current + speed.current));
       if (next === scrollY.current) return;
       scrollY.current = next;
@@ -140,8 +169,6 @@ export function useBoardDrag({ sections, scrollRef, onMoveDish, onMoveSection }:
   };
 
   const begin = (item: BoardDragItem, pageY: number) => {
-    const host = scrollRef.current as unknown as { measureInWindow?: (callback: (x: number, y: number, width: number, height: number) => void) => void } | null;
-    host?.measureInWindow?.((_x, y, _width, height) => { viewport.current = { top: y, height }; });
     dragRef.current = item;
     target.current = null;
     start.current = { pageY, scrollY: scrollY.current };
@@ -149,7 +176,9 @@ export function useBoardDrag({ sections, scrollRef, onMoveDish, onMoveSection }:
     translateY.value = 0;
     setDrag(item);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+    trace('levanta', item.kind, item.kind === 'dish' ? item.dishId : item.sectionId, { secciones: sectionLayouts.current.size, platillos: dishLayouts.current.size });
     update(pageY);
+    measureViewport(() => { trace('lista', viewport.current); if (dragRef.current) update(lastPageY.current); });
   };
   const move = (pageY: number) => {
     lastPageY.current = pageY;
@@ -166,6 +195,7 @@ export function useBoardDrag({ sections, scrollRef, onMoveDish, onMoveSection }:
     translateY.value = 0;
     setDrag(null);
     setLineY(null);
+    trace(commit ? 'suelta' : 'cancela', where ?? 'sin lugar');
     if (!commit || !where) return;
     if (item.kind === 'dish' && where.kind === 'dish') moveDishRef.current(item.dishId, where.sectionId, where.index);
     if (item.kind === 'section' && where.kind === 'section') moveSectionRef.current(item.sectionId, where.index);
@@ -173,25 +203,18 @@ export function useBoardDrag({ sections, scrollRef, onMoveDish, onMoveSection }:
   };
   useEffect(() => () => stopAutoScroll(), []);
 
-  /**
-   * Gesto para un platillo o una sección: mantener presionado y mover. Con
-   * `onTap`, un toque corto hace lo de siempre (editar el nombre).
-   */
-  const gestureFor = (item: BoardDragItem, onTap?: () => void) => {
-    const pan = Gesture.Pan()
-      .activateAfterLongPress(HOLD_MS)
-      .runOnJS(true)
-      .onStart((event) => begin(item, event.absoluteY))
-      .onUpdate((event) => move(event.absoluteY))
-      .onEnd(() => finish(true))
-      .onFinalize(() => finish(false));
-    if (!onTap) return pan;
-    const tap = Gesture.Tap()
-      .maxDuration(HOLD_MS)
-      .runOnJS(true)
-      .onEnd((_event, success) => { if (success) onTap(); });
-    return Gesture.Race(pan, tap);
-  };
+  const dragFrom = (item: BoardDragItem, pan: ReturnType<typeof Gesture.Pan>) => pan
+    // La lista no se desplaza mientras este arrastre pueda empezar.
+    .blocksExternalGesture(scrollRef as unknown as Parameters<typeof pan.blocksExternalGesture>[0])
+    .runOnJS(true)
+    .onStart((event) => begin(item, event.absoluteY))
+    .onUpdate((event) => move(event.absoluteY))
+    .onEnd(() => finish(true))
+    .onFinalize(() => finish(false));
+  /** La manija (≡) de un platillo o una sección: el renglón sigue al dedo, sin esperar. */
+  const handleFor = (item: BoardDragItem) => dragFrom(item, Gesture.Pan().minDistance(0));
+  /** Todo el renglón: un toque sostenido corto lo levanta; deslizar desplaza la lista. */
+  const rowFor = (item: BoardDragItem) => dragFrom(item, Gesture.Pan().activateAfterLongPress(ROW_HOLD_MS));
 
-  return { drag, lineY, dragStyle, gestureFor, onScroll, onSectionLayout, onHeaderLayout, onDishLayout };
+  return { drag, lineY, dragStyle, handleFor, rowFor, onScroll, onViewportLayout, onSectionLayout, onHeaderLayout, onDishLayout };
 }

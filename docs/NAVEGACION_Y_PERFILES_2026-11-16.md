@@ -3,7 +3,7 @@
 **Lado difícil hoy:** el negocio que publica su menú diario. Toda decisión de
 abajo se mide primero por cuánto le ayuda a publicar y a que lo publicado se vea.
 
-## 0. Ajuste con Parco (16 nov, noche) — manda sobre lo de abajo
+## 0. Ajuste con Parco (16 nov, noche) — manda sobre lo de abajo (construido)
 
 - **El buscador y Patios (listas) se quedan igual.** Ya funcionan y ya están
   homologados con Menús (misma tarjeta, filtro y selección). La propuesta de
@@ -19,6 +19,10 @@ abajo se mide primero por cuánto le ayuda a publicar y a que lo publicado se ve
   - **Aviso a quienes te siguen:** gratis, uno al día («Abrimos tarde», «Hoy
     no abrimos», «Se acabó»).
   - **Aviso especial:** Pro; una promoción que se ve 24 horas.
+- **La última pestaña del negocio se llama «Ajustes»** (Jev, 16 nov: 41 %
+  frente a «Perfil» con ajustes 31 % y «Perfil» con la ficha 28 %). Así
+  «Perfil» significa lo mismo en toda la app: un perfil público. La cara
+  pública del negocio sigue en «Mi Patio».
 - **Actividad del negocio queda solo con lo que pasó:** reseñas, me gusta y
   seguidores, con el resumen de «Hoy» arriba.
   - Salen de ahí las filas de crear («Avisar a quienes te siguen» y «Aviso

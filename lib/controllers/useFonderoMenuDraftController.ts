@@ -9,15 +9,12 @@ import { saveDevPublishedMenu } from '@/lib/demo';
 import { getLocalMenus, newMenuDraftId, renameLocalMenu, saveMenuPublication, saveLocalMenu } from '@/lib/menu-history';
 import { recordMenuCorrection } from '@/lib/menu-learning';
 import {
-  canonicalSeccion,
   cleanAntes,
   clearMenuExtractionSnapshot,
   getMenuExtractionSnapshot,
-  getTipoNegocio,
   makePlatilloId,
   makeSectionId,
   normalizeMenuData,
-  seccionSugerencias,
   setMenuData,
   type MenuData,
   type Platillo,
@@ -50,11 +47,13 @@ const blankDish = (): Platillo => ({
   precio: '',
 });
 
-const blankSection = (name = 'MENÚ DE HOY', carta = false): Seccion => ({
+// El menú nuevo trae un renglón vacío donde espera el cursor; una sección que
+// se agrega después nace sin renglones: primero se escribe su título.
+const blankSection = (name = 'MENÚ DE HOY', carta = false, withDish = true): Seccion => ({
   id: makeSectionId(),
   nombre: name,
   precio: '',
-  platillos: [blankDish()],
+  platillos: withDish ? [blankDish()] : [],
   ...(carta ? { carta: true } : {}),
 });
 
@@ -203,6 +202,15 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
   // el borrador ya la trae (foto del pizarrón o borrador guardado), manda esa.
   // `cartaBase` dice si cambió: solo entonces se vuelve a guardar.
   const cartaBase = useRef<string | null>(null);
+  // Lo que había al abrir (o al guardar por última vez): cerrar con cambios
+  // pregunta antes de perderlos. Lo de hoy y la carta se comparan aparte
+  // porque la carta guardada llega después de abrir.
+  const savedBase = useRef<{ hoy: string; carta: string } | null>(null);
+  if (!savedBase.current) {
+    const split = splitCarta(cleanMenu(data));
+    savedBase.current = { hoy: cartaSignature(split.hoy), carta: cartaSignature(split.carta) };
+  }
+  const savedOnce = useRef(false);
 
   // Identidad de los platillos (2026-11-15, lib/dish-identity.ts). Lo que se
   // sabe de cada platillo —su foto y sus otros nombres— se recuerda por su
@@ -389,7 +397,11 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
         if (!active || !carta?.secciones.length) return;
         const withHeading = { ...carta, secciones: withCartaHeading(carta.secciones, makeSectionId) };
         cartaBase.current = cartaSignature(splitCarta(cleanMenu(joinCarta({ secciones: [] }, withHeading))).carta);
-        setData((prev) => (prev.secciones.some((section) => section.carta) ? prev : joinCarta(prev, withHeading)));
+        setData((prev) => {
+          if (prev.secciones.some((section) => section.carta)) return prev;
+          if (savedBase.current) savedBase.current = { ...savedBase.current, carta: cartaBase.current ?? '' };
+          return joinCarta(prev, withHeading);
+        });
         learnPhotos(carta);
         fillKnownPhotos();
       })
@@ -397,9 +409,6 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
     return () => { active = false; };
   }, [initialData, learnPhotos, fillKnownPhotos, setData]);
   const draftId = useRef(initialData.localDraftId ?? newMenuDraftId()).current;
-  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
-  const [details, setDetails] = useState<Record<string, boolean>>({});
-  const [sectionActions, setSectionActions] = useState<string | null>(null);
   const [publishing, setPublishing] = useState(false);
 
   // Título del menú de hoy — funciona como el título de una nota: en blanco
@@ -552,17 +561,20 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
     });
   }, [setData]);
 
-  const moveSection = useCallback((id: string, direction: -1 | 1) => {
-    setData((prev) => {
-      const next = [...prev.secciones];
-      const index = next.findIndex((section) => section.id === id);
-      const target = index + direction;
-      // Como en el pizarrón: si una sección pasa abajo del encabezado de la
-      // carta, se vuelve carta (y al revés).
-      if (index < 0 || target < 0 || target >= next.length) return prev;
-      [next[index], next[target]] = [next[target], next[index]];
-      return { ...prev, secciones: next };
-    });
+  // «siguiente» en un platillo abre el renglón de abajo, en la misma sección.
+  const insertDishAfter = useCallback((sectionId: string, afterDishId: string | null): string => {
+    const dish = blankDish();
+    setData((prev) => ({
+      ...prev,
+      secciones: prev.secciones.map((section) => {
+        if (section.id !== sectionId) return section;
+        const at = afterDishId ? section.platillos.findIndex((item) => item.id === afterDishId) + 1 : section.platillos.length;
+        const platillos = [...section.platillos];
+        platillos.splice(Math.max(0, at), 0, dish);
+        return { ...section, platillos };
+      }),
+    }));
+    return dish.id;
   }, [setData]);
 
   const removeSection = useCallback((id: string) => {
@@ -576,22 +588,6 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
     setData((prev) => ({ ...prev, secciones: prev.secciones.filter((section) => section.id !== id) }));
   }, [data.secciones, setData]);
 
-  const toggleCollapsed = useCallback((sectionId: string) => {
-    setCollapsed((prev) => ({ ...prev, [sectionId]: !prev[sectionId] }));
-  }, []);
-
-  const toggleSectionActions = useCallback((sectionId: string) => {
-    setSectionActions((current) => current === sectionId ? null : sectionId);
-  }, []);
-
-  const closeSectionActions = useCallback(() => {
-    setSectionActions(null);
-  }, []);
-
-  const revealDetails = useCallback((dishId: string) => {
-    setDetails((prev) => ({ ...prev, [dishId]: true }));
-  }, []);
-
   const addDish = useCallback((section: Seccion): string => {
     const dish = blankDish();
     patchSection(section.id, { platillos: [...section.platillos, dish] });
@@ -602,7 +598,7 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
     // Sin nombre sugerido: la sección nace vacía y el placeholder "SECCIÓN"
     // del campo guía al Fondero — nunca simular contenido con "SECCIÓN 6".
     // Una sección de hoy entra antes de la carta; una de la carta, al final.
-    const section = blankSection(nombre ?? '', carta);
+    const section = blankSection(nombre ?? '', carta, false);
     setData((prev) => {
       if (carta) return { ...prev, secciones: [...prev.secciones, section] };
       const firstCarta = prev.secciones.findIndex((item) => item.carta);
@@ -612,17 +608,9 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
     return section.id;
   }, [setData]);
 
-  // Nombres de sección del giro que el fondero todavía no usa hoy. La
-  // comparación es canónica: "PRIMER TIEMPO" ya cuenta como "1ER TIEMPO".
-  const sectionSuggestions = useMemo(() => {
-    const used = new Set(data.secciones.map((section) => canonicalSeccion(section.nombre)));
-    return seccionSugerencias(getTipoNegocio()).filter((nombre) => !used.has(canonicalSeccion(nombre)));
-  }, [data.secciones]);
-
-  // Guardar sin publicar: para el fondero que ajusta su menú de mañana o sube
-  // un precio, sin anunciarlo todavía. Publicar sigue siendo el acto final.
-  const [savedFlash, setSavedFlash] = useState(false);
-  useEffect(() => { setSavedFlash(false); }, [data, nombre]);
+  // Guardar sin publicar («Listo» en el editor): para el fondero que ajusta su
+  // menú de mañana o sube un precio, sin anunciarlo todavía. Publicar sigue
+  // siendo el acto final.
   const saveDraft = useCallback(async (): Promise<boolean> => {
     if (savingRef.current) return false;
     const clean = cleanMenu(data);
@@ -638,8 +626,10 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
         return false;
       }
       setMenuData(clean);
+      const split = splitCarta(clean);
+      savedBase.current = { hoy: cartaSignature(split.hoy), carta: cartaSignature(split.carta) };
+      savedOnce.current = true;
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-      setSavedFlash(true);
       return true;
     } finally {
       savingRef.current = false;
@@ -662,6 +652,20 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
       return false;
     }
   }, []);
+
+  /**
+   * ¿Se perdería algo al cerrar? Lo que cambió desde que se abrió o se guardó;
+   * un menú leído de una foto cuenta como nuevo hasta guardarlo (la lectura cuesta).
+   */
+  const hasUnsavedChanges = useCallback((): boolean => {
+    const split = splitCarta(cleanMenu(data));
+    const hasContent = split.hoy.secciones.length > 0 || split.carta.secciones.length > 0;
+    if (source === 'foto' && !savedOnce.current) return hasContent;
+    const base = savedBase.current;
+    return !!base && (cartaSignature(split.hoy) !== base.hoy || cartaSignature(split.carta) !== base.carta);
+  }, [data, source]);
+  /** Hay al menos un platillo de hoy: se puede guardar sin publicar. */
+  const canSaveDraft = useMemo(() => splitCarta(cleanMenu(data)).hoy.secciones.some((section) => section.platillos.length), [data]);
 
   const publish = useCallback(async () => {
     if (savingRef.current) return;
@@ -697,17 +701,16 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
   return {
     addDish,
     addSection,
-    closeSectionActions,
-    collapsed,
+    canSaveDraft,
     data,
-    details,
+    declineLink,
     dismissUndo,
     fillKnownPhotos,
-    linkSuggestion,
-    linkDish,
-    declineLink,
+    hasUnsavedChanges,
+    insertDishAfter,
     lastRemoved,
-    moveSection,
+    linkDish,
+    linkSuggestion,
     moveDishTo,
     moveSectionTo,
     nombre,
@@ -717,16 +720,10 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
     publishing,
     removeDish,
     removeSection,
-    revealDetails,
     saveDraft,
     saveNombre,
-    savedFlash,
-    sectionActions,
-    sectionSuggestions,
     setDishPhoto,
     setNombre,
-    toggleCollapsed,
     undoRemove,
-    toggleSectionActions,
   };
 }

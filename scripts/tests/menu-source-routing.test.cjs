@@ -63,6 +63,10 @@ function fixture(file, overrides = {}) {
     'expo-image-picker': { launchImageLibraryAsync: async () => ({ canceled: true }) },
     '@/components/agent-spinner': { AgentSpinner: 'AgentSpinner' },
     '@/components/menu-composer': { MenuComposer: 'MenuComposer' },
+    // «Crear» del negocio lee si tiene Pro para ofrecer el aviso especial.
+    '@/lib/business-pro': { getProStatus: async () => null },
+    '@/lib/menu-store': { getFonditaId: () => null },
+    '@/lib/plans': { PLANS: { pro: { specialNotices: 8 } } },
     ...overrides,
   };
   const source = ts.transpileModule(fs.readFileSync(path.resolve(__dirname, '../..', file), 'utf8'), {

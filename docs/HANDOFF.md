@@ -1,5 +1,15 @@
 # HANDOFF
 
+## Continuidad 2026-11-16 (noche) — editor con tarjetas, Ordenar, Perfil y Crear (Claude)
+
+Leer el [heads-up](HEADS_UP_2026-10-12.md), bloque «Noche 2026-11-16», y
+[PENDING_LAUNCH](PENDING_LAUNCH_2026-10-12.md) («Corte 2026-11-16»). Reglas
+del editor en `components/CLAUDE.md`; investigación y Jev en
+[EDITOR_MENU_INVESTIGACION](EDITOR_MENU_INVESTIGACION_2026-11-16.md).
+Siguiente: QA de Parco del arrastre en «Ordenar» y de los precios con
+«Siguiente»; si el arrastre falla, leer `[ordenar]` en el log de Metro.
+Producción al día.
+
 ## Continuidad 2026-11-16 — fotos en su lugar, identidad del platillo y perfil (Claude)
 
 Leer el [heads-up](HEADS_UP_2026-10-12.md), bloque «Cierre 2026-11-16», y

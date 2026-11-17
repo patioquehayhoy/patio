@@ -18,7 +18,7 @@ import { floatingSurfaceShadow } from '@/lib/surface-styles';
 
 // Destinos raíz por tarea, con la Ley de Jakob (Nielsen): inicio a la
 // izquierda, Perfil a la derecha y la acción de crear al centro, como en las
-// apps que la gente ya usa. «+» abre el sheet de nuevo menú; no es una ruta.
+// apps que la gente ya usa. «+» es «Crear» (menú de hoy y avisos); no es una ruta.
 
 type Tab = {
   path: string; // '+' = crear menú
@@ -45,9 +45,12 @@ const FOODIE_TABS: Tab[] = [
 const FONDERO_TABS: Tab[] = [
   { path: '/historial', label: 'Menús',     icon: 'book-outline', selectedIcon: 'book' },
   { path: '/resenas',   label: 'Actividad', icon: 'heart-outline',      selectedIcon: 'heart' },
-  { path: '+',          label: 'Publicar', icon: 'add-circle-outline', selectedIcon: 'add-circle' },
+  { path: '+',          label: 'Crear', icon: 'add-circle-outline', selectedIcon: 'add-circle' },
   { path: '/mi-patio',  label: 'Mi Patio',  icon: 'storefront-outline', selectedIcon: 'storefront', image: MI_PATIO_IMAGE },
-  { path: '/perfil',    label: 'Perfil',    icon: 'person-outline',     selectedIcon: 'person' },
+  // Para el negocio la última pestaña es «Ajustes» (Jev, 16 nov: 41 % frente a
+  // «Perfil» con ajustes, 31 %): su cara pública ya es «Mi Patio», y así
+  // «Perfil» significa lo mismo que en el lado Foodie, tu perfil público.
+  { path: '/perfil',    label: 'Ajustes',   icon: 'settings-outline',   selectedIcon: 'settings' },
 ];
 
 export function BottomTabBar({ variant = 'fondero', fade = true }: { variant?: 'foodie' | 'fondero'; fade?: boolean } = {}) {
@@ -110,7 +113,7 @@ export function BottomTabBar({ variant = 'fondero', fade = true }: { variant?: '
             <TouchableOpacity
               key={path}
               accessibilityRole={path === '+' ? 'button' : 'tab'}
-              accessibilityLabel={path === '+' ? 'Publicar menú' : label}
+              accessibilityLabel={path === '+' ? 'Crear: menú de hoy o un aviso' : label}
               accessibilityState={path === '+' ? undefined : { selected: active }}
               accessibilityValue={hasNews ? { text: 'Novedades' } : undefined}
               style={styles.tab}
@@ -128,7 +131,7 @@ export function BottomTabBar({ variant = 'fondero', fade = true }: { variant?: '
           );
         })}
       </View>
-      {variant === 'fondero' && <NewMenuSheet visible={newMenuVisible} onClose={() => setNewMenuVisible(false)} />}
+      {variant === 'fondero' && <NewMenuSheet create visible={newMenuVisible} onClose={() => setNewMenuVisible(false)} />}
     </Animated.View>
   );
 }

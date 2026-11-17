@@ -1,0 +1,497 @@
+{
+ "app": "Una app mexicana de celular donde las fondas, cocinas económicas, taquerías y personas que venden comida en casa publican su menú del día y su carta; la gente cercana lo ve en un mapa y va al lugar. El negocio escribe su menú en una pantalla donde cada sección (por ejemplo SOPAS, GUISADOS, POSTRES) es una tarjeta, y cada platillo tiene su foto a la izquierda, su nombre, una descripción debajo y su precio a la derecha. Al final de cada tarjeta hay un botón «＋ Platillo».",
+ "negocios": {
+  "fondera": {
+   "cerrar": {
+    "type": "choice",
+    "choice": "listo",
+    "confidence": 0.22,
+    "probabilities": {
+     "listo": 0.48,
+     "tache": 0.34,
+     "regresar": 0.18
+    }
+   },
+   "siguiente": {
+    "type": "choice",
+    "choice": "renglon",
+    "confidence": 0.68,
+    "probabilities": {
+     "descripcion": 0.03,
+     "precio": 0.18,
+     "renglon": 0.79
+    }
+   },
+   "mover": {
+    "type": "choice",
+    "choice": "ordenar",
+    "confidence": 0.5,
+    "probabilities": {
+     "ordenar": 0.67,
+     "deslizar": 0.01,
+     "arrastrar": 0.32
+    }
+   },
+   "pestana": {
+    "type": "choice",
+    "choice": "ajustes",
+    "confidence": 0.26,
+    "probabilities": {
+     "perfil_ajustes": 0.34,
+     "perfil_ficha": 0.15,
+     "ajustes": 0.51
+    }
+   },
+   "escalas": {
+    "agregar_otra_seccion": {
+     "type": "score",
+     "score": 2.46,
+     "confidence": 0.24,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.03,
+      "1": 0.22,
+      "2": 0.19,
+      "3": 0.37,
+      "4": 0.19
+     }
+    },
+    "vacios_en_gris": {
+     "type": "score",
+     "score": 2.48,
+     "confidence": 0.35,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.03,
+      "1": 0.2,
+      "2": 0.16,
+      "3": 0.48,
+      "4": 0.13
+     }
+    }
+   }
+  },
+  "callejon": {
+   "cerrar": {
+    "type": "choice",
+    "choice": "listo",
+    "confidence": 0.64,
+    "probabilities": {
+     "tache": 0.17,
+     "regresar": 0.07,
+     "listo": 0.76
+    }
+   },
+   "siguiente": {
+    "type": "choice",
+    "choice": "renglon",
+    "confidence": 0.46,
+    "probabilities": {
+     "precio": 0.28,
+     "descripcion": 0.08,
+     "renglon": 0.64
+    }
+   },
+   "mover": {
+    "type": "choice",
+    "choice": "ordenar",
+    "confidence": 0.33,
+    "probabilities": {
+     "ordenar": 0.55,
+     "arrastrar": 0.44,
+     "deslizar": 0.01
+    }
+   },
+   "pestana": {
+    "type": "choice",
+    "choice": "ajustes",
+    "confidence": 0.35,
+    "probabilities": {
+     "perfil_ficha": 0.27,
+     "ajustes": 0.57,
+     "perfil_ajustes": 0.16
+    }
+   },
+   "escalas": {
+    "agregar_otra_seccion": {
+     "type": "score",
+     "score": 3.0,
+     "confidence": 0.4,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.02,
+      "1": 0.1,
+      "2": 0.11,
+      "3": 0.42,
+      "4": 0.35
+     }
+    },
+    "vacios_en_gris": {
+     "type": "score",
+     "score": 2.36,
+     "confidence": 0.22,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.07,
+      "1": 0.2,
+      "2": 0.18,
+      "3": 0.4,
+      "4": 0.15
+     }
+    }
+   }
+  },
+  "cocina": {
+   "cerrar": {
+    "type": "choice",
+    "choice": "tache",
+    "confidence": 0.1,
+    "probabilities": {
+     "listo": 0.32,
+     "tache": 0.4,
+     "regresar": 0.28
+    }
+   },
+   "siguiente": {
+    "type": "choice",
+    "choice": "renglon",
+    "confidence": 0.22,
+    "probabilities": {
+     "precio": 0.4,
+     "descripcion": 0.12,
+     "renglon": 0.48
+    }
+   },
+   "mover": {
+    "type": "choice",
+    "choice": "ordenar",
+    "confidence": 0.66,
+    "probabilities": {
+     "ordenar": 0.77,
+     "deslizar": 0.02,
+     "arrastrar": 0.21
+    }
+   },
+   "pestana": {
+    "type": "choice",
+    "choice": "perfil_ficha",
+    "confidence": 0.09,
+    "probabilities": {
+     "ajustes": 0.33,
+     "perfil_ajustes": 0.28,
+     "perfil_ficha": 0.39
+    }
+   },
+   "escalas": {
+    "agregar_otra_seccion": {
+     "type": "score",
+     "score": 2.97,
+     "confidence": 0.36,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.03,
+      "1": 0.1,
+      "2": 0.11,
+      "3": 0.39,
+      "4": 0.37
+     }
+    },
+    "vacios_en_gris": {
+     "type": "score",
+     "score": 2.6,
+     "confidence": 0.22,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.07,
+      "1": 0.16,
+      "2": 0.13,
+      "3": 0.37,
+      "4": 0.27
+     }
+    }
+   }
+  },
+  "casa": {
+   "cerrar": {
+    "type": "choice",
+    "choice": "listo",
+    "confidence": 0.5,
+    "probabilities": {
+     "tache": 0.22,
+     "regresar": 0.11,
+     "listo": 0.67
+    }
+   },
+   "siguiente": {
+    "type": "choice",
+    "choice": "renglon",
+    "confidence": 0.18,
+    "probabilities": {
+     "precio": 0.43,
+     "descripcion": 0.12,
+     "renglon": 0.45
+    }
+   },
+   "mover": {
+    "type": "choice",
+    "choice": "ordenar",
+    "confidence": 0.4,
+    "probabilities": {
+     "ordenar": 0.6,
+     "deslizar": 0.02,
+     "arrastrar": 0.38
+    }
+   },
+   "pestana": {
+    "type": "choice",
+    "choice": "perfil_ficha",
+    "confidence": 0.07,
+    "probabilities": {
+     "perfil_ajustes": 0.29,
+     "ajustes": 0.33,
+     "perfil_ficha": 0.38
+    }
+   },
+   "escalas": {
+    "agregar_otra_seccion": {
+     "type": "score",
+     "score": 3.03,
+     "confidence": 0.4,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.02,
+      "1": 0.09,
+      "2": 0.11,
+      "3": 0.41,
+      "4": 0.37
+     }
+    },
+    "vacios_en_gris": {
+     "type": "score",
+     "score": 2.57,
+     "confidence": 0.24,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.07,
+      "1": 0.16,
+      "2": 0.14,
+      "3": 0.39,
+      "4": 0.24
+     }
+    }
+   }
+  },
+  "taquero": {
+   "cerrar": {
+    "type": "choice",
+    "choice": "listo",
+    "confidence": 0.24,
+    "probabilities": {
+     "listo": 0.49,
+     "tache": 0.29,
+     "regresar": 0.22
+    }
+   },
+   "siguiente": {
+    "type": "choice",
+    "choice": "precio",
+    "confidence": 0.46,
+    "probabilities": {
+     "precio": 0.64,
+     "renglon": 0.29,
+     "descripcion": 0.07
+    }
+   },
+   "mover": {
+    "type": "choice",
+    "choice": "arrastrar",
+    "confidence": 0.44,
+    "probabilities": {
+     "deslizar": 0.01,
+     "ordenar": 0.36,
+     "arrastrar": 0.63
+    }
+   },
+   "pestana": {
+    "type": "choice",
+    "choice": "perfil_ajustes",
+    "confidence": 0.2,
+    "probabilities": {
+     "perfil_ajustes": 0.47,
+     "perfil_ficha": 0.12,
+     "ajustes": 0.41
+    }
+   },
+   "escalas": {
+    "agregar_otra_seccion": {
+     "type": "score",
+     "score": 3.12,
+     "confidence": 0.27,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.02,
+      "1": 0.09,
+      "2": 0.09,
+      "3": 0.35,
+      "4": 0.45
+     }
+    },
+    "vacios_en_gris": {
+     "type": "score",
+     "score": 2.67,
+     "confidence": 0.3,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.05,
+      "1": 0.15,
+      "2": 0.13,
+      "3": 0.41,
+      "4": 0.26
+     }
+    }
+   }
+  },
+  "restaurantera": {
+   "cerrar": {
+    "type": "choice",
+    "choice": "listo",
+    "confidence": 0.14,
+    "probabilities": {
+     "tache": 0.32,
+     "listo": 0.43,
+     "regresar": 0.25
+    }
+   },
+   "siguiente": {
+    "type": "choice",
+    "choice": "descripcion",
+    "confidence": 0.55,
+    "probabilities": {
+     "descripcion": 0.7,
+     "precio": 0.11,
+     "renglon": 0.19
+    }
+   },
+   "mover": {
+    "type": "choice",
+    "choice": "ordenar",
+    "confidence": 0.55,
+    "probabilities": {
+     "deslizar": 0.02,
+     "arrastrar": 0.28,
+     "ordenar": 0.7
+    }
+   },
+   "pestana": {
+    "type": "choice",
+    "choice": "perfil_ficha",
+    "confidence": 0.06,
+    "probabilities": {
+     "ajustes": 0.33,
+     "perfil_ajustes": 0.3,
+     "perfil_ficha": 0.37
+    }
+   },
+   "escalas": {
+    "agregar_otra_seccion": {
+     "type": "score",
+     "score": 2.75,
+     "confidence": 0.3,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.04,
+      "1": 0.15,
+      "2": 0.13,
+      "3": 0.39,
+      "4": 0.29
+     }
+    },
+    "vacios_en_gris": {
+     "type": "score",
+     "score": 2.27,
+     "confidence": 0.11,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.1,
+      "1": 0.21,
+      "2": 0.17,
+      "3": 0.34,
+      "4": 0.18
+     }
+    }
+   }
+  }
+ }
+}

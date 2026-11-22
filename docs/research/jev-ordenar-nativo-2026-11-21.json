@@ -1,0 +1,371 @@
+{
+ "app": "Una app mexicana de celular donde las fondas, cocinas económicas, taquerías y personas que venden comida en casa publican su menú del día. El negocio escribe su menú en una pantalla donde cada sección es una tarjeta con sus platillos (foto, nombre, descripción y precio). A veces hay que cambiar el orden de los platillos o quitar los de ayer.",
+ "negocios": {
+  "fondera": {
+   "celular": {
+    "type": "choice",
+    "choice": "android",
+    "confidence": 0.98,
+    "probabilities": {
+     "iphone": 0.01,
+     "android": 0.99
+    }
+   },
+   "acomodar": {
+    "type": "choice",
+    "choice": "mantener",
+    "confidence": 0.2,
+    "probabilities": {
+     "ordenar": 0.35,
+     "flechas": 0.18,
+     "mantener": 0.47
+    }
+   },
+   "escalas": {
+    "trabado": {
+     "type": "score",
+     "score": 2.65,
+     "confidence": 0.66,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.08,
+      "2": 0.22,
+      "3": 0.67,
+      "4": 0.03
+     }
+    },
+    "igual_celular": {
+     "type": "score",
+     "score": 1.92,
+     "confidence": 0.21,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.02,
+      "1": 0.42,
+      "2": 0.21,
+      "3": 0.33,
+      "4": 0.02
+     }
+    }
+   }
+  },
+  "callejon": {
+   "celular": {
+    "type": "choice",
+    "choice": "android",
+    "confidence": 1.0,
+    "probabilities": {
+     "iphone": 0.0,
+     "android": 1.0
+    }
+   },
+   "acomodar": {
+    "type": "choice",
+    "choice": "mantener",
+    "confidence": 0.62,
+    "probabilities": {
+     "flechas": 0.13,
+     "ordenar": 0.12,
+     "mantener": 0.75
+    }
+   },
+   "escalas": {
+    "trabado": {
+     "type": "score",
+     "score": 2.79,
+     "confidence": 0.68,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.08,
+      "2": 0.14,
+      "3": 0.69,
+      "4": 0.09
+     }
+    },
+    "igual_celular": {
+     "type": "score",
+     "score": 1.94,
+     "confidence": 0.16,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.04,
+      "1": 0.44,
+      "2": 0.12,
+      "3": 0.35,
+      "4": 0.05
+     }
+    }
+   }
+  },
+  "cocina": {
+   "celular": {
+    "type": "choice",
+    "choice": "android",
+    "confidence": 1.0,
+    "probabilities": {
+     "iphone": 0.0,
+     "android": 1.0
+    }
+   },
+   "acomodar": {
+    "type": "choice",
+    "choice": "mantener",
+    "confidence": 0.56,
+    "probabilities": {
+     "flechas": 0.09,
+     "ordenar": 0.2,
+     "mantener": 0.71
+    }
+   },
+   "escalas": {
+    "trabado": {
+     "type": "score",
+     "score": 2.31,
+     "confidence": 0.42,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.18,
+      "2": 0.33,
+      "3": 0.48,
+      "4": 0.01
+     }
+    },
+    "igual_celular": {
+     "type": "score",
+     "score": 2.16,
+     "confidence": 0.25,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.31,
+      "2": 0.22,
+      "3": 0.43,
+      "4": 0.03
+     }
+    }
+   }
+  },
+  "casa": {
+   "celular": {
+    "type": "choice",
+    "choice": "android",
+    "confidence": 0.98,
+    "probabilities": {
+     "iphone": 0.01,
+     "android": 0.99
+    }
+   },
+   "acomodar": {
+    "type": "choice",
+    "choice": "mantener",
+    "confidence": 0.58,
+    "probabilities": {
+     "flechas": 0.08,
+     "ordenar": 0.2,
+     "mantener": 0.72
+    }
+   },
+   "escalas": {
+    "trabado": {
+     "type": "score",
+     "score": 2.49,
+     "confidence": 0.56,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.12,
+      "2": 0.27,
+      "3": 0.59,
+      "4": 0.02
+     }
+    },
+    "igual_celular": {
+     "type": "score",
+     "score": 2.0,
+     "confidence": 0.16,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.4,
+      "2": 0.2,
+      "3": 0.37,
+      "4": 0.02
+     }
+    }
+   }
+  },
+  "taquero": {
+   "celular": {
+    "type": "choice",
+    "choice": "android",
+    "confidence": 1.0,
+    "probabilities": {
+     "iphone": 0.0,
+     "android": 1.0
+    }
+   },
+   "acomodar": {
+    "type": "choice",
+    "choice": "ordenar",
+    "confidence": 0.43,
+    "probabilities": {
+     "flechas": 0.06,
+     "mantener": 0.32,
+     "ordenar": 0.62
+    }
+   },
+   "escalas": {
+    "trabado": {
+     "type": "score",
+     "score": 2.56,
+     "confidence": 0.6,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.1,
+      "2": 0.25,
+      "3": 0.62,
+      "4": 0.03
+     }
+    },
+    "igual_celular": {
+     "type": "score",
+     "score": 2.19,
+     "confidence": 0.28,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.31,
+      "2": 0.18,
+      "3": 0.47,
+      "4": 0.03
+     }
+    }
+   }
+  },
+  "desayunos": {
+   "celular": {
+    "type": "choice",
+    "choice": "android",
+    "confidence": 0.98,
+    "probabilities": {
+     "iphone": 0.01,
+     "android": 0.99
+    }
+   },
+   "acomodar": {
+    "type": "choice",
+    "choice": "flechas",
+    "confidence": 0.02,
+    "probabilities": {
+     "ordenar": 0.31,
+     "flechas": 0.35,
+     "mantener": 0.34
+    }
+   },
+   "escalas": {
+    "trabado": {
+     "type": "score",
+     "score": 2.69,
+     "confidence": 0.69,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.07,
+      "2": 0.2,
+      "3": 0.7,
+      "4": 0.03
+     }
+    },
+    "igual_celular": {
+     "type": "score",
+     "score": 2.17,
+     "confidence": 0.22,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.02,
+      "1": 0.32,
+      "2": 0.18,
+      "3": 0.42,
+      "4": 0.06
+     }
+    }
+   }
+  }
+ }
+}

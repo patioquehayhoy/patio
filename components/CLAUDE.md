@@ -45,8 +45,8 @@
   «CARTA» si no hay; en un título con nombre, «Eliminar · Listo».
 - **Arriba, como una barra de iOS** (HIG, Toolbars; segunda vuelta del 16
   nov, docs/EDITOR_MENU_INVESTIGACION_2026-11-16.md §9): a la izquierda «‹»
-  (vidrio, sin texto) y el nombre del menú; a la derecha «Ordenar» y la
-  única acción destacada, la cápsula naranja «Publicar». Sin un platillo de
+  (vidrio, sin texto) y el nombre del menú; a la derecha la única acción
+  destacada, la cápsula naranja «Publicar». Sin un platillo de
   hoy, «Publicar» se ve apagado. Ya no hay «Publicar menú» al final de la
   lista ni «Listo» que guarda.
 - **Guardar no es un botón** (como Notas): el borrador se guarda solo al
@@ -66,12 +66,13 @@
   «Actualizado». Un menú publicado otro día se abre como copia nueva.
 - **Foto:** tocar el cuadro abre ahí mismo Tomar foto, Elegir de Fotos y
   Quitar foto (anclado al cuadro).
-- **En prueba (Parco, 16 nov): sin modo Ordenar, como Recordatorios.** En el
+- **Mover y quitar ahí mismo, como Recordatorios** (Parco, 16 nov). En el
   panel mismo, con el teclado cerrado: mantener presionado un platillo o un
   título (`HOLD_IN_PLACE_MS`, 500 ms, el medio segundo de iOS; con 280 un
-  toque lento ya levantaba y se sentía atorado) lo levanta y se mueve igual
-  que en Ordenar (huecos, copia que sigue al dedo); soltarlo donde estaba lo
-  regresa al instante. Deslizarlo a la izquierda abre
+  toque lento ya levantaba y se sentía atorado) lo levanta (huecos, copia que
+  sigue al dedo); soltarlo donde estaba lo regresa al instante. El modo aparte
+  «Ordenar» (botón rojo y manija ≡) estuvo oculto desde el 16 y se quitó el
+  21 nov; si se necesita, está en git en el commit 7c036a0. Deslizarlo a la izquierda abre
   «Eliminar» y hasta el fondo lo elimina (`components/swipe-row.tsx`;
   mantener y deslizar compiten con `Gesture.Race`).
 - **Deslizar, como las listas de iOS al pie de la letra** (`SwipeRow`, el
@@ -100,21 +101,8 @@
   «Eliminar» son acciones de la fila. Si la app se va al fondo a medio
   arrastre, todo regresa a su lugar. Con el teclado abierto no
   hay gestos (se selecciona texto; «Eliminar» está en la barra). No apagar
-  los gestos a medio arrastre: apagar un gesto activo lo cancela. El botón
-  «Ordenar» está oculto (`SHOW_ORDER_MODE`); su modo sigue en el código por
-  si se regresa.
-- **Ordenar** (Jev: 61 % frente a mantener presionado 38 %): es el modo
-  edición de las listas de iOS. «Ordenar» arriba y, mientras ordenas, arriba
-  solo queda «Listo» (el lugar de «‹» se guarda vacío para que el nombre no
-  se mueva). Cada platillo (con su foto, en su columna) y cada título se
-  recorren a la derecha para mostrar el botón rojo; a la derecha, su manija
-  (≡). Eliminar pide dos toques, como en iOS: el botón rojo gira y abre
-  «Eliminar» en lugar de la manija; desplazar, levantar algo u otro botón
-  rojo lo cierran. Como en Ordenar no se escribe, arrastrar ya no pelea con
-  el texto: desde la manija, al instante (`handleFor`), o desde cualquier
-  parte del renglón con un toque sostenido corto (`rowFor`, 180 ms; deslizar
-  sigue desplazando la lista).
-  Al arrastrar, como en iOS: lo levantado sube y sigue al dedo (una copia
+  los gestos a medio arrastre: apagar un gesto activo lo cancela.
+- **Arrastrar** (`components/board-drag.tsx`, `rowFor`). Como en iOS: lo levantado sube y sigue al dedo (una copia
   encima de la lista, recortada a ella) y los demás se recorren para abrirle
   su hueco; sin línea de «aquí cae». El renglón original sigue montado
   (invisible y encogido) porque su gesto vive en él, y los huecos son vistas
@@ -147,15 +135,28 @@
   de una vez y las filas cierran rápido y sin resorte.
   Lo que Apple NO documenta y es número de Patio: 350 ms del resorte
   (`SNAP_MS`, `SETTLE_MS`), 120 ms con Reducir movimiento (`QUICK`), 200 ms
-  al salir la fila eliminada (`OUT`), 180 ms para levantar en Ordenar
-  (`ROW_HOLD_MS`, oculto; si Ordenar regresa, revisarlo frente a los 500 del
-  panel) y el ancho mínimo de 76 de cada botón. Los 0.25 s son la duración
+  al salir la fila eliminada (`OUT`) y el ancho mínimo de 76 de cada botón. Los 0.25 s son la duración
   por defecto de UIKit (`CATransaction`), no una cifra de la HIG.
   Prender o apagar un gesto memorizado con `.enabled()` sí llega al nativo:
   `GestureDetector` (gesture-handler 2.28) vuelve a mandar la configuración
   en cada render; lo caro que se evita es reconstruir los manejadores del
   hilo de la interfaz. Los gestos de `board-drag` se sueltan solos cuando su
   platillo o sección ya no existe.
+  **Nada se queda flotando** (21 nov; en el rastro de Parco solo las
+  secciones se quedaron levantadas, de 5 a 15 s, hasta que la app se fue al
+  fondo):
+  - Solo el gesto que levantó algo lo mueve y lo suelta (`owner`): otro
+    renglón o un segundo dedo no lo tiran ni lo cancelan.
+  - Si el dedo se levanta y el gesto no avisa en 120 ms
+    (`TOUCH_UP_GRACE_MS`), cae donde está.
+  - Si el gesto se perdió (400 ms sin avisos, `ORPHAN_MS`), el siguiente
+    toque en la lista, o levantar otra cosa, lo suelta.
+  - Levantar algo mientras lo anterior se asienta lo acomoda de una vez.
+  - Un error al mover nunca deja la copia encima.
+
+  Los 120 y 400 ms son números de Patio. Cada final deja en Metro
+  `[ordenar] suelta|cancela … por: <motivo>`; si vuelve a pasar, ese motivo
+  dice qué camino falló. Pruebas: `scripts/tests/board-drag.test.cjs`.
   **La regla que lo rompía** («presiono el platillo y al segundo se
   resetea», 16 nov): en el camino del dedo a la lista (el renglón, su
   envoltorio, la tarjeta y la sección) ninguna vista puede pasar de
@@ -169,11 +170,11 @@
   (`blocksExternalGesture`): la lista espera a que el arrastre falle antes de
   desplazarse. Sin esa relación la lista empezaba a moverse y cancelaba el
   arrastre (no quitarla). Si la lista aún no se midió, se usa la pantalla.
-  Cerca de la orilla la lista se desplaza sola. «Listo» termina. Mientras
-  escribes no hay gestos sobre el texto. Con VoiceOver, la manija se ajusta
-  con «Subir» y «Bajar».
-- **Eliminar** (la palabra de iOS): «Eliminar» de la barra del teclado o el
-  botón rojo de Ordenar y su «Eliminar», o deslizar; siempre con «Deshacer»
+  Cerca de la orilla la lista se desplaza sola. Mientras escribes no hay
+  gestos sobre el texto. Pendiente: con VoiceOver aún no hay «Subir» y
+  «Bajar» en el panel (vivían en la manija de «Ordenar»).
+- **Eliminar** (la palabra de iOS): «Eliminar» de la barra del teclado o
+  deslizar; siempre con «Deshacer»
   (con el teclado abierto, el aviso va arriba de él). «Deshacer» se va solo a
   los 6 s (`UNDO_MS`, como el aviso de Mail); con VoiceOver no se va solo.
   Excepción pedida por Parco a la regla de no quitar avisos con temporizador:
@@ -231,6 +232,14 @@
     sola cada día a las 9: 3 %. Hechos: dejar listo el menú de otro día
     (fonda 3.75 de 4) y «Se acabó» por platillo (fonda 3.2 de 4); un día que
     ya tiene menú programado no lleva aviso.
+
+## Vegetariano en el editor (2026-11-21)
+
+- Solo la hojita, nunca la palabra (Parco): junto al nombre del platillo en
+  el editor y en la ficha. Se marca o se quita con la hojita de la barra del
+  teclado mientras escribes el platillo, o contestando «¿Es vegetariano?»
+  cuando el nombre lo parece (`lib/dish-diet.ts`). No va en deslizar:
+  deslizar es para quitar o «Se acabó».
 
 ## Notificaciones de los lugares que sigues (2026-11-21)
 

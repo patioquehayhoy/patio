@@ -1,5 +1,11 @@
 # HANDOFF
 
+## Continuidad 2026-11-21 (cierre de la noche) — reseña completa, arrastre y limpieza (Claude)
+
+Leer el [heads-up](HEADS_UP_2026-10-12.md), bloque «Cierre noche
+2026-11-21». Sin cambios de servidor. Siguiente: QA de Parco (arrastrar
+secciones); si algo se traba, el motivo queda en Metro (`[ordenar] … por:`).
+
 ## Continuidad 2026-11-21 (noche) — bloques 2 a 5 (Claude)
 
 Leer el [heads-up](HEADS_UP_2026-10-12.md), bloque «Noche 2026-11-21», y

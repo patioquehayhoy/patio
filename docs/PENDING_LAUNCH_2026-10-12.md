@@ -41,7 +41,7 @@
   momento solo a «Todas»; ficha con su ícono (`patio_highlights`).
 - [x] **Bloque 4 · Vegetariano** (hecho 21 nov, noche): `Platillo.vegetariano`; el editor pregunta
   «¿Es vegetariano?» si el nombre lo parece (sin palabras de carne) y se marca
-  deslizando; hojita en la ficha; filtro «Vegetariano» en el mapa.
+  con la hojita de la barra del teclado (sin palabra, solo el ícono); hojita en la ficha; filtro «Vegetariano» en el mapa.
 - [x] **Bloque 5 · Artifact** (publicado 21 nov, noche, versión 3) «Patio — De documentación dispersa a un sistema»
   (https://claude.ai/artifact/5fZC3DQNCeADkGwdchW8Q9): secciones de
   notificaciones (dos), ritmos, Dónde vendes y lo que sigue.
@@ -49,6 +49,15 @@
   construir:** hoy un negocio por cuenta (`fonditas_one_per_owner_idx`) y los
   menús guardados viven en el teléfono; falta diseñar cambiar de negocio y si
   Pro va por cuenta o por negocio.
+- [x] Reseña a pantalla completa con «‹» flotante (el texto ya no se corta).
+- [x] Arrastre del editor: nada se queda flotando (redes de seguridad,
+  motivo en Metro y 8 pruebas).
+- [x] Limpieza: sin el modo «Ordenar» oculto, sin archivos sin uso, sin ramas
+  ni stashes viejos (respaldo en `~/Patio-respaldo-versiones-viejas-2026-11-21.bundle`).
+- [ ] **Parco, QA:** arrastrar secciones y platillos unas 10 veces; reseña
+  completa; hojita en la barra del teclado.
+- [ ] VoiceOver: «Subir» y «Bajar» en el panel del editor (antes solo en
+  «Ordenar», que se quitó).
 
 ## Corte 2026-11-16 (Claude)
 

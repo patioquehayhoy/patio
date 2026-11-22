@@ -192,8 +192,10 @@ export function SwipeRow({ children, drag, enabled, actions, fullSwipe = false, 
 
   const content = useAnimatedStyle(() => ({ transform: [{ translateX: x.value }] }));
   // Detrás de la fila, quietas a la derecha; solo crece el color si se
-  // desliza más allá de los botones.
-  const reveal = useAnimatedStyle(() => ({ width: Math.max(total, -x.value) }));
+  // desliza más allá de los botones. Solo existen mientras la fila está
+  // desplazada: en reposo, al levantarla para moverla (su lugar se encoge y
+  // se vuelve invisible) o mientras los demás se recorren, nada asoma detrás.
+  const reveal = useAnimatedStyle(() => ({ width: Math.max(total, -x.value), opacity: x.value < -0.5 ? 1 : 0 }));
 
   return (
     <View

@@ -141,7 +141,8 @@ function RootStack() {
         <Stack.Screen name="resenas" options={{ headerShown: false }} />
         <Stack.Screen name="patio-smart" options={{ headerShown: false }} />
         <Stack.Screen name="patio/[id]" options={{ headerShown: false, presentation: 'transparentModal', animation: 'slide_from_bottom', animationDuration: 220, contentStyle: { backgroundColor: 'transparent' } }} />
-        <Stack.Screen name="resena/[id]" options={{ headerShown: false }} />
+        {/* La reseña ocupa toda la pantalla (Parco, 21 nov): sin hoja encima de la ficha. */}
+        <Stack.Screen name="resena/[id]" options={{ headerShown: false, presentation: 'fullScreenModal', animation: 'slide_from_bottom' }} />
       </Stack>
       <StatusBar style={theme.isDark ? 'light' : 'dark'} />
     </>

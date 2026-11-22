@@ -1,12 +1,16 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { LinearGradient } from 'expo-linear-gradient';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { createRef, useEffect, useRef, useState } from 'react';
 import { Alert, Image, KeyboardAvoidingView, Linking, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ActionSheet, type ActionSheetOption } from '@/components/action-sheet';
+import { ScrollEdgeFade } from '@/components/scroll-edge-fade';
+import { GlassIconButton } from '@/components/glass-button';
+import { LinearGradient } from 'expo-linear-gradient';
+import { SheetSafeArea } from '@/components/sheet-safe-area';
+import { useScrollEdges } from '@/lib/use-scroll-edges';
 import { fetchFonditaById, fetchPublicFonditas, getPatioById, type Patio } from '@/lib/patios';
 import { patioCardPrice } from '@/lib/patio-card-info';
 import { getRatedPatioIds, MAX_REVIEW_PHOTOS, savePatioRating } from '@/lib/ratings';
@@ -18,6 +22,9 @@ import { useTheme, type Theme, Type } from '@/lib/theme';
 import { supabase } from '@/lib/supabase';
 import { noWidow } from '@/lib/typography';
 import { TEXT_LIMITS } from '@/lib/text-limits';
+
+// Espacio arriba del título para la «‹» que flota: 8 + 40 del botón + 16 de aire.
+const TOP_CLEARANCE = 64;
 
 /** El mismo precio típico de las tarjetas; nada si el lugar no publica precios. */
 function typicalPrice(place: Patio): string | null {
@@ -32,7 +39,11 @@ function makeStyles(t: Theme) {
     navBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
     navHint: { fontSize: 14, fontWeight: '400', color: t.textSecondary },
 
-    content: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 140 },
+    // El botón vive en su propia barra abajo: nada del contenido queda debajo de él.
+    viewport: { flex: 1 },
+    statusFade: { position: 'absolute', left: 0, right: 0, top: 0 },
+    floatingBack: { position: 'absolute', left: 14 },
+    content: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 24 },
     title: { ...Type.title, color: t.text, marginBottom: 4 },
     subtitle: { fontSize: 13, fontWeight: '400', color: t.textSecondary, marginBottom: 22 },
 
@@ -63,8 +74,7 @@ function makeStyles(t: Theme) {
     photoAsk: { fontSize: 14, lineHeight: 19, fontWeight: '400', color: t.textSecondary },
     photoThumb: { width: 56, height: 56, borderRadius: 12, borderCurve: 'continuous' },
 
-    ctaWrap: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 20, paddingTop: 14 },
-    ctaFade: { position: 'absolute', left: 0, right: 0, top: -40, height: 40 },
+    ctaWrap: { paddingHorizontal: 20, paddingTop: 12 },
     cta: { minHeight: 54, paddingVertical: 12, paddingHorizontal: 20, borderRadius: 27, borderCurve: 'continuous', backgroundColor: t.accent, alignItems: 'center', justifyContent: 'center' },
     ctaDisabled: { opacity: 0.4 },
     ctaText: { fontSize: 16, fontWeight: '700', color: '#fff' },
@@ -84,7 +94,12 @@ function makeStyles(t: Theme) {
   });
 }
 
+// Se abre como hoja encima de la ficha: su área segura es la de la hoja.
 export default function ResenaScreen() {
+  return <SheetSafeArea><ResenaContent /></SheetSafeArea>;
+}
+
+function ResenaContent() {
   const { theme } = useTheme();
   const s = makeStyles(theme);
   const insets = useSafeAreaInsets();
@@ -100,6 +115,7 @@ export default function ResenaScreen() {
   // dice, si quieres, de qué platillo es: así sale en ese platillo del menú.
   const [photos, setPhotos] = useState<{ uri: string; dish?: string }[]>([]);
   const [saving, setSaving] = useState(false);
+  const edges = useScrollEdges();
   // Después de publicar: «Parecidos cerca» para seguir buscando lugares.
   const [similar, setSimilar] = useState<Patio[] | null>(null);
 
@@ -125,6 +141,7 @@ export default function ResenaScreen() {
   };
 
   const left = MAX_REVIEW_PHOTOS - photos.length;
+  const dirty = stars > 0 || selected.length > 0 || !!note.trim() || photos.length > 0;
   const choosePhoto = async (source: PlacePhotoSource) => {
     try {
       const assets = await pickPhotos(source, left);
@@ -202,7 +219,7 @@ export default function ResenaScreen() {
     return (
       <View style={[s.root, { paddingTop: insets.top + 8 }]}>
         <Stack.Screen options={{ headerShown: false }} />
-        <ScrollView contentContainerStyle={[s.doneContent, { paddingBottom: insets.bottom + 120 }]} showsVerticalScrollIndicator={false}>
+        <ScrollView style={s.viewport} contentContainerStyle={[s.doneContent, { paddingBottom: 24 }]} showsVerticalScrollIndicator={false}>
           <View style={s.doneHead}>
             <View style={s.doneIcon}><Ionicons name="checkmark" size={32} color={theme.accent} /></View>
             <Text style={s.doneTitle} accessibilityRole="header" allowFontScaling={true}>{noWidow('Reseña publicada')}</Text>
@@ -227,7 +244,7 @@ export default function ResenaScreen() {
             ))}
           </View>
         </ScrollView>
-        <View style={[s.ctaWrap, { paddingBottom: insets.bottom + 20 }]}>
+        <View style={[s.ctaWrap, { paddingBottom: insets.bottom + 16 }]}>
           <TouchableOpacity style={s.cta} onPress={() => router.back()} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel="Listo">
             <Text style={s.ctaText} allowFontScaling={true}>Listo</Text>
           </TouchableOpacity>
@@ -238,17 +255,21 @@ export default function ResenaScreen() {
 
   return (
     <KeyboardAvoidingView style={s.root} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <Stack.Screen options={{ headerShown: false }} />
-      <View style={{ paddingTop: insets.top + 8 }}>
-        <View style={s.nav}>
-          <TouchableOpacity style={s.navBtn} onPress={() => router.back()} activeOpacity={0.7} accessibilityRole="button" accessibilityLabel="Regresar">
-            <Ionicons name="chevron-back" size={21} color={theme.text} />
-          </TouchableOpacity>
-          <Text style={s.navHint} />
-        </View>
-      </View>
+      {/* Con algo escrito, deslizar no cierra la pantalla: se sale con «‹» (nada se pierde por accidente). */}
+      <Stack.Screen options={{ headerShown: false, gestureEnabled: !dirty }} />
 
-      <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+      {/* Pantalla completa, sin barra arriba: el título es parte de lo que se
+          desplaza y «‹» flota en vidrio encima (como en la ficha). Al subir o
+          rebotar, nada corta el texto. */}
+      <View style={s.viewport}>
+      <ScrollView
+        contentContainerStyle={[s.content, { paddingTop: insets.top + TOP_CLEARANCE }]}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        onLayout={edges.onLayout}
+        onContentSizeChange={edges.onContentSizeChange}
+        onScroll={edges.onScroll}
+        scrollEventThrottle={16}>
         <Text style={s.title} allowFontScaling={true}>{noWidow(`¿Cómo estuvo ${patio?.name ?? 'tu visita'}?`)}</Text>
         {!!subtitle && <Text style={s.subtitle} allowFontScaling={true}>{subtitle}</Text>}
 
@@ -325,9 +346,19 @@ export default function ResenaScreen() {
           </View>
         )}
       </ScrollView>
+      {/* Ya desplazado, detrás de la hora y la batería el contenido se desvanece
+          (el efecto de borde de iOS), para que se lean; en reposo no hay nada. */}
+      {edges.top && (
+        <LinearGradient pointerEvents="none" colors={[theme.bg, `${theme.bg}00`]} style={[s.statusFade, { height: insets.top + 16 }]} />
+      )}
+      {/* Sobre el botón de abajo, lo que sigue se desvanece suave. */}
+      <ScrollEdgeFade top={false} bottom={edges.bottom} height={24} />
+      <View style={[s.floatingBack, { top: insets.top + 8 }]}>
+        <GlassIconButton icon="chevron-back" accessibilityLabel="Regresar" onPress={() => router.back()} />
+      </View>
+      </View>
 
-      <View style={[s.ctaWrap, { paddingBottom: insets.bottom + 20 }]}>
-        <LinearGradient colors={[`${theme.bg}00`, theme.bg]} style={s.ctaFade} pointerEvents="none" />
+      <View style={[s.ctaWrap, { paddingBottom: insets.bottom + 16 }]}>
         <TouchableOpacity style={[s.cta, (stars === 0 || saving) && s.ctaDisabled]} onPress={submit} disabled={stars === 0 || saving} activeOpacity={0.85} accessibilityRole="button" accessibilityState={{ disabled: stars === 0 || saving, busy: saving }} accessibilityLabel={saving ? 'Publicando reseña' : stars === 0 ? 'Elige las estrellas' : 'Publicar reseña'}>
           <Text style={s.ctaText} allowFontScaling={true}>{noWidow(saving ? 'Publicando…' : stars === 0 ? 'Elige las estrellas' : 'Publicar reseña')}</Text>
         </TouchableOpacity>

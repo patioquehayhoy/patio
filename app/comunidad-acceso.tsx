@@ -18,6 +18,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { EmailCodeForm } from '@/components/email-code-form';
+import { SheetSafeArea } from '@/components/sheet-safe-area';
 import { PrivacyConsentLine } from '@/components/privacy-consent-line';
 import { AgentSpinner } from '@/components/agent-spinner';
 import { LOGIN_CALLBACK_URL } from '@/lib/auth';
@@ -43,7 +44,12 @@ function purposeFor(returnTo: string | undefined): string {
 }
 const MARK = require('../assets/images/p-icon-transparent-blanco.png');
 
+// Puede abrirse como hoja (desde la reseña, encima de la ficha): su área segura es la de la hoja.
 export default function ComunidadAccesoScreen() {
+  return <SheetSafeArea><ComunidadAcceso /></SheetSafeArea>;
+}
+
+function ComunidadAcceso() {
   const insets = useSafeAreaInsets();
   const { returnTo } = useLocalSearchParams<{ returnTo?: string }>();
   const [email, setEmail] = useState('');

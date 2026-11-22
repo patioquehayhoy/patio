@@ -4,12 +4,12 @@ import { AppState, Dimensions, LayoutAnimation, type LayoutChangeEvent, type Nat
 import { Gesture } from 'react-native-gesture-handler';
 import { runOnJS, useAnimatedStyle, useReducedMotion, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 
-// Ordenar el menú como una lista de iOS en modo edición (HIG, «Lists and
-// tables»; 2026-11-16, segunda vuelta). En Ordenar no se escribe, así que
-// arrastrar no pelea con el texto: desde la manija (≡), al instante, o desde
-// cualquier parte del renglón con un toque sostenido corto (deslizar sigue
-// desplazando la lista). Un platillo va a cualquier lugar (también a otra
-// sección o a la carta); una sección se mueve completa.
+// Mover platillos y secciones en el editor, como en las listas de iOS (HIG,
+// «Lists and tables»): mantener presionado un renglón (medio segundo, con el
+// teclado cerrado) lo levanta; deslizar antes sigue desplazando la lista. Un
+// platillo va a cualquier lugar (también a otra sección o a la carta); una
+// sección se mueve completa. El modo aparte «Ordenar», con manijas (≡), se
+// quitó el 21 nov (en git, commit 7c036a0).
 //
 // Cómo se ve, igual que en iOS:
 // - Lo que levantas sube un poco y sigue al dedo (`ghostStyle`: una copia
@@ -39,11 +39,10 @@ import { runOnJS, useAnimatedStyle, useReducedMotion, useSharedValue, withSpring
 //
 // Quién gana el dedo: la lista es el ScrollView de gesture-handler y cada
 // arrastre lo bloquea (`blocksExternalGesture`): la lista espera a que el
-// arrastre falle antes de desplazarse. En la manija el arrastre empieza al
-// primer movimiento, así que la lista nunca se lo gana; en el renglón espera
-// un toque sostenido corto y, si el dedo se mueve antes, falla y la lista se
-// desplaza. Sin esa relación, la lista empezaba a desplazarse y cancelaba el
-// arrastre (no quitarla).
+// arrastre falle antes de desplazarse. El arrastre espera el toque sostenido
+// y, si el dedo se mueve antes, falla y la lista se desplaza. Sin esa
+// relación, la lista empezaba a desplazarse y cancelaba el arrastre (no
+// quitarla).
 
 export type BoardDragItem = { kind: 'dish'; dishId: string; sectionId: string } | { kind: 'section'; sectionId: string };
 /** Dónde caería: el índice cuenta sin lo que se mueve. */
@@ -60,11 +59,6 @@ type Slot = { top: number; target: BoardTarget };
 // solo (HIG, Accessibility). Lo demás sigue la duración estándar de UIKit
 // (0.25 s) para lo que se recorre.
 const EDGE = 72;
-// Toque sostenido para levantar un renglón desde cualquier parte, solo en
-// Ordenar (oculto, `SHOW_ORDER_MODE`): ahí no se escribe, así que es corto.
-// Número de Patio, no de Apple. Fuera de Ordenar manda `HOLD_IN_PLACE_MS`
-// (0.5 s, menu-composer.tsx); si Ordenar regresa, revisar este valor.
-const ROW_HOLD_MS = 180;
 const MAX_SPEED = 14;
 // Los demás se recorren; lo que sueltas se asienta.
 const MOVE_MS = 250;
@@ -72,6 +66,11 @@ const MOVE_MS = 250;
 // velocidad con la que lo soltaste) y la sombra se apaga.
 const SETTLE_MS = 350;
 const LIFT_MS = 200;
+// Sin avisos del gesto por este tiempo y llega un toque nuevo: el arrastre se
+// quedó huérfano (número de Patio; el sistema no lo documenta).
+const ORPHAN_MS = 400;
+// Si el dedo ya se levantó y el gesto no avisó en este tiempo, cae solo (número de Patio).
+const TOUCH_UP_GRACE_MS = 120;
 // Rastro en Metro (solo en desarrollo) para revisar un arrastre que no cae.
 const trace = (...args: unknown[]) => { if (__DEV__) console.log('[ordenar]', ...args); };
 export const sameTarget = (a: BoardTarget | null, b: BoardTarget | null) => JSON.stringify(a) === JSON.stringify(b);
@@ -108,7 +107,17 @@ export function useBoardDrag({ sections, scrollRef, onMoveDish, onMoveSection, o
   // Dónde estaba el dedo y la orilla de arriba de lo levantado (en la lista) al levantarlo.
   const lifted = useRef({ pageY: 0, top: 0, height: 0 });
   const settling = useRef(false);
+  // Acomodar de una vez lo que se está asentando (si levantas otro antes de que termine).
+  const landNow = useRef<(() => void) | null>(null);
   const liftedAt = useRef(0);
+  // Último aviso del gesto (levantar o mover): sirve para reconocer un arrastre huérfano.
+  const lastEventAt = useRef(0);
+  // El gesto que levantó lo que se mueve: solo él lo mueve y lo suelta (otro
+  // renglón o un segundo dedo nunca lo tiran ni lo cancelan).
+  const owner = useRef<object | null>(null);
+  // Cuántas veces se ha levantado algo: un aviso atrasado nunca suelta lo que
+  // levantaste después.
+  const lifts = useRef(0);
   const speed = useRef(0);
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
   const [drag, setDrag] = useState<BoardDragItem | null>(null);
@@ -246,18 +255,25 @@ export function useBoardDrag({ sections, scrollRef, onMoveDish, onMoveSection, o
     }, 16);
   };
 
-  const begin = (item: BoardDragItem, pageY: number) => {
-    if (dragRef.current || settling.current) return;
+  const begin = (by: object, item: BoardDragItem, pageY: number) => {
+    // Lo anterior aún se asienta: termina de una vez y este se levanta (nunca
+    // un «mantener presionado» que no hace nada).
+    if (settling.current) landNow.current?.();
+    releaseIfOrphaned();
+    if (dragRef.current) { trace('ya hay algo levantado', item); return; }
     const built = buildSlots(item);
     if (!built) { trace('sin medidas', item); return; }
     liftRef.current?.();
     dragRef.current = item;
+    owner.current = by;
+    lifts.current += 1;
     slots.current = built.slots;
     origin.current = built.origin;
     targetRef.current = built.origin;
     lifted.current = { pageY, top: built.top - scrollY.current, height: built.height };
     lastPageY.current = pageY;
     liftedAt.current = Date.now();
+    lastEventAt.current = liftedAt.current;
     delta.value = 0;
     lift.value = 0;
     lift.value = withTiming(1, { duration: LIFT_MS });
@@ -271,16 +287,20 @@ export function useBoardDrag({ sections, scrollRef, onMoveDish, onMoveSection, o
     trace('levanta', item.kind, item.kind === 'dish' ? item.dishId : item.sectionId, { lugares: built.slots.length });
     measureViewport();
   };
-  const move = (pageY: number) => {
+  const move = (by: object, pageY: number) => {
+    if (owner.current !== by) return;
     lastPageY.current = pageY;
+    lastEventAt.current = Date.now();
     update(pageY);
     autoScroll(pageY);
   };
-  const finish = (commit: boolean, velocityY = 0) => {
+  /** `why`: qué lo terminó, para el rastro de Metro. */
+  const finish = (commit: boolean, velocityY = 0, why = '') => {
     stopAutoScroll();
     const item = dragRef.current;
     if (!item) return;
     dragRef.current = null;
+    owner.current = null;
     const where = targetRef.current;
     const from = origin.current;
     const moved = commit && !!where && !!from && !sameTarget(where, from);
@@ -296,15 +316,22 @@ export function useBoardDrag({ sections, scrollRef, onMoveDish, onMoveSection, o
     // animación de por medio): la copia ya está exactamente en su lugar.
     const land = () => {
       settling.current = false;
+      landNow.current = null;
       targetRef.current = null;
       origin.current = null;
-      trace(commit ? 'suelta' : 'cancela', where ?? 'sin lugar', { ms: Date.now() - liftedAt.current });
-      if (moved && where) {
-        if (item.kind === 'dish' && where.kind === 'dish') moveDishRef.current(item.dishId, where.sectionId, where.index);
-        if (item.kind === 'section' && where.kind === 'section') moveSectionRef.current(item.sectionId, where.index);
+      trace(commit ? 'suelta' : 'cancela', where ?? 'sin lugar', { ms: Date.now() - liftedAt.current, por: why });
+      try {
+        if (moved && where) {
+          if (item.kind === 'dish' && where.kind === 'dish') moveDishRef.current(item.dishId, where.sectionId, where.index);
+          if (item.kind === 'section' && where.kind === 'section') moveSectionRef.current(item.sectionId, where.index);
+        }
+      } catch (error) {
+        trace('no se pudo mover', error);
+      } finally {
+        // Pase lo que pase al mover, lo levantado nunca se queda flotando.
+        setDrag(null);
+        setTarget(null);
       }
-      setDrag(null);
-      setTarget(null);
     };
     const slot = destination ? slots.current.find((entry) => sameTarget(entry.target, destination)) : undefined;
     const to = slot ? slot.top - scrollY.current - lifted.current.top : null;
@@ -315,6 +342,7 @@ export function useBoardDrag({ sections, scrollRef, onMoveDish, onMoveSection, o
     settling.current = true;
     let landed = false;
     const once = () => { if (!landed) { landed = true; land(); } };
+    landNow.current = once;
     delta.value = withSpring(to, { duration: SETTLE_MS, dampingRatio: 1, velocity: velocityY }, () => { runOnJS(once)(); });
     // Por si el resorte no avisa (lo interrumpe otra cosa): poco después de
     // lo que dura, para que el siguiente arrastre no espere de más.
@@ -327,29 +355,52 @@ export function useBoardDrag({ sections, scrollRef, onMoveDish, onMoveSection, o
   finishRef.current = finish;
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (state) => {
-      if (state !== 'active' && dragRef.current) finishRef.current(false);
+      if (state !== 'active' && dragRef.current) finishRef.current(false, 0, 'la app se fue al fondo');
     });
     return () => subscription.remove();
   }, []);
+
+  // Lo que avisa un gesto solo cuenta si ese gesto levantó lo que se mueve.
+  const end = (by: object, commit: boolean, velocityY: number, why: string) => {
+    if (owner.current === by) finish(commit, velocityY, why);
+  };
+  // El dedo dejó la pantalla: un momento después, si el gesto no avisó que
+  // terminó, cae donde está. Así el camino normal (con la velocidad del dedo)
+  // llega primero.
+  const fingerUp = (by: object) => {
+    if (owner.current !== by) return;
+    const lift = lifts.current;
+    setTimeout(() => {
+      if (owner.current === by && lifts.current === lift) finish(true, 0, 'el dedo se levantó y el gesto no avisó');
+    }, TOUCH_UP_GRACE_MS);
+  };
 
   // Rapidez al escribir: cada gesto se crea una vez por renglón y se reutiliza.
   // Crearlo en cada letra hacía que gesture-handler lo volviera a mandar al
   // hilo de la interfaz, renglón por renglón (el editor se sentía lento). Los
   // gestos llaman a lo de este momento por `api`.
-  const api = useRef({ begin, move, finish });
-  api.current = { begin, move, finish };
+  const api = useRef({ begin, move, end, fingerUp });
+  api.current = { begin, move, end, fingerUp };
   // Cada gesto recuerda de qué renglón es (`owner`) para soltarlo cuando ese
   // platillo o esa sección ya no están (los borrados no se quedan en memoria).
   const gestures = useRef(new Map<string, { owner: string; gesture: ReturnType<typeof Gesture.Pan> }>());
-  const dragFrom = (item: BoardDragItem, pan: ReturnType<typeof Gesture.Pan>) => pan
-    // La lista no se desplaza mientras este arrastre pueda empezar.
-    .blocksExternalGesture(scrollRef as unknown as Parameters<typeof pan.blocksExternalGesture>[0])
-    .runOnJS(true)
-    .onStart((event) => api.current.begin(item, event.absoluteY))
-    .onUpdate((event) => api.current.move(event.absoluteY))
-    // Solo cae si el dedo se levantó; si el sistema canceló el toque, regresa.
-    .onEnd((event, success) => api.current.finish(success, event.velocityY))
-    .onFinalize(() => api.current.finish(false));
+  const dragFrom = (item: BoardDragItem, pan: ReturnType<typeof Gesture.Pan>) => {
+    // Este gesto: lo que levanta, solo él lo suelta.
+    const by = {};
+    return pan
+      // La lista no se desplaza mientras este arrastre pueda empezar.
+      .blocksExternalGesture(scrollRef as unknown as Parameters<typeof pan.blocksExternalGesture>[0])
+      .runOnJS(true)
+      .onStart((event) => api.current.begin(by, item, event.absoluteY))
+      .onUpdate((event) => api.current.move(by, event.absoluteY))
+      // Solo cae si el dedo se levantó; si el sistema canceló el toque, regresa.
+      .onEnd((event, success) => api.current.end(by, success, event.velocityY, success ? 'soltaste' : 'el sistema canceló el toque'))
+      .onFinalize(() => api.current.end(by, false, 0, 'el gesto terminó sin avisar el fin'))
+      // El dedo dejó la pantalla aunque el gesto no avise que terminó: cae
+      // donde está (el «se queda flotando»). Si ya terminó, no hace nada.
+      .onTouchesUp((event) => { if (event.numberOfTouches === 0) api.current.fingerUp(by); })
+      .onTouchesCancelled(() => api.current.end(by, false, 0, 'el sistema canceló los toques'));
+  };
   const keyOf = (item: BoardDragItem) => (item.kind === 'dish' ? `d:${item.dishId}:${item.sectionId}` : `s:${item.sectionId}`);
   const cached = (owner: string, key: string, make: () => ReturnType<typeof Gesture.Pan>) => {
     let entry = gestures.current.get(key);
@@ -367,13 +418,20 @@ export function useBoardDrag({ sections, scrollRef, onMoveDish, onMoveSection, o
     }
     for (const [key, entry] of gestures.current) if (!alive.has(entry.owner)) gestures.current.delete(key);
   }, [sections]);
-  /** La manija (≡) de un platillo o una sección: el renglón sigue al dedo, sin esperar. */
-  const handleFor = (item: BoardDragItem) => cached(keyOf(item), `h:${keyOf(item)}`, () => dragFrom(item, Gesture.Pan().minDistance(0)));
-  /** Todo el renglón: un toque sostenido lo levanta; deslizar desplaza la lista. */
-  const rowFor = (item: BoardDragItem, holdMs = ROW_HOLD_MS) => cached(keyOf(item), `r:${keyOf(item)}:${holdMs}`, () => dragFrom(item, Gesture.Pan().activateAfterLongPress(holdMs)));
+  /** Todo el renglón: un toque sostenido (`holdMs`) lo levanta; deslizar desplaza la lista. */
+  const rowFor = (item: BoardDragItem, holdMs: number) => cached(keyOf(item), `r:${keyOf(item)}:${holdMs}`, () => dragFrom(item, Gesture.Pan().activateAfterLongPress(holdMs)));
+
+  /**
+   * Red de seguridad: un toque nuevo mientras algo sigue levantado sin avisos
+   * del gesto (el gesto se perdió) lo suelta donde está. Se llama desde el
+   * toque de la lista (`onTouchStart`) y al levantar otra cosa.
+   */
+  function releaseIfOrphaned() {
+    if (dragRef.current && Date.now() - lastEventAt.current > ORPHAN_MS) finish(true, 0, 'se perdió el gesto; lo soltó el siguiente toque');
+  }
 
   /** ¿El hueco está donde salió lo que levantas? Entonces su lugar sigue abierto ahí. */
   const atOrigin = !target || !origin.current || sameTarget(target, origin.current);
 
-  return { drag, target, atOrigin, gapHeight, ghostTop, ghostStyle, handleFor, rowFor, onScroll, onViewportLayout, onSectionLayout, onHeaderLayout, onDishLayout };
+  return { drag, target, atOrigin, gapHeight, ghostTop, ghostStyle, rowFor, onScroll, onViewportLayout, onSectionLayout, onHeaderLayout, onDishLayout, releaseIfOrphaned };
 }

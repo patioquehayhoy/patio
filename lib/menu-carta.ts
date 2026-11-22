@@ -82,6 +82,7 @@ export function cartaSignature(carta: MenuData): string {
       dish.precio.trim(),
       dish.foto ?? '',
       (dish.antes ?? []).join('|'),
+      dish.vegetariano === true ? 'vegetariano' : '',
     ]),
   ]));
 }

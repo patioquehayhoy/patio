@@ -1520,7 +1520,7 @@ export function PatioDetailView({ id, own = false, focusDish }: { id?: string; o
                           <Text
                             style={[s.groupItemName, item.soldOut && s.soldOutName]}
                             allowFontScaling={true}
-                            accessibilityLabel={item.soldOut ? `${item.name}, se acabó hoy` : undefined}
+                            accessibilityLabel={item.soldOut || item.vegetarian ? `${item.name}${item.vegetarian ? ', vegetariano' : ''}${item.soldOut ? ', se acabó hoy' : ''}` : undefined}
                             accessibilityHint={photos.length ? `${photos.length === 1 ? 'Tiene una foto' : `Tiene ${photos.length} fotos`}. Usa la acción Ver fotos para abrirlas o cerrarlas.` : undefined}
                             accessibilityActions={photos.length ? [{ name: 'activate', label: 'Ver fotos' }] : undefined}
                             onAccessibilityAction={() => toggleDish(dishKey)}>
@@ -1530,6 +1530,12 @@ export function PatioDetailView({ id, own = false, focusDish }: { id?: string; o
                             {photos.length > 0 && (
                               <Text style={s.dishPhotoMark}>
                                 {'\u00A0\u00A0'}<Ionicons name="image-outline" size={14} color={theme.textMute} />
+                              </Text>
+                            )}
+                            {/* Vegetariano: una hojita, igual de discreta que la de fotos. */}
+                            {item.vegetarian && (
+                              <Text style={s.dishPhotoMark}>
+                                {'\u00A0\u00A0'}<Ionicons name="leaf-outline" size={14} color={theme.textMute} />
                               </Text>
                             )}
                           </Text>

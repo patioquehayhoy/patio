@@ -87,3 +87,17 @@ test('menu rhythm: daily for fondas and home cooking, carta for places that sell
   const { routeForNotification } = load('lib/notification-routes.ts');
   assert.deepEqual(routeForNotification({ type: 'prices_check' }), { pathname: '/menu-editar', params: { desde: 'ultimo' } });
 });
+
+test('vegetarian: suggested only when it looks like it and names no meat; filter uses what the cook marked', () => {
+  const { looksVegetarian, hasVegetarian } = load('lib/dish-diet.ts');
+  assert.equal(looksVegetarian('Quesadilla de flor de calabaza'), true);
+  assert.equal(looksVegetarian('Chiles rellenos de queso'), true);
+  assert.equal(looksVegetarian('Sopa de verduras'), true);
+  assert.equal(looksVegetarian('Tacos de pastor'), false);
+  assert.equal(looksVegetarian('Enchiladas de pollo'), false);
+  assert.equal(looksVegetarian('Quesadilla', 'de chicharrón prensado'), false);
+  assert.equal(looksVegetarian('Fresas con crema'), false); // «res» dentro de «fresas» no es carne, y no hay nada vegetariano claro
+  assert.equal(looksVegetarian('Agua de jamaica'), false);
+  assert.equal(hasVegetarian({ menu: [{ items: [{}, { vegetarian: true }] }] }), true);
+  assert.equal(hasVegetarian({ menu: [{ items: [{}] }], carta: [] }), false);
+});

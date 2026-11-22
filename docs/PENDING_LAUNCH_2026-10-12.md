@@ -39,7 +39,7 @@
   `_shared/operation-notice.ts`, kind `fresh`) valida que el platillo esté en
   su menú de hoy o su carta, hasta 3 al día aparte del aviso del día, al
   momento solo a «Todas»; ficha con su ícono (`patio_highlights`).
-- [ ] **Bloque 4 · Vegetariano:** `Platillo.vegetariano`; el editor pregunta
+- [x] **Bloque 4 · Vegetariano** (hecho 21 nov, noche): `Platillo.vegetariano`; el editor pregunta
   «¿Es vegetariano?» si el nombre lo parece (sin palabras de carne) y se marca
   deslizando; hojita en la ficha; filtro «Vegetariano» en el mapa.
 - [ ] **Bloque 5 · Artifact** «Patio — De documentación dispersa a un sistema»

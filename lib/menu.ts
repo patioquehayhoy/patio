@@ -39,6 +39,7 @@ function menuDataToSections(data: MenuData, kind: 'hoy' | 'carta' = 'hoy'): Pati
           ...(isDishPhotoUrl(p.foto) ? { photo: p.foto, ...(isPhotoHash(p.fotoHash) ? { photoHash: p.fotoHash } : {}) } : {}),
           ...(cleanAliases(p.antes, p.nombre).length ? { aliases: cleanAliases(p.antes, p.nombre) } : {}),
           ...(kind === 'hoy' && p.agotado ? { soldOut: true } : {}),
+          ...(p.vegetariano === true ? { vegetarian: true } : {}),
         })),
     }));
 }

@@ -31,6 +31,8 @@ export interface Platillo {
   antes?: string[];
   /** Se acabó hoy (2026-11-21): se marca deslizando en el menú publicado; no pasa al día siguiente. */
   agotado?: boolean;
+  /** Vegetariano (2026-11-21): lo dice quien cocina; `false` recuerda que dijo que no. */
+  vegetariano?: boolean;
 }
 
 export interface Seccion {
@@ -209,6 +211,7 @@ export function normalizeMenuData(raw: unknown): MenuData | null {
           ...(typeof dish.foto === 'string' && dish.foto && isPhotoHash(dish.fotoHash) ? { fotoHash: dish.fotoHash } : {}),
           ...(Array.isArray(dish.antes) && cleanAntes(dish.antes, text(dish.nombre)).length ? { antes: cleanAntes(dish.antes, text(dish.nombre)) } : {}),
           ...(dish.agotado === true ? { agotado: true } : {}),
+          ...(typeof dish.vegetariano === 'boolean' ? { vegetariano: dish.vegetariano } : {}),
         }];
       });
     } else if (Array.isArray(sec.items)) {

@@ -1,3 +1,4 @@
+import { hasVegetarian } from '@/lib/dish-diet';
 import { BusinessCategoryIcon, PatioGiros } from '@/components/business-category-icon';
 import { mapMarkerDetail } from '@/lib/business-category-icons';
 import { useScrollEdges } from '@/lib/use-scroll-edges';
@@ -369,6 +370,7 @@ export default function ExplorarScreen() {
     categories: patio.categories,
     payments: patio.payments,
     collections,
+    hasVegetarian: hasVegetarian(patio),
   })), [collections, filters, visiblePatios]);
   // Los filtros también deben aplicar cuando ya estás buscando una palabra
   // (no solo en el mapa idle) — así lo hace Apple Maps: los chips de filtro
@@ -380,6 +382,7 @@ export default function ExplorarScreen() {
     weeklyHours: match.patio.weeklyHours ?? null,
     categories: match.patio.categories,
     payments: match.patio.payments,
+    hasVegetarian: hasVegetarian(match.patio),
     collections,
   })), [topMatchPerPatio, filters, collections, activeSavedCategories, savedIds]);
   const matchingPatioIds = useMemo(() => new Set(filteredMatches.map((match) => match.patio.id)), [filteredMatches]);
@@ -599,6 +602,7 @@ export default function ExplorarScreen() {
     categories: patio.categories,
     payments: patio.payments,
     collections,
+    hasVegetarian: hasVegetarian(patio),
   }));
   useEffect(() => {
     // Frame relativo al viewport: Android puede haber descontado el teclado

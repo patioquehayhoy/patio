@@ -29,6 +29,8 @@ export type PatioMenuItem = {
   aliases?: string[];
   /** El negocio marcó que hoy ya se acabó. */
   soldOut?: boolean;
+  /** El negocio dijo que es vegetariano. */
+  vegetarian?: boolean;
 };
 
 export type PatioMenuSection = {
@@ -408,6 +410,7 @@ function publicMenuSections(value: unknown, kind: 'hoy' | 'carta' = 'hoy'): Pati
       ...(isDishPhotoUrl(item.foto) ? { photo: item.foto, ...(isPhotoHash(item.fotoHash) ? { photoHash: item.fotoHash } : {}) } : {}),
       ...(cleanAliases(item.antes, item.nombre).length ? { aliases: cleanAliases(item.antes, item.nombre) } : {}),
       ...(kind === 'hoy' && item.agotado ? { soldOut: true } : {}),
+      ...(item.vegetariano === true ? { vegetarian: true } : {}),
     }));
     // Un encabezado con precio («MENÚ DEL DÍA $100») sale aunque no tenga platillos debajo.
     return items.length || publicCurrency(section.precio) ? [{ section: cleanMenuText(section.nombre) || section.nombre, price: publicCurrency(section.precio) || undefined, items }] : [];

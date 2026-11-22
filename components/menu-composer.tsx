@@ -39,6 +39,7 @@ import { SectionBar } from '@/components/section-bar';
 import { useBoardDrag, type BoardDragItem } from '@/components/board-drag';
 import { closeOpenSwipeRow, closeSwipeRowOnTouch, SwipeRow } from '@/components/swipe-row';
 import { mergeDescription, suggestDishSplit } from '@/lib/dish-split';
+import { looksVegetarian } from '@/lib/dish-diet';
 import { noWidow } from '@/lib/typography';
 import { TEXT_LIMITS } from '@/lib/text-limits';
 import { DishPhotoPermissionError, pickDishPhoto, uploadDishPhoto } from '@/lib/dish-photo';
@@ -936,6 +937,8 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
       );
     }
     const split = !keyboardOpen ? suggestDishSplit(dish.nombre) : null;
+    // «¿Es vegetariano?»: solo si lo parece y nunca lo ha contestado (quien cocina decide).
+    const askVeggie = !keyboardOpen && dish.vegetariano === undefined && !!dish.nombre.trim() && looksVegetarian(dish.nombre, dish.descripcion);
     const link = !keyboardOpen ? linkSuggestion(dish) : null;
     // Mientras arrastras: lo levantado se queda montado (invisible, y encogido
     // si el hueco está en otro lado) y los demás abren su hueco.
@@ -951,6 +954,13 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
           enabled={gesturesOn}
           fullSwipe
           actions={[
+            // Vegetariano: lo marca o lo quita quien cocina (la hojita sale en la ficha).
+            {
+              label: dish.vegetariano ? 'No vegetariano' : 'Vegetariano',
+              color: c.textSecondary,
+              accessibilityLabel: dish.vegetariano ? `Quitar vegetariano a ${dish.nombre || 'platillo'}` : `Marcar ${dish.nombre || 'platillo'} como vegetariano`,
+              onPress: () => { patchDish(section.id, dish.id, { vegetariano: !dish.vegetariano }); Haptics.selectionAsync().catch(() => {}); },
+            },
             // En el menú ya publicado, lo de hoy se marca «Se acabó» al instante.
             ...(live && !section.carta ? [{
               label: dish.agotado ? 'Ya hay' : 'Se acabó',
@@ -1022,6 +1032,35 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
             accessibilityLabel={`Descripción de ${dish.nombre || 'platillo'}`}
           />
           {dish.agotado && <Text style={s.soldOutTag} accessibilityLabel="Se acabó hoy">Se acabó</Text>}
+          {dish.vegetariano === true && (
+            <View style={s.veggieTag} accessible accessibilityLabel="Vegetariano">
+              <Ionicons name="leaf-outline" size={12} color={c.textSecondary} />
+              <Text style={s.soldOutTag}>Vegetariano</Text>
+            </View>
+          )}
+          {askVeggie && (
+            <View style={s.linkHint}>
+              <Text style={s.linkHintText}>{noWidow('¿Es vegetariano? Así lo encuentra quien no come carne.')}</Text>
+              <View style={s.linkActions}>
+                <TouchableOpacity
+                  hitSlop={{ top: 8, bottom: 8, left: 4, right: 8 }}
+                  onPress={() => { smoothly(); patchDish(section.id, dish.id, { vegetariano: true }); Haptics.selectionAsync().catch(() => {}); }}
+                  activeOpacity={0.7}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Sí, ${dish.nombre} es vegetariano`}>
+                  <Text style={s.hintAction}>Sí</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  onPress={() => { smoothly(); patchDish(section.id, dish.id, { vegetariano: false }); }}
+                  activeOpacity={0.7}
+                  accessibilityRole="button"
+                  accessibilityLabel={`No, ${dish.nombre} no es vegetariano`}>
+                  <Text style={s.hintAction}>No</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
           {/* Sugerencias del sistema, solo con el teclado cerrado: mientras
               escribes, nada aparece ni se mueve. */}
           {!!split && (
@@ -1479,6 +1518,7 @@ function makeStyles(c: FonderoColors) {
     retake: { minHeight: 36, marginBottom: 8, flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start' },
     retakeText: { fontSize: 14, fontWeight: '400', color: c.textSecondary },
     soldOutTag: { marginTop: 3, fontSize: 12, lineHeight: 16, fontWeight: '600', color: c.textSecondary },
+    veggieTag: { flexDirection: 'row', alignItems: 'center', gap: 4 },
     // Tarjeta de sección: recorta sus esquinas, así lo que se desliza (la fila
     // y su «Eliminar») queda dentro, como en una lista agrupada de iOS. Lo que
     // se arrastra va en una copia encima de la lista, no dentro.

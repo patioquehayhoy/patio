@@ -1,3 +1,4 @@
+import { hasVegetarian } from '@/lib/dish-diet';
 import { BottomContentFade } from '@/components/bottom-content-fade';
 import { usePullRefresh } from '@/lib/use-pull-refresh';
 import { patioDistance, patioTypicalPrice, sortPatiosByMetric, type PatioSortMode } from '@/lib/patio-sort';
@@ -232,6 +233,7 @@ export default function FavoritosScreen() {
     categories: patio.categories,
     payments: patio.payments,
     collections,
+    hasVegetarian: hasVegetarian(patio),
   })), [collections, searched, filters]);
 
   // `patios` ya viene más-reciente-primero desde el storage (ver

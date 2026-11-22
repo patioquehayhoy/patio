@@ -1,3 +1,4 @@
+import { ToggleSwitch } from '@/components/toggle-switch';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PlaceIcon } from '@/components/place-icon';
 import { PaymentIcon } from '@/components/payment-icon';
@@ -43,14 +44,16 @@ export type FoodieFilters = {
   categories: string[];
   payments: string[];
   collectionIds: string[];
+  /** Solo lugares con algún platillo vegetariano (lo marca quien cocina). */
+  vegetarian?: boolean;
 };
 
-export const EMPTY_FOODIE_FILTERS: FoodieFilters = { openAt: null, categories: [], payments: [], collectionIds: [] };
+export const EMPTY_FOODIE_FILTERS: FoodieFilters = { openAt: null, categories: [], payments: [], collectionIds: [], vegetarian: false };
 
 // Attribute count; the toolbar adds availability, lists and legacy criteria
 // so its badge represents every active constraint in the shared panel.
 export function foodieFilterCount(f: FoodieFilters) {
-  return f.categories.length + f.payments.length;
+  return f.categories.length + f.payments.length + (f.vegetarian ? 1 : 0);
 }
 
 // Único origen de verdad para "¿este lugar cumple los filtros?" — antes esta
@@ -65,7 +68,10 @@ export function matchesFoodieFilters(filters: FoodieFilters, input: {
   categories: string[];
   payments: string[];
   collections: PatioCollection[];
+  /** ¿Tiene algún platillo vegetariano hoy o en su carta? (lib/dish-diet.ts) */
+  hasVegetarian?: boolean;
 }): boolean {
+  if (filters.vegetarian && !input.hasVegetarian) return false;
   if (filters.openAt && !estaAbiertoAhora(input.weeklyHours, 'ahora' in filters.openAt ? undefined : filters.openAt)) return false;
   if (filters.categories.length && !input.categories.some((category) => filters.categories.includes(category))) return false;
   if (filters.payments.length && !input.payments.some((method) => filters.payments.includes(method))) return false;
@@ -782,6 +788,12 @@ export function FoodieFilterBar({ filters, onChange, collections, categories, on
                 <View style={s.disclosureChevron}><Ionicons name="chevron-forward" size={16} color={theme.textMute} /></View>
               </TouchableOpacity>;
             })}
+            {/* Vegetariano: lugares con algún platillo que quien cocina marcó así. */}
+            <View style={[s.availabilityRow, s.rowDivider]}>
+              <View style={s.checkSlot}><Ionicons name="leaf-outline" size={20} color={theme.textSecondary} /></View>
+              <Text style={s.disclosureLabel}>Vegetariano</Text>
+              <ToggleSwitch value={!!filters.vegetarian} accessibilityLabel="Vegetariano" onValueChange={(on) => { Haptics.selectionAsync().catch(() => {}); onChange({ ...filters, vegetarian: on }); }} />
+            </View>
           </View></View>
           {additionalFilter && <TouchableOpacity style={s.option} onPress={additionalFilter.onClear} accessibilityRole="button" accessibilityLabel={`Quitar filtro ${additionalFilter.label}`}><Text style={s.optionText}>{noWidow(additionalFilter.label)}</Text><Ionicons name="close-circle" size={20} color={theme.textSecondary} /></TouchableOpacity>}
         </>}

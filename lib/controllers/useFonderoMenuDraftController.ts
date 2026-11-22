@@ -199,6 +199,7 @@ export function cleanMenu(data: MenuData): MenuData {
             ...(dish.foto && dish.fotoHash ? { fotoHash: dish.fotoHash } : {}),
             ...(dish.antes?.length ? { antes: dish.antes } : {}),
             ...(dish.agotado ? { agotado: true } : {}),
+            ...(typeof dish.vegetariano === 'boolean' ? { vegetariano: dish.vegetariano } : {}),
           })),
       }))
       // Un encabezado con precio se queda aunque no tenga platillos debajo

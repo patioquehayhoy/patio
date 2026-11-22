@@ -106,6 +106,8 @@ function fixture(file, overrides = {}) {
     '@/lib/tab-bar-visibility': { useTabBarScroll: () => ({ onScroll() {}, reveal() {} }), useHideTabBarWhile: () => {} },
     '@/lib/recent-patios': { recordRecentPatio: async () => {} },
     '@/lib/patio-sort': { patioDistance: () => null, patioTypicalPrice: () => null, sortPatiosByMetric: (items) => [...items] },
+    '@/lib/dish-diet': { hasVegetarian: () => false },
+    '@/components/toggle-switch': { ToggleSwitch: () => null },
     '@/components/patio-status-indicator': { PatioStatusIndicator: 'PatioStatusIndicator' },
     '@/components/patio-identity-icon': { PatioIdentityIcon: 'PatioIdentityIcon' },
     '@/lib/patio-card-info': { patioCardAccessibilityLabel: (patio) => `Abrir ${patio.name}` },

@@ -12,7 +12,7 @@ import { getFonditaId } from '@/lib/user-store';
 import { summary } from '@/lib/menu-title';
 
 export type PublishedMenu = LocalMenuEntry;
-type RemoteMenu = { fecha: string; secciones: MenuData };
+type RemoteMenu = { fecha: string; secciones: MenuData; publishAt?: string };
 
 export function mergeMenuHistory(local: LocalMenuEntry[], remote: RemoteMenu[], authoritative = true): PublishedMenu[] {
   const merged = new Map(local.map((menu) => [menu.id, { ...menu, published: authoritative ? false : menu.published }]));
@@ -20,7 +20,7 @@ export function mergeMenuHistory(local: LocalMenuEntry[], remote: RemoteMenu[], 
     const existing = local.find((entry) => entry.fecha === menu.fecha && entry.published)
       ?? local.find((entry) => entry.fecha === menu.fecha && JSON.stringify(entry.secciones) === JSON.stringify(menu.secciones));
     const id = existing?.id ?? (merged.has(menu.fecha) ? `remote:${menu.fecha}` : menu.fecha);
-    merged.set(id, { ...menu, id, nombre: existing?.nombre, published: true });
+    merged.set(id, { ...menu, id, nombre: existing?.nombre, published: true, ...(menu.publishAt ?? existing?.publishAt ? { publishAt: menu.publishAt ?? existing?.publishAt } : {}) });
   }
   return [...merged.values()].sort((a, b) => b.fecha.localeCompare(a.fecha));
 }
@@ -53,14 +53,29 @@ export function computeStreak(fechas: string[]): number {
   return streak;
 }
 
+/** «Se acabó» es solo de ese día: una copia para otro día empieza con todo disponible. */
+export function withoutSoldOut(data: MenuData): MenuData {
+  return {
+    ...data,
+    secciones: data.secciones.map((section) => ({
+      ...section,
+      platillos: section.platillos.map(({ agotado: _agotado, ...dish }) => dish),
+    })),
+  };
+}
+
 /**
  * Con qué abre el editor un menú de la lista (2026-11-16): el publicado hoy se
- * cambia en su lugar («Actualizar», sin otro renglón en Menús); uno publicado
- * otro día se copia como borrador nuevo; un borrador se sigue escribiendo.
+ * cambia en su lugar («Actualizar», sin otro renglón en Menús), igual que uno
+ * programado para otro día (2026-11-21); uno publicado otro día se copia como
+ * borrador nuevo (sin «Se acabó»); un borrador se sigue escribiendo.
  */
 export function editorSeed(menu: PublishedMenu, today = localMenuDate()): MenuData {
   if (menu.published && menu.fecha === today) return { ...menu.secciones, localDraftId: menu.id, localLive: true };
-  return { ...menu.secciones, localDraftId: menu.published ? undefined : menu.id };
+  if (menu.published && menu.fecha > today) {
+    return { ...menu.secciones, localDraftId: menu.id, localLive: true, localFecha: menu.fecha, ...(menu.publishAt ? { localPublishAt: menu.publishAt } : {}) };
+  }
+  return { ...withoutSoldOut(menu.secciones), localDraftId: menu.published ? undefined : menu.id };
 }
 
 export function defaultHistoryTitle(menu: PublishedMenu): string {
@@ -68,6 +83,42 @@ export function defaultHistoryTitle(menu: PublishedMenu): string {
   // aquí era redundante (ley dictada 2026-07-22: quitar la fecha al inicio).
   const dishes = summary(menu.secciones);
   return dishes || 'Menú publicado';
+}
+
+/** Los menús del teléfono y los del servidor, juntos y más nuevos primero. */
+export async function loadMenuHistory(): Promise<PublishedMenu[]> {
+  await seedDemoHistory();
+  const locales = await getLocalMenus();
+  const id = getFonditaId();
+  let remotos: RemoteMenu[] = [];
+  let authoritative = !__DEV__;
+  if (id) {
+    const { data, error } = await supabase
+      .from('menus')
+      .select('fecha,secciones,publish_at')
+      .eq('negocio_id', id)
+      .order('fecha', { ascending: false })
+      .limit(20);
+    authoritative = !error;
+    remotos = (data ?? []).flatMap((row): RemoteMenu[] => {
+      const secciones = normalizeMenuData(row.secciones);
+      const publishAt = typeof row.publish_at === 'string' ? row.publish_at : undefined;
+      return secciones && typeof row.fecha === 'string' ? [{ fecha: row.fecha, secciones, ...(publishAt ? { publishAt } : {}) }] : [];
+    });
+  }
+  return mergeMenuHistory(locales, remotos, authoritative);
+}
+
+/**
+ * Con qué abre el editor el aviso «¿Ya publicaste lo de hoy?» (2026-11-21):
+ * el último menú publicado, como borrador nuevo (o el de hoy, si ya salió).
+ * Sin ninguno publicado, el borrador más reciente; si no hay nada, null.
+ */
+export function latestMenuSeed(menus: PublishedMenu[], today = localMenuDate()): MenuData | null {
+  // Lo de hoy o lo último publicado antes; uno programado para otro día no es «lo de hoy».
+  const current = menus.filter((menu) => menu.fecha <= today);
+  const latest = current.find((menu) => menu.published) ?? current[0];
+  return latest ? editorSeed(latest, today) : null;
 }
 
 export function useMenuHistoryController() {
@@ -78,26 +129,7 @@ export function useMenuHistoryController() {
 
   const load = useCallback(async (isActive: () => boolean = () => true) => {
     try {
-      await seedDemoHistory();
-      const locales = await getLocalMenus();
-      const id = getFonditaId();
-      let remotos: RemoteMenu[] = [];
-      let authoritative = !__DEV__;
-      if (id) {
-        const { data, error } = await supabase
-          .from('menus')
-          .select('fecha,secciones')
-          .eq('negocio_id', id)
-          .order('fecha', { ascending: false })
-          .limit(20);
-        authoritative = !error;
-        remotos = (data ?? []).flatMap((row): RemoteMenu[] => {
-          const secciones = normalizeMenuData(row.secciones);
-          return secciones && typeof row.fecha === 'string' ? [{ fecha: row.fecha, secciones }] : [];
-        });
-      }
-
-      const merged = mergeMenuHistory(locales, remotos, authoritative);
+      const merged = await loadMenuHistory();
       if (isActive()) {
         setMenus(merged);
         setLoading(false);

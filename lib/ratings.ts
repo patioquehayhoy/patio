@@ -8,20 +8,54 @@ import { uploadReviewPhoto } from './dish-photo';
 
 const KEY = '@patio_ratings';
 
+/** Hasta cuántas fotos lleva una reseña (una visita). */
+export const MAX_REVIEW_PHOTOS = 5;
+
+/** Una foto de la visita (tabla `review_photos`). */
+export type ReviewPhotoItem = {
+  /** Fila del servidor; sin él es una foto guardada solo en este teléfono. */
+  id?: string;
+  /** Pública (bucket `review-photos`) o, en un lugar de prueba, la del teléfono. */
+  url: string;
+  /** De qué platillo es (opcional): solo las que lo tienen salen en el menú. */
+  dish?: string;
+  /** Frase corta del platillo que va como pie de la foto. */
+  note?: string;
+  /** Vista previa instantánea (lib/photo-hash.ts). */
+  hash?: string;
+};
+
 export type PatioRating = {
   stars: number;
   reasons?: string[];
   note?: string;
-  photoUri?: string;
-  /** Foto pública de la reseña (bucket `review-photos`) y de qué platillo es. */
-  photoUrl?: string;
-  photoDish?: string;
-  /** Frase corta del platillo que va como pie de la foto. */
-  photoNote?: string;
-  /** Vista previa instantánea de la foto (lib/photo-hash.ts). */
-  photoHash?: string;
+  /** Fotos de la visita, en el orden en que se eligieron (hasta 5). */
+  photos?: ReviewPhotoItem[];
   timestamp: number;
 };
+
+/** Las fotos que llegan del servidor, en su orden, solo del bucket de Patio. */
+function photosFromRows(rows: any[] | null | undefined): ReviewPhotoItem[] | undefined {
+  const photos = (rows ?? [])
+    .filter((row) => isReviewPhotoUrl(row?.url))
+    .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+    .map((row): ReviewPhotoItem => ({
+      id: row.id,
+      url: row.url,
+      ...(row.platillo ? { dish: row.platillo } : {}),
+      ...(row.nota ? { note: row.nota } : {}),
+      ...(isPhotoHash(row.hash) ? { hash: row.hash } : {}),
+    }));
+  return photos.length ? photos : undefined;
+}
+const PHOTO_COLUMNS = 'id,url,platillo,nota,hash,sort_order';
+
+/** Reseñas guardadas antes del 21 nov (una sola foto en `photoUri`). */
+function withLocalPhotos(rating: PatioRating & { photoUri?: string; photoDish?: string; photoNote?: string }): PatioRating {
+  if (rating.photos || !rating.photoUri) return rating;
+  const { photoUri, photoDish, photoNote, ...rest } = rating;
+  return { ...rest, photos: [{ url: photoUri, ...(photoDish ? { dish: photoDish } : {}), ...(photoNote ? { note: photoNote } : {}) }] };
+}
 
 export type PublicPatioReview = PatioRating & {
   reviewId?: string;
@@ -41,7 +75,7 @@ async function getMap(): Promise<RatingsMap> {
   const parsed = JSON.parse(raw) as Record<string, PatioRating | PatioRating[]>;
   if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return {};
   return Object.fromEntries(
-    Object.entries(parsed).map(([patioId, value]) => [patioId, Array.isArray(value) ? value : [value]]),
+    Object.entries(parsed).map(([patioId, value]) => [patioId, (Array.isArray(value) ? value : [value]).map(withLocalPhotos)]),
   );
 }
 
@@ -112,7 +146,7 @@ export type ReviewPageOptions = {
   cursor?: string | null;
   /** Solo las de esa estrella (barras del resumen). */
   stars?: number | null;
-  /** Solo las que tienen foto (fotos de clientes en el menú). */
+  /** Solo las que tienen fotos (fotos de clientes en el menú). */
   photosOnly?: boolean;
 };
 
@@ -135,23 +169,18 @@ export async function getPublicPatioReviewPage(patioId: string, options: ReviewP
       .sort((a, b) => b.timestamp - a.timestamp);
     return { reviews, nextCursor: null };
   }
-  // La vista previa de la foto (foto_hash) llegó el 15 nov: si el servidor aún
-  // no tiene esa columna, las reseñas salen igual, sin vista previa.
-  const columns = 'id,user_id,stars,reasons,note,created_at,updated_at,business_reply,business_replied_at,foto_url,foto_platillo,foto_nota';
-  const query = (select: string) => {
-    let request = supabase
-      .from('reviews')
-      .select(select)
-      .eq('negocio_id', patioId)
-      .eq('status', 'published');
-    if (stars) request = request.eq('stars', stars);
-    if (photosOnly) request = request.not('foto_url', 'is', null);
-    if (cursor) request = request.lt('created_at', cursor);
-    request = request.order('created_at', { ascending: false });
-    return limit ? request.limit(limit) : request;
-  };
-  const [{ data: session }, first] = await Promise.all([supabase.auth.getSession(), query(`${columns},foto_hash`)]);
-  const { data, error } = first.error && /foto_hash/.test(first.error.message ?? '') ? await query(columns) : first;
+  // Las fotos viven en `review_photos` (hasta 5 por reseña); con `!inner`
+  // solo llegan las reseñas que tienen alguna.
+  const columns = `id,user_id,stars,reasons,note,created_at,updated_at,business_reply,business_replied_at,review_photos${photosOnly ? '!inner' : ''}(${PHOTO_COLUMNS})`;
+  let request = supabase
+    .from('reviews')
+    .select(columns)
+    .eq('negocio_id', patioId)
+    .eq('status', 'published');
+  if (stars) request = request.eq('stars', stars);
+  if (cursor) request = request.lt('created_at', cursor);
+  request = request.order('created_at', { ascending: false });
+  const [{ data: session }, { data, error }] = await Promise.all([supabase.auth.getSession(), limit ? request.limit(limit) : request]);
   if (error) return { reviews: [], nextCursor: null };
   const rows: any[] = data ?? [];
   // Se decide con las filas del servidor, antes de quitar las que no tienen nombre.
@@ -178,7 +207,7 @@ export async function getPublicPatioReviewPage(patioId: string, options: ReviewP
       note: row.note || undefined,
       timestamp: new Date(row.created_at || row.updated_at).getTime(),
       businessReply: row.business_reply || undefined,
-      ...(isReviewPhotoUrl(row.foto_url) ? { photoUrl: row.foto_url, photoDish: row.foto_platillo || undefined, photoNote: row.foto_nota || undefined, ...(isPhotoHash(row.foto_hash) ? { photoHash: row.foto_hash } : {}) } : {}),
+      ...(photosFromRows(row.review_photos) ? { photos: photosFromRows(row.review_photos) } : {}),
       businessRepliedAt: row.business_replied_at || undefined,
       isMine,
     }];
@@ -200,11 +229,8 @@ export type SaveRatingInput = {
   stars: number;
   reasons?: string[];
   note?: string;
-  photoUri?: string;
-  /** De qué platillo es la foto (opcional). */
-  photoDish?: string;
-  /** Frase corta del platillo (opcional). */
-  photoNote?: string;
+  /** Fotos del teléfono (hasta 5), cada una con su platillo opcional. */
+  photos?: { uri: string; dish?: string }[];
 };
 
 /** Lugares que ya reseñaste desde este teléfono. */
@@ -234,49 +260,40 @@ export async function savePatioRating(
       ? { stars: starsOrInput, reasons }
       : starsOrInput;
   if (!Number.isInteger(data.stars) || data.stars < 1 || data.stars > 5) throw new Error('Elige una calificación de 1 a 5 estrellas.');
+  const picked = (data.photos ?? []).filter((photo) => !!photo.uri).slice(0, MAX_REVIEW_PHOTOS);
   const rating: PatioRating = {
     stars: data.stars,
     reasons: data.reasons,
     note: data.note?.trim() || undefined,
-    photoUri: data.photoUri || undefined,
-    photoDish: data.photoUri && data.photoDish?.trim() ? data.photoDish.trim() : undefined,
-    photoNote: data.photoUri && data.photoNote?.trim() ? data.photoNote.trim() : undefined,
+    ...(picked.length ? { photos: picked.map((photo) => ({ url: photo.uri, ...(photo.dish?.trim() ? { dish: photo.dish.trim() } : {}) })) } : {}),
     timestamp: Date.now(),
   };
   if (/^[0-9a-f-]{36}$/i.test(patioId)) {
     const { data: user } = await supabase.auth.getUser();
     if (!user.user) throw new Error('Inicia sesión para publicar tu reseña.');
     if (user.user) {
-      // La foto se sube antes de publicar; si falla, la reseña no sale a medias.
-      let fotoUrl: string | null = null;
-      let fotoHash: string | null = null;
-      if (data.photoUri) {
-        try {
-          const uploaded = await uploadReviewPhoto(data.photoUri);
-          fotoUrl = uploaded.url;
-          fotoHash = uploaded.hash ?? null;
-        } catch { throw new Error('REVIEW_PHOTO_UPLOAD_FAILED'); }
-      }
-      const row = {
-        user_id: user.user.id,
-        negocio_id: patioId,
-        stars: data.stars,
-        reasons: data.reasons ?? [],
-        note: data.note?.trim() || null,
-        foto_url: fotoUrl,
-        foto_platillo: fotoUrl && data.photoDish?.trim() ? data.photoDish.trim().slice(0, 120) : null,
-        foto_nota: fotoUrl && data.photoNote?.trim() ? data.photoNote.trim().slice(0, 140) : null,
-        foto_hash: fotoUrl ? fotoHash : null,
-        visit_date: localMenuDate(),
-        updated_at: new Date().toISOString(),
+      // Las fotos se suben antes de publicar (todas a la vez); si alguna falla,
+      // la reseña no sale a medias y las que sí subieron se borran.
+      const uploads = await Promise.allSettled(picked.map((photo) => uploadReviewPhoto(photo.uri)));
+      const uploaded = uploads.flatMap((result) => (result.status === 'fulfilled' ? [result.value] : []));
+      const dropUploaded = () => {
+        const paths = uploaded.flatMap((photo) => storagePathOf(photo.url) ?? []);
+        if (paths.length) void supabase.storage.from('review-photos').remove(paths).then(() => {}, () => {});
       };
-      let { error } = await supabase.from('reviews').insert(row);
-      // Servidor sin la columna de vista previa todavía: se publica sin ella.
-      if (error && /foto_hash/.test(error.message ?? '')) {
-        const { foto_hash: _hash, ...withoutHash } = row;
-        ({ error } = await supabase.from('reviews').insert(withoutHash));
-      }
-      if (error) throw error;
+      if (uploaded.length < picked.length) { dropUploaded(); throw new Error('REVIEW_PHOTO_UPLOAD_FAILED'); }
+      // Reseña y fotos en un solo paso: o sale todo o nada (migración 20261121090000).
+      const { error } = await supabase.rpc('publish_review', {
+        target_negocio_id: patioId,
+        review_stars: data.stars,
+        review_reasons: data.reasons ?? [],
+        review_note: data.note?.trim() || null,
+        review_photos: uploaded.map((photo, index) => ({
+          url: photo.url,
+          dish: picked[index].dish?.trim().slice(0, 120) || null,
+          hash: photo.hash ?? null,
+        })),
+      });
+      if (error) { dropUploaded(); throw error; }
       // Aviso al dueño de mejor esfuerzo: la reseña ya quedó publicada.
       void supabase.functions.invoke('send-review-notification', { body: { fonditaId: patioId } }).catch(() => {});
     }
@@ -286,23 +303,29 @@ export async function savePatioRating(
   });
 }
 
+/** Ruta del archivo dentro del bucket `review-photos`. */
+function storagePathOf(url: string): string | undefined {
+  const path = url.split('/storage/v1/object/public/review-photos/')[1]?.split('?')[0];
+  return path ? decodeURIComponent(path) : undefined;
+}
+
 /** Quien subió la foto la corrige: de qué platillo es y su frase. */
-export async function updateMyReviewPhoto(reviewId: string, dish: string | undefined, note: string | undefined): Promise<void> {
-  const { error } = await supabase.rpc('update_my_review_photo', {
-    target_review_id: reviewId,
+export async function updateMyReviewPhoto(photoId: string, dish: string | undefined, note: string | undefined): Promise<void> {
+  const { error } = await supabase.rpc('update_my_review_photo_item', {
+    target_photo_id: photoId,
     dish: dish?.trim() || null,
     photo_note: note?.trim() || null,
   });
   if (error) throw error;
 }
 
-/** Quita la foto de tu reseña; la reseña se queda. */
-export async function removeMyReviewPhoto(reviewId: string, photoUrl: string): Promise<void> {
-  const { error } = await supabase.rpc('remove_my_review_photo', { target_review_id: reviewId });
+/** Quita una foto de tu reseña; la reseña y las demás fotos se quedan. */
+export async function removeMyReviewPhoto(photoId: string, photoUrl: string): Promise<void> {
+  const { error } = await supabase.rpc('remove_my_review_photo_item', { target_photo_id: photoId });
   if (error) throw error;
   // El archivo, de mejor esfuerzo: la foto ya no sale aunque esto falle.
-  const path = photoUrl.split('/storage/v1/object/public/review-photos/')[1]?.split('?')[0];
-  if (path) void supabase.storage.from('review-photos').remove([decodeURIComponent(path)]).then(() => {}, () => {});
+  const path = storagePathOf(photoUrl);
+  if (path) void supabase.storage.from('review-photos').remove([path]).then(() => {}, () => {});
 }
 
 export type AuthorReview = {
@@ -312,9 +335,7 @@ export type AuthorReview = {
   stars: number;
   note?: string;
   timestamp: number;
-  photoUrl?: string;
-  photoDish?: string;
-  photoHash?: string;
+  photos?: ReviewPhotoItem[];
 };
 
 /**
@@ -323,17 +344,13 @@ export type AuthorReview = {
  * que en la ficha de cada lugar.
  */
 export async function getReviewsByAuthor(userId: string, limit = 60): Promise<AuthorReview[]> {
-  const columns = 'id,negocio_id,stars,note,created_at,foto_url,foto_platillo';
-  const query = (select: string) => supabase
+  const { data, error } = await supabase
     .from('reviews')
-    .select(select)
+    .select(`id,negocio_id,stars,note,created_at,review_photos(${PHOTO_COLUMNS})`)
     .eq('user_id', userId)
     .eq('status', 'published')
     .order('created_at', { ascending: false })
     .limit(limit);
-  // Sin la columna de vista previa todavía en el servidor, sale sin ella.
-  const first = await query(`${columns},foto_hash`);
-  const { data, error } = first.error && /foto_hash/.test(first.error.message ?? '') ? await query(columns) : first;
   if (error || !data) return [];
   const rows = data as any[];
   const placeIds = [...new Set(rows.map((row) => row.negocio_id))];
@@ -351,11 +368,7 @@ export async function getReviewsByAuthor(userId: string, limit = 60): Promise<Au
       stars: row.stars,
       note: row.note || undefined,
       timestamp: new Date(row.created_at).getTime(),
-      ...(isReviewPhotoUrl(row.foto_url) ? {
-        photoUrl: row.foto_url,
-        photoDish: row.foto_platillo || undefined,
-        ...(isPhotoHash(row.foto_hash) ? { photoHash: row.foto_hash } : {}),
-      } : {}),
+      ...(photosFromRows(row.review_photos) ? { photos: photosFromRows(row.review_photos) } : {}),
     }];
   });
 }

@@ -1,0 +1,785 @@
+{
+ "app": "Una app mexicana de celular donde las fondas, cocinas económicas, taquerías y personas que venden comida en casa publican su menú del día; la gente cercana lo ve en un mapa y va al lugar, y quienes siguen el lugar reciben un aviso cuando publica. La app le manda al negocio un aviso «¿Ya publicaste lo de hoy?» una hora antes de abrir, solo los días que abre y que aún no publica. Al tocarlo se abre su último menú ya escrito: cambia lo que no hay y toca «Publicar».",
+ "negocios": {
+  "fondera": {
+   "ignorar": {
+    "type": "choice",
+    "choice": "pausa",
+    "confidence": 0.3,
+    "probabilities": {
+     "semanal": 0.43,
+     "diario": 0.04,
+     "pausa": 0.53
+    }
+   },
+   "tarde": {
+    "type": "choice",
+    "choice": "no_avisar",
+    "confidence": 0.49,
+    "probabilities": {
+     "no_avisar": 0.66,
+     "preguntar": 0.26,
+     "avisar": 0.08
+    }
+   },
+   "fijo": {
+    "type": "choice",
+    "choice": "un_toque",
+    "confidence": 0.55,
+    "probabilities": {
+     "un_toque": 0.7,
+     "sin_aviso": 0.19,
+     "editor": 0.11
+    }
+   },
+   "resumen": {
+    "type": "choice",
+    "choice": "manana",
+    "confidence": 0.42,
+    "probabilities": {
+     "manana": 0.61,
+     "noche": 0.17,
+     "tarde": 0.22
+    }
+   },
+   "cierre": {
+    "type": "choice",
+    "choice": "hoy_no_abro",
+    "confidence": 0.97,
+    "probabilities": {
+     "hoy_no_abro": 0.98,
+     "nada": 0.0,
+     "pausar_dias": 0.02
+    }
+   },
+   "escalas": {
+    "noche_anterior": {
+     "type": "score",
+     "score": 2.78,
+     "confidence": 0.29,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.04,
+      "1": 0.15,
+      "2": 0.11,
+      "3": 0.38,
+      "4": 0.32
+     }
+    },
+    "aviso_diario_cansa": {
+     "type": "score",
+     "score": 1.05,
+     "confidence": 0.72,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.14,
+      "1": 0.72,
+      "2": 0.08,
+      "3": 0.06,
+      "4": 0.0
+     }
+    },
+    "publicaria_mas": {
+     "type": "score",
+     "score": 3.38,
+     "confidence": 0.58,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.01,
+      "2": 0.03,
+      "3": 0.51,
+      "4": 0.45
+     }
+    },
+    "cambiar_a_medio_dia": {
+     "type": "score",
+     "score": 2.35,
+     "confidence": 0.17,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.08,
+      "1": 0.23,
+      "2": 0.13,
+      "3": 0.39,
+      "4": 0.17
+     }
+    }
+   }
+  },
+  "callejon": {
+   "ignorar": {
+    "type": "choice",
+    "choice": "pausa",
+    "confidence": 0.44,
+    "probabilities": {
+     "diario": 0.03,
+     "pausa": 0.63,
+     "semanal": 0.34
+    }
+   },
+   "tarde": {
+    "type": "choice",
+    "choice": "no_avisar",
+    "confidence": 0.33,
+    "probabilities": {
+     "preguntar": 0.35,
+     "no_avisar": 0.55,
+     "avisar": 0.1
+    }
+   },
+   "fijo": {
+    "type": "choice",
+    "choice": "un_toque",
+    "confidence": 0.79,
+    "probabilities": {
+     "un_toque": 0.86,
+     "editor": 0.1,
+     "sin_aviso": 0.04
+    }
+   },
+   "resumen": {
+    "type": "choice",
+    "choice": "manana",
+    "confidence": 0.66,
+    "probabilities": {
+     "noche": 0.12,
+     "tarde": 0.11,
+     "manana": 0.77
+    }
+   },
+   "cierre": {
+    "type": "choice",
+    "choice": "hoy_no_abro",
+    "confidence": 0.98,
+    "probabilities": {
+     "pausar_dias": 0.01,
+     "hoy_no_abro": 0.99,
+     "nada": 0.0
+    }
+   },
+   "escalas": {
+    "noche_anterior": {
+     "type": "score",
+     "score": 2.65,
+     "confidence": 0.2,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.06,
+      "1": 0.18,
+      "2": 0.12,
+      "3": 0.34,
+      "4": 0.3
+     }
+    },
+    "aviso_diario_cansa": {
+     "type": "score",
+     "score": 0.91,
+     "confidence": 0.73,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.21,
+      "1": 0.7,
+      "2": 0.06,
+      "3": 0.03,
+      "4": 0.0
+     }
+    },
+    "publicaria_mas": {
+     "type": "score",
+     "score": 3.46,
+     "confidence": 0.59,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.0,
+      "2": 0.01,
+      "3": 0.51,
+      "4": 0.48
+     }
+    },
+    "cambiar_a_medio_dia": {
+     "type": "score",
+     "score": 2.34,
+     "confidence": 0.25,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.04,
+      "1": 0.25,
+      "2": 0.16,
+      "3": 0.43,
+      "4": 0.12
+     }
+    }
+   }
+  },
+  "cocina": {
+   "ignorar": {
+    "type": "choice",
+    "choice": "semanal",
+    "confidence": 0.33,
+    "probabilities": {
+     "semanal": 0.55,
+     "diario": 0.04,
+     "pausa": 0.41
+    }
+   },
+   "tarde": {
+    "type": "choice",
+    "choice": "no_avisar",
+    "confidence": 0.3,
+    "probabilities": {
+     "preguntar": 0.3,
+     "no_avisar": 0.53,
+     "avisar": 0.17
+    }
+   },
+   "fijo": {
+    "type": "choice",
+    "choice": "un_toque",
+    "confidence": 0.58,
+    "probabilities": {
+     "un_toque": 0.72,
+     "sin_aviso": 0.21,
+     "editor": 0.07
+    }
+   },
+   "resumen": {
+    "type": "choice",
+    "choice": "manana",
+    "confidence": 0.31,
+    "probabilities": {
+     "tarde": 0.3,
+     "manana": 0.54,
+     "noche": 0.16
+    }
+   },
+   "cierre": {
+    "type": "choice",
+    "choice": "hoy_no_abro",
+    "confidence": 0.98,
+    "probabilities": {
+     "pausar_dias": 0.01,
+     "nada": 0.0,
+     "hoy_no_abro": 0.99
+    }
+   },
+   "escalas": {
+    "noche_anterior": {
+     "type": "score",
+     "score": 2.96,
+     "confidence": 0.12,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.05,
+      "1": 0.12,
+      "2": 0.08,
+      "3": 0.33,
+      "4": 0.42
+     }
+    },
+    "aviso_diario_cansa": {
+     "type": "score",
+     "score": 1.03,
+     "confidence": 0.74,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.14,
+      "1": 0.73,
+      "2": 0.09,
+      "3": 0.04,
+      "4": 0.0
+     }
+    },
+    "publicaria_mas": {
+     "type": "score",
+     "score": 3.34,
+     "confidence": 0.58,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.02,
+      "2": 0.04,
+      "3": 0.52,
+      "4": 0.42
+     }
+    },
+    "cambiar_a_medio_dia": {
+     "type": "score",
+     "score": 2.56,
+     "confidence": 0.31,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.06,
+      "1": 0.18,
+      "2": 0.1,
+      "3": 0.47,
+      "4": 0.19
+     }
+    }
+   }
+  },
+  "casa": {
+   "ignorar": {
+    "type": "choice",
+    "choice": "pausa",
+    "confidence": 0.49,
+    "probabilities": {
+     "diario": 0.01,
+     "pausa": 0.66,
+     "semanal": 0.33
+    }
+   },
+   "tarde": {
+    "type": "choice",
+    "choice": "no_avisar",
+    "confidence": 0.38,
+    "probabilities": {
+     "preguntar": 0.37,
+     "no_avisar": 0.59,
+     "avisar": 0.04
+    }
+   },
+   "fijo": {
+    "type": "choice",
+    "choice": "un_toque",
+    "confidence": 0.53,
+    "probabilities": {
+     "un_toque": 0.69,
+     "sin_aviso": 0.23,
+     "editor": 0.08
+    }
+   },
+   "resumen": {
+    "type": "choice",
+    "choice": "manana",
+    "confidence": 0.35,
+    "probabilities": {
+     "manana": 0.57,
+     "tarde": 0.32,
+     "noche": 0.11
+    }
+   },
+   "cierre": {
+    "type": "choice",
+    "choice": "hoy_no_abro",
+    "confidence": 0.97,
+    "probabilities": {
+     "nada": 0.0,
+     "hoy_no_abro": 0.98,
+     "pausar_dias": 0.02
+    }
+   },
+   "escalas": {
+    "noche_anterior": {
+     "type": "score",
+     "score": 2.69,
+     "confidence": 0.29,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.04,
+      "1": 0.17,
+      "2": 0.12,
+      "3": 0.4,
+      "4": 0.27
+     }
+    },
+    "aviso_diario_cansa": {
+     "type": "score",
+     "score": 1.08,
+     "confidence": 0.68,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.16,
+      "1": 0.67,
+      "2": 0.12,
+      "3": 0.05,
+      "4": 0.0
+     }
+    },
+    "publicaria_mas": {
+     "type": "score",
+     "score": 2.98,
+     "confidence": 0.72,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.03,
+      "2": 0.11,
+      "3": 0.7,
+      "4": 0.16
+     }
+    },
+    "cambiar_a_medio_dia": {
+     "type": "score",
+     "score": 2.02,
+     "confidence": 0.01,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.11,
+      "1": 0.31,
+      "2": 0.13,
+      "3": 0.34,
+      "4": 0.11
+     }
+    }
+   }
+  },
+  "taquero": {
+   "ignorar": {
+    "type": "choice",
+    "choice": "semanal",
+    "confidence": 0.31,
+    "probabilities": {
+     "semanal": 0.54,
+     "diario": 0.03,
+     "pausa": 0.43
+    }
+   },
+   "tarde": {
+    "type": "choice",
+    "choice": "no_avisar",
+    "confidence": 0.28,
+    "probabilities": {
+     "preguntar": 0.38,
+     "avisar": 0.1,
+     "no_avisar": 0.52
+    }
+   },
+   "fijo": {
+    "type": "choice",
+    "choice": "un_toque",
+    "confidence": 0.61,
+    "probabilities": {
+     "sin_aviso": 0.16,
+     "un_toque": 0.74,
+     "editor": 0.1
+    }
+   },
+   "resumen": {
+    "type": "choice",
+    "choice": "manana",
+    "confidence": 0.38,
+    "probabilities": {
+     "manana": 0.59,
+     "noche": 0.21,
+     "tarde": 0.2
+    }
+   },
+   "cierre": {
+    "type": "choice",
+    "choice": "hoy_no_abro",
+    "confidence": 1.0,
+    "probabilities": {
+     "pausar_dias": 0.0,
+     "nada": 0.0,
+     "hoy_no_abro": 1.0
+    }
+   },
+   "escalas": {
+    "noche_anterior": {
+     "type": "score",
+     "score": 2.72,
+     "confidence": 0.38,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.02,
+      "1": 0.17,
+      "2": 0.12,
+      "3": 0.46,
+      "4": 0.23
+     }
+    },
+    "aviso_diario_cansa": {
+     "type": "score",
+     "score": 1.26,
+     "confidence": 0.63,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.08,
+      "1": 0.69,
+      "2": 0.11,
+      "3": 0.11,
+      "4": 0.01
+     }
+    },
+    "publicaria_mas": {
+     "type": "score",
+     "score": 3.25,
+     "confidence": 0.53,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.04,
+      "2": 0.05,
+      "3": 0.5,
+      "4": 0.4
+     }
+    },
+    "cambiar_a_medio_dia": {
+     "type": "score",
+     "score": 1.81,
+     "confidence": 0.17,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.09,
+      "1": 0.4,
+      "2": 0.17,
+      "3": 0.29,
+      "4": 0.05
+     }
+    }
+   }
+  },
+  "desayunos": {
+   "ignorar": {
+    "type": "choice",
+    "choice": "pausa",
+    "confidence": 0.24,
+    "probabilities": {
+     "semanal": 0.48,
+     "diario": 0.03,
+     "pausa": 0.49
+    }
+   },
+   "tarde": {
+    "type": "choice",
+    "choice": "no_avisar",
+    "confidence": 0.72,
+    "probabilities": {
+     "no_avisar": 0.81,
+     "preguntar": 0.16,
+     "avisar": 0.03
+    }
+   },
+   "fijo": {
+    "type": "choice",
+    "choice": "un_toque",
+    "confidence": 0.72,
+    "probabilities": {
+     "un_toque": 0.81,
+     "editor": 0.04,
+     "sin_aviso": 0.15
+    }
+   },
+   "resumen": {
+    "type": "choice",
+    "choice": "manana",
+    "confidence": 0.35,
+    "probabilities": {
+     "manana": 0.57,
+     "noche": 0.26,
+     "tarde": 0.17
+    }
+   },
+   "cierre": {
+    "type": "choice",
+    "choice": "hoy_no_abro",
+    "confidence": 1.0,
+    "probabilities": {
+     "pausar_dias": 0.0,
+     "hoy_no_abro": 1.0,
+     "nada": 0.0
+    }
+   },
+   "escalas": {
+    "noche_anterior": {
+     "type": "score",
+     "score": 2.09,
+     "confidence": 0.0,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.11,
+      "1": 0.28,
+      "2": 0.16,
+      "3": 0.3,
+      "4": 0.15
+     }
+    },
+    "aviso_diario_cansa": {
+     "type": "score",
+     "score": 1.23,
+     "confidence": 0.62,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.11,
+      "1": 0.66,
+      "2": 0.12,
+      "3": 0.1,
+      "4": 0.01
+     }
+    },
+    "publicaria_mas": {
+     "type": "score",
+     "score": 3.28,
+     "confidence": 0.6,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.02,
+      "2": 0.05,
+      "3": 0.54,
+      "4": 0.39
+     }
+    },
+    "cambiar_a_medio_dia": {
+     "type": "score",
+     "score": 1.62,
+     "confidence": 0.25,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.13,
+      "1": 0.45,
+      "2": 0.13,
+      "3": 0.23,
+      "4": 0.06
+     }
+    }
+   }
+  }
+ }
+}

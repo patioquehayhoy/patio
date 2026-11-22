@@ -37,5 +37,13 @@ verify_jwt = true
 [functions.send-business-digest]
 verify_jwt = false
 
+# Resumen de los lugares que sigues: lo llama solo pg_cron con el secreto de Vault.
+[functions.send-follower-digest]
+verify_jwt = false
+
+# Menús programados: los anuncia pg_cron a su hora con el secreto de Vault.
+[functions.send-scheduled-publications]
+verify_jwt = false
+
 [functions.store-notifications]
 verify_jwt = false

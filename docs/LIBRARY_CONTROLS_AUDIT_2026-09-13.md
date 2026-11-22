@@ -1,5 +1,9 @@
 # Mapa y Guardados — organización y navegación
 
+> **Actualización 2026-11-16:** los menús anclados siguen ahora a iOS: el
+> texto a la izquierda y el símbolo a la derecha (ver `components/CLAUDE.md`,
+> «Menús anclados»). Lo de «símbolos al borde izquierdo» de abajo ya no aplica.
+
 > **Decisión final posterior:** se eligió la alternativa de dos accesos directos
 > y permanentes. Mapa y Guardados muestran **Filtros** y **Tus listas**; Mostrar
 > y su menú intermedio fueron eliminados. Guardados conserva Vista/Orden como

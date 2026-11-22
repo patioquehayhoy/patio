@@ -29,6 +29,8 @@ export interface Platillo {
    * «Pozole rojo»): sus fotos y «me gusta» se juntan (lib/dish-identity.ts).
    */
   antes?: string[];
+  /** Se acabó hoy (2026-11-21): se marca deslizando en el menú publicado; no pasa al día siguiente. */
+  agotado?: boolean;
 }
 
 export interface Seccion {
@@ -56,6 +58,10 @@ export type MenuData = {
   localDraftId?: string;
   /** Solo contexto local: es el menú publicado hoy y se cambia con «Actualizar». */
   localLive?: boolean;
+  /** Solo contexto local: día del menú publicado que se cambia en su lugar si no es hoy (programado). */
+  localFecha?: string;
+  /** Solo contexto local: a qué hora sale un menú programado (ISO). */
+  localPublishAt?: string;
   /** Precios del menú completo. Los precios de sección y de platillo viven en su lugar. */
   precios?: MenuPrecio[];
   /** «Incluye…» del menú del día (2026-11-15, prueba): «sopa, arroz y agua». */
@@ -202,6 +208,7 @@ export function normalizeMenuData(raw: unknown): MenuData | null {
           ...(typeof dish.foto === 'string' && dish.foto ? { foto: dish.foto } : {}),
           ...(typeof dish.foto === 'string' && dish.foto && isPhotoHash(dish.fotoHash) ? { fotoHash: dish.fotoHash } : {}),
           ...(Array.isArray(dish.antes) && cleanAntes(dish.antes, text(dish.nombre)).length ? { antes: cleanAntes(dish.antes, text(dish.nombre)) } : {}),
+          ...(dish.agotado === true ? { agotado: true } : {}),
         }];
       });
     } else if (Array.isArray(sec.items)) {

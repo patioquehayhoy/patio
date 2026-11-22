@@ -42,8 +42,8 @@ Deno.serve(async (req) => {
     if (insertError?.message?.includes('CONTENT_REJECTED')) throw new HttpError(422, 'Patio no permite insultos ni lenguaje ofensivo.');
     if (insertError || !notice) throw insertError ?? new Error('Could not save notice');
 
-    const { data: follows, error: followsError } = await admin.from('patio_follows')
-      .select('user_id').eq('negocio_id', negocio.id).eq('notifications_enabled', true);
+    // Al momento, solo a quien tiene este lugar en «Todas»; los demás la ven en su resumen (61 % de Foodies, Jev 2026-11-21).
+    const { data: follows, error: followsError } = await admin.rpc('realtime_followers', { target_negocio: negocio.id });
     if (followsError) throw followsError;
     const followerIds = [...new Set((follows ?? []).map((follow) => follow.user_id))].filter((id) => id !== user.id);
     // Promociones viene apagado por defecto (App Review 4.5.4).

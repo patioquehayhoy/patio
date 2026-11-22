@@ -30,6 +30,17 @@ import { Type } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
 
 const HERO = require('../assets/hero/botanica-5.jpg');
+
+// Para qué entras, según de dónde vienes: la pantalla solo explica la acción
+// de ahora y su beneficio (una frase, sin oraciones que empiecen a media línea).
+function purposeFor(returnTo: string | undefined): string {
+  const to = returnTo ?? '';
+  if (to.startsWith('/resena/')) return 'Te mandamos un código a tu correo para publicar tu reseña.';
+  if (to.startsWith('/avisos')) return 'Te mandamos un código a tu correo para avisarte cuando tus lugares publiquen.';
+  if (to.startsWith('/foodie/')) return 'Te mandamos un código a tu correo para seguir a esta persona.';
+  if (to.startsWith('/coleccion-publica/')) return 'Te mandamos un código a tu correo para guardar esta lista.';
+  return 'Te mandamos un código a tu correo para guardar lugares, seguirlos y opinar.';
+}
 const MARK = require('../assets/images/p-icon-transparent-blanco.png');
 
 export default function ComunidadAccesoScreen() {
@@ -82,15 +93,14 @@ export default function ComunidadAccesoScreen() {
       </TouchableOpacity>
       <KeyboardAvoidingView style={s.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={[s.content, { paddingTop: insets.top + 64, paddingBottom: insets.bottom + 30 }]}>
-          <Image source={MARK} style={s.mark} resizeMode="contain" />
-          <Text style={s.eyebrow}>{noWidow('TU COMUNIDAD')}</Text>
-          <Text style={s.title}>
-            {noWidow(sent ? 'Revisa tu correo.' : 'Sigue lo bueno.')}
+          <Image source={MARK} style={s.mark} resizeMode="contain" accessibilityIgnoresInvertColors />
+          <Text style={s.title} accessibilityRole="header">
+            {noWidow(sent ? 'Revisa tu correo.' : 'Entra a Patio.')}
           </Text>
           <Text style={s.body}>
             {noWidow(sent
               ? `Mandamos un código y un enlace a ${email}. Escribe el código para entrar.`
-              : 'Te avisamos cuando tus lugares publiquen. Sin contraseña: entras con un código que te llega al correo.')}
+              : purposeFor(Array.isArray(returnTo) ? returnTo[0] : returnTo))}
           </Text>
 
           {!sent ? (
@@ -135,8 +145,9 @@ const s = StyleSheet.create({
   flex: { flex: 1, zIndex: 1 },
   back: { position: 'absolute', zIndex: 5, width: 44, height: 44, left: 12, borderRadius: 22, backgroundColor: 'rgba(0,0,0,0.22)', alignItems: 'center', justifyContent: 'center' },
   content: { flexGrow: 1, justifyContent: 'flex-end', paddingHorizontal: 24 },
-  mark: { width: 48, height: 48, marginBottom: 22 },
-  eyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, marginBottom: 10, color: '#FF8A5F' },
+  // La «P» ocupa poco de su cuadro (la imagen trae aire): a 64 se lee a la
+  // par del título de 34. Número de Patio.
+  mark: { width: 64, height: 64, marginBottom: 16, marginLeft: -6 },
   title: { ...Type.screen, maxWidth: 350, color: '#fff' },
   body: { maxWidth: 350, marginTop: 12, fontSize: 15, lineHeight: 22, fontWeight: '400', color: 'rgba(255,255,255,0.76)' },
   label: { marginTop: 26, fontSize: 13, fontWeight: '700', color: 'rgba(255,255,255,0.76)' },

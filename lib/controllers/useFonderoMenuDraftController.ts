@@ -3,7 +3,8 @@ import { router } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert } from 'react-native';
 
-import { getDishPhotoCounts, loadCarta, loadRecentMenus, saveCarta, saveMenuHoy } from '@/lib/db';
+import { getDishPhotoCounts, loadCarta, loadMenuHoy, loadRecentMenus, saveCarta, saveMenuHoy } from '@/lib/db';
+import { localMenuDate } from '@/lib/menu-date';
 import { announceMenuPublication } from '@/lib/community-notifications';
 import { saveDevPublishedMenu } from '@/lib/demo';
 import { deleteLocalMenu, getLocalMenus, newMenuDraftId, renameLocalMenu, saveMenuPublication, saveLocalMenu } from '@/lib/menu-history';
@@ -47,8 +48,9 @@ const blankDish = (): Platillo => ({
   precio: '',
 });
 
-// Una pausa al escribir y el borrador ya quedó guardado.
-const AUTOSAVE_MS = 700;
+// Una pausa al escribir y el borrador ya quedó guardado. No tan corta: guardar
+// lee y escribe todos los menús del teléfono, y no debe tocar a la siguiente letra.
+const AUTOSAVE_MS = 1200;
 
 // El menú nuevo trae un renglón vacío donde espera el cursor; una sección que
 // se agrega después nace sin renglones: primero se escribe su título.
@@ -65,7 +67,13 @@ const blankSection = (name = 'MENÚ DE HOY', carta = false, withDish = true): Se
 // escribir un menú como el público de hoy por el mismo camino real, en vez
 // de reinventar/duplicar los mismos pasos. Asume `data` ya limpio
 // (cleanMenu) y no vacío — el caller decide qué hacer si está vacío.
-export async function publishMenuNow(data: MenuData, opts: { source?: 'foto' | 'manual'; nombre?: string; draftId?: string } = {}): Promise<MenuData> {
+export type PublishSchedule = { fecha: string; publishAt: string };
+
+// Con `schedule` (2026-11-21, «dejar listo el menú de mañana»): se guarda para
+// ese día y sale solo a esa hora; hasta entonces solo lo ve su dueño y el aviso
+// a quienes lo siguen lo manda el servidor a esa hora
+// (send-scheduled-publications).
+export async function publishMenuNow(data: MenuData, opts: { source?: 'foto' | 'manual'; nombre?: string; draftId?: string; schedule?: PublishSchedule } = {}): Promise<MenuData> {
   // Solo lo de hoy se publica; la carta se guarda aparte (ver el editor).
   const full = cleanMenu(data);
   const clean = splitCarta(full).hoy;
@@ -73,21 +81,27 @@ export async function publishMenuNow(data: MenuData, opts: { source?: 'foto' | '
   const fonditaId = getFonditaId();
   if (!fonditaId && !__DEV__) throw new Error('Entra a tu cuenta de negocio para publicar.');
   const id = opts.draftId ?? newMenuDraftId();
+  const schedule = opts.schedule;
   await saveMenuPublication(clean, opts.nombre, id, async (saved) => {
   if (!fonditaId && !saved) throw new Error('No se pudo guardar el menú.');
   if (fonditaId) {
     // Solo el guardado remoto confirma que el menú está publicado.
-    await saveMenuHoy(fonditaId, clean);
-    syncPublishReminder(true).catch(() => {});
-    announceMenuPublication(fonditaId).catch((error) => {
-      if (__DEV__) console.warn('[push] no se pudo anunciar la publicación', error);
-    });
-  } else if (__DEV__) {
+    await saveMenuHoy(fonditaId, clean, schedule ? { schedule } : {});
+    // Lo programado se anuncia solo a su hora (servidor).
+    if (!schedule) {
+      announceMenuPublication(fonditaId).catch((error) => {
+        if (__DEV__) console.warn('[push] no se pudo anunciar la publicación', error);
+      });
+    }
+  } else if (__DEV__ && !schedule) {
     await saveDevPublishedMenu(clean);
   }
-  // El menú de hoy en memoria sabe cuál es: «Editar» lo cambia en su lugar
-  // («Actualizar»), sin crear otro en Menús.
-  setMenuData({ ...clean, localDraftId: id, localLive: true });
+  // El menú en memoria sabe cuál es: «Editar» lo cambia en su lugar
+  // («Actualizar»), sin crear otro en Menús; si es programado, sigue
+  // programado para su día y su hora.
+  setMenuData(schedule
+    ? { ...clean, localDraftId: id, localLive: true, localFecha: schedule.fecha, localPublishAt: schedule.publishAt }
+    : { ...clean, localDraftId: id, localLive: true });
   if (opts.source === 'foto') {
     const snapshot = getMenuExtractionSnapshot();
     if (snapshot) {
@@ -97,7 +111,9 @@ export async function publishMenuNow(data: MenuData, opts: { source?: 'foto' | '
       clearMenuExtractionSnapshot();
     }
   }
-  });
+  }, schedule);
+  // Después de guardar en el teléfono, para que el aviso vea el día ya publicado.
+  if (fonditaId) syncPublishReminder(!schedule).catch(() => {});
   return clean;
 }
 
@@ -182,6 +198,7 @@ export function cleanMenu(data: MenuData): MenuData {
             ...(dish.foto ? { foto: dish.foto } : {}),
             ...(dish.foto && dish.fotoHash ? { fotoHash: dish.fotoHash } : {}),
             ...(dish.antes?.length ? { antes: dish.antes } : {}),
+            ...(dish.agotado ? { agotado: true } : {}),
           })),
       }))
       // Un encabezado con precio se queda aunque no tenga platillos debajo
@@ -679,16 +696,19 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
     if (!touched.current && !(source === 'foto' && !savedOnce.current)) return true;
     const clean = cleanMenu(data);
     const split = splitCarta(clean);
-    const stored = (await getLocalMenus()).find((menu) => menu.id === draftId);
-    if (stored?.published) return true;
     if (!split.hoy.secciones.some((section) => section.platillos.length)) {
-      // Como una nota vacía: si sales con el menú sin platillos, el borrador se va.
-      if (final && stored) await deleteLocalMenu(draftId).catch(() => {});
+      // Como una nota vacía: si sales con el menú sin platillos, el borrador
+      // se va (nunca uno ya publicado).
+      if (final) {
+        const stored = (await getLocalMenus()).find((menu) => menu.id === draftId);
+        if (stored && !stored.published) await deleteLocalMenu(draftId).catch(() => {});
+      }
       return true;
     }
     // Abrir un menú y salir sin cambiar nada no crea otro en Menús.
     if (!hasUnsavedChanges() && savedName.current === nombre.trim()) return true;
-    const ok = await saveLocalMenu(clean, nombre, { id: draftId });
+    // Una sola lectura: si ya está publicado, no se escribe encima (`onlyDraft`).
+    const ok = await saveLocalMenu(clean, nombre, { id: draftId, onlyDraft: true });
     if (ok) {
       savedBase.current = { hoy: cartaSignature(split.hoy), carta: cartaSignature(split.carta) };
       savedOnce.current = true;
@@ -713,7 +733,13 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
   // Al salir de la pantalla (también deslizando hacia atrás).
   useEffect(() => () => { void flushRef.current(true); }, []);
 
-  const publish = useCallback(async () => {
+  // Un menú programado que se abre para cambiarlo sigue programado para su día y su hora.
+  const keptSchedule: PublishSchedule | undefined = initialData.localFecha && initialData.localFecha > localMenuDate()
+    ? { fecha: initialData.localFecha, publishAt: initialData.localPublishAt ?? new Date(`${initialData.localFecha}T10:00:00`).toISOString() }
+    : undefined;
+  const publish = useCallback(async (requested?: PublishSchedule) => {
+    // Un toque al botón trae el evento del toque, no un horario.
+    const schedule = requested && typeof requested.fecha === 'string' && typeof requested.publishAt === 'string' ? requested : keptSchedule;
     if (savingRef.current) return;
     const clean = cleanMenu(data);
     if (!splitCarta(clean).hoy.secciones.length) {
@@ -733,12 +759,15 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
     publishedRef.current = true;
     setPublishing(true);
     try {
-      await publishMenuNow(clean, { source, nombre, draftId });
+      await publishMenuNow(clean, { source, nombre, draftId, schedule });
       const cartaSaved = await saveCartaIfChanged(clean);
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
       // Cambiar el de hoy no vuelve a avisar a quienes te siguen (el servidor
-      // avisa una vez al día): solo se confirma que ya está al día.
-      router.replace(live ? { pathname: '/menu-publicado', params: { actualizado: '1' } } : '/menu-publicado');
+      // avisa una vez al día): solo se confirma que ya está al día. Lo
+      // programado confirma cuándo sale.
+      router.replace(schedule
+        ? { pathname: '/menu-publicado', params: { programado: schedule.publishAt, ...(live ? { actualizado: '1' } : {}) } }
+        : live ? { pathname: '/menu-publicado', params: { actualizado: '1' } } : '/menu-publicado');
       if (!cartaSaved) Alert.alert(noWidow('Tu menú ya está publicado'), noWidow('La carta no se guardó. Ábrela otra vez y publica cuando tengas conexión.'));
     } catch {
       publishedRef.current = false;
@@ -747,7 +776,51 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
       savingRef.current = false;
       setPublishing(false);
     }
-  }, [data, nombre, source, draftId, live, saveCartaIfChanged]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, nombre, source, draftId, live, saveCartaIfChanged, initialData.localFecha, initialData.localPublishAt]);
+
+  // «Se acabó» (2026-11-21): en el menú ya publicado (o programado), deslizar
+  // un platillo de hoy y tocar «Se acabó» lo marca en la calle al instante, sin
+  // «Actualizar» y sin avisar a nadie. Solo cambia esa marca del menú
+  // publicado: lo demás que estés cambiando sigue esperando «Actualizar».
+  const setSoldOut = useCallback(async (sectionId: string, dishId: string, agotado: boolean) => {
+    if (!live) return;
+    const mark = (value: boolean) => setDataQuietly((prev) => ({
+      ...prev,
+      secciones: prev.secciones.map((section) => section.id !== sectionId ? section : {
+        ...section,
+        platillos: section.platillos.map((dish) => {
+          if (dish.id !== dishId) return dish;
+          const { agotado: _was, ...rest } = dish;
+          return value ? { ...rest, agotado: true } : rest;
+        }),
+      }),
+    }));
+    mark(agotado);
+    Haptics.selectionAsync().catch(() => {});
+    const fonditaId = getFonditaId();
+    if (!fonditaId) return;
+    const fecha = initialData.localFecha ?? localMenuDate();
+    try {
+      const published = normalizeMenuData(await loadMenuHoy(fonditaId, fecha));
+      if (!published) throw new Error('Sin menú publicado');
+      const next: MenuData = {
+        ...published,
+        secciones: published.secciones.map((section) => ({
+          ...section,
+          platillos: section.platillos.map((dish) => {
+            if (dish.id !== dishId) return dish;
+            const { agotado: _was, ...rest } = dish;
+            return agotado ? { ...rest, agotado: true } : rest;
+          }),
+        })),
+      };
+      await saveMenuHoy(fonditaId, next, { fecha, keepSchedule: true });
+    } catch {
+      mark(!agotado);
+      Alert.alert(noWidow('No se pudo marcar'), noWidow('Revisa tu conexión e inténtalo otra vez.'));
+    }
+  }, [live, setDataQuietly, initialData.localFecha]);
 
   return {
     addDish,
@@ -775,6 +848,7 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
     saveNombre,
     setDishPhoto,
     setNombre,
+    setSoldOut,
     undoRemove,
   };
 }

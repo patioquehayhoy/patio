@@ -7,7 +7,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Animated, Easing, LayoutAnimation, Pressable, Share, StyleSheet, Text, TextInput, TouchableOpacity, View, useWindowDimensions, type ScrollView } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
+import MapView, { Circle, Marker } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ActionSheet, type ActionSheetOption } from '@/components/action-sheet';
@@ -29,7 +29,9 @@ import { getLikedReviewIds, getReviewLikeCounts, toggleReviewLike } from '@/lib/
 import { CommentSignInRequiredError, commentTimeLabel, deleteReviewComment, getReviewComments, isRealReviewId, postReviewComment, setCommentLike } from '@/lib/review-comments';
 import { reportContent, writeErrorMessage, type ReportReason } from '@/lib/content-safety';
 import { businessStatsLabel, getBusinessStats, getDishLikeCounts, type BusinessStats } from '@/lib/business-stats';
-import { getMutedPatioIds, getRemoteNotificationPreferences, setPatioNotifications } from '@/lib/community-notifications';
+import { diasLabel, isToday } from '@/lib/puntos';
+import { atHour } from '@/lib/publish-timing';
+import { getPatioNotificationModes, getRemoteNotificationPreferences, PATIO_NOTIFY_HINTS, PATIO_NOTIFY_ICONS, PATIO_NOTIFY_LABELS, setPatioNotificationMode, type PatioNotifyMode } from '@/lib/community-notifications';
 import { floatingSurfaceShadow, sheetSurfaceTint } from '@/lib/surface-styles';
 import { opticalIndent } from '@/lib/optical';
 import { supabase } from '@/lib/supabase';
@@ -45,7 +47,7 @@ import { sectionDisplayName } from '@/lib/section-names';
 import { DishPeek, type DishPeekItem } from '@/components/dish-peek';
 import { DishGallery, type DishGalleryLike } from '@/components/dish-gallery';
 import { DishPhotoFix } from '@/components/dish-photo-fix';
-import { ReviewPhoto } from '@/components/review-photo';
+import { ReviewPhotos } from '@/components/review-photo';
 import { createStore, useStore, type Store } from '@/lib/tiny-store';
 import { loadMyPublicName, peekMyPublicName } from '@/lib/my-public-name';
 import { orderDishPhotos, type DishPhoto } from '@/lib/dish-photos-order';
@@ -181,6 +183,12 @@ function makeStyles(t: Theme) {
     heroFacts: { marginTop: 8, fontSize: 14, lineHeight: 19, fontWeight: '400', color: 'rgba(255,255,255,0.86)', textShadowColor: 'rgba(0,0,0,0.25)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 6 },
     heroFactsUnderName: { marginTop: 4 },
     addressRow: { marginTop: 8, flexDirection: 'row', alignItems: 'center', gap: 12 },
+    placesList: { marginTop: 16 },
+    placesLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, color: t.textSecondary, marginBottom: 4 },
+    placeRow: { minHeight: 48, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', gap: 10 },
+    placeRowDivider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.sep },
+    placeName: { fontSize: 15, lineHeight: 20, fontWeight: '700', color: t.text },
+    placeToday: { fontSize: 13, fontWeight: '700', color: t.accent },
     address: { flex: 1, fontSize: 13, lineHeight: 17, fontWeight: '400', color: t.textSecondary },
     contactIcons: { flexDirection: 'row', alignItems: 'center', gap: 8 },
     contactIcon: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
@@ -232,6 +240,8 @@ function makeStyles(t: Theme) {
     dishPhotoMark: { fontSize: 14 },
     groupItemDescription: { marginTop: 2, fontSize: 13, lineHeight: 18, fontWeight: '400', color: t.textSecondary },
     groupItemPrice: { fontSize: 15, lineHeight: 21, fontWeight: '700', color: t.text },
+    soldOutName: { color: t.textMute },
+    soldOutPrice: { fontWeight: '500', color: t.textSecondary },
     dishLikeCount: { minWidth: 21, height: 21, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 3 },
     dishLikeCountText: { fontSize: 12, fontWeight: '500', color: t.textSecondary, fontVariant: ['tabular-nums'] },
     dishHeartBox: { width: 21, height: 21, alignItems: 'center', justifyContent: 'center' },
@@ -414,41 +424,48 @@ export function PatioDetailView({ id, own = false, focusDish }: { id?: string; o
   // En reseñas reales tu nombre ya llega con la reseña; las de prueba dicen «Tú».
   const shownName = (author: string | undefined, mine?: boolean) => (mine && (!author || author === 'Tú') ? me?.name : author);
   // Correcciones hechas aquí mismo (cambió de platillo, la frase o la quitó):
-  // se ven al momento, sin recargar la ficha. La llave es la de la reseña.
+  // se ven al momento, sin recargar la ficha. La llave es la de cada foto
+  // (una reseña lleva hasta 5).
   const [photoEdits, setPhotoEdits] = useState<Record<string, { dish?: string; note?: string; removed?: boolean }>>({});
-  // La foto de una reseña: la pública o, en un lugar de prueba, la tuya
-  // guardada en este teléfono (así se puede probar todo el flujo en DEV).
-  const reviewPhotoOf = (review: (typeof fetchedReviews)[number]) => {
-    const edit = photoEdits[`${review.userId}-${review.timestamp}`];
-    if (edit?.removed) return undefined;
-    const url = review.photoUrl ?? (review.isMine && !isAccountId(patioId ?? '') ? review.photoUri : undefined);
-    if (!url) return undefined;
-    return {
-      url,
-      hash: review.photoHash,
-      dish: edit && 'dish' in edit ? edit.dish : review.photoDish,
-      note: edit && 'note' in edit ? edit.note : review.photoNote,
-    };
+  const editKeyOf = (reviewKey: string, photo: { id?: string; url: string }) => `${reviewKey}#${photo.id ?? photo.url}`;
+  // Las fotos de una reseña: las públicas o, en un lugar de prueba, las tuyas
+  // guardadas en este teléfono (así se puede probar todo el flujo en DEV).
+  const reviewPhotosOf = (review: (typeof fetchedReviews)[number]) => {
+    const reviewKey = `${review.userId}-${review.timestamp}`;
+    return (review.photos ?? []).flatMap((photo) => {
+      const edit = photoEdits[editKeyOf(reviewKey, photo)];
+      if (edit?.removed) return [];
+      return [{
+        id: photo.id,
+        url: photo.url,
+        hash: photo.hash,
+        dish: edit && 'dish' in edit ? edit.dish : photo.dish,
+        note: edit && 'note' in edit ? edit.note : photo.note,
+      }];
+    });
   };
   const customerPhotos = useMemo(() => {
     const byDish = new Map<string, DishPhoto[]>();
     fetchedReviews.forEach((review) => {
       if (hiddenAuthors.includes(review.userId)) return;
-      const photo = reviewPhotoOf(review);
-      if (!photo?.dish) return;
-      // Por la identidad del platillo, no por el texto exacto (lib/dish-identity.ts).
-      const key = dishKey(photo.dish);
-      byDish.set(key, [...(byDish.get(key) ?? []), {
-        url: photo.url,
-        hash: photo.hash,
-        by: review.author,
-        avatar: review.avatarUrl,
-        note: photo.note,
-        at: review.timestamp,
-        reviewId: review.reviewId,
-        userId: review.userId,
-        mine: review.isMine,
-      }]);
+      reviewPhotosOf(review).forEach((photo) => {
+        // Sin platillo, la foto sale en su reseña pero no en el menú.
+        if (!photo.dish) return;
+        // Por la identidad del platillo, no por el texto exacto (lib/dish-identity.ts).
+        const key = dishKey(photo.dish);
+        byDish.set(key, [...(byDish.get(key) ?? []), {
+          url: photo.url,
+          hash: photo.hash,
+          by: review.author,
+          avatar: review.avatarUrl,
+          note: photo.note,
+          at: review.timestamp,
+          reviewId: review.reviewId,
+          photoId: photo.id,
+          userId: review.userId,
+          mine: review.isMine,
+        }]);
+      });
     });
     return byDish;
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -659,9 +676,9 @@ export function PatioDetailView({ id, own = false, focusDish }: { id?: string; o
         text: 'Quitar foto',
         style: 'destructive',
         onPress: () => {
-          const remote = photo.reviewId && isRealReviewId(photo.reviewId) ? removeMyReviewPhoto(photo.reviewId, photo.url) : Promise.resolve();
+          const remote = photo.photoId && photo.reviewId && isRealReviewId(photo.reviewId) ? removeMyReviewPhoto(photo.photoId, photo.url) : Promise.resolve();
           remote.then(
-            () => setPhotoEdits((current) => ({ ...current, [photoKey(photo)]: { removed: true } })),
+            () => setPhotoEdits((current) => ({ ...current, [editKeyOf(photoKey(photo), { id: photo.photoId, url: photo.url })]: { removed: true } })),
             () => Alert.alert(noWidow('No se quitó la foto'), noWidow('Revisa tu conexión e inténtalo otra vez.')),
           );
         },
@@ -724,23 +741,25 @@ export function PatioDetailView({ id, own = false, focusDish }: { id?: string; o
   // agregar a una lista o dejar de seguir.
   const followAnchor = useRef<View>(null);
   const [followMenu, setFollowMenu] = useState(false);
-  // Avisos por lugar, como la campana de YouTube: seguir no obliga a recibir
-  // todo; desde «Siguiendo» se silencia o se vuelve a activar este lugar.
-  const [muted, setMuted] = useState(false);
+  // Notificaciones por lugar con la campana de YouTube tal cual (2026-11-21):
+  // desde «Siguiendo» eliges «Todas», «Personalizadas» (por defecto, en tu
+  // resumen del día) o «Ninguna».
+  const [notifyMode, setNotifyMode] = useState<PatioNotifyMode | null>(null);
+  const muted = notifyMode === 'off';
   useEffect(() => {
-    if (!patio?.id || !isSaved || own) { setMuted(false); return; }
+    if (!patio?.id || !isSaved || own) { setNotifyMode(null); return; }
     let active = true;
-    getMutedPatioIds().then((ids) => { if (active) setMuted(ids.has(patio.id)); }).catch(() => {});
+    getPatioNotificationModes().then((modes) => { if (active) setNotifyMode(modes.get(patio.id) ?? null); }).catch(() => {});
     return () => { active = false; };
   }, [isSaved, own, patio?.id]);
-  const toggleMuted = async () => {
-    if (!patio?.id) return;
-    const next = !muted;
-    setMuted(next);
+  const chooseNotifyMode = async (mode: PatioNotifyMode) => {
+    if (!patio?.id || mode === notifyMode) return;
+    const before = notifyMode;
+    setNotifyMode(mode);
     try {
-      await setPatioNotifications(patio.id, !next);
+      await setPatioNotificationMode(patio.id, mode);
     } catch {
-      setMuted(!next);
+      setNotifyMode(before);
       Alert.alert(noWidow('No pudimos guardar el cambio'), noWidow('Entra a tu cuenta y revisa tu conexión.'));
     }
   };
@@ -777,7 +796,13 @@ export function PatioDetailView({ id, own = false, focusDish }: { id?: string; o
       supabase.auth.getSession(),
       getRemoteNotificationPreferences().catch(() => null),
     ]);
-    if (data.session && prefs?.patioPublications) { toastScrollY.current = null; setFollowToast(true); }
+    if (data.session && prefs?.patioPublications) {
+      // Al seguir, como YouTube: «Personalizadas» (la fila del servidor llega
+      // un momento después).
+      setNotifyMode((current) => current ?? 'digest');
+      toastScrollY.current = null;
+      setFollowToast(true);
+    }
   };
   useEffect(() => { if (!isSaved) setFollowToast(false); }, [isSaved]);
 
@@ -947,7 +972,7 @@ export function PatioDetailView({ id, own = false, focusDish }: { id?: string; o
       const synthetic = review.userId.startsWith('demo-');
       likes[key] = {
         // Caso límite de «me gusta» en una foto (Cocina Grande Dev 6).
-        count: review.photoUrl?.endsWith('v=dev6-0')
+        count: review.photos?.[0]?.url.endsWith('v=dev6-0')
           ? 12480
           : review.userId === 'demo-critical-1'
           ? 14
@@ -1220,7 +1245,24 @@ export function PatioDetailView({ id, own = false, focusDish }: { id?: string; o
       {factParts.length ? `${ratingFact ? ' · ' : ''}${factParts.join(' · ')}` : ''}
     </>
   );
-  const placeAddress = [patio.address?.trim(), patio.area?.trim()].filter(Boolean).join(' · ');
+  // Dónde vende (lib/puntos.ts, 2026-11-21): en su local (y otras
+  // sucursales), en tianguis o sobre ruedas (dónde está hoy), o solo a
+  // domicilio (su zona, nunca su calle).
+  const modalidad = patio.modalidad ?? 'local';
+  const puntos = patio.puntos ?? [];
+  const weekday = new Date().getDay();
+  const todayPunto = modalidad === 'itinerante' ? puntos.find((punto) => isToday(punto, weekday)) : undefined;
+  const placeAddress = modalidad === 'domicilio'
+    ? ['Solo a domicilio', patio.area?.trim()].filter(Boolean).join(' · ')
+    : todayPunto
+      ? [`Hoy: ${todayPunto.nombre}`, todayPunto.direccion?.trim()].filter(Boolean).join(' · ')
+      : modalidad === 'itinerante' && puntos.length
+        ? 'Hoy no sale'
+        : [patio.address?.trim(), patio.area?.trim()].filter(Boolean).join(' · ');
+  const pedidosHasta = patio.pedidosHasta ? (() => {
+    const [h, m] = patio.pedidosHasta.split(':').map(Number);
+    return Number.isFinite(h) && Number.isFinite(m) ? `Pedidos hasta ${atHour(h * 60 + m)}` : null;
+  })() : null;
   const followersCount = businessStats ? businessStats.saves.toLocaleString('es-MX') : '';
   const metaLead = businessStats ? followersCount : heroFacts;
   return (
@@ -1349,11 +1391,12 @@ export function PatioDetailView({ id, own = false, focusDish }: { id?: string; o
                     onPress={() => { void handleFollowPress(); }}
                     accessibilityRole="button"
                     accessibilityState={{ selected: isSaved }}
-                    accessibilityLabel={isSaved ? `Siguiendo a ${patio.name}${muted ? ', avisos silenciados' : ''}` : `Seguir a ${patio.name}`}>
+                    accessibilityLabel={isSaved ? `Siguiendo a ${patio.name}, notificaciones: ${PATIO_NOTIFY_LABELS[notifyMode ?? 'digest']}` : `Seguir a ${patio.name}`}>
                     {isSaved && <BlurView intensity={theme.isDark ? 24 : 40} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />}
                     {isSaved && <View style={[StyleSheet.absoluteFillObject, { backgroundColor: theme.glass }]} />}
                     <Text style={[s.followPillText, { color: isSaved ? theme.text : '#FFFFFF' }]} numberOfLines={1} adjustsFontSizeToFit allowFontScaling={true}>{isSaved ? 'Siguiendo' : 'Seguir'}</Text>
-                    {isSaved && <Ionicons name={muted ? 'notifications-off-outline' : 'chevron-down'} size={14} color={muted ? theme.textSecondary : theme.text} />}
+                    {/* La campana dice cómo te llegan sus notificaciones (Todas, Personalizadas o Ninguna), como el «Suscrito» de YouTube. */}
+                    {isSaved && <Ionicons name={PATIO_NOTIFY_ICONS[notifyMode ?? 'digest']} size={14} color={muted ? theme.textSecondary : theme.text} />}
                   </TouchableOpacity>
                 </View>
               )}
@@ -1463,8 +1506,9 @@ export function PatioDetailView({ id, own = false, focusDish }: { id?: string; o
                           )}
                           {/* Con VoiceOver la foto se abre con una acción del nombre. */}
                           <Text
-                            style={s.groupItemName}
+                            style={[s.groupItemName, item.soldOut && s.soldOutName]}
                             allowFontScaling={true}
+                            accessibilityLabel={item.soldOut ? `${item.name}, se acabó hoy` : undefined}
                             accessibilityHint={photos.length ? `${photos.length === 1 ? 'Tiene una foto' : `Tiene ${photos.length} fotos`}. Usa la acción Ver fotos para abrirlas o cerrarlas.` : undefined}
                             accessibilityActions={photos.length ? [{ name: 'activate', label: 'Ver fotos' }] : undefined}
                             onAccessibilityAction={() => toggleDish(dishKey)}>
@@ -1481,7 +1525,10 @@ export function PatioDetailView({ id, own = false, focusDish }: { id?: string; o
                             <Text style={s.groupItemDescription} allowFontScaling={true}>{noWidow(item.description)}</Text>
                           )}
                         </View>
-                        {!!item.price && <Text style={s.groupItemPrice} allowFontScaling={true}>{item.price}</Text>}
+                        {/* Se acabó hoy: lo dice en la columna del precio (el negocio lo marcó deslizando). */}
+                        {item.soldOut
+                          ? <Text style={[s.groupItemPrice, s.soldOutPrice]} allowFontScaling={true}>Se acabó</Text>
+                          : !!item.price && <Text style={s.groupItemPrice} allowFontScaling={true}>{item.price}</Text>}
                         {own && ownPro && (
                           <TouchableOpacity
                             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
@@ -1662,12 +1709,34 @@ export function PatioDetailView({ id, own = false, focusDish }: { id?: string; o
                 </View>
               );
             })()}
-            {patio.latitude > 0 && (
+            {/* Solo a domicilio: su zona, sin pin ni indicaciones (no hay a dónde llegar). */}
+            {patio.latitude > 0 && modalidad === 'domicilio' && (
+              <View style={s.mapPanel} accessible accessibilityLabel={`Zona de ${patio.name}`}>
+                <MapView
+                  customMapStyle={theme.isDark ? MAP_STYLE_DARK : MAP_STYLE_LIGHT}
+                  initialRegion={{ latitude: patio.latitude, longitude: patio.longitude, latitudeDelta: 0.02, longitudeDelta: 0.02 }}
+                  mapType="mutedStandard"
+                  pitchEnabled={false}
+                  pointerEvents="none"
+                  rotateEnabled={false}
+                  scrollEnabled={false}
+                  showsBuildings={false}
+                  showsCompass={false}
+                  showsPointsOfInterest={false}
+                  showsTraffic={false}
+                  style={s.mapView}
+                  userInterfaceStyle={theme.isDark ? 'dark' : 'light'}
+                  zoomEnabled={false}>
+                  <Circle center={{ latitude: patio.latitude, longitude: patio.longitude }} radius={600} fillColor={theme.isDark ? 'rgba(255,106,61,0.18)' : 'rgba(242,97,47,0.16)'} strokeColor={theme.accent} strokeWidth={1} />
+                </MapView>
+              </View>
+            )}
+            {patio.latitude > 0 && modalidad !== 'domicilio' && (
               <TouchableOpacity
                 accessibilityLabel={`Abrir indicaciones para ${patio.name}`}
                 accessibilityRole="button"
                 style={s.mapPanel}
-                onPress={handleComoLlegar}
+                onPress={() => handleComoLlegar()}
                 activeOpacity={0.85}>
                 <MapView
                   customMapStyle={theme.isDark ? MAP_STYLE_DARK : MAP_STYLE_LIGHT}
@@ -1699,7 +1768,10 @@ export function PatioDetailView({ id, own = false, focusDish }: { id?: string; o
                 número, sin llamar y sin texto de botón (decisión de Parco, 15 nov). */}
             {(!!placeAddress || (!!patio.phone && patio.whatsapp)) && (
               <View style={s.addressRow}>
-                <Text style={s.address} allowFontScaling={true}>{placeAddress ? noWidow(placeAddress) : ''}</Text>
+                <View style={{ flex: 1 }}>
+                  <Text style={s.address} allowFontScaling={true}>{placeAddress ? noWidow(placeAddress) : ''}</Text>
+                  {!!pedidosHasta && <Text style={s.address} allowFontScaling={true}>{noWidow(pedidosHasta)}</Text>}
+                </View>
                 {!!patio.phone && patio.whatsapp && (
                   <View style={s.contactIcons}>
                     {patio.whatsapp && (
@@ -1715,6 +1787,33 @@ export function PatioDetailView({ id, own = false, focusDish }: { id?: string; o
                     )}
                   </View>
                 )}
+              </View>
+            )}
+            {/* Sus otros lugares: otras sucursales, o dónde está cada día.
+                Tocar uno abre las indicaciones a ese lugar. */}
+            {modalidad !== 'domicilio' && puntos.length > 0 && (
+              <View style={s.placesList}>
+                <Text style={s.placesLabel} allowFontScaling={true}>{modalidad === 'itinerante' ? 'DÓNDE ESTÁ CADA DÍA' : 'OTRAS SUCURSALES'}</Text>
+                {puntos.map((punto, index) => {
+                  const today = modalidad === 'itinerante' && isToday(punto, weekday);
+                  const detail = [modalidad === 'itinerante' ? diasLabel(punto.dias) : null, punto.direccion?.trim()].filter(Boolean).join(' · ');
+                  return (
+                    <TouchableOpacity
+                      key={punto.id}
+                      style={[s.placeRow, index > 0 && s.placeRowDivider]}
+                      onPress={() => handleComoLlegar(punto)}
+                      activeOpacity={0.7}
+                      accessibilityRole="button"
+                      accessibilityLabel={`${punto.nombre}${today ? ', hoy' : ''}${detail ? `, ${detail}` : ''}. Abrir indicaciones`}>
+                      <View style={{ flex: 1, minWidth: 0 }}>
+                        <Text style={s.placeName} allowFontScaling={true}>{punto.nombre}</Text>
+                        {!!detail && <Text style={s.address} allowFontScaling={true}>{noWidow(detail)}</Text>}
+                      </View>
+                      {today && <Text style={s.placeToday} allowFontScaling={true}>Hoy</Text>}
+                      <Ionicons name="navigate-outline" size={15} color={theme.textMute} />
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
             )}
           </View>
@@ -1798,16 +1897,17 @@ export function PatioDetailView({ id, own = false, focusDish }: { id?: string; o
                 )}
                 {!!review.note && <Text style={s.reviewNote}>{review.note}</Text>}
                 {(() => {
-                  // La foto de la visita, con su platillo y su frase: la misma que
-                  // sale en el menú. Se abre aquí mismo; ir al menú es opcional.
-                  const photo = reviewPhotoOf(review);
-                  if (!photo) return null;
-                  const inMenu = photo.dish ? dishTarget(photo.dish) : null;
+                  // Las fotos de la visita (hasta 5), con su platillo y su frase:
+                  // las mismas que salen en el menú. Se abren aquí mismo; ir al
+                  // menú es opcional.
+                  const photos = reviewPhotosOf(review);
+                  if (!photos.length) return null;
                   return (
-                    <ReviewPhoto
-                      photo={photo}
+                    <ReviewPhotos
+                      photos={photos}
                       load={reviewsNear}
-                      onOpenInMenu={inMenu && photo.dish ? () => showDishInMenu(photo.dish!) : undefined}
+                      inMenu={(dish) => !!dishTarget(dish)}
+                      onOpenInMenu={showDishInMenu}
                     />
                   );
                 })()}
@@ -2053,8 +2153,8 @@ export function PatioDetailView({ id, own = false, focusDish }: { id?: string; o
           if (!fixingPhoto) return;
           const { photo } = fixingPhoto;
           // Solo cambia de qué platillo es; una frase que ya tuviera se queda igual.
-          if (photo.reviewId && isRealReviewId(photo.reviewId)) await updateMyReviewPhoto(photo.reviewId, dish, photo.note);
-          setPhotoEdits((current) => ({ ...current, [photoKey(photo)]: { dish, note: photo.note } }));
+          if (photo.photoId && photo.reviewId && isRealReviewId(photo.reviewId)) await updateMyReviewPhoto(photo.photoId, dish, photo.note);
+          setPhotoEdits((current) => ({ ...current, [editKeyOf(photoKey(photo), { id: photo.photoId, url: photo.url })]: { dish, note: photo.note } }));
           // Si cambió de platillo, se abre ese para ver dónde quedó.
           if (dishKey(dish) !== dishKey(fixingPhoto.dish)) {
             const target = dishTarget(dish);
@@ -2066,10 +2166,10 @@ export function PatioDetailView({ id, own = false, focusDish }: { id?: string; o
         <View style={[s.followToast, { bottom: insets.bottom + 16 }, floatingSurfaceShadow(theme.isDark)]} accessibilityLiveRegion="polite">
           <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={[s.followToastInner, { backgroundColor: sheetSurfaceTint(theme.isDark), borderColor: theme.isDark ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.18)' }]}>
             <Ionicons name="notifications-outline" size={18} color={theme.text} />
-            <Text style={s.followToastText} allowFontScaling={true}>{noWidow('Te avisaremos cuando publique')}</Text>
-            <TouchableOpacity style={s.followToastAction} activeOpacity={0.7} accessibilityRole="button"
-              onPress={() => { setFollowToast(false); if (!muted) void toggleMuted(); }}>
-              <Text style={s.followToastActionText}>Silenciar</Text>
+            <Text style={s.followToastText} allowFontScaling={true}>{noWidow(notifyMode === 'every' ? 'Te avisaremos cuando publique' : 'Saldrá en tu resumen del día')}</Text>
+            <TouchableOpacity style={s.followToastAction} activeOpacity={0.7} accessibilityRole="button" accessibilityLabel="Cambiar avisos de este lugar"
+              onPress={() => { setFollowToast(false); setFollowMenu(true); }}>
+              <Text style={s.followToastActionText}>Cambiar</Text>
             </TouchableOpacity>
             <TouchableOpacity style={s.followToastClose} activeOpacity={0.7} accessibilityRole="button" accessibilityLabel="Cerrar" onPress={() => setFollowToast(false)}>
               <Ionicons name="close" size={17} color={theme.textSecondary} />
@@ -2082,10 +2182,15 @@ export function PatioDetailView({ id, own = false, focusDish }: { id?: string; o
         anchorRef={followAnchor}
         onDismiss={() => setFollowMenu(false)}
         options={[
-          muted
-            ? { label: 'Activar avisos', icon: 'notifications-outline', onPress: () => { void toggleMuted(); } }
-            : { label: 'Silenciar avisos', icon: 'notifications-off-outline', onPress: () => { void toggleMuted(); } },
-          { label: 'Agregar a una lista', icon: 'list-outline', afterDismiss: true, onPress: () => setSaveSheetVisible(true) },
+          ...(['every', 'digest', 'off'] as PatioNotifyMode[]).map((mode): ActionSheetOption => ({
+            label: PATIO_NOTIFY_LABELS[mode],
+            icon: PATIO_NOTIFY_ICONS[mode],
+            accessibilityHint: PATIO_NOTIFY_HINTS[mode],
+            selected: notifyMode === mode,
+            sectionLabel: mode === 'every' ? 'Notificaciones' : undefined,
+            onPress: () => { void chooseNotifyMode(mode); },
+          })),
+          { label: 'Agregar a una lista', icon: 'list-outline', afterDismiss: true, sectionLabel: 'Lugar', onPress: () => setSaveSheetVisible(true) },
           { label: 'Dejar de seguir', icon: 'person-remove-outline', destructive: true, onPress: () => { void handleToggleSaved(); } },
         ]}
       />

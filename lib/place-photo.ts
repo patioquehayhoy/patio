@@ -26,6 +26,29 @@ export async function pickPlacePhoto(source: PlacePhotoSource): Promise<ImagePic
   return result.canceled ? null : result.assets?.[0] ?? null;
 }
 
+/**
+ * Varias fotos a la vez (reseña): de Fotos se eligen hasta `limit` de una
+ * sola vez, en el orden en que se tocaron; la cámara da una. [] si cancela.
+ */
+export async function pickPhotos(source: PlacePhotoSource, limit: number): Promise<ImagePicker.ImagePickerAsset[]> {
+  if (limit <= 0) return [];
+  if (source === 'camera') {
+    const one = await pickPlacePhoto('camera');
+    return one ? [one] : [];
+  }
+  const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+  if (!permission.granted) throw new PlacePhotoPermissionError(source);
+  const result = await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: ['images'],
+    quality: 1,
+    exif: false,
+    allowsMultipleSelection: limit > 1,
+    selectionLimit: limit,
+    orderedSelection: true,
+  });
+  return result.canceled ? [] : (result.assets ?? []).slice(0, limit);
+}
+
 /** Sube la foto a la carpeta del dueño y la guarda en su negocio. Regresa la URL pública. */
 export async function uploadPlacePhoto(negocioId: string, asset: Pick<ImagePicker.ImagePickerAsset, 'uri' | 'width' | 'height'>): Promise<string> {
   const { data: auth } = await supabase.auth.getUser();

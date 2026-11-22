@@ -159,6 +159,21 @@ test('rename/delete report storage failure and the queue recovers for a retry', 
   assert.deepEqual(await history.getLocalMenus(), []);
 });
 
+test('autosave never writes over a published menu, but still saves drafts', async () => {
+  const f = fixture({ overrides: { '@/lib/supabase': { supabase: {} } } });
+  const history = f.load('lib/menu-history.ts');
+  const published = history.newMenuDraftId();
+  const draft = history.newMenuDraftId();
+  await history.saveMenuPublication(menu('Publicado'), 'Comida', published, async () => {});
+  assert.equal(await history.saveLocalMenu(menu('Encima'), 'Comida', { id: published, onlyDraft: true }), true);
+  await history.saveLocalMenu(menu('Borrador'), 'Cena', { id: draft, onlyDraft: true });
+  const entries = await history.getLocalMenus();
+  const byId = (id) => entries.find((entry) => entry.id === id);
+  assert.equal(byId(published).published, true);
+  assert.equal(byId(published).secciones.secciones[0].platillos[0].nombre, 'Publicado');
+  assert.equal(byId(draft).secciones.secciones[0].platillos[0].nombre, 'Borrador');
+});
+
 test('same-day drafts keep independent identities and only a confirmed publication counts', async () => {
   const f = fixture({ overrides: { '@/lib/supabase': { supabase: {} } } });
   const history = f.load('lib/menu-history.ts');
@@ -614,4 +629,25 @@ test('editor board: menu prices become headings, «Incluye» goes away and a pri
   ] });
   assert.deepEqual(clean.secciones.map((x) => x.nombre), ['MENÚ DEL DÍA', 'GUISADOS']);
   assert.deepEqual(clean.precios, []);
+});
+
+test('a menu left ready for another day reopens in place; copies drop «Se acabó»; the reminder never opens tomorrow\'s menu', () => {
+  const f = fixture({ overrides: { '@/lib/supabase': { supabase: {} } } });
+  const { editorSeed, latestMenuSeed, withoutSoldOut } = f.load('lib/controllers/useMenuHistoryController.ts');
+  const soldOut = { secciones: [{ id: 's', nombre: 'GUISADOS', precio: '', platillos: [{ id: 'd', nombre: 'Mole', descripcion: '', precio: '', agotado: true }] }] };
+  const today = '2026-11-21';
+  const scheduled = { id: 'm2', fecha: '2026-11-22', secciones: soldOut, published: true, publishAt: '2026-11-22T15:00:00.000Z' };
+  const yesterday = { id: 'm1', fecha: '2026-11-20', secciones: soldOut, published: true };
+  const seed = editorSeed(scheduled, today);
+  assert.equal(seed.localLive, true);
+  assert.equal(seed.localFecha, '2026-11-22');
+  assert.equal(seed.localPublishAt, '2026-11-22T15:00:00.000Z');
+  const copy = editorSeed(yesterday, today);
+  assert.equal(copy.localLive, undefined);
+  assert.equal(copy.secciones[0].platillos[0].agotado, undefined);
+  assert.equal(withoutSoldOut(soldOut).secciones[0].platillos[0].agotado, undefined);
+  // «¿Ya publicaste lo de hoy?» abre lo último publicado hasta hoy, nunca el de mañana.
+  const fromReminder = latestMenuSeed([scheduled, yesterday], today);
+  assert.equal(fromReminder.localFecha, undefined);
+  assert.equal(fromReminder.localLive, undefined);
 });

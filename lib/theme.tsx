@@ -21,6 +21,7 @@ export type Theme = {
   // ── Tokens v02 (Figma Make) ──
   textMute: string;       // ink-mute — captions/metadata
   accentSoft: string;     // fondos tibios, chip "elige uno"
+  danger: string;         // lo que borra (eliminar, quitar), Foodie y Fondero
   glass: string;          // capas glass (sheets, search bars)
   isDark: boolean;
 };
@@ -41,6 +42,7 @@ export const lightTheme: Theme = {
   border:        Colors.border,
   textMute:      Colors.textMute,
   accentSoft:    Colors.accentSoft,
+  danger:        Colors.danger,
   glass:         Colors.glass,
   isDark:        false,
 };
@@ -61,6 +63,7 @@ export const darkTheme: Theme = {
   border:        Colors.borderDark,
   textMute:      Colors.textMuteDark,
   accentSoft:    Colors.accentSoftDark,
+  danger:        Colors.dangerDark,
   glass:         Colors.glassDark,
   isDark:        true,
 };

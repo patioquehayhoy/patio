@@ -1,8 +1,8 @@
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { router, Stack, useFocusEffect } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Image, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -20,7 +20,9 @@ export default function AvisarScreen() {
   const { theme } = useTheme();
   const s = makeStyles(theme);
   const insets = useSafeAreaInsets();
-  const [kind, setKind] = useState<OperationKind>('late');
+  // Desde el botón «Hoy no abro» del aviso de publicar llega ya elegido.
+  const { tipo, auto } = useLocalSearchParams<{ tipo?: string; auto?: string }>();
+  const [kind, setKind] = useState<OperationKind>(OPERATION_OPTIONS.some((item) => item.kind === tipo) ? tipo as OperationKind : 'late');
   const [times, setTimes] = useState<Record<string, string>>({});
   const [androidPicker, setAndroidPicker] = useState(false);
   const [followers, setFollowers] = useState<number | null>(null);
@@ -36,9 +38,14 @@ export default function AvisarScreen() {
   const time = option.needsTime ? times[kind] ?? option.defaultTime ?? '12:00' : null;
   const text = operationNoticeText(kind, time) ?? '';
   const name = getFonditaName().trim() || 'Tu negocio';
+  // Al momento solo le llega a quienes tienen tus notificaciones en «Todas»;
+  // «Hoy no abrimos» va también en el resumen de los demás (2026-11-21).
   const sendLabel = state === 'sending' ? 'Avisando…'
     : state === 'sent' ? 'Avisado'
-      : followers ? `Avisar a ${followers.toLocaleString('es-MX')} ${followers === 1 ? 'persona' : 'personas'}` : 'Publicar en tu ficha';
+      : followers ? 'Avisar' : 'Publicar en tu ficha';
+  const reach = kind === 'closed'
+    ? 'Le llega al momento a quienes tienen tus notificaciones en «Todas», va en el resumen del día de los demás y se ve en tu ficha hoy.'
+    : 'Le llega al momento a quienes tienen tus notificaciones en «Todas» y se ve en tu ficha hoy.';
 
   const choose = (next: OperationKind) => {
     Haptics.selectionAsync().catch(() => {});
@@ -49,9 +56,11 @@ export default function AvisarScreen() {
     setAndroidPicker(false);
     if (date) setTimes((current) => ({ ...current, [kind]: timeFromDate(date) }));
   };
+  const sending = useRef(false);
   const send = async () => {
     const id = getFonditaId();
-    if (!id || state !== 'idle') return;
+    if (!id || state !== 'idle' || sending.current) return;
+    sending.current = true;
     setState('sending');
     setError('');
     try {
@@ -61,8 +70,20 @@ export default function AvisarScreen() {
     } catch (sendError) {
       setError(sendError instanceof Error ? sendError.message : 'Inténtalo de nuevo.');
       setState('idle');
+    } finally {
+      sending.current = false;
     }
   };
+  // «Hoy no abro» desde el aviso de publicar: un toque y listo (Jev, 99 %).
+  // Llega con «Hoy no abrimos» elegido y se manda al abrir; la pantalla
+  // muestra «Avisado».
+  const autoSent = useRef(false);
+  useEffect(() => {
+    if (auto !== '1' || kind !== 'closed' || autoSent.current) return;
+    autoSent.current = true;
+    void send();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [auto, kind]);
 
   return (
     <View style={[s.root, { paddingTop: insets.top }]}>
@@ -74,7 +95,7 @@ export default function AvisarScreen() {
       </View>
       <ScrollView contentContainerStyle={[s.content, { paddingBottom: insets.bottom + 24 }]}>
         <Text style={s.title} accessibilityRole="header">{noWidow('Avisar a quienes te siguen')}</Text>
-        <Text style={s.help}>{noWidow('Les llega como aviso y se ve en tu ficha hoy.')}</Text>
+        <Text style={s.help}>{noWidow(reach)}</Text>
 
         <View style={s.chips} accessibilityRole="radiogroup">
           {OPERATION_OPTIONS.map((item) => {

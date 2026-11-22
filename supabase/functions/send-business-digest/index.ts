@@ -1,5 +1,5 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
-import { summaryMessages, type DigestRow } from '../_shared/digest.ts';
+import { dueThisHour, summaryMessages, type DigestRow } from '../_shared/digest.ts';
 import { pushTargets, sendExpoPush } from '../_shared/expo-push.ts';
 import { corsHeaders, errorResponse, HttpError, json, readJson } from '../_shared/http.ts';
 
@@ -13,9 +13,10 @@ function sameSecret(a: string, b: string): boolean {
   return diff === 0;
 }
 
-// Resumen de las 18:00 («Hoy · 34 personas vieron tu menú.»). Solo la llama
-// pg_cron (migración 20261109111000) con el secreto que la base generó y
-// guarda en Vault (20261109120000); aquí se compara contra la base.
+// Resumen de la mañana («Ayer · 34 personas vieron tu menú.»), a la hora del
+// aviso de publicar de cada negocio. Solo la llama pg_cron cada hora de 7 a 12
+// (migración 20261121100000) con el secreto que la base generó y guarda en
+// Vault (20261109120000); aquí se compara contra la base.
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405);
@@ -32,9 +33,9 @@ Deno.serve(async (req) => {
     const body = await readJson(req, 512) as { mode?: unknown };
     if (body.mode !== 'summary') throw new HttpError(400, 'mode must be summary');
 
-    const { data, error } = await admin.rpc('business_daily_digest');
+    const { data, error } = await admin.rpc('business_digest_for', { day_offset: 1 });
     if (error) throw error;
-    const rows = (data ?? []) as DigestRow[];
+    const rows = dueThisHour((data ?? []) as DigestRow[], new Date());
     const messages = summaryMessages(rows);
     if (!messages.length) return json({ mode: body.mode, owners: 0, delivered: 0 });
 

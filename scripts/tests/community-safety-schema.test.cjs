@@ -119,6 +119,10 @@ test('server refusals become plain messages instead of a connection error', () =
 test('tapping an alert only opens known screens', () => {
   const { routeForNotification } = loadTs('lib/notification-routes.ts');
   assert.deepEqual(routeForNotification({ type: 'follow_request' }), { pathname: '/notificaciones' });
+  // Negocio: cada aviso lleva a donde se hace lo que pide.
+  assert.deepEqual(routeForNotification({ type: 'publish_reminder' }), { pathname: '/menu-editar', params: { desde: 'ultimo' } });
+  assert.deepEqual(routeForNotification({ type: 'review_received', patioId: 'p1', url: 'patio://resenas' }), { pathname: '/resenas' });
+  assert.deepEqual(routeForNotification({ type: 'daily_summary', route: '/hoy' }), { pathname: '/hoy' });
   assert.deepEqual(routeForNotification({ type: 'review_comment', patioId: 'p1' }), { pathname: '/patio/[id]', params: { id: 'p1' } });
   assert.deepEqual(routeForNotification({ type: 'visit_review', patioId: 'p1' }), { pathname: '/resena/[id]', params: { id: 'p1' } });
   assert.deepEqual(routeForNotification({ route: '/historial' }), { pathname: '/historial' });

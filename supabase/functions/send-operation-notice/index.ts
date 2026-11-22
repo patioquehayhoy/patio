@@ -43,8 +43,8 @@ Deno.serve(async (req) => {
       .insert({ negocio_id: negocio.id, created_by: user.id, body: text, kind: 'operation' }).select('id').single();
     if (insertError || !notice) throw insertError ?? new Error('Could not save notice');
 
-    const { data: follows, error: followsError } = await admin.from('patio_follows')
-      .select('user_id').eq('negocio_id', negocio.id).eq('notifications_enabled', true);
+    // Al momento, solo a quien tiene este lugar en «Todas»; «Hoy no abrimos» va también en el resumen de los demás.
+    const { data: follows, error: followsError } = await admin.rpc('realtime_followers', { target_negocio: negocio.id });
     if (followsError) throw followsError;
     const followerIds = [...new Set((follows ?? []).map((follow) => follow.user_id))].filter((id) => id !== user.id);
     // Va con los menús («Menús y avisos», encendido por defecto).

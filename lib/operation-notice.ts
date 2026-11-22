@@ -1,3 +1,4 @@
+import { markClosedToday } from '@/lib/closed-days';
 import { supabase } from '@/lib/supabase';
 
 // Avisos de operación (gratis, v4 §4): el dueño elige qué pasa hoy y, si hace
@@ -47,7 +48,11 @@ export function dateFromTime(hhmm: string): Date {
 
 export async function sendOperationNotice(negocioId: string, kind: OperationKind, time: string | null): Promise<{ delivered: number }> {
   const { data, error } = await supabase.functions.invoke('send-operation-notice', { body: { fonditaId: negocioId, kind, time } });
-  if (!error) return { delivered: Number((data as { delivered?: unknown } | null)?.delivered ?? 0) };
+  if (!error) {
+    // «Hoy no abrimos»: hoy no cuenta como día sin publicar (lib/local-reminders.ts).
+    if (kind === 'closed') await markClosedToday().catch(() => {});
+    return { delivered: Number((data as { delivered?: unknown } | null)?.delivered ?? 0) };
+  }
   const context = 'context' in error ? (error as { context?: unknown }).context : null;
   if (context instanceof Response && [400, 403, 429].includes(context.status)) {
     const body = await context.clone().json().catch(() => null);

@@ -47,6 +47,10 @@ export function ActionSheet({ visible, anchorRef, title, options, onDismiss }: A
   const insets = useSafeAreaInsets();
   const menuWidth = Math.min(MENU_WIDTH, screenWidth - insets.left - insets.right - GAP * 2);
   const grouped = options.some((option) => option.sectionLabel);
+  // Como los menús de iOS: la palomita (si el menú elige algo) a la izquierda,
+  // el texto y el ícono a la derecha; lo que borra va en rojo, texto e ícono.
+  const marks = options.some((option) => option.selected !== undefined);
+  const danger = theme.danger;
   const estimatedHeight = options.length * 46 + options.filter((option) => option.sectionLabel).length * 28 + (title ? 34 : 0);
   const scale = useRef(new Animated.Value(0.9)).current;
   const opacity = useRef(new Animated.Value(0)).current;
@@ -133,10 +137,9 @@ export function ActionSheet({ visible, anchorRef, title, options, onDismiss }: A
               accessibilityLabel={option.label}
               accessibilityHint={option.accessibilityHint}
               accessibilityState={option.selected === undefined ? undefined : { selected: option.selected }}>
-              {grouped && <View style={s.selectionMark}>{option.selected && <Ionicons name="checkmark" size={20} color={theme.text} />}</View>}
-              <Ionicons name={option.icon} size={20} color={option.destructive ? theme.accent : theme.text} />
-              <Text style={s.rowText}>{noWidow(option.label)}</Text>
-              {!grouped && option.selected && <Ionicons name="checkmark" size={20} color={theme.text} />}
+              {marks && <View style={s.selectionMark}>{option.selected && <Ionicons name="checkmark" size={18} color={theme.text} />}</View>}
+              <Text style={[s.rowText, option.destructive && { color: danger }]}>{noWidow(option.label)}</Text>
+              <Ionicons name={option.icon} size={20} color={option.destructive ? danger : theme.text} />
             </TouchableOpacity>
           </View>
         ))}
@@ -154,9 +157,10 @@ function makeStyles(t: Theme) {
     titleText: { fontSize: 12, fontWeight: '700', color: t.textSecondary, textAlign: 'center' },
     sectionLabelRow: { minHeight: 28, paddingHorizontal: 14, justifyContent: 'flex-end', paddingBottom: 5 },
     sectionLabelText: { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase', color: t.textSecondary },
-    row: { minHeight: 46, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 10 },
+    // Texto a la izquierda, ícono a la derecha en su columna (iOS).
+    row: { minHeight: 46, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 12 },
     divider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border },
     rowText: { flex: 1, fontSize: 15, fontWeight: '500', color: t.text, paddingVertical: 8 },
-    selectionMark: { width: 20, alignItems: 'center' },
+    selectionMark: { width: 18, alignItems: 'center' },
   });
 }

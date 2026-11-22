@@ -24,13 +24,14 @@ import {
   View,
 } from 'react-native';
 import { GestureDetector, ScrollView as GestureScrollView } from 'react-native-gesture-handler';
-import ReAnimated from 'react-native-reanimated';
+import ReAnimated, { useReducedMotion } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { cleanMenu, emptyMenu, useFonderoMenuDraftController } from '@/lib/controllers/useFonderoMenuDraftController';
 import { splitCarta } from '@/lib/menu-carta';
 import { fonderoPalette, type FonderoColors } from '@/lib/fondero-palette';
-import { canonicalSeccion, cartaSugerencias, getTipoNegocio, seccionSugerencias, type MenuData, type Platillo, type Seccion } from '@/lib/menu-store';
+import { canonicalSeccion, cartaSugerencias, getFonditaHorarioSemanal, getTipoNegocio, seccionSugerencias, type MenuData, type Platillo, type Seccion } from '@/lib/menu-store';
+import { isAfterService, nextPublishSlots, scheduledLabel } from '@/lib/publish-timing';
 import { useTheme } from '@/lib/theme';
 import { ActionSheet } from '@/components/action-sheet';
 import { GlassIconButton } from '@/components/glass-button';
@@ -75,9 +76,9 @@ const NAV_HEIGHT = 54;
 // solo (WCAG 2.2.1: quien necesita más tiempo, lo tiene).
 const UNDO_MS = 6000;
 // Mantener presionado en el panel (sin modo Ordenar) antes de levantar: el
-// medio segundo de iOS. Con 280 ms un toque normal un poco lento ya levantaba
-// el platillo y se sentía «atorado» (Parco, 16 nov).
-const HOLD_IN_PLACE_MS = 450;
+// medio segundo de iOS (UILongPressGestureRecognizer). Con 280 ms un toque
+// normal un poco lento ya levantaba el platillo y se sentía «atorado».
+const HOLD_IN_PLACE_MS = 500;
 // Prueba de Parco (16 nov): mover y eliminar ahí mismo, como Recordatorios.
 // El modo «Ordenar» se queda en el código por si se regresa.
 const SHOW_ORDER_MODE = false;
@@ -125,12 +126,36 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
     saveNombre,
     setDishPhoto,
     setNombre,
+    setSoldOut,
     undoRemove,
   } = useFonderoMenuDraftController(initialData, source);
+  // Dejar listo el menú de otro día (2026-11-21), como «Enviar más tarde» de
+  // Mail: mantener presionado «Publicar» ofrece «Publicar ahora» o «Mañana a las
+  // 9 am» (una hora antes de abrir, la hora del aviso). Ya pasado el servicio de
+  // hoy, tocarlo ofrece primero mañana: publicar «hoy» de noche no le sirve a
+  // nadie (se va a la medianoche y no se avisa a nadie).
+  const publishRef = useRef<View>(null);
+  const [scheduleMenu, setScheduleMenu] = useState<'evening' | 'hold' | null>(null);
+  const horario = getFonditaHorarioSemanal();
+  // Los siguientes días que abre: mañana y, para dejar lista la semana, los demás.
+  const slots = scheduleMenu ? nextPublishSlots(horario) : [];
+  const schedulingOptions = slots.length ? (() => {
+    const now = { label: 'Publicar ahora', icon: 'paper-plane-outline' as const, accessibilityHint: 'Sale ya en tu ficha y avisa a quienes te siguen.', onPress: () => { void publish(); } };
+    const later = slots.map((slot) => ({ label: slot.label, icon: 'time-outline' as const, accessibilityHint: 'Queda listo y sale solo a esa hora.', onPress: () => { void publish({ fecha: slot.fecha, publishAt: slot.at.toISOString() }); } }));
+    return scheduleMenu === 'evening' ? [later[0], now, ...later.slice(1)] : [now, ...later];
+  })() : [];
+  const onPublishPress = () => {
+    if (!live && isAfterService(horario)) { setScheduleMenu('evening'); return; }
+    void publish();
+  };
+  // Un menú programado que se abre para cambiarlo: dice cuándo sale.
+  const scheduledFor = live && initialData.localFecha && initialData.localPublishAt ? scheduledLabel(initialData.localPublishAt) : null;
   const dataRef = useRef(data);
   dataRef.current = data;
-  // Solo se anima lo que llega o se va (un platillo, una sección).
-  const smoothly = () => LayoutAnimation.configureNext(LayoutAnimation.create(180, 'easeInEaseOut', 'opacity'));
+  // Solo se anima lo que llega o se va (un platillo, una sección), en la
+  // duración estándar de UIKit (0.25 s). Con Reducir movimiento, de una vez.
+  const reduceMotion = useReducedMotion();
+  const smoothly = () => { if (!reduceMotion) LayoutAnimation.configureNext(LayoutAnimation.create(250, 'easeInEaseOut', 'opacity')); };
 
   // ─── Campos y cursor ─────────────────────────────────────────────────────
   // Claves: `t-` título · `sp-` precio de sección · `n-` nombre · `d-`
@@ -774,12 +799,13 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
             <Text style={s.reviewNoteText}>{dish.revision}</Text>
           </View>
         )}
-        <Text style={[s.dishName, !dish.nombre && { color: c.textMute }]}>{dish.nombre || 'Platillo'}</Text>
-        <Text style={[s.description, !dish.descripcion && { color: c.textMute }]}>{dish.descripcion || 'Descripción'}</Text>
+        {/* Los mismos campos que el renglón (sin editar): cada letra cae en el mismo pixel. */}
+        <TextInput editable={false} style={s.dishName} value={dish.nombre} placeholder="Platillo" placeholderTextColor={c.textMute} multiline scrollEnabled={false} />
+        <TextInput editable={false} style={s.description} value={dish.descripcion} placeholder="Descripción" placeholderTextColor={c.textMute} multiline scrollEnabled={false} />
       </View>
       <View style={s.price}>
         <Text style={[s.currency, !!dish.precio && s.currencyOn]}>$</Text>
-        <Text style={s.priceInput}>{dish.precio}</Text>
+        <TextInput editable={false} style={s.priceInput} value={dish.precio} />
       </View>
     </View>
   );
@@ -804,11 +830,11 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
         <>
           <View style={s.head}>
             <View style={s.body}>
-              <Text style={[s.title, !section.nombre && { color: c.textMute }]}>{section.nombre || (todayIndex === 0 ? firstSectionHint : 'SECCIÓN')}</Text>
+              <TextInput editable={false} style={s.title} value={section.nombre} placeholder={todayIndex === 0 ? firstSectionHint : 'SECCIÓN'} placeholderTextColor={c.textMute} multiline scrollEnabled={false} />
             </View>
             <View style={s.price}>
               <Text style={[s.currency, !!section.precio && s.currencyOn]}>$</Text>
-              <Text style={s.priceInput}>{section.precio}</Text>
+              <TextInput editable={false} style={s.priceInput} value={section.precio} />
             </View>
           </View>
           {section.platillos.map((dish, index) => ghostDishRow(dish, index > 0))}
@@ -924,7 +950,16 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
           drag={board.rowFor({ kind: 'dish', dishId: dish.id, sectionId: section.id }, HOLD_IN_PLACE_MS).enabled(gesturesOn)}
           enabled={gesturesOn}
           fullSwipe
-          actions={[{ label: 'Eliminar', color: c.danger, accessibilityLabel: `Eliminar ${dish.nombre || 'platillo'}`, onPress: () => { smoothly(); removeDish(section.id, dish.id); } }]}
+          actions={[
+            // En el menú ya publicado, lo de hoy se marca «Se acabó» al instante.
+            ...(live && !section.carta ? [{
+              label: dish.agotado ? 'Ya hay' : 'Se acabó',
+              color: c.textMute,
+              accessibilityLabel: dish.agotado ? `Ya hay ${dish.nombre || 'platillo'}` : `Se acabó ${dish.nombre || 'platillo'}`,
+              onPress: () => { void setSoldOut(section.id, dish.id, !dish.agotado); },
+            }] : []),
+            { label: 'Eliminar', color: c.danger, accessibilityLabel: `Eliminar ${dish.nombre || 'platillo'}`, onPress: () => { smoothly(); removeDish(section.id, dish.id); } },
+          ]}
           background={[c.bg, c.surface]}
           scrollRef={scrollRef}
           style={[s.dish, lifted && s.away]}>
@@ -986,6 +1021,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
             inputAccessoryViewID={Platform.OS === 'ios' ? BAR_TEXT : undefined}
             accessibilityLabel={`Descripción de ${dish.nombre || 'platillo'}`}
           />
+          {dish.agotado && <Text style={s.soldOutTag} accessibilityLabel="Se acabó hoy">Se acabó</Text>}
           {/* Sugerencias del sistema, solo con el teclado cerrado: mientras
               escribes, nada aparece ni se mueve. */}
           {!!split && (
@@ -1255,20 +1291,27 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                 const idle = menuEmpty || (live && !changed);
                 const label = live ? 'Actualizar' : 'Publicar';
                 return (
+                  <View ref={publishRef} collapsable={false}>
                   <TouchableOpacity
                     style={[s.primary, idle && s.primaryIdle]}
-                    onPress={publish}
+                    onPress={onPublishPress}
+                    // Medio segundo, como iOS: «Publicar ahora» o dejarlo listo para mañana.
+                    onLongPress={live ? undefined : () => setScheduleMenu('hold')}
+                    delayLongPress={HOLD_IN_PLACE_MS}
                     disabled={idle || publishing}
                     hitSlop={{ top: 4, bottom: 4, left: 4, right: 8 }}
                     activeOpacity={0.85}
                     accessibilityRole="button"
                     accessibilityLabel={publishing ? (live ? 'Actualizando menú' : 'Publicando menú') : `${label} menú`}
                     accessibilityHint={menuEmpty ? 'Escribe al menos un platillo de hoy.' : live && !changed ? 'Cambia algo de tu menú para actualizarlo.' : undefined}
-                    accessibilityState={{ disabled: idle || publishing, busy: publishing }}>
+                    accessibilityState={{ disabled: idle || publishing, busy: publishing }}
+                    accessibilityActions={live ? undefined : [{ name: 'longpress', label: 'Publicar más tarde' }]}
+                    onAccessibilityAction={(event) => { if (event.nativeEvent.actionName === 'longpress') setScheduleMenu('hold'); }}>
                     {/* Mientras publica, el indicador ocupa el lugar del texto: el botón no cambia de tamaño. */}
                     <Text style={[s.primaryText, idle && s.primaryTextIdle, publishing && s.invisible]} maxFontSizeMultiplier={1.2}>{label}</Text>
                     {publishing && <ActivityIndicator style={StyleSheet.absoluteFill} size="small" color="#fff" />}
                   </TouchableOpacity>
+                  </View>
                 );
               })()}
             </>
@@ -1306,6 +1349,13 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
             keyboardDismissMode="interactive"
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}>
+            {/* Menú programado: cuándo sale. */}
+            {!!scheduledFor && (
+              <View style={s.retake} accessible accessibilityLabel={`Programado: sale solo ${scheduledFor.toLowerCase()}`}>
+                <Ionicons name="time-outline" size={16} color={c.textSecondary} />
+                <Text style={s.retakeText}>{noWidow(`Sale solo ${scheduledFor.charAt(0).toLowerCase()}${scheduledFor.slice(1)}`)}</Text>
+              </View>
+            )}
             {/* Menú leído de una foto: si salió mal, otra foto. */}
             {source === 'foto' && onRetake && !ordering && (
               <TouchableOpacity style={s.retake} onPress={onRetake} activeOpacity={0.6} accessibilityRole="button" accessibilityLabel="Tomar otra foto">
@@ -1318,7 +1368,11 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
             {gap(!!sectionTarget && sectionTarget.index === data.secciones.filter((item) => item.id !== draggedSectionId).length, false)}
           </GestureScrollView>
           {board.drag && (
-            <ReAnimated.View pointerEvents="none" style={[s.ghost, board.drag.kind === 'dish' ? s.ghostRow : s.ghostCard, board.ghostStyle]}>
+            <ReAnimated.View
+              pointerEvents="none"
+              accessibilityElementsHidden
+              importantForAccessibility="no-hide-descendants"
+              style={[s.ghost, board.drag.kind === 'dish' ? s.ghostRow : s.ghostCard, { top: board.ghostTop }, board.ghostStyle]}>
               {/* El mismo fondo que la tarjeta: el lienzo y encima la superficie. */}
               <View style={[StyleSheet.absoluteFill, s.ghostTint, board.drag.kind === 'dish' ? s.ghostRow : s.ghostCardTint]} />
               {renderGhost(board.drag)}
@@ -1366,6 +1420,12 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
           </TouchableOpacity>
         </View>
       )}
+      <ActionSheet
+        visible={!!scheduleMenu}
+        anchorRef={publishRef}
+        onDismiss={() => setScheduleMenu(null)}
+        options={schedulingOptions}
+      />
       <ActionSheet
         visible={!!photoMenu}
         anchorRef={{ current: photoMenu ? photoRefs.current.get(photoMenu.dishId) ?? null : null }}
@@ -1418,6 +1478,7 @@ function makeStyles(c: FonderoColors) {
     listArea: { flex: 1, overflow: 'hidden' },
     retake: { minHeight: 36, marginBottom: 8, flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start' },
     retakeText: { fontSize: 14, fontWeight: '400', color: c.textSecondary },
+    soldOutTag: { marginTop: 3, fontSize: 12, lineHeight: 16, fontWeight: '600', color: c.textSecondary },
     // Tarjeta de sección: recorta sus esquinas, así lo que se desliza (la fila
     // y su «Eliminar») queda dentro, como en una lista agrupada de iOS. Lo que
     // se arrastra va en una copia encima de la lista, no dentro.

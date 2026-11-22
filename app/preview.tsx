@@ -11,6 +11,7 @@ import { useTheme, Type } from '@/lib/theme';
 import { fonderoPalette, type FonderoColors } from '@/lib/fondero-palette';
 import { GlassIconButton } from '@/components/glass-button';
 import { NewMenuSheet } from '@/components/new-menu-sheet';
+import { scheduledLabel } from '@/lib/publish-timing';
 import { noWidow } from '@/lib/typography';
 import { isCartaName } from '@/lib/menu-carta';
 
@@ -26,12 +27,18 @@ export default function PreviewScreen() {
 // Un solo paso: ves lo que publicaste, lo compartes, y «Editar» queda junto
 // al menú que estás viendo.
 // `updated`: se cambió el menú que ya estaba publicado hoy («Actualizado»).
-export function MenuPoster({ justPublished = false, updated = false }: { justPublished?: boolean; updated?: boolean }) {
+// `scheduledAt`: quedó listo para otro día y sale solo a esa hora («Programado»).
+export function MenuPoster({ justPublished = false, updated = false, scheduledAt }: { justPublished?: boolean; updated?: boolean; scheduledAt?: string }) {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
   const c = fonderoPalette(theme.isDark);
   const s = makeStyles(c);
-  const { businessName, fecha, handleBack, handleOpenProfile, handleShare, menuPrices, patioId, priceLabel, priceName, sections, carta } = useMenuPreviewController();
+  const { businessName, fecha: today, handleBack, handleOpenProfile, handleShare, menuPrices, patioId, priceLabel, priceName, sections, carta } = useMenuPreviewController();
+  // El póster lleva el día en que sale el menú.
+  const fecha = scheduledAt
+    ? new Date(scheduledAt).toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' }).toUpperCase()
+    : today;
+  const publishedTitle = scheduledAt ? 'Programado' : updated ? 'Actualizado' : 'Publicado';
   const posterRef = useRef<View>(null);
   const [sharing, setSharing] = useState(false);
   const [newMenuSheetVisible, setNewMenuSheetVisible] = useState(false);
@@ -86,11 +93,11 @@ export function MenuPoster({ justPublished = false, updated = false }: { justPub
       <View style={[s.top, { top: insets.top + 6 }]}>
         <GlassIconButton icon="chevron-back" accessibilityLabel="Volver" onPress={handleBack} />
         {justPublished ? (
-          <View style={s.publishedTitle} accessibilityRole="header" accessibilityLabel={updated ? 'Menú actualizado' : 'Menú publicado'}>
+          <View style={s.publishedTitle} accessibilityRole="header" accessibilityLabel={scheduledAt ? `Menú programado: sale ${scheduledLabel(scheduledAt).toLowerCase()}` : updated ? 'Menú actualizado' : 'Menú publicado'}>
             <Animated.View style={[s.publishedCheck, { transform: [{ scale: checkScale }] }]}>
               <Ionicons name="checkmark" size={13} color="#FFFFFF" />
             </Animated.View>
-            <Text style={s.topTitle} allowFontScaling={true}>{updated ? 'Actualizado' : 'Publicado'}</Text>
+            <Text style={s.topTitle} allowFontScaling={true}>{publishedTitle}</Text>
           </View>
         ) : <Text style={s.topTitle} allowFontScaling={true}>Póster</Text>}
         {justPublished ? (
@@ -102,6 +109,11 @@ export function MenuPoster({ justPublished = false, updated = false }: { justPub
 
       {/* Póster editorial, scrolleable si el menú real es largo. */}
       <ScrollView contentContainerStyle={[s.posterWrap, { paddingTop: insets.top + 74, paddingBottom: insets.bottom + 132 }]} showsVerticalScrollIndicator={false}>
+        {!!scheduledAt && (
+          <Text style={s.scheduledNote} allowFontScaling={true}>
+            {noWidow(`Sale solo ${scheduledLabel(scheduledAt).replace(/^./, (first) => first.toLowerCase())}. A esa hora se enteran quienes te siguen.`)}
+          </Text>
+        )}
         <View ref={posterRef} collapsable={false} style={s.poster}>
           {/* Header editorial: identidad primero. El precio único es un dato
               secundario y nunca compite con el nombre o los platillos. */}
@@ -245,6 +257,7 @@ function makeStyles(c: FonderoColors) {
   // solo existe para centrar el título.
   navBtn: { width: 44, height: 44 },
   topTitle: { fontSize: 17, fontWeight: '700', color: c.text, lineHeight: 22 },
+  scheduledNote: { marginBottom: 16, fontSize: 15, lineHeight: 21, fontWeight: '400', color: c.textSecondary, textAlign: 'center' },
   publishedTitle: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   publishedCheck: { width: 20, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: c.accent },
   editButton: { minWidth: 44, minHeight: 44, alignItems: 'flex-end', justifyContent: 'center' },

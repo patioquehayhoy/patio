@@ -7,7 +7,7 @@
 > dirección», «Elige los días que abres», «Elige cómo te pagan»); el giro ya
 > no se puede saltar (antes pasaba como Fondita sin elegirlo, y después solo
 > soporte lo cambia); «Crear mi primer menú» va en naranja (única acción
-> destacada); el acceso del Foodie dice «Sigue lo bueno.» y «Enviar código».
+> destacada); el acceso del Foodie dice «Entra a Patio.» y, en una frase, para qué entras según de dónde viene (2026-11-21; antes «Sigue lo bueno.»), y «Enviar código».
 > **Decidido 2026-11-03:** (1) una sola pantalla después de la entrada:
 > logo, «Pásale, aquí es.», una frase y la elección (Mapa / ícono de Mi
 > Patio); (2) el alta sigue centrada: Jev la prefirió 68–80 % sobre la

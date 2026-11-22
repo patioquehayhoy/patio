@@ -39,6 +39,6 @@ export function fonderoPalette(isDark: boolean): FonderoColors {
     accent: theme.accent,
     iconBg: theme.iconBg,
     green: isDark ? '#5BCB8B' : '#2E9E63',
-    danger: isDark ? '#FF453A' : '#FF3B30',
+    danger: theme.danger,
   };
 }

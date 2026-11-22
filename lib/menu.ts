@@ -38,6 +38,7 @@ function menuDataToSections(data: MenuData, kind: 'hoy' | 'carta' = 'hoy'): Pati
           price: publicCurrency(p.precio) || undefined,
           ...(isDishPhotoUrl(p.foto) ? { photo: p.foto, ...(isPhotoHash(p.fotoHash) ? { photoHash: p.fotoHash } : {}) } : {}),
           ...(cleanAliases(p.antes, p.nombre).length ? { aliases: cleanAliases(p.antes, p.nombre) } : {}),
+          ...(kind === 'hoy' && p.agotado ? { soldOut: true } : {}),
         })),
     }));
 }

@@ -1,5 +1,14 @@
 # HANDOFF
 
+## Continuidad 2026-11-21 — notificaciones de la red, publicar más tarde y dónde vende (Claude)
+
+Leer el [heads-up](HEADS_UP_2026-10-12.md), bloque «2026-11-21». Modelo de
+notificaciones, ritmos de negocio y «Dónde vende» en
+[NOTIFICATION_ARCHITECTURE](NOTIFICATION_ARCHITECTURE.md); reglas de UI en
+`components/CLAUDE.md`. Producción al día (migraciones y funciones
+aplicadas hoy). Siguiente: QA de Parco en el iPhone y ver llegar el primer
+resumen real.
+
 ## Continuidad 2026-11-16 (noche, segunda parte) — el editor y Menús como las listas de iOS (Claude)
 
 Leer el [heads-up](HEADS_UP_2026-10-12.md), bloque «Noche 2026-11-16, segunda parte».

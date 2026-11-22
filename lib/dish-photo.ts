@@ -38,7 +38,8 @@ export async function uploadReviewPhoto(uri: string): Promise<UploadedPhoto> {
   const image = await manipulateAsync(uri, [{ resize: resizeFor(original.width, original.height) }], { compress: QUALITY, format: SaveFormat.JPEG });
   const hash = await hashOf(image.uri);
   const bytes = await new File(image.uri).arrayBuffer();
-  const path = `${auth.user.id}/${Date.now().toString(36)}.jpg`;
+  // Varias fotos suben a la vez: el nombre lleva algo al azar para no chocar.
+  const path = `${auth.user.id}/${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}.jpg`;
   const bucket = supabase.storage.from('review-photos');
   const upload = await bucket.upload(path, bytes, { contentType: 'image/jpeg', upsert: false, cacheControl: IMMUTABLE });
   if (upload.error) throw upload.error;

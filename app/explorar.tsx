@@ -707,6 +707,38 @@ export default function ExplorarScreen() {
     );
   }), [animatingPinIds, filteredPinIds, getSelectedPinAnim, isFiltering, matchingPatioIds, matchTrackWindow, openPatioFromPin, pinGlowColors, pressedPinId, s, savedSet, shouldCluster, showCategoryIcons, stableMapPatios, theme]);
 
+  // Otras sucursales abiertas hoy (lib/puntos.ts, 2026-11-21): el mismo lugar
+  // en otro punto del mapa. Se ven y se tocan igual que su pin principal y
+  // abren la misma ficha; mientras el mapa agrupa, se esconden con los demás.
+  const extraMarkerElements = useMemo(() => stableMapPatios.flatMap((patio) => (patio.extraPositions ?? []).map((point, index) => {
+    const included = filteredPinIds.has(patio.id);
+    const isMuted = included && isFiltering && !matchingPatioIds.has(patio.id);
+    const visible = included && !shouldCluster && !isMuted;
+    const followed = savedSet.has(patio.id);
+    return (
+      <Marker
+        key={`${patio.id}#${index}-${followed ? 'sigue' : 'no'}`}
+        accessibilityLabel={`Abrir ${patio.name}`}
+        coordinate={point}
+        opacity={visible ? 1 : 0}
+        tappable={visible}
+        tracksViewChanges={false}
+        onPress={(event: any) => {
+          if (!included) return;
+          event.stopPropagation?.();
+          openPatioFromPin(patio.id);
+        }}>
+        <View style={s.pinHitArea}>
+          {showCategoryIcons ? (
+            <View style={s.pinCategory}>
+              <View style={{ transform: [{ rotate: '45deg' }] }}><BusinessCategoryIcon context="map" category={patio.categories[0] ?? 'Fondita'} size={15} color={followed ? theme.accent : theme.text} /></View>
+            </View>
+          ) : <View style={s.mapDotWrap}><View style={[s.mapDot, !followed && { backgroundColor: theme.text }]} /></View>}
+        </View>
+      </Marker>
+    );
+  })), [filteredPinIds, isFiltering, matchingPatioIds, openPatioFromPin, s, savedSet, shouldCluster, showCategoryIcons, stableMapPatios, theme]);
+
   const clusterMarkerElements = useMemo(() => clusterGridKeys.map((key) => {
     const cell = clusterCells.get(key);
     const visible = !!cell && cell.patios.length > 0;
@@ -791,6 +823,7 @@ export default function ExplorarScreen() {
             setVisibleRegion(region);
           }}>
           {patioMarkerElements}
+          {extraMarkerElements}
           {clusterMarkerElements}
           {/*
           {stableMapPatios.map((patio) => {

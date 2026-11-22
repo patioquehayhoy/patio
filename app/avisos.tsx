@@ -199,7 +199,7 @@ export default function AvisosScreen() {
           <SettingsGroup c={sc} label="Tu negocio">
             <SettingsRow c={sc} icon="star-outline" title="Reseñas nuevas" sub="Cuando alguien opina sobre tu Patio" trailing={toggle('businessActivity', 'Reseñas nuevas')} />
             <SettingsRow c={sc} icon="chatbubble-ellipses-outline" title="Respuestas" sub="Cuando alguien responde lo que comentaste" divider trailing={toggle('socialActivity', 'Respuestas')} />
-            <SettingsRow c={sc} icon="stats-chart-outline" title="Resumen de hoy" sub="A las 6 de la tarde: cuántas personas vieron tu menú" divider trailing={toggle('dailySummary', 'Resumen de hoy')} />
+            <SettingsRow c={sc} icon="stats-chart-outline" title="Resumen de ayer" sub="En la mañana: cuántas personas vieron tu menú ayer" divider trailing={toggle('dailySummary', 'Resumen de ayer')} />
           </SettingsGroup>
         ) : (
           // Solo se ofrece lo que de verdad se envía. Lugares nuevos
@@ -207,8 +207,8 @@ export default function AvisosScreen() {
           // aquí cuando exista su envío. Promociones viene apagado (4.5.4).
           <>
             <SettingsGroup c={sc} label="Tus lugares">
-              <SettingsRow c={sc} icon="document-text-outline" title="Menú de hoy" sub="Cuando un lugar que sigues publica" trailing={toggle('patioPublications', 'Menú de hoy')} />
-              {remote.patioPublications && <SettingsRow c={sc} icon="options-outline" title="Elegir lugares" sub="Silencia los que no quieres oír" divider onPress={() => router.push('/avisos-lugares')} />}
+              <SettingsRow c={sc} icon="document-text-outline" title="Menú de hoy" sub="Cuando los lugares que sigues publican" trailing={toggle('patioPublications', 'Menú de hoy')} />
+              {remote.patioPublications && <SettingsRow c={sc} icon="options-outline" title="Elegir lugares" sub="Todas, Personalizadas o Ninguna, lugar por lugar" divider onPress={() => router.push('/avisos-lugares')} />}
               <SettingsRow c={sc} icon="megaphone-outline" title="Promociones" sub="Avisos especiales de lugares que sigues" divider trailing={toggle('specialNotices', 'Promociones')} />
             </SettingsGroup>
             <SettingsGroup c={sc} label="Tu comunidad">
@@ -223,7 +223,7 @@ export default function AvisosScreen() {
             c={sc}
             icon={fondero ? 'camera-outline' : 'restaurant-outline'}
             title={fondero ? 'Publicar el menú' : 'Hora de comer'}
-            sub={fondero ? 'A las 10 de la mañana, si aún no publicas' : 'A la 1 de la tarde, para ver qué hay hoy'}
+            sub={fondero ? 'Una hora antes de abrir, si aún no publicas' : 'A la 1 de la tarde, para ver qué hay hoy'}
             trailing={<ToggleSwitch value={reminder} disabled={updating === 'reminder'} accessibilityLabel={fondero ? 'Publicar el menú' : 'Hora de comer'} onValueChange={updateReminder} />}
           />
           {canAskOpinion && (

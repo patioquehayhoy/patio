@@ -1,0 +1,614 @@
+{
+ "app": "Una app mexicana de celular donde las fondas, cocinas económicas, taquerías, postres y personas que venden comida en casa publican su menú del día; la gente cercana lo ve en un mapa y va al lugar. La gente puede seguir lugares y recibir avisos en el celular. Las fondas cambian su menú cada día; las taquerías y los postres casi nunca.",
+ "personas": {
+  "oficinista": {
+   "rol": "foodie",
+   "seguir": {
+    "type": "choice",
+    "choice": "resumen_y_favoritos",
+    "confidence": 0.47,
+    "probabilities": {
+     "cada_uno": 0.02,
+     "resumen": 0.35,
+     "resumen_y_favoritos": 0.6,
+     "nada": 0.03
+    }
+   },
+   "hora": {
+    "type": "choice",
+    "choice": "once_y_media",
+    "confidence": 0.5,
+    "probabilities": {
+     "una_y_media": 0.01,
+     "doce_y_media": 0.32,
+     "once_y_media": 0.67
+    }
+   },
+   "cerrado": {
+    "type": "choice",
+    "choice": "a_todos",
+    "confidence": 0.16,
+    "probabilities": {
+     "a_todos": 0.44,
+     "solo_cada_vez": 0.28,
+     "en_la_app": 0.28
+    }
+   },
+   "promo": {
+    "type": "choice",
+    "choice": "en_resumen",
+    "confidence": 0.7,
+    "probabilities": {
+     "en_resumen": 0.8,
+     "todas": 0.07,
+     "una_al_dia": 0.13
+    }
+   },
+   "escalas": {
+    "se_acabo": {
+     "type": "score",
+     "score": 2.35,
+     "confidence": 0.37,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.24,
+      "2": 0.2,
+      "3": 0.5,
+      "4": 0.05
+     }
+    },
+    "apagaria": {
+     "type": "score",
+     "score": 2.65,
+     "confidence": 0.36,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.04,
+      "1": 0.15,
+      "2": 0.15,
+      "3": 0.46,
+      "4": 0.2
+     }
+    }
+   }
+  },
+  "estudiante": {
+   "rol": "foodie",
+   "seguir": {
+    "type": "choice",
+    "choice": "resumen_y_favoritos",
+    "confidence": 0.69,
+    "probabilities": {
+     "resumen": 0.18,
+     "resumen_y_favoritos": 0.77,
+     "cada_uno": 0.03,
+     "nada": 0.02
+    }
+   },
+   "hora": {
+    "type": "choice",
+    "choice": "once_y_media",
+    "confidence": 0.18,
+    "probabilities": {
+     "once_y_media": 0.45,
+     "una_y_media": 0.13,
+     "doce_y_media": 0.42
+    }
+   },
+   "cerrado": {
+    "type": "choice",
+    "choice": "en_la_app",
+    "confidence": 0.74,
+    "probabilities": {
+     "a_todos": 0.0,
+     "solo_cada_vez": 0.17,
+     "en_la_app": 0.83
+    }
+   },
+   "promo": {
+    "type": "choice",
+    "choice": "en_resumen",
+    "confidence": 0.48,
+    "probabilities": {
+     "una_al_dia": 0.35,
+     "en_resumen": 0.65,
+     "todas": 0.0
+    }
+   },
+   "escalas": {
+    "se_acabo": {
+     "type": "score",
+     "score": 2.37,
+     "confidence": 0.36,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.02,
+      "1": 0.23,
+      "2": 0.19,
+      "3": 0.5,
+      "4": 0.06
+     }
+    },
+    "apagaria": {
+     "type": "score",
+     "score": 3.52,
+     "confidence": 0.62,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.01,
+      "2": 0.03,
+      "3": 0.36,
+      "4": 0.6
+     }
+    }
+   }
+  },
+  "papa": {
+   "rol": "foodie",
+   "seguir": {
+    "type": "choice",
+    "choice": "resumen",
+    "confidence": 0.36,
+    "probabilities": {
+     "resumen_y_favoritos": 0.3,
+     "nada": 0.07,
+     "cada_uno": 0.11,
+     "resumen": 0.52
+    }
+   },
+   "hora": {
+    "type": "choice",
+    "choice": "once_y_media",
+    "confidence": 0.34,
+    "probabilities": {
+     "una_y_media": 0.08,
+     "doce_y_media": 0.36,
+     "once_y_media": 0.56
+    }
+   },
+   "cerrado": {
+    "type": "choice",
+    "choice": "a_todos",
+    "confidence": 0.33,
+    "probabilities": {
+     "a_todos": 0.55,
+     "en_la_app": 0.25,
+     "solo_cada_vez": 0.2
+    }
+   },
+   "promo": {
+    "type": "choice",
+    "choice": "en_resumen",
+    "confidence": 0.44,
+    "probabilities": {
+     "todas": 0.05,
+     "en_resumen": 0.63,
+     "una_al_dia": 0.32
+    }
+   },
+   "escalas": {
+    "se_acabo": {
+     "type": "score",
+     "score": 2.31,
+     "confidence": 0.36,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.25,
+      "2": 0.2,
+      "3": 0.5,
+      "4": 0.04
+     }
+    },
+    "apagaria": {
+     "type": "score",
+     "score": 3.03,
+     "confidence": 0.51,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.07,
+      "2": 0.11,
+      "3": 0.5,
+      "4": 0.31
+     }
+    }
+   }
+  },
+  "jubilada": {
+   "rol": "foodie",
+   "seguir": {
+    "type": "choice",
+    "choice": "resumen",
+    "confidence": 0.45,
+    "probabilities": {
+     "cada_uno": 0.04,
+     "resumen_y_favoritos": 0.27,
+     "nada": 0.1,
+     "resumen": 0.59
+    }
+   },
+   "hora": {
+    "type": "choice",
+    "choice": "once_y_media",
+    "confidence": 0.46,
+    "probabilities": {
+     "doce_y_media": 0.33,
+     "una_y_media": 0.03,
+     "once_y_media": 0.64
+    }
+   },
+   "cerrado": {
+    "type": "choice",
+    "choice": "a_todos",
+    "confidence": 0.67,
+    "probabilities": {
+     "solo_cada_vez": 0.08,
+     "en_la_app": 0.14,
+     "a_todos": 0.78
+    }
+   },
+   "promo": {
+    "type": "choice",
+    "choice": "en_resumen",
+    "confidence": 0.25,
+    "probabilities": {
+     "todas": 0.1,
+     "una_al_dia": 0.4,
+     "en_resumen": 0.5
+    }
+   },
+   "escalas": {
+    "se_acabo": {
+     "type": "score",
+     "score": 2.17,
+     "confidence": 0.22,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.03,
+      "1": 0.32,
+      "2": 0.15,
+      "3": 0.44,
+      "4": 0.06
+     }
+    },
+    "apagaria": {
+     "type": "score",
+     "score": 3.23,
+     "confidence": 0.37,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.02,
+      "1": 0.05,
+      "2": 0.09,
+      "3": 0.35,
+      "4": 0.49
+     }
+    }
+   }
+  },
+  "foodie": {
+   "rol": "foodie",
+   "seguir": {
+    "type": "choice",
+    "choice": "resumen_y_favoritos",
+    "confidence": 0.4,
+    "probabilities": {
+     "nada": 0.04,
+     "cada_uno": 0.02,
+     "resumen": 0.39,
+     "resumen_y_favoritos": 0.55
+    }
+   },
+   "hora": {
+    "type": "choice",
+    "choice": "once_y_media",
+    "confidence": 0.52,
+    "probabilities": {
+     "una_y_media": 0.07,
+     "once_y_media": 0.68,
+     "doce_y_media": 0.25
+    }
+   },
+   "cerrado": {
+    "type": "choice",
+    "choice": "en_la_app",
+    "confidence": 0.33,
+    "probabilities": {
+     "solo_cada_vez": 0.23,
+     "en_la_app": 0.55,
+     "a_todos": 0.22
+    }
+   },
+   "promo": {
+    "type": "choice",
+    "choice": "en_resumen",
+    "confidence": 0.19,
+    "probabilities": {
+     "una_al_dia": 0.39,
+     "en_resumen": 0.46,
+     "todas": 0.15
+    }
+   },
+   "escalas": {
+    "se_acabo": {
+     "type": "score",
+     "score": 2.67,
+     "confidence": 0.48,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.16,
+      "2": 0.12,
+      "3": 0.56,
+      "4": 0.15
+     }
+    },
+    "apagaria": {
+     "type": "score",
+     "score": 2.28,
+     "confidence": 0.19,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.07,
+      "1": 0.23,
+      "2": 0.17,
+      "3": 0.4,
+      "4": 0.13
+     }
+    }
+   }
+  },
+  "fondera": {
+   "rol": "negocio",
+   "publicar": {
+    "type": "choice",
+    "choice": "resumen_y_cada_vez",
+    "confidence": 0.72,
+    "probabilities": {
+     "resumen_y_cada_vez": 0.81,
+     "aviso_a_todos": 0.18,
+     "solo_app": 0.01
+    }
+   },
+   "fijo": {
+    "type": "choice",
+    "choice": "carta_siempre",
+    "confidence": 0.24,
+    "probabilities": {
+     "carta_siempre": 0.49,
+     "solo_a_las_9": 0.08,
+     "cada_dia_igual": 0.43
+    }
+   },
+   "escalas": {
+    "dejar_listo": {
+     "type": "score",
+     "score": 3.75,
+     "confidence": 0.82,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.0,
+      "2": 0.01,
+      "3": 0.2,
+      "4": 0.79
+     }
+    },
+    "se_acabo": {
+     "type": "score",
+     "score": 3.16,
+     "confidence": 0.29,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.04,
+      "1": 0.08,
+      "2": 0.09,
+      "3": 0.27,
+      "4": 0.52
+     }
+    }
+   }
+  },
+  "taquero": {
+   "rol": "negocio",
+   "publicar": {
+    "type": "choice",
+    "choice": "resumen_y_cada_vez",
+    "confidence": 0.35,
+    "probabilities": {
+     "solo_app": 0.14,
+     "aviso_a_todos": 0.29,
+     "resumen_y_cada_vez": 0.57
+    }
+   },
+   "fijo": {
+    "type": "choice",
+    "choice": "carta_siempre",
+    "confidence": 0.91,
+    "probabilities": {
+     "solo_a_las_9": 0.0,
+     "cada_dia_igual": 0.06,
+     "carta_siempre": 0.94
+    }
+   },
+   "escalas": {
+    "dejar_listo": {
+     "type": "score",
+     "score": 1.69,
+     "confidence": 0.29,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.08,
+      "1": 0.52,
+      "2": 0.11,
+      "3": 0.21,
+      "4": 0.08
+     }
+    },
+    "se_acabo": {
+     "type": "score",
+     "score": 1.63,
+     "confidence": 0.07,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.24,
+      "1": 0.35,
+      "2": 0.09,
+      "3": 0.18,
+      "4": 0.14
+     }
+    }
+   }
+  },
+  "postres": {
+   "rol": "negocio",
+   "publicar": {
+    "type": "choice",
+    "choice": "resumen_y_cada_vez",
+    "confidence": 0.53,
+    "probabilities": {
+     "solo_app": 0.03,
+     "aviso_a_todos": 0.28,
+     "resumen_y_cada_vez": 0.69
+    }
+   },
+   "fijo": {
+    "type": "choice",
+    "choice": "carta_siempre",
+    "confidence": 0.98,
+    "probabilities": {
+     "cada_dia_igual": 0.01,
+     "carta_siempre": 0.99,
+     "solo_a_las_9": 0.0
+    }
+   },
+   "escalas": {
+    "dejar_listo": {
+     "type": "score",
+     "score": 2.12,
+     "confidence": 0.0,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.05,
+      "1": 0.37,
+      "2": 0.14,
+      "3": 0.28,
+      "4": 0.16
+     }
+    },
+    "se_acabo": {
+     "type": "score",
+     "score": 2.16,
+     "confidence": 0.0,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.12,
+      "1": 0.27,
+      "2": 0.15,
+      "3": 0.26,
+      "4": 0.2
+     }
+    }
+   }
+  }
+ }
+}

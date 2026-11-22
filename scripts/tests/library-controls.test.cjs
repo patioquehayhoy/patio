@@ -102,7 +102,7 @@ function fixture(file, overrides = {}) {
     '@/lib/use-sheet-keyboard': { useSheetKeyboard: () => ({ keyboardInset: 0, keyboardVisible: false, viewportHeight: 568 }) },
     '@/lib/layout-metrics': layoutMetrics,
     '@/lib/surface-styles': surfaceStyles,
-    '@/lib/theme': { Radius: { card: 18 }, useTheme: () => ({ theme: { isDark: false, text: '#111', bg: '#fff', border: '#eee', accent: '#f60' } }) },
+    '@/lib/theme': { Radius: { card: 18 }, useTheme: () => ({ theme: { isDark: false, text: '#111', bg: '#fff', border: '#eee', accent: '#f60', danger: '#FF3B30' } }) },
     '@/lib/tab-bar-visibility': { useTabBarScroll: () => ({ onScroll() {}, reveal() {} }), useHideTabBarWhile: () => {} },
     '@/lib/recent-patios': { recordRecentPatio: async () => {} },
     '@/lib/patio-sort': { patioDistance: () => null, patioTypicalPrice: () => null, sortPatiosByMetric: (items) => [...items] },
@@ -362,12 +362,21 @@ test('map location uses the shared trailing control slot and exposes pending fee
   assert.equal(Object.assign({}, ...organize.props.style).width, 40);
 });
 
-test('menu symbols render before labels and selection marks keep a leading slot', () => {
+// Como los menús de iOS (Parco, 16 nov: «copia a Apple al pie de la letra»):
+// el texto a la izquierda y el símbolo a la derecha; la palomita, si el menú
+// elige algo, en su columna a la izquierda. (Antes el símbolo iba primero y
+// dejaba un hueco a la derecha.)
+test('menu labels lead and symbols trail like iOS, and selection marks keep a leading slot', () => {
   const source = fs.readFileSync(path.resolve(__dirname, '../..', 'components/action-sheet.tsx'), 'utf8');
   const icon = source.indexOf('<Ionicons name={option.icon}');
-  const label = source.indexOf('<Text style={s.rowText}>');
-  assert.ok(icon > 0 && label > icon);
+  const label = source.indexOf('<Text style={[s.rowText');
+  assert.ok(label > 0 && icon > label);
   assert.match(source, /selectionMark.*option\.selected/);
+  // Lo que borra va en rojo (texto y símbolo) con el token del tema, el mismo
+  // para Foodie y Fondero; nunca el naranja de marca.
+  assert.match(source, /const danger = theme\.danger/);
+  assert.doesNotMatch(source, /fonderoPalette/);
+  assert.doesNotMatch(source, /destructive \? theme\.accent/);
 });
 
 test('iOS opens a subsequent panel only after actual native menu dismissal, once', () => {

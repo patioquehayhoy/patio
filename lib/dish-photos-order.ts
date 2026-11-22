@@ -18,6 +18,8 @@ export type DishPhoto = {
   /** Cuándo se subió (ms). */
   at?: number;
   reviewId?: string;
+  /** La foto dentro de su reseña (`review_photos.id`); una reseña lleva hasta 5. */
+  photoId?: string;
   userId?: string;
   /** Foto de perfil de quien la subió. */
   avatar?: string;

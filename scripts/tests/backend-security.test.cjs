@@ -176,7 +176,12 @@ test('search-intent: signed in request reaches provider and returns structured i
   assert.deepEqual(await response.json(), intent);
 });
 
-function publicationAdmin({ menuExists = true, ownsPatio = true, targetCount = 0, sentToday = null } = {}) {
+// Abierto a toda hora (abre y cierra a las 00:00 cuenta como turno que cruza la
+// medianoche): la prueba no depende de la hora en que corre.
+const ALWAYS_OPEN = Array.from({ length: 7 }, (_, dia) => ({ dia, cerrado: false, abre: '00:00', cierra: '00:00' }));
+const ALWAYS_CLOSED = Array.from({ length: 7 }, (_, dia) => ({ dia, cerrado: true, abre: null, cierra: null }));
+
+function publicationAdmin({ menuExists = true, ownsPatio = true, targetCount = 0, sentToday = null, horario = ALWAYS_OPEN } = {}) {
   const mutations = [];
   const targets = Array.from({ length: targetCount }, (_, index) => ({
     id: `device-${index}`, user_id: `follower-${index}`, expo_push_token: `ExpoPushToken[${index}]`,
@@ -185,6 +190,10 @@ function publicationAdmin({ menuExists = true, ownsPatio = true, targetCount = 0
     mutations,
     admin: {
       auth: { getUser: async () => ({ data: { user: { id: userId, email: 'owner@example.test', email_confirmed_at: '2026-01-01' } }, error: null }) },
+      // Al momento, solo quienes tienen el lugar en «Cada vez» (realtime_followers).
+      rpc: async (name) => (name === 'realtime_followers'
+        ? { data: targets.map(({ user_id }) => ({ user_id })), error: null }
+        : { data: null, error: null }),
       from: (table) => {
         let inserted;
         const query = {
@@ -194,7 +203,7 @@ function publicationAdmin({ menuExists = true, ownsPatio = true, targetCount = 0
           single() { return query; }, maybeSingle() { return query; },
           then(resolve) {
             const values = {
-              negocios: { id: userId, nombre: 'Patio prueba', owner_id: ownsPatio ? userId : 'someone-else' },
+              negocios: { id: userId, nombre: 'Patio prueba', owner_id: ownsPatio ? userId : 'someone-else', horario_semanal: horario },
               menus: menuExists ? { secciones: { secciones: [] } } : null,
               publication_events: inserted ? { id: 'event-1' } : null,
               patio_follows: targets.map(({ user_id }) => ({ user_id })),
@@ -234,6 +243,16 @@ test('publication: 205 recipients use Expo batches of 100 with one audited ticke
   assert.deepEqual(batchSizes, [100, 100, 5]);
   assert.equal((await response.json()).delivered, 205);
   assert.equal(mutations.find(([table]) => table === 'notification_deliveries')[1].length, 205);
+});
+
+test('publication: publishing when the place is closed keeps the menu but pushes nobody', async () => {
+  const { admin } = publicationAdmin({ targetCount: 5, horario: ALWAYS_CLOSED });
+  let requested = 0;
+  const handler = loadEdge('send-publication-notifications', admin, async () => { requested++; return Response.json({ data: [] }); });
+  const response = await handler(request({ fonditaId: userId }));
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), { eventId: 'event-1', delivered: 0, afterClose: true });
+  assert.equal(requested, 0);
 });
 
 test('publication: nobody gets more than three menu pushes a day', async () => {

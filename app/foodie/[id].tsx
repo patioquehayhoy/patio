@@ -167,7 +167,8 @@ export function ProfileView({ id, demoName, root = false, hasNews = false, botto
 
   const back = () => { if (router.canGoBack()) router.back(); else router.replace('/explorar'); };
   const blocked = () => { requestRef.current += 1; setProfile(null); setLists([]); setActivity([]); setFollow('none'); setState('missing'); };
-  const photos = activity.filter((review) => !!review.photoUrl);
+  // Cada foto de cada visita (hasta 5 por reseña), más nuevas primero.
+  const photos = activity.flatMap((review) => (review.photos ?? []).map((photo, index) => ({ review, photo, key: `${review.reviewId}-${photo.id ?? index}` })));
   // Cuadrícula de 3, como un perfil de fotos; el ancho sale de la pantalla.
   const tile = Math.floor((screenWidth - 40 - 4) / 3);
   const locked = !!profile && profile.visibility === 'private' && !own && follow !== 'accepted';
@@ -283,16 +284,16 @@ export function ProfileView({ id, demoName, root = false, hasNews = false, botto
             {/* Lo que comió: tocar una foto abre el lugar con ese platillo abierto. */}
             {section === 'fotos' && (photos.length ? (
               <View style={s.grid}>
-                {photos.map((review) => (
+                {photos.map(({ review, photo, key }) => (
                   <TouchableOpacity
-                    key={review.reviewId}
+                    key={key}
                     activeOpacity={0.85}
                     accessibilityRole="imagebutton"
-                    accessibilityLabel={`${review.photoDish ?? 'Foto'} en ${review.placeName}`}
-                    onPress={() => router.push({ pathname: '/patio/[id]', params: { id: review.placeId, ...(review.photoDish ? { platillo: review.photoDish } : {}) } })}>
+                    accessibilityLabel={`${photo.dish ?? 'Foto'} en ${review.placeName}`}
+                    onPress={() => router.push({ pathname: '/patio/[id]', params: { id: review.placeId, ...(photo.dish ? { platillo: photo.dish } : {}) } })}>
                     <PhotoImage
-                      source={{ uri: review.photoUrl }}
-                      placeholder={photoPlaceholder(review.photoHash)}
+                      source={{ uri: photo.url }}
+                      placeholder={photoPlaceholder(photo.hash)}
                       placeholderContentFit="cover"
                       style={[s.gridPhoto, { width: tile, height: tile, backgroundColor: theme.border }]}
                       contentFit="cover"

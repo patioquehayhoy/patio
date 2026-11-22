@@ -1,5 +1,30 @@
 # Pendientes y roadmap de lanzamiento — actualizado 2026-11-07
 
+## Corte 2026-11-21 (Claude)
+
+- [x] Campana por lugar como YouTube («Todas», «Personalizadas» por defecto,
+  «Ninguna») y resumen de seguidores a las 8:00, 11:30 y 17:30.
+- [x] Aviso de publicar 1 h antes de abrir, sin días cerrados, con pausa y
+  «Hoy no abro»; resumen del negocio en la mañana; publicar ya cerrado no
+  avisa.
+- [x] Publicar más tarde y menú de la semana (programado, sale solo).
+- [x] «Se acabó» por platillo, al instante y sin avisar.
+- [x] Dónde vende: sucursales, tianguis o sobre ruedas, solo a domicilio,
+  «Pedidos hasta».
+- [x] Hasta 5 fotos por reseña con platillo opcional
+  ([FOTOS_Y_RED](FOTOS_Y_RED_2026-11-15.md): «varias fotos por visita»).
+- [x] **Producción (21 nov):** migraciones `20261121090000`–`20261121130000`
+  y 6 funciones desplegadas.
+- [ ] **Parco, QA en el iPhone:** entrar como Foodie y reseñar con 2–3 fotos;
+  campana en «Siguiendo»; mantener presionado «Publicar» → mañana; «Se
+  acabó»; Editar mi negocio → DÓNDE VENDES (sucursal y día de tianguis).
+- [ ] Ver llegar el primer resumen real (8:00 desayunos / 11:30) y el anuncio
+  de un menú programado a su hora.
+- [ ] Carta fija: «¿Siguen igual tus precios?» al mes (falta decidir cómo se
+  ve en la ficha).
+- [ ] Siguiente build: la app instalada sin esta versión no muestra varias
+  fotos por reseña.
+
 ## Corte 2026-11-16 (Claude)
 
 - [x] Fotos en su lugar dentro del menú (sin hoja encima) y vistazo limpio:

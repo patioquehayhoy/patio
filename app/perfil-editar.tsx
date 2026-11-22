@@ -23,6 +23,7 @@ import { GlassIconButton } from '@/components/glass-button';
 import { PlacePhotoPicker } from '@/components/place-photo-picker';
 import { BusinessPaymentSelector } from '@/components/business-payment-selector';
 import { BusinessContactEditor } from '@/components/business-contact-editor';
+import { BusinessWhereEditor } from '@/components/business-where-editor';
 import { BusinessScheduleEditor } from '@/components/business-schedule-editor';
 import { SettingsGroup, SettingsRow, settingsColors } from '@/components/settings-list';
 
@@ -215,6 +216,13 @@ export default function PerfilScreen() {
               </Text>
             </TouchableOpacity>
           </View>
+        </View>
+
+        {/* ── DÓNDE VENDES ── local y sucursales, tianguis o solo a domicilio; se guarda al elegir. */}
+        <View style={s.block}>
+          <Text style={s.blockLabel} allowFontScaling={true}>{noWidow('DÓNDE VENDES')}</Text>
+          <Text style={s.blockHelp} allowFontScaling={true}>{noWidow('Así te encuentra la gente en el mapa. Se guarda en cuanto lo eliges.')}</Text>
+          <BusinessWhereEditor colors={theme} negocioId={negocioId} />
         </View>
 
         {/* ── HORARIO ── */}

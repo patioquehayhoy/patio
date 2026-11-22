@@ -101,6 +101,7 @@ este valor a listas de 1-2 líneas — ahí sigue aplicando 5-7.
 ## Paleta
 
 Paleta, tokens claro/oscuro y usos: `lib/colors.ts`. En oscuro usar los tokens del tema.
+Lo que borra (Eliminar, Quitar) usa `t.danger` (rojo de iOS), nunca el naranja de marca.
 
 ## Componentes
 
@@ -247,4 +248,7 @@ Usar `LinearGradient` de `expo-linear-gradient` para:
 
 - Estilos en `makeStyles(t: Theme)` que recibe el tema — nunca hardcodear colores fuera de paleta
 - Nombres de sección en `UPPERCASE` con `letterSpacing`
-- Animaciones con `Animated` de React Native, duración estándar `200ms`
+- Animaciones con `Animated` de React Native, duración estándar `200ms`.
+  Excepción: deslizar filas, arrastrar y mantener presionado en el editor y
+  en Menús siguen los tiempos de iOS (0.5 s, resortes sin rebote, 0.25 s;
+  ver `components/CLAUDE.md`, «Tiempos de Apple»).

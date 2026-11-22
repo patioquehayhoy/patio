@@ -11,7 +11,15 @@ import { withStorageLock } from './storage-queue';
 const KEY = '@patio_menu_history';
 
 
-export type LocalMenuEntry = { id: string; fecha: string; secciones: MenuData; nombre?: string; published: boolean };
+export type LocalMenuEntry = {
+  id: string;
+  fecha: string;
+  secciones: MenuData;
+  nombre?: string;
+  published: boolean;
+  /** Menú programado (2026-11-21): a qué hora sale (ISO). */
+  publishAt?: string;
+};
 export function newMenuDraftId(): string { return `draft:${makeSectionId()}`; }
 
 
@@ -26,21 +34,32 @@ async function readLocalMenus(): Promise<LocalMenuEntry[]> {
     if (!entry || typeof entry.fecha !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(entry.fecha)) return [];
     const secciones = normalizeMenuData(entry.secciones);
     const nombre = typeof entry.nombre === 'string' ? entry.nombre.trim() : '';
-    return secciones ? [{ id: typeof entry.id === 'string' ? entry.id : entry.fecha, fecha: entry.fecha, secciones, published: entry.published === true, ...(nombre ? { nombre } : {}) }] : [];
+    const publishAt = typeof entry.publishAt === 'string' && !Number.isNaN(Date.parse(entry.publishAt)) ? entry.publishAt : undefined;
+    return secciones ? [{ id: typeof entry.id === 'string' ? entry.id : entry.fecha, fecha: entry.fecha, secciones, published: entry.published === true, ...(nombre ? { nombre } : {}), ...(publishAt ? { publishAt } : {}) }] : [];
   }).sort((a, b) => b.fecha.localeCompare(a.fecha));
 }
 
-type SaveOptions = { id?: string; published?: boolean; fecha?: string };
+type SaveOptions = {
+  id?: string;
+  published?: boolean;
+  fecha?: string;
+  /** Autoguardado del editor: si ese menú ya está publicado, no se escribe encima. */
+  onlyDraft?: boolean;
+  /** Menú programado: a qué hora sale (ISO). */
+  publishAt?: string;
+};
 
 async function writeMenu(data: MenuData, nombre: string | undefined, options: SaveOptions): Promise<void> {
   const list = await readLocalMenus();
   const id = options.id ?? newMenuDraftId();
   const current = list.find((menu) => menu.id === id);
+  if (options.onlyDraft && current?.published) return;
   const fecha = options.fecha ?? current?.fecha ?? localMenuDate();
   const published = options.published ?? false;
   const entry: LocalMenuEntry = {
     id, fecha, secciones: data, published,
     nombre: nombre === undefined ? current?.nombre : nombre.trim() || undefined,
+    ...(options.publishAt ? { publishAt: options.publishAt } : {}),
   };
   // Una publicación por día en servidor; los otros borradores/versiones
   // permanecen guardados y seleccionables por su identidad propia.
@@ -57,13 +76,21 @@ export async function saveLocalMenu(data: MenuData, nombre?: string, options: Sa
 
 // El cambio de cuenta espera toda la publicación, incluida la red. Las
 // operaciones internas no vuelven a adquirir el lock y no pueden bloquearse.
-export async function saveMenuPublication(data: MenuData, nombre: string | undefined, id: string, publish: (savedLocally: boolean) => Promise<void>): Promise<void> {
+export async function saveMenuPublication(
+  data: MenuData,
+  nombre: string | undefined,
+  id: string,
+  publish: (savedLocally: boolean) => Promise<void>,
+  schedule?: { fecha: string; publishAt: string },
+): Promise<void> {
   return withStorageLock(KEY, async () => {
-    const fecha = localMenuDate();
+    // Hoy, o el día de un menú programado.
+    const fecha = schedule?.fecha ?? localMenuDate();
+    const publishAt = schedule?.publishAt;
     let saved = false;
-    try { await writeMenu(data, nombre, { id, fecha }); saved = true; } catch {}
+    try { await writeMenu(data, nombre, { id, fecha, publishAt }); saved = true; } catch {}
     await publish(saved);
-    try { await writeMenu(data, nombre, { id, fecha, published: true }); } catch {}
+    try { await writeMenu(data, nombre, { id, fecha, published: true, publishAt }); } catch {}
   });
 }
 

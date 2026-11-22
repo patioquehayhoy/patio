@@ -46,18 +46,27 @@ export async function upsertFondita(_email: string): Promise<string | null> {
   return data.id;
 }
 
-export async function saveMenuHoy(fonditaId: string, data: MenuData): Promise<void> {
+/**
+ * Guarda el menú publicado de un día. Sin `schedule`, es el de hoy y sale ya
+ * (`publish_at` vacío). Con `schedule` (2026-11-21), es el de otro día y sale
+ * solo a esa hora: hasta entonces solo lo ve su dueño (migración
+ * 20261121120000). `keepSchedule` cambia el menú sin tocar su hora («Se acabó»).
+ */
+export async function saveMenuHoy(
+  fonditaId: string,
+  data: MenuData,
+  options: { schedule?: { fecha: string; publishAt: string }; fecha?: string; keepSchedule?: boolean } = {},
+): Promise<void> {
   if (!isUuid(fonditaId)) {
     throw new Error(`fonditaId inválido para UUID: ${fonditaId}`);
   }
-  const fecha = hoy();
+  const fecha = options.schedule?.fecha ?? options.fecha ?? hoy();
   debugLog('[db] saveMenuHoy →', { fonditaId, fecha });
+  const row: Record<string, unknown> = { negocio_id: fonditaId, secciones: data, fecha };
+  if (!options.keepSchedule) row.publish_at = options.schedule?.publishAt ?? null;
   const { error } = await supabase
     .from('menus')
-    .upsert(
-      { negocio_id: fonditaId, secciones: data, fecha },
-      { onConflict: 'negocio_id,fecha' }
-    );
+    .upsert(row, { onConflict: 'negocio_id,fecha' });
   if (error) throw error;
   debugLog('[db] saveMenuHoy OK');
 }
@@ -71,12 +80,11 @@ export async function deleteMenuHoy(fonditaId: string): Promise<void> {
   if (error) throw error;
 }
 
-export async function loadMenuHoy(fonditaId: string): Promise<MenuData | null> {
+export async function loadMenuHoy(fonditaId: string, fecha = hoy()): Promise<MenuData | null> {
   if (!isUuid(fonditaId)) {
     console.warn('[db] loadMenuHoy skipped: fonditaId inválido para UUID', { fonditaId });
     return null;
   }
-  const fecha = hoy();
   debugLog('[db] loadMenuHoy →', { fonditaId, fecha });
   const { data, error } = await supabase
     .from('menus')

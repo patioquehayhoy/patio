@@ -1,8 +1,8 @@
 import * as Haptics from 'expo-haptics';
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, TouchableOpacity, View, type LayoutChangeEvent, type ScrollView, type StyleProp, type ViewStyle } from 'react-native';
 import { Gesture, GestureDetector, type GestureType } from 'react-native-gesture-handler';
-import ReAnimated, { Easing, runOnJS, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import ReAnimated, { Easing, runOnJS, useAnimatedStyle, useReducedMotion, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 
 // Acciones al deslizar, como las listas de iOS (Recordatorios, Mail), al pie
 // de la letra (2026-11-16):
@@ -30,7 +30,14 @@ export type SwipeAction = { label: string; color: string; onPress: () => void; a
 // Ancho de cada botón: su palabra y aire a los lados (mínimo el de iOS).
 const actionWidth = (label: string) => Math.max(76, Math.round(label.length * 9.5 + 32));
 const FULL_SWIPE = 0.55;
-const SNAP = { duration: 220, easing: Easing.out(Easing.cubic) };
+// Abrir y cerrar como iOS: un resorte sin rebote que sigue con la velocidad
+// del dedo (WWDC23, «Animate with springs»). Con Reducir movimiento, un
+// cambio corto sin resorte (HIG: «tightening animation springs»).
+const SNAP_MS = 350;
+const SPRING = { duration: SNAP_MS, dampingRatio: 1 };
+const QUICK = { duration: 120, easing: Easing.out(Easing.cubic) };
+// Eliminar: la fila sale completa hacia la izquierda.
+const OUT = { duration: 200, easing: Easing.out(Easing.cubic) };
 
 // La fila abierta (solo una): se cierra cuando se toca cualquier otra cosa.
 type OpenRow = { id: number; close: () => void; rect: { x: number; y: number; width: number; height: number } | null };
@@ -69,6 +76,7 @@ export function SwipeRow({ children, drag, enabled, actions, fullSwipe = false, 
   onLayout?: (event: LayoutChangeEvent) => void;
   rowRef?: (view: View | null) => void;
 }) {
+  const reduceMotion = useReducedMotion();
   const id = useRef(0);
   if (!id.current) id.current = nextId++;
   const outer = useRef<View | null>(null);
@@ -86,7 +94,7 @@ export function SwipeRow({ children, drag, enabled, actions, fullSwipe = false, 
   const fill = (fullSwipe ? actions[actions.length - 1] : actions[0])?.color;
 
   const close = () => {
-    x.value = withTiming(0, SNAP);
+    x.value = reduceMotion ? withTiming(0, QUICK) : withSpring(0, SPRING);
     if (openRow?.id === id.current) openRow = null;
     setIsOpen(false);
   };
@@ -118,14 +126,14 @@ export function SwipeRow({ children, drag, enabled, actions, fullSwipe = false, 
       action.onPress();
       // Si la fila sigue aquí (la acción no se pudo, p. ej. la única sección
       // de hoy), regresa: nunca se queda empujada.
-      setTimeout(() => { if (mounted.current) x.value = withTiming(0, SNAP); }, 260);
+      setTimeout(() => { if (mounted.current) x.value = reduceMotion ? withTiming(0, QUICK) : withSpring(0, SPRING); }, 260);
       return;
     }
-    x.value = withTiming(0, SNAP);
+    x.value = reduceMotion ? withTiming(0, QUICK) : withSpring(0, SPRING);
     action.onPress();
   };
   const slideOutAndRun = (index: number) => {
-    x.value = withTiming(-width.value, { duration: 160, easing: Easing.out(Easing.cubic) }, (finished) => {
+    x.value = withTiming(-width.value, OUT, (finished) => {
       if (finished) runOnJS(run)(index, true);
     });
   };
@@ -139,18 +147,28 @@ export function SwipeRow({ children, drag, enabled, actions, fullSwipe = false, 
   }, []);
 
   const last = actions.length - 1;
-  let swipe = Gesture.Pan()
-    .enabled(enabled)
+  // El gesto se crea una vez (rapidez al escribir: rehacerlo en cada letra lo
+  // volvía a mandar al hilo de la interfaz). Lo que hace en cada momento lo
+  // lee de `live`; prenderlo o apagarlo cambia su configuración en su lugar.
+  const live = useRef({ touched, tick, run, settle });
+  live.current = { touched, tick, run, settle };
+  const onTouched = useRef(() => live.current.touched()).current;
+  const onTick = useRef(() => live.current.tick()).current;
+  const onRun = useRef((index: number, slideOut: boolean) => live.current.run(index, slideOut)).current;
+  const onSettle = useRef((open: boolean) => live.current.settle(open)).current;
+  const reduce = reduceMotion;
+  const swipe = useMemo(() => {
+    const pan = Gesture.Pan()
     .activeOffsetX([-14, 14])
     .failOffsetY([-10, 10])
-    .onBegin(() => { runOnJS(touched)(); })
+    .onBegin(() => { runOnJS(onTouched)(); })
     .onStart(() => { start.value = x.value; armed.value = false; })
     .onUpdate((event) => {
       let next = Math.min(0, start.value + event.translationX);
       if (fullSwipe) {
         next = Math.max(-width.value, next);
         const past = -next > width.value * FULL_SWIPE;
-        if (past !== armed.value) { armed.value = past; runOnJS(tick)(); }
+        if (past !== armed.value) { armed.value = past; runOnJS(onTick)(); }
       } else if (-next > total) {
         // Más allá de los botones, resiste (como iOS).
         next = -(total + (-next - total) * 0.3);
@@ -160,15 +178,17 @@ export function SwipeRow({ children, drag, enabled, actions, fullSwipe = false, 
     .onEnd((event) => {
       const open = -x.value;
       if (fullSwipe && armed.value) {
-        x.value = withTiming(-width.value, { duration: 140 }, (finished) => { if (finished) runOnJS(run)(last, true); });
+        x.value = withTiming(-width.value, OUT, (finished) => { if (finished) runOnJS(onRun)(last, true); });
         return;
       }
       const stays = event.velocityX < -500 || (open > total / 2 && event.velocityX < 500);
-      x.value = withTiming(stays ? -total : 0, SNAP);
-      runOnJS(settle)(stays);
+      x.value = reduce ? withTiming(stays ? -total : 0, QUICK) : withSpring(stays ? -total : 0, { ...SPRING, velocity: event.velocityX });
+      runOnJS(onSettle)(stays);
     });
-  if (scrollRef) swipe = swipe.blocksExternalGesture(scrollRef as unknown as Parameters<typeof swipe.blocksExternalGesture>[0]);
-  const gesture = drag ? Gesture.Race(drag, swipe) : swipe;
+    return scrollRef ? pan.blocksExternalGesture(scrollRef as unknown as Parameters<typeof pan.blocksExternalGesture>[0]) : pan;
+  }, [fullSwipe, total, last, scrollRef, reduce, x, start, width, armed, onTouched, onTick, onRun, onSettle]);
+  swipe.enabled(enabled);
+  const gesture = useMemo(() => (drag ? Gesture.Race(drag, swipe) : swipe), [drag, swipe]);
 
   const content = useAnimatedStyle(() => ({ transform: [{ translateX: x.value }] }));
   // Detrás de la fila, quietas a la derecha; solo crece el color si se

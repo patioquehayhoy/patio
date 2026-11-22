@@ -1,15 +1,16 @@
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
-import { Alert, Animated, Image, KeyboardAvoidingView, Linking, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { createRef, useEffect, useRef, useState } from 'react';
+import { Alert, Image, KeyboardAvoidingView, Linking, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { ActionSheet } from '@/components/action-sheet';
+import { ActionSheet, type ActionSheetOption } from '@/components/action-sheet';
 import { fetchFonditaById, fetchPublicFonditas, getPatioById, type Patio } from '@/lib/patios';
 import { patioCardPrice } from '@/lib/patio-card-info';
-import { getRatedPatioIds, savePatioRating } from '@/lib/ratings';
-import { pickPlacePhoto, PlacePhotoPermissionError, type PlacePhotoSource } from '@/lib/place-photo';
+import { getRatedPatioIds, MAX_REVIEW_PHOTOS, savePatioRating } from '@/lib/ratings';
+import { pickPhotos, PlacePhotoPermissionError, type PlacePhotoSource } from '@/lib/place-photo';
 import { similarPlaces } from '@/lib/recommendations';
 import { writeErrorMessage } from '@/lib/content-safety';
 import { reviewTags } from '@/lib/review-tags';
@@ -35,10 +36,10 @@ function makeStyles(t: Theme) {
     title: { ...Type.title, color: t.text, marginBottom: 4 },
     subtitle: { fontSize: 13, fontWeight: '400', color: t.textSecondary, marginBottom: 22 },
 
-    starsRow: { flexDirection: 'row', gap: 8, marginBottom: 24 },
-    star: { width: 48, height: 48, borderRadius: 14, borderCurve: 'continuous', alignItems: 'center', justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth },
-    starOn: { backgroundColor: t.accentSoft, borderColor: 'rgba(242,97,47,0.25)' },
-    starOff: { backgroundColor: t.isDark ? 'rgba(255,255,255,0.06)' : 'rgba(17,18,20,0.04)', borderColor: 'transparent' },
+    // Como calificar en iOS (App Store): solo las estrellas, sin cajas; se
+    // llenan al instante, sin rebote. Cada una con su área de 48 para el dedo.
+    starsRow: { flexDirection: 'row', gap: 4, marginBottom: 24, marginLeft: -8 },
+    star: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
 
     sectionLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase', color: t.textSecondary, marginBottom: 10 },
     tagsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 24 },
@@ -53,7 +54,13 @@ function makeStyles(t: Theme) {
 
     photoRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 14, borderCurve: 'continuous', backgroundColor: t.isDark ? 'rgba(255,255,255,0.04)' : 'rgba(17,18,20,0.04)', borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
     photoText: { fontSize: 13, color: t.textSecondary, flex: 1 },
-    dishPick: { marginTop: 18 },
+    // Las fotos elegidas: una tarjeta, una fila por foto (foto, su platillo).
+    photoList: { borderRadius: 18, borderCurve: 'continuous', backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, marginBottom: 8, overflow: 'hidden' },
+    photoItem: { minHeight: 72, paddingVertical: 8, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', gap: 12 },
+    photoItemDivider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border },
+    photoItemCopy: { flex: 1, minWidth: 0 },
+    photoDish: { fontSize: 15, lineHeight: 20, fontWeight: '700', color: t.text },
+    photoAsk: { fontSize: 14, lineHeight: 19, fontWeight: '400', color: t.textSecondary },
     photoThumb: { width: 56, height: 56, borderRadius: 12, borderCurve: 'continuous' },
 
     ctaWrap: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 20, paddingTop: 14 },
@@ -89,15 +96,13 @@ export default function ResenaScreen() {
   const [stars, setStars] = useState(initialStars);
   const [selected, setSelected] = useState<string[]>([]);
   const [note, setNote] = useState('');
-  const [photoUri, setPhotoUri] = useState<string | undefined>(undefined);
-  // ¿De qué platillo es la foto? (2026-11-15): así sale en la ficha al
-  // mantener presionado ese platillo. Opcional.
-  const [photoDish, setPhotoDish] = useState<string | undefined>(undefined);
+  // Fotos de la visita (2026-11-21, Jev: varias por visita; hasta 5). Cada una
+  // dice, si quieres, de qué platillo es: así sale en ese platillo del menú.
+  const [photos, setPhotos] = useState<{ uri: string; dish?: string }[]>([]);
   const [saving, setSaving] = useState(false);
   // Después de publicar: «Parecidos cerca» para seguir buscando lugares.
   const [similar, setSimilar] = useState<Patio[] | null>(null);
 
-  const starAnims = useRef([1, 2, 3, 4, 5].map(() => new Animated.Value(1))).current;
 
   useEffect(() => {
     if (!cleanId) return;
@@ -112,26 +117,18 @@ export default function ResenaScreen() {
     // Cruzar de «destacó» a «faltó» cambia las etiquetas: lo elegido ya no aplica.
     if ((n <= 3) !== (stars <= 3)) setSelected([]);
     setStars(n);
-    // Pulso de las estrellas activas, escalonado (como Figma).
-    [1, 2, 3, 4, 5].forEach((i) => {
-      if (i <= n) {
-        Animated.sequence([
-          Animated.delay(i * 40),
-          Animated.spring(starAnims[i - 1], { toValue: 1.15, useNativeDriver: true, stiffness: 400, damping: 10, mass: 0.6 }),
-          Animated.spring(starAnims[i - 1], { toValue: 1, useNativeDriver: true, stiffness: 400, damping: 12, mass: 0.6 }),
-        ]).start();
-      }
-    });
+    Haptics.selectionAsync().catch(() => {});
   };
 
   const toggleTag = (t: string) => {
     setSelected((prev) => (prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]));
   };
 
+  const left = MAX_REVIEW_PHOTOS - photos.length;
   const choosePhoto = async (source: PlacePhotoSource) => {
     try {
-      const asset = await pickPlacePhoto(source);
-      if (asset) setPhotoUri(asset.uri);
+      const assets = await pickPhotos(source, left);
+      if (assets.length) setPhotos((current) => [...current, ...assets.filter((asset) => !current.some((photo) => photo.uri === asset.uri)).map((asset) => ({ uri: asset.uri }))].slice(0, MAX_REVIEW_PHOTOS));
     } catch (error) {
       if (error instanceof PlacePhotoPermissionError) {
         Alert.alert(
@@ -144,17 +141,28 @@ export default function ResenaScreen() {
       }
     }
   };
-  // Tomarla ahí mismo o elegir de Fotos; con foto, también quitarla. Menú
-  // anclado de Patio, el mismo de la foto de un platillo en el editor.
-  const photoRowRef = useRef<View>(null);
-  const [photoMenuOpen, setPhotoMenuOpen] = useState(false);
-  const photoOptions = [
-    { label: 'Tomar foto', icon: 'camera-outline' as const, afterDismiss: true, onPress: () => { void choosePhoto('camera'); } },
-    { label: 'Elegir de Fotos', icon: 'images-outline' as const, afterDismiss: true, onPress: () => { void choosePhoto('library'); } },
-    ...(photoUri ? [{ label: 'Quitar foto', icon: 'trash-outline' as const, destructive: true, onPress: () => { setPhotoUri(undefined); setPhotoDish(undefined); } }] : []),
-  ];
-
   const dishOptions = [...new Set([...(patio?.menu ?? []), ...(patio?.carta ?? [])].flatMap((section) => section.items.map((item) => item.name)))].slice(0, 24);
+
+  // Menús anclados de Patio (los mismos de la foto de un platillo en el
+  // editor): «Agregar foto» abre Tomar foto / Elegir de Fotos; cada foto abre
+  // sus platillos (el elegido con palomita; tocarlo otra vez lo quita) y
+  // «Quitar foto».
+  const addRef = useRef<View>(null);
+  const itemRefs = useRef(Array.from({ length: MAX_REVIEW_PHOTOS }, () => createRef<View>())).current;
+  const [menuFor, setMenuFor] = useState<'add' | number | null>(null);
+  const setDish = (index: number, dish: string | undefined) => setPhotos((current) => current.map((photo, at) => (at === index ? { ...photo, dish } : photo)));
+  const menuOptions: ActionSheetOption[] = menuFor === 'add'
+    ? [
+      { label: 'Tomar foto', icon: 'camera-outline', afterDismiss: true, onPress: () => { void choosePhoto('camera'); } },
+      { label: left > 1 ? `Elegir de Fotos (hasta ${left})` : 'Elegir de Fotos', icon: 'images-outline', afterDismiss: true, onPress: () => { void choosePhoto('library'); } },
+    ]
+    : menuFor === null ? [] : [
+      ...dishOptions.map((name): ActionSheetOption => {
+        const on = photos[menuFor]?.dish === name;
+        return { label: name, icon: 'restaurant-outline', selected: on, onPress: () => setDish(menuFor, on ? undefined : name) };
+      }),
+      { label: 'Quitar foto', icon: 'trash-outline', destructive: true, onPress: () => setPhotos((current) => current.filter((_, at) => at !== menuFor)) },
+    ];
 
   const subtitle = (() => {
     const dishes = patio?.menu?.[0]?.items?.slice(0, 2).map((it) => it.name).join(' · ');
@@ -171,7 +179,7 @@ export default function ResenaScreen() {
     }
     setSaving(true);
     try {
-      await savePatioRating(cleanId, { stars, reasons: selected, note, photoUri, photoDish });
+      await savePatioRating(cleanId, { stars, reasons: selected, note, photos });
       const suggestions = patio
         ? await Promise.all([fetchPublicFonditas(), getRatedPatioIds()])
           .then(([all, rated]) => similarPlaces(patio, all, rated))
@@ -181,7 +189,7 @@ export default function ResenaScreen() {
       else router.back();
     } catch (error) {
       Alert.alert(noWidow('No pudimos publicar tu reseña'), noWidow(error instanceof Error && error.message === 'REVIEW_PHOTO_UPLOAD_FAILED'
-        ? 'No se pudo subir la foto. Revisa tu conexión o quítala y publica sin ella.'
+        ? (photos.length > 1 ? 'No se pudieron subir las fotos. Revisa tu conexión o quítalas y publica sin ellas.' : 'No se pudo subir la foto. Revisa tu conexión o quítala y publica sin ella.')
         : writeErrorMessage(error, 'Revisa tu conexión e inténtalo otra vez.')));
     } finally {
       setSaving(false);
@@ -249,9 +257,9 @@ export default function ResenaScreen() {
             const active = n <= stars;
             return (
               <TouchableOpacity key={n} activeOpacity={0.85} onPress={() => pressStar(n)} accessibilityRole="button" accessibilityLabel={`${n} ${n === 1 ? 'estrella' : 'estrellas'}`} accessibilityState={{ selected: active }}>
-                <Animated.View style={[s.star, active ? s.starOn : s.starOff, { transform: [{ scale: starAnims[n - 1] }] }]}>
-                  <Ionicons name={active ? 'star' : 'star-outline'} size={22} color={active ? theme.accent : (theme.isDark ? 'rgba(255,255,255,0.25)' : 'rgba(17,18,20,0.2)')} />
-                </Animated.View>
+                <View style={s.star}>
+                  <Ionicons name={active ? 'star' : 'star-outline'} size={32} color={active ? theme.accent : theme.textMute} />
+                </View>
               </TouchableOpacity>
             );
           })}
@@ -283,31 +291,37 @@ export default function ResenaScreen() {
           />
         </View>
 
-        <View ref={photoRowRef} collapsable={false}>
-        <TouchableOpacity style={s.photoRow} activeOpacity={0.85} onPress={() => setPhotoMenuOpen(true)} accessibilityRole="button" accessibilityLabel={photoUri ? 'Cambiar foto de la reseña' : 'Agregar foto opcional a la reseña'}>
-          {photoUri
-            ? <Image source={{ uri: photoUri }} style={s.photoThumb} />
-            : <Ionicons name="camera-outline" size={16} color={theme.accent} />}
-          <Text style={s.photoText} allowFontScaling={true}>
-            {photoUri ? 'Cambiar foto' : 'Foto opcional · le ayuda a quien busca'}
-          </Text>
-          {photoUri ? <Ionicons name="checkmark-circle" size={18} color={theme.accent} /> : null}
-        </TouchableOpacity>
-        </View>
-        {/* Con foto: ¿de qué platillo es? Los del menú de hoy y la carta. */}
-        {!!photoUri && dishOptions.length > 0 && (
-          <View style={s.dishPick}>
-            <Text style={s.sectionLabel}>{noWidow('¿De qué platillo es?')}</Text>
-            <View style={s.tagsWrap}>
-              {dishOptions.map((name) => {
-                const on = photoDish === name;
-                return (
-                  <TouchableOpacity key={name} activeOpacity={0.85} onPress={() => setPhotoDish(on ? undefined : name)} style={[s.tag, on ? s.tagOn : s.tagOff]} hitSlop={{ top: 6, bottom: 6, left: 4, right: 4 }} accessibilityRole="button" accessibilityState={{ selected: on }}>
-                    <Text style={[s.tagText, on && s.tagTextOn]} allowFontScaling={true}>{name}</Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
+        {photos.length > 0 && (
+          <View style={s.photoList}>
+            {photos.map((photo, index) => (
+              <View key={photo.uri} ref={itemRefs[index]} collapsable={false} style={index > 0 && s.photoItemDivider}>
+                <TouchableOpacity
+                  style={s.photoItem}
+                  activeOpacity={0.7}
+                  onPress={() => setMenuFor(index)}
+                  accessibilityRole="button"
+                  accessibilityLabel={photo.dish ? `Foto ${index + 1}, ${photo.dish}` : `Foto ${index + 1}, sin platillo`}
+                  accessibilityHint={dishOptions.length ? 'Elige de qué platillo es o quítala' : 'Quítala'}>
+                  <Image source={{ uri: photo.uri }} style={s.photoThumb} />
+                  <View style={s.photoItemCopy}>
+                    {photo.dish
+                      ? <Text style={s.photoDish} allowFontScaling={true}>{photo.dish}</Text>
+                      : <Text style={s.photoAsk} allowFontScaling={true}>{noWidow(dishOptions.length ? '¿De qué platillo es? (opcional)' : 'Foto de tu visita')}</Text>}
+                  </View>
+                  <Ionicons name="chevron-forward" size={16} color={theme.textMute} />
+                </TouchableOpacity>
+              </View>
+            ))}
+          </View>
+        )}
+        {left > 0 && (
+          <View ref={addRef} collapsable={false}>
+            <TouchableOpacity style={s.photoRow} activeOpacity={0.85} onPress={() => setMenuFor('add')} accessibilityRole="button" accessibilityLabel={photos.length ? `Agregar otra foto, quedan ${left}` : 'Agregar fotos opcionales a la reseña'}>
+              <Ionicons name="camera-outline" size={16} color={theme.accent} />
+              <Text style={s.photoText} allowFontScaling={true}>
+                {noWidow(photos.length ? `Agregar otra foto · quedan ${left}` : `Fotos opcionales · hasta ${MAX_REVIEW_PHOTOS}, le ayudan a quien busca`)}
+              </Text>
+            </TouchableOpacity>
           </View>
         )}
       </ScrollView>
@@ -319,11 +333,11 @@ export default function ResenaScreen() {
         </TouchableOpacity>
       </View>
       <ActionSheet
-        visible={photoMenuOpen}
-        anchorRef={photoRowRef}
-        title="Foto de tu visita"
-        onDismiss={() => setPhotoMenuOpen(false)}
-        options={photoOptions}
+        visible={menuFor !== null}
+        anchorRef={menuFor === 'add' || menuFor === null ? addRef : itemRefs[menuFor]}
+        title={menuFor === 'add' ? 'Fotos de tu visita' : dishOptions.length ? '¿De qué platillo es?' : undefined}
+        onDismiss={() => setMenuFor(null)}
+        options={menuOptions}
       />
     </KeyboardAvoidingView>
   );

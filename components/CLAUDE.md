@@ -68,7 +68,7 @@
   Quitar foto (anclado al cuadro).
 - **En prueba (Parco, 16 nov): sin modo Ordenar, como Recordatorios.** En el
   panel mismo, con el teclado cerrado: mantener presionado un platillo o un
-  título (`HOLD_IN_PLACE_MS`, 450 ms, el medio segundo de iOS; con 280 un
+  título (`HOLD_IN_PLACE_MS`, 500 ms, el medio segundo de iOS; con 280 un
   toque lento ya levantaba y se sentía atorado) lo levanta y se mueve igual
   que en Ordenar (huecos, copia que sigue al dedo); soltarlo donde estaba lo
   regresa al instante. Deslizarlo a la izquierda abre
@@ -83,7 +83,13 @@
   «Eliminar» no se corta). Más allá de los botones solo crece el color. En
   Menús la fila cruza la orilla de la lista (`outerStyle`) para que los
   botones lleguen al borde de la pantalla; el texto y la línea no se mueven.
-  Al soltar se abre o se cierra, nunca a medias. Una sola fila abierta a la vez: tocar
+  Al soltar se abre o se cierra, nunca a medias.
+  **Rapidez:** los gestos se crean una vez por renglón (`useMemo` en
+  `SwipeRow`, caché por renglón en `board-drag`) y llaman a lo de ese momento
+  por un `ref`. Crearlos en cada render hacía que gesture-handler los volviera
+  a mandar al hilo de la interfaz en cada letra, renglón por renglón (el
+  editor se sentía lento). Prender o apagar un gesto cambia su configuración
+  en su lugar (`.enabled()`), sin crear otro. Una sola fila abierta a la vez: tocar
   otra fila, tocar fuera, desplazar o arrastrar la cierra, y tocar la fila
   abierta solo la cierra. Hasta el fondo (`fullSwipe`, solo donde hay
   «Deshacer») hace «Eliminar» con un golpecito al pasar el punto; si la
@@ -125,6 +131,31 @@
   se cancela, su lugar se vuelve a abrir mientras regresa. Las fotos del
   editor van con `cachePolicy="memory-disk"`: al pasar a otra tarjeta no
   parpadean.
+  La copia se arma con los mismos campos que el renglón (`TextInput` sin
+  editar, mismos marcadores) para que cada letra caiga en el mismo pixel, y
+  se coloca con `top` (React, en el mismo instante en que aparece) más un
+  `delta` del dedo que al levantar vale 0: así nunca se dibuja un cuadro en
+  otro lado que luego brinca (el «juego» vertical al mantener presionado).
+- **Tiempos de Apple** (Parco: «basarse 100 % en Apple»; excepción a los
+  200 ms generales de Patio). Lo que Apple documenta: mantener presionado
+  0.5 s (`HOLD_IN_PLACE_MS`, UILongPressGestureRecognizer); lo que sigue al
+  dedo (abrir o cerrar una fila, soltar lo levantado) es un resorte sin
+  rebote que arranca con la velocidad del dedo (WWDC23, «Animate with
+  springs»; `withSpring` con `dampingRatio: 1`); lo que se recorre solo, la
+  duración estándar de UIKit, 0.25 s. Con Reducir movimiento (HIG,
+  Accessibility) nada se desliza solo: los huecos y lo que sueltas cambian
+  de una vez y las filas cierran rápido y sin resorte.
+  Lo que Apple NO documenta y es número de Patio: 350 ms del resorte
+  (`SNAP_MS`, `SETTLE_MS`), 120 ms con Reducir movimiento (`QUICK`), 200 ms
+  al salir la fila eliminada (`OUT`), 180 ms para levantar en Ordenar
+  (`ROW_HOLD_MS`, oculto; si Ordenar regresa, revisarlo frente a los 500 del
+  panel) y el ancho mínimo de 76 de cada botón. Los 0.25 s son la duración
+  por defecto de UIKit (`CATransaction`), no una cifra de la HIG.
+  Prender o apagar un gesto memorizado con `.enabled()` sí llega al nativo:
+  `GestureDetector` (gesture-handler 2.28) vuelve a mandar la configuración
+  en cada render; lo caro que se evita es reconstruir los manejadores del
+  hilo de la interfaz. Los gestos de `board-drag` se sueltan solos cuando su
+  platillo o sección ya no existe.
   **La regla que lo rompía** («presiono el platillo y al segundo se
   resetea», 16 nov): en el camino del dedo a la lista (el renglón, su
   envoltorio, la tarjeta y la sección) ninguna vista puede pasar de
@@ -159,6 +190,90 @@
   «CARTA». «Incluye…» se quita.
 - Al publicar: lo de hoy se publica y la carta se guarda en `cartas` solo si
   cambió (`cartaSignature`, que cuenta también fotos y otros nombres).
+
+## Menús anclados (action-sheet.tsx, 2026-11-16)
+
+- Como los menús de iOS: el texto a la izquierda y el símbolo a la derecha,
+  en su columna; lo que borra va en rojo (texto y símbolo, `danger`). La
+  palomita solo reserva su columna a la izquierda si el menú elige algo
+  (`selected`). Antes el símbolo iba primero y dejaba un hueco a la derecha
+  (Parco: «mucho padding a la derecha»).
+
+## Avisos del negocio: a dónde llevan (lib/notification-routes.ts, 2026-11-21)
+
+- Cada aviso abre donde se hace lo que pide, sin pasos de más:
+  «¿Ya publicaste lo de hoy?» → el editor con tu último menú ya listo
+  (`/menu-editar?desde=ultimo`, `latestMenuSeed`): cambias lo que no hay y
+  «Publicar». «Nueva reseña · Toca para responder» → Actividad (`/resenas`).
+  «Hoy: N personas vieron tu menú» → Hoy.
+- Nunca «publicar igual que ayer» de un toque: un menú viejo publicado sin
+  mirar manda a alguien por un guisado que ya no hay (se rompe la confianza
+  en «¿Qué hay hoy?»). El trabajo se reduce a revisar y cambiar.
+- El recordatorio (`syncPublishReminder`, plan en `planPublishReminders`)
+  solo sale los días que no has publicado, una hora antes de abrir (entre 7 y
+  12; sin horario, a las 10) y nunca los días que cierras ni los que avisaste
+  «Hoy no abrimos» (`lib/closed-days.ts`). Jev
+  (docs/research/jev-publicar-avisos-2026-11-21.json), solo negocios:
+  - Tras 3 días que abres sin publicar, uno que pregunta («¿Te seguimos
+    avisando a diario?») y luego uno por semana (pausa 53 %, semanal 45 %,
+    diario 3 %). Publicar o «Avísame a diario» lo regresa a diario; no
+    cuentan los días antes de prender el aviso.
+  - Botón «Hoy no abro» en el aviso (99 %): abre «Avisar» y manda «Hoy no
+    abrimos» de un toque (al momento a «Todas»; en el resumen de los demás).
+  - Publicar ya cerrado: el menú queda, pero a quienes te siguen no les llega
+    aviso (61 %; servidor, `_shared/publication-window.ts`). Sin horario, no
+    hay avisos de 9 pm a 7 am.
+  - «Ayer · N personas vieron tu menú» llega en la mañana, a la hora del
+    aviso de publicar (61 % frente a 22 % a las 6 pm); si aún no publicas,
+    tocarlo abre tu último menú. Migración 20261121100000, cada hora de 7 a 12.
+  - «Abrí hoy, mismo menú» de un toque: descartado. Un menú que no cambia es
+    carta fija y se ve siempre sin publicar (81 %); que la app lo publique
+    sola cada día a las 9: 3 %. Hechos: dejar listo el menú de otro día
+    (fonda 3.75 de 4) y «Se acabó» por platillo (fonda 3.2 de 4); un día que
+    ya tiene menú programado no lleva aviso.
+
+## Notificaciones de los lugares que sigues (2026-11-21)
+
+- Modelo completo, ritmos de negocio y casos pendientes:
+  `docs/NOTIFICATION_ARCHITECTURE.md`, «Modelo vigente».
+- La campana de YouTube tal cual: «Todas», «Personalizadas» (por defecto) y
+  «Ninguna» (`PATIO_NOTIFY_LABELS`, íconos y ayudas en
+  `lib/community-notifications.ts`). En la ficha, «Siguiendo» lleva la campana
+  del estado en lugar de la flecha y abre NOTIFICACIONES (las tres) y LUGAR
+  (lista, dejar de seguir). «Elegir lugares» usa el mismo menú anclado.
+- Nunca inventar nombres para estas opciones: usar las palabras que la gente
+  ya conoce de las redes (Parco rechazó «Cada vez»).
+- «Hoy no abro» (botón del aviso de publicar) abre «Avisar» y lo manda solo
+  (`auto=1`): al momento a «Todas», en el resumen de los demás.
+
+## Publicar más tarde y «Se acabó» (menu-composer.tsx, 2026-11-21)
+
+- Como «Enviar más tarde» de Mail: mantener presionado «Publicar» (0.5 s)
+  abre «Publicar ahora» y «Mañana a las 9 am» (`nextPublishSlot`,
+  `lib/publish-timing.ts`: el siguiente día que abre, 1 h antes de abrir). Ya
+  pasado el servicio de hoy (`isAfterService`), tocar «Publicar» ofrece
+  primero mañana. El póster dice «Programado» y cuándo sale; en Menús,
+  «Programado · fecha»; abrirlo lo cambia en su lugar y sigue programado
+  («Sale solo mañana a las 9 am» arriba de la primera tarjeta).
+- En el menú publicado (o programado), deslizar un platillo de hoy muestra
+  «Se acabó» (gris) junto a «Eliminar»; se guarda al instante solo esa marca
+  (`setSoldOut`), sin «Actualizar» y sin avisar a nadie. En el renglón dice
+  «Se acabó»; en la ficha, el nombre en gris y «Se acabó» en la columna del
+  precio. Una copia para otro día empieza sin marcas (`withoutSoldOut`).
+
+## Dónde vende (business-where-editor.tsx, punto-editar.tsx, 2026-11-21)
+
+- Modelo y tabla de casos: `docs/NOTIFICATION_ARCHITECTURE.md`, «Dónde
+  vende». Las reglas viven en `lib/puntos.ts` (`positionsFor`); los datos se
+  leen aparte en `lib/patios.ts` (`fetchWhereTheySell`): si el servidor no
+  tiene las tablas, el mapa y la ficha salen como antes.
+- El pin principal es donde está hoy (`latitude`/`longitude` ya ajustados);
+  otras sucursales van en `extraPositions` y el mapa las dibuja aparte
+  (`extraMarkerElements`): mismos colores, abren la misma ficha y se esconden
+  al agrupar.
+- El cliente solo ve lo vigente: el menú de hoy o, sin él, la carta. Nunca
+  fechas ni menús anteriores (`fetchPublicMenus` lee solo `fecha = hoy`). La
+  fecha solo va en el póster que el negocio comparte.
 
 ## «Crear» del negocio (new-menu-sheet.tsx, 2026-11-16)
 
@@ -224,6 +339,24 @@
     gusta»): corazón o dos toques en la foto; responde al instante y la
     ficha se pone al día después (`startTransition`). Sin corazón en las del
     lugar ni en las tuyas.
+- **Varias fotos por reseña (2026-11-21):** hasta 5 por visita
+  (`MAX_REVIEW_PHOTOS`), cada una con su platillo opcional. Jev
+  (docs/research/jev-fotos-por-resena-2026-11-21.json): clientes 61 % «varias,
+  platillo opcional» frente a 22 % «una»; negocios 85 % «varias, cada una con
+  su platillo». Se resolvió así: el platillo es opcional para quien sube, y en
+  el menú solo salen las fotos que lo tienen (las demás, en su reseña).
+  - Base: tabla `review_photos` (migración 20261121090000); `publish_review`
+    publica reseña y fotos en un solo paso: o sale todo o nada. Si una foto
+    no sube, no se publica y las que sí subieron se borran. Las columnas
+    `reviews.foto_*` quedan solo para versiones viejas de la app.
+  - Al reseñar: «Fotos opcionales · hasta 5»; de Fotos se eligen varias de
+    una vez. Cada foto es una fila (foto y «¿De qué platillo es? (opcional)»);
+    tocarla abre ahí mismo sus platillos (palomita en el elegido; tocarlo otra
+    vez lo quita) y «Quitar foto».
+  - En la reseña: con una foto, como siempre; con varias, una tira de
+    miniaturas (máximo 72, se reparten el ancho); tocar una la abre grande.
+  - Corregir y quitar son por foto (`update_my_review_photo_item`,
+    `remove_my_review_photo_item`); el «me gusta» sigue siendo de la reseña.
 - Foto en la reseña (`components/review-photo.tsx`): se abre grande ahí
   mismo, dentro de la reseña; «Ver en el menú» es opcional. Todo salto dentro
   de la ficha (reseña → platillo, foto → reseña) deja una cápsula «Volver a

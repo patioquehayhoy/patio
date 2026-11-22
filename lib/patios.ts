@@ -7,6 +7,7 @@ import { normalizeMenuData } from './menu-store';
 import { cleanMenuText } from './menu';
 import { publicCurrency } from './prices';
 import { publicMenuPrices, withMenuPrecios, type PublicMenuPrice } from './menu-prices';
+import { isModalidad, positionsFor, type Coordinates, type Modalidad, type Punto } from './puntos';
 import {
   deserialize,
   migrarStringLegacy,
@@ -26,6 +27,8 @@ export type PatioMenuItem = {
   photoHash?: string;
   /** Otros nombres del mismo platillo confirmados por el negocio (lib/dish-identity.ts). */
   aliases?: string[];
+  /** El negocio marcó que hoy ya se acabó. */
+  soldOut?: boolean;
 };
 
 export type PatioMenuSection = {
@@ -79,7 +82,73 @@ export type Patio = {
   // La carta de siempre, cuando además hay menú de hoy (sin menú de hoy, la
   // carta ocupa `menu`).
   carta?: PatioMenuSection[];
+  // Dónde vende (2026-11-21, lib/puntos.ts): en su local (y otras sucursales),
+  // en tianguis o sobre ruedas, o solo a domicilio.
+  modalidad?: Modalidad;
+  puntos?: Punto[];
+  // Hoy, además del pin principal (`latitude`/`longitude`): otras sucursales.
+  extraPositions?: Coordinates[];
+  // Hora límite para pedir («11:00»).
+  pedidosHasta?: string;
 };
+
+type WhereTheySell = { modalidad: Modalidad; pedidosHasta?: string; puntos: Punto[] };
+
+// Dónde vende cada negocio, en dos lecturas aparte: si el servidor aún no
+// tiene estas tablas, el mapa y la ficha salen igual que antes.
+async function fetchWhereTheySell(ids: string[]): Promise<Map<string, WhereTheySell>> {
+  const result = new Map<string, WhereTheySell>();
+  const realIds = ids.filter((id) => /^[0-9a-f-]{36}$/i.test(id));
+  if (!realIds.length) return result;
+  const [modes, places] = await Promise.allSettled([
+    supabase.from('negocios').select('id, modalidad, pedidos_hasta').in('id', realIds),
+    supabase.from('negocio_puntos').select('id, negocio_id, nombre, direccion, latitude, longitude, dias, orden').in('negocio_id', realIds).order('orden'),
+  ]);
+  const ensure = (id: string) => {
+    let entry = result.get(id);
+    if (!entry) { entry = { modalidad: 'local', puntos: [] }; result.set(id, entry); }
+    return entry;
+  };
+  if (modes.status === 'fulfilled' && !modes.value.error) {
+    for (const row of (modes.value.data ?? []) as { id: string; modalidad?: unknown; pedidos_hasta?: unknown }[]) {
+      const entry = ensure(row.id);
+      if (isModalidad(row.modalidad)) entry.modalidad = row.modalidad;
+      if (typeof row.pedidos_hasta === 'string' && /^\d{2}:\d{2}$/.test(row.pedidos_hasta)) entry.pedidosHasta = row.pedidos_hasta;
+    }
+  }
+  if (places.status === 'fulfilled' && !places.value.error) {
+    for (const row of (places.value.data ?? []) as { id: string; negocio_id: string; nombre: string; direccion: string | null; latitude: number; longitude: number; dias: number[] | null }[]) {
+      ensure(row.negocio_id).puntos.push({
+        id: row.id,
+        nombre: row.nombre,
+        ...(row.direccion ? { direccion: row.direccion } : {}),
+        latitude: Number(row.latitude),
+        longitude: Number(row.longitude),
+        ...(Array.isArray(row.dias) && row.dias.length ? { dias: row.dias.map(Number) } : {}),
+      });
+    }
+  }
+  return result;
+}
+
+/** El pin principal es donde está hoy; los demás lugares de hoy van aparte. */
+function withWhereTheySell(patio: Patio, info: WhereTheySell | undefined, weekday = new Date().getDay()): Patio {
+  if (!info) return patio;
+  const enriched: Patio = {
+    ...patio,
+    modalidad: info.modalidad,
+    ...(info.pedidosHasta ? { pedidosHasta: info.pedidosHasta } : {}),
+    ...(info.puntos.length ? { puntos: info.puntos } : {}),
+  };
+  const positions = positionsFor(enriched, weekday);
+  if (!positions.length) return enriched;
+  return {
+    ...enriched,
+    latitude: positions[0].latitude,
+    longitude: positions[0].longitude,
+    ...(positions.length > 1 ? { extraPositions: positions.slice(1) } : {}),
+  };
+}
 
 // Deriva el horario semanal de una fila: jsonb nuevo, o fallback al string viejo.
 function weeklyFromRow(horarioSemanal: unknown, horario: string | null): HorarioSemanal | null {
@@ -336,6 +405,7 @@ function publicMenuSections(value: unknown, kind: 'hoy' | 'carta' = 'hoy'): Pati
       price: publicCurrency(item.precio) || undefined,
       ...(isDishPhotoUrl(item.foto) ? { photo: item.foto, ...(isPhotoHash(item.fotoHash) ? { photoHash: item.fotoHash } : {}) } : {}),
       ...(cleanAliases(item.antes, item.nombre).length ? { aliases: cleanAliases(item.antes, item.nombre) } : {}),
+      ...(kind === 'hoy' && item.agotado ? { soldOut: true } : {}),
     }));
     // Un encabezado con precio («MENÚ DEL DÍA $100») sale aunque no tenga platillos debajo.
     return items.length || publicCurrency(section.precio) ? [{ section: cleanMenuText(section.nombre) || section.nombre, price: publicCurrency(section.precio) || undefined, items }] : [];
@@ -393,11 +463,12 @@ export async function fetchPublicFonditas(options: { throwOnError?: boolean } = 
   }
 
   if (!data) return withDevPatios([]);
-  const menus = await fetchPublicMenus(data.map((row) => row.id as string));
+  const ids = data.map((row) => row.id as string);
+  const [menus, where] = await Promise.all([fetchPublicMenus(ids), fetchWhereTheySell(ids)]);
 
   return withDevPatios(data.map((row: any): Patio => {
     const weekly = weeklyFromRow(row.horario_semanal, row.horario);
-    return {
+    return withWhereTheySell({
       id: row.id,
       name: row.nombre ?? 'Sin nombre',
       categories: categoriasFromRow(row.categorias, row.tipo_negocio),
@@ -421,7 +492,7 @@ export async function fetchPublicFonditas(options: { throwOnError?: boolean } = 
         ...(row.pagos_tarjeta ? ['Tarjeta'] : []),
       ],
       weeklyHours: weekly,
-    };
+    }, where.get(row.id));
   }));
 }
 
@@ -453,15 +524,16 @@ export async function fetchFonditaById(id: string, options: { throwOnError?: boo
 
   const weekly = weeklyFromRow(row.horario_semanal, (row.horario as string | null) ?? null);
   // La foto va aparte: si el servidor aún no tiene la columna, la ficha sale igual.
-  const [menus, photo, contact] = await Promise.all([
+  const [menus, photo, contact, where] = await Promise.all([
     fetchPublicMenus([id]),
     supabase.from('negocios').select('foto_url').eq('id', id).maybeSingle(),
     supabase.from('negocios').select('contacto_telefono, contacto_whatsapp').eq('id', id).maybeSingle(),
+    fetchWhereTheySell([id]),
   ]);
   const contactRow = contact.error ? null : contact.data as { contacto_telefono?: string | null; contacto_whatsapp?: boolean | null } | null;
   const menu = menus.get(id);
   const photoUrl = photo.error ? undefined : (photo.data as { foto_url?: string | null } | null)?.foto_url ?? undefined;
-  return {
+  return withWhereTheySell({
     id: row.id as string,
     photoUrl,
     phone: contactRow?.contacto_telefono ?? undefined,
@@ -487,7 +559,7 @@ export async function fetchFonditaById(id: string, options: { throwOnError?: boo
       ...(row.pagos_tarjeta ? ['Tarjeta'] : []),
     ],
     weeklyHours: weekly,
-  };
+  }, where.get(id));
 }
 
 export function getPatioById(id: string | string[] | undefined): Patio | null {

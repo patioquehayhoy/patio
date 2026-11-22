@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react';
 import { AppState, Platform } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { routeForNotification, type NotificationRoute } from '@/lib/notification-routes';
+import { ACTION_CLOSED_TODAY, ACTION_DAILY_AGAIN, registerReminderCategories, resumeDailyPublishReminder } from '@/lib/local-reminders';
 import '@/lib/visits-task';
 // Tu nombre público en memoria desde el arranque (ver lib/my-public-name.ts).
 import '@/lib/my-public-name';
@@ -65,7 +66,13 @@ function RootStack() {
     const openResponse = (response: import('expo-notifications').NotificationResponse | null) => {
       const identifier = response?.notification.request.identifier;
       if (!identifier || identifier === lastOpened) return;
-      const route = routeForNotification(response?.notification.request.content.data);
+      // Botones del aviso de publicar: «Hoy no abro» abre «Avisar» con «Hoy no
+      // abrimos» elegido; «Avísame a diario» vuelve al aviso diario.
+      const action = response?.actionIdentifier;
+      if (action === ACTION_DAILY_AGAIN) resumeDailyPublishReminder().catch(() => {});
+      const route: NotificationRoute | null = action === ACTION_CLOSED_TODAY
+        ? { pathname: '/avisar', params: { tipo: 'closed', auto: '1' } }
+        : routeForNotification(response?.notification.request.content.data);
       if (route) {
         lastOpened = identifier;
         setPendingRoute(route);
@@ -73,6 +80,7 @@ function RootStack() {
       }
     };
 
+    registerReminderCategories().catch(() => {});
     // Covers a tap while Patio is foreground/background and a cold launch.
     const subscription = Notifications.addNotificationResponseReceivedListener(openResponse);
     Notifications.getLastNotificationResponseAsync().then(openResponse).catch(() => {});
@@ -124,6 +132,7 @@ function RootStack() {
         <Stack.Screen name="preview" options={{ headerShown: false }} />
         <Stack.Screen name="perfil" options={{ headerShown: false }} />
         <Stack.Screen name="perfil-editar" options={{ headerShown: false }} />
+        <Stack.Screen name="punto-editar" options={{ headerShown: false }} />
         <Stack.Screen name="resenas" options={{ headerShown: false }} />
         <Stack.Screen name="patio-smart" options={{ headerShown: false }} />
         <Stack.Screen name="patio/[id]" options={{ headerShown: false, presentation: 'transparentModal', animation: 'slide_from_bottom', animationDuration: 220, contentStyle: { backgroundColor: 'transparent' } }} />

@@ -10,6 +10,7 @@ export const Colors = {
   textMute:      '#8A8A85',  // Ink-mute — captions/metadata
   accent:        '#F2612F',  // Acento de marca
   accentSoft:    '#FBE7DD',  // Fondos tibios, chip "elige uno"
+  danger:        '#FF3B30',  // Lo que borra (rojo de iOS, systemRed)
   border:        'rgba(17,18,20,0.08)',  // Línea translúcida fina (Figma v02)
   glass:         'rgba(255,255,255,0.62)', // Capas glass sobre claro
   button:        '#111214',
@@ -23,6 +24,7 @@ export const Colors = {
   textMuteDark:      'rgba(248,248,245,0.5)',
   accentDark:        '#FF6A3D',
   accentSoftDark:    'rgba(255,106,61,0.18)',
+  dangerDark:        '#FF453A',  // systemRed en oscuro
   borderDark:        'rgba(255,255,255,0.10)',
   glassDark:         'rgba(20,20,22,0.55)',
   buttonDark:        '#F8F8F5',

@@ -195,21 +195,49 @@ export async function syncSavedPatioNotificationSubscriptions(savedPatioIds: str
   }
 }
 
-/** Lugares que sigues con avisos apagados (silenciados). */
-export async function getMutedPatioIds(): Promise<Set<string>> {
+/**
+ * Notificaciones de cada lugar que sigues (2026-11-21): la campana de YouTube
+ * tal cual, con sus palabras y su valor por defecto (Ayuda de YouTube,
+ * «Administra las notificaciones de YouTube»): «Todas» (al momento),
+ * «Personalizadas» (por defecto; en Patio, dentro de tu resumen del día) y
+ * «Ninguna».
+ */
+export type PatioNotifyMode = 'every' | 'digest' | 'off';
+
+export const PATIO_NOTIFY_LABELS: Record<PatioNotifyMode, string> = {
+  every: 'Todas',
+  digest: 'Personalizadas',
+  off: 'Ninguna',
+};
+
+/** Qué significa cada una, en una línea (para ayudas y lectores de pantalla). */
+export const PATIO_NOTIFY_HINTS: Record<PatioNotifyMode, string> = {
+  every: 'Te avisamos al momento en que publica',
+  digest: 'Va en tu resumen del día, junto con tus otros lugares',
+  off: 'No te avisamos; lo ves en la app',
+};
+
+export const PATIO_NOTIFY_ICONS: Record<PatioNotifyMode, 'notifications' | 'notifications-outline' | 'notifications-off-outline'> = {
+  every: 'notifications',
+  digest: 'notifications-outline',
+  off: 'notifications-off-outline',
+};
+
+export async function getPatioNotificationModes(): Promise<Map<string, PatioNotifyMode>> {
   const userId = await currentUserId();
-  const { data, error } = await supabase.from('patio_follows').select('negocio_id')
-    .eq('user_id', userId).eq('notifications_enabled', false);
+  const { data, error } = await supabase.from('patio_follows').select('negocio_id,notifications_enabled,every_time').eq('user_id', userId);
   if (error) throw error;
-  return new Set((data ?? []).map((row) => row.negocio_id as string));
+  return new Map((data ?? []).map((row) => [
+    row.negocio_id as string,
+    !row.notifications_enabled ? 'off' : row.every_time ? 'every' : 'digest',
+  ]));
 }
 
-/** Activa o silencia los avisos de un lugar que sigues. */
-export async function setPatioNotifications(patioId: string, enabled: boolean): Promise<void> {
+export async function setPatioNotificationMode(patioId: string, mode: PatioNotifyMode): Promise<void> {
   if (!isUuid(patioId)) return;
   const userId = await currentUserId();
   const { error } = await supabase.from('patio_follows').upsert(
-    { user_id: userId, negocio_id: patioId, notifications_enabled: enabled, updated_at: new Date().toISOString() },
+    { user_id: userId, negocio_id: patioId, notifications_enabled: mode !== 'off', every_time: mode === 'every', updated_at: new Date().toISOString() },
     { onConflict: 'user_id,negocio_id' },
   );
   if (error) throw error;

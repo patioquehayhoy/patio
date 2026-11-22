@@ -20,7 +20,7 @@ import { FoodieLoading } from '@/components/foodie-loading';
 import { MenuListsSheet } from '@/components/menu-lists-sheet';
 import { NewMenuSheet } from '@/components/new-menu-sheet';
 import { cleanMenu, publishMenuNow } from '@/lib/controllers/useFonderoMenuDraftController';
-import { dateLabel, defaultHistoryTitle, useMenuHistoryController, type PublishedMenu } from '@/lib/controllers/useMenuHistoryController';
+import { dateLabel, defaultHistoryTitle, useMenuHistoryController, withoutSoldOut, type PublishedMenu } from '@/lib/controllers/useMenuHistoryController';
 import { fonderoPalette } from '@/lib/fondero-palette';
 import { getMenuCollections, type MenuCollection } from '@/lib/menu-collections';
 import { useTabBarScroll } from '@/lib/tab-bar-visibility';
@@ -95,7 +95,8 @@ export default function HistorialScreen() {
   const [publishingReused, setPublishingReused] = useState(false);
   const publishReused = async (menu: PublishedMenu) => {
     if (publishingReused) return;
-    const clean = cleanMenu(menu.secciones);
+    // Publicarlo hoy: lo que se acabó aquel día vuelve a estar disponible.
+    const clean = cleanMenu(withoutSoldOut(menu.secciones));
     if (!clean.secciones.length) {
       Alert.alert(noWidow('Nada que publicar'), noWidow('Este menú no tiene platillos.'));
       return;
@@ -172,7 +173,7 @@ export default function HistorialScreen() {
         )}
         <View style={{ flex: 1, minWidth: 0 }}>
           <Text style={[s.summary, { color: c.text }]}>{noWidow(menu.nombre || defaultHistoryTitle(menu))}</Text>
-          <Text style={[s.date, { color: c.textMute }]}>{noWidow(`${menu.published ? 'Publicado' : 'Guardado'} · ${dateLabel(menu.fecha)}`)}</Text>
+          <Text style={[s.date, { color: c.textMute }]}>{noWidow(`${menu.published ? (menu.fecha > localMenuDate() ? 'Programado' : 'Publicado') : 'Guardado'} · ${dateLabel(menu.fecha)}`)}</Text>
         </View>
       </TouchableOpacity>
       </SwipeRow>

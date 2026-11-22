@@ -228,9 +228,6 @@ export function usePatioDetailController(id: PatioParam) {
       .then((ids) => { if (active) setIsSaved(ids.includes(patioId)); })
       .catch(() => {})
       .finally(() => { if (active) setSavedKnown(true); });
-    fetchMenuForFondita(patioId).then((menu) => {
-      if (active) setLiveMenu(menu.sections.length ? menu : null);
-    }).catch(() => {});
     return () => { active = false; };
   }, [patioId]);
 
@@ -239,6 +236,14 @@ export function usePatioDetailController(id: PatioParam) {
       if (!patioId) return undefined;
       let active = true;
       void refreshReviews();
+      // Volver del editor debe traer la disponibilidad actual, incluso si la
+      // pestaña Mi Patio siguió montada. DEV usa la misma conversión pública.
+      fetchMenuForFondita(patioId).then((menu) => {
+        if (active) setLiveMenu(menu.sections.length ? menu : null);
+      }).catch(() => {});
+      fetchFonditaById(patioId).then((found) => {
+        if (active && found) setPatio(found);
+      }).catch(() => {});
       Promise.all([getPatioRating(patioId), getFavoritePatioIds()]).then(([rating, favoriteIds]) => {
         if (active) {
           setUserReview(rating);

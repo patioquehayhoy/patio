@@ -5,6 +5,7 @@ import { Alert } from 'react-native';
 
 import { getDishPhotoCounts, loadCarta, loadMenuHoy, loadRecentMenus, saveCarta, saveMenuHoy } from '@/lib/db';
 import { localMenuDate } from '@/lib/menu-date';
+import { menuNameForDate } from '@/lib/menu-title';
 import { announceMenuPublication } from '@/lib/community-notifications';
 import { saveDevPublishedMenu } from '@/lib/demo';
 import { deleteLocalMenu, getLocalMenus, newMenuDraftId, renameLocalMenu, saveMenuPublication, saveLocalMenu } from '@/lib/menu-history';
@@ -100,8 +101,8 @@ export async function publishMenuNow(data: MenuData, opts: { source?: 'foto' | '
   // («Actualizar»), sin crear otro en Menús; si es programado, sigue
   // programado para su día y su hora.
   setMenuData(schedule
-    ? { ...clean, localDraftId: id, localLive: true, localFecha: schedule.fecha, localPublishAt: schedule.publishAt }
-    : { ...clean, localDraftId: id, localLive: true });
+    ? { ...clean, localDraftId: id, localLive: true, localFecha: schedule.fecha, localPublishAt: schedule.publishAt, ...(opts.nombre ? { localNombre: opts.nombre } : {}) }
+    : { ...clean, localDraftId: id, localLive: true, localFecha: localMenuDate(), ...(opts.nombre ? { localNombre: opts.nombre } : {}) });
   if (opts.source === 'foto') {
     const snapshot = getMenuExtractionSnapshot();
     if (snapshot) {
@@ -253,7 +254,7 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
   // El menú publicado hoy (`localLive`): lo que cambias no se ve en la calle
   // hasta «Actualizar»; no se guarda solo. Lo demás es un borrador que se
   // guarda solo, como una nota.
-  const live = initialData.localLive === true;
+  const live = initialData.localLive === true && (!initialData.localFecha || initialData.localFecha >= localMenuDate());
 
   // Identidad de los platillos (2026-11-15, lib/dish-identity.ts). Lo que se
   // sabe de cada platillo —su foto y sus otros nombres— se recuerda por su
@@ -460,7 +461,7 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
   // le pone nombre, ese nombre queda. Se lee del historial local (mismo
   // campo `nombre` que ya usa Menús para renombrar publicados) para que un
   // menú ya nombrado hoy conserve su título al reabrir el editor.
-  const [nombre, updateNombre] = useState('');
+  const [nombre, updateNombre] = useState(initialData.localNombre || menuNameForDate(localMenuDate()));
   const nombreEdited = useRef(false);
   const savingRef = useRef(false);
   // El nombre que ya está guardado: cambiarlo también cuenta para guardar.
@@ -764,7 +765,8 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
     publishedRef.current = true;
     setPublishing(true);
     try {
-      await publishMenuNow(clean, { source, nombre, draftId, schedule });
+      const publishName = schedule && nombre === menuNameForDate(localMenuDate()) ? menuNameForDate(schedule.fecha) : nombre;
+      await publishMenuNow(clean, { source, nombre: publishName, draftId, schedule });
       const cartaSaved = await saveCartaIfChanged(clean);
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
       // Cambiar el de hoy no vuelve a avisar a quienes te siguen (el servidor

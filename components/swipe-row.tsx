@@ -58,7 +58,7 @@ export function closeSwipeRowOnTouch(pageX: number, pageY: number) {
   if (!inside) closeOpenSwipeRow();
 }
 
-export function SwipeRow({ children, drag, enabled, actions, fullSwipe = false, background, scrollRef, style, outerStyle, onLayout, rowRef }: {
+export function SwipeRow({ children, drag, enabled, actions, fullSwipe = false, background, scrollRef, style, outerStyle, onLayout, rowRef, actionGap = 0 }: {
   children: ReactNode;
   /** El arrastre para mover (mantener presionado), si lo hay. */
   drag?: GestureType;
@@ -75,6 +75,8 @@ export function SwipeRow({ children, drag, enabled, actions, fullSwipe = false, 
   outerStyle?: StyleProp<ViewStyle>;
   onLayout?: (event: LayoutChangeEvent) => void;
   rowRef?: (view: View | null) => void;
+  /** Aire entre el contenido desplazado y el primer botón revelado. */
+  actionGap?: number;
 }) {
   const reduceMotion = useReducedMotion();
   const id = useRef(0);
@@ -88,7 +90,7 @@ export function SwipeRow({ children, drag, enabled, actions, fullSwipe = false, 
   const actionsRef = useRef(actions);
   actionsRef.current = actions;
   const widths = actions.map((action) => actionWidth(action.label));
-  const total = widths.reduce((sum, item) => sum + item, 0);
+  const total = widths.reduce((sum, item) => sum + item, 0) + actionGap;
   // Lo que se destapa más allá de los botones toma el color del botón que se
   // estira: el de hasta el fondo (Eliminar) o el primero (como iOS).
   const fill = (fullSwipe ? actions[actions.length - 1] : actions[0])?.color;
@@ -207,6 +209,7 @@ export function SwipeRow({ children, drag, enabled, actions, fullSwipe = false, 
         style={[styles.reveal, { backgroundColor: fill }, reveal]}
         accessibilityElementsHidden={!isOpen}
         importantForAccessibility={isOpen ? 'auto' : 'no-hide-descendants'}>
+        {actionGap > 0 && <View pointerEvents="none" style={{ width: actionGap, backgroundColor: background[0] }} />}
         {actions.map((action, index) => (
           <TouchableOpacity
             key={action.label}

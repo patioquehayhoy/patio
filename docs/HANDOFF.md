@@ -1,5 +1,19 @@
 # HANDOFF
 
+## Segunda revisión 2026-11-22 — ficha disponible y negocio sin registro (Codex)
+
+Se acabó/Ya hay se guardaba en DEV pero se perdía al construir la ficha:
+ahora usa el mismo conversor público y recarga al recuperar foco. Menús
+anteriores abren copia sin estado vivo; nombre editable completo y por fecha;
+Publicado hoy con contorno; Programar junto a Publicar y más aire al deslizar.
+Acceso DEV sin registro a `/perfil` y `/hoy`, con números de ejemplo coherentes
+y etiquetados, seguidores navegables y menús/listas locales. Sin crear cuenta
+real ni cambios de servidor. `npm run check`: 355 pruebas correctas.
+
+QA visual y general en iPhone solo por Parco. Detalle en el corte superior
+del [heads-up](HEADS_UP_2026-10-12.md) y [QA y flujos](QA_Y_FLUJOS_2026-11-22.md).
+
+
 ## Continuidad 2026-11-22 — QA de Parco y editor continuo (Codex)
 
 Leer el corte del 22 nov en [heads-up](HEADS_UP_2026-10-12.md) y

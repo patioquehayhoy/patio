@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { getDemoBusinessSnapshot } from './business-demo';
 
 // «Hoy» del negocio (v4 §3): vistas de su menú contra un día igual, los
 // últimos 7 días y lo demás que pasó hoy. Solo responde al dueño
@@ -17,6 +18,8 @@ export type BusinessToday = {
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export async function getBusinessToday(negocioId: string): Promise<BusinessToday | null> {
+  const demo = getDemoBusinessSnapshot(negocioId);
+  if (demo) return demo.today;
   if (!UUID.test(negocioId)) return null;
   const { data, error } = await supabase.rpc('business_today', { target: negocioId });
   if (error) return null;

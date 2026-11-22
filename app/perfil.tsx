@@ -5,6 +5,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AccountSettings } from '@/components/account-settings';
 import { getBusinessStats } from '@/lib/business-stats';
+import { DEMO_BUSINESS_ID } from '@/lib/business-demo';
+import { getDevPublishedMenu } from '@/lib/demo';
 import { BottomTabBar } from '@/components/bottom-tab-bar';
 import { bottomTabClearance } from '@/lib/layout-metrics';
 import { SettingsGroup, SettingsRow, settingsColors } from '@/components/settings-list';
@@ -32,23 +34,28 @@ export default function PerfilScreen() {
   const [fonditaName, setFonditaName] = useState('');
   // Seguidores del negocio; tocar el número abre quién lo sigue.
   const [followers, setFollowers] = useState<number | null>(null);
+  const demoMode = __DEV__ && !getFonditaId();
+  const businessId = getFonditaId() || (demoMode ? DEMO_BUSINESS_ID : null);
 
   useFocusEffect(useCallback(() => {
     let active = true;
     setAddress(getFonditaDireccion());
     setHasMenu(null);
-    setFonditaName(getFonditaName());
-    const id = getFonditaId();
+    setFonditaName(getFonditaName() || (__DEV__ && !getFonditaId() ? 'Fonda Doña Rosa' : ''));
+    const actualId = getFonditaId();
+    const id = actualId || (__DEV__ ? DEMO_BUSINESS_ID : null);
     if (id) getBusinessStats(id).then((stats) => { if (active && stats) setFollowers(stats.saves); }).catch(() => {});
-    if (id) {
+    if (actualId) {
       // Un borrador en memoria nunca confirma que el menú sea público.
-      void supabase.from('menus').select('secciones').eq('negocio_id', id)
+      void supabase.from('menus').select('secciones').eq('negocio_id', actualId)
         .eq('fecha', localMenuDate()).maybeSingle()
         .then(({ data, error }) => {
           if (!active || error) return;
           const menu = normalizeMenuData(data?.secciones);
           setHasMenu(!!menu?.secciones.some((section) => section.platillos.some((dish) => dish.nombre.trim())));
         }, () => {});
+    } else if (__DEV__) {
+      getDevPublishedMenu().then((menu) => { if (active) setHasMenu(!!menu?.secciones.some((section) => section.platillos.some((dish) => dish.nombre.trim()))); });
     } else setHasMenu(false);
     return () => { active = false; };
   }, []));
@@ -71,9 +78,9 @@ export default function PerfilScreen() {
             {fonditaName || 'Tu negocio'}
           </Text>
           {followers !== null && (
-            <TouchableOpacity activeOpacity={0.7} disabled={!getFonditaId()} accessibilityRole="button"
+            <TouchableOpacity activeOpacity={0.7} disabled={!businessId} accessibilityRole="button"
               accessibilityLabel={`${followers} ${followers === 1 ? 'seguidor' : 'seguidores'}, ver quién te sigue`}
-              onPress={() => router.push({ pathname: '/foodie/seguidores', params: { patio: getFonditaId() } })}>
+              onPress={() => router.push({ pathname: '/foodie/seguidores', params: { patio: businessId } })}>
               <Text style={[s.followers, { color: c.text }]}>
                 <Text style={s.followersValue}>{followers}</Text> {followers === 1 ? 'seguidor' : 'seguidores'}
               </Text>
@@ -86,6 +93,7 @@ export default function PerfilScreen() {
             </Text>
           </View>
         </View>
+        {demoMode && <Text style={[s.demoLabel, { color: c.textSecondary }]}>{noWidow('Datos de ejemplo · acceso sin registro')}</Text>}
 
         {/* Grupos por propósito, no por lo que "quepa junto" — espejo real
             de Cuenta (Foodie): tu negocio primero, después preferencias y
@@ -94,7 +102,9 @@ export default function PerfilScreen() {
             botonzote — editar el negocio es una acción ocasional, no LA
             acción. */}
         <SettingsGroup c={sc} label="Negocio">
-          <SettingsRow c={sc} icon="create-outline" title="Editar mi negocio" sub={address || undefined} onPress={() => router.push('/perfil-editar')} />
+          <SettingsRow c={sc} icon="stats-chart-outline" title="Hoy" sub="Resumen, vistas y lo que más gustó" onPress={() => router.push('/hoy')} />
+          <SettingsRow c={sc} icon="book-outline" title="Mis menús y listas" divider onPress={() => router.push('/historial')} />
+          <SettingsRow c={sc} icon="create-outline" title="Editar mi negocio" divider sub={address || undefined} onPress={() => router.push('/perfil-editar')} />
           <SettingsRow
             c={sc}
             icon="rocket-outline"
@@ -115,6 +125,7 @@ export default function PerfilScreen() {
 const s = StyleSheet.create({
   root: { flex: 1 },
   identity: { marginBottom: 8 },
+  demoLabel: { fontSize: 13, lineHeight: 18, marginTop: 4, marginBottom: 12 },
   followers: { marginTop: 6, fontSize: 14, lineHeight: 19, fontWeight: '400' },
   followersValue: { fontWeight: '700' },
   fonditaName: { ...Type.screen },

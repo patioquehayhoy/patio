@@ -2,6 +2,15 @@
 
 ## Corte 2026-11-22 (Codex, QA de Parco)
 
+- [x] Segunda revisión en código: Se acabó/Ya hay y vegetariano se conservan
+  al construir la ficha DEV y recargarla; el editor se reinicia con el menú
+  elegido; menús anteriores sin contexto vivo; nombre completo y Programar
+  junto a Publicar; contorno del publicado y aire en acciones de deslizar.
+- [x] Acceso sin registro DEV: `/perfil` y `/hoy`, con cifras de ejemplo
+  identificadas y lista navegable de seguidores; las listas de menús son las
+  locales del teléfono. No se creó una cuenta real.
+- [ ] **Parco:** comprobar los cambios de esta segunda revisión en el iPhone.
+
 - [x] Parco: arrastrar funciona; reseñas y ficha/reseña completa correctas.
 - [x] Código: Actualizar no depende del detector para habilitarse;
   «Publicado hoy» con Ver menú/Editar; Programar visible; editor sin

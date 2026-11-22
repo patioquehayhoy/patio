@@ -1,6 +1,7 @@
 import { getDemoPatioStats } from '@/lib/patio-stats';
 import type { FollowListPerson } from '@/lib/profile-privacy';
 import { supabase } from '@/lib/supabase';
+import { getDemoBusinessSnapshot } from './business-demo';
 
 // Números públicos del negocio. Seguir un lugar es la fila de saved_patios;
 // quién lo sigue es público, como en Instagram (decisión de Parco,
@@ -8,6 +9,8 @@ import { supabase } from '@/lib/supabase';
 export type BusinessStats = { saves: number; dishLikes: number; reviews: number };
 
 export async function getBusinessStats(negocioId: string): Promise<BusinessStats | null> {
+  const snapshot = getDemoBusinessSnapshot(negocioId);
+  if (snapshot) return snapshot.stats;
   if (!/^[0-9a-f-]{36}$/i.test(negocioId)) {
     // Lugares de ejemplo (solo desarrollo): números sintéticos estables por
     // lugar para revisar la ficha completa sin datos reales.
@@ -30,6 +33,8 @@ export function businessStatsLabel(stats: BusinessStats | null): string {
 export type BusinessInsights = { saves: number; savesWeek: number; dishLikes: number; dishLikesWeek: number };
 
 export async function getBusinessInsights(negocioId: string): Promise<BusinessInsights | null> {
+  const demo = getDemoBusinessSnapshot(negocioId);
+  if (demo) return demo.insights;
   if (!/^[0-9a-f-]{36}$/i.test(negocioId)) return null;
   const { data, error } = await supabase.rpc('business_insights', { target: negocioId });
   if (error) throw error;
@@ -46,6 +51,8 @@ export type DishLikeCount = { dishName: string; displayName: string; likes: numb
 
 /** «Me gusta» por platillo, del que más tiene al que menos (nombre canónico). */
 export async function getDishLikeCounts(negocioId: string): Promise<DishLikeCount[]> {
+  const demo = getDemoBusinessSnapshot(negocioId);
+  if (demo) return demo.dishes;
   if (!/^[0-9a-f-]{36}$/i.test(negocioId)) return [];
   const { data, error } = await supabase.rpc('business_dish_like_counts', { target: negocioId });
   if (error) throw error;
@@ -54,6 +61,8 @@ export async function getDishLikeCounts(negocioId: string): Promise<DishLikeCoun
 
 /** Quién sigue a un lugar, del más reciente al más antiguo (público, como Instagram). */
 export async function getPatioFollowers(negocioId: string): Promise<FollowListPerson[]> {
+  const demo = getDemoBusinessSnapshot(negocioId);
+  if (demo) return demo.followers;
   if (!/^[0-9a-f-]{36}$/i.test(negocioId)) return [];
   const { data, error } = await supabase.rpc('patio_followers', { target: negocioId });
   if (error) throw error;

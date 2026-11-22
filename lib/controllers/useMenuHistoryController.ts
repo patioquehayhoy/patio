@@ -9,7 +9,7 @@ import { localMenuDate } from '@/lib/menu-date';
 import { noWidow } from '@/lib/typography';
 import { supabase } from '@/lib/supabase';
 import { getFonditaId } from '@/lib/user-store';
-import { summary } from '@/lib/menu-title';
+import { menuNameForDate } from '@/lib/menu-title';
 
 export type PublishedMenu = LocalMenuEntry;
 type RemoteMenu = { fecha: string; secciones: MenuData; publishAt?: string };
@@ -78,18 +78,17 @@ export function withoutSoldOut(data: MenuData): MenuData {
  * borrador nuevo (sin «Se acabó»); un borrador se sigue escribiendo.
  */
 export function editorSeed(menu: PublishedMenu, today = localMenuDate()): MenuData {
-  if (menu.published && menu.fecha === today) return { ...menu.secciones, localDraftId: menu.id, localLive: true, localFecha: menu.fecha, ...(menu.publishAt ? { localPublishAt: menu.publishAt } : {}) };
+  const { localLive: _live, localFecha: _fecha, localPublishAt: _at, localDraftId: _id, localNombre: _name, ...content } = menu.secciones;
+  const base = { ...content, ...(menu.nombre ? { localNombre: menu.nombre } : {}) };
+  if (menu.published && menu.fecha === today) return { ...base, localDraftId: menu.id, localLive: true, localFecha: menu.fecha, ...(menu.publishAt ? { localPublishAt: menu.publishAt } : {}) };
   if (menu.published && menu.fecha > today) {
-    return { ...menu.secciones, localDraftId: menu.id, localLive: true, localFecha: menu.fecha, ...(menu.publishAt ? { localPublishAt: menu.publishAt } : {}) };
+    return { ...base, localDraftId: menu.id, localLive: true, localFecha: menu.fecha, ...(menu.publishAt ? { localPublishAt: menu.publishAt } : {}) };
   }
-  return { ...withoutSoldOut(menu.secciones), localDraftId: menu.published ? undefined : menu.id };
+  return { ...withoutSoldOut(base), localDraftId: menu.published ? undefined : menu.id };
 }
 
 export function defaultHistoryTitle(menu: PublishedMenu): string {
-  // La fecha ya se muestra por separado en la fila (dateLabel) — repetirla
-  // aquí era redundante (ley dictada 2026-07-22: quitar la fecha al inicio).
-  const dishes = summary(menu.secciones);
-  return dishes || 'Menú publicado';
+  return menuNameForDate(menu.fecha);
 }
 
 /** Los menús del teléfono y los del servidor, juntos y más nuevos primero. */

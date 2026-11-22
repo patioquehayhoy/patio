@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AvatarCircle } from '@/components/avatar-circle';
 import { getPatioFollowers } from '@/lib/business-stats';
+import { DEMO_BUSINESS_ID } from '@/lib/business-demo';
 import { getFollowedPlaces, getFollowList, type FollowedPlace, type FollowListPerson } from '@/lib/profile-privacy';
 import { Type, useTheme } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
@@ -65,6 +66,7 @@ export default function FollowListScreen() {
         <View style={s.navButton} />
       </View>
       <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: insets.bottom + 32 }}>
+        {__DEV__ && patioId === DEMO_BUSINESS_ID && <Text style={[s.empty, { color: theme.textSecondary, marginTop: 0, marginBottom: 16 }]}>{noWidow('Seguidores de ejemplo')}</Text>}
         {people === null && !failed ? (
           <ActivityIndicator style={{ marginTop: 40 }} color={theme.textSecondary} accessibilityLabel="Cargando" />
         ) : failed ? (
@@ -77,7 +79,7 @@ export default function FollowListScreen() {
             <TouchableOpacity
               key={person.userId}
               style={[s.row, index > 0 && { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.border }]}
-              onPress={() => router.push({ pathname: '/foodie/[id]', params: { id: person.userId } })}
+              onPress={() => router.push({ pathname: '/foodie/[id]', params: { id: person.userId, name: person.name } })}
               accessibilityRole="button"
               accessibilityLabel={`Ver perfil de ${person.name}`}>
               <AvatarCircle name={person.name} avatarUrl={person.avatarUrl} backgroundColor={theme.surface2} textColor={theme.textSecondary} />

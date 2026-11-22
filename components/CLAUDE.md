@@ -20,6 +20,17 @@ visual en simulador ni darla por aprobada con pruebas de código.
 - VoiceOver: el nombre del platillo y el título de sección ofrecen Subir y
   Bajar cuando hay destino dentro de su lista. Validación en iPhone pendiente.
 - «No» a vegetariano se guarda; es distinto de no haber contestado.
+- Segunda revisión de Parco (22 nov): nombre editable a todo el ancho al
+  inicio del contenido, con título por fecha si no tiene uno; Publicar y
+  Programar juntos en navegación. Publicado hoy lleva contorno naranja y
+  superficie propia. Los menús anteriores abren una copia sin contexto vivo;
+  el editor se reinicia con el menú elegido al recuperar foco.
+- Disponibilidad: la conversión DEV usa `menuDataToSections`, igual que el
+  menú público. La ficha recarga al recuperar foco. Deslizar un platillo
+  deja 12 pt entre el contenido desplazado y los botones revelados.
+- Negocio sin registro en DEV: Hoy, Actividad y seguidores comparten
+  `business-demo.ts`, con rótulos de datos de ejemplo. No crear sesión ni
+  enviar esos números al servidor; las cuentas reales conservan sus RPC.
 - Las opciones de la campana muestran su explicación visualmente y a
   lectores de pantalla. No basta con una ayuda de accesibilidad invisible.
 

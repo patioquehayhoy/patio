@@ -58,6 +58,8 @@ export interface MenuPrecio {
 export type MenuData = {
   /** Solo contexto local del editor; cleanMenu lo excluye del menú público. */
   localDraftId?: string;
+  /** Nombre privado de la biblioteca para abrir el editor sin otra lectura. */
+  localNombre?: string;
   /** Solo contexto local: es el menú publicado hoy y se cambia con «Actualizar». */
   localLive?: boolean;
   /** Solo contexto local: día del menú publicado que se cambia en su lugar si no es hoy (programado). */

@@ -14,12 +14,13 @@ import { formatLikeAuthors, markActivitySeen } from '@/lib/activity-feed';
 import { getDishLikeDetail, getDishLikeEvents, type DishLikeEvent } from '@/lib/dish-likes';
 import { fonderoPalette } from '@/lib/fondero-palette';
 import { dateLabel, defaultHistoryTitle, useMenuHistoryController } from '@/lib/controllers/useMenuHistoryController';
-import { getFonditaId, getFonditaName } from '@/lib/menu-store';
+import { getFonditaId } from '@/lib/menu-store';
 import { getPublicPatioReviews, replyToReview, type PublicPatioReview } from '@/lib/ratings';
 import { writeErrorMessage } from '@/lib/content-safety';
 import { getBusinessInsights, getDishLikeCounts, type BusinessInsights, type DishLikeCount } from '@/lib/business-stats';
 import { getPeakTime, getProStatus } from '@/lib/business-pro';
 import { getDemoPatioStats, type PatioStatsSnapshot } from '@/lib/patio-stats';
+import { DEMO_BUSINESS_ID, getDemoBusinessSnapshot } from '@/lib/business-demo';
 import { useTabBarScroll } from '@/lib/tab-bar-visibility';
 import { Type, useTheme } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
@@ -68,14 +69,15 @@ export default function ResenasScreen() {
   const [peak, setPeak] = useState<{ day: string; hour: number } | null>(null);
   const load = useCallback(() => {
     const fonditaId = getFonditaId();
-    const demoSeed = fonditaId || getFonditaName() || 'patio-demo';
+    const demoSeed = fonditaId || DEMO_BUSINESS_ID;
     setDemo(getDemoPatioStats(demoSeed));
     markActivitySeen().catch(() => {});
     if (!fonditaId) {
+      const snapshot = getDemoBusinessSnapshot(DEMO_BUSINESS_ID);
       setReviews([]);
       setDishLikes([]);
-      setInsights(null);
-      setTopDishes([]);
+      setInsights(snapshot?.insights ?? null);
+      setTopDishes(snapshot?.dishes ?? []);
       setPeak(null);
       return Promise.resolve();
     }
@@ -277,6 +279,7 @@ export default function ResenasScreen() {
     <View style={[s.root, { backgroundColor: c.bg, paddingTop: insets.top }]}>
       <Stack.Screen options={{ headerShown: false }} />
       <ScrollView refreshControl={<RefreshControl refreshing={pull.refreshing} onRefresh={pull.onRefresh} tintColor={theme.textSecondary} />} onScroll={onScroll} scrollEventThrottle={16} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 24, paddingBottom: bottomTabClearance(insets.bottom) }} showsVerticalScrollIndicator={false}>
+        {__DEV__ && !getFonditaId() && <Text style={[s.proSub, { color: c.textSecondary, marginBottom: 16 }]}>{noWidow('Datos de ejemplo · actividad del negocio sin registro')}</Text>}
         {insights && (
           <View style={[s.insights, { backgroundColor: c.surface, borderColor: c.border }]}>
             <View style={s.insightRow}>
@@ -285,8 +288,8 @@ export default function ResenasScreen() {
                 [insights.dishLikes, 'me gusta en platillos', insights.dishLikesWeek],
               ] as const).map(([value, label, week]) => (
                 <TouchableOpacity key={label} style={s.insight} activeOpacity={0.7}
-                  disabled={label === 'me gusta en platillos' || !getFonditaId()}
-                  onPress={() => router.push({ pathname: '/foodie/seguidores', params: { patio: getFonditaId() } })}
+                  disabled={label === 'me gusta en platillos' || (!getFonditaId() && !__DEV__)}
+                  onPress={() => router.push({ pathname: '/foodie/seguidores', params: { patio: getFonditaId() || (__DEV__ ? DEMO_BUSINESS_ID : null) } })}
                   accessibilityRole={label === 'me gusta en platillos' ? undefined : 'button'}
                   accessibilityLabel={`${value} ${label}${week ? `, ${week} esta semana` : ''}`}>
                   <Text style={[s.insightValue, { color: c.text }]}>{value}</Text>

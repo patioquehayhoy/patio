@@ -323,6 +323,57 @@ test('DEV sold-out survives reopening without publishing other pending edits', a
   runtime.unmount();
 });
 
+test('DEV public profile and menu fetch preserve Se acabó, Ya hay and vegetarian flags', async () => {
+  let current = menu('Ensalada');
+  current.secciones[0].platillos[0].agotado = true;
+  current.secciones[0].platillos[0].vegetariano = true;
+  const f = fixture({ dev: true, overrides: {
+    '@/lib/supabase': { supabase: {} },
+    '@/lib/demo': { DEV_MY_PATIO_ID: 'demo-mi-patio', getDevPublishedMenu: async () => current },
+    '@/lib/stats': {},
+  } });
+  const { makeDevPublishedPatio } = f.load('lib/demo.ts');
+  const { fetchMenuForFondita } = f.load('lib/menu.ts');
+  const check = async (soldOut) => {
+    const profileDish = makeDevPublishedPatio(current).menu[0].items[0];
+    const refreshedDish = (await fetchMenuForFondita('demo-mi-patio')).sections[0].items[0];
+    for (const dish of [profileDish, refreshedDish]) {
+      assert.equal(dish.soldOut === true, soldOut);
+      assert.equal(dish.vegetarian, true);
+      assert.equal(dish.name, 'Ensalada');
+    }
+  };
+  await check(true);
+  current = { ...current, secciones: current.secciones.map((section) => ({ ...section, platillos: section.platillos.map(({ agotado, ...dish }) => dish) })) };
+  await check(false);
+});
+
+test('past menus discard stale live context and get a date title instead of a string of dishes', () => {
+  const f = fixture({ overrides: { '@/lib/supabase': { supabase: {} } } });
+  const { editorSeed, defaultHistoryTitle } = f.load('lib/controllers/useMenuHistoryController.ts');
+  const past = { id: 'old', fecha: '2026-11-21', published: true,
+    secciones: { ...menu('Mole'), localLive: true, localFecha: '2026-11-22', localPublishAt: '2026-11-22T17:00:00Z' } };
+  const copy = editorSeed(past, '2026-11-22');
+  assert.equal(copy.localLive, undefined);
+  assert.equal(copy.localFecha, undefined);
+  assert.equal(copy.localPublishAt, undefined);
+  assert.equal(copy.localDraftId, undefined);
+  assert.equal(defaultHistoryTitle(past), 'Menú del 21 de noviembre');
+});
+
+test('business demo has consistent followers and totals, and is unavailable in production or for real accounts', () => {
+  const demo = fixture({ dev: true }).load('lib/business-demo.ts');
+  const snapshot = demo.getDemoBusinessSnapshot(demo.DEMO_BUSINESS_ID, '2026-11-22');
+  assert.equal(snapshot.stats.saves, snapshot.followers.length);
+  assert.equal(snapshot.insights.saves, snapshot.followers.length);
+  assert.equal(snapshot.stats.dishLikes, snapshot.dishes.reduce((sum, dish) => sum + dish.likes, 0));
+  assert.equal(snapshot.today.week.length, 7);
+  assert.deepEqual(snapshot.today.week.at(-1), { day: '2026-11-22', views: snapshot.today.viewsToday });
+  assert.equal(demo.getDemoBusinessSnapshot('11111111-1111-4111-8111-111111111111'), null);
+  const production = fixture().load('lib/business-demo.ts');
+  assert.equal(production.getDemoBusinessSnapshot(production.DEMO_BUSINESS_ID), null);
+});
+
 test('successful remote publication survives optional local-cache and learning failures', async () => {
   const f = publicationFixture({ storageFail: true, correctionError: true });
   const store = f.load('lib/menu-store.ts');

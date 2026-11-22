@@ -5,6 +5,7 @@ import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-nati
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { getBusinessToday, viewsComparison, type BusinessToday } from '@/lib/business-today';
+import { DEMO_BUSINESS_ID } from '@/lib/business-demo';
 import { useMenuHistoryController } from '@/lib/controllers/useMenuHistoryController';
 import { fonderoPalette } from '@/lib/fondero-palette';
 import { localMenuDate } from '@/lib/menu-date';
@@ -27,7 +28,7 @@ export default function HoyScreen() {
   const [today, setToday] = useState<BusinessToday | null>(null);
 
   useFocusEffect(useCallback(() => {
-    const id = getFonditaId();
+    const id = getFonditaId() || (__DEV__ ? DEMO_BUSINESS_ID : null);
     if (!id) return;
     let alive = true;
     getBusinessToday(id).then((value) => { if (alive) setToday(value); }).catch(() => {});
@@ -58,6 +59,7 @@ export default function HoyScreen() {
       </View>
       <ScrollView contentContainerStyle={[s.content, { paddingBottom: insets.bottom + 32 }]} showsVerticalScrollIndicator={false}>
         <Text style={[s.title, { color: c.text }]} accessibilityRole="header">Hoy</Text>
+        {__DEV__ && !getFonditaId() && <Text style={[s.demoLabel, { color: c.textSecondary }]}>{noWidow('Datos de ejemplo · puedes recorrer tu negocio sin registrarte')}</Text>}
 
         <View
           style={[s.card, { backgroundColor: c.surface, borderColor: c.border }]}
@@ -139,6 +141,7 @@ const s = StyleSheet.create({
   back: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   content: { paddingHorizontal: 20, paddingTop: 4 },
   title: { ...Type.screen, marginBottom: 16 },
+  demoLabel: { fontSize: 13, lineHeight: 18, marginBottom: 16 },
   card: { padding: 16, borderRadius: Radius.card, borderCurve: 'continuous', borderWidth: StyleSheet.hairlineWidth },
   cardHead: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: 12 },
   cardLabel: { flexShrink: 1, fontSize: 13, lineHeight: 18, fontWeight: '600' },

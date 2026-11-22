@@ -162,3 +162,36 @@ iPhone y QA general corresponden a Parco.
 Continúan: QA anterior, entrega real de resúmenes/programados, acceso de
 Apple, consulta nueva a Jev, modalidades mixtas/marcas, estadísticas por
 identidad y decidir si hace falta una sesión anónima de servidor.
+
+## Segunda revisión del mismo día: respuesta al QA
+
+Parco reportó que Se acabó/Ya hay no llegaba a la ficha. El primer cambio
+guardaba el estado DEV, pero la conversión de `demo.ts` lo descartaba. Se
+elimina ese conversor distinto: ahora usa `menuDataToSections` y conserva
+disponibilidad, dieta, fotos y otros nombres. La ficha vuelve a consultar el
+menú al recuperar foco, también para negocios reales. Una prueba de lógica
+cubre marcar y quitar agotado tanto al construir la ficha como al recargar
+su menú, manteniendo vegetariano. No acredita por sí sola la interacción en
+el iPhone.
+
+La biblioteca usa un título por fecha si no hay nombre propio; deja de
+identificar un menú mediante una enumeración de platillos. El nombre aparece
+editable a todo el ancho al inicio del contenido, y Publicar/Programar quedan
+juntos en navegación. El menú al aire tiene contorno naranja. Los menús
+anteriores descartan contexto vivo que pudiera venir incrustado y abren una
+copia; la pantalla reconstruye el editor al volver a entrar con otra semilla.
+La fila deslizable deja un espacio de 12 pt entre precio y acciones abiertas.
+
+Para recorrer el negocio sin cuenta real, `business-demo.ts` ofrece un
+conjunto coherente de cifras solo en DEV y solo para `demo-mi-patio`.
+Hoy, Actividad, perfil y seguidores lo identifican como datos de ejemplo.
+El perfil del negocio ofrece acceso a Hoy y Mis menús y listas; las listas
+siguen leyendo el almacenamiento local, sin inventar colecciones ni tocar
+las existentes. Los accesos son `patio://perfil` y `patio://hoy`.
+Esto no da acceso a métricas reales de una cuenta ni crea una sesión de
+Supabase. Una prueba comprueba que el conjunto de ejemplo no se entrega en
+producción ni para identificadores de negocios reales.
+
+La dieta sigue opcional; únicamente se arregló su conservación en la ficha
+DEV. Las preguntas genéricas siguen pendientes de evaluar con Parco/Jev.
+No hubo QA visual ni general del teléfono por Codex.

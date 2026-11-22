@@ -793,6 +793,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
         <SwipeRow
           drag={board.rowFor({ kind: 'dish', dishId: dish.id, sectionId: section.id }, HOLD_IN_PLACE_MS).enabled(gesturesOn)}
           enabled={gesturesOn}
+          actionGap={12}
           fullSwipe
           actions={[
             // En el menú ya publicado, lo de hoy se marca «Se acabó» al instante.
@@ -1126,21 +1127,13 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
               onPress={leave}
             />
           </View>
-          <TextInput
-            ref={nombreInputRef}
-            style={[s.navTitle, { color: nombre.trim() ? c.text : c.textSecondary }]}
-            value={nombre}
-            onChangeText={setNombre}
-            onFocus={focusNombre}
-            onBlur={confirmNombre}
-            onSubmitEditing={() => nombreInputRef.current?.blur()}
-            placeholder="Nombre del menú"
-            placeholderTextColor={c.textMute}
-            maxLength={TEXT_LIMITS.menuName}
-            maxFontSizeMultiplier={1.2}
-            returnKeyType="done"
-            accessibilityLabel="Nombre del menú"
-          />
+          <View style={s.navActions}>
+          {!live && <View ref={scheduleRef} collapsable={false}>
+            <TouchableOpacity style={s.scheduleButton} disabled={menuEmpty || publishing} onPress={() => { Keyboard.dismiss(); setScheduleMenu('hold'); }} accessibilityRole="button" accessibilityLabel="Programar menú" accessibilityState={{ disabled: menuEmpty || publishing }}>
+              <Ionicons name="time-outline" size={16} color={c.textSecondary} />
+              <Text style={s.scheduleText}>Programar</Text>
+            </TouchableOpacity>
+          </View>}
           {(() => {
             // Apagado únicamente si no hay un platillo de hoy.
             // El detector informa; no impide enviar el contenido visible.
@@ -1166,6 +1159,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
               </View>
             );
           })()}
+          </View>
         </View>
 
         <View style={s.statusRow}>
@@ -1175,12 +1169,6 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
               : draftSaveState === 'error' ? 'No se pudo guardar el borrador'
                 : draftSaveState === 'saving' || changed ? 'Guardando borrador…' : draftSaveState === 'saved' ? 'Borrador guardado' : 'Borrador · se guarda solo')}
           </Text>
-          {!live && <View ref={scheduleRef} collapsable={false}>
-            <TouchableOpacity style={s.scheduleButton} disabled={menuEmpty || publishing} onPress={() => { Keyboard.dismiss(); setScheduleMenu('hold'); }} accessibilityRole="button" accessibilityLabel="Programar menú" accessibilityState={{ disabled: menuEmpty || publishing }}>
-              <Ionicons name="time-outline" size={16} color={c.textSecondary} />
-              <Text style={s.scheduleText}>Programar</Text>
-            </TouchableOpacity>
-          </View>}
         </View>
 
         {data.secciones.length >= 4 && !keyboardOpen && (
@@ -1214,6 +1202,26 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
             keyboardDismissMode="interactive"
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}>
+            <View style={s.menuIdentity}>
+              <Text style={s.menuNameLabel}>NOMBRE DEL MENÚ</Text>
+              <TextInput
+                ref={nombreInputRef}
+                style={s.menuName}
+                value={nombre}
+                onChangeText={(value) => setNombre(value.replace(/\n/g, ' '))}
+                onFocus={focusNombre}
+                onBlur={confirmNombre}
+                onSubmitEditing={() => nombreInputRef.current?.blur()}
+                placeholder="Nombre del menú"
+                placeholderTextColor={c.textMute}
+                maxLength={TEXT_LIMITS.menuName}
+                multiline
+                scrollEnabled={false}
+                submitBehavior="blurAndSubmit"
+                returnKeyType="done"
+                accessibilityLabel="Nombre del menú"
+              />
+            </View>
             {/* Menú programado: cuándo sale. */}
             {!!scheduledFor && (
               <View style={s.retake} accessible accessibilityLabel={`Programado: sale solo ${scheduledFor.toLowerCase()}`}>
@@ -1328,10 +1336,13 @@ function makeStyles(c: FonderoColors) {
     // El nombre del menú y, a la derecha, la acción destacada.
     nav: { minHeight: NAV_HEIGHT, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 12 },
     navLead: { width: 40, minHeight: 44, justifyContent: 'center' },
-    navTitle: { flex: 1, minWidth: 0, paddingVertical: 0, fontSize: 17, fontWeight: '700', color: c.textSecondary },
+    navActions: { flex: 1, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'flex-end', gap: 8, paddingVertical: 4 },
+    menuIdentity: { marginBottom: 20 },
+    menuNameLabel: { ...Type.label, color: c.textSecondary, marginBottom: 6 },
+    menuName: { ...Type.section, ...flat, color: c.text, paddingVertical: 0 },
     statusRow: { paddingHorizontal: 20, minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 12 },
     statusText: { flex: 1, fontSize: 13, lineHeight: 18, color: c.textSecondary, paddingVertical: 8 },
-    scheduleButton: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 5 },
+    scheduleButton: { minHeight: 36, paddingHorizontal: 12, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, borderColor: c.border, flexDirection: 'row', alignItems: 'center', gap: 5 },
     scheduleText: { fontSize: 14, fontWeight: '600', color: c.textSecondary },
     // «Publicar» / «Actualizar»: cápsula naranja, la única con color.
     primary: { minHeight: 36, paddingHorizontal: 14, borderRadius: 18, borderCurve: 'continuous', alignItems: 'center', justifyContent: 'center', backgroundColor: c.accent },

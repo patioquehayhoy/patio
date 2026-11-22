@@ -151,6 +151,7 @@ export default function HistorialScreen() {
     const isSelected = selectedFechas.has(key);
     const state = menuPublicationState(menu);
     const status = state === 'live' ? 'Publicado hoy' : state === 'scheduled' ? 'Programado' : state === 'previous' ? 'Publicado' : 'Borrador';
+    const dishes = menu.secciones.secciones.reduce((sum, section) => sum + section.platillos.filter((dish) => dish.nombre.trim()).length, 0);
     return (
       <SwipeRow
         key={key}
@@ -184,6 +185,7 @@ export default function HistorialScreen() {
         <View style={{ flex: 1, minWidth: 0 }}>
           <Text style={[s.summary, { color: c.text }]}>{noWidow(menu.nombre || defaultHistoryTitle(menu))}</Text>
           <Text style={[s.date, { color: c.textMute }]}>{noWidow(`${status} · ${dateLabel(menu.fecha)}`)}</Text>
+          <Text style={[s.date, { color: c.textMute }]}>{`${dishes} ${dishes === 1 ? 'platillo' : 'platillos'}`}</Text>
         </View>
       </TouchableOpacity>
       </SwipeRow>
@@ -242,7 +244,7 @@ export default function HistorialScreen() {
       <View style={{ flex: 1 }}>
       <ScrollView refreshControl={<RefreshControl refreshing={pull.refreshing} onRefresh={pull.onRefresh} tintColor={theme.textSecondary} />} onLayout={edges.onLayout} onContentSizeChange={edges.onContentSizeChange} onScroll={(event) => { edges.onScroll?.(event); onScroll?.(event); }} onScrollBeginDrag={() => closeOpenSwipeRow()} onTouchStart={(event) => closeSwipeRowOnTouch(event.nativeEvent.pageX, event.nativeEvent.pageY)} scrollEventThrottle={16} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: selecting ? bottomActionClearance(insets.bottom, selectionBarHeight) : bottomTabClearance(insets.bottom) }} showsVerticalScrollIndicator indicatorStyle={theme.isDark ? 'white' : 'black'}>
         {!loading && !selecting && menus.length > 0 && (
-          <View style={[s.published, { borderColor: c.border }]}>
+          <View style={[s.published, { borderColor: liveMenu ? c.accent : c.border, backgroundColor: c.surface }]}>
             <Text style={[s.groupLabel, { color: c.textSecondary }]}>{liveMenu ? 'PUBLICADO HOY' : 'HOY'}</Text>
             <Text style={[s.summary, { color: c.text, marginTop: 8 }]}>{noWidow(liveMenu ? liveMenu.nombre || defaultHistoryTitle(liveMenu) : 'Todavía no publicas el menú de hoy')}</Text>
             {liveMenu && <View style={s.publishedActions}>
@@ -337,7 +339,7 @@ export default function HistorialScreen() {
 
 const s = StyleSheet.create({
   root: { flex: 1 },
-  published: { paddingTop: 20, paddingBottom: 16, borderBottomWidth: StyleSheet.hairlineWidth },
+  published: { marginTop: 16, padding: 16, borderWidth: StyleSheet.hairlineWidth, borderLeftWidth: 3, borderRadius: 14, borderCurve: 'continuous' },
   publishedActions: { flexDirection: 'row', flexWrap: 'wrap', columnGap: 24, marginTop: 4 },
   publishedButton: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 6 },
   publishedActionText: { fontSize: 15, fontWeight: '600' },

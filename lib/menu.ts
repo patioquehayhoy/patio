@@ -23,7 +23,7 @@ export function cleanMenuText(value?: string): string | undefined {
 
 export const cleanMenuDescription = cleanMenuText;
 
-function menuDataToSections(data: MenuData, kind: 'hoy' | 'carta' = 'hoy'): PatioMenuSection[] {
+export function menuDataToSections(data: MenuData, kind: 'hoy' | 'carta' = 'hoy'): PatioMenuSection[] {
   return (kind === 'carta' ? data : withMenuPrecios(data)).secciones
     // Un encabezado con precio («MENÚ DEL DÍA $100») sale aunque no tenga platillos debajo.
     .filter((sec) => sec.platillos.some((p) => p.nombre) || !!publicCurrency(sec.precio))
@@ -54,6 +54,11 @@ export type FonditaPublicMenu = {
 };
 
 export async function fetchMenuForFondita(fonditaId: string): Promise<FonditaPublicMenu> {
+  if (__DEV__ && fonditaId.startsWith('demo-')) {
+    const { DEV_MY_PATIO_ID, getDevPublishedMenu } = require('./demo') as typeof import('./demo');
+    const menu = fonditaId === DEV_MY_PATIO_ID ? normalizeMenuData(await getDevPublishedMenu()) : null;
+    return menu ? { sections: menuDataToSections(menu), prices: publicMenuPrices(menu), carta: [] } : { sections: [], prices: [], carta: [] };
+  }
   // Lo de hoy (lo que cambia) arriba, con sus precios; la carta (lo de
   // siempre) abajo. Sin menú de hoy, la carta ocupa su lugar.
   const [{ data: menuHoy }, { data: carta }] = await Promise.all([

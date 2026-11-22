@@ -1,5 +1,10 @@
 import type { MenuData } from './menu-store';
 
+/** Un nombre reconocible aunque no se haya escrito un título propio. */
+export function menuNameForDate(fecha: string): string {
+  return `Menú del ${new Date(`${fecha}T12:00:00`).toLocaleDateString('es-MX', { day: 'numeric', month: 'long' })}`;
+}
+
 /**
  * Título de un menú sin nombre, como Notas usa su primera línea: los primeros
  * platillos y cuántos más hay («Chilaquiles, Molletes y 22 más»). Con nombres

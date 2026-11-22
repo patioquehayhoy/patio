@@ -6,7 +6,8 @@ import type { HorarioSemanal } from '@/lib/horario';
 import { localMenuDate } from '@/lib/menu-date';
 import { publishReminderMinute } from '@/lib/publish-timing';
 import { getLocalMenus } from '@/lib/menu-history';
-import { getFonditaHorarioSemanal } from '@/lib/menu-store';
+import { getFonditaHorarioSemanal, getTipoNegocio } from '@/lib/menu-store';
+import { defaultRitmo, getCachedRitmo } from '@/lib/ritmo';
 import { getClosedDays } from '@/lib/closed-days';
 import { cancelScheduledReminders, REMINDER_STORAGE_KEYS } from '@/lib/reminder-cleanup';
 
@@ -39,6 +40,28 @@ export const PUBLISH_CATEGORY = 'publish-reminder';
 export const PUBLISH_ASK_CATEGORY = 'publish-reminder-ask';
 export const ACTION_CLOSED_TODAY = 'closed-today';
 export const ACTION_DAILY_AGAIN = 'daily-again';
+// Carta fija: una vez al mes «¿Siguen igual tus precios?» con «Siguen igual».
+export const PRICES_CATEGORY = 'prices-check';
+export const ACTION_PRICES_SAME = 'prices-same';
+
+/**
+ * Con carta fija (ritmo 'carta'): el primer día que abre de cada mes, a la
+ * hora del aviso (1 h antes de abrir), los próximos `months` meses.
+ */
+export function planPriceChecks(now: Date, horario: HorarioSemanal | null, months = 3): Date[] {
+  const dates: Date[] = [];
+  for (let offset = 0; offset <= months && dates.length < months; offset++) {
+    for (let dayOfMonth = 1; dayOfMonth <= 7; dayOfMonth++) {
+      const day = new Date(now.getFullYear(), now.getMonth() + offset, dayOfMonth);
+      const minute = publishReminderMinute(horario, day.getDay());
+      if (minute == null) continue;
+      const at = new Date(day.getFullYear(), day.getMonth(), day.getDate(), Math.floor(minute / 60), minute % 60, 0);
+      if (at > now) dates.push(at);
+      break;
+    }
+  }
+  return dates;
+}
 
 export type PlannedReminder = { date: Date; kind: 'daily' | 'ask' | 'weekly' };
 
@@ -124,6 +147,9 @@ export async function registerReminderCategories() {
   await N.setNotificationCategoryAsync(PUBLISH_CATEGORY, [
     { identifier: ACTION_CLOSED_TODAY, buttonTitle: 'Hoy no abro', options: { opensAppToForeground: true } },
   ]).catch(() => {});
+  await N.setNotificationCategoryAsync(PRICES_CATEGORY, [
+    { identifier: ACTION_PRICES_SAME, buttonTitle: 'Siguen igual', options: { opensAppToForeground: true } },
+  ]).catch(() => {});
   await N.setNotificationCategoryAsync(PUBLISH_ASK_CATEGORY, [
     { identifier: ACTION_DAILY_AGAIN, buttonTitle: 'Avísame a diario', options: { opensAppToForeground: true } },
     { identifier: ACTION_CLOSED_TODAY, buttonTitle: 'Hoy no abro', options: { opensAppToForeground: true } },
@@ -184,6 +210,18 @@ export async function syncPublishReminder(publishedToday: boolean) {
   if (!N) return;
   await cancelScheduledReminders(['publish-reminder']);
   if (!await getReminder('publish')) return;
+  // Carta fija: nada diario; una vez al mes, revisar precios.
+  const ritmo = (await getCachedRitmo()) ?? defaultRitmo(getTipoNegocio());
+  if (ritmo === 'carta') {
+    for (const [index, date] of planPriceChecks(new Date(), getFonditaHorarioSemanal()).entries()) {
+      await N.scheduleNotificationAsync({
+        identifier: `publish-reminder-precios-${index}`,
+        content: { title: '¿Siguen igual tus precios?', body: 'Si cambió algo, toca para ajustar tu carta.', categoryIdentifier: PRICES_CATEGORY, data: { type: 'prices_check' } },
+        trigger: { type: N.SchedulableTriggerInputTypes.DATE, date, channelId: 'default' },
+      });
+    }
+    return;
+  }
   const menus = await getLocalMenus().catch(() => []);
   const plan = planPublishReminders({
     now: new Date(),

@@ -1259,6 +1259,14 @@ export function PatioDetailView({ id, own = false, focusDish }: { id?: string; o
       : modalidad === 'itinerante' && puntos.length
         ? 'Hoy no sale'
         : [patio.address?.trim(), patio.area?.trim()].filter(Boolean).join(' · ');
+  // Qué tan al día están los precios de la carta (2026-11-21): el mes en que
+  // el negocio la cambió o confirmó «Siguen igual».
+  const preciosLabel = patio.cartaPreciosAl ? (() => {
+    const at = new Date(patio.cartaPreciosAl);
+    if (Number.isNaN(at.getTime())) return null;
+    const sameYear = at.getFullYear() === new Date().getFullYear();
+    return `Precios de ${at.toLocaleDateString('es-MX', sameYear ? { month: 'long' } : { month: 'long', year: 'numeric' })}`;
+  })() : null;
   const pedidosHasta = patio.pedidosHasta ? (() => {
     const [h, m] = patio.pedidosHasta.split(':').map(Number);
     return Number.isFinite(h) && Number.isFinite(m) ? `Pedidos hasta ${atHour(h * 60 + m)}` : null;
@@ -1447,6 +1455,10 @@ export function PatioDetailView({ id, own = false, focusDish }: { id?: string; o
               {/* Fotos de platillos: el menú sigue en texto; se ven
                   manteniendo presionado. Si todos tienen foto basta esta
                   línea; si solo algunos, la marca junto al nombre dice cuáles. */}
+              {/* Sin menú de hoy, lo que se ve es la carta: dice de cuándo son sus precios. */}
+              {!patio.hasTodayMenu && !!preciosLabel && menuGroups.length > 0 && (
+                <Text style={s.cartaNote} allowFontScaling={true}>{noWidow(`${preciosLabel}.`)}</Text>
+              )}
               {menuGroups.map((section, sectionIndex) => (
                 <View key={`${sectionIndex}-${section.section}`} style={s.group} onLayout={(event) => { groupY.current[sectionIndex] = event.nativeEvent.layout.y; }}>
                   {/* La carta (lo de siempre) empieza después de lo de hoy. */}
@@ -1460,7 +1472,7 @@ export function PatioDetailView({ id, own = false, focusDish }: { id?: string; o
                           <Text style={s.groupPrice} allowFontScaling={true}>{section.price}</Text>
                         )}
                       </View>
-                      <Text style={s.cartaNote} allowFontScaling={true}>{noWidow('Lo que hay todos los días.')}</Text>
+                      <Text style={s.cartaNote} allowFontScaling={true}>{noWidow(preciosLabel ? `Lo que hay todos los días. ${preciosLabel}.` : 'Lo que hay todos los días.')}</Text>
                     </View>
                   )}
                   {/* «MENÚ DEL DÍA» sin precio no repite título; con precio es el

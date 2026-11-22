@@ -1,3 +1,5 @@
+import { defaultRitmo, getCachedRitmo } from '@/lib/ritmo';
+import { getTipoNegocio } from '@/lib/menu-store';
 import { Ionicons } from '@expo/vector-icons';
 import { router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
@@ -27,6 +29,13 @@ export default function AvisosScreen() {
   const { role } = useLocalSearchParams<{ role?: 'foodie' | 'fondero' }>();
   const fondero = role === 'fondero';
   const sc = settingsColors(theme);
+  // El recordatorio del negocio sigue su ritmo (lib/ritmo.ts): diario o, con carta fija, una vez al mes.
+  const [cartaFija, setCartaFija] = useState(false);
+  useEffect(() => {
+    let active = true;
+    getCachedRitmo().then((value) => { if (active) setCartaFija((value ?? defaultRitmo(getTipoNegocio())) === 'carta'); }).catch(() => {});
+    return () => { active = false; };
+  }, []);
   const [system, setSystem] = useState<'granted' | 'denied' | 'undetermined' | 'unavailable'>('undetermined');
   const [signedIn, setSignedIn] = useState(true);
   const [preview, setPreview] = useState(false);
@@ -221,10 +230,10 @@ export default function AvisosScreen() {
         <SettingsGroup c={sc} label="Recordatorios">
           <SettingsRow
             c={sc}
-            icon={fondero ? 'camera-outline' : 'restaurant-outline'}
-            title={fondero ? 'Publicar el menú' : 'Hora de comer'}
-            sub={fondero ? 'Una hora antes de abrir, si aún no publicas' : 'A la 1 de la tarde, para ver qué hay hoy'}
-            trailing={<ToggleSwitch value={reminder} disabled={updating === 'reminder'} accessibilityLabel={fondero ? 'Publicar el menú' : 'Hora de comer'} onValueChange={updateReminder} />}
+            icon={fondero ? (cartaFija ? 'book-outline' : 'camera-outline') : 'restaurant-outline'}
+            title={fondero ? (cartaFija ? 'Revisar precios' : 'Publicar el menú') : 'Hora de comer'}
+            sub={fondero ? (cartaFija ? 'Una vez al mes, si tu carta sigue igual' : 'Una hora antes de abrir, si aún no publicas') : 'A la 1 de la tarde, para ver qué hay hoy'}
+            trailing={<ToggleSwitch value={reminder} disabled={updating === 'reminder'} accessibilityLabel={fondero ? (cartaFija ? 'Revisar precios' : 'Publicar el menú') : 'Hora de comer'} onValueChange={updateReminder} />}
           />
           {canAskOpinion && (
             <SettingsRow

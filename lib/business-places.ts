@@ -1,4 +1,5 @@
 import { isModalidad, type Modalidad, type Punto } from './puntos';
+import { isRitmo, type Ritmo } from './ritmo';
 import { supabase } from './supabase';
 
 // Dónde vende el negocio, del lado del dueño (2026-11-21, migración
@@ -62,5 +63,24 @@ export async function savePunto(negocioId: string, punto: PuntoDraft): Promise<P
 
 export async function deletePunto(id: string): Promise<void> {
   const { error } = await supabase.from('negocio_puntos').delete().eq('id', id);
+  if (error) throw error;
+}
+
+/** Ritmo guardado del negocio (vacío si nunca lo eligió). */
+export async function loadRitmo(negocioId: string): Promise<Ritmo | null> {
+  const { data, error } = await supabase.from('negocios').select('ritmo').eq('id', negocioId).maybeSingle();
+  if (error) throw error;
+  const value = (data as { ritmo?: unknown } | null)?.ritmo;
+  return isRitmo(value) ? value : null;
+}
+
+export async function saveRitmo(negocioId: string, ritmo: Ritmo): Promise<void> {
+  const { error } = await supabase.from('negocios').update({ ritmo }).eq('id', negocioId);
+  if (error) throw error;
+}
+
+/** «Siguen igual»: los precios de la carta se dan por revisados hoy. */
+export async function confirmCartaPrices(): Promise<void> {
+  const { error } = await supabase.rpc('confirm_carta_prices');
   if (error) throw error;
 }

@@ -29,7 +29,7 @@
 - [x] **Producción:** `20261121140000_rhythm_prices_fresh` aplicada (ritmo,
   `cartas.precios_al`, `confirm_carta_prices`, aviso `fresh`); la app aún no
   lo usa.
-- [ ] **Bloque 2 · Carta fija:** en Editar mi negocio «Cambia cada día» /
+- [x] **Bloque 2 · Carta fija** (hecho 21 nov, noche): en Editar mi negocio «Cambia cada día» /
   «Casi siempre es el mismo» (por defecto según el giro; `negocios.ritmo`);
   «Precios de noviembre» en la ficha (`cartas.precios_al`); con ritmo
   carta, el aviso diario pasa a uno al mes «¿Siguen igual tus precios?» con

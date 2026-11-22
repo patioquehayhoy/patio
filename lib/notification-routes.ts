@@ -6,7 +6,7 @@ export type NotificationRoute =
   | { pathname: '/resena/[id]'; params: { id: string } }
   | { pathname: '/menu-editar'; params: { desde: 'ultimo' } }
   | { pathname: '/avisar'; params: { tipo: 'closed'; auto: '1' } }
-  | { pathname: '/notificaciones' | '/historial' | '/explorar' | '/hoy' | '/resenas' | '/favoritos' };
+  | { pathname: '/notificaciones' | '/historial' | '/explorar' | '/hoy' | '/resenas' | '/favoritos' | '/mi-patio' };
 
 // `/favoritos`: el resumen de los lugares que sigues (varios lugares).
 const ROUTES = new Set(['/notificaciones', '/historial', '/explorar', '/hoy', '/favoritos']);
@@ -19,6 +19,8 @@ export function routeForNotification(data: Record<string, unknown> | null | unde
   // (cambias lo que no hay y «Publicar»); «Nueva reseña · Toca para
   // responder» abre Actividad, donde se responde, no tu ficha.
   if (data.type === 'publish_reminder') return { pathname: '/menu-editar', params: { desde: 'ultimo' } };
+  // Carta fija, «¿Siguen igual tus precios?»: abre el menú con su carta para ajustarla.
+  if (data.type === 'prices_check') return { pathname: '/menu-editar', params: { desde: 'ultimo' } };
   if (data.type === 'review_received') return { pathname: '/resenas' };
   // «¿Qué te pareció?» después de una visita real: abre la reseña del lugar.
   if (data.type === 'visit_review' && typeof data.patioId === 'string' && data.patioId) {

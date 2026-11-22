@@ -90,6 +90,8 @@ export type Patio = {
   extraPositions?: Coordinates[];
   // Hora límite para pedir («11:00»).
   pedidosHasta?: string;
+  // Cuándo revisó el negocio los precios de su carta (ISO): «Precios de noviembre».
+  cartaPreciosAl?: string;
 };
 
 type WhereTheySell = { modalidad: Modalidad; pedidosHasta?: string; puntos: Punto[] };
@@ -390,7 +392,7 @@ async function withDevPatios(reales: Patio[]): Promise<Patio[]> {
 
 const FONDITAS_BASE_COLUMNS = 'id, nombre, descripcion, direccion, horario, horario_semanal, tipo_negocio, pagos_efectivo, pagos_transferencia, pagos_tarjeta, latitude, longitude';
 
-type PublicMenuEntry = { menu: PatioMenuSection[]; hasTodayMenu: boolean; menuPrices: PublicMenuPrice[]; carta: PatioMenuSection[] };
+type PublicMenuEntry = { menu: PatioMenuSection[]; hasTodayMenu: boolean; menuPrices: PublicMenuPrice[]; carta: PatioMenuSection[]; preciosAl?: string };
 
 function publicMenuSections(value: unknown, kind: 'hoy' | 'carta' = 'hoy'): PatioMenuSection[] {
   const normalized = normalizeMenuData(value);
@@ -420,11 +422,11 @@ async function fetchPublicMenus(ids: string[]): Promise<Map<string, PublicMenuEn
   const today = localMenuDate();
   const [daily, permanent] = await Promise.allSettled([
     supabase.from('menus').select('negocio_id, fecha, secciones').in('negocio_id', ids).eq('fecha', today),
-    supabase.from('cartas').select('negocio_id, secciones').in('negocio_id', ids),
+    supabase.from('cartas').select('negocio_id, secciones, precios_al').in('negocio_id', ids),
   ]);
   if (permanent.status === 'fulfilled' && !permanent.value.error) {
     for (const row of permanent.value.data ?? []) {
-      result.set(row.negocio_id, { menu: publicMenuSections(row.secciones, 'carta'), hasTodayMenu: false, menuPrices: [], carta: [] });
+      result.set(row.negocio_id, { menu: publicMenuSections(row.secciones, 'carta'), hasTodayMenu: false, menuPrices: [], carta: [], ...(typeof row.precios_al === 'string' ? { preciosAl: row.precios_al } : {}) });
     }
   }
   if (daily.status === 'fulfilled' && !daily.value.error) {
@@ -434,7 +436,8 @@ async function fetchPublicMenus(ids: string[]): Promise<Map<string, PublicMenuEn
       const normalized = normalizeMenuData(row.secciones);
       // La carta de siempre sigue debajo del menú de hoy.
       const carta = result.get(row.negocio_id)?.menu ?? [];
-      if (menu.length) result.set(row.negocio_id, { menu, hasTodayMenu: true, menuPrices: normalized ? publicMenuPrices(normalized) : [], carta });
+      const preciosAl = result.get(row.negocio_id)?.preciosAl;
+      if (menu.length) result.set(row.negocio_id, { menu, hasTodayMenu: true, menuPrices: normalized ? publicMenuPrices(normalized) : [], carta, ...(preciosAl ? { preciosAl } : {}) });
     }
   }
   return result;
@@ -486,6 +489,7 @@ export async function fetchPublicFonditas(options: { throwOnError?: boolean } = 
       hasTodayMenu: menus.get(row.id)?.hasTodayMenu ?? false,
       menuPrices: menus.get(row.id)?.menuPrices ?? [],
       carta: menus.get(row.id)?.carta ?? [],
+      ...(menus.get(row.id)?.preciosAl ? { cartaPreciosAl: menus.get(row.id)?.preciosAl } : {}),
       payments: [
         ...(row.pagos_efectivo ? ['Efectivo'] : []),
         ...(row.pagos_transferencia ? ['Transferencia'] : []),
@@ -553,6 +557,7 @@ export async function fetchFonditaById(id: string, options: { throwOnError?: boo
     hasTodayMenu: menu?.hasTodayMenu ?? false,
     menuPrices: menu?.menuPrices ?? [],
     carta: menu?.carta ?? [],
+    ...(menu?.preciosAl ? { cartaPreciosAl: menu.preciosAl } : {}),
     payments: [
       ...(row.pagos_efectivo ? ['Efectivo'] : []),
       ...(row.pagos_transferencia ? ['Transferencia'] : []),

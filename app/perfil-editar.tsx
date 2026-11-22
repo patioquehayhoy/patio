@@ -23,6 +23,7 @@ import { GlassIconButton } from '@/components/glass-button';
 import { PlacePhotoPicker } from '@/components/place-photo-picker';
 import { BusinessPaymentSelector } from '@/components/business-payment-selector';
 import { BusinessContactEditor } from '@/components/business-contact-editor';
+import { BusinessRhythmEditor } from '@/components/business-rhythm-editor';
 import { BusinessWhereEditor } from '@/components/business-where-editor';
 import { BusinessScheduleEditor } from '@/components/business-schedule-editor';
 import { SettingsGroup, SettingsRow, settingsColors } from '@/components/settings-list';
@@ -216,6 +217,13 @@ export default function PerfilScreen() {
               </Text>
             </TouchableOpacity>
           </View>
+        </View>
+
+        {/* ── TU MENÚ ── cada cuándo cambia; decide el aviso (diario o una vez al mes). */}
+        <View style={s.block}>
+          <Text style={s.blockLabel} allowFontScaling={true}>{noWidow('TU MENÚ')}</Text>
+          <Text style={s.blockHelp} allowFontScaling={true}>{noWidow('Así sabemos cada cuándo recordarte. Se guarda en cuanto lo eliges.')}</Text>
+          <BusinessRhythmEditor colors={theme} negocioId={negocioId} />
         </View>
 
         {/* ── DÓNDE VENDES ── local y sucursales, tianguis o solo a domicilio; se guarda al elegir. */}

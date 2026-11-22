@@ -8,7 +8,8 @@ import { useEffect, useState } from 'react';
 import { AppState, Platform } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { routeForNotification, type NotificationRoute } from '@/lib/notification-routes';
-import { ACTION_CLOSED_TODAY, ACTION_DAILY_AGAIN, registerReminderCategories, resumeDailyPublishReminder } from '@/lib/local-reminders';
+import { ACTION_CLOSED_TODAY, ACTION_DAILY_AGAIN, ACTION_PRICES_SAME, registerReminderCategories, resumeDailyPublishReminder } from '@/lib/local-reminders';
+import { confirmCartaPrices } from '@/lib/business-places';
 import '@/lib/visits-task';
 // Tu nombre público en memoria desde el arranque (ver lib/my-public-name.ts).
 import '@/lib/my-public-name';
@@ -70,9 +71,13 @@ function RootStack() {
       // abrimos» elegido; «Avísame a diario» vuelve al aviso diario.
       const action = response?.actionIdentifier;
       if (action === ACTION_DAILY_AGAIN) resumeDailyPublishReminder().catch(() => {});
+      // «Siguen igual»: los precios de la carta quedan revisados hoy y se ve tu ficha.
+      if (action === ACTION_PRICES_SAME) confirmCartaPrices().catch(() => {});
       const route: NotificationRoute | null = action === ACTION_CLOSED_TODAY
         ? { pathname: '/avisar', params: { tipo: 'closed', auto: '1' } }
-        : routeForNotification(response?.notification.request.content.data);
+        : action === ACTION_PRICES_SAME
+          ? { pathname: '/mi-patio' }
+          : routeForNotification(response?.notification.request.content.data);
       if (route) {
         lastOpened = identifier;
         setPendingRoute(route);

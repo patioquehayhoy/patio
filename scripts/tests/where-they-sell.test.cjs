@@ -76,3 +76,14 @@ test('the week ahead: next open days at the reminder hour', () => {
   assert.deepEqual(slots.map((slot) => slot.label), ['Mañana a las 12 pm', 'El lunes a las 12 pm', 'El martes a las 12 pm']);
   assert.deepEqual(slots.map((slot) => slot.fecha), ['2026-11-28', '2026-11-30', '2026-12-01']);
 });
+
+test('menu rhythm: daily for fondas and home cooking, carta for places that sell the same', () => {
+  const { defaultRitmo } = load('lib/ritmo.ts');
+  assert.equal(defaultRitmo('fondita'), 'diario');
+  assert.equal(defaultRitmo('casa'), 'diario');
+  assert.equal(defaultRitmo(null), 'diario');
+  assert.equal(defaultRitmo('taqueria'), 'carta');
+  assert.equal(defaultRitmo('reposteria'), 'carta');
+  const { routeForNotification } = load('lib/notification-routes.ts');
+  assert.deepEqual(routeForNotification({ type: 'prices_check' }), { pathname: '/menu-editar', params: { desde: 'ultimo' } });
+});

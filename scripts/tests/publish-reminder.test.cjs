@@ -30,7 +30,8 @@ function load() {
     'react-native': { Platform: { OS: 'ios' } },
     '@/lib/community-notifications': {},
     '@/lib/reminder-cleanup': { REMINDER_STORAGE_KEYS: ['a', 'b'] },
-    '@/lib/menu-store': { getFonditaHorarioSemanal: () => null },
+    '@/lib/menu-store': { getFonditaHorarioSemanal: () => null, getTipoNegocio: () => null },
+    '@/lib/ritmo': { defaultRitmo: () => 'diario', getCachedRitmo: async () => null },
     '@/lib/menu-history': { getLocalMenus: async () => [] },
     '@/lib/closed-days': { getClosedDays: async () => new Set() },
     '@/lib/menu-date': { localMenuDate: localDate },
@@ -116,4 +117,15 @@ test('publish timing: after service, next slot and labels', () => {
   assert.equal(atHour(13 * 60), 'a la 1 pm');
   assert.equal(atHour(8 * 60 + 30), 'a las 8:30 am');
   assert.equal(scheduledLabel(new Date(2026, 10, 27, 9, 0).toISOString(), new Date(2026, 10, 26, 22, 0)), 'Mañana a las 9 am');
+});
+
+test('carta fija: one price check a month, on the first day it opens, never in the past', () => {
+  const { planPriceChecks } = load();
+  // Abre de lunes a sábado a las 13 (aviso a las 12); domingo cierra.
+  const dates = planPriceChecks(new Date(2026, 10, 23, 9, 0), openWeek, 3);
+  // Noviembre ya pasó su primer día: diciembre (martes 1), enero (viernes 1), febrero (lunes 1).
+  assert.deepEqual(dates.map((d) => [d.getMonth(), d.getDate(), d.getHours()]), [[11, 1, 12], [0, 1, 12], [1, 1, 12]]);
+  // Si el día 1 cae en domingo (cerrado), es el lunes 2.
+  const march = planPriceChecks(new Date(2026, 1, 20, 9, 0), openWeek, 1);
+  assert.deepEqual(march.map((d) => [d.getMonth(), d.getDate()]), [[2, 2]]);
 });

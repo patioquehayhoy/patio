@@ -1,5 +1,12 @@
 # HANDOFF
 
+## Continuidad 2026-11-21 (noche) — bloques 2 a 5 (Claude)
+
+Leer el [heads-up](HEADS_UP_2026-10-12.md), bloque «Noche 2026-11-21», y
+[PENDING_LAUNCH](PENDING_LAUNCH_2026-10-12.md) («Corte 2026-11-21»).
+Producción al día. Siguiente: QA de Parco y su decisión sobre varias marcas
+en una cuenta.
+
 ## Continuidad 2026-11-21 — notificaciones de la red, publicar más tarde y dónde vende (Claude)
 
 Leer el [heads-up](HEADS_UP_2026-10-12.md), bloque «2026-11-21». Modelo de

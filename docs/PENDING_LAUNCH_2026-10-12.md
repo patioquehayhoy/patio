@@ -42,7 +42,7 @@
 - [x] **Bloque 4 · Vegetariano** (hecho 21 nov, noche): `Platillo.vegetariano`; el editor pregunta
   «¿Es vegetariano?» si el nombre lo parece (sin palabras de carne) y se marca
   deslizando; hojita en la ficha; filtro «Vegetariano» en el mapa.
-- [ ] **Bloque 5 · Artifact** «Patio — De documentación dispersa a un sistema»
+- [x] **Bloque 5 · Artifact** (publicado 21 nov, noche, versión 3) «Patio — De documentación dispersa a un sistema»
   (https://claude.ai/artifact/5fZC3DQNCeADkGwdchW8Q9): secciones de
   notificaciones (dos), ritmos, Dónde vendes y lo que sigue.
 - [ ] **Bloque 6 · Varias marcas en una cuenta — decide Parco antes de

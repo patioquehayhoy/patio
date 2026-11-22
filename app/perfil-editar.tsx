@@ -166,7 +166,7 @@ export default function PerfilScreen() {
                 a soporte y se revisa. */}
             <TouchableOpacity
               style={s.lockedRow}
-              onPress={() => router.push({ pathname: '/soporte', params: { role: 'fondero' } })}
+              onPress={() => router.push({ pathname: '/soporte', params: { role: 'fondero', motivo: 'tipo-lugar' } })}
               accessibilityRole="button"
               accessibilityLabel={`Tipo de lugar, ${BUSINESS_TYPE_LABELS[tipoNegocio as BusinessType] ?? 'Otro'}. Pedir un cambio a soporte`}>
               <Text style={s.fieldValue}>{BUSINESS_TYPE_LABELS[tipoNegocio as BusinessType] ?? 'Otro'}</Text>

@@ -1,5 +1,19 @@
 # HANDOFF
 
+## Continuidad 2026-11-22 — QA de Parco y editor continuo (Codex)
+
+Leer el corte del 22 nov en [heads-up](HEADS_UP_2026-10-12.md) y
+[QA y flujos](QA_Y_FLUJOS_2026-11-22.md). Guía abierta en Chrome.
+Actualizar disponible con platillos; Menús identifica el publicado hoy;
+Programar visible; editor sin tarjetas, Crear en una sola hoja. Correcciones
+de persistencia y ayudas de campana/formas de venta. `npm run check` correcto:
+352 pruebas de lógica. Sin cambios de servidor.
+
+**QA visual y general solo por Parco en iPhone**, por instrucción expresa.
+No usar simulador ni dar aprobación móvil por pasar pruebas de código.
+Apple pidió iniciar sesión: no verificado el estado actual de contratos/banco.
+
+
 ## Continuidad 2026-11-21 (cierre de la noche) — reseña completa, arrastre y limpieza (Claude)
 
 Leer el [heads-up](HEADS_UP_2026-10-12.md), bloque «Cierre noche

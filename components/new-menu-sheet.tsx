@@ -10,7 +10,7 @@ import { getProStatus } from '@/lib/business-pro';
 import { fonderoPalette } from '@/lib/fondero-palette';
 import { getFonditaId } from '@/lib/menu-store';
 import { PLANS } from '@/lib/plans';
-import { Radius, useTheme } from '@/lib/theme';
+import { useTheme } from '@/lib/theme';
 import { SHEET_DISMISS_MS, SHEET_SPRING } from '@/lib/sheet-motion';
 import { useTabBarScroll } from '@/lib/tab-bar-visibility';
 import { noWidow } from '@/lib/typography';
@@ -130,8 +130,6 @@ export function NewMenuSheet({ visible, onClose, onCancel, replaceOnNavigate, cr
   ] : [];
   const renderGroup = (label: string | null, list: Option[]) => (
     <View style={s.group} key={label ?? 'menu'}>
-      <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
-      <View pointerEvents="none" style={[s.groupTint, { backgroundColor: theme.isDark ? 'rgba(20,21,24,0.90)' : 'rgba(255,255,255,0.88)' }]} />
       {!!label && <Text style={[s.groupLabel, { color: c.textSecondary }]} accessibilityRole="header">{label}</Text>}
       {list.map((option, index) => (
         <TouchableOpacity
@@ -157,11 +155,11 @@ export function NewMenuSheet({ visible, onClose, onCancel, replaceOnNavigate, cr
           <TouchableOpacity activeOpacity={1} style={s.backdrop} onPress={() => { onCancel?.(); onClose(); }} accessibilityRole="button" accessibilityLabel="Cerrar" />
         </Animated.View>
         <Animated.View accessibilityViewIsModal onAccessibilityEscape={() => { onCancel?.(); onClose(); }} onLayout={(event) => setContentHeight(event.nativeEvent.layout.height)} style={[s.wrap, { paddingBottom: bottomPadding, transform: [{ translateY }] }]}>
+          <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
+          <View pointerEvents="none" style={[s.groupTint, { backgroundColor: theme.isDark ? 'rgba(20,21,24,0.90)' : 'rgba(255,255,255,0.88)' }]} />
           {renderGroup(create ? 'MENÚ DE HOY' : null, options)}
           {!!notices.length && renderGroup('AVISOS', notices)}
           <TouchableOpacity onPress={() => { onCancel?.(); onClose(); }} style={s.cancelGroup} accessibilityRole="button" accessibilityLabel="Cancelar">
-            <BlurView intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
-            <View pointerEvents="none" style={[s.groupTint, { backgroundColor: theme.isDark ? 'rgba(20,21,24,0.90)' : 'rgba(255,255,255,0.88)' }]} />
             <Text style={[s.cancelText, { color: c.text }]}>Cancelar</Text>
           </TouchableOpacity>
         </Animated.View>
@@ -175,15 +173,15 @@ function makeStyles(isDark: boolean) {
   return StyleSheet.create({
     // Más opaco que antes: el texto de atrás no debe leerse a través del menú.
     backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.32)' },
-    wrap: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 8, gap: 8 },
-    group: { borderRadius: Radius.card, borderCurve: 'continuous', overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: border },
+    wrap: { position: 'absolute', left: 0, right: 0, bottom: 0, borderTopLeftRadius: 28, borderTopRightRadius: 28, borderCurve: 'continuous', overflow: 'hidden' },
+    group: { paddingHorizontal: 4 },
     groupTint: StyleSheet.absoluteFillObject,
     row: { minHeight: 56, flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 18 },
     rowBody: { flex: 1, minWidth: 0, paddingVertical: 10 },
     rowText: { fontSize: 16, fontWeight: '500' },
     rowSub: { marginTop: 2, fontSize: 13, lineHeight: 17, fontWeight: '400' },
     groupLabel: { paddingHorizontal: 18, paddingTop: 12, paddingBottom: 8, fontSize: 11, fontWeight: '700', letterSpacing: 0.8 },
-    cancelGroup: { minHeight: 56, borderRadius: Radius.card, borderCurve: 'continuous', overflow: 'hidden', alignItems: 'center', justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth, borderColor: border },
+    cancelGroup: { minHeight: 56, alignItems: 'center', justifyContent: 'center', borderTopWidth: StyleSheet.hairlineWidth, borderColor: border },
     cancelText: { fontSize: 16, fontWeight: '700' },
   });
 }

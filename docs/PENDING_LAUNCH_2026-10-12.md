@@ -1,5 +1,25 @@
 # Pendientes y roadmap de lanzamiento — actualizado 2026-11-07
 
+## Corte 2026-11-22 (Codex, QA de Parco)
+
+- [x] Parco: arrastrar funciona; reseñas y ficha/reseña completa correctas.
+- [x] Código: Actualizar no depende del detector para habilitarse;
+  «Publicado hoy» con Ver menú/Editar; Programar visible; editor sin
+  tarjetas y Crear en una sola hoja; estado de autoguardado visible.
+- [x] Código: «No» vegetariano persiste; actualización fallida conserva el
+  publicado local; hora de programados preservada; Subir/Bajar con VoiceOver;
+  ayudas visibles de campana y acceso directo para pedir cambio de giro.
+- [ ] **Solo Parco en iPhone:** QA visual y general de los cambios anteriores.
+  Casos concretos en [QA y flujos](QA_Y_FLUJOS_2026-11-22.md).
+- [ ] Afinar conflicto entre pulsar texto, desplazar y arrastrar con su QA.
+- [ ] Confirmar entrega real de resumen y publicación programada.
+- [ ] Apple: iniciar sesión en App Store Connect para comprobar estado actual
+  de banco y contratos. El intento del 22 nov llegó a la pantalla de acceso.
+- [ ] Consulta nueva a Jev: no hay herramienta Jev disponible en esta sesión.
+- [ ] Propuesta de política vegetariana, modalidades mixtas/marcas y agrupación
+  de estadísticas: auditoría preparada, sin atribuir implementación completa.
+
+
 ## Corte 2026-11-21 (Claude)
 
 - [x] Campana por lugar como YouTube («Todas», «Personalizadas» por defecto,

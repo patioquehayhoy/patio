@@ -19,7 +19,7 @@ import { noWidow } from '@/lib/typography';
 // pantalla (/punto-editar), como una dirección en Contactos.
 
 const MODES: { value: Modalidad; title: string; sub: string; icon: 'storefront-outline' | 'calendar-outline' | 'bicycle-outline' }[] = [
-  { value: 'local', title: 'En mi local', sub: 'Te encuentran en tu dirección', icon: 'storefront-outline' },
+  { value: 'local', title: 'En mi local', sub: 'Tu dirección y, si tienes, otras sucursales', icon: 'storefront-outline' },
   { value: 'itinerante', title: 'En tianguis o sobre ruedas', sub: 'Un lugar distinto según el día', icon: 'calendar-outline' },
   { value: 'domicilio', title: 'Solo a domicilio', sub: 'Sin local: en el mapa sale tu zona, no tu calle', icon: 'bicycle-outline' },
 ];
@@ -104,6 +104,10 @@ export function BusinessWhereEditor({ colors, negocioId }: { colors: Theme; nego
       )}
 
       {where.modalidad !== 'domicilio' && (
+        <View style={{ gap: 8 }}>
+        <Text style={s.help}>{noWidow(itinerante
+          ? 'Agrega dónde te pones y qué días vas. El mapa muestra el lugar de hoy.'
+          : 'Las sucursales comparten este perfil y este menú. Cada una tiene su punto en el mapa.')}</Text>
         <SettingsGroup c={sc} label={itinerante ? 'Días y lugares' : 'Otras sucursales'}>
           {where.puntos.map((punto, index) => (
             <SettingsRow
@@ -126,6 +130,7 @@ export function BusinessWhereEditor({ colors, negocioId }: { colors: Theme; nego
             trailing={<View />}
           />
         </SettingsGroup>
+        </View>
       )}
 
       <SettingsGroup c={sc}>

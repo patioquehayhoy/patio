@@ -82,7 +82,8 @@ export function cartaSignature(carta: MenuData): string {
       dish.precio.trim(),
       dish.foto ?? '',
       (dish.antes ?? []).join('|'),
-      dish.vegetariano === true ? 'vegetariano' : '',
+      // «No» también es una respuesta guardada: no volver a preguntar al abrir.
+      dish.vegetariano === true ? 'vegetariano' : dish.vegetariano === false ? 'no vegetariano' : '',
     ]),
   ]));
 }

@@ -1,4 +1,31 @@
-## El editor del menú: tarjetas con todo a la vista (menu-composer.tsx, 2026-11-16)
+## Corte vigente — editor continuo y menú publicado (2026-11-22, Parco/Codex)
+
+Este corte sustituye la forma de tarjetas del 16 nov y programar por toque
+sostenido. QA visual y de uso solo por Parco en su iPhone; no correr QA
+visual en simulador ni darla por aprobada con pruebas de código.
+
+- Editor continuo: fondo del lienzo, sin borde ni tarjeta por sección.
+  Títulos `Type.section`, campos estables y columnas de foto/precio.
+  Se conservan `collapsable={false}` y los dueños de los gestos de arrastre.
+- «Actualizar» disponible si hay platillos; el detector de cambios solo
+  informa y protege al salir, no bloquea el botón.
+- Estado separado del botón: borrador (guardando/guardado/error), publicado
+  hoy, cambios sin publicar o programado. Nunca confirmar guardado antes
+  de la escritura real.
+- «Programar» visible junto al estado del borrador. No depender de mantener
+  presionado Publicar. Lo programado para hoy conserva su hora al editarlo.
+- Menús separa «Publicado hoy» de la biblioteca y ofrece Ver menú y Editar.
+  La fecha y `publish_at` determinan qué está publicado, nunca la posición.
+- Crear es una sola hoja: grupos por contenido, sin tarjetas independientes.
+- VoiceOver: el nombre del platillo y el título de sección ofrecen Subir y
+  Bajar cuando hay destino dentro de su lista. Validación en iPhone pendiente.
+- «No» a vegetariano se guarda; es distinto de no haber contestado.
+- Las opciones de la campana muestran su explicación visualmente y a
+  lectores de pantalla. No basta con una ayuda de accesibilidad invisible.
+
+Auditoría y casos pendientes: `docs/QA_Y_FLUJOS_2026-11-22.md`.
+
+## Referencia histórica — editor con tarjetas (2026-11-16)
 
 > Tres versiones ese día: el pizarrón con «×» (la «×» del título confundía),
 > herramientas solo en el renglón activo (todo se movía y el teclado tapaba)

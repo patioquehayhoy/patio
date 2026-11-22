@@ -32,7 +32,7 @@ import { splitCarta } from '@/lib/menu-carta';
 import { fonderoPalette, type FonderoColors } from '@/lib/fondero-palette';
 import { canonicalSeccion, cartaSugerencias, getFonditaHorarioSemanal, getTipoNegocio, seccionSugerencias, type MenuData, type Platillo, type Seccion } from '@/lib/menu-store';
 import { isAfterService, nextPublishSlots, scheduledLabel } from '@/lib/publish-timing';
-import { useTheme } from '@/lib/theme';
+import { Type, useTheme } from '@/lib/theme';
 import { ActionSheet } from '@/components/action-sheet';
 import { GlassIconButton } from '@/components/glass-button';
 import { SectionBar } from '@/components/section-bar';
@@ -45,10 +45,8 @@ import { TEXT_LIMITS } from '@/lib/text-limits';
 import { DishPhotoPermissionError, pickDishPhoto, uploadDishPhoto } from '@/lib/dish-photo';
 import { getFonditaId } from '@/lib/user-store';
 
-// Editor con tarjetas (2026-11-16, noche; docs/EDITOR_MENU_INVESTIGACION_2026-11-16.md).
-// - Cada sección es una tarjeta: su título y su precio arriba, sus platillos
-//   adentro y «Platillo» al final, para llenar en cualquier orden (de la sopa
-//   al guisado y de regreso).
+// Editor continuo (Parco, 22 nov): títulos de marca y espacio separan las
+// secciones. Los platillos conservan sus columnas al crear, editar y mover.
 // - Cada platillo tiene siempre sus cuatro lugares: la foto a la izquierda, el
 //   nombre, la descripción debajo y el precio a la derecha. Lo vacío se ve en
 //   gris: se ve que se puede llenar.
@@ -103,6 +101,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
   const {
     addSection,
     data,
+    draftSaveState,
     declineLink,
     dismissUndo,
     fillKnownPhotos,
@@ -134,6 +133,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
   // hoy, tocarlo ofrece primero mañana: publicar «hoy» de noche no le sirve a
   // nadie (se va a la medianoche y no se avisa a nadie).
   const publishRef = useRef<View>(null);
+  const scheduleRef = useRef<View>(null);
   const [scheduleMenu, setScheduleMenu] = useState<'evening' | 'hold' | null>(null);
   const horario = getFonditaHorarioSemanal();
   // Los siguientes días que abre: mañana y, para dejar lista la semana, los demás.
@@ -148,7 +148,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
     void publish();
   };
   // Un menú programado que se abre para cambiarlo: dice cuándo sale.
-  const scheduledFor = live && initialData.localFecha && initialData.localPublishAt ? scheduledLabel(initialData.localPublishAt) : null;
+  const scheduledFor = live && initialData.localFecha && initialData.localPublishAt && Date.parse(initialData.localPublishAt) > Date.now() ? scheduledLabel(initialData.localPublishAt) : null;
   const dataRef = useRef(data);
   dataRef.current = data;
   // Solo se anima lo que llega o se va (un platillo, una sección), en la
@@ -804,7 +804,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
             }] : []),
             { label: 'Eliminar', color: c.danger, accessibilityLabel: `Eliminar ${dish.nombre || 'platillo'}`, onPress: () => { smoothly(); removeDish(section.id, dish.id); } },
           ]}
-          background={[c.bg, c.surface]}
+          background={[c.bg]}
           scrollRef={scrollRef}
           style={[s.dish, lifted && s.away]}>
         {(before > 0 || gapAbove || belowLifted) && <View pointerEvents="none" style={s.dishDivider} />}
@@ -848,6 +848,14 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
             returnKeyType="next"
             inputAccessoryViewID={Platform.OS === 'ios' ? BAR_TEXT : undefined}
             accessibilityLabel={dish.nombre ? `Platillo ${dish.nombre}${dish.vegetariano ? ', vegetariano' : ''}` : 'Platillo nuevo'}
+            accessibilityActions={[
+              ...(index > 0 ? [{ name: 'moveUp', label: 'Subir' }] : []),
+              ...(index < section.platillos.length - 1 ? [{ name: 'moveDown', label: 'Bajar' }] : []),
+            ]}
+            onAccessibilityAction={(event) => {
+              const direction = event.nativeEvent.actionName === 'moveUp' ? -1 : event.nativeEvent.actionName === 'moveDown' ? 1 : 0;
+              if (direction) moveDishTo(dish.id, section.id, index + direction);
+            }}
           />
           {/* Vegetariano: solo la hojita, como en la ficha. */}
           {dish.vegetariano === true && <Ionicons name="leaf-outline" size={14} color={c.textMute} style={s.nameLeaf} />}
@@ -1010,7 +1018,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
             enabled={gesturesOn}
             fullSwipe
             actions={[{ label: 'Eliminar', color: c.danger, accessibilityLabel: `Eliminar ${sectionLabel}`, onPress: () => { smoothly(); removeSection(section.id); } }]}
-            background={[c.bg, c.surface]}
+            background={[c.bg]}
             scrollRef={scrollRef}
             onLayout={board.onHeaderLayout(section.id)}
             style={s.head}>
@@ -1032,6 +1040,14 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                 returnKeyType="next"
                 inputAccessoryViewID={Platform.OS === 'ios' ? BAR_TITLE : undefined}
                 accessibilityLabel={`Título de la sección ${index + 1}`}
+                accessibilityActions={[
+                  ...(index > 0 ? [{ name: 'moveUp', label: 'Subir' }] : []),
+                  ...(index < data.secciones.length - 1 ? [{ name: 'moveDown', label: 'Bajar' }] : []),
+                ]}
+                onAccessibilityAction={(event) => {
+                  const direction = event.nativeEvent.actionName === 'moveUp' ? -1 : event.nativeEvent.actionName === 'moveDown' ? 1 : 0;
+                  if (direction) moveSectionTo(section.id, index + direction);
+                }}
               />
             </View>
             {/* «MENÚ DEL DÍA $100», «GUISADOS $85», «CARTA $110». */}
@@ -1126,26 +1142,23 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
             accessibilityLabel="Nombre del menú"
           />
           {(() => {
-            // Apagado sin un platillo de hoy y, en el menú publicado, sin cambios.
-            const idle = menuEmpty || (live && !changed);
+            // Apagado únicamente si no hay un platillo de hoy.
+            // El detector informa; no impide enviar el contenido visible.
+            const idle = menuEmpty;
             const label = live ? 'Actualizar' : 'Publicar';
             return (
               <View ref={publishRef} collapsable={false}>
               <TouchableOpacity
                 style={[s.primary, idle && s.primaryIdle]}
                 onPress={onPublishPress}
-                // Medio segundo, como iOS: «Publicar ahora» o dejarlo listo para mañana.
-                onLongPress={live ? undefined : () => setScheduleMenu('hold')}
-                delayLongPress={HOLD_IN_PLACE_MS}
                 disabled={idle || publishing}
                 hitSlop={{ top: 4, bottom: 4, left: 4, right: 8 }}
                 activeOpacity={0.85}
                 accessibilityRole="button"
                 accessibilityLabel={publishing ? (live ? 'Actualizando menú' : 'Publicando menú') : `${label} menú`}
-                accessibilityHint={menuEmpty ? 'Escribe al menos un platillo de hoy.' : live && !changed ? 'Cambia algo de tu menú para actualizarlo.' : undefined}
+                accessibilityHint={menuEmpty ? 'Escribe al menos un platillo de hoy.' : live ? 'Guarda este menú en tu ficha.' : undefined}
                 accessibilityState={{ disabled: idle || publishing, busy: publishing }}
-                accessibilityActions={live ? undefined : [{ name: 'longpress', label: 'Publicar más tarde' }]}
-                onAccessibilityAction={(event) => { if (event.nativeEvent.actionName === 'longpress') setScheduleMenu('hold'); }}>
+                >
                 {/* Mientras publica, el indicador ocupa el lugar del texto: el botón no cambia de tamaño. */}
                 <Text style={[s.primaryText, idle && s.primaryTextIdle, publishing && s.invisible]} maxFontSizeMultiplier={1.2}>{label}</Text>
                 {publishing && <ActivityIndicator style={StyleSheet.absoluteFill} size="small" color="#fff" />}
@@ -1153,6 +1166,21 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
               </View>
             );
           })()}
+        </View>
+
+        <View style={s.statusRow}>
+          <Text style={s.statusText} accessibilityLiveRegion="polite">
+            {noWidow(live
+              ? changed ? 'Cambios sin publicar' : scheduledFor ? `Programado · ${scheduledFor}` : 'Publicado hoy'
+              : draftSaveState === 'error' ? 'No se pudo guardar el borrador'
+                : draftSaveState === 'saving' || changed ? 'Guardando borrador…' : draftSaveState === 'saved' ? 'Borrador guardado' : 'Borrador · se guarda solo')}
+          </Text>
+          {!live && <View ref={scheduleRef} collapsable={false}>
+            <TouchableOpacity style={s.scheduleButton} disabled={menuEmpty || publishing} onPress={() => { Keyboard.dismiss(); setScheduleMenu('hold'); }} accessibilityRole="button" accessibilityLabel="Programar menú" accessibilityState={{ disabled: menuEmpty || publishing }}>
+              <Ionicons name="time-outline" size={16} color={c.textSecondary} />
+              <Text style={s.scheduleText}>Programar</Text>
+            </TouchableOpacity>
+          </View>}
         </View>
 
         {data.secciones.length >= 4 && !keyboardOpen && (
@@ -1182,7 +1210,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
             scrollEventThrottle={16}
             scrollEnabled={!board.drag}
             automaticallyAdjustKeyboardInsets
-            contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: insets.bottom + 32 + (lastRemoved ? 64 : 0) }}
+            contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: insets.bottom + 32 + (lastRemoved ? 64 : 0) }}
             keyboardDismissMode="interactive"
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}>
@@ -1260,7 +1288,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
       )}
       <ActionSheet
         visible={!!scheduleMenu}
-        anchorRef={publishRef}
+        anchorRef={scheduleMenu === 'hold' ? scheduleRef : publishRef}
         onDismiss={() => setScheduleMenu(null)}
         options={schedulingOptions}
       />
@@ -1291,7 +1319,7 @@ const flat = Platform.select({
 });
 // Cuadro de la foto (44) + su espacio (12) + la orilla de la tarjeta (16):
 // las líneas entre platillos empiezan donde empieza el texto.
-const TEXT_INSET = 16 + 44 + 12;
+const TEXT_INSET = 44 + 12;
 
 function makeStyles(c: FonderoColors) {
   return StyleSheet.create({
@@ -1301,6 +1329,10 @@ function makeStyles(c: FonderoColors) {
     nav: { minHeight: NAV_HEIGHT, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 12 },
     navLead: { width: 40, minHeight: 44, justifyContent: 'center' },
     navTitle: { flex: 1, minWidth: 0, paddingVertical: 0, fontSize: 17, fontWeight: '700', color: c.textSecondary },
+    statusRow: { paddingHorizontal: 20, minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 12 },
+    statusText: { flex: 1, fontSize: 13, lineHeight: 18, color: c.textSecondary, paddingVertical: 8 },
+    scheduleButton: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 5 },
+    scheduleText: { fontSize: 14, fontWeight: '600', color: c.textSecondary },
     // «Publicar» / «Actualizar»: cápsula naranja, la única con color.
     primary: { minHeight: 36, paddingHorizontal: 14, borderRadius: 18, borderCurve: 'continuous', alignItems: 'center', justifyContent: 'center', backgroundColor: c.accent },
     primaryIdle: { backgroundColor: c.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: c.border },
@@ -1317,11 +1349,11 @@ function makeStyles(c: FonderoColors) {
     // Tarjeta de sección: recorta sus esquinas, así lo que se desliza (la fila
     // y su «Eliminar») queda dentro, como en una lista agrupada de iOS. Lo que
     // se arrastra va en una copia encima de la lista, no dentro.
-    card: { marginBottom: 14, borderRadius: 18, borderCurve: 'continuous', overflow: 'hidden', backgroundColor: c.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: c.border },
-    head: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingHorizontal: 16, paddingTop: 13, paddingBottom: 11, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: c.border },
-    title: { ...flat, margin: 0, fontSize: 14, fontWeight: '700', letterSpacing: 0.6, color: c.text },
+    card: { marginBottom: 24, backgroundColor: c.bg },
+    head: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingTop: 8, paddingBottom: 12 },
+    title: { ...Type.section, ...flat, margin: 0, color: c.text },
     body: { flex: 1, minWidth: 0 },
-    dish: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingHorizontal: 16, paddingVertical: 10 },
+    dish: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingVertical: 10 },
     dishDivider: { position: 'absolute', top: 0, left: TEXT_INSET, right: 0, height: StyleSheet.hairlineWidth, backgroundColor: c.border },
     slot: { width: 44, height: 44, borderRadius: 10, borderCurve: 'continuous', overflow: 'hidden', alignItems: 'center', justifyContent: 'center', backgroundColor: c.iconBg },
     dishName: { ...flat, margin: 0, fontSize: 16, fontWeight: '700', color: c.text },
@@ -1340,8 +1372,8 @@ function makeStyles(c: FonderoColors) {
     linkActions: { minHeight: 28, flexDirection: 'row', alignItems: 'center', gap: 20 },
     linkNo: { fontSize: 13, lineHeight: 17, fontWeight: '400', color: c.textSecondary },
     // «Platillo» al final de cada tarjeta; «Sección» debajo de la última.
-    addDish: { minHeight: 46, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 4 },
-    addDishDivider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: c.border },
+    addDish: { minHeight: 46, flexDirection: 'row', alignItems: 'center', gap: 4 },
+    addDishDivider: {},
     addSection: { minHeight: 44, marginTop: -4, marginBottom: 14, paddingHorizontal: 4, flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start' },
     addText: { fontSize: 15, fontWeight: '700', color: c.accent },
     // Al arrastrar: lo levantado deja su lugar (invisible) y, si el hueco está
@@ -1352,13 +1384,13 @@ function makeStyles(c: FonderoColors) {
     // también en oscuro) y una sombra que aparece al levantar
     // (`ghostStyle` anima su opacidad).
     ghost: {
-      position: 'absolute', top: 0, left: 16, right: 16, backgroundColor: c.bg,
+      position: 'absolute', top: 0, left: 20, right: 20, backgroundColor: c.bg,
       shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowRadius: 18, elevation: 8,
     },
-    ghostTint: { backgroundColor: c.surface },
+    ghostTint: { backgroundColor: c.bg },
     ghostRow: { borderRadius: 12, borderCurve: 'continuous' },
-    ghostCard: { borderRadius: 18, borderCurve: 'continuous', borderWidth: StyleSheet.hairlineWidth, borderColor: c.border },
-    ghostCardTint: { borderRadius: 18, borderCurve: 'continuous' },
+    ghostCard: {},
+    ghostCardTint: {},
     // Barra sobre el teclado: lo del campo donde estás y «Listo».
     bar: { minHeight: 44, paddingHorizontal: 6, flexDirection: 'row', alignItems: 'center', backgroundColor: c.surface2, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: c.border },
     barButton: { minHeight: 44, paddingHorizontal: 10, flexDirection: 'row', alignItems: 'center', gap: 4 },

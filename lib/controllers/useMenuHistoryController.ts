@@ -14,6 +14,13 @@ import { summary } from '@/lib/menu-title';
 export type PublishedMenu = LocalMenuEntry;
 type RemoteMenu = { fecha: string; secciones: MenuData; publishAt?: string };
 
+/** Estado público por fecha y hora reales; el orden de la biblioteca no lo decide. */
+export function menuPublicationState(menu: PublishedMenu, today = localMenuDate(), now = new Date()): 'draft' | 'scheduled' | 'live' | 'previous' {
+  if (!menu.published) return 'draft';
+  if (menu.fecha > today || (menu.fecha === today && !!menu.publishAt && Date.parse(menu.publishAt) > now.getTime())) return 'scheduled';
+  return menu.fecha === today ? 'live' : 'previous';
+}
+
 export function mergeMenuHistory(local: LocalMenuEntry[], remote: RemoteMenu[], authoritative = true): PublishedMenu[] {
   const merged = new Map(local.map((menu) => [menu.id, { ...menu, published: authoritative ? false : menu.published }]));
   for (const menu of remote) {
@@ -71,7 +78,7 @@ export function withoutSoldOut(data: MenuData): MenuData {
  * borrador nuevo (sin «Se acabó»); un borrador se sigue escribiendo.
  */
 export function editorSeed(menu: PublishedMenu, today = localMenuDate()): MenuData {
-  if (menu.published && menu.fecha === today) return { ...menu.secciones, localDraftId: menu.id, localLive: true };
+  if (menu.published && menu.fecha === today) return { ...menu.secciones, localDraftId: menu.id, localLive: true, localFecha: menu.fecha, ...(menu.publishAt ? { localPublishAt: menu.publishAt } : {}) };
   if (menu.published && menu.fecha > today) {
     return { ...menu.secciones, localDraftId: menu.id, localLive: true, localFecha: menu.fecha, ...(menu.publishAt ? { localPublishAt: menu.publishAt } : {}) };
   }

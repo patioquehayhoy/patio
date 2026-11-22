@@ -88,7 +88,13 @@ export async function saveMenuPublication(
     const fecha = schedule?.fecha ?? localMenuDate();
     const publishAt = schedule?.publishAt;
     let saved = false;
-    try { await writeMenu(data, nombre, { id, fecha, publishAt }); saved = true; } catch {}
+    try {
+      // Una actualización fallida conserva el contenido público anterior.
+      // Solo un borrador necesita respaldo antes de intentar la red.
+      const existing = (await readLocalMenus()).find((entry) => entry.id === id);
+      if (!existing?.published) await writeMenu(data, nombre, { id, fecha, publishAt });
+      saved = true;
+    } catch {}
     await publish(saved);
     try { await writeMenu(data, nombre, { id, fecha, published: true, publishAt }); } catch {}
   });
@@ -102,6 +108,7 @@ export async function renameLocalMenu(id: string, nombre: string, secciones: Men
     const entry: LocalMenuEntry = {
       id, fecha: existing?.fecha ?? fecha, secciones: existing?.secciones ?? secciones,
       published: existing?.published ?? published, ...(cleanName ? { nombre: cleanName } : {}),
+      ...(existing?.publishAt ? { publishAt: existing.publishAt } : {}),
     };
     await AsyncStorage.setItem(KEY, JSON.stringify([entry, ...list.filter((menu) => menu.id !== id)]));
   });

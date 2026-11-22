@@ -114,6 +114,7 @@ export default function AvisosLugaresScreen() {
           label: PATIO_NOTIFY_LABELS[mode],
           icon: MODE_ICON[mode],
           accessibilityHint: PATIO_NOTIFY_HINTS[mode],
+          description: PATIO_NOTIFY_HINTS[mode],
           selected: modeOf(menuPlace.id) === mode,
           onPress: () => { void choose(menuPlace.id, mode); },
         })) : []}

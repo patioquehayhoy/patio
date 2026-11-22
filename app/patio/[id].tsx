@@ -2204,6 +2204,7 @@ export function PatioDetailView({ id, own = false, focusDish }: { id?: string; o
             label: PATIO_NOTIFY_LABELS[mode],
             icon: PATIO_NOTIFY_ICONS[mode],
             accessibilityHint: PATIO_NOTIFY_HINTS[mode],
+            description: PATIO_NOTIFY_HINTS[mode],
             selected: notifyMode === mode,
             sectionLabel: mode === 'every' ? 'Notificaciones' : undefined,
             onPress: () => { void chooseNotifyMode(mode); },

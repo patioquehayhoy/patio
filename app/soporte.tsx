@@ -61,11 +61,13 @@ const IDEAS: Topic = { id: 'idea', icon: 'bulb-outline', title: 'Sugerencias', h
 export default function SoporteScreen() {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
-  const { role } = useLocalSearchParams<{ role?: 'foodie' | 'fondero' }>();
+  const { role, motivo } = useLocalSearchParams<{ role?: 'foodie' | 'fondero'; motivo?: string }>();
   const topics = role === 'fondero' ? FONDERO_TOPICS : FOODIE_TOPICS;
-  const [topic, setTopic] = useState<Topic | null>(null);
+  const changeType = role === 'fondero' && motivo === 'tipo-lugar';
+  const businessTopic = FONDERO_TOPICS.find((item) => item.id === 'negocio')!;
+  const [topic, setTopic] = useState<Topic | null>(changeType ? businessTopic : null);
   const [frequency, setFrequency] = useState<string | null>(null);
-  const [reason, setReason] = useState<Reason | null>(null);
+  const [reason, setReason] = useState<Reason | null>(changeType ? { title: 'Cambiar mi tipo de lugar' } : null);
   const [writing, setWriting] = useState(false);
   const [commentOpen, setCommentOpen] = useState(false);
   const [detail, setDetail] = useState('');

@@ -20,7 +20,8 @@ import { FoodieLoading } from '@/components/foodie-loading';
 import { MenuListsSheet } from '@/components/menu-lists-sheet';
 import { NewMenuSheet } from '@/components/new-menu-sheet';
 import { cleanMenu, publishMenuNow } from '@/lib/controllers/useFonderoMenuDraftController';
-import { dateLabel, defaultHistoryTitle, useMenuHistoryController, withoutSoldOut, type PublishedMenu } from '@/lib/controllers/useMenuHistoryController';
+import { dateLabel, defaultHistoryTitle, editorSeed, menuPublicationState, useMenuHistoryController, withoutSoldOut, type PublishedMenu } from '@/lib/controllers/useMenuHistoryController';
+import { setMenuData } from '@/lib/menu-store';
 import { fonderoPalette } from '@/lib/fondero-palette';
 import { getMenuCollections, type MenuCollection } from '@/lib/menu-collections';
 import { useTabBarScroll } from '@/lib/tab-bar-visibility';
@@ -63,13 +64,20 @@ export default function HistorialScreen() {
 
   // El recordatorio de las 10 se salta hoy en cuanto el menú de hoy existe.
   const publishedToday = menus.some((menu) => menu.published && menu.fecha === localMenuDate());
+  const liveMenu = menus.find((menu) => menuPublicationState(menu) === 'live');
+  const viewPublished = () => {
+    if (!liveMenu) return;
+    setMenuData(editorSeed(liveMenu));
+    router.push('/preview');
+  };
   useEffect(() => {
     if (!loading) syncPublishReminder(publishedToday).catch(() => {});
   }, [loading, publishedToday]);
 
-  const visibleMenus = activeListIds.length === 0 ? menus : menus.filter((menu) => (
+  const filteredMenus = activeListIds.length === 0 ? menus : menus.filter((menu) => (
     activeListIds.some((id) => collections.find((collection) => collection.id === id)?.fechas.includes(menu.id))
   ));
+  const visibleMenus = selecting ? filteredMenus : filteredMenus.filter((menu) => menu.id !== liveMenu?.id);
 
   const moveSelection = resolveLibraryMoveSelection({ collections: collections.map((item) => ({ ...item, patioIds: item.fechas })), activeCollectionIds: activeListIds, selectedPatioIds: [...selectedFechas] });
 
@@ -141,6 +149,8 @@ export default function HistorialScreen() {
   const renderMenuRow = (menu: (typeof menus)[number]) => {
     const key = menu.id;
     const isSelected = selectedFechas.has(key);
+    const state = menuPublicationState(menu);
+    const status = state === 'live' ? 'Publicado hoy' : state === 'scheduled' ? 'Programado' : state === 'previous' ? 'Publicado' : 'Borrador';
     return (
       <SwipeRow
         key={key}
@@ -173,7 +183,7 @@ export default function HistorialScreen() {
         )}
         <View style={{ flex: 1, minWidth: 0 }}>
           <Text style={[s.summary, { color: c.text }]}>{noWidow(menu.nombre || defaultHistoryTitle(menu))}</Text>
-          <Text style={[s.date, { color: c.textMute }]}>{noWidow(`${menu.published ? (menu.fecha > localMenuDate() ? 'Programado' : 'Publicado') : 'Guardado'} · ${dateLabel(menu.fecha)}`)}</Text>
+          <Text style={[s.date, { color: c.textMute }]}>{noWidow(`${status} · ${dateLabel(menu.fecha)}`)}</Text>
         </View>
       </TouchableOpacity>
       </SwipeRow>
@@ -231,6 +241,22 @@ export default function HistorialScreen() {
       )}
       <View style={{ flex: 1 }}>
       <ScrollView refreshControl={<RefreshControl refreshing={pull.refreshing} onRefresh={pull.onRefresh} tintColor={theme.textSecondary} />} onLayout={edges.onLayout} onContentSizeChange={edges.onContentSizeChange} onScroll={(event) => { edges.onScroll?.(event); onScroll?.(event); }} onScrollBeginDrag={() => closeOpenSwipeRow()} onTouchStart={(event) => closeSwipeRowOnTouch(event.nativeEvent.pageX, event.nativeEvent.pageY)} scrollEventThrottle={16} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: selecting ? bottomActionClearance(insets.bottom, selectionBarHeight) : bottomTabClearance(insets.bottom) }} showsVerticalScrollIndicator indicatorStyle={theme.isDark ? 'white' : 'black'}>
+        {!loading && !selecting && menus.length > 0 && (
+          <View style={[s.published, { borderColor: c.border }]}>
+            <Text style={[s.groupLabel, { color: c.textSecondary }]}>{liveMenu ? 'PUBLICADO HOY' : 'HOY'}</Text>
+            <Text style={[s.summary, { color: c.text, marginTop: 8 }]}>{noWidow(liveMenu ? liveMenu.nombre || defaultHistoryTitle(liveMenu) : 'Todavía no publicas el menú de hoy')}</Text>
+            {liveMenu && <View style={s.publishedActions}>
+              <TouchableOpacity style={s.publishedButton} onPress={viewPublished} accessibilityRole="button" accessibilityLabel="Ver el menú publicado hoy">
+                <Ionicons name="eye-outline" size={18} color={c.text} />
+                <Text style={[s.publishedActionText, { color: c.text }]}>Ver menú</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={s.publishedButton} onPress={() => reuse(liveMenu)} accessibilityRole="button" accessibilityLabel="Editar el menú publicado hoy">
+                <Ionicons name="create-outline" size={18} color={c.text} />
+                <Text style={[s.publishedActionText, { color: c.text }]}>Editar</Text>
+              </TouchableOpacity>
+            </View>}
+          </View>
+        )}
         {loading ? <View style={{ minHeight: 240 }}><FoodieLoading label="Cargando menús" /></View> : menus.length === 0 ? (
           <View style={s.empty}>
             <View style={[s.emptyIcon, { borderColor: c.border, backgroundColor: c.surface }]}>
@@ -242,7 +268,7 @@ export default function HistorialScreen() {
               <Text style={s.ctaText}>{noWidow('Nuevo menú')}</Text>
             </TouchableOpacity>
           </View>
-        ) : visibleMenus.length === 0 ? (
+        ) : visibleMenus.length === 0 && activeListIds.length > 0 ? (
           <View style={[s.filterEmptyCard, { backgroundColor: c.surface, borderColor: c.border }]}>
             <Ionicons name="filter-outline" size={20} color={c.textSecondary} />
             <Text style={[s.filterEmptyText, { color: c.textSecondary }]}>{noWidow('Ningún menú entra en esta lista todavía.')}</Text>
@@ -283,7 +309,7 @@ export default function HistorialScreen() {
         onDismiss={() => setActionsFor(null)}
         options={actionsFor ? [
           { label: 'Publicar hoy así', icon: 'checkmark-done-outline', onPress: () => publishReused(actionsFor) },
-          { label: 'Cambiar y publicar', icon: 'create-outline', onPress: () => reuse(actionsFor) },
+          { label: menuPublicationState(actionsFor) === 'live' ? 'Editar publicado' : 'Editar menú', icon: 'create-outline', onPress: () => reuse(actionsFor) },
           { label: 'Renombrar', icon: 'pencil', sectionLabel: 'Organizar', onPress: () => openRename(actionsFor) },
           { label: 'Añadir a lista', icon: 'folder-outline', onPress: () => { setAssignFechas([actionsFor.id]); setSheetMode('assign'); } },
           { label: 'Seleccionar varios', icon: 'checkmark-circle-outline', onPress: () => { setSelecting(true); toggleSelect(actionsFor.id); } },
@@ -311,6 +337,10 @@ export default function HistorialScreen() {
 
 const s = StyleSheet.create({
   root: { flex: 1 },
+  published: { paddingTop: 20, paddingBottom: 16, borderBottomWidth: StyleSheet.hairlineWidth },
+  publishedActions: { flexDirection: 'row', flexWrap: 'wrap', columnGap: 24, marginTop: 4 },
+  publishedButton: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 6 },
+  publishedActionText: { fontSize: 15, fontWeight: '600' },
   headerRow: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end' },
   streakPill: { minHeight: 40, borderRadius: 20, borderCurve: 'continuous', borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 12 },
   streakText: { fontSize: 13, fontWeight: '700' },

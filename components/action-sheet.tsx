@@ -23,6 +23,7 @@ export type ActionSheetOption = {
   sectionLabel?: string;
   selected?: boolean;
   accessibilityHint?: string;
+  description?: string;
   afterDismiss?: boolean;
   destructive?: boolean;
   onPress: () => void;
@@ -51,7 +52,7 @@ export function ActionSheet({ visible, anchorRef, title, options, onDismiss }: A
   // el texto y el ícono a la derecha; lo que borra va en rojo, texto e ícono.
   const marks = options.some((option) => option.selected !== undefined);
   const danger = theme.danger;
-  const estimatedHeight = options.length * 46 + options.filter((option) => option.sectionLabel).length * 28 + (title ? 34 : 0);
+  const estimatedHeight = options.length * 46 + options.filter((option) => option.description).length * 40 + options.filter((option) => option.sectionLabel).length * 28 + (title ? 34 : 0);
   const scale = useRef(new Animated.Value(0.9)).current;
   const opacity = useRef(new Animated.Value(0)).current;
   const [layout, setLayout] = useState<{ top?: number; bottom?: number; left: number; maxHeight: number } | null>(null);
@@ -138,7 +139,10 @@ export function ActionSheet({ visible, anchorRef, title, options, onDismiss }: A
               accessibilityHint={option.accessibilityHint}
               accessibilityState={option.selected === undefined ? undefined : { selected: option.selected }}>
               {marks && <View style={s.selectionMark}>{option.selected && <Ionicons name="checkmark" size={18} color={theme.text} />}</View>}
-              <Text style={[s.rowText, option.destructive && { color: danger }]}>{noWidow(option.label)}</Text>
+              <View style={s.rowBody}>
+                <Text style={[s.rowText, option.destructive && { color: danger }]}>{noWidow(option.label)}</Text>
+                {!!option.description && <Text style={s.rowDescription}>{noWidow(option.description)}</Text>}
+              </View>
               <Ionicons name={option.icon} size={20} color={option.destructive ? danger : theme.text} />
             </TouchableOpacity>
           </View>
@@ -160,7 +164,9 @@ function makeStyles(t: Theme) {
     // Texto a la izquierda, ícono a la derecha en su columna (iOS).
     row: { minHeight: 46, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 12 },
     divider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border },
-    rowText: { flex: 1, fontSize: 15, fontWeight: '500', color: t.text, paddingVertical: 8 },
+    rowBody: { flex: 1, paddingVertical: 10 },
+    rowText: { fontSize: 15, fontWeight: '500', color: t.text },
+    rowDescription: { marginTop: 3, fontSize: 13, lineHeight: 18, color: t.textSecondary },
     selectionMark: { width: 18, alignItems: 'center' },
   });
 }

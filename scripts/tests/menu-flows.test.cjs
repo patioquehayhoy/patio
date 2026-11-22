@@ -245,6 +245,84 @@ test('failed remote publication retains draft but never announces or confirms it
   assert.equal((await f.load('lib/menu-history.ts').getLocalMenus())[0].nombre, 'Menú planeado');
 });
 
+test('failed update keeps the previously published content and identity, then permits retry', async () => {
+  const f = publicationFixture({ remoteError: new Error('Offline') });
+  const history = f.load('lib/menu-history.ts');
+  const id = 'draft:published';
+  await history.saveMenuPublication(menu('Publicado'), 'Comida', id, async () => {});
+  await assert.rejects(f.publish(menu('Cambio pendiente'), { draftId: id }), /Offline/);
+  const [entry] = await history.getLocalMenus();
+  assert.equal(entry.id, id);
+  assert.equal(entry.published, true);
+  assert.equal(entry.secciones.secciones[0].platillos[0].nombre, 'Publicado');
+  await history.saveMenuPublication(menu('Cambio pendiente'), 'Comida', id, async () => {});
+  const [updated] = await history.getLocalMenus();
+  assert.equal(updated.id, id);
+  assert.equal(updated.published, true);
+  assert.equal(updated.secciones.secciones[0].platillos[0].nombre, 'Cambio pendiente');
+});
+
+test('declining vegetarian is a saved edit and does not become an unanswered question on reopening', async () => {
+  const runtime = hookRuntime();
+  const f = fixture({ overrides: { react: runtime.react, '@/lib/db': {} } });
+  const history = f.load('lib/menu-history.ts');
+  const { useFonderoMenuDraftController } = f.load('lib/controllers/useFonderoMenuDraftController.ts');
+  const id = 'draft:salad';
+  const initial = { ...menu('Ensalada'), localDraftId: id };
+  await history.saveLocalMenu(initial, undefined, { id });
+  const render = () => runtime.render(() => useFonderoMenuDraftController(initial));
+  assert.equal(render().hasUnsavedChanges(), false);
+  render().patchDish('section', 'dish', { vegetariano: false });
+  assert.equal(render().hasUnsavedChanges(), true);
+  await render().flushDraft();
+  assert.equal((await history.getLocalMenus())[0].secciones.secciones[0].platillos[0].vegetariano, false);
+  assert.equal(render().draftSaveState, 'saved');
+  runtime.unmount();
+});
+
+test('the visible publication is chosen by date and release time, never by list position', () => {
+  const f = fixture({ overrides: { '@/lib/supabase': { supabase: {} } } });
+  const { menuPublicationState } = f.load('lib/controllers/useMenuHistoryController.ts');
+  const now = new Date('2026-11-22T15:00:00Z');
+  const today = '2026-11-22';
+  const entries = [
+    { id: 'first', fecha: today, published: false },
+    { id: 'second', fecha: '2026-11-23', published: true },
+    { id: 'third', fecha: today, published: true },
+  ];
+  assert.equal(entries.find((entry) => menuPublicationState(entry, today, now) === 'live').id, 'third');
+  assert.equal(menuPublicationState({ ...entries[2], publishAt: '2026-11-22T17:00:00Z' }, today, now), 'scheduled');
+  assert.equal(menuPublicationState({ ...entries[2], publishAt: '2026-11-22T14:00:00Z' }, today, now), 'live');
+  assert.equal(menuPublicationState({ ...entries[2], fecha: '2026-11-21' }, today, now), 'previous');
+});
+
+test('DEV sold-out survives reopening without publishing other pending edits', async () => {
+  const runtime = hookRuntime();
+  let visible;
+  const f = fixture({ dev: true, overrides: {
+    react: runtime.react,
+    'expo-haptics': { selectionAsync: async () => {} },
+    '@/lib/user-store': { getFonditaId: () => null },
+    '@/lib/db': {},
+    '@/lib/demo': { saveDevPublishedMenu: async (data) => { visible = data; } },
+  } });
+  const history = f.load('lib/menu-history.ts');
+  const { useFonderoMenuDraftController } = f.load('lib/controllers/useFonderoMenuDraftController.ts');
+  const id = 'draft:dev-publication';
+  await history.saveMenuPublication(menu('Mole'), 'Comida', id, async () => {});
+  const initial = { ...menu('Mole'), localDraftId: id, localLive: true };
+  const render = () => runtime.render(() => useFonderoMenuDraftController(initial));
+  render().patchDish('section', 'dish', { precio: '95' });
+  await render().setSoldOut('section', 'dish', true);
+  const saved = (await history.getLocalMenus())[0];
+  assert.equal(saved.published, true);
+  assert.equal(saved.secciones.secciones[0].platillos[0].agotado, true);
+  assert.equal(visible.secciones[0].platillos[0].agotado, true);
+  assert.equal(visible.secciones[0].platillos[0].precio, '');
+  assert.equal(render().data.secciones[0].platillos[0].precio, '95');
+  runtime.unmount();
+});
+
 test('successful remote publication survives optional local-cache and learning failures', async () => {
   const f = publicationFixture({ storageFail: true, correctionError: true });
   const store = f.load('lib/menu-store.ts');

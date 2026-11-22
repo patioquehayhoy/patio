@@ -453,6 +453,7 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
   }, [initialData, learnPhotos, fillKnownPhotos, setDataQuietly]);
   const draftId = useRef(initialData.localDraftId ?? newMenuDraftId()).current;
   const [publishing, setPublishing] = useState(false);
+  const [draftSaveState, setDraftSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
   // Título del menú de hoy — funciona como el título de una nota: en blanco
   // muestra el placeholder ("Nuevo menú"/"Revisión"), y en cuanto el fondero
@@ -709,12 +710,14 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
     // Abrir un menú y salir sin cambiar nada no crea otro en Menús.
     if (!hasUnsavedChanges() && savedName.current === nombre.trim()) return true;
     // Una sola lectura: si ya está publicado, no se escribe encima (`onlyDraft`).
+    setDraftSaveState('saving');
     const ok = await saveLocalMenu(clean, nombre, { id: draftId, onlyDraft: true });
     if (ok) {
       savedBase.current = { hoy: cartaSignature(split.hoy), carta: cartaSignature(split.carta) };
       savedOnce.current = true;
       savedName.current = nombre.trim();
     }
+    setDraftSaveState(ok ? 'saved' : 'error');
     return ok;
   }, [data, nombre, draftId, live, source, hasUnsavedChanges]);
   /** Guarda ya lo escrito (al salir, al irse la app al fondo). Uno a la vez. */
@@ -735,7 +738,8 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
   useEffect(() => () => { void flushRef.current(true); }, []);
 
   // Un menú programado que se abre para cambiarlo sigue programado para su día y su hora.
-  const keptSchedule: PublishSchedule | undefined = initialData.localFecha && initialData.localFecha > localMenuDate()
+  const keptSchedule: PublishSchedule | undefined = initialData.localFecha && (initialData.localFecha > localMenuDate()
+    || (initialData.localFecha === localMenuDate() && !!initialData.localPublishAt && Date.parse(initialData.localPublishAt) > Date.now()))
     ? { fecha: initialData.localFecha, publishAt: initialData.localPublishAt ?? new Date(`${initialData.localFecha}T10:00:00`).toISOString() }
     : undefined;
   const publish = useCallback(async (requested?: PublishSchedule) => {
@@ -770,8 +774,9 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
         ? { pathname: '/menu-publicado', params: { programado: schedule.publishAt, ...(live ? { actualizado: '1' } : {}) } }
         : live ? { pathname: '/menu-publicado', params: { actualizado: '1' } } : '/menu-publicado');
       if (!cartaSaved) Alert.alert(noWidow('Tu menú ya está publicado'), noWidow('La carta no se guardó. Ábrela otra vez y publica cuando tengas conexión.'));
-    } catch {
+    } catch (error) {
       publishedRef.current = false;
+      if (__DEV__) console.warn('[publicar] fallo al guardar', error);
       Alert.alert(noWidow(live ? 'No se pudo actualizar' : 'No se pudo publicar'), noWidow('Revisa tu conexión e inténtalo otra vez.'));
     } finally {
       savingRef.current = false;
@@ -800,10 +805,10 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
     mark(agotado);
     Haptics.selectionAsync().catch(() => {});
     const fonditaId = getFonditaId();
-    if (!fonditaId) return;
     const fecha = initialData.localFecha ?? localMenuDate();
     try {
-      const published = normalizeMenuData(await loadMenuHoy(fonditaId, fecha));
+      const local = !fonditaId && __DEV__ ? (await getLocalMenus()).find((entry) => entry.id === draftId && entry.published) : null;
+      const published = normalizeMenuData(fonditaId ? await loadMenuHoy(fonditaId, fecha) : local?.secciones);
       if (!published) throw new Error('Sin menú publicado');
       const next: MenuData = {
         ...published,
@@ -816,17 +821,25 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
           }),
         })),
       };
-      await saveMenuHoy(fonditaId, next, { fecha, keepSchedule: true });
+      if (fonditaId) {
+        await saveMenuHoy(fonditaId, next, { fecha, keepSchedule: true });
+      } else if (__DEV__ && local) {
+        // La prueba sin cuenta conserva «Se acabó» al salir y volver, sin
+        // publicar las otras ediciones que aún esperan «Actualizar».
+        await saveDevPublishedMenu(next);
+        await saveLocalMenu(next, local.nombre, { id: local.id, fecha: local.fecha, published: true, publishAt: local.publishAt });
+      }
     } catch {
       mark(!agotado);
       Alert.alert(noWidow('No se pudo marcar'), noWidow('Revisa tu conexión e inténtalo otra vez.'));
     }
-  }, [live, setDataQuietly, initialData.localFecha]);
+  }, [live, setDataQuietly, initialData.localFecha, draftId]);
 
   return {
     addDish,
     addSection,
     data,
+    draftSaveState,
     declineLink,
     dismissUndo,
     fillKnownPhotos,

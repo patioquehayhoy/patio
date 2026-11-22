@@ -34,7 +34,7 @@ test('names fit one line: two names, then «y N más»', () => {
   assert.equal(namesTitle(['Cocina Económica Doña Mary de la Narvarte', 'Tacos El Güero', 'Pozolería']), 'Cocina Económica Doña Mary de la Narvarte y 2 más');
 });
 
-test('one digest per person with who published, who has a promo and who is closed', () => {
+test('menus and promotions arrive as two short notifications', () => {
   const rows = [
     row({ nombre: 'Fonda Lupita', at: '2026-11-23T14:00:00Z' }),
     row({ nombre: 'Tacos El Güero', at: '2026-11-23T15:00:00Z' }),
@@ -42,16 +42,21 @@ test('one digest per person with who published, who has a promo and who is close
     row({ nombre: 'Postres Ana', kind: 'promo', body: '2×1 en flan.' }),
     row({ nombre: 'Fonda Doña Mary', kind: 'closed', body: 'Hoy no abrimos.' }),
   ];
-  const [digest, ...others] = buildFollowerDigests(rows, NOON, all);
+  const [menus, promos, ...others] = buildFollowerDigests(rows, NOON, all);
   assert.equal(others.length, 0);
-  assert.equal(digest.title, 'Fonda Lupita, Tacos El Güero y 1 más');
-  assert.equal(digest.body, 'Publicaron su menú de hoy. Postres Ana tiene promoción hoy. Fonda Doña Mary no abre hoy.');
-  assert.deepEqual(routeForNotification(digest.data), { pathname: '/favoritos' });
-  assert.equal(digest.items.length, 5);
+  assert.equal(menus.title, 'Fonda Lupita, Tacos El Güero y 1 más');
+  assert.equal(menus.body, 'Publicaron su menú de hoy. Fonda Doña Mary no abre hoy.');
+  assert.deepEqual(routeForNotification(menus.data), { pathname: '/favoritos' });
+  assert.equal(menus.items.length, 4);
+  assert.equal(promos.title, 'Postres Ana');
+  assert.equal(promos.body, '2×1 en flan.');
+  assert.equal(promos.items.length, 1);
 });
 
 test('a single place opens its page; promos respect the promotions switch', () => {
-  const [only] = buildFollowerDigests([row({ negocio_id: 'lupita', nombre: 'Fonda Lupita' }), row({ nombre: 'Postres Ana', kind: 'promo', body: '2×1' })], NOON, () => ({ menus: true, promos: false }));
+  const onlyMenus = buildFollowerDigests([row({ negocio_id: 'lupita', nombre: 'Fonda Lupita' }), row({ nombre: 'Postres Ana', kind: 'promo', body: '2×1' })], NOON, () => ({ menus: true, promos: false }));
+  assert.equal(onlyMenus.length, 1);
+  const [only] = onlyMenus;
   assert.equal(only.title, 'Fonda Lupita');
   assert.equal(only.body, 'Publicó su menú de hoy.');
   assert.deepEqual(routeForNotification(only.data), { pathname: '/patio/[id]', params: { id: 'lupita' } });

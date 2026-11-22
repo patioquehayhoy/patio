@@ -24,6 +24,31 @@
   ve en la ficha).
 - [ ] Siguiente build: la app instalada sin esta versión no muestra varias
   fotos por reseña.
+- [x] Resumen en dos notificaciones: menús (con «no abre hoy») y, aparte,
+  promociones (Parco). `send-follower-digest` desplegada.
+- [x] **Producción:** `20261121140000_rhythm_prices_fresh` aplicada (ritmo,
+  `cartas.precios_al`, `confirm_carta_prices`, aviso `fresh`); la app aún no
+  lo usa.
+- [ ] **Bloque 2 · Carta fija:** en Editar mi negocio «Cambia cada día» /
+  «Casi siempre es el mismo» (por defecto según el giro; `negocios.ritmo`);
+  «Precios de noviembre» en la ficha (`cartas.precios_al`); con ritmo
+  carta, el aviso diario pasa a uno al mes «¿Siguen igual tus precios?» con
+  botón «Siguen igual» (`confirm_carta_prices`).
+- [ ] **Bloque 3 · Recién salido:** en Avisar, elegir un platillo de tu menú
+  → «Recién salido: Bolillo.»; servidor (`send-operation-notice` y
+  `_shared/operation-notice.ts`, kind `fresh`) valida que el platillo esté en
+  su menú de hoy o su carta, hasta 3 al día aparte del aviso del día, al
+  momento solo a «Todas»; ficha con su ícono (`patio_highlights`).
+- [ ] **Bloque 4 · Vegetariano:** `Platillo.vegetariano`; el editor pregunta
+  «¿Es vegetariano?» si el nombre lo parece (sin palabras de carne) y se marca
+  deslizando; hojita en la ficha; filtro «Vegetariano» en el mapa.
+- [ ] **Bloque 5 · Artifact** «Patio — De documentación dispersa a un sistema»
+  (https://claude.ai/artifact/5fZC3DQNCeADkGwdchW8Q9): secciones de
+  notificaciones (dos), ritmos, Dónde vendes y lo que sigue.
+- [ ] **Bloque 6 · Varias marcas en una cuenta — decide Parco antes de
+  construir:** hoy un negocio por cuenta (`fonditas_one_per_owner_idx`) y los
+  menús guardados viven en el teléfono; falta diseñar cambiar de negocio y si
+  Pro va por cuenta o por negocio.
 
 ## Corte 2026-11-16 (Claude)
 

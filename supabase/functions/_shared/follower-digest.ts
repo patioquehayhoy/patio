@@ -1,7 +1,7 @@
 // Resumen de los lugares que sigues (2026-11-21), sin dependencias de Deno
-// para probarlo en Node (scripts/tests/follower-digest.test.cjs). Un solo
-// aviso con quién publicó, quién tiene promoción y quién no abre hoy, con el
-// formato de siempre: título = quién; cuerpo = el hecho.
+// para probarlo en Node (scripts/tests/follower-digest.test.cjs). Hasta dos
+// notificaciones por resumen: quién publicó (y quién no abre hoy) y, aparte,
+// quién tiene promoción. Formato de siempre: título = quién; cuerpo = el hecho.
 import { cdmxNow, followersShouldHear } from './publication-window.ts';
 
 export type DigestCandidate = {
@@ -71,32 +71,32 @@ export function buildFollowerDigests(rows: DigestCandidate[], now: Date, prefsFo
     const promos = prefs.promos ? unique(items.filter((row) => row.kind === 'promo')) : [];
     const menuIds = new Set(menus.map((row) => row.negocio_id));
     const closed = prefs.menus ? unique(items.filter((row) => row.kind === 'closed' && !menuIds.has(row.negocio_id))) : [];
-    if (!menus.length && !promos.length && !closed.length) continue;
     const names = (list: DigestCandidate[]) => list.map((row) => row.nombre.trim());
-    let title: string;
-    const sentences: string[] = [];
+    const push = (list: DigestCandidate[], title: string, body: string) => {
+      const places = new Set(list.map((row) => row.negocio_id));
+      digests.push({
+        userId,
+        title,
+        body,
+        // Un solo lugar: su ficha. Varios: tus lugares.
+        data: places.size === 1 ? { type: 'follow_digest', patioId: [...places][0] } : { type: 'follow_digest', route: '/favoritos' },
+        items: list.map((row) => ({ negocioId: row.negocio_id, kind: row.kind })),
+      });
+    };
+    // Dos notificaciones, no una larga (Parco, 2026-11-21): publicar y
+    // promocionar son cosas distintas.
+    // 1. Lo de hoy: quién publicó y, si alguno no abre, una frase corta.
     if (menus.length) {
-      title = namesTitle(names(menus));
-      sentences.push(menus.length === 1 ? 'Publicó su menú de hoy.' : 'Publicaron su menú de hoy.');
-      if (promos.length) sentences.push(more(names(promos), 'tiene promoción hoy.', 'tienen promoción hoy.'));
-    } else if (promos.length) {
-      title = namesTitle(names(promos));
-      sentences.push(promos.length === 1 ? (promos[0].body?.trim() || 'Tiene promoción hoy.') : 'Tienen promoción hoy.');
-    } else {
-      title = namesTitle(names(closed));
-      sentences.push(closed.length === 1 ? 'No abre hoy.' : 'No abren hoy.');
+      const sentences = [menus.length === 1 ? 'Publicó su menú de hoy.' : 'Publicaron su menú de hoy.'];
+      if (closed.length) sentences.push(more(names(closed), 'no abre hoy.', 'no abren hoy.'));
+      push([...menus, ...closed], namesTitle(names(menus)), sentences.join(' '));
+    } else if (closed.length) {
+      push(closed, namesTitle(names(closed)), closed.length === 1 ? 'No abre hoy.' : 'No abren hoy.');
     }
-    if (closed.length && (menus.length || promos.length)) sentences.push(more(names(closed), 'no abre hoy.', 'no abren hoy.'));
-    const included = [...menus, ...promos, ...closed];
-    const places = new Set(included.map((row) => row.negocio_id));
-    digests.push({
-      userId,
-      title,
-      body: sentences.join(' '),
-      // Un solo lugar: su ficha. Varios: tus lugares.
-      data: places.size === 1 ? { type: 'follow_digest', patioId: [...places][0] } : { type: 'follow_digest', route: '/favoritos' },
-      items: included.map((row) => ({ negocioId: row.negocio_id, kind: row.kind })),
-    });
+    // 2. Las promociones, aparte: una sola con su texto; varias, quiénes.
+    if (promos.length) {
+      push(promos, namesTitle(names(promos)), promos.length === 1 ? (promos[0].body?.trim() || 'Tiene promoción hoy.') : 'Tienen promoción hoy.');
+    }
   }
   return digests;
 }

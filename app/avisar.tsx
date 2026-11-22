@@ -7,6 +7,7 @@ import { ActivityIndicator, Image, Platform, ScrollView, StyleSheet, Text, Touch
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { getBusinessStats } from '@/lib/business-stats';
+import { loadCarta, loadMenuHoy } from '@/lib/db';
 import { getFonditaId, getFonditaName } from '@/lib/menu-store';
 import {
   dateFromTime, OPERATION_OPTIONS, operationHourLabel, operationNoticeText, sendOperationNotice, timeFromDate, type OperationKind,
@@ -36,14 +37,28 @@ export default function AvisarScreen() {
 
   const option = OPERATION_OPTIONS.find((item) => item.kind === kind)!;
   const time = option.needsTime ? times[kind] ?? option.defaultTime ?? '12:00' : null;
-  const text = operationNoticeText(kind, time) ?? '';
+  // «Recién salido»: el platillo sale de tu menú de hoy o de tu carta.
+  const [dish, setDish] = useState<string | null>(null);
+  const [dishOptions, setDishOptions] = useState<string[] | null>(null);
+  useEffect(() => {
+    if (!option.needsDish || dishOptions) return;
+    const id = getFonditaId();
+    if (!id) { setDishOptions([]); return; }
+    Promise.all([loadMenuHoy(id), loadCarta(id)]).then(([menu, carta]) => {
+      const names = [menu, carta].flatMap((data) => (data?.secciones ?? []).flatMap((section) => section.platillos.map((platillo) => platillo.nombre.trim()))).filter(Boolean);
+      setDishOptions([...new Set(names)].slice(0, 30));
+    }).catch(() => setDishOptions([]));
+  }, [option.needsDish, dishOptions]);
+  const text = operationNoticeText(kind, time, dish) ?? '';
   const name = getFonditaName().trim() || 'Tu negocio';
   // Al momento solo le llega a quienes tienen tus notificaciones en «Todas»;
   // «Hoy no abrimos» va también en el resumen de los demás (2026-11-21).
   const sendLabel = state === 'sending' ? 'Avisando…'
     : state === 'sent' ? 'Avisado'
       : followers ? 'Avisar' : 'Publicar en tu ficha';
-  const reach = kind === 'closed'
+  const reach = kind === 'fresh'
+    ? 'Para lo que sale por tandas. Le llega al momento a quienes tienen tus notificaciones en «Todas» y se ve en tu ficha. Hasta 3 al día.'
+    : kind === 'closed'
     ? 'Le llega al momento a quienes tienen tus notificaciones en «Todas», va en el resumen del día de los demás y se ve en tu ficha hoy.'
     : 'Le llega al momento a quienes tienen tus notificaciones en «Todas» y se ve en tu ficha hoy.';
 
@@ -64,7 +79,7 @@ export default function AvisarScreen() {
     setState('sending');
     setError('');
     try {
-      await sendOperationNotice(id, kind, time);
+      await sendOperationNotice(id, kind, time, option.needsDish ? dish : null);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
       setState('sent');
     } catch (sendError) {
@@ -114,6 +129,35 @@ export default function AvisarScreen() {
             );
           })}
         </View>
+
+        {option.needsDish && (
+          <View style={s.dishPick}>
+            <Text style={s.timeLabel}>{noWidow('¿Qué acaba de salir?')}</Text>
+            {dishOptions === null ? (
+              <ActivityIndicator style={{ marginTop: 12 }} color={theme.textSecondary} accessibilityLabel="Cargando tus platillos" />
+            ) : dishOptions.length ? (
+              <View style={s.chips}>
+                {dishOptions.map((name) => {
+                  const on = dish === name;
+                  return (
+                    <TouchableOpacity
+                      key={name}
+                      onPress={() => { Haptics.selectionAsync().catch(() => {}); setDish(on ? null : name); setError(''); }}
+                      disabled={state !== 'idle'}
+                      activeOpacity={0.7}
+                      style={[s.chip, on && s.chipOn]}
+                      accessibilityRole="radio"
+                      accessibilityState={{ checked: on, disabled: state !== 'idle' }}>
+                      <Text style={[s.chipText, on && s.chipTextOn]}>{name}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            ) : (
+              <Text style={s.help}>{noWidow('Publica tu menú o guarda tu carta para elegir el platillo.')}</Text>
+            )}
+          </View>
+        )}
 
         {option.needsTime && !!time && (
           <View style={s.timeRow}>
@@ -181,6 +225,7 @@ function makeStyles(t: Theme) {
     title: { ...Type.title, color: t.text },
     help: { marginTop: 8, fontSize: 15, lineHeight: 20, fontWeight: '400', color: t.textSecondary },
     chips: { marginTop: 24, flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+    dishPick: { marginTop: 24 },
     chip: { minHeight: 44, paddingHorizontal: 16, borderRadius: 22, borderCurve: 'continuous', borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, backgroundColor: t.surface, alignItems: 'center', justifyContent: 'center' },
     chipOn: { borderColor: t.accent, backgroundColor: t.accentSoft },
     chipText: { fontSize: 15, lineHeight: 20, fontWeight: '600', color: t.text },

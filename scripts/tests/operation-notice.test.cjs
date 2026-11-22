@@ -24,6 +24,16 @@ test('the app preview and the server write exactly the same notice', () => {
     assert.equal(app.operationNoticeText(kind, time), server.operationNoticeText(kind, time), `${kind} ${time}`);
   }
   assert.deepEqual(app.OPERATION_OPTIONS.map((option) => option.kind), [...server.OPERATION_KINDS]);
+  for (const dish of ['Bolillo', '  Pan de muerto.  ', '', null, 'x'.repeat(80)]) {
+    assert.equal(app.operationNoticeText('fresh', null, dish), server.operationNoticeText('fresh', null, dish), `fresh ${dish}`);
+  }
+});
+
+test('«Recién salido» names the dish, one line, no double period', () => {
+  assert.equal(server.operationNoticeText('fresh', null, 'Bolillo'), 'Recién salido: Bolillo.');
+  assert.equal(server.operationNoticeText('fresh', null, '  Pan  de muerto. '), 'Recién salido: Pan de muerto.');
+  assert.equal(server.operationNoticeText('fresh', null, ''), null);
+  assert.equal(server.operationNoticeText('fresh'), null);
 });
 
 test('notice copy: short, in Spanish hours, «a la 1»', () => {

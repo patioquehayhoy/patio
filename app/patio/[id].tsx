@@ -1423,7 +1423,7 @@ export function PatioDetailView({ id, own = false, focusDish }: { id?: string; o
         <View style={s.card} onLayout={(event) => { menuFrame.current.cardY = event.nativeEvent.layout.y; }}>
           {!!highlights.notice && (
             <View style={s.notice} accessible accessibilityLabel={`Aviso de ${patio.name}: ${highlights.notice.body}`}>
-              <Ionicons name={highlights.notice.kind === 'operation' ? 'time-outline' : 'megaphone-outline'} size={18} color={theme.accent} />
+              <Ionicons name={highlights.notice.kind === 'operation' ? 'time-outline' : highlights.notice.kind === 'fresh' ? 'flame-outline' : 'megaphone-outline'} size={18} color={theme.accent} />
               <Text style={s.noticeText} allowFontScaling={true}>{noWidow(highlights.notice.body)}</Text>
             </View>
           )}

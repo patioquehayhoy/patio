@@ -34,7 +34,7 @@
   «Precios de noviembre» en la ficha (`cartas.precios_al`); con ritmo
   carta, el aviso diario pasa a uno al mes «¿Siguen igual tus precios?» con
   botón «Siguen igual» (`confirm_carta_prices`).
-- [ ] **Bloque 3 · Recién salido:** en Avisar, elegir un platillo de tu menú
+- [x] **Bloque 3 · Recién salido** (hecho 21 nov, noche; `send-operation-notice` desplegada): en Avisar, elegir un platillo de tu menú
   → «Recién salido: Bolillo.»; servidor (`send-operation-notice` y
   `_shared/operation-notice.ts`, kind `fresh`) valida que el platillo esté en
   su menú de hoy o su carta, hasta 3 al día aparte del aviso del día, al

@@ -1,7 +1,7 @@
 import { requireUser } from '../_shared/auth.ts';
 import { pushTargets, sendExpoPush } from '../_shared/expo-push.ts';
 import { corsHeaders, errorResponse, HttpError, json, readJson } from '../_shared/http.ts';
-import { OPERATION_KINDS, operationNoticeText, type OperationKind } from '../_shared/operation-notice.ts';
+import { freshDishName, OPERATION_KINDS, operationNoticeText, type OperationKind } from '../_shared/operation-notice.ts';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -14,13 +14,16 @@ Deno.serve(async (req) => {
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405);
   try {
     const { admin, user } = await requireUser(req);
-    const body = await readJson(req, 1_024) as { fonditaId?: unknown; kind?: unknown; time?: unknown };
+    const body = await readJson(req, 1_024) as { fonditaId?: unknown; kind?: unknown; time?: unknown; dish?: unknown };
     if (typeof body.fonditaId !== 'string' || !UUID.test(body.fonditaId)) return json({ error: 'Valid fonditaId is required' }, 400);
     if (typeof body.kind !== 'string' || !(OPERATION_KINDS as readonly string[]).includes(body.kind)) {
       throw new HttpError(400, 'Elige qué quieres avisar.');
     }
-    const text = operationNoticeText(body.kind as OperationKind, typeof body.time === 'string' ? body.time : null);
-    if (!text) throw new HttpError(400, 'Elige la hora.');
+    const kind = body.kind as OperationKind;
+    const fresh = kind === 'fresh';
+    const dish = typeof body.dish === 'string' ? body.dish : null;
+    const text = operationNoticeText(kind, typeof body.time === 'string' ? body.time : null, dish);
+    if (!text) throw new HttpError(400, fresh ? 'Elige el platillo.' : 'Elige la hora.');
 
     const { data: negocio, error: negocioError } = await admin.from('negocios')
       .select('id,nombre,owner_id').eq('id', body.fonditaId).maybeSingle();
@@ -33,14 +36,33 @@ Deno.serve(async (req) => {
     const part = (type: string) => parts.find((value) => value.type === type)?.value;
     // Inicio del día en la Ciudad de México (UTC−6, sin horario de verano).
     const dayStart = new Date(`${part('year')}-${part('month')}-${part('day')}T00:00:00-06:00`).toISOString();
+    // «Recién salido» (tandas): solo un platillo de su menú de hoy o de su carta,
+    // hasta 3 al día, aparte del aviso del día.
+    if (fresh) {
+      const today = `${part('year')}-${part('month')}-${part('day')}`;
+      const [menu, carta] = await Promise.all([
+        admin.from('menus').select('secciones').eq('negocio_id', negocio.id).eq('fecha', today).maybeSingle(),
+        admin.from('cartas').select('secciones').eq('negocio_id', negocio.id).maybeSingle(),
+      ]);
+      const key = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+      const names = new Set<string>();
+      for (const source of [menu.data?.secciones, carta.data?.secciones]) {
+        const secciones = (source as { secciones?: { platillos?: { nombre?: unknown }[] }[] } | null)?.secciones ?? [];
+        for (const seccion of secciones) for (const platillo of seccion.platillos ?? []) {
+          if (typeof platillo.nombre === 'string' && platillo.nombre.trim()) names.add(key(platillo.nombre));
+        }
+      }
+      if (!names.has(key(freshDishName(dish) ?? ''))) throw new HttpError(400, 'Elige un platillo de tu menú.');
+    }
     const { count, error: countError } = await admin.from('special_notices')
       .select('id', { count: 'exact', head: true })
-      .eq('negocio_id', negocio.id).eq('kind', 'operation').gte('created_at', dayStart);
+      .eq('negocio_id', negocio.id).eq('kind', fresh ? 'fresh' : 'operation').gte('created_at', dayStart);
     if (countError) throw countError;
-    if ((count ?? 0) >= 1) throw new HttpError(429, 'Ya avisaste hoy. Mañana puedes avisar otra vez.');
+    if (fresh && (count ?? 0) >= 3) throw new HttpError(429, 'Ya avisaste 3 veces hoy. Mañana puedes avisar otra vez.');
+    if (!fresh && (count ?? 0) >= 1) throw new HttpError(429, 'Ya avisaste hoy. Mañana puedes avisar otra vez.');
 
     const { data: notice, error: insertError } = await admin.from('special_notices')
-      .insert({ negocio_id: negocio.id, created_by: user.id, body: text, kind: 'operation' }).select('id').single();
+      .insert({ negocio_id: negocio.id, created_by: user.id, body: text, kind: fresh ? 'fresh' : 'operation' }).select('id').single();
     if (insertError || !notice) throw insertError ?? new Error('Could not save notice');
 
     // Al momento, solo a quien tiene este lugar en «Todas»; «Hoy no abrimos» va también en el resumen de los demás.
@@ -52,7 +74,7 @@ Deno.serve(async (req) => {
     const delivered = await sendExpoPush(admin, targets, {
       title: negocio.nombre?.trim() || 'Un Patio',
       body: text,
-      data: { type: 'operation_notice', patioId: negocio.id, noticeId: notice.id },
+      data: { type: fresh ? 'fresh_notice' : 'operation_notice', patioId: negocio.id, noticeId: notice.id },
     });
     return json({ noticeId: notice.id, text, delivered });
   } catch (error) {

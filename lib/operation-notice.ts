@@ -4,13 +4,15 @@ import { supabase } from '@/lib/supabase';
 // Avisos de operación (gratis, v4 §4): el dueño elige qué pasa hoy y, si hace
 // falta, la hora; el servidor arma el mismo texto (supabase/functions/_shared/
 // operation-notice.ts; una prueba compara las dos copias).
-export type OperationKind = 'late' | 'early' | 'closed' | 'soldout';
+export type OperationKind = 'late' | 'early' | 'closed' | 'soldout' | 'fresh';
 
-export const OPERATION_OPTIONS: { kind: OperationKind; label: string; needsTime: boolean; defaultTime?: string }[] = [
+export const OPERATION_OPTIONS: { kind: OperationKind; label: string; needsTime: boolean; needsDish?: boolean; defaultTime?: string }[] = [
   { kind: 'late', label: 'Abrimos tarde', needsTime: true, defaultTime: '20:00' },
   { kind: 'early', label: 'Cerramos temprano', needsTime: true, defaultTime: '16:00' },
   { kind: 'closed', label: 'Hoy no abrimos', needsTime: false },
   { kind: 'soldout', label: 'Se acabó', needsTime: false },
+  // Por tandas (2026-11-21): «Recién salido: Bolillo.», hasta 3 al día.
+  { kind: 'fresh', label: 'Recién salido', needsTime: false, needsDish: true },
 ];
 
 /** «20:00» → «8 pm»; «08:30» → «8:30 am»; «13:00» → «1 pm». */
@@ -25,10 +27,21 @@ export function operationHourLabel(hhmm: string): string | null {
   return `${hour}${minutes ? `:${String(minutes).padStart(2, '0')}` : ''} ${meridiem}`;
 }
 
-/** «Hoy abrimos a las 8 pm.» — «a la 1 pm» en singular. null si falta la hora. */
-export function operationNoticeText(kind: OperationKind, time?: string | null): string | null {
+
+/** Nombre de platillo para «Recién salido»: una línea, sin punto final, hasta 60 letras. */
+export function freshDishName(dish?: string | null): string | null {
+  const clean = (dish ?? '').replace(/\s+/g, ' ').trim().replace(/[.。]+$/, '').slice(0, 60).trim();
+  return clean || null;
+}
+
+/** «Hoy abrimos a las 8 pm.» — «a la 1 pm» en singular. null si falta la hora (o el platillo). */
+export function operationNoticeText(kind: OperationKind, time?: string | null, dish?: string | null): string | null {
   if (kind === 'closed') return 'Hoy no abrimos.';
   if (kind === 'soldout') return 'Se acabó lo de hoy.';
+  if (kind === 'fresh') {
+    const name = freshDishName(dish);
+    return name ? `Recién salido: ${name}.` : null;
+  }
   const hour = time ? operationHourLabel(time) : null;
   if (!hour) return null;
   const article = hour.startsWith('1 ') || hour.startsWith('1:') ? 'a la' : 'a las';
@@ -46,8 +59,8 @@ export function dateFromTime(hhmm: string): Date {
   return date;
 }
 
-export async function sendOperationNotice(negocioId: string, kind: OperationKind, time: string | null): Promise<{ delivered: number }> {
-  const { data, error } = await supabase.functions.invoke('send-operation-notice', { body: { fonditaId: negocioId, kind, time } });
+export async function sendOperationNotice(negocioId: string, kind: OperationKind, time: string | null, dish?: string | null): Promise<{ delivered: number }> {
+  const { data, error } = await supabase.functions.invoke('send-operation-notice', { body: { fonditaId: negocioId, kind, time, ...(dish ? { dish } : {}) } });
   if (!error) {
     // «Hoy no abrimos»: hoy no cuenta como día sin publicar (lib/local-reminders.ts).
     if (kind === 'closed') await markClosedToday().catch(() => {});

@@ -20,7 +20,7 @@
   acabó»; Editar mi negocio → DÓNDE VENDES (sucursal y día de tianguis).
 - [ ] Ver llegar el primer resumen real (8:00 desayunos / 11:30) y el anuncio
   de un menú programado a su hora.
-- [ ] Carta fija: «¿Siguen igual tus precios?» al mes (falta decidir cómo se
+- [x] Carta fija: «¿Siguen igual tus precios?» al mes (hecho en el Bloque 2; antes: falta decidir cómo se
   ve en la ficha).
 - [ ] Siguiente build: la app instalada sin esta versión no muestra varias
   fotos por reseña.

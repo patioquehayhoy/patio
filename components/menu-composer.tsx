@@ -23,7 +23,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { ScrollView as GestureScrollView } from 'react-native-gesture-handler';
+import { GestureDetector, ScrollView as GestureScrollView } from 'react-native-gesture-handler';
 import ReAnimated, { useReducedMotion } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -60,10 +60,8 @@ import { getFonditaId } from '@/lib/user-store';
 // - Guardar no es un botón: el borrador se guarda solo. «‹» sale sin
 //   preguntar. El menú publicado hoy lleva «×»: si cambiaste algo, pregunta
 //   si actualizarlo o descartar.
-// - Mover y quitar ahí mismo, como Recordatorios: mantener presionado un
-//   platillo o un título lo levanta (los demás se recorren para abrirle lugar);
-//   deslizarlo a la izquierda lo elimina. El modo aparte «Ordenar» se quitó el
-//   21 nov (oculto desde el 16; en git, commit 7c036a0).
+// - Mover desde la manija; los campos conservan la selección de texto nativa.
+//   Deslizar a la izquierda muestra acciones. Sin modo Ordenar separado.
 // Una barra sobre el teclado por tipo de campo. Cada una trae sus botones
 // fijos (en un precio, «Siguiente» siempre está): no dependen de que la barra
 // se vuelva a dibujar al pasar de un campo a otro.
@@ -75,10 +73,8 @@ const NAV_HEIGHT = 54;
 // tocarlo sin que se quede pegado (Parco, 16 nov). Con VoiceOver no se va
 // solo (WCAG 2.2.1: quien necesita más tiempo, lo tiene).
 const UNDO_MS = 6000;
-// Mantener presionado un platillo o un título antes de levantarlo: el medio
-// segundo de iOS (UILongPressGestureRecognizer). Con 280 ms un toque normal un
-// poco lento ya levantaba el platillo y se sentía «atorado».
-const HOLD_IN_PLACE_MS = 500;
+// La manija dedicada mueve sin esperar una pulsación larga sobre texto.
+const HANDLE_HOLD_MS = 0;
 // Giros de comida corrida: la primera sección sugiere «MENÚ DEL DÍA», que con
 // su precio es el «MENÚ $100» del pizarrón.
 const MENU_PRICE_TYPES = new Set(['fondita', 'casa', 'restaurante']);
@@ -725,6 +721,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
         <Text style={[s.currency, !!dish.precio && s.currencyOn]}>$</Text>
         <TextInput editable={false} style={s.priceInput} value={dish.precio} />
       </View>
+      {grip}
     </View>
   );
   const renderGhost = (item: BoardDragItem) => {
@@ -746,6 +743,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
               <Text style={[s.currency, !!section.precio && s.currencyOn]}>$</Text>
               <TextInput editable={false} style={s.priceInput} value={section.precio} />
             </View>
+            {grip}
           </View>
           {section.platillos.map((dish, index) => ghostDishRow(dish, index > 0))}
           <View style={[s.addDish, !!section.platillos.length && s.addDishDivider]}>
@@ -767,12 +765,26 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
       {open && line && <View style={s.dishDivider} />}
     </View>
   );
-  // Sin modo aparte (2026-11-16, como Recordatorios): en el panel mismo,
-  // mantener presionado un platillo o un título lo levanta para moverlo y
-  // deslizarlo a la izquierda abre «Eliminar». Escribiendo no hay gestos: el
-  // texto se selecciona como siempre (y «Eliminar» está en la barra del teclado).
-  // Ojo: no apagarlos mientras arrastras (apagar un gesto activo lo cancela).
+  // El texto conserva selección/cursor nativos. Solo la manija inicia un
+  // movimiento; deslizar el resto de la fila sigue mostrando acciones.
   const gesturesOn = !keyboardOpen;
+  const grip = <View style={s.grip} pointerEvents="none"><Ionicons name="reorder-three-outline" size={22} color={c.textMute} /></View>;
+  const dragHandle = (item: BoardDragItem, label: string, index: number, count: number, move: (index: number) => void) => (
+    <GestureDetector gesture={board.rowFor(item, HANDLE_HOLD_MS).enabled(gesturesOn || !!board.drag)}>
+      <View collapsable={false} style={s.grip} accessible accessibilityLabel={`Mover ${label}`}
+        accessibilityHint="Arrastra para cambiar de lugar. Cierra el teclado para mover."
+        accessibilityActions={[
+          ...(index > 0 ? [{ name: 'moveUp', label: 'Subir' }] : []),
+          ...(index < count - 1 ? [{ name: 'moveDown', label: 'Bajar' }] : []),
+        ]}
+        onAccessibilityAction={(event) => {
+          if (event.nativeEvent.actionName === 'moveUp') move(index - 1);
+          if (event.nativeEvent.actionName === 'moveDown') move(index + 1);
+        }}>
+        <Ionicons name="reorder-three-outline" size={22} color={keyboardOpen ? c.textMute : c.textSecondary} />
+      </View>
+    </GestureDetector>
+  );
 
   const renderDish = (section: Seccion, dish: Platillo, index: number) => {
     const nameKey = `n-${dish.id}`;
@@ -791,7 +803,6 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
       <View key={dish.id} collapsable={false} onLayout={board.onDishLayout(dish.id)} style={lifted && !board.atOrigin && s.collapsed}>
         {!lifted && gap(gapAbove, before > 0)}
         <SwipeRow
-          drag={board.rowFor({ kind: 'dish', dishId: dish.id, sectionId: section.id }, HOLD_IN_PLACE_MS).enabled(gesturesOn)}
           enabled={gesturesOn}
           actionGap={12}
           fullSwipe
@@ -981,6 +992,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
             accessibilityElementsHidden
           />
         </Pressable>
+        {dragHandle({ kind: 'dish', dishId: dish.id, sectionId: section.id }, dish.nombre || 'platillo', index, section.platillos.length, (to) => moveDishTo(dish.id, section.id, to))}
         </SwipeRow>
       </View>
     );
@@ -1012,10 +1024,8 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
         }}>
         {!lifted && gap(sectionGapAbove, false)}
         <View collapsable={false} style={[s.card, lifted && s.away]}>
-          {/* El título también: mantenerlo presionado mueve la sección
-              completa; deslizarlo, la elimina (con «Deshacer»). */}
+          {/* La manija mueve la sección; deslizar permite eliminar con Deshacer. */}
           <SwipeRow
-            drag={board.rowFor({ kind: 'section', sectionId: section.id }, HOLD_IN_PLACE_MS).enabled(gesturesOn)}
             enabled={gesturesOn}
             fullSwipe
             actions={[{ label: 'Eliminar', color: c.danger, accessibilityLabel: `Eliminar ${sectionLabel}`, onPress: () => { smoothly(); removeSection(section.id); } }]}
@@ -1080,6 +1090,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                 accessibilityElementsHidden
               />
             </Pressable>
+            {dragHandle({ kind: 'section', sectionId: section.id }, sectionLabel, index, data.secciones.length, (to) => moveSectionTo(section.id, to))}
           </SwipeRow>
           {section.platillos.map((dish, dishIndex) => renderDish(section, dish, dishIndex))}
           {/* Al arrastrar: el hueco al final de la tarjeta (también en una vacía). */}
@@ -1366,6 +1377,7 @@ function makeStyles(c: FonderoColors) {
     body: { flex: 1, minWidth: 0 },
     dish: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingVertical: 10 },
     dishDivider: { position: 'absolute', top: 0, left: TEXT_INSET, right: 0, height: StyleSheet.hairlineWidth, backgroundColor: c.border },
+    grip: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
     slot: { width: 44, height: 44, borderRadius: 10, borderCurve: 'continuous', overflow: 'hidden', alignItems: 'center', justifyContent: 'center', backgroundColor: c.iconBg },
     dishName: { ...flat, margin: 0, fontSize: 16, fontWeight: '700', color: c.text },
     // Nombre y descripción, una sola unidad.

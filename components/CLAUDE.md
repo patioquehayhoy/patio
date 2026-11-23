@@ -1,3 +1,10 @@
+## Corte de cierre — manijas del editor (2026-11-22)
+
+Sustituye el arrastre por pulsación larga en toda la fila: mover desde manija
+visible de 44 pt para platillos y secciones, con teclado cerrado. Los campos
+conservan selección de texto nativa; deslizar sigue mostrando acciones. Sin
+modo Ordenar adicional. QA físico pendiente de Parco, no ejecutar simulador.
+
 ## Corte vigente — editor continuo y menú publicado (2026-11-22, Parco/Codex)
 
 Este corte sustituye la forma de tarjetas del 16 nov y programar por toque

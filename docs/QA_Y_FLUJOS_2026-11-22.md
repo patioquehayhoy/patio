@@ -1,5 +1,13 @@
 # Menús, editor y formas de venta — 22 noviembre 2026
 
+**Tercera revisión:** Parco rechazó el contorno de la segunda. Publicado hoy
+queda como sección continua alineada con la biblioteca: encabezado discreto,
+Editar a la derecha y nombre en una fila navegable; una línea inferior fina
+separa los grupos. Sin tarjeta ni sangría adicional. Adaptación de las HIG
+de [Layout](https://developer.apple.com/design/human-interface-guidelines/layout)
+y [Lists and tables](https://developer.apple.com/design/human-interface-guidelines/lists-and-tables).
+Se preservan acciones y textos completos. QA visual solo por Parco.
+
 ## Fuente y alcance
 
 Reporte directo de Parco en iPhone, inspección de código y validaciones de

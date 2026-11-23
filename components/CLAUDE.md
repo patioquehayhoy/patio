@@ -22,8 +22,10 @@ visual en simulador ni darla por aprobada con pruebas de código.
 - «No» a vegetariano se guarda; es distinto de no haber contestado.
 - Segunda revisión de Parco (22 nov): nombre editable a todo el ancho al
   inicio del contenido, con título por fecha si no tiene uno; Publicar y
-  Programar juntos en navegación. Publicado hoy lleva contorno naranja y
-  superficie propia. Los menús anteriores abren una copia sin contexto vivo;
+  Programar juntos en navegación. Publicado hoy es una sección continua
+  (tercera revisión, 22 nov): encabezado discreto y Editar a la derecha;
+  nombre en fila navegable, sin marco, barra lateral ni fondo propio. Sus
+  ejes coinciden con la biblioteca. Los menús anteriores abren una copia sin contexto vivo;
   el editor se reinicia con el menú elegido al recuperar foco.
 - Disponibilidad: la conversión DEV usa `menuDataToSections`, igual que el
   menú público. La ficha recarga al recuperar foco. Deslizar un platillo

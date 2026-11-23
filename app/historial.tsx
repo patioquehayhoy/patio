@@ -244,19 +244,19 @@ export default function HistorialScreen() {
       <View style={{ flex: 1 }}>
       <ScrollView refreshControl={<RefreshControl refreshing={pull.refreshing} onRefresh={pull.onRefresh} tintColor={theme.textSecondary} />} onLayout={edges.onLayout} onContentSizeChange={edges.onContentSizeChange} onScroll={(event) => { edges.onScroll?.(event); onScroll?.(event); }} onScrollBeginDrag={() => closeOpenSwipeRow()} onTouchStart={(event) => closeSwipeRowOnTouch(event.nativeEvent.pageX, event.nativeEvent.pageY)} scrollEventThrottle={16} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: selecting ? bottomActionClearance(insets.bottom, selectionBarHeight) : bottomTabClearance(insets.bottom) }} showsVerticalScrollIndicator indicatorStyle={theme.isDark ? 'white' : 'black'}>
         {!loading && !selecting && menus.length > 0 && (
-          <View style={[s.published, { borderColor: liveMenu ? c.accent : c.border, backgroundColor: c.surface }]}>
-            <Text style={[s.groupLabel, { color: c.textSecondary }]}>{liveMenu ? 'PUBLICADO HOY' : 'HOY'}</Text>
-            <Text style={[s.summary, { color: c.text, marginTop: 8 }]}>{noWidow(liveMenu ? liveMenu.nombre || defaultHistoryTitle(liveMenu) : 'Todavía no publicas el menú de hoy')}</Text>
-            {liveMenu && <View style={s.publishedActions}>
-              <TouchableOpacity style={s.publishedButton} onPress={viewPublished} accessibilityRole="button" accessibilityLabel="Ver el menú publicado hoy">
-                <Ionicons name="eye-outline" size={18} color={c.text} />
-                <Text style={[s.publishedActionText, { color: c.text }]}>Ver menú</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={s.publishedButton} onPress={() => reuse(liveMenu)} accessibilityRole="button" accessibilityLabel="Editar el menú publicado hoy">
-                <Ionicons name="create-outline" size={18} color={c.text} />
+          <View style={[s.published, { borderBottomColor: c.border }]}>
+            <View style={s.publishedHead}>
+              <Text style={[s.publishedLabel, { color: c.textSecondary }]} accessibilityRole="header">{liveMenu ? 'Publicado hoy' : 'Hoy'}</Text>
+              {liveMenu && <TouchableOpacity style={s.publishedEdit} onPress={() => reuse(liveMenu)} accessibilityRole="button" accessibilityLabel="Editar el menú publicado hoy" activeOpacity={0.7}>
                 <Text style={[s.publishedActionText, { color: c.text }]}>Editar</Text>
+              </TouchableOpacity>}
+            </View>
+            {liveMenu ? (
+              <TouchableOpacity style={s.publishedMenu} onPress={viewPublished} accessibilityRole="button" accessibilityLabel={`Ver el menú publicado hoy: ${liveMenu.nombre || defaultHistoryTitle(liveMenu)}`} activeOpacity={0.7}>
+                <Text style={[s.publishedName, { color: c.text }]}>{noWidow(liveMenu.nombre || defaultHistoryTitle(liveMenu))}</Text>
+                <Ionicons name="chevron-forward" size={18} color={c.textMute} />
               </TouchableOpacity>
-            </View>}
+            ) : <Text style={[s.summary, { color: c.text, paddingVertical: 8 }]}>{noWidow('Todavía no publicas el menú de hoy')}</Text>}
           </View>
         )}
         {loading ? <View style={{ minHeight: 240 }}><FoodieLoading label="Cargando menús" /></View> : menus.length === 0 ? (
@@ -339,9 +339,13 @@ export default function HistorialScreen() {
 
 const s = StyleSheet.create({
   root: { flex: 1 },
-  published: { marginTop: 16, padding: 16, borderWidth: StyleSheet.hairlineWidth, borderLeftWidth: 3, borderRadius: 14, borderCurve: 'continuous' },
-  publishedActions: { flexDirection: 'row', flexWrap: 'wrap', columnGap: 24, marginTop: 4 },
-  publishedButton: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 6 },
+  // Mismos ejes de 20 pt que la biblioteca: la jerarquía la da la sección.
+  published: { marginTop: 8, paddingBottom: 16, borderBottomWidth: StyleSheet.hairlineWidth },
+  publishedHead: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 16 },
+  publishedLabel: { flex: 1, fontSize: 13, lineHeight: 18, fontWeight: '400' },
+  publishedEdit: { minWidth: 44, minHeight: 44, alignItems: 'flex-end', justifyContent: 'center' },
+  publishedMenu: { minHeight: 52, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', gap: 16 },
+  publishedName: { ...Type.headline, flex: 1, minWidth: 0 },
   publishedActionText: { fontSize: 15, fontWeight: '600' },
   headerRow: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end' },
   streakPill: { minHeight: 40, borderRadius: 20, borderCurve: 'continuous', borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 12 },

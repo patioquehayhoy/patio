@@ -2,6 +2,11 @@
 
 ## Corte 2026-11-22 (Codex, QA de Parco)
 
+- [x] Tercera revisión: Parco rechazó el resaltado de tarjeta. Publicado hoy
+  pasa a sección continua, con encabezado, Editar a la derecha y fila del
+  menú navegable, alineada a la biblioteca. Sustituye el contorno naranja.
+- [ ] **Parco:** aceptación visual de esta sección en el iPhone.
+
 - [x] Segunda revisión en código: Se acabó/Ya hay y vegetariano se conservan
   al construir la ficha DEV y recargarla; el editor se reinicia con el menú
   elegido; menús anteriores sin contexto vivo; nombre completo y Programar

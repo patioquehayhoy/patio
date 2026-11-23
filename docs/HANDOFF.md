@@ -1,5 +1,14 @@
 # HANDOFF
 
+## Tercera revisión 2026-11-22 — resaltado editorial del menú publicado (Codex)
+
+Parco rechazó contorno y barra naranja. Publicado hoy ahora es una sección
+continua: encabezado discreto, Editar a la derecha y fila del menú navegable,
+con mismos ejes que la biblioteca y una línea inferior fina. Referencia:
+Apple HIG Layout y Lists and tables. Sin cambio de lógica ni pruebas visuales;
+solo tipos/lint. Aceptación en iPhone pendiente de Parco.
+
+
 ## Segunda revisión 2026-11-22 — ficha disponible y negocio sin registro (Codex)
 
 Se acabó/Ya hay se guardaba en DEV pero se perdía al construir la ficha:

@@ -20,6 +20,13 @@ visual en simulador ni darla por aprobada con pruebas de código.
 - VoiceOver: el nombre del platillo y el título de sección ofrecen Subir y
   Bajar cuando hay destino dentro de su lista. Validación en iPhone pendiente.
 - «No» a vegetariano se guarda; es distinto de no haber contestado.
+- Fecha por defecto y nombre opcional (Parco, 22 nov). El campo lo dice;
+  estados del no publicado breves, sin explicar «se guarda solo» cada vez.
+- Póster: agotado se expresa como Se acabó en la columna del precio, con
+  nombre de menor énfasis. Refrescar publicación antes de habilitar compartir.
+- Conteos positivos junto al corazón también para público. La hojita del
+  platillo conserva su significado vegetariano; no reservar casillas vacías
+  para atributos que aún no existen.
 - Segunda revisión de Parco (22 nov): nombre editable a todo el ancho al
   inicio del contenido, con título por fecha si no tiene uno; Publicar y
   Programar juntos en navegación. Publicado hoy es una sección continua

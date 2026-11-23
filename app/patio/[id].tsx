@@ -814,8 +814,7 @@ export function PatioDetailView({ id, own = false, focusDish }: { id?: string; o
     getLikedDishNames(patio.id).then(setLikedDishNames).catch(() => {});
   }, [patio?.id]);
 
-  // Cuántos «me gusta» tiene cada platillo: solo el dueño ve el número, en su
-  // Mi Patio y en Actividad. Para los demás, el corazón sin conteo.
+  // El conteo positivo acompaña al corazón tanto en Mi Patio como en la ficha pública.
   const [dishLikeCounts, setDishLikeCounts] = useState<Record<string, number>>({});
   useEffect(() => {
     if (!patio?.id) return;
@@ -1573,9 +1572,10 @@ export function PatioDetailView({ id, own = false, focusDish }: { id?: string; o
                             onPress={() => handleToggleDishLike(item)}
                             activeOpacity={0.7}
                             accessibilityRole="button"
-                            accessibilityLabel={dishLiked ? `Quitar me gusta a ${item.name}` : `Me gusta ${item.name}`}
+                            accessibilityLabel={`${dishLiked ? 'Quitar me gusta a' : 'Me gusta'} ${item.name}${dishLikes ? `, ${dishLikes} me gusta` : ''}`}
                             accessibilityState={{ selected: dishLiked }}
                             style={s.dishLikeCount}>
+                            {dishLikes > 0 && <Text style={s.dishLikeCountText}>{dishLikes}</Text>}
                             <Ionicons name={dishLiked ? 'heart' : 'heart-outline'} size={17} color={dishLiked ? theme.accent : theme.textMute} />
                           </TouchableOpacity>
                         )}

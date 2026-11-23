@@ -1167,7 +1167,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
             {noWidow(live
               ? changed ? 'Cambios sin publicar' : scheduledFor ? `Programado · ${scheduledFor}` : 'Publicado hoy'
               : draftSaveState === 'error' ? 'No se pudo guardar el borrador'
-                : draftSaveState === 'saving' || changed ? 'Guardando borrador…' : draftSaveState === 'saved' ? 'Borrador guardado' : 'Borrador · se guarda solo')}
+                : draftSaveState === 'saving' || changed ? 'Guardando…' : draftSaveState === 'saved' ? 'Guardado' : 'Sin publicar')}
           </Text>
         </View>
 
@@ -1203,7 +1203,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}>
             <View style={s.menuIdentity}>
-              <Text style={s.menuNameLabel}>NOMBRE DEL MENÚ</Text>
+              <Text style={s.menuNameLabel}>{noWidow('Nombre del menú (opcional)')}</Text>
               <TextInput
                 ref={nombreInputRef}
                 style={s.menuName}

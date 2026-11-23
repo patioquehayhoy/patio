@@ -402,6 +402,33 @@ test('deleting today menu requires confirmation and also clears the DEV public m
   runtime.unmount();
 });
 
+test('poster refreshes availability from the published menu instead of a stale editor snapshot', async () => {
+  const runtime = hookRuntime();
+  let focus;
+  let deliver;
+  const fresh = new Promise((resolve) => { deliver = resolve; });
+  const f = fixture({ dev: true, overrides: {
+    react: runtime.react,
+    'expo-router': { useFocusEffect: (callback) => { focus = callback; } },
+    '@/lib/user-store': { getFonditaId: () => null },
+    '@/lib/db': {},
+    '@/lib/demo': { DEV_MY_PATIO_ID: 'demo-mi-patio', getDevPublishedMenu: () => fresh },
+  } });
+  f.load('lib/menu-store.ts').setMenuData({ ...menu('Mole'), localLive: true });
+  const { useMenuPreviewController } = f.load('lib/controllers/useMenuPreviewController.ts');
+  const render = () => runtime.render(useMenuPreviewController);
+  render();
+  const cleanup = focus();
+  assert.equal(render().refreshing, true);
+  const unavailable = menu('Mole');
+  unavailable.secciones[0].platillos[0].agotado = true;
+  deliver(unavailable);
+  await new Promise(setImmediate);
+  assert.equal(render().sections[0].platillos[0].agotado, true);
+  assert.equal(render().refreshing, false);
+  cleanup();
+});
+
 test('successful remote publication survives optional local-cache and learning failures', async () => {
   const f = publicationFixture({ storageFail: true, correctionError: true });
   const store = f.load('lib/menu-store.ts');

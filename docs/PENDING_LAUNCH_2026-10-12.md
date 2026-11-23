@@ -2,6 +2,12 @@
 
 ## Corte 2026-11-22 (Codex, QA de Parco)
 
+- [x] Parco: fecha por defecto y nombre opcional. Estado del guardado breve;
+  conteo positivo de likes público; Se acabó en póster y consulta de la
+  disponibilidad publicada antes de habilitar compartir.
+- [ ] Parco: comprobar póster compartido tras Se acabó y Ya hay; nombre
+  opcional y conteo junto al corazón. No se hizo QA visual por Codex.
+
 - [x] Tercera revisión: Parco rechazó el resaltado de tarjeta. Publicado hoy
   pasa a sección continua, con encabezado, Editar a la derecha y fila del
   menú navegable, alineada a la biblioteca. Sustituye el contorno naranja.

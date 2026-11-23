@@ -33,7 +33,7 @@ export function MenuPoster({ justPublished = false, updated = false, scheduledAt
   const { theme } = useTheme();
   const c = fonderoPalette(theme.isDark);
   const s = makeStyles(c);
-  const { businessName, fecha: today, handleBack, handleOpenProfile, handleShare, menuPrices, patioId, priceLabel, priceName, sections, carta } = useMenuPreviewController();
+  const { businessName, fecha: today, handleBack, handleOpenProfile, handleShare, menuPrices, patioId, priceLabel, priceName, sections, carta, refreshing } = useMenuPreviewController();
   // El póster lleva el día en que sale el menú.
   const fecha = scheduledAt
     ? new Date(scheduledAt).toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' }).toUpperCase()
@@ -50,7 +50,7 @@ export function MenuPoster({ justPublished = false, updated = false, scheduledAt
   const editMenu = () => router.replace({ pathname: '/menu-editar', params: { reuse: '1' } });
 
   const sharePoster = async () => {
-    if (sharing || !posterRef.current) return;
+    if (sharing || refreshing || !posterRef.current) return;
     setSharing(true);
     try {
       const uri = await captureRef(posterRef, { format: 'jpg', quality: 1, result: 'tmpfile' });
@@ -156,10 +156,10 @@ export function MenuPoster({ justPublished = false, updated = false, scheduledAt
                 {section.platillos.map((dish) => (
                   <View key={dish.id} style={s.menuRow}>
                     <View style={{ flex: 1 }}>
-                      <Text style={s.menuRowName} allowFontScaling={true}>{dish.nombre}</Text>
+                      <Text style={[s.menuRowName, dish.agotado && s.unavailableName]} allowFontScaling={true}>{dish.nombre}</Text>
                       {dish.descripcion ? <Text style={s.menuRowDescription}>{noWidow(dish.descripcion)}</Text> : null}
                     </View>
-                    {dish.precio ? <Text style={s.menuRowPrice} allowFontScaling={true}>${dish.precio}</Text> : null}
+                    {dish.agotado ? <Text style={s.unavailableLabel}>Se acabó</Text> : dish.precio ? <Text style={s.menuRowPrice} allowFontScaling={true}>${dish.precio}</Text> : null}
                   </View>
                 ))}
               </View>
@@ -212,13 +212,13 @@ export function MenuPoster({ justPublished = false, updated = false, scheduledAt
         <TouchableOpacity
           style={s.cta}
           onPress={sharePoster}
-          disabled={sharing}
+          disabled={sharing || refreshing}
           activeOpacity={0.85}
           accessibilityRole="button"
-          accessibilityLabel={sharing ? 'Preparando imagen' : 'Compartir como imagen'}
-          accessibilityState={{ disabled: sharing, busy: sharing }}>
+          accessibilityLabel={refreshing ? 'Actualizando menú' : sharing ? 'Preparando imagen' : 'Compartir como imagen'}
+          accessibilityState={{ disabled: sharing || refreshing, busy: sharing || refreshing }}>
           <Ionicons name="share-outline" size={18} color="#FFFFFF" />
-          <Text style={s.ctaText} allowFontScaling={true}>{sharing ? 'Preparando…' : 'Compartir como imagen'}</Text>
+          <Text style={s.ctaText} allowFontScaling={true}>{refreshing ? 'Actualizando…' : sharing ? 'Preparando…' : 'Compartir como imagen'}</Text>
         </TouchableOpacity>
         {justPublished ? (
           // Después de publicar, «Listo» lleva a tu ficha: ahí ves lo que la
@@ -286,6 +286,8 @@ function makeStyles(c: FonderoColors) {
   menuRowName: { fontSize: 14, lineHeight: 18, fontWeight: '500', color: LIGHT.ink, marginRight: 10 },
   menuRowDescription: { marginTop: 1, fontSize: 12, lineHeight: 16, color: LIGHT.inkSoft },
   menuRowPrice: { fontSize: 13, fontWeight: '400', color: LIGHT.inkSoft },
+  unavailableName: { color: LIGHT.inkSoft },
+  unavailableLabel: { fontSize: 13, lineHeight: 18, fontWeight: '500', color: LIGHT.inkSoft },
 
   posterFoot: { paddingHorizontal: 22, paddingTop: 16, paddingBottom: 18 },
   footRule: { height: StyleSheet.hairlineWidth, backgroundColor: LIGHT.sep, marginBottom: 12 },

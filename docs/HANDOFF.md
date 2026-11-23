@@ -1,5 +1,15 @@
 # HANDOFF
 
+## 2026-11-22 — disponibilidad en póster y nombre opcional (Codex)
+
+Póster muestra Se acabó y consulta disponibilidad publicada antes de habilitar
+Compartir. Conteos positivos también junto al corazón público. Parco eligió
+fecha por defecto y nombre opcional; estados de guardado más breves.
+Hojita sigue siendo vegetariano, sin nuevos atributos ni huecos reservados.
+`npm run check`: 357 pruebas, tipos y lint correctos. QA visual e imagen
+compartida exclusivamente por Parco en iPhone.
+
+
 ## Tercera revisión 2026-11-22 — resaltado editorial del menú publicado (Codex)
 
 Parco rechazó contorno y barra naranja. Publicado hoy ahora es una sección

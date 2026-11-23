@@ -2,9 +2,10 @@ import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Share } from 'react-native';
 
-import { DEV_MY_PATIO_ID } from '@/lib/demo';
-import { getLatestLocalMenu } from '@/lib/menu-history';
-import { loadCarta } from '@/lib/db';
+import { DEV_MY_PATIO_ID, getDevPublishedMenu } from '@/lib/demo';
+import { getLatestLocalMenu, getLocalMenus } from '@/lib/menu-history';
+import { loadCarta, loadMenuHoy } from '@/lib/db';
+import { localMenuDate } from '@/lib/menu-date';
 import { splitCarta } from '@/lib/menu-carta';
 import { getFonditaName, getMenuData, normalizeMenuData, type MenuData } from '@/lib/menu-store';
 import { getFonditaId } from '@/lib/user-store';
@@ -15,6 +16,7 @@ export function useMenuPreviewController() {
   const [businessName, setBusinessName] = useState('Tu Patio');
   const [patioId, setPatioId] = useState<string | null>(null);
   const [savedCarta, setSavedCarta] = useState<MenuData | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -30,6 +32,20 @@ export function useMenuPreviewController() {
       setPatioId(getFonditaId() || (__DEV__ ? DEV_MY_PATIO_ID : null));
       // El póster lleva también la carta, como el pizarrón de la fonda.
       const fonditaId = getFonditaId();
+      setRefreshing(!!inMemory?.localLive);
+      if (inMemory?.localLive) {
+        // El póster refleja la disponibilidad guardada, no el editor antiguo.
+        const scheduled = !!inMemory.localFecha && inMemory.localFecha > localMenuDate();
+        const fresh = fonditaId ? loadMenuHoy(fonditaId, inMemory.localFecha ?? localMenuDate())
+          : __DEV__ ? scheduled
+            ? getLocalMenus().then((entries) => entries.find((entry) => entry.id === inMemory.localDraftId)?.secciones ?? null)
+            : getDevPublishedMenu()
+          : Promise.resolve(null);
+        fresh.then((raw) => {
+          const menu = normalizeMenuData(raw);
+          if (active && menu) setMenuData({ ...inMemory, ...menu });
+        }).catch(() => {}).finally(() => { if (active) setRefreshing(false); });
+      }
       if (fonditaId) {
         loadCarta(fonditaId)
           .then((raw) => { if (active) setSavedCarta(normalizeMenuData(raw)); })
@@ -76,6 +92,7 @@ export function useMenuPreviewController() {
   }, [businessName, patioId]);
 
   return {
+    refreshing,
     businessName,
     fecha,
     handleBack,

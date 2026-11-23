@@ -868,7 +868,11 @@ test('vision deadline aborts transport and returns an actionable error', async (
   const pending = f.load('lib/vision.ts').leerMenuDeFoto('photo.jpg');
   await new Promise(setImmediate);
   const rejected = assert.rejects(pending, /tardó demasiado/);
-  t.mock.timers.tick(60_000);
+  // Antes del límite no aborta (el servidor espera hasta 110 s).
+  t.mock.timers.tick(110_000);
+  await new Promise(setImmediate);
+  assert.equal(signal.aborted, false);
+  t.mock.timers.tick(10_000);
   await rejected;
   assert.equal(signal.aborted, true);
 });

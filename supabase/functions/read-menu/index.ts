@@ -207,6 +207,7 @@ Deno.serve(async (request) => {
     return Response.json({ error: 'Método no permitido' }, { status: 405, headers: corsHeaders });
   }
 
+  const started = Date.now();
   try {
     const auth = await requireUser(request);
     const body = await readJson(request, 7_000_000);
@@ -219,6 +220,9 @@ Deno.serve(async (request) => {
     if (!apiKey) throw new Error('ANTHROPIC_API_KEY no está configurada');
 
     await consumeAIRequest(auth, 'read-menu');
+    // Medición de la lectura lenta (2026-11-23): cuánto tarda cada parte y
+    // cuántos tokens escribe el modelo. Sin datos de la persona ni del menú.
+    const modelStarted = Date.now();
     const anthropic = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       signal: AbortSignal.timeout(110_000),
@@ -260,15 +264,32 @@ Deno.serve(async (request) => {
     }
 
     const payload = await anthropic.json();
+    const modelMs = Date.now() - modelStarted;
     if (payload?.stop_reason === 'max_tokens' || payload?.stop_reason === 'refusal') {
-      console.error('Lectura incompleta', payload?.stop_reason, payload?.usage);
+      console.error('Lectura incompleta', payload?.stop_reason, payload?.usage, { ms_modelo: modelMs });
       throw new Error('La lectura no pudo completarse');
     }
     const text = payload?.content?.find((item: { type?: string }) => item.type === 'text')?.text ?? '';
     const parsed = JSON.parse(text);
     const result = normalizeResult(parsed);
+    console.info(JSON.stringify({
+      lectura: 'read-menu',
+      ms_total: Date.now() - started,
+      ms_antes_del_modelo: modelStarted - started,
+      ms_modelo: modelMs,
+      kb_imagen: Math.round(body.imageBase64.length * 0.75 / 1024),
+      tokens_entrada: payload?.usage?.input_tokens ?? null,
+      tokens_salida: payload?.usage?.output_tokens ?? null,
+      secciones: result.secciones.length,
+      platillos: result.secciones.reduce((total, section) => total + section.platillos.length, 0),
+    }));
     return Response.json(result, { headers: { ...corsHeaders, 'content-type': 'application/json' } });
   } catch (error) {
+    console.error(JSON.stringify({
+      lectura: 'read-menu',
+      fallo: error instanceof Error ? error.name : 'desconocido',
+      ms_total: Date.now() - started,
+    }));
     return errorResponse(error, 'No se pudo leer el menú');
   }
 });

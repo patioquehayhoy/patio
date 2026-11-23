@@ -40,6 +40,9 @@ function isMenuVisualResult(value: unknown): value is MenuVisualResult {
     && (typeof result.advertencias === 'undefined' || Array.isArray(result.advertencias));
 }
 
+/** Límite del teléfono para una lectura con foto (2026-11-23). */
+export const READ_DEADLINE_MS = 120_000;
+
 export async function leerMenuDeFoto(imageUri: string, signal?: AbortSignal): Promise<MenuVisualResult> {
   const controller = new AbortController();
   const abort = () => controller.abort();
@@ -50,7 +53,10 @@ export async function leerMenuDeFoto(imageUri: string, signal?: AbortSignal): Pr
     controller.signal.addEventListener('abort', () => reject(new AIServiceError(
       signal?.aborted ? 'Lectura cancelada' : 'La lectura tardó demasiado. Intenta con otra foto o continúa a mano.', 0
     )), { once: true });
-    timer = setTimeout(abort, 60_000);
+    // Mayor que la espera del servidor (110 s en read-menu más subida y acceso):
+    // con 60 s, un menú largo que el servidor sí terminaba fallaba siempre en el
+    // teléfono y gastaba la lectura. Cancelar sigue disponible todo el tiempo.
+    timer = setTimeout(abort, READ_DEADLINE_MS);
   });
   const started = Date.now();
   try {

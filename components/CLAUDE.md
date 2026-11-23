@@ -4,9 +4,13 @@ Publicado hoy abre Mi Patio; Editar abre editor. Imagen para compartir está
 al deslizar y en acciones VoiceOver. Los menús de biblioteca siguen editables.
 Agotados conservan nombre tachado y texto secundario legible en ambas vistas,
 con Se acabó explícito en lugar del precio. No opacidad sobre controles.
-La auditoría posterior propone quitar tachado, pero NO está aprobada ni
-implementada; no confundir recomendación con contrato vigente.
-Lectura cancela red y espera máximo 60 s; esto no certifica rapidez del modelo.
+**Decidido 2026-11-23:** el tachado se queda (Apple, Jev y CDF en
+`docs/AGOTADOS_Y_VARIOS_NEGOCIOS_2026-11-23.md`). No volver a proponer
+quitarlo sin datos nuevos. Nunca tachar el precio, ni ocultar o reordenar el
+platillo, ni dejarlo casi transparente.
+Lectura: cancelar corta la red; el teléfono espera hasta 120 s
+(`READ_DEADLINE_MS`), más que los 110 s del servidor. Medición en los logs de
+`read-menu`.
 
 ## Corrección de Parco — sin manijas (2026-11-22)
 

@@ -1,0 +1,757 @@
+{
+ "app": "Una app mexicana de celular donde las fondas, cocinas económicas, taquerías y personas que venden comida en casa publican su menú del día. Quien busca dónde comer abre la ficha del lugar y ve el menú de hoy: cada platillo con su nombre, una descripción corta y su precio. Durante el día, el negocio puede marcar en la app que un platillo ya se acabó.",
+ "opciones": {
+  "agotado": {
+   "tachado": "El platillo sigue en su lugar: el nombre tachado (con una raya encima) y en gris, su descripción y, donde iba el precio, «Se acabó».",
+   "gris": "El platillo sigue en su lugar: el nombre en gris, sin raya, su descripción y, donde iba el precio, «Se acabó».",
+   "al_final": "El platillo pasa al final de su sección: el nombre en gris, su descripción y, donde iba el precio, «Se acabó».",
+   "tenue": "El platillo sigue en su lugar, pero todo el renglón se ve muy clarito, casi transparente, con «Se acabó».",
+   "oculto": "El platillo desaparece del menú hasta mañana."
+  },
+  "pizarron": {
+   "borrar": "Lo borro del pizarrón o del letrero.",
+   "tachar": "Le pongo una raya encima.",
+   "letrero": "Le escribo al lado «se acabó» o «agotado».",
+   "nada": "No cambio nada y lo digo cuando me preguntan."
+  },
+  "segundo_negocio": {
+   "cambiar": "Una sola cuenta con tu correo: tocas el nombre de tu negocio arriba y cambias al otro, como en Instagram cuando tienes dos cuentas. Cada negocio tiene su propio nombre, menú, seguidores y reseñas.",
+   "separadas": "Una cuenta aparte para cada negocio, con otro correo; cierras sesión para pasar de uno al otro.",
+   "juntos": "Un solo perfil que junta los dos negocios con un solo nombre y un solo menú."
+  },
+  "sucursales": {
+   "mismo": "Un solo menú del día que sale igual en todas tus sucursales.",
+   "cada_una": "Cada sucursal publica su propio menú del día.",
+   "elegir": "Un solo menú y, al publicar, eliges en qué sucursales sale; si una tiene algo distinto, le cambias solo eso."
+  },
+  "pro": {
+   "por_cuenta": "Un solo pago de Pro cubre todos tus negocios.",
+   "por_negocio": "Cada negocio paga su propio Pro.",
+   "descuento": "El primer negocio paga Pro completo y los demás con descuento."
+  }
+ },
+ "foodies": {
+  "oficinista": {
+   "entiende": {
+    "type": "choice",
+    "choice": "tachado",
+    "confidence": 0.73,
+    "probabilities": {
+     "tachado": 0.78,
+     "gris": 0.05,
+     "al_final": 0.1,
+     "oculto": 0.06,
+     "tenue": 0.01
+    }
+   },
+   "leer": {
+    "type": "choice",
+    "choice": "gris",
+    "confidence": 0.37,
+    "probabilities": {
+     "tenue": 0.04,
+     "oculto": 0.0,
+     "gris": 0.5,
+     "al_final": 0.03,
+     "tachado": 0.43
+    }
+   },
+   "escalas": {
+    "raya_nunca": {
+     "type": "score",
+     "score": 2.4,
+     "confidence": 0.0,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.14,
+      "1": 0.21,
+      "2": 0.07,
+      "3": 0.25,
+      "4": 0.33
+     }
+    },
+    "raya_cuesta": {
+     "type": "score",
+     "score": 0.4,
+     "confidence": 0.68,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.71,
+      "1": 0.23,
+      "2": 0.03,
+      "3": 0.02,
+      "4": 0.01
+     }
+    }
+   }
+  },
+  "mama": {
+   "entiende": {
+    "type": "choice",
+    "choice": "tachado",
+    "confidence": 0.81,
+    "probabilities": {
+     "al_final": 0.03,
+     "oculto": 0.02,
+     "tachado": 0.85,
+     "gris": 0.09,
+     "tenue": 0.01
+    }
+   },
+   "leer": {
+    "type": "choice",
+    "choice": "tachado",
+    "confidence": 0.47,
+    "probabilities": {
+     "gris": 0.27,
+     "tachado": 0.58,
+     "oculto": 0.0,
+     "al_final": 0.1,
+     "tenue": 0.05
+    }
+   },
+   "escalas": {
+    "raya_nunca": {
+     "type": "score",
+     "score": 2.15,
+     "confidence": 0.0,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.17,
+      "1": 0.25,
+      "2": 0.09,
+      "3": 0.24,
+      "4": 0.25
+     }
+    },
+    "raya_cuesta": {
+     "type": "score",
+     "score": 0.9,
+     "confidence": 0.53,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.32,
+      "1": 0.52,
+      "2": 0.09,
+      "3": 0.06,
+      "4": 0.01
+     }
+    }
+   }
+  },
+  "foraneo": {
+   "entiende": {
+    "type": "choice",
+    "choice": "tachado",
+    "confidence": 0.71,
+    "probabilities": {
+     "tenue": 0.02,
+     "oculto": 0.04,
+     "gris": 0.11,
+     "tachado": 0.77,
+     "al_final": 0.06
+    }
+   },
+   "leer": {
+    "type": "choice",
+    "choice": "gris",
+    "confidence": 0.75,
+    "probabilities": {
+     "oculto": 0.0,
+     "al_final": 0.01,
+     "tenue": 0.03,
+     "gris": 0.8,
+     "tachado": 0.16
+    }
+   },
+   "escalas": {
+    "raya_nunca": {
+     "type": "score",
+     "score": 1.67,
+     "confidence": 0.03,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.25,
+      "1": 0.33,
+      "2": 0.08,
+      "3": 0.18,
+      "4": 0.16
+     }
+    },
+    "raya_cuesta": {
+     "type": "score",
+     "score": 0.66,
+     "confidence": 0.46,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.62,
+      "1": 0.23,
+      "2": 0.06,
+      "3": 0.06,
+      "4": 0.03
+     }
+    }
+   }
+  },
+  "vista": {
+   "entiende": {
+    "type": "choice",
+    "choice": "tachado",
+    "confidence": 0.52,
+    "probabilities": {
+     "tenue": 0.02,
+     "gris": 0.15,
+     "al_final": 0.18,
+     "oculto": 0.03,
+     "tachado": 0.62
+    }
+   },
+   "leer": {
+    "type": "choice",
+    "choice": "gris",
+    "confidence": 0.51,
+    "probabilities": {
+     "al_final": 0.06,
+     "oculto": 0.0,
+     "gris": 0.61,
+     "tachado": 0.32,
+     "tenue": 0.01
+    }
+   },
+   "escalas": {
+    "raya_nunca": {
+     "type": "score",
+     "score": 2.55,
+     "confidence": 0.15,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.07,
+      "1": 0.18,
+      "2": 0.17,
+      "3": 0.3,
+      "4": 0.28
+     }
+    },
+    "raya_cuesta": {
+     "type": "score",
+     "score": 2.06,
+     "confidence": 0.14,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.05,
+      "1": 0.32,
+      "2": 0.2,
+      "3": 0.39,
+      "4": 0.04
+     }
+    }
+   }
+  }
+ },
+ "negocios": {
+  "fondera": {
+   "pizarron": {
+    "type": "choice",
+    "choice": "letrero",
+    "confidence": 0.31,
+    "probabilities": {
+     "tachar": 0.46,
+     "nada": 0.02,
+     "borrar": 0.04,
+     "letrero": 0.48
+    }
+   },
+   "prefiere": {
+    "type": "choice",
+    "choice": "tachado",
+    "confidence": 0.6,
+    "probabilities": {
+     "tenue": 0.04,
+     "al_final": 0.08,
+     "oculto": 0.05,
+     "gris": 0.15,
+     "tachado": 0.68
+    }
+   },
+   "segundo_negocio": {
+    "type": "choice",
+    "choice": "cambiar",
+    "confidence": 0.82,
+    "probabilities": {
+     "separadas": 0.11,
+     "juntos": 0.01,
+     "cambiar": 0.88
+    }
+   },
+   "sucursales": {
+    "type": "choice",
+    "choice": "cada_una",
+    "confidence": 0.42,
+    "probabilities": {
+     "elegir": 0.35,
+     "cada_una": 0.61,
+     "mismo": 0.04
+    }
+   },
+   "pro": {
+    "type": "choice",
+    "choice": "por_cuenta",
+    "confidence": 0.18,
+    "probabilities": {
+     "por_negocio": 0.24,
+     "por_cuenta": 0.45,
+     "descuento": 0.31
+    }
+   },
+   "escalas": {
+    "verlo_igual": {
+     "type": "score",
+     "score": 2.37,
+     "confidence": 0.0,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.15,
+      "1": 0.2,
+      "2": 0.09,
+      "3": 0.27,
+      "4": 0.29
+     }
+    }
+   }
+  },
+  "callejon": {
+   "pizarron": {
+    "type": "choice",
+    "choice": "letrero",
+    "confidence": 0.24,
+    "probabilities": {
+     "tachar": 0.42,
+     "letrero": 0.43,
+     "borrar": 0.13,
+     "nada": 0.02
+    }
+   },
+   "prefiere": {
+    "type": "choice",
+    "choice": "tachado",
+    "confidence": 0.64,
+    "probabilities": {
+     "gris": 0.16,
+     "al_final": 0.04,
+     "oculto": 0.05,
+     "tenue": 0.04,
+     "tachado": 0.71
+    }
+   },
+   "segundo_negocio": {
+    "type": "choice",
+    "choice": "cambiar",
+    "confidence": 0.79,
+    "probabilities": {
+     "separadas": 0.13,
+     "cambiar": 0.86,
+     "juntos": 0.01
+    }
+   },
+   "sucursales": {
+    "type": "choice",
+    "choice": "elegir",
+    "confidence": 0.26,
+    "probabilities": {
+     "cada_una": 0.36,
+     "mismo": 0.13,
+     "elegir": 0.51
+    }
+   },
+   "pro": {
+    "type": "choice",
+    "choice": "por_cuenta",
+    "confidence": 0.58,
+    "probabilities": {
+     "descuento": 0.13,
+     "por_negocio": 0.15,
+     "por_cuenta": 0.72
+    }
+   },
+   "escalas": {
+    "verlo_igual": {
+     "type": "score",
+     "score": 2.46,
+     "confidence": 0.1,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.09,
+      "1": 0.22,
+      "2": 0.1,
+      "3": 0.32,
+      "4": 0.27
+     }
+    }
+   }
+  },
+  "cocina": {
+   "pizarron": {
+    "type": "choice",
+    "choice": "letrero",
+    "confidence": 0.55,
+    "probabilities": {
+     "nada": 0.01,
+     "tachar": 0.28,
+     "borrar": 0.05,
+     "letrero": 0.66
+    }
+   },
+   "prefiere": {
+    "type": "choice",
+    "choice": "tachado",
+    "confidence": 0.51,
+    "probabilities": {
+     "gris": 0.16,
+     "al_final": 0.09,
+     "oculto": 0.08,
+     "tenue": 0.06,
+     "tachado": 0.61
+    }
+   },
+   "segundo_negocio": {
+    "type": "choice",
+    "choice": "cambiar",
+    "confidence": 0.91,
+    "probabilities": {
+     "separadas": 0.06,
+     "juntos": 0.0,
+     "cambiar": 0.94
+    }
+   },
+   "sucursales": {
+    "type": "choice",
+    "choice": "elegir",
+    "confidence": 0.18,
+    "probabilities": {
+     "mismo": 0.13,
+     "elegir": 0.45,
+     "cada_una": 0.42
+    }
+   },
+   "pro": {
+    "type": "choice",
+    "choice": "por_negocio",
+    "confidence": 0.34,
+    "probabilities": {
+     "descuento": 0.2,
+     "por_cuenta": 0.24,
+     "por_negocio": 0.56
+    }
+   },
+   "escalas": {
+    "verlo_igual": {
+     "type": "score",
+     "score": 1.77,
+     "confidence": 0.0,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.24,
+      "1": 0.3,
+      "2": 0.1,
+      "3": 0.18,
+      "4": 0.18
+     }
+    }
+   }
+  },
+  "casa": {
+   "pizarron": {
+    "type": "choice",
+    "choice": "tachar",
+    "confidence": 0.35,
+    "probabilities": {
+     "letrero": 0.35,
+     "tachar": 0.51,
+     "borrar": 0.12,
+     "nada": 0.02
+    }
+   },
+   "prefiere": {
+    "type": "choice",
+    "choice": "tachado",
+    "confidence": 0.46,
+    "probabilities": {
+     "tenue": 0.03,
+     "oculto": 0.05,
+     "tachado": 0.57,
+     "al_final": 0.06,
+     "gris": 0.29
+    }
+   },
+   "segundo_negocio": {
+    "type": "choice",
+    "choice": "cambiar",
+    "confidence": 0.89,
+    "probabilities": {
+     "separadas": 0.06,
+     "juntos": 0.01,
+     "cambiar": 0.93
+    }
+   },
+   "sucursales": {
+    "type": "choice",
+    "choice": "cada_una",
+    "confidence": 0.28,
+    "probabilities": {
+     "elegir": 0.35,
+     "mismo": 0.13,
+     "cada_una": 0.52
+    }
+   },
+   "pro": {
+    "type": "choice",
+    "choice": "por_negocio",
+    "confidence": 0.43,
+    "probabilities": {
+     "por_cuenta": 0.09,
+     "por_negocio": 0.62,
+     "descuento": 0.29
+    }
+   },
+   "escalas": {
+    "verlo_igual": {
+     "type": "score",
+     "score": 2.22,
+     "confidence": 0.04,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.11,
+      "1": 0.26,
+      "2": 0.11,
+      "3": 0.33,
+      "4": 0.19
+     }
+    }
+   }
+  },
+  "taquero": {
+   "pizarron": {
+    "type": "choice",
+    "choice": "tachar",
+    "confidence": 0.35,
+    "probabilities": {
+     "letrero": 0.39,
+     "tachar": 0.51,
+     "borrar": 0.09,
+     "nada": 0.01
+    }
+   },
+   "prefiere": {
+    "type": "choice",
+    "choice": "tachado",
+    "confidence": 0.7,
+    "probabilities": {
+     "al_final": 0.05,
+     "oculto": 0.02,
+     "tachado": 0.76,
+     "gris": 0.16,
+     "tenue": 0.01
+    }
+   },
+   "segundo_negocio": {
+    "type": "choice",
+    "choice": "cambiar",
+    "confidence": 0.94,
+    "probabilities": {
+     "juntos": 0.0,
+     "separadas": 0.04,
+     "cambiar": 0.96
+    }
+   },
+   "sucursales": {
+    "type": "choice",
+    "choice": "cada_una",
+    "confidence": 0.26,
+    "probabilities": {
+     "elegir": 0.46,
+     "cada_una": 0.51,
+     "mismo": 0.03
+    }
+   },
+   "pro": {
+    "type": "choice",
+    "choice": "por_cuenta",
+    "confidence": 0.09,
+    "probabilities": {
+     "descuento": 0.24,
+     "por_cuenta": 0.39,
+     "por_negocio": 0.37
+    }
+   },
+   "escalas": {
+    "verlo_igual": {
+     "type": "score",
+     "score": 1.99,
+     "confidence": 0.0,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.23,
+      "1": 0.23,
+      "2": 0.1,
+      "3": 0.2,
+      "4": 0.24
+     }
+    }
+   }
+  },
+  "desayunos": {
+   "pizarron": {
+    "type": "choice",
+    "choice": "letrero",
+    "confidence": 0.43,
+    "probabilities": {
+     "tachar": 0.4,
+     "borrar": 0.02,
+     "nada": 0.01,
+     "letrero": 0.57
+    }
+   },
+   "prefiere": {
+    "type": "choice",
+    "choice": "tachado",
+    "confidence": 0.65,
+    "probabilities": {
+     "oculto": 0.03,
+     "al_final": 0.06,
+     "tenue": 0.03,
+     "gris": 0.16,
+     "tachado": 0.72
+    }
+   },
+   "segundo_negocio": {
+    "type": "choice",
+    "choice": "cambiar",
+    "confidence": 0.53,
+    "probabilities": {
+     "separadas": 0.31,
+     "cambiar": 0.69,
+     "juntos": 0.0
+    }
+   },
+   "sucursales": {
+    "type": "choice",
+    "choice": "elegir",
+    "confidence": 0.25,
+    "probabilities": {
+     "elegir": 0.5,
+     "cada_una": 0.39,
+     "mismo": 0.11
+    }
+   },
+   "pro": {
+    "type": "choice",
+    "choice": "por_cuenta",
+    "confidence": 0.58,
+    "probabilities": {
+     "descuento": 0.13,
+     "por_negocio": 0.15,
+     "por_cuenta": 0.72
+    }
+   },
+   "escalas": {
+    "verlo_igual": {
+     "type": "score",
+     "score": 2.82,
+     "confidence": 0.0,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.06,
+      "1": 0.15,
+      "2": 0.09,
+      "3": 0.33,
+      "4": 0.37
+     }
+    }
+   }
+  }
+ }
+}

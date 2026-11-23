@@ -1,8 +1,21 @@
 # Pendientes y roadmap de lanzamiento — actualizado 2026-11-22
 
+## Corte 2026-11-23 (Claude)
+
+- [x] Agotados: el tachado se queda (Apple, Jev y CDF;
+  [decisión](AGOTADOS_Y_VARIOS_NEGOCIOS_2026-11-23.md) §1). Sin cambio de código.
+- [x] Manijas retiradas (Parco con Codex). Ya no es pendiente.
+- [x] Lectura: el teléfono espera 120 s, más que los 110 s del servidor;
+  `read-menu` registra tiempos y tokens (desplegada el 23 nov).
+- [ ] **Codex con Parco:** medir lecturas reales y comparar modelos con el sí
+  de Parco al costo ([encargo](CODEX_ENCARGO_2026-11-23.md) §A).
+- [ ] **Codex:** tiendas y trámites (encargo §B).
+- [ ] **Parco decide:** varios negocios: una cuenta con varios negocios, cada
+  sucursal con su menú y Pro por cuenta (decisión §2). Después, construirlo.
+
 ## Corte 2026-11-22 (Codex, QA de Parco)
 
-### Prioridades para retomar (última decisión de Parco)
+### Prioridades para retomar (sustituidas por el corte del 23 nov)
 
 1. Medir extracción real lenta; cancelación/timeout ya implementados no
    cierran el problema de rapidez ni garantizan extracción exitosa.

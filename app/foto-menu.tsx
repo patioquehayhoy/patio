@@ -28,6 +28,13 @@ export default function FotoMenuScreen() {
     onManual: () => router.replace('/menu-editar'),
     photoSource: fromLibrary ? 'library' : 'camera',
   });
+  const [slowRead, setSlowRead] = useState(false);
+  useEffect(() => {
+    setSlowRead(false);
+    if (state !== 'processing') return;
+    const timer = setTimeout(() => setSlowRead(true), 12_000);
+    return () => clearTimeout(timer);
+  }, [state]);
   const launched = useRef(false);
   const cameraRef = useRef<CameraView | null>(null);
   const [cameraReady, setCameraReady] = useState(false);
@@ -116,7 +123,7 @@ export default function FotoMenuScreen() {
         <Stack.Screen options={{ headerShown: false }} />
         <AgentSpinner variant="dots" size={34} color={c.accent} />
         <Text style={s.processingTitle}>{noWidow('Leyendo tu menú…')}</Text>
-        <Text style={s.processingBody}>{noWidow('Detectando cada platillo.')}</Text>
+        <Text style={s.processingBody}>{noWidow(slowRead ? 'Está tardando más de lo esperado. Puedes cancelar y continuar a mano.' : 'Detectando cada platillo.')}</Text>
         <TouchableOpacity style={s.cancelBtn} onPress={cancelRead} accessibilityRole="button" accessibilityLabel="Cancelar lectura" activeOpacity={0.7}>
           <Text style={s.cancelText}>Cancelar</Text>
         </TouchableOpacity>

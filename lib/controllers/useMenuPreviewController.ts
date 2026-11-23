@@ -35,7 +35,8 @@ export function useMenuPreviewController() {
       setRefreshing(!!inMemory?.localLive);
       if (inMemory?.localLive) {
         // El póster refleja la disponibilidad guardada, no el editor antiguo.
-        const scheduled = !!inMemory.localFecha && inMemory.localFecha > localMenuDate();
+        const scheduled = (!!inMemory.localFecha && inMemory.localFecha > localMenuDate())
+          || (!!inMemory.localPublishAt && new Date(inMemory.localPublishAt).getTime() > Date.now());
         const fresh = fonditaId ? loadMenuHoy(fonditaId, inMemory.localFecha ?? localMenuDate())
           : __DEV__ ? scheduled
             ? getLocalMenus().then((entries) => entries.find((entry) => entry.id === inMemory.localDraftId)?.secciones ?? null)

@@ -68,7 +68,7 @@ export default function HistorialScreen() {
   const viewPublished = () => {
     if (!liveMenu) return;
     setMenuData(editorSeed(liveMenu));
-    router.push('/preview');
+    router.push('/mi-patio');
   };
   useEffect(() => {
     if (!loading) syncPublishReminder(publishedToday).catch(() => {});
@@ -172,7 +172,7 @@ export default function HistorialScreen() {
         onLongPress={() => { if (!selecting) { Haptics.selectionAsync().catch(() => {}); setSelecting(true); toggleSelect(key); } }}
         activeOpacity={0.85}
         accessibilityRole="button"
-        accessibilityLabel={selecting ? `${isSelected ? 'Quitar de la selección' : 'Seleccionar'} menú de ${dateLabel(menu.fecha)}` : `Usar menú de ${dateLabel(menu.fecha)}`}
+        accessibilityLabel={selecting ? `${isSelected ? 'Quitar de la selección' : 'Seleccionar'} menú de ${dateLabel(menu.fecha)}` : `Editar menú de ${dateLabel(menu.fecha)}`}
         // Con VoiceOver, lo mismo que deslizar.
         accessibilityActions={selecting ? undefined : [{ name: 'more', label: 'Más acciones' }, { name: 'delete', label: 'Eliminar' }]}
         onAccessibilityAction={(event) => {
@@ -253,10 +253,13 @@ export default function HistorialScreen() {
             </View>
             {liveMenu ? (
               <SwipeRow enabled background={[c.bg]} outerStyle={s.swipeOuter} style={s.swipeContent}
-                actions={[{ label: 'Eliminar', color: c.danger, accessibilityLabel: 'Eliminar el menú publicado', onPress: () => deleteMenu(liveMenu) }]}>
+                actions={[{ label: 'Imagen', color: c.textMute, accessibilityLabel: 'Ver imagen para compartir', onPress: () => { setMenuData(editorSeed(liveMenu)); router.push('/preview'); } }, { label: 'Eliminar', color: c.danger, accessibilityLabel: 'Eliminar el menú publicado', onPress: () => deleteMenu(liveMenu) }]}>
               <TouchableOpacity style={s.publishedMenu} onPress={viewPublished} accessibilityRole="button" accessibilityLabel={`Ver el menú publicado hoy: ${liveMenu.nombre || defaultHistoryTitle(liveMenu)}`} activeOpacity={0.7}
-                accessibilityActions={[{ name: 'delete', label: 'Eliminar el menú publicado' }]}
-                onAccessibilityAction={(event) => { if (event.nativeEvent.actionName === 'delete') deleteMenu(liveMenu); }}>
+                accessibilityActions={[{ name: 'image', label: 'Ver imagen para compartir' }, { name: 'delete', label: 'Eliminar el menú publicado' }]}
+                onAccessibilityAction={(event) => {
+                  if (event.nativeEvent.actionName === 'delete') deleteMenu(liveMenu);
+                  if (event.nativeEvent.actionName === 'image') { setMenuData(editorSeed(liveMenu)); router.push('/preview'); }
+                }}>
                 <Text style={[s.publishedName, { color: c.text }]}>{noWidow(liveMenu.nombre || defaultHistoryTitle(liveMenu))}</Text>
                 <Ionicons name="chevron-forward" size={18} color={c.textMute} />
               </TouchableOpacity>

@@ -240,7 +240,7 @@ function makeStyles(t: Theme) {
     dishPhotoMark: { fontSize: 14 },
     groupItemDescription: { marginTop: 2, fontSize: 13, lineHeight: 18, fontWeight: '400', color: t.textSecondary },
     groupItemPrice: { fontSize: 15, lineHeight: 21, fontWeight: '700', color: t.text },
-    soldOutName: { color: t.textMute, textDecorationLine: 'line-through' },
+    soldOutName: { color: t.textSecondary, textDecorationLine: 'line-through' },
     soldOutPrice: { fontWeight: '500', color: t.textSecondary },
     dishLikeCount: { minWidth: 21, height: 21, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 3 },
     dishLikeCountText: { fontSize: 12, fontWeight: '500', color: t.textSecondary, fontVariant: ['tabular-nums'] },
@@ -1544,7 +1544,7 @@ export function PatioDetailView({ id, own = false, focusDish }: { id?: string; o
                         </View>
                         {/* Se acabó hoy: lo dice en la columna del precio (el negocio lo marcó deslizando). */}
                         {item.soldOut
-                          ? <Text style={[s.groupItemPrice, s.soldOutPrice]} allowFontScaling={true}>Se acabó</Text>
+                          ? <Text style={[s.groupItemPrice, s.soldOutPrice]} allowFontScaling={true}>{noWidow('Se acabó')}</Text>
                           : !!item.price && <Text style={s.groupItemPrice} allowFontScaling={true}>{item.price}</Text>}
                         {own && ownPro && (
                           <TouchableOpacity

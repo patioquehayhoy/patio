@@ -835,3 +835,40 @@ test('a menu left ready for another day reopens in place; copies drop «Se acab�
   assert.equal(fromReminder.localFecha, undefined);
   assert.equal(fromReminder.localLive, undefined);
 });
+
+
+test('photo cancellation aborts the network signal as well as ignoring the response', async () => {
+  let signal;
+  let finish;
+  const f = photoFixture({ vision: (_uri, value) => {
+    signal = value;
+    return new Promise(resolve => { finish = resolve; });
+  } });
+  const controller = f.render();
+  const pending = controller.analyzePhoto('photo.jpg', 1200, 1600);
+  await new Promise(setImmediate);
+  assert.equal(signal.aborted, false);
+  controller.cancelRead();
+  assert.equal(signal.aborted, true);
+  finish({ secciones: [], precio: '' });
+  await pending;
+  assert.equal(f.alerts.length, 0);
+});
+
+test('vision deadline aborts transport and returns an actionable error', async (t) => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  let signal;
+  const f = fixture({ overrides: {
+    'expo-file-system/legacy': { EncodingType: { Base64: 'base64' }, readAsStringAsync: async () => 'image' },
+    '@/lib/supabase': { supabase: { functions: { invoke: (_name, options) => {
+      signal = options.signal;
+      return new Promise(() => {});
+    } } } },
+  } });
+  const pending = f.load('lib/vision.ts').leerMenuDeFoto('photo.jpg');
+  await new Promise(setImmediate);
+  const rejected = assert.rejects(pending, /tardó demasiado/);
+  t.mock.timers.tick(60_000);
+  await rejected;
+  assert.equal(signal.aborted, true);
+});

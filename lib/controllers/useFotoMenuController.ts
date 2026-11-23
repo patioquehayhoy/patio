@@ -125,18 +125,23 @@ export function useFotoMenuController(handlers?: FotoMenuHandlers) {
   const prepareCameraRef = useRef<() => Promise<boolean>>(async () => false);
   const choosePhotoRef = useRef<() => Promise<void>>(async () => {});
   // Cancelación humana durante la lectura (HIG: no obligar a esperar una
-  // animación/proceso sin salida). La promesa en vuelo se ignora al volver.
+  // animación/proceso sin salida). Aborta la petición e ignora resultados tardíos.
   const requestRef = useRef(0);
+  const readAbort = useRef<AbortController | null>(null);
   const pickerOpenRef = useRef(false);
   const mountedRef = useRef(true);
   useEffect(() => {
     mountedRef.current = true;
-    return () => { mountedRef.current = false; requestRef.current += 1; };
+    return () => { mountedRef.current = false; requestRef.current += 1; readAbort.current?.abort(); };
   }, []);
 
   const analyze = useCallback(async (uri: string, width?: number, height?: number) => {
     if (!mountedRef.current) return;
     const request = ++requestRef.current;
+    readAbort.current?.abort();
+    const abort = new AbortController();
+    readAbort.current = abort;
+    const started = Date.now();
     clearMenuExtractionSnapshot();
     setState('processing');
     try {
@@ -151,7 +156,8 @@ export function useFotoMenuController(handlers?: FotoMenuHandlers) {
         { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG }
       );
       if (request !== requestRef.current) return;
-      const result = await leerMenuDeFoto(normalized.uri);
+      if (__DEV__) console.info('[foto-menu] preparar imagen ms:', Date.now() - started);
+      const result = await leerMenuDeFoto(normalized.uri, abort.signal);
       if (request !== requestRef.current) return;
       const hasDishes = result.secciones.some((section) => section.platillos.some((dish) => dish.nombre.trim()));
       if (result.error || !hasDishes) throw new Error(result.error || 'sin platillos');
@@ -233,6 +239,7 @@ export function useFotoMenuController(handlers?: FotoMenuHandlers) {
 
   const cancelRead = useCallback(() => {
     requestRef.current += 1;
+    readAbort.current?.abort();
     clearMenuExtractionSnapshot();
     setState('idle');
     handlersRef.current?.onExit?.();

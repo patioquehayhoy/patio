@@ -1,3 +1,11 @@
+## Continuación — lectura y menú público (2026-11-22)
+
+Publicado hoy abre Mi Patio; Editar abre editor. Imagen para compartir está
+al deslizar y en acciones VoiceOver. Los menús de biblioteca siguen editables.
+Agotados conservan nombre tachado y texto secundario legible en ambas vistas,
+con Se acabó explícito en lugar del precio. No opacidad sobre controles.
+Lectura cancela red y espera máximo 60 s; esto no certifica rapidez del modelo.
+
 ## Corte de cierre — manijas del editor (2026-11-22)
 
 Sustituye el arrastre por pulsación larga en toda la fila: mover desde manija

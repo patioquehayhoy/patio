@@ -1,4 +1,4 @@
-import { aiFunctionError } from '@/lib/edge-function-error';
+import { AIServiceError, aiFunctionError } from '@/lib/edge-function-error';
 import * as FileSystem from 'expo-file-system/legacy';
 
 import { getTipoNegocio } from '@/lib/menu-store';
@@ -40,12 +40,36 @@ function isMenuVisualResult(value: unknown): value is MenuVisualResult {
     && (typeof result.advertencias === 'undefined' || Array.isArray(result.advertencias));
 }
 
-export async function leerMenuDeFoto(imageUri: string): Promise<MenuVisualResult> {
+export async function leerMenuDeFoto(imageUri: string, signal?: AbortSignal): Promise<MenuVisualResult> {
+  const controller = new AbortController();
+  const abort = () => controller.abort();
+  if (signal?.aborted) throw new Error('Lectura cancelada');
+  signal?.addEventListener('abort', abort);
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const interrupted = new Promise<never>((_, reject) => {
+    controller.signal.addEventListener('abort', () => reject(new AIServiceError(
+      signal?.aborted ? 'Lectura cancelada' : 'La lectura tardó demasiado. Intenta con otra foto o continúa a mano.', 0
+    )), { once: true });
+    timer = setTimeout(abort, 60_000);
+  });
+  const started = Date.now();
+  try {
+    return await Promise.race([interrupted, readImage(imageUri, controller.signal)]);
+  } finally {
+    clearTimeout(timer);
+    signal?.removeEventListener('abort', abort);
+    if (__DEV__) console.info('[foto-menu] lectura ms:', Date.now() - started);
+  }
+}
+
+async function readImage(imageUri: string, signal: AbortSignal): Promise<MenuVisualResult> {
   const imageBase64 = await FileSystem.readAsStringAsync(imageUri, {
     encoding: FileSystem.EncodingType.Base64,
   });
 
+  if (signal.aborted) throw new Error('Lectura cancelada');
   const { data, error } = await supabase.functions.invoke('read-menu', {
+    signal,
     body: {
       imageBase64,
       mediaType: 'image/jpeg',

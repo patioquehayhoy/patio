@@ -4,6 +4,12 @@
 
 ### Funcionalidad y usabilidad que sigue abierta (consolidado)
 
+- [x] Lectura: cancelación de red, límite cliente y aviso de demora; navegación
+  Publicado hoy → ficha, Editar → editor, deslizar Imagen → póster.
+- [ ] Medir lectura real de imagen reportada lenta: límite/cancelación no
+  certifican rapidez ni éxito de la extracción. Logs DEV listos para diagnóstico.
+- [ ] Parco: validar manijas de arrastre, navegación y contraste de agotados.
+
 - [ ] Parco en iPhone: Se acabó → ficha → imagen nueva; Ya hay → repetir.
   Nombre tachado y atenuado en ambos, estado y precio coherentes.
 - [ ] Editor completo: competencia entre seleccionar texto/escribir/mover;

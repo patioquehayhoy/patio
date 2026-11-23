@@ -1,6 +1,18 @@
-# Pendientes y roadmap de lanzamiento — actualizado 2026-11-07
+# Pendientes y roadmap de lanzamiento — actualizado 2026-11-22
 
 ## Corte 2026-11-22 (Codex, QA de Parco)
+
+### Prioridades para retomar (última decisión de Parco)
+
+1. Medir extracción real lenta; cancelación/timeout ya implementados no
+   cierran el problema de rapidez ni garantizan extracción exitosa.
+2. Resolver competencia texto/arrastre sin manijas: retiradas por rechazo
+   explícito (`489a832`), no volver a introducirlas.
+3. Decidir tratamiento de agotados. Auditoría terminada: recomienda nombre
+   y descripción conservados, gris legible + Se acabó, sin tachado. Propuesta
+   NO aprobada ni aplicada; el código todavía conserva tachado.
+4. Parco: QA físico de navegación, disponibilidad y nuevo póster. Codex
+   solo comprueba código; sin simulador ni QA general automatizado.
 
 ### Funcionalidad y usabilidad que sigue abierta (consolidado)
 
@@ -15,7 +27,7 @@
   Nombre tachado y atenuado en ambos, estado y precio coherentes.
 - [ ] Editor completo: competencia entre seleccionar texto/escribir/mover;
   guardar y recuperar al salir, eliminar/deshacer, actualizar, reutilizar
-  un menú pasado y programar. Código listo, aceptación de uso pendiente.
+  un menú pasado y programar. Arrastre aún por resolver; aceptación de uso pendiente.
 - [ ] Publicaciones programadas y resúmenes: entrega real y apertura de los
   avisos a su hora. Los ejemplos DEV no comprueban el backend.
 - [ ] Campana: comprobar comprensión de Personalizadas y selección por lugar.

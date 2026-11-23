@@ -1,5 +1,24 @@
 # STATE
 
+## Estado vigente de menús — 2026-11-22
+
+- Editor sin manijas (retirada explícita de Parco); pulsación sostenida
+  restaurada. Interferencia con selección de texto aún pendiente.
+- Lectura: cancelación de red y timeout cliente de 60 s implementados;
+  éxito/velocidad real reportados por Parco NO certificados.
+- Publicado hoy abre ficha; Editar abre editor; Imagen al deslizar abre
+  póster. Fecha por defecto y nombre opcional conservados.
+- Agotados: tachado + color secundario + Se acabó; descripción se conserva.
+  Auditoría recomienda quitar tachado, pendiente decisión, sin cambio de UI.
+- 359 pruebas en último check completo; tipos/lint posteriores a retirada
+  de manijas correctos. QA visual/general únicamente de Parco en iPhone.
+- Sin cambios de producción ni tiendas en este corte. Referencias inferiores
+  de infraestructura son registros históricos, no nuevas verificaciones.
+
+Continuidad: [heads-up](HEADS_UP_2026-10-12.md).
+Trabajo abierto: [pendientes](PENDING_LAUNCH_2026-10-12.md).
+
+
 > **Referencia obligatoria de infraestructura — 2026-10-27:**
 > [inventario de credenciales comprobado](CREDENTIALS_INVENTORY_2026-10-27.md).
 > Play ya tiene Patio 8 (1.0.0) en prueba interna; hay firmas, EAS Submit,

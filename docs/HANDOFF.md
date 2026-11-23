@@ -1,5 +1,27 @@
 # HANDOFF
 
+## Cierre vigente 2026-11-22 — retomar aquí
+
+1. Leer el cierre consolidado de [heads-up](HEADS_UP_2026-10-12.md) y
+   [pendientes](PENDING_LAUNCH_2026-10-12.md). Las secciones inferiores son
+   históricas y no sustituyen las últimas correcciones.
+2. Manijas rechazadas y retiradas (`489a832`): no volver a agregarlas.
+   Pulsación sostenida restaurada; conflicto texto/arrastre sin resolver.
+3. Agotados siguen tachados, con descripción y Se acabó. La recomendación
+   posterior de quitar el tachado NO fue aplicada ni aprobada.
+4. Lectura con límite/cancelación (`5a72301`), pero lentitud real pendiente
+   de medir. Publicado hoy abre ficha; Imagen al deslizar abre póster;
+   Editar sigue explícito. Estos flujos necesitan aceptación física.
+5. QA visual/general solo por Parco en iPhone. Último check completo: 359
+   pruebas; después de retirar manijas, tipos/lint aprobados. No producción.
+6. Última LAN entregada: `http://192.168.100.6:8081`, mismo Wi-Fi;
+   comprobar dirección y Metro al retomar. No hay túnel confirmado.
+
+Fecha por defecto y nombre opcional siguen vigentes. No rediseñar cards,
+contornos ni controles basándose en propuestas no validadas. Apple/tiendas,
+notificaciones reales y resto del backlog no están cerrados por estos cambios.
+
+
 ## 2026-11-22 — disponibilidad en póster y nombre opcional (Codex)
 
 Póster muestra Se acabó y consulta disponibilidad publicada antes de habilitar

@@ -1,5 +1,34 @@
 # Menús, editor y formas de venta — 22 noviembre 2026
 
+## Última auditoría — agotados y arrastre (sin cambio visual)
+
+Código vigente: ficha/póster muestran nombre tachado en texto secundario,
+conservan descripción y reemplazan precio por Se acabó. La ficha mantiene
+fotos/likes activos. Una imagen ya compartida no cambia retroactivamente.
+
+Recomendación entregada, pendiente decisión de Parco: conservar platillo y
+su posición, nombre sin tachar en gris legible, descripción habitual y estado
+explícito. Eliminar el platillo pierde contexto; ocultar descripción dificulta
+reconocer variantes; transparencia extrema perjudica lectura y aparenta
+controles desactivados; tachado añade ruido al estado ya expresado en texto.
+Son inferencias de diseño para Patio, no reglas específicas de Apple sobre
+menús. Fuentes consultadas:
+
+- [Color](https://developer.apple.com/design/human-interface-guidelines/color):
+  contraste suficiente y no depender solo del color.
+- [Feedback](https://developer.apple.com/design/human-interface-guidelines/feedback):
+  estado claro y adecuado al contexto.
+- [Principios](https://developer.apple.com/design/human-interface-guidelines/design-principles):
+  consistencia, familiaridad y recuperación.
+
+La propuesta sin tachado NO está implementada ni aprobada. Validación visual
+pendiente de Parco, incluidos nombres largos, letra grande y modo oscuro.
+
+Arrastre: Parco rechazó manijas no solicitadas. Retiradas, gesto anterior
+restaurado; conflicto entre texto y mover sigue abierto. No reintroducir
+controles nuevos sin proponerlos y validarlos con él.
+
+
 **Tercera revisión:** Parco rechazó el contorno de la segunda. Publicado hoy
 queda como sección continua alineada con la biblioteca: encabezado discreto,
 Editar a la derecha y nombre en una fila navegable; una línea inferior fina
@@ -24,7 +53,8 @@ selección se recupera la lista completa para organizarla.
 
 Publicado no significa el primero de la lista: depende de la fecha del día y
 de que su hora programada haya llegado (`menuPublicationState`). Ver menú
-abre el póster de ese contenido preciso; Editar vuelve a ese menú para
+abre Mi Patio con el menú público vigente; Imagen al deslizar abre el
+póster. Editar vuelve a ese menú para
 actualizarlo. Publicar otro menú sustituye el del día en el servidor y deja
 el otro contenido en la biblioteca.
 

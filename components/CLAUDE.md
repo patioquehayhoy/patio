@@ -4,6 +4,8 @@ Publicado hoy abre Mi Patio; Editar abre editor. Imagen para compartir está
 al deslizar y en acciones VoiceOver. Los menús de biblioteca siguen editables.
 Agotados conservan nombre tachado y texto secundario legible en ambas vistas,
 con Se acabó explícito en lugar del precio. No opacidad sobre controles.
+La auditoría posterior propone quitar tachado, pero NO está aprobada ni
+implementada; no confundir recomendación con contrato vigente.
 Lectura cancela red y espera máximo 60 s; esto no certifica rapidez del modelo.
 
 ## Corrección de Parco — sin manijas (2026-11-22)

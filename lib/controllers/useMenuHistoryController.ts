@@ -10,6 +10,7 @@ import { noWidow } from '@/lib/typography';
 import { supabase } from '@/lib/supabase';
 import { getFonditaId } from '@/lib/user-store';
 import { menuNameForDate } from '@/lib/menu-title';
+import { saveDevPublishedMenu } from '@/lib/demo';
 
 export type PublishedMenu = LocalMenuEntry;
 type RemoteMenu = { fecha: string; secciones: MenuData; publishAt?: string };
@@ -197,6 +198,11 @@ export function useMenuHistoryController() {
       }
       await deleteLocalMenus(ids);
       await removeFechasFromAllCollections(ids);
+      if (__DEV__ && !id && menus.some((menu) => ids.includes(menu.id) && menuPublicationState(menu) === 'live')) {
+        // Dejar un menú vacío evita que el inicializador DEV lo vuelva a
+        // sembrar al abrir la app, y conserva el perfil del negocio.
+        await saveDevPublishedMenu({ secciones: [] });
+      }
       setMenus((prev) => prev.filter((menu) => !ids.includes(menu.id)));
       return true;
     } catch {
@@ -208,7 +214,9 @@ export function useMenuHistoryController() {
   const deleteMenu = useCallback((menu: PublishedMenu) => {
     Alert.alert(
       noWidow('Eliminar menú'),
-      noWidow(`Se borrará "${menu.nombre || defaultHistoryTitle(menu)}" del historial. No se puede deshacer.`),
+      noWidow(menuPublicationState(menu) === 'live'
+        ? `Se quitará "${menu.nombre || defaultHistoryTitle(menu)}" de tu ficha y de Menús. No se puede deshacer.`
+        : `Se borrará "${menu.nombre || defaultHistoryTitle(menu)}" del historial. No se puede deshacer.`),
       [
         { text: 'Cancelar', style: 'cancel' },
         { text: 'Eliminar', style: 'destructive', onPress: () => { void removeMenus([menu.id]); } },

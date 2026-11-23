@@ -374,6 +374,34 @@ test('business demo has consistent followers and totals, and is unavailable in p
   assert.equal(production.getDemoBusinessSnapshot(production.DEMO_BUSINESS_ID), null);
 });
 
+test('deleting today menu requires confirmation and also clears the DEV public menu', async () => {
+  const runtime = hookRuntime();
+  const alerts = [];
+  let visible = menu('Publicado');
+  const f = fixture({ dev: true, overrides: {
+    react: runtime.react,
+    'expo-router': { useFocusEffect() {} },
+    'react-native': { Alert: { alert: (...args) => alerts.push(args) } },
+    '@/lib/supabase': { supabase: {} },
+    '@/lib/user-store': { getFonditaId: () => null },
+    '@/lib/demo': { saveDevPublishedMenu: async (data) => { visible = data; } },
+  } });
+  const history = f.load('lib/menu-history.ts');
+  await history.saveMenuPublication(menu('Publicado'), 'Comida', 'live', async () => {});
+  const { useMenuHistoryController } = f.load('lib/controllers/useMenuHistoryController.ts');
+  const render = () => runtime.render(useMenuHistoryController);
+  await render().refresh();
+  render().deleteMenu(render().menus[0]);
+  assert.match(alerts[0][1], /de tu ficha/);
+  assert.equal(render().menus.length, 1, 'nothing is removed before confirmation');
+  alerts[0][2].find((button) => button.text === 'Eliminar').onPress();
+  for (let i = 0; i < 40 && render().menus.length; i++) await new Promise(setImmediate);
+  assert.equal(render().menus.length, 0);
+  assert.deepEqual(visible, { secciones: [] });
+  assert.deepEqual(await history.getLocalMenus(), []);
+  runtime.unmount();
+});
+
 test('successful remote publication survives optional local-cache and learning failures', async () => {
   const f = publicationFixture({ storageFail: true, correctionError: true });
   const store = f.load('lib/menu-store.ts');

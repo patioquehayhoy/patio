@@ -252,10 +252,15 @@ export default function HistorialScreen() {
               </TouchableOpacity>}
             </View>
             {liveMenu ? (
-              <TouchableOpacity style={s.publishedMenu} onPress={viewPublished} accessibilityRole="button" accessibilityLabel={`Ver el menú publicado hoy: ${liveMenu.nombre || defaultHistoryTitle(liveMenu)}`} activeOpacity={0.7}>
+              <SwipeRow enabled background={[c.bg]} outerStyle={s.swipeOuter} style={s.swipeContent}
+                actions={[{ label: 'Eliminar', color: c.danger, accessibilityLabel: 'Eliminar el menú publicado', onPress: () => deleteMenu(liveMenu) }]}>
+              <TouchableOpacity style={s.publishedMenu} onPress={viewPublished} accessibilityRole="button" accessibilityLabel={`Ver el menú publicado hoy: ${liveMenu.nombre || defaultHistoryTitle(liveMenu)}`} activeOpacity={0.7}
+                accessibilityActions={[{ name: 'delete', label: 'Eliminar el menú publicado' }]}
+                onAccessibilityAction={(event) => { if (event.nativeEvent.actionName === 'delete') deleteMenu(liveMenu); }}>
                 <Text style={[s.publishedName, { color: c.text }]}>{noWidow(liveMenu.nombre || defaultHistoryTitle(liveMenu))}</Text>
                 <Ionicons name="chevron-forward" size={18} color={c.textMute} />
               </TouchableOpacity>
+              </SwipeRow>
             ) : <Text style={[s.summary, { color: c.text, paddingVertical: 8 }]}>{noWidow('Todavía no publicas el menú de hoy')}</Text>}
           </View>
         )}

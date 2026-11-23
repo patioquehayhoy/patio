@@ -8,7 +8,8 @@
   Publicado hoy → ficha, Editar → editor, deslizar Imagen → póster.
 - [ ] Medir lectura real de imagen reportada lenta: límite/cancelación no
   certifican rapidez ni éxito de la extracción. Logs DEV listos para diagnóstico.
-- [ ] Parco: validar manijas de arrastre, navegación y contraste de agotados.
+- [ ] Parco: validar navegación y contraste de agotados. Manijas retiradas por
+  rechazo explícito; sigue pendiente competencia texto/arrastre sin iconos.
 
 - [ ] Parco en iPhone: Se acabó → ficha → imagen nueva; Ya hay → repetir.
   Nombre tachado y atenuado en ambos, estado y precio coherentes.

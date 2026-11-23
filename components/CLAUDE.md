@@ -6,12 +6,12 @@ Agotados conservan nombre tachado y texto secundario legible en ambas vistas,
 con Se acabó explícito en lugar del precio. No opacidad sobre controles.
 Lectura cancela red y espera máximo 60 s; esto no certifica rapidez del modelo.
 
-## Corte de cierre — manijas del editor (2026-11-22)
+## Corrección de Parco — sin manijas (2026-11-22)
 
-Sustituye el arrastre por pulsación larga en toda la fila: mover desde manija
-visible de 44 pt para platillos y secciones, con teclado cerrado. Los campos
-conservan selección de texto nativa; deslizar sigue mostrando acciones. Sin
-modo Ordenar adicional. QA físico pendiente de Parco, no ejecutar simulador.
+Parco rechaza los iconos/manijas de arrastre: no los pidió ni los validó.
+Retirados; se restaura mantener presionada la fila/título para mover, con
+teclado cerrado. Pendiente resolver competencia con selección de texto sin
+reintroducir manijas. QA visual exclusivamente de Parco.
 
 ## Corte vigente — editor continuo y menú publicado (2026-11-22, Parco/Codex)
 

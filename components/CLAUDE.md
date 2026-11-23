@@ -23,7 +23,9 @@ visual en simulador ni darla por aprobada con pruebas de código.
 - Fecha por defecto y nombre opcional (Parco, 22 nov). El campo lo dice;
   estados del no publicado breves, sin explicar «se guarda solo» cada vez.
 - Póster: agotado se expresa como Se acabó en la columna del precio, con
-  nombre de menor énfasis. Refrescar publicación antes de habilitar compartir.
+  nombre tachado y de menor énfasis, igual que la ficha. Mantener legibles
+  descripción, estado y controles; no bajar la opacidad de la fila completa.
+  Refrescar publicación antes de habilitar compartir.
 - Conteos positivos junto al corazón también para público. La hojita del
   platillo conserva su significado vegetariano; no reservar casillas vacías
   para atributos que aún no existen.

@@ -240,7 +240,7 @@ function makeStyles(t: Theme) {
     dishPhotoMark: { fontSize: 14 },
     groupItemDescription: { marginTop: 2, fontSize: 13, lineHeight: 18, fontWeight: '400', color: t.textSecondary },
     groupItemPrice: { fontSize: 15, lineHeight: 21, fontWeight: '700', color: t.text },
-    soldOutName: { color: t.textMute },
+    soldOutName: { color: t.textMute, textDecorationLine: 'line-through' },
     soldOutPrice: { fontWeight: '500', color: t.textSecondary },
     dishLikeCount: { minWidth: 21, height: 21, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 3 },
     dishLikeCountText: { fontSize: 12, fontWeight: '500', color: t.textSecondary, fontVariant: ['tabular-nums'] },

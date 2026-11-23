@@ -286,7 +286,7 @@ function makeStyles(c: FonderoColors) {
   menuRowName: { fontSize: 14, lineHeight: 18, fontWeight: '500', color: LIGHT.ink, marginRight: 10 },
   menuRowDescription: { marginTop: 1, fontSize: 12, lineHeight: 16, color: LIGHT.inkSoft },
   menuRowPrice: { fontSize: 13, fontWeight: '400', color: LIGHT.inkSoft },
-  unavailableName: { color: LIGHT.inkSoft },
+  unavailableName: { color: LIGHT.mute, textDecorationLine: 'line-through' },
   unavailableLabel: { fontSize: 13, lineHeight: 18, fontWeight: '500', color: LIGHT.inkSoft },
 
   posterFoot: { paddingHorizontal: 22, paddingTop: 16, paddingBottom: 18 },

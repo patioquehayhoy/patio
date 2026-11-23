@@ -2,6 +2,30 @@
 
 ## Corte 2026-11-22 (Codex, QA de Parco)
 
+### Funcionalidad y usabilidad que sigue abierta (consolidado)
+
+- [ ] Parco en iPhone: Se acabó → ficha → imagen nueva; Ya hay → repetir.
+  Nombre tachado y atenuado en ambos, estado y precio coherentes.
+- [ ] Editor completo: competencia entre seleccionar texto/escribir/mover;
+  guardar y recuperar al salir, eliminar/deshacer, actualizar, reutilizar
+  un menú pasado y programar. Código listo, aceptación de uso pendiente.
+- [ ] Publicaciones programadas y resúmenes: entrega real y apertura de los
+  avisos a su hora. Los ejemplos DEV no comprueban el backend.
+- [ ] Campana: comprobar comprensión de Personalizadas y selección por lugar.
+- [ ] Dónde vendes: entrada en alta/edición y recorrido de sucursal/tianguis;
+  diseñar modalidad mixta, menús distintos por sucursal y varias marcas.
+- [ ] Vegetariano: evaluar frecuencia/utilidad de preguntas (consulta nueva
+  a Jev pendiente); no marcar por inferencia ni confundir con vegano.
+- [ ] Likes: agrupar por identidad del platillo sin duplicar personas por
+  variantes/otros nombres. Conteos visibles no cierran ese trabajo.
+- [ ] VoiceOver: probar Subir/Bajar; mover platillos entre secciones con
+  VoiceOver aún es una ampliación pendiente.
+- [ ] Visitante sin cuenta: concretar qué acciones requieren una identidad
+  anónima en servidor; no confundir el demo con una sesión real.
+- [ ] Funciones de producto aún pendientes: flyers Pro, mostrar en caja,
+  tarjeta Pro en Hoy y aviso al recibir me gusta en tu reseña.
+
+
 - [x] Parco: fecha por defecto y nombre opcional. Estado del guardado breve;
   conteo positivo de likes público; Se acabó en póster y consulta de la
   disponibilidad publicada antes de habilitar compartir.

@@ -7,8 +7,8 @@ Leer el bloque del 23 nov en el [heads-up](HEADS_UP_2026-10-12.md).
 - Lectura: límite de 120 s y medición en `read-menu` (desplegada).
 - Codex: [encargo](CODEX_ENCARGO_2026-11-23.md) de lectura lenta, tiendas y
   trámites.
-- Parco: decidir varios negocios
-  ([propuesta](AGOTADOS_Y_VARIOS_NEGOCIOS_2026-11-23.md) §2).
+- Parco: decidir marcas, sucursales y equipo
+  ([modelo](SUCURSALES_Y_EQUIPO_2026-11-23.md)); fase 1: Equipo.
 
 ## Cierre vigente 2026-11-22 — retomar aquí
 

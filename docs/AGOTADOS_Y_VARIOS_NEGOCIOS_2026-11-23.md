@@ -65,7 +65,10 @@ Fuentes: [HIG Accessibility](https://developer.apple.com/design/human-interface-
 [Musk, Starbase](https://everydayastronaut.com/starbase-tour-and-interview-with-elon-musk/) ·
 [Amazon, precios tachados](https://sell.amazon.com/blog/amazon-list-price).
 
-## 2. Varios negocios: propuesta para construir
+## 2. Varios negocios: primera versión (sustituida)
+
+> Sustituida el mismo día por [marcas, sucursales y equipo](SUCURSALES_Y_EQUIPO_2026-11-23.md),
+> que agrega franquicias, cadenas, puestos de una misma marca, roles y auditoría.
 
 ### Los casos reales
 

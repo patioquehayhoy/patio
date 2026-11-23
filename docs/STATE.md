@@ -6,7 +6,8 @@
   ([decisión](AGOTADOS_Y_VARIOS_NEGOCIOS_2026-11-23.md)).
 - Lectura con foto: el teléfono espera hasta 120 s; el servidor registra
   tiempos y tokens por lectura. La rapidez real sigue sin medirse.
-- Varios negocios: propuesta lista, sin construir; hoy, un negocio por cuenta.
+- Marcas, sucursales y equipo: modelo listo, sin construir; hoy, un negocio
+  por cuenta y las sucursales comparten menú.
 
 ## Estado vigente de menús — 2026-11-22
 

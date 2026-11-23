@@ -1,0 +1,391 @@
+{
+ "app": "Una app mexicana de celular donde fondas, cocinas económicas, puestos y restaurantes publican qué hay hoy: el menú del día, lo que se acabó y avisos para quienes los siguen. Quien busca dónde comer ve en el mapa cada lugar con su ficha.",
+ "opciones": {
+  "quien_publica": {
+   "dueno": "El dueño, desde su celular, para todos los lugares.",
+   "encargado": "El encargado de cada lugar, que está ahí y sabe qué hay y qué se acabó.",
+   "celular": "Quien esté en turno, con un celular del negocio que se queda en el lugar."
+  },
+  "como_entran": {
+   "invitacion": "El dueño invita a cada encargado con su propio correo; cada quien entra con su cuenta y solo ve su sucursal. El dueño le quita el acceso cuando quiera.",
+   "cuenta_dueno": "Todos entran con la cuenta y el correo del dueño.",
+   "celular": "Un celular del negocio en cada lugar, ya con la cuenta abierta."
+  },
+  "que_hace": {
+   "solo_estado": "Solo marcar lo que se acabó y si ya abrió o no abre hoy.",
+   "publicar": "Publicar el menú del día de su sucursal, marcar lo que se acabó y mandar avisos de su sucursal; sin tocar la carta, los precios ni el pago.",
+   "todo_menos_pago": "Todo en su sucursal, incluida la carta y los precios; sin tocar el pago ni quién entra.",
+   "todo": "Todo, igual que el dueño."
+  },
+  "carta": {
+   "central": "El dueño o el corporativo decide la carta y los precios para todas las sucursales.",
+   "cada_una": "Cada sucursal decide su carta y sus precios.",
+   "central_ajustes": "El dueño o el corporativo pone la carta para todas; cada sucursal puede cambiar un precio, quitar lo que ahí no vende y publicar su menú del día."
+  },
+  "seguir": {
+   "sucursal": "Sigues una sucursal en específico (la que te queda cerca) y te llegan solo sus avisos.",
+   "marca_cercana": "Sigues la marca y te llegan los avisos de la sucursal más cercana a ti.",
+   "marca_elegir": "Sigues la marca y eliges de cuáles sucursales quieres avisos."
+  }
+ },
+ "negocios": {
+  "alitas": {
+   "quien_publica": {
+    "type": "choice",
+    "choice": "encargado",
+    "confidence": 0.8,
+    "probabilities": {
+     "dueno": 0.08,
+     "encargado": 0.87,
+     "celular": 0.05
+    }
+   },
+   "como_entran": {
+    "type": "choice",
+    "choice": "invitacion",
+    "confidence": 0.98,
+    "probabilities": {
+     "celular": 0.01,
+     "cuenta_dueno": 0.0,
+     "invitacion": 0.99
+    }
+   },
+   "que_hace": {
+    "type": "choice",
+    "choice": "publicar",
+    "confidence": 0.83,
+    "probabilities": {
+     "publicar": 0.87,
+     "todo_menos_pago": 0.1,
+     "solo_estado": 0.02,
+     "todo": 0.01
+    }
+   },
+   "carta": {
+    "type": "choice",
+    "choice": "central_ajustes",
+    "confidence": 0.74,
+    "probabilities": {
+     "central": 0.12,
+     "cada_una": 0.05,
+     "central_ajustes": 0.83
+    }
+   },
+   "escalas": {
+    "quien_cambio": {
+     "type": "score",
+     "score": 2.96,
+     "confidence": 0.67,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.06,
+      "2": 0.09,
+      "3": 0.66,
+      "4": 0.19
+     }
+    }
+   }
+  },
+  "encargada": {
+   "quien_publica": {
+    "type": "choice",
+    "choice": "encargado",
+    "confidence": 0.97,
+    "probabilities": {
+     "dueno": 0.0,
+     "encargado": 0.98,
+     "celular": 0.02
+    }
+   },
+   "como_entran": {
+    "type": "choice",
+    "choice": "invitacion",
+    "confidence": 0.83,
+    "probabilities": {
+     "invitacion": 0.89,
+     "cuenta_dueno": 0.01,
+     "celular": 0.1
+    }
+   },
+   "que_hace": {
+    "type": "choice",
+    "choice": "publicar",
+    "confidence": 0.77,
+    "probabilities": {
+     "solo_estado": 0.04,
+     "todo": 0.0,
+     "publicar": 0.83,
+     "todo_menos_pago": 0.13
+    }
+   },
+   "carta": {
+    "type": "choice",
+    "choice": "cada_una",
+    "confidence": 0.33,
+    "probabilities": {
+     "central_ajustes": 0.44,
+     "cada_una": 0.55,
+     "central": 0.01
+    }
+   },
+   "escalas": {
+    "quien_cambio": {
+     "type": "score",
+     "score": 2.13,
+     "confidence": 0.17,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.03,
+      "1": 0.33,
+      "2": 0.18,
+      "3": 0.4,
+      "4": 0.06
+     }
+    }
+   }
+  },
+  "franquicia": {
+   "quien_publica": {
+    "type": "choice",
+    "choice": "encargado",
+    "confidence": 0.73,
+    "probabilities": {
+     "encargado": 0.82,
+     "celular": 0.12,
+     "dueno": 0.06
+    }
+   },
+   "como_entran": {
+    "type": "choice",
+    "choice": "invitacion",
+    "confidence": 0.92,
+    "probabilities": {
+     "invitacion": 0.95,
+     "cuenta_dueno": 0.01,
+     "celular": 0.04
+    }
+   },
+   "que_hace": {
+    "type": "choice",
+    "choice": "publicar",
+    "confidence": 0.72,
+    "probabilities": {
+     "todo_menos_pago": 0.19,
+     "publicar": 0.79,
+     "todo": 0.01,
+     "solo_estado": 0.01
+    }
+   },
+   "carta": {
+    "type": "choice",
+    "choice": "central_ajustes",
+    "confidence": 0.7,
+    "probabilities": {
+     "cada_una": 0.03,
+     "central_ajustes": 0.8,
+     "central": 0.17
+    }
+   },
+   "escalas": {
+    "quien_cambio": {
+     "type": "score",
+     "score": 2.76,
+     "confidence": 0.58,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.11,
+      "2": 0.13,
+      "3": 0.63,
+      "4": 0.12
+     }
+    }
+   }
+  },
+  "gerente": {
+   "quien_publica": {
+    "type": "choice",
+    "choice": "encargado",
+    "confidence": 0.94,
+    "probabilities": {
+     "celular": 0.04,
+     "dueno": 0.0,
+     "encargado": 0.96
+    }
+   },
+   "como_entran": {
+    "type": "choice",
+    "choice": "invitacion",
+    "confidence": 0.97,
+    "probabilities": {
+     "cuenta_dueno": 0.0,
+     "celular": 0.02,
+     "invitacion": 0.98
+    }
+   },
+   "que_hace": {
+    "type": "choice",
+    "choice": "todo_menos_pago",
+    "confidence": 0.35,
+    "probabilities": {
+     "solo_estado": 0.01,
+     "publicar": 0.47,
+     "todo_menos_pago": 0.51,
+     "todo": 0.01
+    }
+   },
+   "carta": {
+    "type": "choice",
+    "choice": "central_ajustes",
+    "confidence": 0.79,
+    "probabilities": {
+     "central": 0.12,
+     "central_ajustes": 0.86,
+     "cada_una": 0.02
+    }
+   },
+   "escalas": {
+    "quien_cambio": {
+     "type": "score",
+     "score": 3.15,
+     "confidence": 0.54,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.05,
+      "2": 0.08,
+      "3": 0.52,
+      "4": 0.34
+     }
+    }
+   }
+  },
+  "fonda_hija": {
+   "quien_publica": {
+    "type": "choice",
+    "choice": "encargado",
+    "confidence": 0.34,
+    "probabilities": {
+     "dueno": 0.02,
+     "celular": 0.42,
+     "encargado": 0.56
+    }
+   },
+   "como_entran": {
+    "type": "choice",
+    "choice": "invitacion",
+    "confidence": 0.56,
+    "probabilities": {
+     "invitacion": 0.71,
+     "cuenta_dueno": 0.07,
+     "celular": 0.22
+    }
+   },
+   "que_hace": {
+    "type": "choice",
+    "choice": "publicar",
+    "confidence": 0.88,
+    "probabilities": {
+     "todo_menos_pago": 0.08,
+     "todo": 0.0,
+     "publicar": 0.91,
+     "solo_estado": 0.01
+    }
+   },
+   "carta": {
+    "type": "choice",
+    "choice": "central_ajustes",
+    "confidence": 0.31,
+    "probabilities": {
+     "cada_una": 0.43,
+     "central": 0.03,
+     "central_ajustes": 0.54
+    }
+   },
+   "escalas": {
+    "quien_cambio": {
+     "type": "score",
+     "score": 1.94,
+     "confidence": 0.15,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.04,
+      "1": 0.41,
+      "2": 0.16,
+      "3": 0.35,
+      "4": 0.04
+     }
+    }
+   }
+  }
+ },
+ "foodies": {
+  "oficinista": {
+   "seguir": {
+    "type": "choice",
+    "choice": "marca_cercana",
+    "confidence": 0.61,
+    "probabilities": {
+     "sucursal": 0.14,
+     "marca_elegir": 0.12,
+     "marca_cercana": 0.74
+    }
+   }
+  },
+  "mama": {
+   "seguir": {
+    "type": "choice",
+    "choice": "marca_cercana",
+    "confidence": 0.55,
+    "probabilities": {
+     "sucursal": 0.17,
+     "marca_cercana": 0.7,
+     "marca_elegir": 0.13
+    }
+   }
+  },
+  "foraneo": {
+   "seguir": {
+    "type": "choice",
+    "choice": "marca_elegir",
+    "confidence": 0.48,
+    "probabilities": {
+     "marca_elegir": 0.65,
+     "sucursal": 0.03,
+     "marca_cercana": 0.32
+    }
+   }
+  }
+ }
+}

@@ -150,7 +150,7 @@ export default function HistorialScreen() {
     const key = menu.id;
     const isSelected = selectedFechas.has(key);
     const state = menuPublicationState(menu);
-    const status = state === 'live' ? 'Publicado hoy' : state === 'scheduled' ? 'Programado' : state === 'previous' ? 'Publicado' : 'Borrador';
+    const status = state === 'live' ? 'Lo ven hoy' : state === 'scheduled' ? 'Programado' : state === 'previous' ? 'Publicado' : 'Borrador';
     const dishes = menu.secciones.secciones.reduce((sum, section) => sum + section.platillos.filter((dish) => dish.nombre.trim()).length, 0);
     return (
       <SwipeRow
@@ -246,7 +246,8 @@ export default function HistorialScreen() {
         {!loading && !selecting && menus.length > 0 && (
           <View style={[s.published, { borderBottomColor: c.border }]}>
             <View style={s.publishedHead}>
-              <Text style={[s.publishedLabel, { color: c.textSecondary }]} accessibilityRole="header">{liveMenu ? 'Publicado hoy' : 'Hoy'}</Text>
+              {/* «Lo que ven hoy» (Jev 24 nov: 43 %, frente a «Menú actual» 30 % y «Publicado hoy» 20 %), en negritas como etiqueta de sección. */}
+              <Text style={[s.publishedLabel, { color: c.text }]} accessibilityRole="header">{liveMenu ? 'Lo que ven hoy' : 'Hoy'}</Text>
               {liveMenu && <TouchableOpacity style={s.publishedEdit} onPress={() => reuse(liveMenu)} accessibilityRole="button" accessibilityLabel="Editar el menú publicado hoy" activeOpacity={0.7}>
                 <Text style={[s.publishedActionText, { color: c.text }]}>Editar</Text>
               </TouchableOpacity>}
@@ -350,7 +351,7 @@ const s = StyleSheet.create({
   // Mismos ejes de 20 pt que la biblioteca: la jerarquía la da la sección.
   published: { marginTop: 8, paddingBottom: 16, borderBottomWidth: StyleSheet.hairlineWidth },
   publishedHead: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 16 },
-  publishedLabel: { flex: 1, fontSize: 13, lineHeight: 18, fontWeight: '400' },
+  publishedLabel: { flex: 1, ...Type.label },
   publishedEdit: { minWidth: 44, minHeight: 44, alignItems: 'flex-end', justifyContent: 'center' },
   publishedMenu: { minHeight: 52, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', gap: 16 },
   publishedName: { ...Type.headline, flex: 1, minWidth: 0 },

@@ -31,7 +31,7 @@ import { cleanMenu, emptyMenu, useFonderoMenuDraftController } from '@/lib/contr
 import { splitCarta } from '@/lib/menu-carta';
 import { fonderoPalette, type FonderoColors } from '@/lib/fondero-palette';
 import { canonicalSeccion, cartaSugerencias, getFonditaHorarioSemanal, getTipoNegocio, seccionSugerencias, type MenuData, type Platillo, type Seccion } from '@/lib/menu-store';
-import { isAfterService, nextPublishSlots, scheduledLabel } from '@/lib/publish-timing';
+import { nextPublishSlots, scheduledLabel } from '@/lib/publish-timing';
 import { Type, useTheme } from '@/lib/theme';
 import { ActionSheet } from '@/components/action-sheet';
 import { GlassIconButton } from '@/components/glass-button';
@@ -127,26 +127,16 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
     setSoldOut,
     undoRemove,
   } = useFonderoMenuDraftController(initialData, source);
-  // Dejar listo el menú de otro día (2026-11-21), como «Enviar más tarde» de
-  // Mail: mantener presionado «Publicar» ofrece «Publicar ahora» o «Mañana a las
-  // 9 am» (una hora antes de abrir, la hora del aviso). Ya pasado el servicio de
-  // hoy, tocarlo ofrece primero mañana: publicar «hoy» de noche no le sirve a
-  // nadie (se va a la medianoche y no se avisa a nadie).
-  const publishRef = useRef<View>(null);
+  // Dos botones, cada uno con un solo trabajo (Parco, 24 nov: antes los dos
+  // abrían la misma lista). «Publicar» sale ahora, siempre. «Programar» deja
+  // listo el menú de otro día: solo ofrece días (el siguiente que abre, a la
+  // hora del aviso, y los demás de la semana), como «Enviar más tarde» de Mail.
   const scheduleRef = useRef<View>(null);
-  const [scheduleMenu, setScheduleMenu] = useState<'evening' | 'hold' | null>(null);
+  const [scheduleMenu, setScheduleMenu] = useState<'hold' | null>(null);
   const horario = getFonditaHorarioSemanal();
-  // Los siguientes días que abre: mañana y, para dejar lista la semana, los demás.
   const slots = scheduleMenu ? nextPublishSlots(horario) : [];
-  const schedulingOptions = slots.length ? (() => {
-    const now = { label: 'Publicar ahora', icon: 'paper-plane-outline' as const, accessibilityHint: 'Sale ya en tu ficha y avisa a quienes te siguen.', onPress: () => { void publish(); } };
-    const later = slots.map((slot) => ({ label: slot.label, icon: 'time-outline' as const, accessibilityHint: 'Queda listo y sale solo a esa hora.', onPress: () => { void publish({ fecha: slot.fecha, publishAt: slot.at.toISOString() }); } }));
-    return scheduleMenu === 'evening' ? [later[0], now, ...later.slice(1)] : [now, ...later];
-  })() : [];
-  const onPublishPress = () => {
-    if (!live && isAfterService(horario)) { setScheduleMenu('evening'); return; }
-    void publish();
-  };
+  const schedulingOptions = slots.map((slot) => ({ label: slot.label, icon: 'time-outline' as const, accessibilityHint: 'Queda listo y sale solo a esa hora.', onPress: () => { void publish({ fecha: slot.fecha, publishAt: slot.at.toISOString() }); } }));
+  const onPublishPress = () => { void publish(); };
   // Un menú programado que se abre para cambiarlo: dice cuándo sale.
   const scheduledFor = live && initialData.localFecha && initialData.localPublishAt && Date.parse(initialData.localPublishAt) > Date.now() ? scheduledLabel(initialData.localPublishAt) : null;
   const dataRef = useRef(data);
@@ -1023,7 +1013,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
             scrollRef={scrollRef}
             onLayout={board.onHeaderLayout(section.id)}
             style={s.head}>
-            <View style={s.body}>
+            <View collapsable={false} style={s.body}>
               <TextInput
                 ref={registerInput(titleKey)}
                 style={s.title}
@@ -1050,6 +1040,19 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                   if (direction) moveSectionTo(section.id, index + direction);
                 }}
               />
+              {/* Con el teclado cerrado, el título no recibe el toque: lo recibe
+                  esta capa. Así mantener presionado mueve la sección (el texto
+                  de iOS cancelaba el arrastre: Metro, 24 nov, «el sistema
+                  canceló los toques») y un toque sigue abriendo el título. */}
+              {gesturesOn && focused !== titleKey && (
+                <Pressable
+                  style={StyleSheet.absoluteFill}
+                  onPress={() => focusKey(titleKey)}
+                  accessible={false}
+                  importantForAccessibility="no-hide-descendants"
+                  accessibilityElementsHidden
+                />
+              )}
             </View>
             {/* «MENÚ DEL DÍA $100», «GUISADOS $85», «CARTA $110». */}
             <Pressable
@@ -1140,7 +1143,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
             const idle = menuEmpty;
             const label = live ? 'Actualizar' : 'Publicar';
             return (
-              <View ref={publishRef} collapsable={false}>
+              <View collapsable={false}>
               <TouchableOpacity
                 style={[s.primary, idle && s.primaryIdle]}
                 onPress={onPublishPress}
@@ -1163,9 +1166,9 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
         </View>
 
         <View style={s.statusRow}>
-          <Text style={s.statusText} accessibilityLiveRegion="polite">
+          <Text style={[s.statusText, live && !changed && !scheduledFor && s.statusLive]} accessibilityLiveRegion="polite">
             {noWidow(live
-              ? changed ? 'Cambios sin publicar' : scheduledFor ? `Programado · ${scheduledFor}` : 'Publicado hoy'
+              ? changed ? 'Cambios sin publicar' : scheduledFor ? `Programado · ${scheduledFor}` : 'Lo ven hoy'
               : draftSaveState === 'error' ? 'No se pudo guardar el borrador'
                 : draftSaveState === 'saving' || changed ? 'Guardando…' : draftSaveState === 'saved' ? 'Guardado' : 'Sin publicar')}
           </Text>
@@ -1296,7 +1299,7 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
       )}
       <ActionSheet
         visible={!!scheduleMenu}
-        anchorRef={scheduleMenu === 'hold' ? scheduleRef : publishRef}
+        anchorRef={scheduleRef}
         onDismiss={() => setScheduleMenu(null)}
         options={schedulingOptions}
       />
@@ -1342,6 +1345,7 @@ function makeStyles(c: FonderoColors) {
     menuName: { ...Type.section, ...flat, color: c.text, paddingVertical: 0 },
     statusRow: { paddingHorizontal: 20, minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 12 },
     statusText: { flex: 1, fontSize: 13, lineHeight: 18, color: c.textSecondary, paddingVertical: 8 },
+    statusLive: { fontWeight: '700', color: c.text },
     scheduleButton: { minHeight: 36, paddingHorizontal: 12, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, borderColor: c.border, flexDirection: 'row', alignItems: 'center', gap: 5 },
     scheduleText: { fontSize: 14, fontWeight: '600', color: c.textSecondary },
     // «Publicar» / «Actualizar»: cápsula naranja, la única con color.

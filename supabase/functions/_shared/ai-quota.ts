@@ -6,5 +6,7 @@ export async function consumeAIRequest(auth: Awaited<ReturnType<typeof requireUs
   const { data, error } = await auth.admin.rpc('consume_ai_request', { p_user_id: auth.user.id, p_feature: feature });
   // Fail closed if the migration is absent or the persistent counter is down.
   if (error || typeof data !== 'boolean') throw new HttpError(503, 'La lectura está temporalmente fuera de servicio.');
-  if (!data) throw new HttpError(429, 'Alcanzaste el límite de lecturas. Inténtalo más tarde o continúa manualmente.');
+  if (!data) throw new HttpError(429, feature === 'read-menu'
+    ? 'Ya usaste tus lecturas con foto de hoy. Escribe el menú a mano, que siempre es gratis, o vuelve mañana. Con Pro tienes 30 al día.'
+    : 'Alcanzaste el límite por hoy. Inténtalo más tarde.');
 }

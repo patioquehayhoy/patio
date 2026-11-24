@@ -1,3 +1,13 @@
+## Corrección de Parco — publicar, nombre y secciones (2026-11-24)
+
+- «Publicar» sale ahora, siempre; «Programar» solo ofrece días. Nunca dos
+  botones que abran la misma lista.
+- El menú vigente se llama «Lo que ven hoy» (encabezado en negritas,
+  `Type.label`) y «Lo ven hoy» en la fila y el editor (Jev 43 %).
+- Título de sección: con el teclado cerrado, una capa recibe el toque (el
+  texto de iOS cancelaba el arrastre). Detalle y datos:
+  `docs/AUDITORIA_JEV_APP_2026-11-24.md`.
+
 ## Continuación — lectura y menú público (2026-11-22)
 
 Publicado hoy abre Mi Patio; Editar abre editor. Imagen para compartir está

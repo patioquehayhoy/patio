@@ -45,7 +45,7 @@ Aquí solo se describe lo que existe en la app.
 - **Viene a:** que la gente de cerca sepa qué preparó hoy.
 - **Llega:** Perfil → «¿Tienes un negocio?», o la intro «Publicar lo que preparo».
 - **Costo:** $0.
-- **Puede:** perfil público, menú a mano sin límite, 20 lecturas con foto al día,
+- **Puede:** perfil público, menú a mano sin límite, 3 lecturas con foto al día,
   compartir su menú como imagen, aviso a sus seguidores cuando publica, recibir
   y responder reseñas, quién lo sigue y «me gusta» de sus platillos.
 - **Nunca ve:** lugares guardados ni listas de Foodie.
@@ -55,7 +55,7 @@ Aquí solo se describe lo que existe en la app.
 - **Llega:** suscripción desde Planes (se ofrece cuando el cobro esté
   encendido) o como Fundador.
 - **Costo:** $99/mes · $990/año.
-- **Puede:** lo de Gratis + 60 lecturas con foto al día, 8 avisos especiales
+- **Puede:** lo de Gratis + 30 lecturas con foto al día, 8 avisos especiales
   (promociones) al mes, platillo destacado en su ficha, día y hora con más
   interés (sin nombres). Todo vive en Actividad y en Mi Patio.
 

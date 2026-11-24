@@ -12,8 +12,10 @@
 - [ ] **Codex:** tiendas y trámites (encargo §B).
 - [ ] **App Store: la versión 1.0.0 está «Rejected»** por la regla 2.1.0
   (Performance: App Completeness), visto en App Store Connect el 24 nov.
-  Falta leer el mensaje de Apple (View Submission) para saber qué no
-  funcionó y responder con «Update Review».
+  Motivo (15 abr, build 32, iPad): «an error message appeared when we added
+  the e-mail»; el revisor no podía recibir el código. Resuelto el 24 nov con
+  la cuenta de revisión (Consolas §7). Falta: build nuevo, pegar cuenta y
+  notas (Consolas §6) y «Resubmit to App Review».
 - [x] Equipo, fase 1: construida y en producción (24 nov); precios A,
   tope de 3 lugares, Cadena Fundadora y 41 nombres reservados decididos.
 - [ ] **QA de Parco en iPhone:** Perfil → Equipo; invitar a un segundo correo,

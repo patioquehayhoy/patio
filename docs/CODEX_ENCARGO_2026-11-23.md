@@ -73,7 +73,7 @@ Lo demás Codex lo puede preparar o hacer.
 | 4 | Publicar el aviso de privacidad y la página para eliminar la cuenta en el dominio; poner `EXPO_PUBLIC_PRIVACY_URL`. | Codex | `docs/legal/` |
 | 5 | Antes de publicar el aviso: corregir lo que encontró la auditoría. Borrar también las fotos del local, de los platillos y de las reseñas al eliminar la cuenta, con prueba. Redactar «Tus visitas» en segundo plano. Ajustar los textos de listas privadas. | Codex | [Auditoría](AUDITORIA_REDACCION_Y_VIGENCIA_2026-11-23.md) |
 | 6 | Pegar los 6 correos de `supabase/templates/` en Authentication → Email Templates y mandar un código de prueba. | Parco en el panel (o Codex en su Chrome, con su sí) | [Plantillas](../supabase/templates/README.md) |
-| 7 | Cuenta de revisión para Apple y Google que el revisor pueda usar solo. | Codex | [Consolas](STORE_CONSOLES_2026-11-11.md) §7 |
+| 7 | ✅ Hecho por Claude el 24 nov: cuenta de revisión con código fijo en el servidor (`review-login`). | — | [Consolas](STORE_CONSOLES_2026-11-11.md) §7 |
 | 8 | App Privacy y Data Safety: respuestas listas; agregar la ubicación en segundo plano. | Codex prepara; Parco envía | Consolas §1–§3 |
 | 9 | Builds nuevos iOS y Android (el instalado no muestra varias fotos por reseña) y video de 30 s para la ubicación en segundo plano de Play. | Codex con el skill `eas-build-check`; Parco graba | Consolas §5 |
 | 10 | `GOOGLE_MAPS_ANDROID_API_KEY` y `GOOGLE_SERVICES_JSON` (los 2 pendientes de `check:release`). | Codex | [Inventario](CREDENTIALS_INVENTORY_2026-10-27.md) |

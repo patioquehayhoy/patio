@@ -157,11 +157,22 @@ Sin cortes ni música: Google revisa que el aviso aparezca antes del permiso.
 
 ## 6. Notas para el revisor (pegar en inglés)
 
+En App Store Connect → App Review Information: «Sign-in required» marcado,
+usuario `quehayhoy.patio+revision@gmail.com` y, como contraseña, el código de
+`.env.review.local` (en la Mac de Parco, fuera de Git). En Play Console →
+Acceso a la app, lo mismo.
+
 ```
 Patio helps people in Mexico City find today's menu at nearby small
 restaurants ("fondas"), and lets those businesses publish their daily menu.
 
-Sign-in: email with an 8-digit code. Demo account: <pending, see below>.
+Sign-in: Patio has no passwords. People sign in with their email and an
+8-digit code. For review, use this account:
+  Email: quehayhoy.patio+revision@gmail.com
+  Code: the 8 digits in the password field (the code we email is not needed)
+Steps: open Patio → "Publicar lo que preparo" (business) or any sign-in
+prompt (diner) → type the email → "Continuar" → type the code.
+Browsing the map and places works without an account.
 
 Location: used while the app is open to show nearby places. "Always"
 location is optional and only requested if the user turns on "Tus visitas"
@@ -172,16 +183,26 @@ changes every day.
 
 User-generated content: reviews, comments and photos can be reported and
 their authors blocked ("···" → "Reportar contenido" / "Bloquear cuenta").
-Reports reach support at quehayhoy.patio@gmail.com, reviewed daily.
+In-app reports are recorded in Patio. For email support, contact
+quehayhoy.patio@gmail.com.
 
-Account deletion: Profile → "Eliminar cuenta" (at the bottom).
+Account deletion: Profile → Settings (gear) → "Eliminar cuenta".
+For a business: "Ajustes" → "Eliminar cuenta".
 ```
 
-## 7. Cuenta de revisión — pendiente
+## 7. Cuenta de revisión — lista (24 nov)
 
-Nunca hubo una. TestFlight interno y la prueba interna de Play no la piden,
-y por eso no hizo falta antes. Para la revisión real, el revisor no puede
-recibir el código en un correo ajeno. Propuesta: un correo de revisión en
-lista permitida con un código fijo guardado como secreto en Supabase; una
-función valida ese código y abre la sesión. Nada fijo dentro de la app ni del
-repositorio. Se entrega en el campo de la consola, fuera de Git.
+- Correo: `quehayhoy.patio+revision@gmail.com`. Gmail entrega todo lo que va
+  después del «+» al buzón de soporte; para Patio es otra cuenta.
+- Código fijo de 8 dígitos solo para ese correo: secretos `REVIEW_EMAIL` y
+  `REVIEW_CODE` en Supabase; copia local en `.env.review.local` (ignorado por
+  Git). La función `review-login` lo revisa y pide a Supabase un código de un
+  solo uso; la app entra con él por el camino normal
+  (`lib/auth-email-code.ts`). Código equivocado: rechazo con espera.
+- Probado en producción el 24 nov: código malo rechazado, código bueno abre
+  sesión.
+- Sin negocio sembrado: un negocio de prueba saldría en el mapa real. El
+  revisor hace el alta corta. Al aprobarse, borrar lo que haya creado.
+- Para cambiar el código: editar `.env.review.local`, correr
+  `supabase secrets set --env-file .env.review.local` y actualizarlo en las
+  dos consolas.

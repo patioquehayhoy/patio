@@ -132,7 +132,6 @@ function RootStack() {
         <Stack.Screen name="crear" options={{ headerShown: false, presentation: 'fullScreenModal', animation: 'slide_from_bottom' }} />
         <Stack.Screen name="foto-menu" options={{ headerShown: false }} />
         <Stack.Screen name="menu-editar" options={{ headerShown: false }} />
-        <Stack.Screen name="menu-publicado" options={{ headerShown: false }} />
         <Stack.Screen name="historial" options={{ headerShown: false }} />
         <Stack.Screen name="manifiesto" options={{ headerShown: false }} />
         <Stack.Screen name="soporte" options={{ headerShown: false }} />

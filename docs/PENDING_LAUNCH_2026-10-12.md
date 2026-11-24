@@ -1,5 +1,19 @@
 # Pendientes y roadmap de lanzamiento — actualizado 2026-11-22
 
+## Corte 2026-11-24 (Claude)
+
+- [x] Crear a pantalla completa (sin hoja ni cámara de golpe); publicar en un
+  paso con aviso en Menús; vista previa opcional; «Lo que ven hoy» se edita.
+- [x] Varias hojas por lectura; Gratis 3 y Pro 30 lecturas (una por hoja).
+- [x] Cuenta de revisión de Apple (Consolas §7).
+- [ ] **QA de Parco:** Crear → foto → Leer → Publicar; vista previa; editar
+  «Lo que ven hoy»; arrastrar platillos y secciones; carta de 2 hojas.
+- [ ] **Parco decide:** quitar Racha y «Tus visitas»
+  ([auditoría](AUDITORIA_JEV_APP_2026-11-24.md)).
+- [ ] Build nuevo y «Resubmit to App Review» cuando la app esté terminada.
+- [ ] Codex: actualizar su CLI (0.144 ya no acepta los modelos) y hacer el
+  punto 5 del encargo.
+
 ## Corte 2026-11-23 (Claude)
 
 - [x] Agotados: el tachado se queda (Apple, Jev y CDF;

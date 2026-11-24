@@ -1,5 +1,15 @@
 # HANDOFF
 
+## Cierre 2026-11-24 — retomar aquí (Claude)
+
+Leer los bloques del 24 nov en el [heads-up](HEADS_UP_2026-10-12.md).
+- En producción: Equipo (fase 1), nombres reservados, cuenta de revisión de
+  Apple, lecturas por hoja (Gratis 3, Pro 30), varias hojas por lectura.
+- App: Crear a pantalla completa, publicar en un paso con aviso en Menús,
+  vista previa opcional, «Lo que ven hoy» se edita al tocarlo.
+- Falta: QA de Parco en iPhone; build y reenvío a Apple cuando Parco dé la
+  app por terminada; decidir quitar Racha y «Tus visitas».
+
 ## Cierre 2026-11-23 — retomar aquí (Claude)
 
 Leer el bloque del 23 nov en el [heads-up](HEADS_UP_2026-10-12.md).

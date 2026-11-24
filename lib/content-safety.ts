@@ -50,6 +50,9 @@ export async function unblockUser(userId: string) {
 // días). Las pantallas muestran estas frases en lugar de un error genérico.
 export const CONTENT_REJECTED_MESSAGE = 'Patio no permite insultos ni lenguaje ofensivo. Cambia esas palabras para publicar.';
 export const NAME_CHANGE_LIMIT_MESSAGE = 'Ya cambiaste el nombre dos veces en los últimos 14 días. Podrás cambiarlo de nuevo después.';
+// Solo el nombre idéntico al de una marca registrada (migración 20261124090000):
+// «Samborcito» o «Starbucksito» sí se pueden usar.
+export const RESERVED_NAME_MESSAGE = 'Ese nombre ya es de una marca registrada. Prueba con otro. Si trabajas ahí, pide que te inviten a su equipo.';
 
 function errorText(error: unknown): string {
   if (!error || typeof error !== 'object') return String(error ?? '');
@@ -65,9 +68,29 @@ export function isNameChangeLimited(error: unknown): boolean {
   return errorText(error).includes('NAME_CHANGE_LIMIT');
 }
 
+export function isReservedName(error: unknown): boolean {
+  return errorText(error).includes('RESERVED_NAME');
+}
+
+/**
+ * ¿El nombre es idéntico al de una marca registrada? Se pregunta al escribir
+ * el nombre; si la consulta falla, se deja seguir y el servidor decide al
+ * guardar.
+ */
+export async function checkReservedName(name: string): Promise<boolean> {
+  if (!name.trim()) return false;
+  try {
+    const { data, error } = await supabase.rpc('nombre_reservado', { p_nombre: name });
+    return !error && data === true;
+  } catch {
+    return false;
+  }
+}
+
 /** Frase para la persona según lo que respondió el servidor, o `fallback`. */
 export function writeErrorMessage(error: unknown, fallback: string): string {
   if (isContentRejected(error)) return CONTENT_REJECTED_MESSAGE;
   if (isNameChangeLimited(error)) return NAME_CHANGE_LIMIT_MESSAGE;
+  if (isReservedName(error)) return RESERVED_NAME_MESSAGE;
   return fallback;
 }

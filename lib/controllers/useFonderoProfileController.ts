@@ -8,7 +8,8 @@ import { Alert } from 'react-native';
 import { FONDITA_ID_KEY } from '@/lib/db';
 import { signOutAccount } from '@/lib/account-session';
 import { noWidow } from '@/lib/typography';
-import { isNameChangeLimited, NAME_CHANGE_LIMIT_MESSAGE, writeErrorMessage } from '@/lib/content-safety';
+import { isNameChangeLimited, isReservedName, NAME_CHANGE_LIMIT_MESSAGE, RESERVED_NAME_MESSAGE, writeErrorMessage } from '@/lib/content-safety';
+import { myBusinessId } from '@/lib/team';
 import { nameLockEnd } from '@/lib/name-changes';
 import { isCompletePhone } from '@/lib/business-contact';
 import {
@@ -208,11 +209,11 @@ export function useFonderoProfileController() {
 
         setEmail(user.email);
 
-        const selectResult = await supabase
-          .from('negocios')
-          .select(FONDITA_SELECT)
-          .eq('owner_id', user.id)
-          .maybeSingle();
+        // El suyo o el del equipo donde está (lib/team.ts).
+        const businessId = await myBusinessId(user.id);
+        const selectResult = businessId
+          ? await supabase.from('negocios').select(FONDITA_SELECT).eq('id', businessId).maybeSingle()
+          : { data: null, error: null };
 
         if (selectResult.error) throw selectResult.error;
         if (!active) return;
@@ -377,6 +378,10 @@ export function useFonderoProfileController() {
           const { error } = await supabase.from('negocios').update(payload).eq('id', fonditaId).select('id').single();
           if (error && isNameChangeLimited(error)) {
             setNameError(NAME_CHANGE_LIMIT_MESSAGE);
+            return;
+          }
+          if (error && isReservedName(error)) {
+            setNameError(RESERVED_NAME_MESSAGE);
             return;
           }
           if (error) throw error;

@@ -1,4 +1,5 @@
 import { requireUser } from '../_shared/auth.ts';
+import { canAct } from '../_shared/team.ts';
 import { pushTargets, sendExpoPush } from '../_shared/expo-push.ts';
 import { corsHeaders, errorResponse, HttpError, json, readJson } from '../_shared/http.ts';
 import { freshDishName, OPERATION_KINDS, operationNoticeText, type OperationKind } from '../_shared/operation-notice.ts';
@@ -28,7 +29,7 @@ Deno.serve(async (req) => {
     const { data: negocio, error: negocioError } = await admin.from('negocios')
       .select('id,nombre,owner_id').eq('id', body.fonditaId).maybeSingle();
     if (negocioError) throw negocioError;
-    if (!negocio || !user.email_confirmed_at || negocio.owner_id !== user.id) {
+    if (!negocio || !user.email_confirmed_at || !(await canAct(admin, user.id, negocio))) {
       return json({ error: 'This Patio does not belong to the current user' }, 403);
     }
 

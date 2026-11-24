@@ -18,6 +18,7 @@ import {
 } from '@/lib/menu-store';
 import { localMenuDate } from '@/lib/menu-date';
 import { getFonditaId } from '@/lib/user-store';
+import { getMyRole } from '@/lib/team';
 import { supabase } from '@/lib/supabase';
 import { Layout, Spacing, useTheme, Type } from '@/lib/theme';
 import { useTabBarScroll } from '@/lib/tab-bar-visibility';
@@ -34,6 +35,8 @@ export default function PerfilScreen() {
   const [fonditaName, setFonditaName] = useState('');
   // Seguidores del negocio; tocar el número abre quién lo sigue.
   const [followers, setFollowers] = useState<number | null>(null);
+  // El plan lo ve y lo paga solo el propietario principal (Equipo, fase 1).
+  const [principal, setPrincipal] = useState(true);
   const demoMode = __DEV__ && !getFonditaId();
   const businessId = getFonditaId() || (demoMode ? DEMO_BUSINESS_ID : null);
 
@@ -45,6 +48,7 @@ export default function PerfilScreen() {
     const actualId = getFonditaId();
     const id = actualId || (__DEV__ ? DEMO_BUSINESS_ID : null);
     if (id) getBusinessStats(id).then((stats) => { if (active && stats) setFollowers(stats.saves); }).catch(() => {});
+    if (actualId) getMyRole(actualId).then((role) => { if (active && role) setPrincipal(role.principal); }).catch(() => {});
     if (actualId) {
       // Un borrador en memoria nunca confirma que el menú sea público.
       void supabase.from('menus').select('secciones').eq('negocio_id', actualId)
@@ -105,14 +109,15 @@ export default function PerfilScreen() {
           <SettingsRow c={sc} icon="stats-chart-outline" title="Hoy" sub="Resumen, vistas y lo que más gustó" onPress={() => router.push('/hoy')} />
           <SettingsRow c={sc} icon="book-outline" title="Mis menús y listas" divider onPress={() => router.push('/historial')} />
           <SettingsRow c={sc} icon="create-outline" title="Editar mi negocio" divider sub={address || undefined} onPress={() => router.push('/perfil-editar')} />
-          <SettingsRow
+          <SettingsRow c={sc} icon="people-outline" title="Equipo" sub="Quién más publica en tu negocio" divider onPress={() => router.push('/equipo')} />
+          {principal && <SettingsRow
             c={sc}
             icon="rocket-outline"
             title="Plan"
             sub="Patio Gratis para negocios"
             divider
             onPress={() => router.push('/plan')}
-          />
+          />}
         </SettingsGroup>
 
         <AccountSettings role="fondero" />

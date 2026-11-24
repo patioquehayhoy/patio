@@ -353,7 +353,11 @@ en oscuro (`docs/design/CONTENT_STRESS_CASES.md`).
 
 ## 5. Planes y cobro
 
-> Los precios son propuesta para que decida Parco. Lo demás queda decidido.
+> **Decidido (Parco, 24 nov: «confío en lo que decidas»):** opción A,
+> escalones. Pro 10 a $249 y Cadenas a $49 por sucursal más IVA. Razón: la
+> fonda y los puestos chicos pagan menos por lugar; la cadena paga el trato a
+> mano (verificación, alta asistida, factura). Las otras dos opciones siguen
+> en `artifacts/patio-sistema.html`, Producto 08.
 
 | Plan | Lugares | Precio propuesto | Cómo se paga |
 | --- | --- | --- | --- |
@@ -490,16 +494,37 @@ fase 2, con alta asistida.
 - que «Actualizar» conserve los «Se acabó»;
 - que el comensal nunca vea quién publicó.
 
-## 9. Lo que decide Parco
+## 9. Decisiones y avance
 
-1. Precios: A (escalones: Pro 10 a $249 y Cadenas a $49 por sucursal), B
-   (Pro y $29 por lugar extra) o C ($33 por lugar para todos). Las tres,
-   con ejemplos, en `artifacts/patio-sistema.html`, Producto 08 «Planes».
-2. Gratis y Pro hasta 3 lugares; pasar de 3 pide Pro 10.
-3. Cadena Fundadora: las primeras 3, 6 meses sin costo.
-4. La lista de nombres reservados. La regla ya está decidida: solo el
-   nombre idéntico y solo nombres distintivos (§4.3).
-5. Construir la fase 1, Equipo.
+**Decidido el 24 nov** (Parco: «sí, dale a todo; confío en lo que decidas»):
+1. Precios: opción A (Pro 10 a $249; Cadenas a $49 por sucursal más IVA,
+   mínimo 10).
+2. Gratis y Pro, hasta 3 lugares; de 4 a 10, Pro 10; más de 10, Cadenas.
+3. Cadena Fundadora: las primeras 3 cadenas, 6 meses sin costo.
+4. Nombres reservados: 41 nombres distintivos de cadenas nacionales,
+   cargados en la base (`marcas_reservadas`).
+
+**Fase 1, Equipo: construida y en producción el 24 nov.**
+- Base (`20261124090000_equipo.sql`): marcas, grupos, equipo, invitaciones,
+  Registro de actividad, nombres reservados, `puede()` en lugar de
+  `owner_id = auth.uid()` en políticas y funciones del negocio, y Pro del
+  dueño para su equipo. Ensayada en PostgreSQL con una transacción revertida
+  antes de aplicarla: dueño, administradora, extraño, quitar y volver a
+  intentar, «Starbucks Coffee» rechazado y «Starbucksito» aceptado.
+- Aviso al escribir el nombre (`20261124091000_nombre_reservado.sql`).
+- Funciones: publicar, avisos, aviso especial y comentar como negocio
+  aceptan al equipo; la reseña nueva le llega al dueño y a su equipo.
+- App: Perfil → **Equipo** (personas, invitar con correo y rol, quitar,
+  invitaciones pendientes, salir del equipo) y **Registro de actividad**.
+  La invitación se manda con la hoja de compartir (WhatsApp, SMS) y se acepta
+  al entrar con ese correo por «Publicar lo que preparo». El Plan solo lo ve
+  el propietario principal.
+- Diferencias con §8, a propósito: `fonditas_one_per_owner_idx` se queda
+  hasta la fase 2 (un negocio por dueño), y el dueño de hoy no se copia a
+  `equipo`: es el propietario principal de su marca.
+- Pendiente de la fase 1: el recordatorio de publicar y el resumen de la
+  mañana siguen llegando solo al dueño; las lecturas con foto se cuentan por
+  persona, con el límite de Pro si el dueño lo tiene.
 
 Fuentes: [Square, permisos y ubicaciones](https://squareup.com/help/us/en/article/5822-employee-permissions) ·
 [Square, registro de actividad](https://squareup.com/help/us/en/article/5579) ·

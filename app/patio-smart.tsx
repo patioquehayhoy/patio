@@ -36,7 +36,7 @@ import {
   setTipoNegocio,
 } from '@/lib/menu-store';
 import { BUSINESS_TYPE_LABELS, confirmedSchedule, saveSmartSetup, type BusinessType, type SmartSetupResult } from '@/lib/smart-setup';
-import { CONTENT_REJECTED_MESSAGE, isContentRejected } from '@/lib/content-safety';
+import { checkReservedName, CONTENT_REJECTED_MESSAGE, isContentRejected, isReservedName, RESERVED_NAME_MESSAGE } from '@/lib/content-safety';
 import { useTheme, Type } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
 import { TEXT_LIMITS } from '@/lib/text-limits';
@@ -157,6 +157,7 @@ export default function PatioSmartScreen() {
   const colors = fonderoPalette(theme.isDark);
   const insets = useSafeAreaInsets();
   const [stage, setStage] = useState<Stage>('name');
+  const [nameError, setNameError] = useState('');
   const [placePhoto, setPlacePhoto] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [firstMenuVisible, setFirstMenuVisible] = useState(false);
@@ -267,6 +268,15 @@ export default function PatioSmartScreen() {
     }
   };
 
+  // Solo el nombre idéntico al de una marca registrada se detiene aquí
+  // («Samborcito» pasa); el servidor lo vuelve a revisar al guardar.
+  const continueFromName = async () => {
+    if (!result.nombre.trim()) return;
+    if (await checkReservedName(result.nombre)) { setNameError(RESERVED_NAME_MESSAGE); return; }
+    setNameError('');
+    setStage('category');
+  };
+
   const confirmSchedule = () => {
     if (selectedDays.length === 0) {
       Alert.alert(noWidow('Elige tus días'), noWidow('Selecciona por lo menos un día para continuar.'));
@@ -293,6 +303,9 @@ export default function PatioSmartScreen() {
     } catch (err) {
       if (isContentRejected(err)) {
         Alert.alert(noWidow('Revisa el nombre'), noWidow(CONTENT_REJECTED_MESSAGE));
+        setStage('name');
+      } else if (isReservedName(err)) {
+        setNameError(RESERVED_NAME_MESSAGE);
         setStage('name');
       } else {
         Alert.alert(noWidow('No pudimos guardarlo'), noWidow('Revisa tu conexión e inténtalo otra vez.'));
@@ -429,7 +442,7 @@ export default function PatioSmartScreen() {
               <TextInput
                 accessibilityLabel="Nombre del negocio"
                 value={result.nombre}
-                onChangeText={(nombre) => update({ nombre: sanitizeNombreInput(nombre) })}
+                onChangeText={(nombre) => { update({ nombre: sanitizeNombreInput(nombre) }); if (nameError) setNameError(''); }}
                 selectionColor={colors.accent}
                 returnKeyType="next"
                 clearButtonMode="while-editing"
@@ -437,16 +450,17 @@ export default function PatioSmartScreen() {
                 onSubmitEditing={() => {
                   if (!result.nombre.trim()) return;
                   Keyboard.dismiss();
-                  setStage('category');
+                  void continueFromName();
                 }}
                 maxFontSizeMultiplier={1.4}
                 style={[s.fieldInput, { color: colors.text }]}
               />
             </View>
+            {!!nameError && <Text style={[s.nameError, { color: colors.danger }]} maxFontSizeMultiplier={1.4}>{noWidow(nameError)}</Text>}
             <ContinueButton
               colors={colors}
               missing={result.nombre.trim() ? undefined : 'Falta el nombre'}
-              onPress={() => { Keyboard.dismiss(); setStage('category'); }}
+              onPress={() => { Keyboard.dismiss(); void continueFromName(); }}
             />
           </>
         )}
@@ -696,6 +710,7 @@ export default function PatioSmartScreen() {
 }
 
 const s = StyleSheet.create({
+  nameError: { marginTop: 8, fontSize: 13, lineHeight: 18 },
   root: { flex: 1 },
   nav: { minHeight: 58, paddingHorizontal: 16, paddingBottom: 10, flexDirection: 'row', alignItems: 'center' },
   close: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },

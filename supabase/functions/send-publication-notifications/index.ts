@@ -1,4 +1,5 @@
 import { requireUser } from '../_shared/auth.ts';
+import { canAct } from '../_shared/team.ts';
 import { corsHeaders, errorResponse, json, readJson } from '../_shared/http.ts';
 import { announcePublication } from '../_shared/publication.ts';
 
@@ -28,7 +29,7 @@ Deno.serve(async (req) => {
       .eq('id', body.fonditaId)
       .maybeSingle();
     if (fonditaError) throw fonditaError;
-    if (!fondita || !user.email_confirmed_at || fondita.owner_id !== user.id) {
+    if (!fondita || !user.email_confirmed_at || !(await canAct(admin, user.id, fondita))) {
       return json({ error: 'This Patio does not belong to the current user' }, 403);
     }
 

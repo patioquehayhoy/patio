@@ -1,4 +1,5 @@
 import { requireUser } from '../_shared/auth.ts';
+import { canAct } from '../_shared/team.ts';
 import { pushTargets, sendExpoPush } from '../_shared/expo-push.ts';
 import { corsHeaders, errorResponse, json, readJson } from '../_shared/http.ts';
 
@@ -44,8 +45,9 @@ Deno.serve(async (req) => {
         .select('user_id,negocio_id').eq('id', comment.review_id).maybeSingle();
       if (reviewError) throw reviewError;
       if (!review) return json({ delivered: 0 });
-      const { data: fondita } = await admin.from('negocios').select('nombre,owner_id').eq('id', review.negocio_id).maybeSingle();
-      const author = fondita?.owner_id === user.id ? (fondita.nombre?.trim() || 'El Patio') : await displayName(admin, user.id);
+      const { data: fondita } = await admin.from('negocios').select('id,nombre,owner_id').eq('id', review.negocio_id).maybeSingle();
+      // Quien comenta en nombre del negocio (dueño o equipo) firma con el negocio.
+      const author = fondita && await canAct(admin, user.id, fondita) ? (fondita.nombre?.trim() || 'El Patio') : await displayName(admin, user.id);
 
       let parentAuthor: string | null = null;
       if (comment.parent_id) {
@@ -77,9 +79,9 @@ Deno.serve(async (req) => {
       if (targetError) throw targetError;
       if (!target) return json({ delivered: 0 });
       const { data: fondita, error: fonditaError } = await admin.from('negocios')
-        .select('nombre,owner_id').eq('id', target.negocio_id).maybeSingle();
+        .select('id,nombre,owner_id').eq('id', target.negocio_id).maybeSingle();
       if (fonditaError) throw fonditaError;
-      if (!fondita || fondita.owner_id !== user.id) return json({ error: 'This Patio does not belong to the current user' }, 403);
+      if (!fondita || !(await canAct(admin, user.id, fondita))) return json({ error: 'This Patio does not belong to the current user' }, 403);
 
       const { data: review, error } = await admin.from('reviews')
         .update({ reply_notified_at: now })

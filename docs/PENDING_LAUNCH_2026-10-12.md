@@ -10,12 +10,13 @@
 - [ ] **Codex con Parco:** medir lecturas reales y comparar modelos con el sí
   de Parco al costo ([encargo](CODEX_ENCARGO_2026-11-23.md) §A).
 - [ ] **Codex:** tiendas y trámites (encargo §B).
-- [ ] **Parco decide:** marcas, sucursales y equipo
-  ([modelo](SUCURSALES_Y_EQUIPO_2026-11-23.md)), con cadenas ya aterrizadas.
-  - Precios de Pro 10 y Cadenas, el tope de 3 lugares, Cadena Fundadora y
-    los nombres reservados (§9).
-  - Empezar por la fase 1, Equipo: invitar por correo, autoría y Registro de
-    actividad.
+- [x] Equipo, fase 1: construida y en producción (24 nov); precios A,
+  tope de 3 lugares, Cadena Fundadora y 41 nombres reservados decididos.
+- [ ] **QA de Parco en iPhone:** Perfil → Equipo; invitar a un segundo correo,
+  entrar con él por «Publicar lo que preparo», publicar, marcar «Se acabó» y
+  revisar el Registro de actividad desde la cuenta del dueño.
+- [ ] Fase 2, Sucursales, y que el recordatorio de publicar llegue a quien
+  opera ([modelo](SUCURSALES_Y_EQUIPO_2026-11-23.md) §7 y §9).
 
 ## Corte 2026-11-22 (Codex, QA de Parco)
 

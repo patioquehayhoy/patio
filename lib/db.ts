@@ -3,6 +3,7 @@ import { supabase } from './supabase';
 import type { MenuData } from './menu-store';
 import { localMenuDate } from './menu-date';
 import { dishKey } from './dish-identity';
+import { myBusinessId } from './team';
 
 export const FONDITA_ID_KEY = '@lafondita_fondita_id';
 
@@ -22,17 +23,13 @@ export async function upsertFondita(_email: string): Promise<string | null> {
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError) throw authError;
   if (!user || user.is_anonymous) throw new Error('Inicia sesión para crear tu Patio.');
-  const { data: existing, error: readError } = await supabase
-    .from('negocios')
-    .select('id')
-    .eq('owner_id', user.id)
-    .maybeSingle();
-  // A failed read is not evidence that the business does not exist.
-  if (readError) throw readError;
+  // El suyo o el del equipo donde está; entrar con un correo invitado acepta
+  // la invitación (lib/team.ts). Una lectura fallida no prueba que no exista.
+  const existing = await myBusinessId(user.id);
 
   if (existing) {
-    await AsyncStorage.setItem(FONDITA_ID_KEY, existing.id);
-    return existing.id;
+    await AsyncStorage.setItem(FONDITA_ID_KEY, existing);
+    return existing;
   }
 
   const { data, error } = await supabase

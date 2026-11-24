@@ -1,4 +1,5 @@
 import { requireUser } from '../_shared/auth.ts';
+import { teamUserIds } from '../_shared/team.ts';
 import { pushTargets, sendExpoPush } from '../_shared/expo-push.ts';
 import { corsHeaders, errorResponse, json, readJson } from '../_shared/http.ts';
 
@@ -25,11 +26,14 @@ Deno.serve(async (req) => {
     if (!review) return json({ delivered: 0, deduplicated: true });
 
     const { data: fondita, error: fonditaError } = await admin.from('negocios')
-      .select('nombre,owner_id').eq('id', body.fonditaId).maybeSingle();
+      .select('id,nombre,owner_id').eq('id', body.fonditaId).maybeSingle();
     if (fonditaError) throw fonditaError;
-    if (!fondita?.owner_id || fondita.owner_id === user.id) return json({ delivered: 0 });
+    if (!fondita?.owner_id) return json({ delivered: 0 });
+    // Le llega al dueño y a su equipo, nunca a quien escribió la reseña.
+    const team = (await teamUserIds(admin, fondita)).filter((id) => id !== user.id);
+    if (!team.length) return json({ delivered: 0 });
 
-    const devices = await pushTargets(admin, [fondita.owner_id], 'business_activity', true);
+    const devices = await pushTargets(admin, team, 'business_activity', true);
     const delivered = await sendExpoPush(admin, devices, {
       title: 'Nueva reseña',
       body: `${'★'.repeat(review.stars)}${'☆'.repeat(5 - review.stars)} · Toca para responder.`,

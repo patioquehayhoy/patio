@@ -10,6 +10,10 @@
 - [ ] **Codex con Parco:** medir lecturas reales y comparar modelos con el sí
   de Parco al costo ([encargo](CODEX_ENCARGO_2026-11-23.md) §A).
 - [ ] **Codex:** tiendas y trámites (encargo §B).
+- [ ] **App Store: la versión 1.0.0 está «Rejected»** por la regla 2.1.0
+  (Performance: App Completeness), visto en App Store Connect el 24 nov.
+  Falta leer el mensaje de Apple (View Submission) para saber qué no
+  funcionó y responder con «Update Review».
 - [x] Equipo, fase 1: construida y en producción (24 nov); precios A,
   tope de 3 lugares, Cadena Fundadora y 41 nombres reservados decididos.
 - [ ] **QA de Parco en iPhone:** Perfil → Equipo; invitar a un segundo correo,

@@ -6,10 +6,9 @@ import { DEV_MY_PATIO_ID, getDevPublishedMenu } from '@/lib/demo';
 import { getLatestLocalMenu, getLocalMenus } from '@/lib/menu-history';
 import { loadCarta, loadMenuHoy } from '@/lib/db';
 import { localMenuDate } from '@/lib/menu-date';
-import { splitCarta } from '@/lib/menu-carta';
 import { getFonditaName, getMenuData, normalizeMenuData, type MenuData } from '@/lib/menu-store';
 import { getFonditaId } from '@/lib/user-store';
-import { publicMenuPrices, withMenuPrecios } from '@/lib/menu-prices';
+import { posterFromMenu } from '@/lib/poster-data';
 
 export function useMenuPreviewController() {
   const [menuData, setMenuData] = useState<MenuData | null>(null);
@@ -58,19 +57,7 @@ export function useMenuPreviewController() {
     }, [])
   );
 
-  // Menús guardados antes del 14 nov traen el precio en la primera sección.
-  // Un borrador del editor puede traer la carta marcada: esa manda.
-  const split = menuData ? splitCarta(menuData) : null;
-  const withPrices = split ? withMenuPrecios(split.hoy) : null;
-  const tidy = (list: MenuData['secciones']) => list
-    .map((section) => ({ ...section, platillos: section.platillos.filter((dish) => dish.nombre.trim()) }))
-    // Un encabezado con precio («MENÚ DEL DÍA $100») sale aunque no tenga platillos debajo.
-    .filter((section) => section.platillos.length || Number(section.precio.replace(/[^0-9.]/g, '')) > 0);
-  const sections = tidy(withPrices?.secciones ?? []);
-  const carta = tidy(split?.carta.secciones.length ? split.carta.secciones : savedCarta?.secciones ?? []);
-  const menuPrices = withPrices ? publicMenuPrices(withPrices) : [];
-  const priceLabel = menuPrices[0]?.price ?? null;
-  const priceName = menuPrices[0]?.label || 'Menú';
+  const { sections, carta, menuPrices, priceLabel, priceName } = posterFromMenu(menuData, savedCarta);
   const fecha = new Date().toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' }).toUpperCase();
 
   const handleBack = useCallback(() => {

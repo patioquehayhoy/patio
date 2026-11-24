@@ -23,6 +23,11 @@ function fixture(file, overrides = {}) {
       return slots[i];
     },
     useCallback: fn => fn,
+    useMemo(fn) {
+      const i = cursor++;
+      if (!(i in slots)) slots[i] = fn();
+      return slots[i];
+    },
     useEffect(fn, deps) {
       const i = cursor++;
       if (!slots[i] || deps.some((v, j) => !Object.is(v, slots[i][j]))) {
@@ -90,24 +95,32 @@ function nodes(tree) {
   return [tree, ...[tree.props?.children].flat(Infinity).flatMap(nodes)];
 }
 
-test('Crear is the full-screen camera: Fotos, shutter and «A mano» in one row, Menú and Aviso below, no bottom sheet', () => {
-  let picked = 0;
-  const controller = { choosePhoto: async () => { picked++; }, prepareCamera: async () => {}, analyzePhoto: async () => {}, analyzePages: async () => {}, state: 'idle', cameraAllowed: true, cancelRead() {} };
+test('Crear is a full screen (no bottom sheet, no camera until asked): photo first, then Fotos, a mano and notices', async () => {
   const routes = [];
-  const f = fixture('app/foto-menu.tsx', {
-    'expo-router': { router: { push: x => routes.push(x), replace: x => routes.push(x), canGoBack: () => true, back() {} }, Stack: { Screen: 'Screen' }, useLocalSearchParams: () => ({ source: 'camera' }) },
-    '@/lib/controllers/useFotoMenuController': { useFotoMenuController: () => controller, MAX_PAGES: 6 },
+  let opened = 0;
+  const f = fixture('app/crear.tsx', {
+    'expo-router': { router: { push: x => routes.push(x), replace: x => routes.push(x), canGoBack: () => true, back() { routes.push('back'); } }, Stack: { Screen: 'Screen' } },
+    'expo-image-picker': { launchImageLibraryAsync: async (options) => { opened++; assert.equal(options.allowsMultipleSelection, true); return { canceled: false, assets: [{ uri: 'file:///1.jpg', width: 1200, height: 1600 }, { uri: 'file:///2.jpg', width: 1200, height: 1600 }] }; } },
+    'react': { useState: (v) => [v, () => {}], useEffect() {}, useMemo: (fn) => fn() },
+    'react-native': { View: 'View', Text: 'Text', TouchableOpacity: 'TouchableOpacity', ScrollView: 'ScrollView', Alert: { alert() {} }, StyleSheet: { create: x => x, hairlineWidth: 0.5 } },
+    '@/components/glass-button': { GlassIconButton: 'GlassIconButton' },
+    '@/lib/controllers/useFotoMenuController': { MAX_PAGES: 6 },
+    '@/lib/controllers/useMenuHistoryController': { latestMenuSeed: () => null, loadMenuHistory: async () => [] },
+    '@/lib/fondero-palette': { fonderoPalette: () => ({}) },
   });
   const tree = nodes(f.render());
-  assert.equal(tree.some(n => n.type === 'Modal'), false, 'no bottom sheet');
-  for (const label of ['Elegir de Fotos', 'Tomar foto', 'Escribir a mano', 'Aviso a quienes te siguen']) {
+  assert.equal(tree.some(n => n.type === 'Modal' || n.type === 'CameraView'), false, 'no sheet and no live camera');
+  for (const label of ['Tomar foto del menú', 'Elegir de Fotos', 'Escribir a mano', 'Cerrar']) {
     assert.ok(tree.some(n => n.props.accessibilityLabel === label), label);
   }
-  tree.find(n => n.props.accessibilityLabel === 'Elegir de Fotos').props.onPress();
-  assert.equal(picked, 1);
+  tree.find(n => n.props.accessibilityLabel === 'Tomar foto del menú').props.onPress();
   tree.find(n => n.props.accessibilityLabel === 'Escribir a mano').props.onPress();
-  tree.find(n => n.props.accessibilityLabel === 'Aviso a quienes te siguen').props.onPress();
-  assert.deepEqual(routes, ['/menu-editar', '/avisar']);
+  await tree.find(n => n.props.accessibilityLabel === 'Elegir de Fotos').props.onPress();
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(opened, 1);
+  assert.deepEqual(routes.slice(0, 2), [{ pathname: '/foto-menu', params: { source: 'camera' } }, '/menu-editar']);
+  assert.equal(routes[2].pathname, '/foto-menu');
+  assert.equal(JSON.parse(routes[2].params.hojas).length, 2, 'several pages chosen in Fotos travel together');
 });
 
 test('A photo chosen in Nuevo menú is read directly, without reopening Photos or showing camera', () => {

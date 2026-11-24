@@ -769,12 +769,13 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
       await publishMenuNow(clean, { source, nombre: publishName, draftId, schedule });
       const cartaSaved = await saveCartaIfChanged(clean);
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-      // Cambiar el de hoy no vuelve a avisar a quienes te siguen (el servidor
-      // avisa una vez al día): solo se confirma que ya está al día. Lo
-      // programado confirma cuándo sale.
-      router.replace(schedule
-        ? { pathname: '/menu-publicado', params: { programado: schedule.publishAt, ...(live ? { actualizado: '1' } : {}) } }
-        : live ? { pathname: '/menu-publicado', params: { actualizado: '1' } } : '/menu-publicado');
+      // Publicar publica y regresa a Menús con el aviso arriba (Parco, 24 nov:
+      // antes se abría el póster con «Publicado» y se veía otra vez). Cambiar
+      // el de hoy no vuelve a avisar a quienes te siguen (el servidor avisa una
+      // vez al día): dice «Actualizado». Lo programado dice cuándo sale.
+      router.dismissTo(schedule
+        ? { pathname: '/historial', params: { publicado: 'programado', at: schedule.publishAt } }
+        : { pathname: '/historial', params: { publicado: live ? 'actualizado' : 'hoy' } });
       if (!cartaSaved) Alert.alert(noWidow('Tu menú ya está publicado'), noWidow('La carta no se guardó. Ábrela otra vez y publica cuando tengas conexión.'));
     } catch (error) {
       publishedRef.current = false;

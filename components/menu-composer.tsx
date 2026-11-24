@@ -14,6 +14,7 @@ import {
   KeyboardAvoidingView,
   LayoutAnimation,
   Linking,
+  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -30,11 +31,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { cleanMenu, emptyMenu, useFonderoMenuDraftController } from '@/lib/controllers/useFonderoMenuDraftController';
 import { splitCarta } from '@/lib/menu-carta';
 import { fonderoPalette, type FonderoColors } from '@/lib/fondero-palette';
-import { canonicalSeccion, cartaSugerencias, getFonditaHorarioSemanal, getTipoNegocio, seccionSugerencias, type MenuData, type Platillo, type Seccion } from '@/lib/menu-store';
+import { canonicalSeccion, cartaSugerencias, getFonditaHorarioSemanal, getFonditaName, getTipoNegocio, seccionSugerencias, type MenuData, type Platillo, type Seccion } from '@/lib/menu-store';
 import { nextPublishSlots, scheduledLabel } from '@/lib/publish-timing';
 import { Type, useTheme } from '@/lib/theme';
 import { ActionSheet } from '@/components/action-sheet';
 import { GlassIconButton } from '@/components/glass-button';
+import { PosterCard, posterFromMenu } from '@/components/menu-poster-card';
 import { SectionBar } from '@/components/section-bar';
 import { useBoardDrag, type BoardDragItem } from '@/components/board-drag';
 import { closeOpenSwipeRow, closeSwipeRowOnTouch, SwipeRow } from '@/components/swipe-row';
@@ -137,6 +139,10 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
   const slots = scheduleMenu ? nextPublishSlots(horario) : [];
   const schedulingOptions = slots.map((slot) => ({ label: slot.label, icon: 'time-outline' as const, accessibilityHint: 'Queda listo y sale solo a esa hora.', onPress: () => { void publish({ fecha: slot.fecha, publishAt: slot.at.toISOString() }); } }));
   const onPublishPress = () => { void publish(); };
+  // «Vista previa» (Parco, 24 nov): ver el póster antes de publicar, si
+  // quieres. «Publicar» publica de una vez; desde la vista previa, también.
+  // Es una pantalla completa encima del editor: el editor no se reinicia.
+  const [previewOpen, setPreviewOpen] = useState(false);
   // Un menú programado que se abre para cambiarlo: dice cuándo sale.
   const scheduledFor = live && initialData.localFecha && initialData.localPublishAt && Date.parse(initialData.localPublishAt) > Date.now() ? scheduledLabel(initialData.localPublishAt) : null;
   const dataRef = useRef(data);
@@ -823,9 +829,10 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
             </View>
           )}
           <View style={s.nameRow}>
+          <View collapsable={false} style={s.nameField}>
           <TextInput
             ref={registerInput(nameKey)}
-            style={[s.dishName, s.nameField]}
+            style={s.dishName}
             value={dish.nombre}
             onChangeText={(text) => changeName(section, dish, text)}
             onFocus={onFieldFocus(nameKey)}
@@ -848,9 +855,12 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
               if (direction) moveDishTo(dish.id, section.id, index + direction);
             }}
           />
+          {gesturesOn && focused !== nameKey && <TapToEdit onPress={() => focusKey(nameKey)} />}
+          </View>
           {/* Vegetariano: solo la hojita, como en la ficha. */}
           {dish.vegetariano === true && <Ionicons name="leaf-outline" size={14} color={c.textMute} style={s.nameLeaf} />}
           </View>
+          <View collapsable={false}>
           <TextInput
             ref={registerInput(`d-${dish.id}`)}
             style={s.description}
@@ -868,6 +878,8 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
             inputAccessoryViewID={Platform.OS === 'ios' ? BAR_TEXT : undefined}
             accessibilityLabel={`Descripción de ${dish.nombre || 'platillo'}`}
           />
+          {gesturesOn && focused !== `d-${dish.id}` && <TapToEdit onPress={() => focusKey(`d-${dish.id}`)} />}
+          </View>
           {dish.agotado && <Text style={s.soldOutTag} accessibilityLabel="Se acabó hoy">Se acabó</Text>}
           {askVeggie && (
             <View style={s.linkHint}>
@@ -1040,19 +1052,8 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
                   if (direction) moveSectionTo(section.id, index + direction);
                 }}
               />
-              {/* Con el teclado cerrado, el título no recibe el toque: lo recibe
-                  esta capa. Así mantener presionado mueve la sección (el texto
-                  de iOS cancelaba el arrastre: Metro, 24 nov, «el sistema
-                  canceló los toques») y un toque sigue abriendo el título. */}
-              {gesturesOn && focused !== titleKey && (
-                <Pressable
-                  style={StyleSheet.absoluteFill}
-                  onPress={() => focusKey(titleKey)}
-                  accessible={false}
-                  importantForAccessibility="no-hide-descendants"
-                  accessibilityElementsHidden
-                />
-              )}
+
+              {gesturesOn && focused !== titleKey && <TapToEdit onPress={() => focusKey(titleKey)} />}
             </View>
             {/* «MENÚ DEL DÍA $100», «GUISADOS $85», «CARTA $110». */}
             <Pressable
@@ -1172,6 +1173,12 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
               : draftSaveState === 'error' ? 'No se pudo guardar el borrador'
                 : draftSaveState === 'saving' || changed ? 'Guardando…' : draftSaveState === 'saved' ? 'Guardado' : 'Sin publicar')}
           </Text>
+          {!menuEmpty && (
+            <TouchableOpacity onPress={() => { Keyboard.dismiss(); setPreviewOpen(true); }} hitSlop={8} accessibilityRole="button" accessibilityLabel="Vista previa del menú" style={s.previewLink}>
+              <Ionicons name="eye-outline" size={16} color={c.textSecondary} />
+              <Text style={s.previewLinkText}>Vista previa</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         {data.secciones.length >= 4 && !keyboardOpen && (
@@ -1258,6 +1265,35 @@ export function MenuComposer({ initialData, source, onBack, onRetake }: Props) {
         {/* Android: la barra va arriba del teclado, dentro de la pantalla. */}
         {Platform.OS === 'android' && keyboardOpen && <View style={s.bar}>{renderBar()}</View>}
       </KeyboardAvoidingView>
+      <Modal visible={previewOpen} animationType="slide" presentationStyle="fullScreen" onRequestClose={() => setPreviewOpen(false)}>
+        {previewOpen && (() => {
+          const poster = posterFromMenu(cleanMenu(data));
+          const fecha = (initialData.localPublishAt && Date.parse(initialData.localPublishAt) > Date.now() ? new Date(initialData.localPublishAt) : new Date())
+            .toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' }).toUpperCase();
+          return (
+            <View style={[s.previewRoot, { paddingTop: insets.top }]}>
+              <View style={s.previewNav}>
+                <GlassIconButton icon="close" accessibilityLabel="Seguir editando" onPress={() => setPreviewOpen(false)} />
+                <Text style={s.previewTitle} accessibilityRole="header">Vista previa</Text>
+                <View style={{ width: 40 }} />
+              </View>
+              <ScrollView contentContainerStyle={s.previewScroll} showsVerticalScrollIndicator={false}>
+                <PosterCard fecha={fecha} businessName={getFonditaName() || 'Tu negocio'} {...poster} />
+              </ScrollView>
+              <View style={[s.previewBottom, { paddingBottom: (insets.bottom || 10) + 16 }]}>
+                <TouchableOpacity style={s.previewPublish} disabled={publishing}
+                  onPress={() => { setPreviewOpen(false); void publish(); }}
+                  accessibilityRole="button" accessibilityLabel={live ? 'Actualizar menú' : 'Publicar menú'}>
+                  <Text style={s.previewPublishText}>{live ? 'Actualizar' : 'Publicar'}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={s.previewBack} onPress={() => setPreviewOpen(false)} accessibilityRole="button" accessibilityLabel="Seguir editando">
+                  <Text style={s.previewBackText}>Seguir editando</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          );
+        })()}
+      </Modal>
       {Platform.OS === 'ios' && (
         <>
           <InputAccessoryView nativeID={BAR_TEXT}>
@@ -1332,6 +1368,23 @@ const flat = Platform.select({
 // las líneas entre platillos empiezan donde empieza el texto.
 const TEXT_INSET = 44 + 12;
 
+// Con el teclado cerrado, los campos del editor no reciben el toque: lo
+// recibe esta capa. Así mantener presionado mueve el platillo o la sección
+// (el texto de iOS tomaba el toque largo y cancelaba el arrastre: Metro,
+// 24 nov, «el sistema canceló los toques») y un toque sigue abriendo el campo.
+// Invisible para VoiceOver: el campo sigue ahí con sus acciones.
+function TapToEdit({ onPress }: { onPress: () => void }) {
+  return (
+    <Pressable
+      style={StyleSheet.absoluteFill}
+      onPress={onPress}
+      accessible={false}
+      importantForAccessibility="no-hide-descendants"
+      accessibilityElementsHidden
+    />
+  );
+}
+
 function makeStyles(c: FonderoColors) {
   return StyleSheet.create({
     root: { flex: 1, backgroundColor: c.bg },
@@ -1346,6 +1399,17 @@ function makeStyles(c: FonderoColors) {
     statusRow: { paddingHorizontal: 20, minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 12 },
     statusText: { flex: 1, fontSize: 13, lineHeight: 18, color: c.textSecondary, paddingVertical: 8 },
     statusLive: { fontWeight: '700', color: c.text },
+    previewLink: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 6 },
+    previewLinkText: { fontSize: 13, lineHeight: 18, fontWeight: '500', color: c.textSecondary },
+    previewRoot: { flex: 1, backgroundColor: c.bg },
+    previewNav: { height: 52, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+    previewTitle: { fontSize: 17, lineHeight: 22, fontWeight: '700', color: c.text },
+    previewScroll: { alignItems: 'center', paddingHorizontal: 22, paddingTop: 12, paddingBottom: 32 },
+    previewBottom: { paddingHorizontal: 22, paddingTop: 12 },
+    previewPublish: { height: 54, borderRadius: 27, borderCurve: 'continuous', backgroundColor: c.accent, alignItems: 'center', justifyContent: 'center' },
+    previewPublishText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
+    previewBack: { minHeight: 44, marginTop: 4, alignItems: 'center', justifyContent: 'center' },
+    previewBackText: { fontSize: 14, fontWeight: '500', color: c.textSecondary },
     scheduleButton: { minHeight: 36, paddingHorizontal: 12, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, borderColor: c.border, flexDirection: 'row', alignItems: 'center', gap: 5 },
     scheduleText: { fontSize: 14, fontWeight: '600', color: c.textSecondary },
     // «Publicar» / «Actualizar»: cápsula naranja, la única con color.

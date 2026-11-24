@@ -99,8 +99,8 @@ export function BottomTabBar({ variant = 'fondero', fade = true }: { variant?: '
           );
           const onTabPress = () => {
             Keyboard.dismiss();
-            // «Crear» abre la cámara a pantalla completa (menú, aviso o promo abajo), como Instagram.
-            if (path === '+') { router.push({ pathname: '/foto-menu', params: { source: 'camera' } }); return; }
+            // «Crear» abre su pantalla completa (foto del menú, Fotos, a mano, avisos).
+            if (path === '+') { router.push('/crear'); return; }
             // Reemplazar la ruta activa puede remontar la pantalla en Expo Router
             // y reiniciar scroll, búsqueda y controles locales. Un segundo toque
             // sobre el tab seleccionado conserva exactamente el estado visible.

@@ -5,7 +5,7 @@ import { RenameDialog } from '@/components/rename-dialog';
 import { useScrollEdges } from '@/lib/use-scroll-edges';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { router, Stack, useFocusEffect } from 'expo-router';
+import { router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -28,6 +28,7 @@ import { Radius, useTheme, Type } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
 import { syncPublishReminder } from '@/lib/local-reminders';
 import { localMenuDate } from '@/lib/menu-date';
+import { scheduledLabel } from '@/lib/publish-timing';
 
 // Menús es, a propósito, la misma pantalla que Guardados (app/favoritos.tsx)
 // — decisión de Alejandro 2026-08-24: "organizar tus cosas" (lugares
@@ -68,6 +69,21 @@ export default function HistorialScreen() {
     setMenuData(editorSeed(liveMenu));
     router.push('/mi-patio');
   };
+  const shareImage = (menu: PublishedMenu) => { setMenuData(editorSeed(menu)); router.push('/preview'); };
+
+  // Al publicar se vuelve aquí (Parco, 24 nov: antes se abría el póster con
+  // «Publicado» y luego se veía otra vez). El aviso se queda arriba hasta que
+  // la persona lo cierra o sale de Menús; nunca se va solo.
+  const params = useLocalSearchParams<{ publicado?: string; at?: string }>();
+  const [notice, setNotice] = useState<{ kind: 'hoy' | 'actualizado' | 'programado'; at?: string } | null>(null);
+  useEffect(() => {
+    const kind = params.publicado;
+    if (kind !== 'hoy' && kind !== 'actualizado' && kind !== 'programado') return;
+    setNotice({ kind, at: typeof params.at === 'string' ? params.at : undefined });
+    router.setParams({ publicado: undefined, at: undefined });
+  }, [params.publicado, params.at]);
+  // Al salir de Menús, el aviso ya se vio.
+  useFocusEffect(useCallback(() => () => setNotice(null), []));
   useEffect(() => {
     if (!loading) syncPublishReminder(publishedToday).catch(() => {});
   }, [loading, publishedToday]);
@@ -111,7 +127,8 @@ export default function HistorialScreen() {
     try {
       await publishMenuNow(clean, { nombre: menu.nombre, draftId: menu.published ? undefined : menu.id });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-      router.replace('/menu-publicado');
+      await refresh();
+      setNotice({ kind: 'hoy' });
     } catch {
       Alert.alert(noWidow('No se pudo publicar'), noWidow('Revisa tu conexión e inténtalo otra vez.'));
     } finally {
@@ -241,23 +258,55 @@ export default function HistorialScreen() {
       )}
       <View style={{ flex: 1 }}>
       <ScrollView refreshControl={<RefreshControl refreshing={pull.refreshing} onRefresh={pull.onRefresh} tintColor={theme.textSecondary} />} onLayout={edges.onLayout} onContentSizeChange={edges.onContentSizeChange} onScroll={(event) => { edges.onScroll?.(event); onScroll?.(event); }} onScrollBeginDrag={() => closeOpenSwipeRow()} onTouchStart={(event) => closeSwipeRowOnTouch(event.nativeEvent.pageX, event.nativeEvent.pageY)} scrollEventThrottle={16} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: selecting ? bottomActionClearance(insets.bottom, selectionBarHeight) : bottomTabClearance(insets.bottom) }} showsVerticalScrollIndicator indicatorStyle={theme.isDark ? 'white' : 'black'}>
+        {!!notice && !selecting && (
+          <View style={[s.notice, { backgroundColor: c.surface, borderColor: c.border }]} accessibilityLiveRegion="polite">
+            <View style={[s.noticeCheck, { backgroundColor: c.accent }]}><Ionicons name="checkmark" size={14} color="#FFFFFF" /></View>
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Text style={[s.noticeTitle, { color: c.text }]} accessibilityRole="header">
+                {notice.kind === 'programado' ? 'Programado' : notice.kind === 'actualizado' ? 'Actualizado' : 'Publicado'}
+              </Text>
+              <Text style={[s.noticeBody, { color: c.textSecondary }]}>
+                {noWidow(notice.kind === 'programado' && notice.at
+                  ? `Sale solo ${scheduledLabel(notice.at).replace(/^./, (first) => first.toLowerCase())}.`
+                  : notice.kind === 'actualizado' ? 'Ya se ve el cambio en tu ficha.' : 'Ya lo ven en tu ficha.')}
+              </Text>
+              {notice.kind !== 'programado' && liveMenu && (
+                <View style={s.noticeActions}>
+                  <TouchableOpacity onPress={() => shareImage(liveMenu)} accessibilityRole="button" accessibilityLabel="Compartir como imagen" hitSlop={8}>
+                    <Text style={[s.noticeAction, { color: c.accent }]}>Compartir imagen</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={viewPublished} accessibilityRole="button" accessibilityLabel="Ver en tu ficha" hitSlop={8}>
+                    <Text style={[s.noticeAction, { color: c.accent }]}>Ver en tu ficha</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+            <TouchableOpacity onPress={() => setNotice(null)} accessibilityRole="button" accessibilityLabel="Cerrar aviso" style={s.noticeClose}>
+              <Ionicons name="close" size={18} color={c.textMute} />
+            </TouchableOpacity>
+          </View>
+        )}
         {!loading && !selecting && menus.length > 0 && (
           <View style={[s.published, { borderBottomColor: c.border }]}>
+            {/* «Lo que ven hoy» (Jev 24 nov: 43 %), en negritas como etiqueta de sección. */}
             <View style={s.publishedHead}>
-              {/* «Lo que ven hoy» (Jev 24 nov: 43 %, frente a «Menú actual» 30 % y «Publicado hoy» 20 %), en negritas como etiqueta de sección. */}
               <Text style={[s.publishedLabel, { color: c.text }]} accessibilityRole="header">{liveMenu ? 'Lo que ven hoy' : 'Hoy'}</Text>
-              {liveMenu && <TouchableOpacity style={s.publishedEdit} onPress={() => reuse(liveMenu)} accessibilityRole="button" accessibilityLabel="Editar el menú publicado hoy" activeOpacity={0.7}>
-                <Text style={[s.publishedActionText, { color: c.text }]}>Editar</Text>
-              </TouchableOpacity>}
             </View>
             {liveMenu ? (
+              // Tocarlo lo abre para cambiarlo, como cualquier menú de la lista
+              // (Parco, 24 nov; Jev 53 %). Deslizar: tu ficha, la imagen y eliminar.
               <SwipeRow enabled background={[c.bg]} outerStyle={s.swipeOuter} style={s.swipeContent}
-                actions={[{ label: 'Imagen', color: c.textMute, accessibilityLabel: 'Ver imagen para compartir', onPress: () => { setMenuData(editorSeed(liveMenu)); router.push('/preview'); } }, { label: 'Eliminar', color: c.danger, accessibilityLabel: 'Eliminar el menú publicado', onPress: () => deleteMenu(liveMenu) }]}>
-              <TouchableOpacity style={s.publishedMenu} onPress={viewPublished} accessibilityRole="button" accessibilityLabel={`Ver el menú publicado hoy: ${liveMenu.nombre || defaultHistoryTitle(liveMenu)}`} activeOpacity={0.7}
-                accessibilityActions={[{ name: 'image', label: 'Ver imagen para compartir' }, { name: 'delete', label: 'Eliminar el menú publicado' }]}
+                actions={[
+                  { label: 'Ficha', color: c.textMute, accessibilityLabel: 'Ver en tu ficha', onPress: viewPublished },
+                  { label: 'Imagen', color: c.textMute, accessibilityLabel: 'Ver imagen para compartir', onPress: () => shareImage(liveMenu) },
+                  { label: 'Eliminar', color: c.danger, accessibilityLabel: 'Eliminar el menú publicado', onPress: () => deleteMenu(liveMenu) },
+                ]}>
+              <TouchableOpacity style={s.publishedMenu} onPress={() => reuse(liveMenu)} accessibilityRole="button" accessibilityLabel={`Editar el menú que ven hoy: ${liveMenu.nombre || defaultHistoryTitle(liveMenu)}`} activeOpacity={0.7}
+                accessibilityActions={[{ name: 'profile', label: 'Ver en tu ficha' }, { name: 'image', label: 'Ver imagen para compartir' }, { name: 'delete', label: 'Eliminar el menú publicado' }]}
                 onAccessibilityAction={(event) => {
                   if (event.nativeEvent.actionName === 'delete') deleteMenu(liveMenu);
-                  if (event.nativeEvent.actionName === 'image') { setMenuData(editorSeed(liveMenu)); router.push('/preview'); }
+                  if (event.nativeEvent.actionName === 'image') shareImage(liveMenu);
+                  if (event.nativeEvent.actionName === 'profile') viewPublished();
                 }}>
                 <Text style={[s.publishedName, { color: c.text }]}>{noWidow(liveMenu.nombre || defaultHistoryTitle(liveMenu))}</Text>
                 <Ionicons name="chevron-forward" size={18} color={c.textMute} />
@@ -273,7 +322,7 @@ export default function HistorialScreen() {
             </View>
             <Text style={[s.emptyTitle, { color: c.text }]}>{noWidow('Publica tu primer menú')}</Text>
             <Text style={[s.emptyBody, { color: c.textSecondary }]}>{noWidow('Toma una foto o escríbelo a mano. Tus menús quedarán aquí para volver a usarlos.')}</Text>
-            <TouchableOpacity style={[s.cta, { backgroundColor: c.accent }]} onPress={() => router.push({ pathname: '/foto-menu', params: { source: 'camera' } })} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel="Nuevo menú">
+            <TouchableOpacity style={[s.cta, { backgroundColor: c.accent }]} onPress={() => router.push('/crear')} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel="Nuevo menú">
               <Text style={s.ctaText}>{noWidow('Nuevo menú')}</Text>
             </TouchableOpacity>
           </View>
@@ -349,10 +398,16 @@ const s = StyleSheet.create({
   published: { marginTop: 8, paddingBottom: 16, borderBottomWidth: StyleSheet.hairlineWidth },
   publishedHead: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 16 },
   publishedLabel: { flex: 1, ...Type.label },
-  publishedEdit: { minWidth: 44, minHeight: 44, alignItems: 'flex-end', justifyContent: 'center' },
   publishedMenu: { minHeight: 52, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', gap: 16 },
   publishedName: { ...Type.headline, flex: 1, minWidth: 0 },
   publishedActionText: { fontSize: 15, fontWeight: '600' },
+  notice: { marginTop: 8, flexDirection: 'row', alignItems: 'flex-start', gap: 12, padding: 16, borderRadius: 18, borderCurve: 'continuous', borderWidth: StyleSheet.hairlineWidth },
+  noticeCheck: { width: 24, height: 24, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginTop: 1 },
+  noticeTitle: { fontSize: 16, lineHeight: 22, fontWeight: '700' },
+  noticeBody: { marginTop: 2, fontSize: 14, lineHeight: 20 },
+  noticeActions: { flexDirection: 'row', flexWrap: 'wrap', columnGap: 20, rowGap: 8, marginTop: 10 },
+  noticeAction: { fontSize: 15, fontWeight: '600' },
+  noticeClose: { width: 32, height: 32, marginTop: -6, marginRight: -8, alignItems: 'center', justifyContent: 'center' },
   headerRow: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end' },
   streakPill: { minHeight: 40, borderRadius: 20, borderCurve: 'continuous', borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 12 },
   streakText: { fontSize: 13, fontWeight: '700' },

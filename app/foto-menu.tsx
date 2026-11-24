@@ -1,16 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import { CameraView } from 'expo-camera';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Image, InteractionManager, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AgentSpinner } from '@/components/agent-spinner';
 import { MenuComposer } from '@/components/menu-composer';
-import { getProStatus } from '@/lib/business-pro';
 import { MAX_PAGES, useFotoMenuController } from '@/lib/controllers/useFotoMenuController';
-import { getFonditaId } from '@/lib/menu-store';
 import { fonderoPalette } from '@/lib/fondero-palette';
 import { Type, useTheme, type Theme } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
@@ -19,7 +17,14 @@ import { noWidow } from '@/lib/typography';
 // Patio controla jerarquía, encuadre y acciones. No agrega filtros ni edición
 // cosmética: el objetivo es obtener un menú legible con la menor fricción.
 export default function FotoMenuScreen() {
-  const { source, uri, width, height } = useLocalSearchParams<{ source?: string; uri?: string; width?: string; height?: string }>();
+  const { source, uri, width, height, hojas } = useLocalSearchParams<{ source?: string; uri?: string; width?: string; height?: string; hojas?: string }>();
+  // Hojas ya elegidas en Crear (Fotos, en orden): se leen juntas al entrar.
+  const chosen = useMemo(() => {
+    try {
+      const list = typeof hojas === 'string' ? JSON.parse(hojas) as { uri?: unknown; width?: unknown; height?: unknown }[] : [];
+      return Array.isArray(list) ? list.filter((page) => typeof page.uri === 'string').map((page) => ({ uri: page.uri as string, width: Number(page.width) || undefined, height: Number(page.height) || undefined })) : [];
+    } catch { return []; }
+  }, [hojas]);
   // Cámara solo con elección explícita: cualquier otra entrada abre Fotos.
   const fromLibrary = source !== 'camera';
   const { theme } = useTheme();
@@ -45,15 +50,6 @@ export default function FotoMenuScreen() {
   // Hojas tomadas: una fonda toma una (su pizarrón); un restaurante, su carta
   // completa. «Leer» las manda juntas, como el escáner de Notas.
   const [pages, setPages] = useState<{ uri: string; width?: number; height?: number }[]>([]);
-  // «Aviso especial» solo con Pro (dice cuántos quedan).
-  const [promoLeft, setPromoLeft] = useState<number | null>(null);
-  useEffect(() => {
-    const id = getFonditaId();
-    if (!id) return;
-    let active = true;
-    getProStatus(id).then((status) => { if (active) setPromoLeft(status?.proUntil ? status.noticesLeft : null); }).catch(() => {});
-    return () => { active = false; };
-  }, []);
   const exit = () => { if (router.canGoBack()) router.back(); else router.replace('/historial'); };
   // expo-camera no trae pellizco propio. `zoom` es 0–1 del rango del equipo;
   // en iOS crece de forma exponencial, por eso el pellizco suma log2(escala).
@@ -81,6 +77,7 @@ export default function FotoMenuScreen() {
     if (launched.current) return;
     if (!fromLibrary) { launched.current = true; void prepareCamera(); return; }
     // La foto ya se eligió en Nuevo menú: leerla sin volver a abrir Fotos.
+    if (chosen.length) { launched.current = true; void analyzePages(chosen); return; }
     if (uri) { launched.current = true; void analyzePhoto(uri, Number(width) || undefined, Number(height) || undefined); return; }
     // iOS no presenta Fotos mientras la transición de entrada sigue activa.
     const task = InteractionManager.runAfterInteractions(() => {
@@ -89,7 +86,7 @@ export default function FotoMenuScreen() {
       void choosePhoto();
     });
     return () => task.cancel();
-  }, [analyzePhoto, choosePhoto, fromLibrary, height, prepareCamera, uri, width]);
+  }, [analyzePages, analyzePhoto, choosePhoto, chosen, fromLibrary, height, prepareCamera, uri, width]);
 
   useEffect(() => () => { if (zoomFrame.current !== null) cancelAnimationFrame(zoomFrame.current); }, []);
 
@@ -138,7 +135,7 @@ export default function FotoMenuScreen() {
   }
 
   // Con foto ya elegida, la pantalla entra directo a la lectura.
-  if (state === 'processing' || (uri && !launched.current)) {
+  if (state === 'processing' || ((uri || chosen.length) && !launched.current)) {
     return (
       <SafeAreaView style={[s.root, s.center]}>
         <Stack.Screen options={{ headerShown: false }} />
@@ -234,9 +231,9 @@ export default function FotoMenuScreen() {
           )}
         </View>
 
-        {/* Crear, como la cámara de Instagram: en el centro, tomar la foto; a la
-            izquierda, Fotos; a la derecha, escribir a mano o «Leer» cuando ya
-            hay hojas. Abajo, qué se crea: menú o aviso. Sin hoja de abajo. */}
+        {/* En el centro, tomar la foto; a la izquierda, Fotos; a la derecha,
+            «Leer» cuando ya hay hojas (como el escáner de Notas). Escribir a
+            mano y los avisos viven en Crear, un paso antes. */}
         <View style={s.cameraBottom}>
           <TouchableOpacity style={s.sideControl} onPress={() => { void choosePhoto(); }} accessibilityRole="button" accessibilityLabel="Elegir de Fotos">
             <View style={s.sideIcon}><Ionicons name="images-outline" size={22} color="#fff" /></View>
@@ -255,23 +252,7 @@ export default function FotoMenuScreen() {
             <TouchableOpacity style={s.readButton} onPress={read} accessibilityRole="button" accessibilityLabel={pages.length === 1 ? 'Leer la hoja' : `Leer ${pages.length} hojas`}>
               <Text style={s.readText} maxFontSizeMultiplier={1.2}>{pages.length === 1 ? 'Leer' : `Leer ${pages.length}`}</Text>
             </TouchableOpacity>
-          ) : (
-            <TouchableOpacity style={s.sideControl} onPress={() => router.replace('/menu-editar')} accessibilityRole="button" accessibilityLabel="Escribir a mano">
-              <View style={s.sideIcon}><Ionicons name="create-outline" size={22} color="#fff" /></View>
-              <Text style={s.sideText} maxFontSizeMultiplier={1.2}>A mano</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-        <View style={s.modes} accessibilityRole="tablist">
-          <Text style={[s.mode, s.modeOn]} accessibilityRole="tab" accessibilityState={{ selected: true }}>Menú</Text>
-          <TouchableOpacity onPress={() => router.replace('/avisar')} accessibilityRole="tab" accessibilityState={{ selected: false }} accessibilityLabel="Aviso a quienes te siguen" hitSlop={10}>
-            <Text style={s.mode}>Aviso</Text>
-          </TouchableOpacity>
-          {promoLeft !== null && (
-            <TouchableOpacity onPress={() => router.replace('/aviso-especial')} accessibilityRole="tab" accessibilityState={{ selected: false }} accessibilityLabel={`Aviso especial, te quedan ${promoLeft}`} hitSlop={10}>
-              <Text style={s.mode}>Promo</Text>
-            </TouchableOpacity>
-          )}
+          ) : <View style={s.sideControl} />}
         </View>
       </SafeAreaView>
     </View>
@@ -303,7 +284,7 @@ function makeStyles(theme: Theme) {
     cornerTR: { top: 0, right: 0, borderTopWidth: 2, borderRightWidth: 2, borderTopRightRadius: 8 },
     cornerBL: { bottom: 0, left: 0, borderBottomWidth: 2, borderLeftWidth: 2, borderBottomLeftRadius: 8 },
     cornerBR: { bottom: 0, right: 0, borderBottomWidth: 2, borderRightWidth: 2, borderBottomRightRadius: 8 },
-    cameraBottom: { minHeight: 96, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 8 },
+    cameraBottom: { minHeight: 112, paddingBottom: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 8 },
     sideControl: { width: 76, minHeight: 64, alignItems: 'center', justifyContent: 'center', gap: 4 },
     sideIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(0,0,0,0.42)', alignItems: 'center', justifyContent: 'center' },
     sideText: { fontSize: 12, lineHeight: 16, fontWeight: '500', color: '#fff' },
@@ -312,9 +293,6 @@ function makeStyles(theme: Theme) {
     pagesRow: { minHeight: 60, flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 8 },
     pageThumb: { width: 42, height: 56, borderRadius: 6, borderWidth: 1.5, borderColor: '#fff' },
     pagesHint: { flexShrink: 1, fontSize: 13, lineHeight: 18, color: '#fff' },
-    modes: { flexDirection: 'row', justifyContent: 'center', gap: 28, paddingTop: 6, paddingBottom: 10 },
-    mode: { fontSize: 13, lineHeight: 18, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase', color: 'rgba(255,255,255,0.6)' },
-    modeOn: { color: '#fff' },
     shutterOuter: { width: 76, height: 76, borderRadius: 38, borderWidth: 3, borderColor: '#fff', alignItems: 'center', justifyContent: 'center' },
     shutterInner: { width: 62, height: 62, borderRadius: 31, backgroundColor: '#fff' },
     shutterOff: { opacity: 0.4 },

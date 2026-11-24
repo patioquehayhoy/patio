@@ -364,16 +364,20 @@ Auditoría y casos pendientes: `docs/QA_Y_FLUJOS_2026-11-22.md`.
   fechas ni menús anteriores (`fetchPublicMenus` lee solo `fecha = hoy`). La
   fecha solo va en el póster que el negocio comparte.
 
-## «Crear» del negocio (foto-menu.tsx, 2026-11-24)
+## «Crear» y publicar (crear.tsx, 2026-11-24, segunda vuelta)
 
-- Sin hoja de abajo (Parco: «es lo que está arruinando la app»). El «＋» abre
-  la cámara a pantalla completa, como Instagram: a la izquierda Fotos, al
-  centro tomar foto, a la derecha «A mano»; abajo, MENÚ · AVISO · PROMO
-  (Promo solo con Pro). `new-menu-sheet.tsx` se borró.
-- Varias hojas, como el escáner de Notas: cada foto queda en una tira; «Leer»
-  (naranja, la acción de la pantalla) las manda juntas. Tocar una hoja la
-  quita. Fotos deja elegir varias en orden. Hasta 6 hojas; cada hoja es una
-  lectura de la cuota (Gratis 3 al día, Pro 30).
+- Sin hoja de abajo y sin cámara de golpe (Parco). «＋» abre `app/crear.tsx`
+  a pantalla completa: foto del menú (grande), Fotos (varias hojas), a mano,
+  «Partir del último menú» y avisos. La cámara se pide al tocar la foto.
+- Cámara: Fotos, tomar foto y «Leer» con las hojas tomadas (hasta 6).
+- «Publicar» publica de una vez y regresa a Menús (`router.dismissTo`) con el
+  aviso arriba; nunca una pantalla «Publicado» aparte. «Vista previa» es un
+  `Modal` encima del editor (no una ruta: `menu-editar` se reinicia al
+  recuperar foco). El póster vive en `components/menu-poster-card.tsx`.
+- Menús: tocar «Lo que ven hoy» lo edita; deslizar: Ficha, Imagen, Eliminar.
+- `TapToEdit`: con el teclado cerrado, título, platillo y descripción reciben
+  el toque en una capa; el toque largo mueve. No quitarla.
+- Decisión, datos y fuentes: `docs/CREAR_Y_PUBLICAR_2026-11-24.md`.
 
 ## Fotos de platillos (2026-11-15)
 

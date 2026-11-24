@@ -1,7 +1,7 @@
 import { router, Stack } from 'expo-router';
 import * as Sharing from 'expo-sharing';
-import { useEffect, useRef, useState } from 'react';
-import { Animated, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useRef, useState } from 'react';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { captureRef } from 'react-native-view-shot';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -10,42 +10,21 @@ import { useMenuPreviewController } from '@/lib/controllers/useMenuPreviewContro
 import { useTheme, Type } from '@/lib/theme';
 import { fonderoPalette, type FonderoColors } from '@/lib/fondero-palette';
 import { GlassIconButton } from '@/components/glass-button';
-import { scheduledLabel } from '@/lib/publish-timing';
+import { PosterCard } from '@/components/menu-poster-card';
 import { noWidow } from '@/lib/typography';
-import { isCartaName } from '@/lib/menu-carta';
 
-// Vista canónica del menú publicado. Vive dentro de Patio y siempre conserva la
-// misma identidad; compartir distribuye un enlace a esta publicación.
-const LIGHT = { bg: '#F8F8F5', card: '#FFFFFF', ink: '#111214', inkSoft: '#4A4A47', mute: '#8A8A85', sep: 'rgba(17,18,20,0.06)', accent: '#F2612F' };
-
+// El póster del menú publicado, para compartirlo como imagen (WhatsApp,
+// estados). Se llega desde «Compartir imagen» al publicar y desde «Imagen» al
+// deslizar un menú en Menús. Publicar ya no abre esta pantalla: el aviso de
+// «Publicado» vive en Menús (Parco, 24 nov).
 export default function PreviewScreen() {
-  return <MenuPoster />;
-}
-
-// Recién publicado: la misma pantalla del póster con la confirmación arriba.
-// Un solo paso: ves lo que publicaste, lo compartes, y «Editar» queda junto
-// al menú que estás viendo.
-// `updated`: se cambió el menú que ya estaba publicado hoy («Actualizado»).
-// `scheduledAt`: quedó listo para otro día y sale solo a esa hora («Programado»).
-export function MenuPoster({ justPublished = false, updated = false, scheduledAt }: { justPublished?: boolean; updated?: boolean; scheduledAt?: string }) {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
   const c = fonderoPalette(theme.isDark);
   const s = makeStyles(c);
-  const { businessName, fecha: today, handleBack, handleOpenProfile, handleShare, menuPrices, patioId, priceLabel, priceName, sections, carta, refreshing } = useMenuPreviewController();
-  // El póster lleva el día en que sale el menú.
-  const fecha = scheduledAt
-    ? new Date(scheduledAt).toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' }).toUpperCase()
-    : today;
-  const publishedTitle = scheduledAt ? 'Programado' : updated ? 'Actualizado' : 'Publicado';
+  const { businessName, fecha, handleBack, handleOpenProfile, handleShare, menuPrices, patioId, priceLabel, priceName, sections, carta, refreshing } = useMenuPreviewController();
   const posterRef = useRef<View>(null);
   const [sharing, setSharing] = useState(false);
-  const checkScale = useRef(new Animated.Value(justPublished ? 0.6 : 1)).current;
-  useEffect(() => {
-    if (!justPublished) return;
-    Animated.spring(checkScale, { toValue: 1, useNativeDriver: true, stiffness: 360, damping: 22, mass: 0.8 }).start();
-  }, [checkScale, justPublished]);
-  const editMenu = () => router.replace({ pathname: '/menu-editar', params: { reuse: '1' } });
 
   const sharePoster = async () => {
     if (sharing || refreshing || !posterRef.current) return;
@@ -74,8 +53,8 @@ export function MenuPoster({ justPublished = false, updated = false, scheduledAt
           <Ionicons name="document-text-outline" size={32} color={c.accent} />
         </View>
         <Text style={s.emptyTitle}>{noWidow('Primero publica lo de hoy')}</Text>
-        <Text style={s.emptyBody}>{noWidow('Cuando tu menú esté listo, aquí aparecerá publicado.')}</Text>
-        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Crear menú" style={s.emptyButton} onPress={() => router.replace({ pathname: '/foto-menu', params: { source: 'camera' } })} activeOpacity={0.85}>
+        <Text style={s.emptyBody}>{noWidow('Cuando tu menú esté listo, aquí aparecerá para compartirlo.')}</Text>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Crear menú" style={s.emptyButton} onPress={() => router.replace('/crear')} activeOpacity={0.85}>
           <Text style={s.emptyButtonText}>{noWidow('Crear menú')}</Text>
         </TouchableOpacity>
       </View>
@@ -85,122 +64,14 @@ export function MenuPoster({ justPublished = false, updated = false, scheduledAt
   return (
     <View style={s.root}>
       <Stack.Screen options={{ headerShown: false }} />
-
-      {/* Top bar */}
       <View style={[s.top, { top: insets.top + 6 }]}>
         <GlassIconButton icon="chevron-back" accessibilityLabel="Volver" onPress={handleBack} />
-        {justPublished ? (
-          <View style={s.publishedTitle} accessibilityRole="header" accessibilityLabel={scheduledAt ? `Menú programado: sale ${scheduledLabel(scheduledAt).toLowerCase()}` : updated ? 'Menú actualizado' : 'Menú publicado'}>
-            <Animated.View style={[s.publishedCheck, { transform: [{ scale: checkScale }] }]}>
-              <Ionicons name="checkmark" size={13} color="#FFFFFF" />
-            </Animated.View>
-            <Text style={s.topTitle} allowFontScaling={true}>{publishedTitle}</Text>
-          </View>
-        ) : <Text style={s.topTitle} allowFontScaling={true}>Póster</Text>}
-        {justPublished ? (
-          <TouchableOpacity style={s.editButton} onPress={editMenu} activeOpacity={0.7} accessibilityRole="button" accessibilityLabel="Editar menú">
-            <Text style={s.editText} allowFontScaling={true}>Editar</Text>
-          </TouchableOpacity>
-        ) : <View style={s.navBtn} />}
+        <Text style={s.topTitle} allowFontScaling={true}>Póster</Text>
+        <View style={s.navBtn} />
       </View>
 
-      {/* Póster editorial, scrolleable si el menú real es largo. */}
       <ScrollView contentContainerStyle={[s.posterWrap, { paddingTop: insets.top + 74, paddingBottom: insets.bottom + 132 }]} showsVerticalScrollIndicator={false}>
-        {!!scheduledAt && (
-          <Text style={s.scheduledNote} allowFontScaling={true}>
-            {noWidow(`Sale solo ${scheduledLabel(scheduledAt).replace(/^./, (first) => first.toLowerCase())}. A esa hora se enteran quienes te siguen.`)}
-          </Text>
-        )}
-        <View ref={posterRef} collapsable={false} style={s.poster}>
-          {/* Header editorial: identidad primero. El precio único es un dato
-              secundario y nunca compite con el nombre o los platillos. */}
-          <View style={s.posterHead}>
-            <View style={s.posterHeadLeft}>
-              <Text style={s.posterDate} allowFontScaling={true}>{fecha}</Text>
-              <Text style={s.posterName} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.6} allowFontScaling={true}>{businessName}</Text>
-            </View>
-            {/* Precio del menú completo (comida corrida): a la derecha, como
-                en la pizarra de la fonda — visible, un paso abajo del nombre. */}
-            {!!priceLabel && (
-              <View style={s.posterPrice} accessible accessibilityLabel={`${priceName}, ${priceLabel}`}>
-                <Text style={s.posterPriceLabel} allowFontScaling={true}>{priceName.toLocaleUpperCase('es-MX')}</Text>
-                <Text style={s.posterPriceValue} allowFontScaling={true}>{priceLabel}</Text>
-              </View>
-            )}
-          </View>
-
-          {/* Card de menú: las secciones hablan solas, sin label redundante. */}
-          <View style={s.menuCard}>
-            {/* Con varios precios del menú, la lista completa va primero; el
-                de arriba a la derecha es el principal. */}
-            {menuPrices.length > 1 && (
-              <View>
-                <Text style={s.menuSectionTitle}>PRECIOS</Text>
-                {menuPrices.map((item, index) => (
-                  <View key={`${index}-${item.label}`} style={s.menuRow}>
-                    <Text style={[s.menuRowName, { flex: 1 }]} allowFontScaling={true}>{noWidow(item.label || 'Menú')}</Text>
-                    <Text style={s.menuRowPrice} allowFontScaling={true}>{item.price}</Text>
-                  </View>
-                ))}
-              </View>
-            )}
-            {sections.map((section, sectionIndex) => (
-              <View key={section.id} style={(sectionIndex > 0 || menuPrices.length > 1) && s.menuSection}>
-                <View style={s.menuSectionHead}>
-                  <Text style={[s.menuSectionTitle, { flex: 1 }]}>{section.nombre}</Text>
-                  {!!section.precio.trim() && <Text style={s.menuSectionTitle}>${section.precio.trim()}</Text>}
-                </View>
-                {section.platillos.map((dish) => (
-                  <View key={dish.id} style={s.menuRow}>
-                    <View style={{ flex: 1 }}>
-                      <Text style={[s.menuRowName, dish.agotado && s.unavailableName]} allowFontScaling={true}>{dish.nombre}</Text>
-                      {dish.descripcion ? <Text style={s.menuRowDescription}>{noWidow(dish.descripcion)}</Text> : null}
-                    </View>
-                    {dish.agotado ? <Text style={s.unavailableLabel}>{noWidow('Se acabó')}</Text> : dish.precio ? <Text style={s.menuRowPrice} allowFontScaling={true}>${dish.precio}</Text> : null}
-                  </View>
-                ))}
-              </View>
-            ))}
-            {/* La carta, debajo de lo de hoy, como en el pizarrón: «CARTA
-                $110» en su encabezado; solo las excepciones llevan precio. */}
-            {carta.map((section, sectionIndex) => {
-              const first = sectionIndex === 0;
-              const merged = first && isCartaName(section.nombre);
-              const price = section.precio.trim() ? `$${section.precio.trim()}` : '';
-              return (
-                <View key={`carta-${section.id}`} style={[s.menuSection, first && s.cartaStart]}>
-                  {first && (
-                    <View style={s.menuSectionHead}>
-                      <Text style={[s.menuSectionTitle, { flex: 1 }]}>LA CARTA</Text>
-                      {merged && !!price && <Text style={s.menuSectionTitle}>{price}</Text>}
-                    </View>
-                  )}
-                  {!merged && (
-                    <View style={s.menuSectionHead}>
-                      <Text style={[s.menuSectionTitle, { flex: 1 }]}>{section.nombre}</Text>
-                      {!!price && <Text style={s.menuSectionTitle}>{price}</Text>}
-                    </View>
-                  )}
-                  {section.platillos.map((dish) => (
-                    <View key={dish.id} style={s.menuRow}>
-                      <View style={{ flex: 1 }}>
-                        <Text style={s.menuRowName} allowFontScaling={true}>{dish.nombre}</Text>
-                        {dish.descripcion ? <Text style={s.menuRowDescription}>{noWidow(dish.descripcion)}</Text> : null}
-                      </View>
-                      {dish.precio ? <Text style={s.menuRowPrice} allowFontScaling={true}>${dish.precio}</Text> : null}
-                    </View>
-                  ))}
-                </View>
-              );
-            })}
-          </View>
-
-          {/* Firma de marca: minimalista — una línea sutil en light, nada más. */}
-          <View style={s.posterFoot}>
-            <View style={s.footRule} />
-            <Text style={s.posterSign} allowFontScaling={true}>{noWidow('¿Qué hay hoy? Saaaaaaabes.')}</Text>
-          </View>
-        </View>
+        <PosterCard ref={posterRef} fecha={fecha} businessName={businessName} priceLabel={priceLabel} priceName={priceName} menuPrices={menuPrices} sections={sections} carta={carta} />
       </ScrollView>
 
       {/* El póster es un objeto compartible real: la acción principal genera
@@ -217,24 +88,16 @@ export function MenuPoster({ justPublished = false, updated = false, scheduledAt
           <Ionicons name="share-outline" size={18} color="#FFFFFF" />
           <Text style={s.ctaText} allowFontScaling={true}>{refreshing ? 'Actualizando…' : sharing ? 'Preparando…' : 'Compartir como imagen'}</Text>
         </TouchableOpacity>
-        {justPublished ? (
-          // Después de publicar, «Listo» lleva a tu ficha: ahí ves lo que la
-          // gente ya está viendo.
-          <TouchableOpacity style={s.shareLink} onPress={() => router.replace('/mi-patio')} activeOpacity={0.7} accessibilityRole="button" accessibilityLabel="Listo, ver mi ficha">
-            <Text style={[s.shareLinkText, { color: c.textSecondary }]} allowFontScaling={true}>Listo</Text>
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity
-            style={s.shareLink}
-            onPress={handleOpenProfile}
-            disabled={!patioId}
-            activeOpacity={0.7}
-            accessibilityRole="button"
-            accessibilityLabel="Ver en mi perfil"
-            accessibilityState={{ disabled: !patioId }}>
-            <Text style={[s.shareLinkText, { color: c.textSecondary }]} allowFontScaling={true}>{noWidow('Ver en mi perfil')}</Text>
-          </TouchableOpacity>
-        )}
+        <TouchableOpacity
+          style={s.shareLink}
+          onPress={handleOpenProfile}
+          disabled={!patioId}
+          activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityLabel="Ver en mi perfil"
+          accessibilityState={{ disabled: !patioId }}>
+          <Text style={[s.shareLinkText, { color: c.textSecondary }]} allowFontScaling={true}>{noWidow('Ver en mi perfil')}</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -254,42 +117,8 @@ function makeStyles(c: FonderoColors) {
   // solo existe para centrar el título.
   navBtn: { width: 44, height: 44 },
   topTitle: { fontSize: 17, fontWeight: '700', color: c.text, lineHeight: 22 },
-  scheduledNote: { marginBottom: 16, fontSize: 15, lineHeight: 21, fontWeight: '400', color: c.textSecondary, textAlign: 'center' },
-  publishedTitle: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  publishedCheck: { width: 20, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: c.accent },
-  editButton: { minWidth: 44, minHeight: 44, alignItems: 'flex-end', justifyContent: 'center' },
-  editText: { fontSize: 16, fontWeight: '700', color: c.accent },
 
   posterWrap: { alignItems: 'center', paddingHorizontal: 22 },
-  poster: { width: 330, borderRadius: 26, borderCurve: 'continuous', backgroundColor: LIGHT.bg, overflow: 'hidden', shadowColor: '#000', shadowOffset: { width: 0, height: 24 }, shadowOpacity: 0.24, shadowRadius: 34, elevation: 12 },
-  posterHead: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, paddingHorizontal: 22, paddingTop: 26, paddingBottom: 18 },
-  posterHeadLeft: { flex: 1 },
-  posterPrice: { alignItems: 'flex-end' },
-  menuSectionHead: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
-  posterPriceLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, color: LIGHT.inkSoft, marginBottom: 7 },
-  posterPriceValue: { ...Type.section, color: LIGHT.ink, fontVariant: ['tabular-nums'] },
-  posterDate: { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase', color: LIGHT.accent, marginBottom: 7 },
-  posterName: { ...Type.screen, color: LIGHT.ink },
-
-  // Densidad editorial (regla HIG): nombre+descripción son una unidad óptica
-  // (1px de separación), filas a 5px, secciones a 10px — el aire vive ENTRE
-  // grupos, nunca dentro de ellos.
-  menuCard: { marginHorizontal: 18, padding: 18, borderRadius: 18, borderCurve: 'continuous', backgroundColor: LIGHT.card, borderWidth: StyleSheet.hairlineWidth, borderColor: LIGHT.sep },
-  menuSection: { marginTop: 10 },
-  // La carta se separa de lo de hoy con una línea, como en la ficha.
-  cartaStart: { marginTop: 14, paddingTop: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: LIGHT.sep },
-  menuSectionTitle: { marginBottom: 2, fontSize: 11, fontWeight: '700', letterSpacing: 0.8, color: LIGHT.accent, textTransform: 'uppercase', lineHeight: 14 },
-  menuRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', paddingVertical: 5, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: LIGHT.sep },
-  menuRowName: { fontSize: 14, lineHeight: 18, fontWeight: '500', color: LIGHT.ink, marginRight: 10 },
-  menuRowDescription: { marginTop: 1, fontSize: 12, lineHeight: 16, color: LIGHT.inkSoft },
-  menuRowPrice: { fontSize: 13, fontWeight: '400', color: LIGHT.inkSoft },
-  unavailableName: { color: LIGHT.inkSoft, textDecorationLine: 'line-through' },
-  unavailableLabel: { fontSize: 13, lineHeight: 18, fontWeight: '500', color: LIGHT.inkSoft },
-
-  posterFoot: { paddingHorizontal: 22, paddingTop: 16, paddingBottom: 18 },
-  footRule: { height: StyleSheet.hairlineWidth, backgroundColor: LIGHT.sep, marginBottom: 12 },
-  posterSign: { textAlign: 'center', fontSize: 11, fontWeight: '400', letterSpacing: 0.4, color: LIGHT.mute },
-
   ctaWrap: { paddingHorizontal: 22, paddingTop: 12 },
   cta: { height: 54, borderRadius: 27, borderCurve: 'continuous', backgroundColor: c.accent, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   ctaText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },

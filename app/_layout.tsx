@@ -128,6 +128,8 @@ function RootStack() {
         <Stack.Screen name="vistos" options={{ headerShown: false }} />
         <Stack.Screen name="onboarding" options={{ headerShown: false }} />
         <Stack.Screen name="login-callback" options={{ headerShown: false }} />
+        {/* «Crear» ocupa toda la pantalla (Parco, 24 nov): sin hoja que sube desde abajo. */}
+        <Stack.Screen name="crear" options={{ headerShown: false, presentation: 'fullScreenModal', animation: 'slide_from_bottom' }} />
         <Stack.Screen name="foto-menu" options={{ headerShown: false }} />
         <Stack.Screen name="menu-editar" options={{ headerShown: false }} />
         <Stack.Screen name="menu-publicado" options={{ headerShown: false }} />

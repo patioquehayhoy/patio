@@ -5,7 +5,7 @@ export class AIServiceError extends Error {
 /** Surface only expected actionable service errors, never internal details. */
 export async function aiFunctionError(error: unknown, fallback: string): Promise<AIServiceError> {
   const context = error && typeof error === 'object' && 'context' in error ? error.context : null;
-  if (context instanceof Response && [401, 429, 503].includes(context.status)) {
+  if (context instanceof Response && [400, 401, 429, 503].includes(context.status)) {
     try {
       const body = await context.clone().json();
       if (typeof body.error === 'string' && body.error.trim()) return new AIServiceError(body.error.slice(0, 240), context.status);

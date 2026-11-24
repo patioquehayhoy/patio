@@ -24,6 +24,9 @@ type FotoMenuHandlers = {
   onManual?: () => void;
 };
 
+/** Hojas por lectura: una carta larga de restaurante cabe en una sola vez. */
+export const MAX_PAGES = 6;
+
 function visionSize(width?: number, height?: number): { width: number; height: number } | null {
   if (!width || !height || width <= 0 || height <= 0) return null;
   const maxEdge = 1568;
@@ -135,7 +138,8 @@ export function useFotoMenuController(handlers?: FotoMenuHandlers) {
     return () => { mountedRef.current = false; requestRef.current += 1; readAbort.current?.abort(); };
   }, []);
 
-  const analyze = useCallback(async (uri: string, width?: number, height?: number) => {
+  // Una o varias hojas del mismo menú (una carta de cuatro hojas se lee junta).
+  const analyzePages = useCallback(async (pages: { uri: string; width?: number; height?: number }[]) => {
     if (!mountedRef.current) return;
     const request = ++requestRef.current;
     readAbort.current?.abort();
@@ -149,15 +153,17 @@ export function useFotoMenuController(handlers?: FotoMenuHandlers) {
       // Preparamos exactamente una imagen que cabe en los límites visuales del
       // modelo. Así las coordenadas y el texto no cambian por un segundo resize
       // silencioso dentro del proveedor.
-      const target = visionSize(width, height);
-      const normalized = await ImageManipulator.manipulateAsync(
-        uri,
-        target ? [{ resize: target }] : [{ resize: { width: 1568 } }],
-        { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG }
-      );
+      const normalized = await Promise.all(pages.map(({ uri, width, height }) => {
+        const target = visionSize(width, height);
+        return ImageManipulator.manipulateAsync(
+          uri,
+          target ? [{ resize: target }] : [{ resize: { width: 1568 } }],
+          { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG }
+        );
+      }));
       if (request !== requestRef.current) return;
-      if (__DEV__) console.info('[foto-menu] preparar imagen ms:', Date.now() - started);
-      const result = await leerMenuDeFoto(normalized.uri, abort.signal);
+      if (__DEV__) console.info('[foto-menu] preparar imagen ms:', Date.now() - started, 'hojas:', pages.length);
+      const result = await leerMenuDeFoto(normalized.map((page) => page.uri), abort.signal);
       if (request !== requestRef.current) return;
       const hasDishes = result.secciones.some((section) => section.platillos.some((dish) => dish.nombre.trim()));
       if (result.error || !hasDishes) throw new Error(result.error || 'sin platillos');
@@ -183,6 +189,7 @@ export function useFotoMenuController(handlers?: FotoMenuHandlers) {
       ]);
     }
   }, []);
+  const analyze = useCallback((uri: string, width?: number, height?: number) => analyzePages([{ uri, width, height }]), [analyzePages]);
 
   const prepareCamera = useCallback(async (): Promise<boolean> => {
     const request = requestRef.current;
@@ -218,11 +225,12 @@ export function useFotoMenuController(handlers?: FotoMenuHandlers) {
     pickerOpenRef.current = true;
     const request = requestRef.current;
     try {
-      // El selector nativo da acceso solo a la imagen elegida.
-      const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.85 });
+      // El selector nativo da acceso solo a las imágenes elegidas. Varias, en
+      // orden, son las hojas de un mismo menú (una carta de cuatro hojas).
+      const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.85, allowsMultipleSelection: true, selectionLimit: MAX_PAGES, orderedSelection: true });
       if (!mountedRef.current || request !== requestRef.current) return;
-      const asset = !result.canceled ? result.assets?.[0] : null;
-      if (asset) await analyze(asset.uri, asset.width, asset.height);
+      const assets = !result.canceled ? result.assets ?? [] : [];
+      if (assets.length) await analyzePages(assets.slice(0, MAX_PAGES).map((asset) => ({ uri: asset.uri, width: asset.width, height: asset.height })));
       else handlersRef.current?.onExit?.();
     } catch {
       if (!mountedRef.current || request !== requestRef.current) return;
@@ -233,7 +241,7 @@ export function useFotoMenuController(handlers?: FotoMenuHandlers) {
     } finally {
       pickerOpenRef.current = false;
     }
-  }, [analyze]);
+  }, [analyzePages]);
 
   choosePhotoRef.current = choosePhoto;
 
@@ -251,6 +259,7 @@ export function useFotoMenuController(handlers?: FotoMenuHandlers) {
     choosePhoto,
     menu,
     analyzePhoto: analyze,
+    analyzePages,
     prepareCamera,
     state,
   };

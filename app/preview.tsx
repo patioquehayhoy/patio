@@ -10,7 +10,6 @@ import { useMenuPreviewController } from '@/lib/controllers/useMenuPreviewContro
 import { useTheme, Type } from '@/lib/theme';
 import { fonderoPalette, type FonderoColors } from '@/lib/fondero-palette';
 import { GlassIconButton } from '@/components/glass-button';
-import { NewMenuSheet } from '@/components/new-menu-sheet';
 import { scheduledLabel } from '@/lib/publish-timing';
 import { noWidow } from '@/lib/typography';
 import { isCartaName } from '@/lib/menu-carta';
@@ -41,7 +40,6 @@ export function MenuPoster({ justPublished = false, updated = false, scheduledAt
   const publishedTitle = scheduledAt ? 'Programado' : updated ? 'Actualizado' : 'Publicado';
   const posterRef = useRef<View>(null);
   const [sharing, setSharing] = useState(false);
-  const [newMenuSheetVisible, setNewMenuSheetVisible] = useState(false);
   const checkScale = useRef(new Animated.Value(justPublished ? 0.6 : 1)).current;
   useEffect(() => {
     if (!justPublished) return;
@@ -77,10 +75,9 @@ export function MenuPoster({ justPublished = false, updated = false, scheduledAt
         </View>
         <Text style={s.emptyTitle}>{noWidow('Primero publica lo de hoy')}</Text>
         <Text style={s.emptyBody}>{noWidow('Cuando tu menú esté listo, aquí aparecerá publicado.')}</Text>
-        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Crear menú" style={s.emptyButton} onPress={() => setNewMenuSheetVisible(true)} activeOpacity={0.85}>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Crear menú" style={s.emptyButton} onPress={() => router.replace({ pathname: '/foto-menu', params: { source: 'camera' } })} activeOpacity={0.85}>
           <Text style={s.emptyButtonText}>{noWidow('Crear menú')}</Text>
         </TouchableOpacity>
-        <NewMenuSheet visible={newMenuSheetVisible} onClose={() => setNewMenuSheetVisible(false)} replaceOnNavigate />
       </View>
     );
   }

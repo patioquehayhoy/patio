@@ -18,7 +18,6 @@ import { SelectionHeader } from '@/components/selection-header';
 import { closeOpenSwipeRow, closeSwipeRowOnTouch, SwipeRow } from '@/components/swipe-row';
 import { FoodieLoading } from '@/components/foodie-loading';
 import { MenuListsSheet } from '@/components/menu-lists-sheet';
-import { NewMenuSheet } from '@/components/new-menu-sheet';
 import { cleanMenu, publishMenuNow } from '@/lib/controllers/useFonderoMenuDraftController';
 import { dateLabel, defaultHistoryTitle, editorSeed, menuPublicationState, useMenuHistoryController, withoutSoldOut, type PublishedMenu } from '@/lib/controllers/useMenuHistoryController';
 import { setMenuData } from '@/lib/menu-store';
@@ -48,7 +47,6 @@ export default function HistorialScreen() {
   const { refresh, closeRename, deleteMenu, deleteMenus, draftName, editing, loading, menus, openRename, reuse, saveName, setDraftName, streak } = useMenuHistoryController();
   const [actionsFor, setActionsFor] = useState<PublishedMenu | null>(null);
   const pull = usePullRefresh(refresh);
-  const [newMenuSheetVisible, setNewMenuSheetVisible] = useState(false);
   const moreRefs = useRef<Map<string, View | null>>(new Map());
   const [selecting, setSelecting] = useState(false);
   const [selectionBarHeight, setSelectionBarHeight] = useState(60);
@@ -275,7 +273,7 @@ export default function HistorialScreen() {
             </View>
             <Text style={[s.emptyTitle, { color: c.text }]}>{noWidow('Publica tu primer menú')}</Text>
             <Text style={[s.emptyBody, { color: c.textSecondary }]}>{noWidow('Toma una foto o escríbelo a mano. Tus menús quedarán aquí para volver a usarlos.')}</Text>
-            <TouchableOpacity style={[s.cta, { backgroundColor: c.accent }]} onPress={() => setNewMenuSheetVisible(true)} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel="Nuevo menú">
+            <TouchableOpacity style={[s.cta, { backgroundColor: c.accent }]} onPress={() => router.push({ pathname: '/foto-menu', params: { source: 'camera' } })} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel="Nuevo menú">
               <Text style={s.ctaText}>{noWidow('Nuevo menú')}</Text>
             </TouchableOpacity>
           </View>
@@ -341,7 +339,6 @@ export default function HistorialScreen() {
         sourceCollectionIds={moveSelection.sourceCollectionIds}
         onMoved={exitSelecting}
       />
-      <NewMenuSheet visible={newMenuSheetVisible} onClose={() => setNewMenuSheetVisible(false)} />
     </View>
   );
 }

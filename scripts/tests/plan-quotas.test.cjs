@@ -16,7 +16,7 @@ const loaded = { exports: {} };
 new Function('exports', output)(loaded.exports);
 const { PLANS } = loaded.exports;
 const migration = read('supabase/migrations/20261102120000_business_pro.sql');
-const reads = read('supabase/migrations/20261124100000_lecturas_por_dia.sql');
+const reads = read('supabase/migrations/20261124110000_lecturas_por_hoja.sql');
 const notices = read('supabase/functions/send-special-notice/index.ts');
 const operation = read('supabase/migrations/20261109100000_operation_notices.sql');
 

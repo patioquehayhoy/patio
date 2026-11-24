@@ -201,6 +201,79 @@ function buildPrompt(tipo: string | null | undefined) {
   return `Lee un menú real de un negocio de comida en México.\n${profile}\n${REGLAS}`;
 }
 
+// Varias hojas de una vez (Parco, 24 nov): una fonda manda su pizarrón; un
+// restaurante, su carta de cuatro hojas. Cada hoja se lee aparte y en
+// paralelo (la espera es la de la hoja más larga) y se juntan en orden.
+// Cada hoja es una lectura de la cuota (Gratis 3 al día, Pro 30).
+const MAX_PAGES = 6;
+const MEDIA = ['image/jpeg', 'image/png', 'image/webp'];
+type Page = { imageBase64: string; mediaType: string };
+
+function pagesFrom(body: Record<string, unknown>): Page[] | null {
+  const raw = Array.isArray(body.images) ? body.images : [{ imageBase64: body.imageBase64, mediaType: body.mediaType }];
+  const pages: Page[] = [];
+  for (const entry of raw) {
+    const item = entry && typeof entry === 'object' ? entry as Record<string, unknown> : {};
+    const data = item.imageBase64;
+    const mediaType = item.mediaType === undefined ? 'image/jpeg' : String(item.mediaType);
+    if (typeof data !== 'string' || data.length < 100 || !/^[A-Za-z0-9+/]+={0,2}$/.test(data) || !MEDIA.includes(mediaType)) return null;
+    pages.push({ imageBase64: data, mediaType });
+  }
+  return pages.length ? pages : null;
+}
+
+async function readPage(apiKey: string, page: Page, tipo: string | null) {
+  const anthropic = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    signal: AbortSignal.timeout(110_000),
+    headers: {
+      'content-type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 12000,
+      output_config: { format: { type: 'json_schema', schema: MENU_SCHEMA } },
+      messages: [{
+        role: 'user',
+        content: [
+          { type: 'image', source: { type: 'base64', media_type: page.mediaType, data: page.imageBase64 } },
+          { type: 'text', text: buildPrompt(tipo) },
+        ],
+      }],
+    }),
+  });
+  if (!anthropic.ok) {
+    const detail = await anthropic.text();
+    console.error('Anthropic error', anthropic.status, detail);
+    throw new Error('El servicio de lectura no respondió');
+  }
+  const payload = await anthropic.json();
+  if (payload?.stop_reason === 'max_tokens' || payload?.stop_reason === 'refusal') {
+    console.error('Lectura incompleta', payload?.stop_reason, payload?.usage);
+    throw new Error('La lectura no pudo completarse');
+  }
+  const text = payload?.content?.find((item: { type?: string }) => item.type === 'text')?.text ?? '';
+  return { result: normalizeResult(JSON.parse(text)), usage: payload?.usage ?? null };
+}
+
+/** Las hojas se juntan en orden; una sección que sigue en la hoja siguiente se une. */
+function mergePages(results: ReturnType<typeof normalizeResult>[]) {
+  const merged = results[0];
+  for (const next of results.slice(1)) {
+    for (const section of next.secciones) {
+      const last = merged.secciones[merged.secciones.length - 1];
+      if (last && last.nombre.trim().toLowerCase() === section.nombre.trim().toLowerCase()) last.platillos.push(...section.platillos);
+      else merged.secciones.push(section);
+    }
+    if (!merged.precio && next.precio) merged.precio = next.precio;
+    merged.precios.push(...next.precios.filter((price) => !merged.precios.some((known) => known.precio === price.precio && known.nombre === price.nombre)));
+    merged.advertencias.push(...next.advertencias);
+  }
+  return merged;
+}
+
 Deno.serve(async (request) => {
   if (request.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   if (request.method !== 'POST') {
@@ -211,75 +284,31 @@ Deno.serve(async (request) => {
   try {
     const auth = await requireUser(request);
     const body = await readJson(request, 7_000_000);
-    if (typeof body.imageBase64 !== 'string' || body.imageBase64.length < 100
-      || !/^[A-Za-z0-9+/]+={0,2}$/.test(body.imageBase64)
-      || (body.mediaType !== undefined && !['image/jpeg', 'image/png', 'image/webp'].includes(String(body.mediaType)))) {
-      return Response.json({ error: 'Imagen inválida' }, { status: 400, headers: corsHeaders });
+    const pages = pagesFrom(body);
+    if (!pages) return Response.json({ error: 'Imagen inválida' }, { status: 400, headers: corsHeaders });
+    if (pages.length > MAX_PAGES) {
+      return Response.json({ error: `Elige hasta ${MAX_PAGES} hojas por vez.` }, { status: 400, headers: corsHeaders });
     }
     const apiKey = Deno.env.get('ANTHROPIC_API_KEY');
     if (!apiKey) throw new Error('ANTHROPIC_API_KEY no está configurada');
 
-    await consumeAIRequest(auth, 'read-menu');
+    await consumeAIRequest(auth, 'read-menu', pages.length);
     // Medición de la lectura lenta (2026-11-23): cuánto tarda cada parte y
     // cuántos tokens escribe el modelo. Sin datos de la persona ni del menú.
     const modelStarted = Date.now();
-    const anthropic = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      signal: AbortSignal.timeout(110_000),
-      headers: {
-        'content-type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 12000,
-        output_config: {
-          format: {
-            type: 'json_schema',
-            schema: MENU_SCHEMA,
-          },
-        },
-        messages: [{
-          role: 'user',
-          content: [
-            {
-              type: 'image',
-              source: {
-                type: 'base64',
-                media_type: body.mediaType ?? 'image/jpeg',
-                data: body.imageBase64,
-              },
-            },
-            { type: 'text', text: buildPrompt(typeof body.tipo === 'string' ? body.tipo : null) },
-          ],
-        }],
-      }),
-    });
-
-    if (!anthropic.ok) {
-      const detail = await anthropic.text();
-      console.error('Anthropic error', anthropic.status, detail);
-      throw new Error('El servicio de lectura no respondió');
-    }
-
-    const payload = await anthropic.json();
+    const tipo = typeof body.tipo === 'string' ? body.tipo : null;
+    const read = await Promise.all(pages.map((page) => readPage(apiKey, page, tipo)));
     const modelMs = Date.now() - modelStarted;
-    if (payload?.stop_reason === 'max_tokens' || payload?.stop_reason === 'refusal') {
-      console.error('Lectura incompleta', payload?.stop_reason, payload?.usage, { ms_modelo: modelMs });
-      throw new Error('La lectura no pudo completarse');
-    }
-    const text = payload?.content?.find((item: { type?: string }) => item.type === 'text')?.text ?? '';
-    const parsed = JSON.parse(text);
-    const result = normalizeResult(parsed);
+    const result = mergePages(read.map((page) => page.result));
     console.info(JSON.stringify({
       lectura: 'read-menu',
+      hojas: pages.length,
       ms_total: Date.now() - started,
       ms_antes_del_modelo: modelStarted - started,
       ms_modelo: modelMs,
-      kb_imagen: Math.round(body.imageBase64.length * 0.75 / 1024),
-      tokens_entrada: payload?.usage?.input_tokens ?? null,
-      tokens_salida: payload?.usage?.output_tokens ?? null,
+      kb_imagen: Math.round(pages.reduce((total, page) => total + page.imageBase64.length, 0) * 0.75 / 1024),
+      tokens_entrada: read.reduce((total, page) => total + (page.usage?.input_tokens ?? 0), 0),
+      tokens_salida: read.reduce((total, page) => total + (page.usage?.output_tokens ?? 0), 0),
       secciones: result.secciones.length,
       platillos: result.secciones.reduce((total, section) => total + section.platillos.length, 0),
     }));

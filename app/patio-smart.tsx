@@ -20,7 +20,6 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BusinessPaymentSelector } from '@/components/business-payment-selector';
-import { NewMenuSheet } from '@/components/new-menu-sheet';
 import { BusinessScheduleEditor } from '@/components/business-schedule-editor';
 import { saveUserRole } from '@/lib/entry-flow';
 import { Colors } from '@/lib/colors';
@@ -160,7 +159,6 @@ export default function PatioSmartScreen() {
   const [nameError, setNameError] = useState('');
   const [placePhoto, setPlacePhoto] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [firstMenuVisible, setFirstMenuVisible] = useState(false);
   // En desarrollo, «Ver alta del negocio» recorre el alta sin guardar nada.
   const { preview } = useLocalSearchParams<{ preview?: string }>();
   const isPreview = __DEV__ && preview === '1';
@@ -376,22 +374,16 @@ export default function PatioSmartScreen() {
               {noWidow('Tomar foto del menú')}
             </Text>
           </TouchableOpacity>
-          {/* Si se cancela, entra a Menús; nunca se queda atorado aquí. */}
+          {/* La cámara ya trae Fotos y «A mano»; aquí solo la salida. */}
           <TouchableOpacity
-            onPress={() => setFirstMenuVisible(true)}
+            onPress={() => router.replace('/historial')}
             activeOpacity={0.7}
             style={s.finishEdit}
             accessibilityRole="button"
-            accessibilityLabel="Elegir de Fotos o escribirlo">
-            <Text style={s.finishEditText} numberOfLines={1} maxFontSizeMultiplier={1.3}>{noWidow('Elegir de Fotos o escribirlo')}</Text>
+            accessibilityLabel="Ahora no">
+            <Text style={s.finishEditText} numberOfLines={1} maxFontSizeMultiplier={1.3}>Ahora no</Text>
           </TouchableOpacity>
         </View>
-        <NewMenuSheet
-          visible={firstMenuVisible}
-          onClose={() => setFirstMenuVisible(false)}
-          onCancel={() => router.replace('/historial')}
-          replaceOnNavigate
-        />
       </View>
     );
   }

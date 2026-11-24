@@ -39,7 +39,7 @@ function fixture(file, overrides = {}) {
     react,
     'react/jsx-runtime': { jsx, jsxs: jsx },
     'react-native': {
-      ...Object.fromEntries(['View', 'Text', 'TouchableOpacity', 'Modal', 'ActivityIndicator'].map(x => [x, x])),
+      ...Object.fromEntries(['View', 'Text', 'TouchableOpacity', 'Modal', 'ActivityIndicator', 'Image'].map(x => [x, x])),
       Alert: { alert() {} },
       Platform: { OS: 'ios' },
       InteractionManager: { runAfterInteractions: fn => { fn(); return { cancel() {} }; } },
@@ -90,36 +90,24 @@ function nodes(tree) {
   return [tree, ...[tree.props?.children].flat(Infinity).flatMap(nodes)];
 }
 
-test('Photos opens from the current screen after native dismissal; only a chosen photo navigates', async () => {
-  let opened = 0;
-  let pick = { canceled: false, assets: [{ uri: 'file:///menu.jpg', width: 1200, height: 1600 }] };
-  const f = fixture('components/new-menu-sheet.tsx', {
-    'expo-image-picker': { launchImageLibraryAsync: async () => { opened++; return pick; } },
+test('Crear is the full-screen camera: Fotos, shutter and «A mano» in one row, Menú and Aviso below, no bottom sheet', () => {
+  let picked = 0;
+  const controller = { choosePhoto: async () => { picked++; }, prepareCamera: async () => {}, analyzePhoto: async () => {}, analyzePages: async () => {}, state: 'idle', cameraAllowed: true, cancelRead() {} };
+  const routes = [];
+  const f = fixture('app/foto-menu.tsx', {
+    'expo-router': { router: { push: x => routes.push(x), replace: x => routes.push(x), canGoBack: () => true, back() {} }, Stack: { Screen: 'Screen' }, useLocalSearchParams: () => ({ source: 'camera' }) },
+    '@/lib/controllers/useFotoMenuController': { useFotoMenuController: () => controller, MAX_PAGES: 6 },
   });
-  const props = { visible: true, onClose: () => { props.visible = false; } };
-  const tree = f.render(props);
-  const buttons = nodes(tree);
-  buttons.find(n => n.props.accessibilityLabel === 'Elegir de Fotos').props.onPress();
-  buttons.find(n => n.props.accessibilityLabel === 'Tomar foto').props.onPress();
-  assert.deepEqual(f.routes, []);
-  f.render(props);
-  const hidden = f.render(props);
-  assert.equal(hidden.type, 'Modal');
-  assert.equal(hidden.props.visible, false);
-  assert.deepEqual(f.routes, [], 'animation completion is not UIKit dismissal');
-  assert.deepEqual(f.tabBar.slice(0, 2), ['hide', 'reveal'], 'Navigation hides behind the sheet and returns when it closes');
-  hidden.props.onDismiss();
-  hidden.props.onDismiss();
-  await new Promise(resolve => setImmediate(resolve));
-  assert.equal(opened, 1);
-  assert.deepEqual(f.routes, [{ pathname: '/foto-menu', params: { source: 'library', uri: 'file:///menu.jpg', width: '1200', height: '1600' } }]);
-
-  pick = { canceled: true, assets: null };
-  const again = f.render({ visible: true, onClose() {} });
-  nodes(again).find(n => n.props.accessibilityLabel === 'Elegir de Fotos').props.onPress();
-  f.render({ visible: false, onClose() {} }).props.onDismiss();
-  await new Promise(resolve => setImmediate(resolve));
-  assert.equal(f.routes.length, 1, 'cancelling Photos stays on the current screen');
+  const tree = nodes(f.render());
+  assert.equal(tree.some(n => n.type === 'Modal'), false, 'no bottom sheet');
+  for (const label of ['Elegir de Fotos', 'Tomar foto', 'Escribir a mano', 'Aviso a quienes te siguen']) {
+    assert.ok(tree.some(n => n.props.accessibilityLabel === label), label);
+  }
+  tree.find(n => n.props.accessibilityLabel === 'Elegir de Fotos').props.onPress();
+  assert.equal(picked, 1);
+  tree.find(n => n.props.accessibilityLabel === 'Escribir a mano').props.onPress();
+  tree.find(n => n.props.accessibilityLabel === 'Aviso a quienes te siguen').props.onPress();
+  assert.deepEqual(routes, ['/menu-editar', '/avisar']);
 });
 
 test('A photo chosen in Nuevo menú is read directly, without reopening Photos or showing camera', () => {

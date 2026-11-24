@@ -49,3 +49,29 @@ publica su menú del día.
 4. **La foto es el producto del negocio.** Cualquier fricción en la lectura
    pega directo al lado difícil: la medición de la lectura lenta (encargo a
    Codex §A) sube de prioridad.
+
+## Segunda vuelta de Parco (24 nov, noche)
+
+**Crear sin hoja de abajo.** El «＋» abre la cámara a pantalla completa: Fotos,
+tomar foto y «A mano» en una fila; abajo MENÚ · AVISO · PROMO. Es el patrón
+de Instagram y deja la foto, lo que más sirve al negocio (Jev 54 %), a un
+toque.
+
+**Lecturas por caso de uso.** Una lectura es una hoja:
+
+| Caso | Hojas | Al día | Plan |
+| --- | --- | --- | --- |
+| Fonda: su pizarrón | 1, a veces otra si salió borrosa | 1–2 | Gratis (3) |
+| Cocina con menú del día y carta en otra hoja | 2 | 2 | Gratis |
+| Restaurante con carta de 4 hojas (la carta cambia poco) | 4 de una vez | 4 el día que la sube | Pro (30), o Gratis en dos días |
+| Restaurante que cambia carta y menú del día seguido | 4–6 | hasta 10 | Pro |
+
+- Varias hojas viajan juntas: la cámara junta hojas como el escáner de Notas
+  y «Leer» las manda; Fotos deja elegir varias en orden. Hasta 6 por vez.
+- El servidor lee cada hoja en paralelo (la espera es la de la hoja más
+  larga) y las junta en orden; una sección que sigue en la siguiente hoja se
+  une. Si no alcanzan las lecturas para todas las hojas, no se cobra
+  ninguna (migración 20261124110000).
+- Pro con 30 al día deja de ser excesivo: cubre una carta de 6 hojas varias
+  veces. El tope de Gratis (3) casi nunca lo toca la fonda y sí el
+  restaurante con carta larga, que es quien más puede pagar.

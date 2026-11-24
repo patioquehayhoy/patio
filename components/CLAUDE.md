@@ -364,12 +364,16 @@ Auditoría y casos pendientes: `docs/QA_Y_FLUJOS_2026-11-22.md`.
   fechas ni menús anteriores (`fetchPublicMenus` lee solo `fecha = hoy`). La
   fecha solo va en el póster que el negocio comparte.
 
-## «Crear» del negocio (new-menu-sheet.tsx, 2026-11-16)
+## «Crear» del negocio (foto-menu.tsx, 2026-11-24)
 
-- El «＋» de la barra del negocio es «Crear»: arriba «MENÚ DE HOY» (Tomar
-  foto, Elegir de Fotos, Escribir a mano); abajo «AVISOS» (Avisar a quienes
-  te siguen y, con Pro, Aviso especial con los que quedan). Actividad queda
-  solo con lo que pasó.
+- Sin hoja de abajo (Parco: «es lo que está arruinando la app»). El «＋» abre
+  la cámara a pantalla completa, como Instagram: a la izquierda Fotos, al
+  centro tomar foto, a la derecha «A mano»; abajo, MENÚ · AVISO · PROMO
+  (Promo solo con Pro). `new-menu-sheet.tsx` se borró.
+- Varias hojas, como el escáner de Notas: cada foto queda en una tira; «Leer»
+  (naranja, la acción de la pantalla) las manda juntas. Tocar una hoja la
+  quita. Fotos deja elegir varias en orden. Hasta 6 hojas; cada hoja es una
+  lectura de la cuota (Gratis 3 al día, Pro 30).
 
 ## Fotos de platillos (2026-11-15)
 

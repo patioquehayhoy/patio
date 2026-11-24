@@ -3,7 +3,7 @@
  * Only the business side has plans (Cold Start: the Foodie and the Creador
  * never pay while the network is starting). Free lists only what exists today;
  * photoReads mirrors the daily read-menu limits in consume_ai_request
- * (supabase/migrations/20261124100000_lecturas_por_dia.sql).
+ * (supabase/migrations/20261124110000_lecturas_por_hoja.sql; one reading = one page).
  * Pro (supabase/migrations/20261102120000_business_pro.sql) is offered only
  * when billing is on; founders get it by hand and see it as their plan.
  */

@@ -43,7 +43,8 @@ function isMenuVisualResult(value: unknown): value is MenuVisualResult {
 /** Límite del teléfono para una lectura con foto (2026-11-23). */
 export const READ_DEADLINE_MS = 120_000;
 
-export async function leerMenuDeFoto(imageUri: string, signal?: AbortSignal): Promise<MenuVisualResult> {
+/** Lee una o varias hojas del mismo menú (una carta de cuatro hojas viaja junta). */
+export async function leerMenuDeFoto(imageUris: string | string[], signal?: AbortSignal): Promise<MenuVisualResult> {
   const controller = new AbortController();
   const abort = () => controller.abort();
   if (signal?.aborted) throw new Error('Lectura cancelada');
@@ -60,7 +61,7 @@ export async function leerMenuDeFoto(imageUri: string, signal?: AbortSignal): Pr
   });
   const started = Date.now();
   try {
-    return await Promise.race([interrupted, readImage(imageUri, controller.signal)]);
+    return await Promise.race([interrupted, readImage(Array.isArray(imageUris) ? imageUris : [imageUris], controller.signal)]);
   } finally {
     clearTimeout(timer);
     signal?.removeEventListener('abort', abort);
@@ -68,17 +69,17 @@ export async function leerMenuDeFoto(imageUri: string, signal?: AbortSignal): Pr
   }
 }
 
-async function readImage(imageUri: string, signal: AbortSignal): Promise<MenuVisualResult> {
-  const imageBase64 = await FileSystem.readAsStringAsync(imageUri, {
-    encoding: FileSystem.EncodingType.Base64,
-  });
+async function readImage(imageUris: string[], signal: AbortSignal): Promise<MenuVisualResult> {
+  const images = await Promise.all(imageUris.map(async (uri) => ({
+    imageBase64: await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 }),
+    mediaType: 'image/jpeg',
+  })));
 
   if (signal.aborted) throw new Error('Lectura cancelada');
   const { data, error } = await supabase.functions.invoke('read-menu', {
     signal,
     body: {
-      imageBase64,
-      mediaType: 'image/jpeg',
+      images,
       tipo: getTipoNegocio(),
     },
   });

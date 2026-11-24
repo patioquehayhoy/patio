@@ -1,7 +1,6 @@
 import { router, usePathname } from 'expo-router';
 import { BlurView } from 'expo-blur';
 import { BottomContentFade } from '@/components/bottom-content-fade';
-import { NewMenuSheet } from '@/components/new-menu-sheet';
 import { PatioGiros } from '@/components/business-category-icon';
 import type { PatioGiroGlyph } from '@/lib/business-category-icons';
 import { Animated, Keyboard, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -68,7 +67,6 @@ export function BottomTabBar({ variant = 'fondero', fade = true }: { variant?: '
   // a revisar. Se recalcula cada vez que se aterriza en cualquier pantalla
   // Fondero; se limpia cuando resenas.tsx marca la visita (markActivitySeen).
   const [hasUnseen, setHasUnseen] = useState(false);
-  const [newMenuVisible, setNewMenuVisible] = useState(false);
   useEffect(() => {
     if (variant === 'fondero') {
       hasUnseenActivity(getFonditaId()).then(setHasUnseen).catch(() => {});
@@ -101,7 +99,8 @@ export function BottomTabBar({ variant = 'fondero', fade = true }: { variant?: '
           );
           const onTabPress = () => {
             Keyboard.dismiss();
-            if (path === '+') { setNewMenuVisible(true); return; }
+            // «Crear» abre la cámara a pantalla completa (menú, aviso o promo abajo), como Instagram.
+            if (path === '+') { router.push({ pathname: '/foto-menu', params: { source: 'camera' } }); return; }
             // Reemplazar la ruta activa puede remontar la pantalla en Expo Router
             // y reiniciar scroll, búsqueda y controles locales. Un segundo toque
             // sobre el tab seleccionado conserva exactamente el estado visible.
@@ -131,7 +130,6 @@ export function BottomTabBar({ variant = 'fondero', fade = true }: { variant?: '
           );
         })}
       </View>
-      {variant === 'fondero' && <NewMenuSheet create visible={newMenuVisible} onClose={() => setNewMenuVisible(false)} />}
     </Animated.View>
   );
 }

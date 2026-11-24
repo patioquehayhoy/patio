@@ -1,0 +1,612 @@
+{
+ "app": "Una app mexicana de celular donde fondas, cocinas económicas, puestos y restaurantes publican qué hay hoy: el menú del día, lo que se acabó y avisos para quienes los siguen. Quien busca dónde comer ve en el mapa cada lugar con su ficha. La app nació para los negocios de la colonia.",
+ "opciones": {
+  "que_publica": {
+   "menu_dia": "El menú del día o la comida corrida de cada sucursal.",
+   "promocion": "La promoción o el platillo especial de hoy.",
+   "estado": "Solo lo que se acabó, si abrimos y horarios especiales.",
+   "nada": "Nada a diario; solo tener la carta y la ubicación."
+  },
+  "quien_publica": {
+   "corporativo": "El corporativo publica todo, para todas las sucursales.",
+   "mixto": "El corporativo publica el menú o la promoción para todas o para una zona; cada sucursal marca lo que se acabó, si abre y sus avisos.",
+   "sucursal": "Cada sucursal publica todo lo suyo."
+  },
+  "alta": {
+   "hoja": "Subir una hoja de cálculo con todas las sucursales (dirección, horario, gerente) y revisarla.",
+   "asistida": "Que alguien de la app las dé de alta contigo en una llamada, con tu lista de sucursales.",
+   "una_por_una": "Darlas de alta una por una desde el celular."
+  },
+  "acceso": {
+   "corporativo": "Solo el corporativo o el dueño de la marca.",
+   "a_cargo": "Quien está a cargo de esas sucursales (gerente de zona o franquiciatario); el corporativo ve quién entra.",
+   "saliente": "El gerente que se va le pasa su acceso al nuevo."
+  },
+  "precios": {
+   "iguales": "Iguales en todas las sucursales.",
+   "algunas": "Iguales casi siempre; algunas sucursales cambian (aeropuerto, plaza cara, otra ciudad).",
+   "cada_una": "Cada sucursal pone los suyos."
+  },
+  "pago": {
+   "marca": "La marca paga la app por todas las sucursales, propias y franquiciadas.",
+   "cada_quien": "La marca paga sus sucursales y cada franquiciatario paga las suyas.",
+   "fondo": "La marca paga todo y lo cubre con la cuota de publicidad que ya le paga cada franquiciatario."
+  },
+  "aparecen": {
+   "igual": "Igual que cualquier lugar: en el mapa y en la búsqueda, por cercanía, sin trato especial.",
+   "agrupadas": "En el mapa salen todas, pero en la lista de resultados sale solo la sucursal más cercana de cada cadena, con «Ver más sucursales».",
+   "filtro": "Igual que cualquier lugar, y con un filtro para ver solo negocios de la colonia.",
+   "fuera": "Que no estén en la app; es para fondas, cocinas y puestos."
+  }
+ },
+ "cadenas": {
+  "corporativo": {
+   "que_publica": {
+    "type": "choice",
+    "choice": "menu_dia",
+    "confidence": 0.57,
+    "probabilities": {
+     "nada": 0.0,
+     "estado": 0.01,
+     "promocion": 0.31,
+     "menu_dia": 0.68
+    }
+   },
+   "quien_publica": {
+    "type": "choice",
+    "choice": "mixto",
+    "confidence": 0.88,
+    "probabilities": {
+     "sucursal": 0.06,
+     "mixto": 0.92,
+     "corporativo": 0.02
+    }
+   },
+   "alta": {
+    "type": "choice",
+    "choice": "hoja",
+    "confidence": 0.82,
+    "probabilities": {
+     "hoja": 0.88,
+     "una_por_una": 0.0,
+     "asistida": 0.12
+    }
+   },
+   "acceso": {
+    "type": "choice",
+    "choice": "corporativo",
+    "confidence": 0.38,
+    "probabilities": {
+     "corporativo": 0.59,
+     "saliente": 0.01,
+     "a_cargo": 0.4
+    }
+   },
+   "precios": {
+    "type": "choice",
+    "choice": "algunas",
+    "confidence": 0.43,
+    "probabilities": {
+     "iguales": 0.08,
+     "algunas": 0.62,
+     "cada_una": 0.3
+    }
+   },
+   "escalas": {
+    "documentos": {
+     "type": "score",
+     "score": 3.18,
+     "confidence": 0.33,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.11,
+      "1": 0.06,
+      "2": 0.04,
+      "3": 0.1,
+      "4": 0.69
+     }
+    }
+   },
+   "pago": {
+    "type": "choice",
+    "choice": "cada_quien",
+    "confidence": 0.3,
+    "probabilities": {
+     "fondo": 0.3,
+     "marca": 0.17,
+     "cada_quien": 0.53
+    }
+   }
+  },
+  "gerente": {
+   "que_publica": {
+    "type": "choice",
+    "choice": "menu_dia",
+    "confidence": 0.51,
+    "probabilities": {
+     "promocion": 0.16,
+     "menu_dia": 0.63,
+     "nada": 0.01,
+     "estado": 0.2
+    }
+   },
+   "quien_publica": {
+    "type": "choice",
+    "choice": "mixto",
+    "confidence": 0.34,
+    "probabilities": {
+     "mixto": 0.56,
+     "sucursal": 0.43,
+     "corporativo": 0.01
+    }
+   },
+   "alta": {
+    "type": "choice",
+    "choice": "hoja",
+    "confidence": 0.58,
+    "probabilities": {
+     "hoja": 0.72,
+     "una_por_una": 0.01,
+     "asistida": 0.27
+    }
+   },
+   "acceso": {
+    "type": "choice",
+    "choice": "a_cargo",
+    "confidence": 0.25,
+    "probabilities": {
+     "corporativo": 0.45,
+     "saliente": 0.05,
+     "a_cargo": 0.5
+    }
+   },
+   "precios": {
+    "type": "choice",
+    "choice": "cada_una",
+    "confidence": 0.34,
+    "probabilities": {
+     "algunas": 0.42,
+     "iguales": 0.02,
+     "cada_una": 0.56
+    }
+   },
+   "escalas": {
+    "documentos": {
+     "type": "score",
+     "score": 2.9,
+     "confidence": 0.07,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.07,
+      "1": 0.12,
+      "2": 0.08,
+      "3": 0.31,
+      "4": 0.42
+     }
+    }
+   }
+  },
+  "franquiciante": {
+   "que_publica": {
+    "type": "choice",
+    "choice": "menu_dia",
+    "confidence": 0.8,
+    "probabilities": {
+     "nada": 0.0,
+     "promocion": 0.1,
+     "estado": 0.05,
+     "menu_dia": 0.85
+    }
+   },
+   "quien_publica": {
+    "type": "choice",
+    "choice": "mixto",
+    "confidence": 0.55,
+    "probabilities": {
+     "mixto": 0.7,
+     "corporativo": 0.01,
+     "sucursal": 0.29
+    }
+   },
+   "alta": {
+    "type": "choice",
+    "choice": "hoja",
+    "confidence": 0.53,
+    "probabilities": {
+     "asistida": 0.31,
+     "una_por_una": 0.0,
+     "hoja": 0.69
+    }
+   },
+   "acceso": {
+    "type": "choice",
+    "choice": "corporativo",
+    "confidence": 0.82,
+    "probabilities": {
+     "a_cargo": 0.12,
+     "saliente": 0.0,
+     "corporativo": 0.88
+    }
+   },
+   "precios": {
+    "type": "choice",
+    "choice": "algunas",
+    "confidence": 0.28,
+    "probabilities": {
+     "cada_una": 0.45,
+     "algunas": 0.52,
+     "iguales": 0.03
+    }
+   },
+   "escalas": {
+    "documentos": {
+     "type": "score",
+     "score": 3.18,
+     "confidence": 0.31,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.08,
+      "1": 0.08,
+      "2": 0.04,
+      "3": 0.19,
+      "4": 0.61
+     }
+    }
+   },
+   "pago": {
+    "type": "choice",
+    "choice": "cada_quien",
+    "confidence": 0.3,
+    "probabilities": {
+     "marca": 0.08,
+     "fondo": 0.39,
+     "cada_quien": 0.53
+    }
+   }
+  },
+  "franquiciatario": {
+   "que_publica": {
+    "type": "choice",
+    "choice": "menu_dia",
+    "confidence": 0.65,
+    "probabilities": {
+     "nada": 0.0,
+     "promocion": 0.07,
+     "estado": 0.19,
+     "menu_dia": 0.74
+    }
+   },
+   "quien_publica": {
+    "type": "choice",
+    "choice": "mixto",
+    "confidence": 0.68,
+    "probabilities": {
+     "sucursal": 0.2,
+     "mixto": 0.79,
+     "corporativo": 0.01
+    }
+   },
+   "alta": {
+    "type": "choice",
+    "choice": "hoja",
+    "confidence": 0.31,
+    "probabilities": {
+     "asistida": 0.45,
+     "una_por_una": 0.01,
+     "hoja": 0.54
+    }
+   },
+   "acceso": {
+    "type": "choice",
+    "choice": "a_cargo",
+    "confidence": 0.77,
+    "probabilities": {
+     "corporativo": 0.15,
+     "a_cargo": 0.85,
+     "saliente": 0.0
+    }
+   },
+   "precios": {
+    "type": "choice",
+    "choice": "cada_una",
+    "confidence": 0.3,
+    "probabilities": {
+     "cada_una": 0.53,
+     "algunas": 0.41,
+     "iguales": 0.06
+    }
+   },
+   "escalas": {
+    "documentos": {
+     "type": "score",
+     "score": 3.25,
+     "confidence": 0.36,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.05,
+      "1": 0.08,
+      "2": 0.05,
+      "3": 0.23,
+      "4": 0.59
+     }
+    }
+   },
+   "pago": {
+    "type": "choice",
+    "choice": "cada_quien",
+    "confidence": 0.44,
+    "probabilities": {
+     "fondo": 0.25,
+     "cada_quien": 0.63,
+     "marca": 0.12
+    }
+   }
+  }
+ },
+ "locales": {
+  "fondera": {
+   "aparecen": {
+    "type": "choice",
+    "choice": "filtro",
+    "confidence": 0.25,
+    "probabilities": {
+     "filtro": 0.44,
+     "igual": 0.36,
+     "agrupadas": 0.14,
+     "fuera": 0.06
+    }
+   },
+   "escalas": {
+    "tapan": {
+     "type": "score",
+     "score": 2.24,
+     "confidence": 0.33,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.04,
+      "1": 0.24,
+      "2": 0.18,
+      "3": 0.51,
+      "4": 0.03
+     }
+    }
+   }
+  },
+  "callejon": {
+   "aparecen": {
+    "type": "choice",
+    "choice": "filtro",
+    "confidence": 0.19,
+    "probabilities": {
+     "filtro": 0.39,
+     "igual": 0.38,
+     "agrupadas": 0.18,
+     "fuera": 0.05
+    }
+   },
+   "escalas": {
+    "tapan": {
+     "type": "score",
+     "score": 2.2,
+     "confidence": 0.28,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.06,
+      "1": 0.23,
+      "2": 0.2,
+      "3": 0.48,
+      "4": 0.03
+     }
+    }
+   }
+  },
+  "taquero": {
+   "aparecen": {
+    "type": "choice",
+    "choice": "igual",
+    "confidence": 0.19,
+    "probabilities": {
+     "igual": 0.39,
+     "agrupadas": 0.31,
+     "filtro": 0.26,
+     "fuera": 0.04
+    }
+   },
+   "escalas": {
+    "tapan": {
+     "type": "score",
+     "score": 2.04,
+     "confidence": 0.15,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.05,
+      "1": 0.32,
+      "2": 0.21,
+      "3": 0.4,
+      "4": 0.02
+     }
+    }
+   }
+  }
+ },
+ "foodies": {
+  "oficinista": {
+   "aparecen": {
+    "type": "choice",
+    "choice": "igual",
+    "confidence": 0.31,
+    "probabilities": {
+     "filtro": 0.29,
+     "igual": 0.48,
+     "agrupadas": 0.15,
+     "fuera": 0.08
+    }
+   },
+   "escalas": {
+    "estorban": {
+     "type": "score",
+     "score": 2.26,
+     "confidence": 0.22,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.12,
+      "1": 0.18,
+      "2": 0.11,
+      "3": 0.49,
+      "4": 0.1
+     }
+    }
+   }
+  },
+  "mama": {
+   "aparecen": {
+    "type": "choice",
+    "choice": "filtro",
+    "confidence": 0.33,
+    "probabilities": {
+     "filtro": 0.5,
+     "fuera": 0.1,
+     "igual": 0.29,
+     "agrupadas": 0.11
+    }
+   },
+   "escalas": {
+    "estorban": {
+     "type": "score",
+     "score": 1.99,
+     "confidence": 0.06,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.12,
+      "1": 0.29,
+      "2": 0.13,
+      "3": 0.4,
+      "4": 0.06
+     }
+    }
+   }
+  },
+  "foraneo": {
+   "aparecen": {
+    "type": "choice",
+    "choice": "igual",
+    "confidence": 0.33,
+    "probabilities": {
+     "fuera": 0.07,
+     "agrupadas": 0.24,
+     "igual": 0.5,
+     "filtro": 0.19
+    }
+   },
+   "escalas": {
+    "estorban": {
+     "type": "score",
+     "score": 2.39,
+     "confidence": 0.27,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.1,
+      "1": 0.17,
+      "2": 0.1,
+      "3": 0.49,
+      "4": 0.14
+     }
+    }
+   }
+  },
+  "vista": {
+   "aparecen": {
+    "type": "choice",
+    "choice": "igual",
+    "confidence": 0.19,
+    "probabilities": {
+     "filtro": 0.29,
+     "igual": 0.39,
+     "agrupadas": 0.26,
+     "fuera": 0.06
+    }
+   },
+   "escalas": {
+    "estorban": {
+     "type": "score",
+     "score": 1.95,
+     "confidence": 0.05,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.12,
+      "1": 0.3,
+      "2": 0.14,
+      "3": 0.4,
+      "4": 0.04
+     }
+    }
+   }
+  }
+ }
+}

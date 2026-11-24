@@ -77,9 +77,10 @@ Lo demás Codex lo puede preparar o hacer.
 | 8 | App Privacy y Data Safety: respuestas listas; agregar la ubicación en segundo plano. | Codex prepara; Parco envía | Consolas §1–§3 |
 | 9 | Builds nuevos iOS y Android (el instalado no muestra varias fotos por reseña) y video de 30 s para la ubicación en segundo plano de Play. | Codex con el skill `eas-build-check`; Parco graba | Consolas §5 |
 | 10 | `GOOGLE_MAPS_ANDROID_API_KEY` y `GOOGLE_SERVICES_JSON` (los 2 pendientes de `check:release`). | Codex | [Inventario](CREDENTIALS_INVENTORY_2026-10-27.md) |
-| 11 | Productos de Pro en las dos tiendas. Esperar la decisión de Parco sobre Pro ([marcas, sucursales y equipo](SUCURSALES_Y_EQUIPO_2026-11-23.md) §4). | Parco decide; Codex crea | Billing |
+| 11 | Productos de Pro en las dos tiendas. Esperar la decisión de Parco sobre Pro y Pro 10 ([marcas, sucursales y equipo](SUCURSALES_Y_EQUIPO_2026-11-23.md) §5 y §9). | Parco decide; Codex crea | Billing |
 | 12 | SAT: actividad de software y declaraciones de RESICO. | Parco con su contador | Corte 15 nov |
 | 13 | Al final: datos legales, candidato firmado, TestFlight y prueba cerrada de Play (12 personas, 14 días); revocar la clave antigua de Anthropic. | Los dos | [Preparación](STORE_RELEASE_READINESS.md) |
+| 14 | Antes de la primera cadena: confirmar con App Review que el plan Cadenas se puede vender por contrato fuera de la app (3.1.3(c)), sin precio ni botón en la app. | Codex prepara; Parco envía | [Sucursales](SUCURSALES_Y_EQUIPO_2026-11-23.md) §5 |
 
 Al terminar cada punto: anotarlo en el heads-up y marcar la casilla en
 pendientes. No hacer push, builds ni compras sin el sí de Parco.

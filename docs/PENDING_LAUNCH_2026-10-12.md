@@ -11,8 +11,11 @@
   de Parco al costo ([encargo](CODEX_ENCARGO_2026-11-23.md) §A).
 - [ ] **Codex:** tiendas y trámites (encargo §B).
 - [ ] **Parco decide:** marcas, sucursales y equipo
-  ([modelo](SUCURSALES_Y_EQUIPO_2026-11-23.md)). Empezar por la fase 1,
-  Equipo: invitar por correo, autoría y Actividad.
+  ([modelo](SUCURSALES_Y_EQUIPO_2026-11-23.md)), con cadenas ya aterrizadas.
+  - Precios de Pro 10 y Cadenas, el tope de 3 lugares, Cadena Fundadora y
+    los nombres reservados (§9).
+  - Empezar por la fase 1, Equipo: invitar por correo, autoría y Registro de
+    actividad.
 
 ## Corte 2026-11-22 (Codex, QA de Parco)
 

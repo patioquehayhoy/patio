@@ -268,11 +268,28 @@ tres prácticas del CDF que se aplican aquí:
   - sus sucursales nuevas se verifican solas, como en Google.
 
   Si agrega más de 10 sucursales en un día, se revisa otra vez.
-- **Nombres reservados:** Parco carga una lista de cadenas conocidas antes de
-  que lleguen. Si alguien crea o renombra un negocio con uno de esos nombres
-  (sin acentos ni mayúsculas), el negocio se guarda pero no sale público.
-  Recibe este aviso: «Este nombre es de una marca verificada. Si trabajas
-  ahí, pide acceso a su equipo».
+- **Nombres reservados: solo se bloquea el nombre idéntico** (decisión de
+  Parco, 23 nov). El juego con los nombres es parte de la cultura de la
+  calle y se permite: «Samborcito», «Toxito», «Starbucksito», «Starbucaker».
+  - **Idéntico** quiere decir igual después de quitar mayúsculas, acentos,
+    signos, espacios y palabras del giro («café», «coffee», «restaurante»,
+    «cafetería», «taquería», «sucursal»). «STARBUCKS», «Star Bucks» y
+    «Starbucks Coffee» son idénticos a «Starbucks»; «Starbucksito» no.
+  - **Qué se reserva:** solo nombres distintivos de cadenas nacionales
+    (Starbucks, Toks, Sanborns, Vips, Potzollcalli). Los nombres hechos de
+    palabras comunes («El Portón», «La Casa de Toño») nunca se reservan,
+    aunque sean de una cadena: hay fondas con ese nombre en todo el país.
+    Cada marca verificada con nombre distintivo se agrega sola.
+  - **Cuándo se avisa:** al escribir el nombre, en el alta y en «Editar mi
+    negocio», antes de guardar: «Ese nombre ya es de una marca registrada.
+    Prueba con otro». Si trabaja ahí, «Pide acceso a su equipo». La regla
+    vive en el servidor, junto a las de cambio de nombre
+    (`20261101133000_identity_rules.sql`), no solo en la app.
+  - **Lo que ya existe no se toca por su nombre.** Un negocio dado de alta
+    antes de la lista solo se revisa si la marca lo reporta.
+  - **Lo parecido se resuelve por reporte, no por filtro.** La marca usa
+    «Reportar»; Parco revisa si alguien se hace pasar por ella (mismo
+    logo, «sucursal oficial»). El juego de palabras se queda.
 - **Sin sello visible.** El comensal confía en el nombre porque nadie más lo
   puede usar. Un sello pondría a las cadenas por encima de la fonda.
 
@@ -393,7 +410,8 @@ contador junto con los productos de Pro.
 | Franquicia chica (tortas, 4 propias y 18 franquiciadas) | La marca es propietaria principal y decide la carta. Cada franquiciatario es propietario de sus sucursales y maneja a su gente. Necesita verificarse por pasar de 10 sucursales. La marca paga Pro 10 por sus 4 propias y cada franquiciatario paga Pro por las suyas; o la marca cubre las 22 con Cadenas. |
 | Franquiciatario que llegó antes que la marca | Su negocio sigue igual. Cuando llega la marca, pide la propiedad, él acepta y su sucursal se une con todo su historial. |
 | Cadena grande (Toks, Sanborns, Starbucks, Bisquets) | Alta asistida con hoja y marca verificada. El corporativo es propietario principal; los gerentes de zona son de su grupo; cada gerente de sucursal es Administrador de la suya. El corporativo publica el menú del día en todas o en un grupo, y cada sucursal marca lo suyo. Plan Cadenas por contrato. |
-| Alguien da de alta «Starbucks» sin serlo | El nombre está reservado: se guarda, no sale público y se le pide pedir acceso al equipo de la marca. |
+| Alguien da de alta «Starbucks» sin serlo | El nombre idéntico está reservado: al escribirlo se le pide otro, o pedir acceso al equipo de la marca. |
+| Un puesto se llama «Samborcito» o «Starbucksito» | Se permite porque el nombre es distinto. Si la marca cree que se hace pasar por ella, lo reporta y Parco revisa. |
 | Tianguis o sobre ruedas | Una sucursal itinerante con sus días («Dónde vendes», como hoy). |
 | Dos marcas de la misma persona | Dos negocios en una cuenta, con «Cambiar de cuenta». |
 
@@ -467,17 +485,20 @@ fase 2, con alta asistida.
 **Pruebas:**
 - `puede()` con cada rol y alcance;
 - que nadie dé más de lo que tiene;
-- que un nombre reservado no salga público;
+- que un nombre idéntico a uno reservado se rechace en el servidor y que
+  «Samborcito» o «Starbucksito» pasen;
 - que «Actualizar» conserve los «Se acabó»;
 - que el comensal nunca vea quién publicó.
 
 ## 9. Lo que decide Parco
 
-1. Precios: Pro 10 a $249 y Cadenas a $49 por sucursal más IVA, mínimo 10.
+1. Precios: A (escalones: Pro 10 a $249 y Cadenas a $49 por sucursal), B
+   (Pro y $29 por lugar extra) o C ($33 por lugar para todos). Las tres,
+   con ejemplos, en `artifacts/patio-sistema.html`, Producto 08 «Planes».
 2. Gratis y Pro hasta 3 lugares; pasar de 3 pide Pro 10.
 3. Cadena Fundadora: las primeras 3, 6 meses sin costo.
-4. La lista de nombres reservados (las cadenas que se cargan antes de que
-   lleguen).
+4. La lista de nombres reservados. La regla ya está decidida: solo el
+   nombre idéntico y solo nombres distintivos (§4.3).
 5. Construir la fase 1, Equipo.
 
 Fuentes: [Square, permisos y ubicaciones](https://squareup.com/help/us/en/article/5822-employee-permissions) ·

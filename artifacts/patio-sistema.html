@@ -421,6 +421,27 @@
   .toggle{display:inline-flex;align-items:center;gap:8px;margin-top:32px;font:400 14px/18px var(--ui);color:var(--soft);cursor:pointer;user-select:none}
 
   
+
+  /* ── Planes: mapa (2026-11-23) ── */
+  .spine{position:absolute;left:120px;top:262px;width:1352px;height:.5px;background:rgba(17,18,20,.24)}
+  .tick{position:absolute;top:236px;font:600 11px/14px var(--ui);letter-spacing:1px;text-transform:uppercase;color:var(--mute)}
+  .plc{position:absolute;top:300px;width:320px;min-height:316px;padding:20px 20px 16px;border-radius:18px;background:var(--surface2)}
+  .plc.prop{background:#fff;box-shadow:inset 0 0 0 1px rgba(17,18,20,.16)}
+  .plc::before{content:"";position:absolute;left:28px;top:-38px;height:38px;width:.5px;background:rgba(17,18,20,.24)}
+  .plc .st{font:600 11px/14px var(--ui);letter-spacing:.8px;text-transform:uppercase;color:var(--mute)}
+  .plc.prop .st{color:var(--accent)}
+  .plc .nm{font:800 28px/32px var(--brand);letter-spacing:-.28px;margin-top:8px}
+  .plc .pr{font:600 20px/24px var(--ui);margin-top:6px}
+  .plc .pu{font:400 13px/18px var(--ui);color:var(--soft);margin-top:2px}
+  .plc dl{margin-top:14px}
+  .plc dt{font:600 11px/14px var(--ui);letter-spacing:.8px;text-transform:uppercase;color:var(--mute);margin-top:10px}
+  .plc dd{margin:2px 0 0;font:400 14px/19px var(--ui);color:var(--soft)}
+  .plt{position:absolute;left:120px;top:660px;width:1352px;display:grid;grid-template-columns:200px repeat(3,1fr);column-gap:24px}
+  .plt>*{padding:9px 0;border-top:.5px solid rgba(17,18,20,.14);font:400 14px/19px var(--ui);color:var(--soft)}
+  .plt .h{font:600 14px/19px var(--ui);color:var(--ink);border-top:0}
+  .plt .h small{display:block;font-weight:400;color:var(--mute)}
+  .plt .k{color:var(--ink)}
+  .plt .v{font-variant-numeric:tabular-nums;color:var(--ink)}
 </style>
 </head>
 <body>
@@ -451,7 +472,7 @@
   <div class="head"><p class="ey">Sumario</p><h2 class="hl"><b>Tres partes.</b> La marca, el producto y las piezas que salen de los dos.</h2></div>
   <div class="toc">
     <div class="r"><p class="no">1</p><p class="cx" data-go="p-m">Marca<small>Brand book</small></p><div class="subs"><a data-go="p-m01"><b>01</b>Logotipo</a><a data-go="p-m02"><b>02</b>La P</a><a data-go="p-m03"><b>03</b>Usos no permitidos</a><a data-go="p-m04"><b>04</b>Color</a><a data-go="p-m05"><b>05</b>Paleta</a><a data-go="p-m06"><b>06</b>Tipografía</a><a data-go="p-m07"><b>07</b>Escala</a><a data-go="p-m08"><b>08</b>En pantalla</a><a data-go="p-m09"><b>09</b>Voz</a><a data-go="p-m10"><b>10</b>Flyers</a><a data-go="p-m11"><b>11</b>Calle</a></div></div>
-    <div class="r"><p class="no">2</p><p class="cx" data-go="p-p">Producto<small>Pantallas y flujos</small></p><div class="subs"><a data-go="p-p01"><b>01</b>Recorridos</a><a data-go="p-p02"><b>02</b>Quien busca</a><a data-go="p-p03"><b>03</b>El negocio</a><a data-go="p-p04"><b>04</b>Avisos</a><a data-go="p-p05"><b>05</b>Aviso y promo</a><a data-go="p-p06"><b>06</b>Prueba Pro</a><a data-go="p-p07"><b>07</b>Mostrar en caja</a></div></div>
+    <div class="r"><p class="no">2</p><p class="cx" data-go="p-p">Producto<small>Pantallas y flujos</small></p><div class="subs"><a data-go="p-p01"><b>01</b>Recorridos</a><a data-go="p-p02"><b>02</b>Quien busca</a><a data-go="p-p03"><b>03</b>El negocio</a><a data-go="p-p04"><b>04</b>Avisos</a><a data-go="p-p05"><b>05</b>Aviso y promo</a><a data-go="p-p06"><b>06</b>Prueba Pro</a><a data-go="p-p07"><b>07</b>Mostrar en caja</a><a data-go="p-p08"><b>08</b>Planes</a></div></div>
     <div class="r"><p class="no">3</p><p class="cx" data-go="p-i">Piezas<small>Inventario con estado</small></p><div class="subs"><a data-go="p-i01"><b>01</b>Inventario</a></div></div>
   </div>
   <span class="pn">2</span>
@@ -1008,12 +1029,44 @@
 </section>
 
 <!-- ═════════ PARTE 3 · PIEZAS ═════════ -->
+<section class="pg" id="p-p08" data-part="2">
+  <span class="rt r1">Producto</span><span class="rt r2">Patio · Sistema</span>
+  <div class="head n" style="width:560px"><p class="ey">Producto<em>08</em></p><h2 class="hl"><b>Planes.</b> Cada plan cubre lugares.</h2></div>
+  <ul class="a rl" style="left:760px;top:84px;width:712px;display:grid;grid-template-columns:1fr 1fr 1fr;column-gap:24px">
+    <li><b>Lo paga el propietario</b>El dueño, el franquiciatario o la marca por contrato.</li>
+    <li><b>Nadie paga por aparecer</b>Mismo orden por cercanía para la fonda y la cadena.</li>
+    <li><b>La fonda no ve nada nuevo</b>Con un lugar, Planes sigue igual que hoy.</li>
+  </ul>
+  <span class="spine"></span>
+  <span class="tick" style="left:120px">1 a 3 lugares</span>
+  <span class="tick" style="left:808px">4 a 10 lugares</span>
+  <span class="tick" style="left:1152px">11 o más · marca verificada</span>
+
+  <div class="plc" style="left:120px"><p class="st">Vigente</p><p class="nm">Gratis</p><p class="pr">$0</p><p class="pu">Hasta 3 lugares</p>
+    <dl><dt>Para</dt><dd>La fonda de un solo lugar.</dd><dt>En la app</dt><dd>Igual que hoy.</dd><dt>Incluye</dt><dd>20 lecturas con foto al día por negocio.</dd></dl></div>
+  <div class="plc" style="left:464px"><p class="st">Vigente</p><p class="nm">Pro</p><p class="pr">$99 al mes · $990 al año</p><p class="pu">Hasta 3 lugares · $33 por lugar</p>
+    <dl><dt>Para</dt><dd>Alitas X con 3 puestos.</dd><dt>En la app</dt><dd>Con más de un lugar dice «Cubre tus 3 lugares».</dd><dt>Incluye</dt><dd>60 lecturas al día por negocio y 8 avisos especiales por lugar.</dd></dl></div>
+  <div class="plc prop" style="left:808px"><p class="st">Propuesta</p><p class="nm">Pro 10</p><p class="pr">$249 al mes</p><p class="pu">Hasta 10 lugares · $24.90 por lugar</p>
+    <dl><dt>Para</dt><dd>Alitas X con 7 puestos.</dd><dt>En la app</dt><dd>Sustituye a Pro al pasar de 3 lugares. Mismo grupo de suscripción: se sube o se baja de nivel.</dd></dl></div>
+  <div class="plc prop" style="left:1152px"><p class="st">Propuesta</p><p class="nm">Cadenas</p><p class="pr">$49 por sucursal al mes</p><p class="pu">Más IVA · mínimo 10 · 150 sucursales: $7,350</p>
+    <dl><dt>Para</dt><dd>Toks, Sanborns, franquicias grandes.</dd><dt>En la app</dt><dd>Sin precio ni botón: «Plan Cadenas». Contrato, factura y alta asistida.</dd></dl></div>
+
+  <div class="plt">
+    <p class="h">Tres formas de cobrar<small>al mes</small></p><p class="h">A · Escalones<small>la propuesta</small></p><p class="h">B · Pro y $29 por lugar extra<small>crece parejo</small></p><p class="h">C · $33 por lugar para todos<small>un lugar, un precio</small></p>
+    <p class="k">3 lugares</p><p class="v">$99</p><p class="v">$99</p><p class="v">$99</p>
+    <p class="k">7 lugares</p><p class="v">$249</p><p class="v">$215</p><p class="v">$231</p>
+    <p class="k">150 sucursales</p><p class="v">$7,350</p><p class="v">$4,362</p><p class="v">$4,950</p>
+    <p class="k">Qué pesa</p><p>La cadena paga el trato a mano: verificación, alta y factura.</p><p>Justo para todos; en las tiendas, un nivel por tamaño.</p><p>La historia más simple; la cadena paga menos que en A.</p>
+  </div>
+  <span class="pn">23</span>
+</section>
+
 <section class="pg dk" id="p-i" data-part="3">
   <div class="photo" style="background-image:url('../assets/hero/botanica-8.jpg')"></div>
   <span class="rt r1">Parte 3</span><span class="rt r2">Patio · Sistema</span>
   <p class="ch-num">3</p><p class="ch-t">Piezas</p>
   <p class="ch-l">Todo lo que Patio muestra o imprime, con su estado.</p>
-  <span class="pn">23</span>
+  <span class="pn">24</span>
 </section>
 
 <section class="pg" id="p-i01" data-part="3">
@@ -1021,7 +1074,7 @@
   <div class="head"><p class="ey">Piezas<em>01</em></p><h2 class="hl"><b>Inventario.</b> Lo que ya corre, lo diseñado y lo que falta.</h2></div>
   <div class="legend" id="legend"></div>
   <div class="inv2" id="inv"></div>
-  <span class="pn">24</span>
+  <span class="pn">25</span>
 </section>
 
 </div></main>

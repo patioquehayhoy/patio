@@ -159,7 +159,7 @@ Sin cortes ni música: Google revisa que el aviso aparezca antes del permiso.
 
 En App Store Connect → App Review Information: «Sign-in required» marcado,
 usuario `quehayhoy.patio+revision@gmail.com` y, como contraseña, el código de
-`.env.review.local` (en la Mac de Parco, fuera de Git). En Play Console →
+`~/Patio-privado/revision-apple.env` (en la Mac de Parco, fuera de Git). En Play Console →
 Acceso a la app, lo mismo.
 
 ```
@@ -195,7 +195,7 @@ For a business: "Ajustes" → "Eliminar cuenta".
 - Correo: `quehayhoy.patio+revision@gmail.com`. Gmail entrega todo lo que va
   después del «+» al buzón de soporte; para Patio es otra cuenta.
 - Código fijo de 8 dígitos solo para ese correo: secretos `REVIEW_EMAIL` y
-  `REVIEW_CODE` en Supabase; copia local en `.env.review.local` (ignorado por
+  `REVIEW_CODE` en Supabase; copia local en `~/Patio-privado/revision-apple.env` (ignorado por
   Git). La función `review-login` lo revisa y pide a Supabase un código de un
   solo uso; la app entra con él por el camino normal
   (`lib/auth-email-code.ts`). Código equivocado: rechazo con espera.
@@ -203,6 +203,6 @@ For a business: "Ajustes" → "Eliminar cuenta".
   sesión.
 - Sin negocio sembrado: un negocio de prueba saldría en el mapa real. El
   revisor hace el alta corta. Al aprobarse, borrar lo que haya creado.
-- Para cambiar el código: editar `.env.review.local`, correr
-  `supabase secrets set --env-file .env.review.local` y actualizarlo en las
+- Para cambiar el código: editar `~/Patio-privado/revision-apple.env`, correr
+  `supabase secrets set --env-file ~/Patio-privado/revision-apple.env` y actualizarlo en las
   dos consolas.

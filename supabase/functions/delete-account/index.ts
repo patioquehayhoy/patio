@@ -35,7 +35,9 @@ Deno.serve(async (request) => {
     if (migrationError || ready !== true) throw migrationError ?? new Error('Account cleanup is not installed');
     // Storage objects must be removed through its API before auth deletion.
     // Cleanup is retryable: a partial failure keeps the account signed in.
-    for (const name of ['avatars', 'business-logos']) {
+    // Every bucket a person uploads to keeps files under their own id:
+    // profile, logo, place, dish and review photos all go with the account.
+    for (const name of ['avatars', 'business-logos', 'place-photos', 'dish-photos', 'review-photos']) {
       await removeFolder(admin.storage.from(name), user.id);
     }
     // The accompanying DB trigger removes owned Patios within this transaction.

@@ -69,13 +69,31 @@ export async function leerMenuDeFoto(imageUris: string | string[], signal?: Abor
   }
 }
 
+/**
+ * Lee con foto solo quien entró a su negocio. Si la sesión no se confirma en
+ * 10 s, se intenta igual y el servidor decide (null = no se sabe).
+ */
+async function signedIn(): Promise<boolean | null> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<'timeout'>((resolve) => { timer = setTimeout(() => resolve('timeout'), 10_000); });
+  const current = Promise.resolve().then(() => supabase.auth.getSession()).then(({ data }) => data.session).catch(() => null);
+  const session = await Promise.race([current, timeout]);
+  clearTimeout(timer);
+  if (session === 'timeout') return null;
+  return !!session && !session.user?.is_anonymous;
+}
+
 async function readImage(imageUris: string[], signal: AbortSignal): Promise<MenuVisualResult> {
+  // Sin cuenta no se sube nada: el servidor la pide y antes se veía como una espera sin fin.
+  if (await signedIn() === false) throw new AIServiceError('Para leer tu menú con foto, entra con el correo de tu negocio.', 401);
   const images = await Promise.all(imageUris.map(async (uri) => ({
     imageBase64: await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 }),
     mediaType: 'image/jpeg',
   })));
 
   if (signal.aborted) throw new Error('Lectura cancelada');
+  const sent = Date.now();
+  if (__DEV__) console.info('[foto-menu] enviando', images.length, 'hojas,', Math.round(images.reduce((total, image) => total + image.imageBase64.length, 0) * 0.75 / 1024), 'KB');
   const { data, error } = await supabase.functions.invoke('read-menu', {
     signal,
     body: {
@@ -84,7 +102,15 @@ async function readImage(imageUris: string[], signal: AbortSignal): Promise<Menu
     },
   });
 
+  if (__DEV__) {
+    // Dónde se tardó: el servidor manda sus tiempos también cuando no termina.
+    const context = error && typeof error === 'object' && 'context' in error && error.context instanceof Response ? error.context : null;
+    const detail = context ? await context.clone().json().catch(() => null) : null;
+    console.info('[foto-menu] respuesta', context ? context.status : error ? 'sin respuesta' : 200, 'en', Date.now() - sent, 'ms',
+      detail?.tiempos ? JSON.stringify(detail.tiempos) : error && !context ? String(error) : '');
+  }
   if (error) throw await aiFunctionError(error, 'No se pudo leer el menú. Inténtalo de nuevo.');
+  if (__DEV__ && data && typeof data === 'object' && 'tiempos' in data) console.info('[foto-menu] servidor', JSON.stringify(data.tiempos));
   if (!isMenuVisualResult(data)) throw new Error('La lectura devolvió un formato inválido');
   return { ...data, precio: data.precio ?? '', precios: Array.isArray(data.precios) ? data.precios : [] };
 }

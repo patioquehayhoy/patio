@@ -1,5 +1,10 @@
 # Encargo para Codex — 23 noviembre 2026
 
+> **27 nov:** Parco lo pasó a Claude. Hechos: punto 5 (borrado de fotos y
+> textos) y el borrador del punto 14 (Consolas §8). El punto 8 ya estaba
+> listo en Consolas §5. Lo demás necesita la cuenta, el pago o el teléfono de
+> Parco, o espera que decida sobre «Tus visitas» y Pro.
+
 Parco pidió dejarle a Codex **tiendas y trámites** y el seguimiento de la
 **lectura lenta**. Claude dejó listo lo que se podía hacer sin el teléfono.
 Antes de empezar, leer el [heads-up](HEADS_UP_2026-10-12.md) y la

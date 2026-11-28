@@ -315,7 +315,13 @@ export default function PatioSmartScreen() {
 
   const goBack = () => {
     Keyboard.dismiss();
-    if (stage === 'name') router.back();
+    // Abierta como primera pantalla (al volver a la app sin terminar el alta,
+    // o desde la entrada de desarrollo) no hay a dónde regresar: cerrar lleva
+    // al inicio. Antes la «×» no hacía nada (27 nov, GO_BACK en Metro).
+    if (stage === 'name') {
+      if (router.canGoBack()) router.back();
+      else router.replace('/entrada');
+    }
     else if (stage === 'category') setStage('name');
     else if (stage === 'location') setStage('category');
     else if (stage === 'schedule') setStage('location');
@@ -396,7 +402,7 @@ export default function PatioSmartScreen() {
       <View style={[s.nav, { paddingTop: insets.top + 8 }]}>
         <TouchableOpacity
           accessibilityRole="button"
-          accessibilityLabel="Volver"
+          accessibilityLabel={stage === 'name' ? 'Cerrar' : 'Volver'}
           onPress={goBack}
           activeOpacity={0.7}
           style={[s.close, { backgroundColor: colors.surface }]}>

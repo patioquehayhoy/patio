@@ -19,11 +19,11 @@ const ACCOUNT: Topic = { id: 'cuenta', icon: 'key-outline', title: 'Mi cuenta', 
   { title: 'No me llega el código', answer: 'Revisa las carpetas de spam y promociones; el correo puede tardar un par de minutos. Si pasó más tiempo, pide otro código desde la misma pantalla.' },
   { title: 'El código no funciona', answer: 'Usa siempre el código más reciente: cuando pides otro, el anterior deja de servir. Escribe los 8 dígitos sin espacios.' },
   { title: 'Quiero cambiar mi correo', answer: 'El cambio de correo lo hacemos nosotros. Escríbenos desde tu correo actual y dinos cuál quieres usar.' },
-  { title: 'Quiero eliminar mi cuenta', answer: 'En Perfil, al final, toca Eliminar cuenta. Se borran tu cuenta y lo que guardaste en ella.' },
+  { title: 'Quiero eliminar mi cuenta', answer: 'Si usas Patio para comer, abre Perfil, toca el engrane de Ajustes y elige Eliminar cuenta. Si tienes un negocio, entra en Ajustes y elige Eliminar cuenta. Se borran tu cuenta, tus fotos y lo que guardaste en ella.' },
 ] };
 const NOTICES: Topic = { id: 'avisos', icon: 'notifications-outline', title: 'Avisos', hint: 'No llegan o llegan de más', askFrequency: true, reasons: [
-  { title: 'No me llegan avisos', answer: 'Revisa en Perfil → Notificaciones que estén activas y que tu teléfono las permita para Patio.' },
-  { title: 'Me llegan demasiados', answer: 'Puedes apagarlas en Perfil → Notificaciones.' },
+  { title: 'No me llegan avisos', answer: 'Revisa en Perfil → Ajustes → Notificaciones que estén activas y que tu teléfono las permita para Patio.' },
+  { title: 'Me llegan demasiados', answer: 'Puedes apagarlas en Perfil → Ajustes → Notificaciones.' },
 ] };
 const SAFETY: Topic = { id: 'seguridad', icon: 'shield-checkmark-outline', title: 'Reseñas y seguridad', hint: 'Reportar contenido o a alguien', reasons: [
   { title: 'Una reseña es ofensiva o falsa', answer: 'Repórtala desde el menú de la reseña. La revisamos y la quitamos si rompe las reglas de Patio.' },
@@ -36,7 +36,7 @@ const FOODIE_TOPICS: Topic[] = [
     { title: 'Un lugar tiene datos incorrectos', answer: 'En la ficha del lugar toca ••• → Reportar contenido → Información incorrecta. Lo revisamos con el negocio.' },
   ] },
   { id: 'listas', icon: 'bookmark-outline', title: 'Lugares y listas', hint: 'Seguir, organizar y compartir', askFrequency: true, reasons: [
-    { title: 'No veo los lugares que sigo', answer: 'Entra con el mismo correo que usaste antes: los lugares que sigues y tus listas viven en tu cuenta.' },
+    { title: 'No veo los lugares que sigo', answer: 'Entra con el mismo correo que usaste antes: los lugares que sigues viven en tu cuenta. Las listas privadas que nunca compartiste se guardan en el teléfono donde las creaste.' },
     { title: 'No puedo compartir una lista', answer: 'Abre la lista y toca compartir. Necesitas haber iniciado sesión para generar el enlace.' },
   ] },
   SAFETY, NOTICES, ACCOUNT,
@@ -48,7 +48,7 @@ const FONDERO_TOPICS: Topic[] = [
     { title: 'Mi menú no se ve publicado', answer: 'Lo de hoy se ve mientras estás abierto. Revisa tu horario en Perfil → Editar mi negocio.' },
   ] },
   { id: 'negocio', icon: 'storefront-outline', title: 'Mi negocio', hint: 'Nombre, horario y ubicación', askFrequency: true, reasons: [
-    { title: 'Cambiar nombre, horario o ubicación', answer: 'Todo se edita en Perfil → Editar mi negocio. El nombre se puede cambiar una vez cada 15 días; para la ubicación puedes usar dónde estás o escribir la dirección.' },
+    { title: 'Cambiar nombre, horario o ubicación', answer: 'Todo se edita en Perfil → Editar mi negocio. Puedes cambiar el nombre dos veces cada 14 días; para la ubicación puedes usar dónde estás o escribir la dirección.' },
     { title: 'Cambiar mi tipo de lugar', answer: 'Cuéntanos a qué tipo cambias y por qué. Lo revisamos para que tu lugar aparezca donde la gente lo busca.' },
     { title: 'No aparezco en el mapa', answer: 'Apareces cuando tienes lo de hoy publicado y estás abierto. Revisa tu horario y tu ubicación en Editar mi negocio.' },
   ] },

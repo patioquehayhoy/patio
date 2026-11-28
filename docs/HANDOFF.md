@@ -1,5 +1,17 @@
 # HANDOFF
 
+## Cierre 2026-11-28 — retomar aquí (Claude)
+
+Leer el [heads-up](HEADS_UP_2026-10-12.md): ya solo trae el cierre del 28 nov
+y el «Estado vigente» (las iteraciones viejas se borraron; siguen en git).
+- La lectura con foto funciona otra vez (con cuenta): 13.7 s la última.
+- Editor: seleccionar varios platillos para Se acabó, Vegetariano, Mover
+  (con «Deshacer») y Eliminar; pulido con los principios de Apple.
+- Producción al día: migraciones hasta 20261127090000 y `read-menu`,
+  `smart-setup`, `search-intent` y `delete-account` desplegadas.
+- Falta: QA de Parco en el iPhone; decidir Racha y «Tus visitas»; dominio;
+  build y reenvío a Apple.
+
 ## Cierre 2026-11-24 — retomar aquí (Claude)
 
 Leer los bloques del 24 nov en el [heads-up](HEADS_UP_2026-10-12.md).

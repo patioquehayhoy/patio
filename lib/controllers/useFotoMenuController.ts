@@ -1,5 +1,6 @@
 import { markCartaSections } from '@/lib/menu-carta';
 import * as ImagePicker from 'expo-image-picker';
+import { router } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, Linking } from 'react-native';
 
@@ -179,6 +180,15 @@ export function useFotoMenuController(handlers?: FotoMenuHandlers) {
       console.warn('[foto-menu] lectura falló:', error);
       clearMenuExtractionSnapshot();
       setState('idle');
+      if (error instanceof Error && error.name === 'AIServiceError' && (error as { status?: number }).status === 401) {
+        // Sin cuenta, otra foto tampoco se leería: lo útil es entrar.
+        Alert.alert(noWidow('Entra a tu negocio'), noWidow(error.message), [
+          { text: 'Entrar', onPress: () => router.push('/fondero-acceso') },
+          { text: 'Escribirlo a mano', onPress: () => handlersRef.current?.onManual?.() },
+          { text: 'Ahora no', style: 'cancel', onPress: () => handlersRef.current?.onExit?.() },
+        ]);
+        return;
+      }
       Alert.alert(noWidow('No pudimos leerlo'), noWidow(error instanceof Error && error.name === 'AIServiceError' ? error.message : 'Prueba con otra foto o escríbelo a mano.'), [
         { text: 'Otra foto', onPress: () => {
           if (handlersRef.current?.photoSource === 'library') void choosePhotoRef.current();

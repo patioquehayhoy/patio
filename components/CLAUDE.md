@@ -1,3 +1,81 @@
+## Seleccionar varios platillos (Parco, 2026-11-28)
+
+Arrastrar sirve con pocos; acomodar diez (cinco sopas, dos bebidas, dos
+postres, uno sin saber) uno por uno se complica. «Seleccionar» (junto a
+«Vista previa», con 2 o más platillos) cambia la fila de estado por la
+`SelectionHeader` de Menús y Guardados («3 platillos seleccionados»,
+Todos/Cancelar) y abajo pone la misma `SelectionActions`, ordenada como
+Mail (marcar, mover, eliminar): **Se acabó** (solo en el menú que ya ven),
+**Vegetariano**, **Mover** y **Eliminar**.
+- **Se acabó / Ya hay** (Parco, 28 nov: «para tachar varios»): como
+  «Marcar» en Mail, si alguno de los de hoy sigue habiendo los marca a todos;
+  si todos ya se acabaron, dice «Ya hay» y los regresa. Sale a la calle al
+  instante en una sola escritura (`setSoldOut(ids, agotado)`); si falla, cada
+  uno vuelve a como estaba. La carta no se acaba (igual que al deslizar):
+  con solo platillos de la carta, se ve apagado.
+- **Vegetariano**: la hojita llena si todos lo son, como el corazón de Fotos;
+  tocarla entonces los quita (VoiceOver: «seleccionado»). Espera
+  «Actualizar» como cualquier cambio (`patchDishes`).
+- Después de marcar, mover o eliminar se sale de la selección, como Mail.
+- Tocar un renglón lo elige (el cuadro de la foto muestra el círculo);
+  tocar el título de una sección elige o suelta todos sus platillos. Sin
+  deslizar, sin arrastrar, sin sugerencias, sin «+ Platillo» ni «+ Sección».
+- «Mover» abre el menú anclado: «Sección nueva» arriba y luego cada sección
+  (agrupadas Hoy/Carta si hay carta), menos donde ya están todos. Van al
+  final de la sección, en su orden. «Sección nueva» entra antes de la carta
+  (o al final de la carta si todos salen de ella) y deja el cursor en su
+  título con los nombres sugeridos sobre el teclado.
+- Una sección sin título ni precio que se queda vacía se va; una con título
+  («MENÚ DEL DÍA $100») se queda: su precio sigue valiendo.
+- «Eliminar» varios: un solo «Deshacer» («Se eliminaron 3 platillos»).
+- **Mover también se deshace** (Parco, 28 nov), como Mail: «Se movieron 3
+  platillos a BEBIDAS · Deshacer». Cada platillo vuelve a su lugar con lo que
+  se le escribió después; regresa la sección sin título que se fue por
+  quedar vacía y la sección nueva se va si se quedó sin platillos
+  (`moveDishesIn` / `undoMoveIn`).
+
+### Pulido del editor con los principios de Apple (2026-11-28)
+
+- **Síntesis:** una sugerencia a la vez por platillo (mismo platillo →
+  partir nombre → vegetariano) y «¿Es vegetariano?» solo en el primer
+  platillo que falta del menú, no en todos.
+- **Simetría de traslación:** «+ Platillo» repite la retícula del renglón
+  (el «+» centrado en la columna de la foto, el texto donde empiezan los
+  nombres); «+ Sección» a la orilla de los títulos.
+- **Jerarquía de color:** «+ Platillo» y «+ Sección» en gris, peso 500, con
+  el «+» en acento. El naranja de fondo queda solo en «Publicar».
+- **Consistencia:** los vínculos secundarios («Vista previa»,
+  «Seleccionar», «Tomar otra foto») son 13/500 gris con ícono de 16;
+  «Programar» y «Publicar» comparten tamaño de letra (15) en su renglón.
+- «‹», «×» y atrás de Android primero salen de la selección.
+- Controlador: `moveDishes(ids, sectionId?)` y `removeDishes(ids)`.
+
+## QA de Parco — lectura del pizarrón (2026-11-27)
+
+- **Cada precio en su sección** (`boardFromMenu`): un precio que ya tiene
+  sección va en ella («MENÚ $100» con «MENÚ DEL DÍA», «GUISADOS $85» con
+  GUISADOS) y «CARTA $110» es el precio del encabezado de la carta, nunca otro
+  encabezado arriba. Antes salía «MENÚ» vacío y el menú del día quedaba
+  dentro de la carta. Solo con tiempos o varias formas de cobrar el precio es
+  su encabezado arriba («MENÚ DEL DÍA $100» y luego 1ER TIEMPO…).
+- **La única sección de hoy** se puede eliminar: deja una vacía en su lugar
+  (con «Deshacer»; si nadie escribió ahí, se va al deshacer). Vacía, no
+  ofrece «Eliminar». Ya no existe «Tu menú necesita una sección».
+- **La duda de la lectura** va debajo del platillo, gris como las demás notas
+  y con el ícono en acento; el modelo la escribe en 2 a 5 palabras
+  (`REGLA DUDA`). Se va al corregir el platillo.
+- **Tiempos** (`REGLA TIEMPOS`, cualquier giro): un menú del día sin
+  encabezados que agrupa platillos distintos con llaves, colores o espacios
+  sale en 1ER, 2DO y 3ER TIEMPO, uno por grupo que se ve. Una llave de
+  opciones de un platillo («Enchiladas < verdes / rojas») o de un mismo
+  precio no es tiempo. Por qué cualquier giro: en Google Maps, 28 de 32
+  fondas, comidas corridas y cocinas económicas se llaman «Restaurante…»
+  (`docs/research/menus-gmaps`). Llaves como único marcador de tiempos: 0 de
+  157 fotos de menú; las 2 con llaves sin encabezado eran opciones.
+- Propuestas que esperan a Parco: preguntar vegetariano de a uno (no en
+  todos los platillos a la vez) y el ruido general del editor después de
+  leer. No construir sin su sí.
+
 ## Corrección de Parco — publicar, nombre y secciones (2026-11-24)
 
 - «Publicar» sale ahora, siempre; «Programar» solo ofrece días. Nunca dos
@@ -251,8 +329,7 @@ Auditoría y casos pendientes: `docs/QA_Y_FLUJOS_2026-11-22.md`.
   desplazarse. Sin esa relación la lista empezaba a moverse y cancelaba el
   arrastre (no quitarla). Si la lista aún no se midió, se usa la pantalla.
   Cerca de la orilla la lista se desplaza sola. Mientras escribes no hay
-  gestos sobre el texto. Pendiente: con VoiceOver aún no hay «Subir» y
-  «Bajar» en el panel (vivían en la manija de «Ordenar»).
+  gestos sobre el texto.
 - **Eliminar** (la palabra de iOS): «Eliminar» de la barra del teclado o
   deslizar; siempre con «Deshacer»
   (con el teclado abierto, el aviso va arriba de él). «Deshacer» se va solo a

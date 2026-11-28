@@ -76,8 +76,9 @@ Deno.serve(async (request) => {
   }
 
   try {
-    const auth = await requireUser(request);
+    // Primero lo que subió el teléfono, luego la sesión (ver readJson).
     const body = await readJson(request, 24_576);
+    const auth = await requireUser(request);
     const relato = string(body.relato);
     if (relato.length < 12 || relato.length > 4_000) {
       return Response.json({ error: 'Cuéntanos tu negocio en 12 a 4000 caracteres' }, { status: 400, headers: corsHeaders });

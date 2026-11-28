@@ -1,6 +1,49 @@
-import { consumeAIRequest } from '../_shared/ai-quota.ts';
+import { consumeAIRequest, returnAIRequest } from '../_shared/ai-quota.ts';
 import { requireUser } from '../_shared/auth.ts';
 import { corsHeaders, errorResponse, readJson } from '../_shared/http.ts';
+
+// El teléfono espera 120 s (READ_DEADLINE_MS en lib/vision.ts). El servidor
+// termina antes, aun con reintentos o una subida lenta, para contestar
+// siempre algo: el menú o en qué paso se quedó.
+const SERVER_BUDGET_MS = 100_000;
+// Saturado (429, 529) o caído (5xx): Anthropic pide reintentar con espera.
+const RETRY_STATUS = new Set([429, 500, 502, 503, 504, 529]);
+const MAX_ATTEMPTS = 3;
+// Un reintento solo vale si después queda tiempo para leer.
+const MIN_TIME_TO_READ_MS = 20_000;
+
+// Una lectura trabada escribe espacios sin fin hasta el tope: se corta antes.
+const STUCK_WHITESPACE = /\s{300}$/;
+
+/** Cómo va la lectura de una hoja, para saber dónde se tarda. Sin datos del menú. */
+type Progress = { intentos: number; ms_primer_texto: number; caracteres: number; tokens_salida: number; motivo?: string };
+
+/** La lectura no terminó por el servicio (ocupado, lento o trabado): la lectura se devuelve. */
+class ReadUnavailable extends Error {}
+
+function unavailable(progress: Progress, motivo: string) {
+  progress.motivo = motivo;
+  return new ReadUnavailable(motivo);
+}
+
+/** Se rechaza al cortar la espera; la carrera la usa aunque el fetch no haga caso a la señal. */
+function whenAborted(signal: AbortSignal) {
+  const promise = new Promise<never>((_, reject) => {
+    if (signal.aborted) reject(new Error('abort'));
+    else signal.addEventListener('abort', () => reject(new Error('abort')), { once: true });
+  });
+  promise.catch(() => {});
+  return promise;
+}
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/** Espera antes de reintentar: la que pide el servicio (hasta 8 s) o 1.5 s, 3 s. */
+function retryWait(response: Response, attempt: number): number {
+  const asked = Number(response.headers.get('retry-after'));
+  if (Number.isFinite(asked) && asked > 0) return Math.min(asked * 1000, 8_000);
+  return 1_500 * 2 ** (attempt - 1) + Math.floor(Math.random() * 500);
+}
 
 type UnknownRecord = Record<string, unknown>;
 
@@ -54,9 +97,11 @@ function normalizeResult(value: unknown) {
 }
 
 const REGLAS = `
-REGLA FIDELIDAD: Transcribe únicamente lo que realmente aparece en la imagen. No inventes platillos, tiempos, acompañamientos ni precios.
+REGLA FIDELIDAD: Transcribe únicamente lo que realmente aparece en la imagen. No inventes platillos, acompañamientos ni precios. Los tiempos solo salen de grupos que se ven en la imagen (REGLA TIEMPOS).
 
 REGLA FLEXIBILIDAD: Un negocio puede vender un único especial ese día. En ese caso crea una sola sección apropiada para su perfil. No fuerces tiempos, categorías ni carta.
+
+REGLA TIEMPOS: En un menú del día o comida corrida (por ejemplo "MENÚ $100", "COMIDA CORRIDA", "MENÚ DEL DÍA") que no escribe encabezados por tiempo, una llave, corchete, color o espacio que junta varios platillos distintos (dos sopas, tres guisados) marca un tiempo. Una llave que abre las opciones de un mismo platillo ("Enchiladas < verdes / rojas", "Tacos de: bistec, pastor") o que junta platillos con un mismo precio no es un tiempo: sigue la REGLA AGRUPACIÓN o la de precios. Cada tiempo que se ve es una sección, en el orden en que aparece: "1ER TIEMPO", "2DO TIEMPO", "3ER TIEMPO" (y "4TO TIEMPO" si hay más); un grupo solo de bebidas o solo de postres se llama "BEBIDAS" o "POSTRES". Si la imagen escribe sus propios encabezados (SOPAS, GUISADOS…), usa esos. Sin agrupación visible, el menú del día va en una sola sección. Aplica a cualquier giro: casi todas las fondas se registran como restaurante.
 
 REGLA SECCIONES: Respeta primero los encabezados visibles. Solo si faltan o son ambiguos, usa la arquitectura del perfil enviada abajo.
 Devuelve todos los nombres de sección en MAYÚSCULAS, con acentos correctos.
@@ -80,7 +125,7 @@ EJEMPLOS DE LA REGLA GENERAL (no son una lista cerrada):
 - "Agua de jamaica, 1 L" / "".
 Aplica el mismo análisis a cualquier platillo, no copies estos ejemplos si no aparecen.
 
-REGLA PRECIOS DEL MENÚ: En fondas y cocinas económicas el menú del día suele cobrarse de varias formas (por ejemplo "Completo $95", "Sin sopa $85", "Solo guisado $70", "Ejecutivo $120", "Para llevar $100"). Pon cada forma en "precios" con su nombre tal como aparece y su cantidad. Si hay una sola forma, ponla también en "precio". Nunca inventes formas que no estén escritas.
+REGLA PRECIOS DEL MENÚ: En fondas y cocinas económicas el menú del día suele cobrarse de varias formas (por ejemplo "Completo $95", "Sin sopa $85", "Solo guisado $70", "Ejecutivo $120", "Para llevar $100"). Pon cada forma en "precios" con su nombre tal como aparece y su cantidad. Si hay una sola forma, ponla también en "precio". Nunca inventes formas que no estén escritas. El precio de la carta ("CARTA $110") no es una forma de cobrar el menú del día: va solo en "precioSeccion" de la sección de la carta.
 REGLA PRECIO: Si todo el menú tiene un precio único, ponlo en "precio". Si una sección tiene precio común, usa "precioSeccion". Si un platillo tiene precio propio, ponlo exclusivamente en "platillo.precio". Nunca escondas un precio en la descripción. Cuando exista un precio general o de sección, no marques para revisión un platillo solo porque no tenga precio individual: se entiende incluido. Textos como "Carta" o "a la carta" sí distinguen platillos independientes y deben conservarse en la descripción.
 
 REGLA ASOCIACIÓN ESPACIAL DE PRECIO: Lee la posición, no solo el texto. Un precio en el mismo renglón, columna derecha o inmediatamente debajo de un platillo pertenece a ese platillo. Una secuencia de productos con una secuencia de precios debe conservar cada pareja. No promociones un precio individual a "precio" general salvo que la imagen diga explícitamente menú, paquete, precio único, incluye o equivalente.
@@ -89,7 +134,7 @@ REGLA VARIANTES CON VARIOS PRECIOS: Si un producto tiene varios tamaños o varia
 
 REGLA PRECIO IMPROBABLE: Transcribe el número visible, pero aplica contexto mexicano. Para una fondita, una sopa, bebida o tiempo individual por encima de $500 MXN, o un menú del día por encima de $800 MXN, es probablemente una lectura errónea (por ejemplo 1020 en vez de 120). No inventes la corrección: conserva el valor, marca "requiereRevision" y explica "Precio inusual; confirma la foto". Agrega también una advertencia general.
 
-REGLA DUDA: Marca "requiereRevision" cuando no sea claro si un texto es platillo, ingrediente, opción o precio. Explica la duda brevemente en "motivoRevision" y agrega una advertencia general. La confianza va de 0 a 1 y debe ser conservadora.
+REGLA DUDA: Marca "requiereRevision" solo cuando quien cocina tenga que mirar ese platillo: una palabra que no se lee, o no saber si un texto es platillo, ingrediente, opción o precio. En "motivoRevision" escribe la duda en 2 a 5 palabras, sin explicar ni dar instrucciones (por ejemplo "No se lee bien", "¿Va con el de arriba?", "¿Platillo o ingrediente?"); sin duda, déjalo vacío. Agrega una advertencia general. La confianza va de 0 a 1 y debe ser conservadora.
 
 Mantén vacíos los campos que no aparezcan.`;
 
@@ -97,8 +142,7 @@ const BUSINESS_PROFILES: Record<string, string> = {
   fondita: `
 PERFIL FONDITA:
 - Puede coexistir "MENÚ DEL DÍA" con "A LA CARTA".
-- Si la foto muestra secuencia, normaliza a "1ER TIEMPO", "2DO TIEMPO", "3ER TIEMPO" y "BEBIDAS".
-- No fuerces tres tiempos si la foto no los ofrece.
+- Los tiempos siguen la REGLA TIEMPOS: uno por grupo que se ve; no fuerces tres si la foto no los ofrece.
 - Distingue precio general del menú, opciones incluidas y platillos a la carta.`,
   taqueria: `
 PERFIL TAQUERÍA:
@@ -222,10 +266,51 @@ function pagesFrom(body: Record<string, unknown>): Page[] | null {
   return pages.length ? pages : null;
 }
 
-async function readPage(apiKey: string, page: Page, tipo: string | null) {
-  const anthropic = await fetch('https://api.anthropic.com/v1/messages', {
+async function readPage(apiKey: string, page: Page, tipo: string | null, deadline: number, progress: Progress, started: number) {
+  for (let attempt = 1; ; attempt++) {
+    progress.intentos = attempt;
+    const left = deadline - Date.now();
+    if (left < MIN_TIME_TO_READ_MS) throw unavailable(progress, 'sin tiempo para otro intento');
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), left);
+    const aborted = whenAborted(controller.signal);
+    try {
+      let response: Response;
+      try {
+        response = await Promise.race([callModel(apiKey, page, tipo, controller.signal), aborted]);
+      } catch {
+        throw unavailable(progress, controller.signal.aborted ? 'no empezó a tiempo' : 'sin conexión con el servicio');
+      }
+      if (RETRY_STATUS.has(response.status)) {
+        const wait = retryWait(response, attempt);
+        console.error('Anthropic ocupado', response.status, `intento ${attempt}`);
+        await response.body?.cancel().catch(() => {});
+        if (attempt >= MAX_ATTEMPTS || deadline - Date.now() - wait < MIN_TIME_TO_READ_MS) {
+          throw unavailable(progress, `ocupado (${response.status})`);
+        }
+        await sleep(wait);
+        continue;
+      }
+      if (!response.ok) {
+        console.error('Anthropic error', response.status, await response.text().catch(() => ''));
+        throw new Error('El servicio de lectura no respondió');
+      }
+      const streamed = await readStream(response, progress, started, controller.signal, aborted);
+      if (streamed.stop === 'max_tokens' || streamed.stop === 'refusal') {
+        console.error('Lectura incompleta', streamed.stop, streamed.usage);
+        throw new Error('La lectura no pudo completarse');
+      }
+      return { result: normalizeResult(JSON.parse(streamed.text)), usage: streamed.usage };
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+}
+
+function callModel(apiKey: string, page: Page, tipo: string | null, signal: AbortSignal) {
+  return fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
-    signal: AbortSignal.timeout(110_000),
+    signal,
     headers: {
       'content-type': 'application/json',
       'x-api-key': apiKey,
@@ -234,6 +319,9 @@ async function readPage(apiKey: string, page: Page, tipo: string | null) {
     body: JSON.stringify({
       model: 'claude-sonnet-4-6',
       max_tokens: 12000,
+      // Conforme escribe (27 nov): se mide cuándo empieza y cuánto lleva, y
+      // una lectura trabada se corta sin esperar al tope.
+      stream: true,
       output_config: { format: { type: 'json_schema', schema: MENU_SCHEMA } },
       messages: [{
         role: 'user',
@@ -244,18 +332,50 @@ async function readPage(apiKey: string, page: Page, tipo: string | null) {
       }],
     }),
   });
-  if (!anthropic.ok) {
-    const detail = await anthropic.text();
-    console.error('Anthropic error', anthropic.status, detail);
-    throw new Error('El servicio de lectura no respondió');
+}
+
+/** Lee la respuesta conforme llega: cuándo empezó a escribir, cuánto lleva y si se trabó. */
+async function readStream(response: Response, progress: Progress, started: number, signal: AbortSignal, aborted: Promise<never>) {
+  if (!response.body) throw new Error('El servicio de lectura no respondió');
+  const reader = response.body.pipeThrough(new TextDecoderStream()).getReader();
+  const usage = { input_tokens: 0, output_tokens: 0 };
+  let buffer = '';
+  let text = '';
+  let stop: string | null = null;
+  try {
+    while (true) {
+      const { value, done } = await Promise.race([reader.read(), aborted]);
+      if (done) break;
+      buffer += value.replace(/\r\n/g, '\n');
+      let index: number;
+      while ((index = buffer.indexOf('\n\n')) >= 0) {
+        const chunk = buffer.slice(0, index);
+        buffer = buffer.slice(index + 2);
+        const data = chunk.split('\n').find((line) => line.startsWith('data:'));
+        if (!data) continue;
+        const event = JSON.parse(data.slice(5).trim());
+        if (event.type === 'message_start') {
+          usage.input_tokens = event.message?.usage?.input_tokens ?? 0;
+        } else if (event.type === 'content_block_delta' && event.delta?.type === 'text_delta') {
+          if (!progress.ms_primer_texto) progress.ms_primer_texto = Date.now() - started;
+          text += event.delta.text;
+          progress.caracteres = text.length;
+        } else if (event.type === 'message_delta') {
+          usage.output_tokens = event.usage?.output_tokens ?? usage.output_tokens;
+          progress.tokens_salida = usage.output_tokens;
+          stop = event.delta?.stop_reason ?? stop;
+        } else if (event.type === 'error') {
+          throw unavailable(progress, `error del servicio (${event.error?.type ?? 'desconocido'})`);
+        }
+      }
+      if (STUCK_WHITESPACE.test(text)) throw unavailable(progress, 'se trabó escribiendo espacios');
+    }
+  } catch (error) {
+    await reader.cancel().catch(() => {});
+    if (error instanceof ReadUnavailable) throw error;
+    throw unavailable(progress, signal.aborted ? 'escribía demasiado lento' : 'se cortó la conexión');
   }
-  const payload = await anthropic.json();
-  if (payload?.stop_reason === 'max_tokens' || payload?.stop_reason === 'refusal') {
-    console.error('Lectura incompleta', payload?.stop_reason, payload?.usage);
-    throw new Error('La lectura no pudo completarse');
-  }
-  const text = payload?.content?.find((item: { type?: string }) => item.type === 'text')?.text ?? '';
-  return { result: normalizeResult(JSON.parse(text)), usage: payload?.usage ?? null };
+  return { text, usage, stop };
 }
 
 /** Las hojas se juntan en orden; una sección que sigue en la hoja siguiente se une. */
@@ -281,9 +401,13 @@ Deno.serve(async (request) => {
   }
 
   const started = Date.now();
+  let charged: { auth: Awaited<ReturnType<typeof requireUser>>; count: number } | null = null;
+  let modelStarted = 0;
+  let progress: Progress[] = [];
   try {
-    const auth = await requireUser(request);
+    // Primero lo que subió el teléfono, luego la sesión (ver readJson).
     const body = await readJson(request, 7_000_000);
+    const auth = await requireUser(request);
     const pages = pagesFrom(body);
     if (!pages) return Response.json({ error: 'Imagen inválida' }, { status: 400, headers: corsHeaders });
     if (pages.length > MAX_PAGES) {
@@ -293,11 +417,14 @@ Deno.serve(async (request) => {
     if (!apiKey) throw new Error('ANTHROPIC_API_KEY no está configurada');
 
     await consumeAIRequest(auth, 'read-menu', pages.length);
+    charged = { auth, count: pages.length };
     // Medición de la lectura lenta (2026-11-23): cuánto tarda cada parte y
     // cuántos tokens escribe el modelo. Sin datos de la persona ni del menú.
-    const modelStarted = Date.now();
+    modelStarted = Date.now();
     const tipo = typeof body.tipo === 'string' ? body.tipo : null;
-    const read = await Promise.all(pages.map((page) => readPage(apiKey, page, tipo)));
+    const deadline = started + SERVER_BUDGET_MS;
+    progress = pages.map(() => ({ intentos: 0, ms_primer_texto: 0, caracteres: 0, tokens_salida: 0 }));
+    const read = await Promise.all(pages.map((page, index) => readPage(apiKey, page, tipo, deadline, progress[index], modelStarted)));
     const modelMs = Date.now() - modelStarted;
     const result = mergePages(read.map((page) => page.result));
     console.info(JSON.stringify({
@@ -311,14 +438,23 @@ Deno.serve(async (request) => {
       tokens_salida: read.reduce((total, page) => total + (page.usage?.output_tokens ?? 0), 0),
       secciones: result.secciones.length,
       platillos: result.secciones.reduce((total, section) => total + section.platillos.length, 0),
+      hojas_detalle: progress,
     }));
-    return Response.json(result, { headers: { ...corsHeaders, 'content-type': 'application/json' } });
+    // Sin datos de la persona ni del menú: la app de desarrollo lo muestra para medir.
+    const tiempos = { ms_total: Date.now() - started, ms_antes_del_modelo: modelStarted - started, ms_modelo: modelMs, hojas: progress };
+    return Response.json({ ...result, tiempos }, { headers: { ...corsHeaders, 'content-type': 'application/json' } });
   } catch (error) {
+    const tiempos = { ms_total: Date.now() - started, ms_antes_del_modelo: modelStarted ? modelStarted - started : 0, hojas: progress };
     console.error(JSON.stringify({
       lectura: 'read-menu',
       fallo: error instanceof Error ? error.name : 'desconocido',
-      ms_total: Date.now() - started,
+      devuelta: !!(charged && error instanceof ReadUnavailable),
+      ...tiempos,
     }));
+    if (error instanceof ReadUnavailable) {
+      if (charged) await returnAIRequest(charged.auth, 'read-menu', charged.count).catch(() => {});
+      return Response.json({ error: 'No pudimos terminar de leerlo. No se descontó de tus lecturas; inténtalo otra vez en un momento.', tiempos }, { status: 503, headers: corsHeaders });
+    }
     return errorResponse(error, 'No se pudo leer el menú');
   }
 });

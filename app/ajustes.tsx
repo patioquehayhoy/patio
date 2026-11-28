@@ -76,12 +76,12 @@ export default function AjustesScreen() {
         <Text style={s.title} accessibilityRole="header">Ajustes</Text>
         <View style={s.body}>
           <SettingsGroup c={sc} label="Perfil">
-            <SettingsRow c={sc} icon="person-outline" title={hasSession ? 'Editar perfil' : 'Iniciar sesión'} sub={hasSession ? 'Nombre, foto y descripción' : 'Sincroniza listas y reseñas'} onPress={() => router.push(hasSession ? '/perfil-comunidad' : '/comunidad-acceso')} />
+            <SettingsRow c={sc} icon="person-outline" title={hasSession ? 'Editar perfil' : 'Iniciar sesión'} sub={hasSession ? 'Nombre, foto y descripción' : 'Entra para reseñar y compartir listas'} onPress={() => router.push(hasSession ? '/perfil-comunidad' : '/comunidad-acceso')} />
             {isPrivate !== null && <SettingsRow
               c={sc}
               icon={isPrivate ? 'lock-closed-outline' : 'lock-open-outline'}
               title="Perfil privado"
-              sub={isPrivate ? 'Solo quienes apruebas ven tus listas' : 'Cualquiera ve tus listas públicas'}
+              sub={isPrivate ? 'Solo tus seguidores aprobados ven tus listas' : 'Cualquiera ve tus listas públicas'}
               divider
               trailing={<ToggleSwitch value={isPrivate} disabled={savingPrivacy} onValueChange={(value) => { void changePrivacy(value); }} accessibilityLabel="Perfil privado" />}
             />}

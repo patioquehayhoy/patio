@@ -39,9 +39,13 @@ Patio. Contacto para todo lo relacionado con tus datos:
 - Respuestas a reseñas.
 
 **De tu teléfono:**
-- Ubicación aproximada o precisa, solo mientras usas la app y con tu permiso,
+- Ubicación aproximada o precisa, mientras usas la app y con tu permiso,
   para mostrarte lo que hay cerca o ubicar tu negocio. No guardamos tu
   ubicación como Foodie en nuestros servidores.
+- Si activas «Tus visitas», Patio puede detectar visitas incluso con la app
+  cerrada. Para estimar qué tan lleno está un lugar, registramos el lugar, la
+  hora y la duración con un identificador que cambia cada día. Puedes
+  desactivarlo en Notificaciones.
 - Cámara y fotos, solo cuando eliges tomar o subir una imagen.
 
 No recabamos datos personales sensibles ni datos financieros. Si en el futuro

@@ -11,6 +11,7 @@ import { saveDevPublishedMenu } from '@/lib/demo';
 import { deleteLocalMenu, getLocalMenus, newMenuDraftId, renameLocalMenu, saveMenuPublication, saveLocalMenu } from '@/lib/menu-history';
 import { recordMenuCorrection } from '@/lib/menu-learning';
 import {
+  canonicalSeccion,
   cleanAntes,
   clearMenuExtractionSnapshot,
   getMenuExtractionSnapshot,
@@ -26,7 +27,7 @@ import { noWidow } from '@/lib/typography';
 import { syncPublishReminder } from '@/lib/local-reminders';
 import { getFonditaId } from '@/lib/user-store';
 import { cleanMenuPrecios } from '@/lib/menu-prices';
-import { cartaByHeading, cartaSignature, joinCarta, splitCarta, withCartaHeading } from '@/lib/menu-carta';
+import { cartaByHeading, cartaSignature, isCartaHeading, isCartaName, joinCarta, splitCarta, withCartaHeading } from '@/lib/menu-carta';
 import { compareDishNames, dishKey } from '@/lib/dish-identity';
 import { declineDishPair, getDeclinedDishPairs, isDeclinedPair } from '@/lib/dish-links';
 
@@ -62,6 +63,75 @@ const blankSection = (name = 'MENÚ DE HOY', carta = false, withDish = true): Se
   platillos: withDish ? [blankDish()] : [],
   ...(carta ? { carta: true } : {}),
 });
+
+/** Sin título, sin precio y sin nada escrito en sus renglones: no hay qué borrar. */
+export function isBlankSection(section: Seccion): boolean {
+  return !section.nombre.trim() && !section.precio.trim()
+    && section.platillos.every((dish) => !dish.nombre.trim() && !dish.descripcion.trim() && !dish.precio.trim() && !dish.foto);
+}
+
+type MovedFrom = { dishId: string; sectionId: string; index: number };
+
+// Mover varios platillos juntos: al final de `targetId`, en el orden en que
+// estaban. Una sección sin título ni precio que se queda vacía se va (una
+// con título, «MENÚ DEL DÍA $100», se queda: su precio sigue valiendo).
+// Devuelve también de dónde salió cada uno, para «Deshacer».
+export function moveDishesIn(secciones: Seccion[], ids: Set<string>, targetId: string, fresh: Seccion | null) {
+  if (!fresh && !secciones.some((section) => section.id === targetId)) return null;
+  const from: MovedFrom[] = [];
+  const picked = secciones.flatMap((section) => section.id === targetId ? [] : section.platillos.flatMap((dish, index) => {
+    if (!ids.has(dish.id)) return [];
+    from.push({ dishId: dish.id, sectionId: section.id, index });
+    return [dish];
+  }));
+  if (!picked.length) return null;
+  let next = secciones.map((section) => section.id !== targetId && section.platillos.some((dish) => ids.has(dish.id))
+    ? { ...section, platillos: section.platillos.filter((dish) => !ids.has(dish.id)) }
+    : section);
+  if (fresh) {
+    const section = { ...fresh, platillos: picked };
+    const firstCarta = next.findIndex((item) => item.carta);
+    const at = fresh.carta || firstCarta < 0 ? next.length : firstCarta;
+    next = [...next.slice(0, at), section, ...next.slice(at)];
+  } else {
+    next = next.map((section) => section.id === targetId ? { ...section, platillos: [...section.platillos, ...picked] } : section);
+  }
+  const before = new Set(secciones.filter((section) => !isBlankSection(section)).map((section) => section.id));
+  const dropped: { section: Seccion; index: number }[] = [];
+  const kept = next.filter((section) => {
+    const goes = section.id !== targetId && before.has(section.id) && isBlankSection(section);
+    if (goes) dropped.push({ section, index: secciones.findIndex((item) => item.id === section.id) });
+    return !goes;
+  });
+  return kept.some((section) => !section.carta)
+    ? { secciones: kept, from, dropped }
+    : { secciones: next, from, dropped: [] };
+}
+
+// «Deshacer» de mover: cada platillo vuelve a su sección y a su lugar (con lo
+// que se le haya escrito después), regresan las secciones que se fueron por
+// quedar vacías y la sección nueva se va si se quedó sin platillos.
+export function undoMoveIn(secciones: Seccion[], moved: { toSectionId: string; created: boolean; from: MovedFrom[]; dropped: { section: Seccion; index: number }[] }): Seccion[] {
+  const ids = new Set(moved.from.map((item) => item.dishId));
+  const current = new Map(secciones.flatMap((section) => section.platillos.filter((dish) => ids.has(dish.id)).map((dish) => [dish.id, dish] as const)));
+  let next = secciones.map((section) => section.platillos.some((dish) => ids.has(dish.id))
+    ? { ...section, platillos: section.platillos.filter((dish) => !ids.has(dish.id)) }
+    : section);
+  // La sección nueva sin platillos se va antes de regresar las demás a su lugar.
+  if (moved.created) next = next.filter((section) => section.id !== moved.toSectionId || section.platillos.length);
+  [...moved.dropped].sort((a, b) => a.index - b.index).forEach(({ section, index }) => {
+    if (next.some((item) => item.id === section.id)) return;
+    next = [...next.slice(0, index), { ...section, platillos: [] }, ...next.slice(index)];
+  });
+  next = next.map((section) => {
+    const back = moved.from.filter((item) => item.sectionId === section.id && current.has(item.dishId)).sort((a, b) => a.index - b.index);
+    if (!back.length) return section;
+    const platillos = [...section.platillos];
+    back.forEach((item) => platillos.splice(Math.min(item.index, platillos.length), 0, current.get(item.dishId)!));
+    return { ...section, platillos };
+  });
+  return next;
+}
 
 // Núcleo real de "publicar" — separado del hook para que otras pantallas
 // (ej. "Publicar igual" desde Menús, sin pasar por todo el editor) puedan
@@ -142,6 +212,13 @@ function normalizeDraftPresentation(data: MenuData): MenuData {
 }
 
 const hasAmount = (value: string) => Number(value.replace(/[^0-9.]/g, '')) > 0;
+const amount = (value: string) => Number(value.replace(/[^0-9.]/g, ''));
+
+/** «MENÚ», «MENÚ DEL DÍA», «COMIDA CORRIDA», «COMPLETO» o sin nombre: el menú del día, sin más. */
+function isDayMenuName(name: string): boolean {
+  return !name.trim()
+    || /^(?:MENU(?: DEL DIA| DE HOY| COMPLETO)?|COMPLETO|COMIDA(?: CORRIDA| DEL DIA| COMPLETA)?)$/.test(canonicalSeccion(name));
+}
 
 /**
  * El menú como pizarrón (2026-11-16, Parco): solo secciones con su título y su
@@ -150,17 +227,43 @@ const hasAmount = (value: string) => Number(value.replace(/[^0-9.]/g, '')) > 0;
  * (`precios`, también los que lee una foto) pasan a encabezados arriba de lo
  * de hoy; «Incluye…» se quita: lo dicen los platillos de la sección. Una
  * carta sin encabezado recibe «CARTA».
+ *
+ * Un precio que ya tiene su sección va en ella, nunca como otro encabezado
+ * (27 nov, el pizarrón de Parco: salía «MENÚ $100» vacío arriba de «MENÚ DEL
+ * DÍA», y «CARTA $110» arriba metía el menú del día dentro de la carta).
  */
 export function boardFromMenu(data: MenuData): MenuData {
-  const prices = cleanMenuPrecios(data.precios);
   let secciones = data.secciones;
+  const priceOn = (id: string, precio: string) => {
+    secciones = secciones.map((section) => section.id === id && !section.precio.trim() ? { ...section, precio } : section);
+  };
+  const prices = cleanMenuPrecios(data.precios).filter((price) => {
+    // «CARTA $110» cobra la carta: es el precio de su encabezado (al final, donde
+    // empieza la carta), no una forma de cobrar el menú del día.
+    if (isCartaName(price.nombre)) {
+      const carta = secciones.find((section) => isCartaHeading(section.nombre));
+      if (carta) priceOn(carta.id, price.precio);
+      else secciones = [...secciones, { id: makeSectionId(), nombre: 'CARTA', precio: price.precio, platillos: [], carta: true }];
+      return false;
+    }
+    // «GUISADOS $85» y ya hay una sección GUISADOS de hoy: es su precio.
+    const twin = price.nombre
+      ? secciones.find((section) => !section.carta && canonicalSeccion(section.nombre) === canonicalSeccion(price.nombre))
+      : undefined;
+    if (!twin) return true;
+    priceOn(twin.id, price.precio);
+    return false;
+  });
   if (prices.length) {
     const first = secciones[0];
-    // Un solo precio sin nombre y la primera sección sin nombre propio: esa es
-    // «MENÚ DEL DÍA $100». Si no, cada precio es su encabezado arriba.
-    if (prices.length === 1 && !prices[0].nombre && first && !first.carta && !first.precio.trim()
-      && (!first.nombre.trim() || /^men[uú] de hoy$/i.test(first.nombre.trim()))) {
-      secciones = [{ ...first, nombre: 'MENÚ DEL DÍA', precio: prices[0].precio }, ...secciones.slice(1)];
+    // Un solo precio del menú del día y la primera sección es el menú del día
+    // («MENÚ», «MENÚ DEL DÍA» o sin nombre): es la misma, con su precio. Si no
+    // (tiempos, guisados, varias formas de cobrar), cada precio es su
+    // encabezado arriba.
+    if (prices.length === 1 && isDayMenuName(prices[0].nombre) && first && !first.carta && isDayMenuName(first.nombre)
+      && (!first.precio.trim() || amount(first.precio) === amount(prices[0].precio))) {
+      const nombre = first.nombre.trim() && !/^men[uú] de hoy$/i.test(first.nombre.trim()) ? first.nombre : 'MENÚ DEL DÍA';
+      secciones = [{ ...first, nombre, precio: prices[0].precio }, ...secciones.slice(1)];
     } else {
       const headings = prices.map((price): Seccion => ({
         id: makeSectionId(),
@@ -535,8 +638,13 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
   // se borró —sección o platillo— se puede regresar a su lugar. Se ofrece
   // hasta que la persona lo regresa, lo cierra o borra otra cosa.
   const [lastRemoved, setLastRemoved] = useState<
-    | { kind: 'section'; section: Seccion; index: number }
+    // `placeholderId`: la sección vacía que quedó en su lugar (era la única de hoy).
+    | { kind: 'section'; section: Seccion; index: number; placeholderId?: string }
     | { kind: 'dish'; sectionId: string; dish: Platillo; index: number }
+    // Varios platillos a la vez (Seleccionar → Eliminar).
+    | { kind: 'dishes'; items: { sectionId: string; dish: Platillo; index: number }[] }
+    // Lo último que se movió (Seleccionar → Mover): de dónde salió cada platillo.
+    | { kind: 'moved'; toSectionId: string; created: boolean; from: MovedFrom[]; dropped: { section: Seccion; index: number }[] }
     | null
   >(null);
 
@@ -556,14 +664,65 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
     }));
   }, [data.secciones, setData]);
 
+  // Seleccionar varios (Parco, 28 nov: arrastrar sirve con pocos, pero
+  // acomodar diez platillos —cinco sopas, dos bebidas, dos postres— uno por
+  // uno se complica). Como «Mover» en Mail o Archivos: los elegidos se van
+  // juntos, en el orden en que estaban, al final de la sección que eliges.
+  const removeDishes = useCallback((dishIds: string[]) => {
+    const ids = new Set(dishIds);
+    const items = data.secciones.flatMap((section) => section.platillos
+      .map((dish, index) => ({ sectionId: section.id, dish, index }))
+      .filter((item) => ids.has(item.dish.id)));
+    if (!items.length) return;
+    const worth = items.filter((item) => item.dish.nombre.trim() || item.dish.descripcion.trim() || item.dish.precio.trim() || item.dish.foto);
+    if (worth.length) setLastRemoved({ kind: 'dishes', items });
+    setData((prev) => ({
+      ...prev,
+      secciones: prev.secciones.map((section) => section.platillos.some((dish) => ids.has(dish.id))
+        ? { ...section, platillos: section.platillos.filter((dish) => !ids.has(dish.id)) }
+        : section),
+    }));
+  }, [data.secciones, setData]);
+
+  /** Sin `toSectionId`: una sección nueva (sin título, para escribirlo) con los elegidos. Devuelve su id. */
+  const moveDishes = useCallback((dishIds: string[], toSectionId?: string): string | null => {
+    const ids = new Set(dishIds);
+    const sources = data.secciones.filter((section) => section.platillos.some((dish) => ids.has(dish.id)));
+    if (!sources.length) return null;
+    // Lo que sale solo de la carta se queda en la carta; si no, va a lo de hoy.
+    const fresh = toSectionId ? null : blankSection('', sources.every((section) => section.carta), false);
+    const targetId = toSectionId ?? fresh!.id;
+    const record = moveDishesIn(data.secciones, ids, targetId, fresh);
+    if (!record) return null;
+    // «Deshacer» también después de mover (Parco, 28 nov), como Mail.
+    setLastRemoved({ kind: 'moved', toSectionId: targetId, created: !!fresh, from: record.from, dropped: record.dropped });
+    setData((prev) => ({ ...prev, secciones: moveDishesIn(prev.secciones, ids, targetId, fresh)?.secciones ?? prev.secciones }));
+    return targetId;
+  }, [data.secciones, setData]);
+
   const undoRemove = useCallback(() => {
     const removed = lastRemoved;
     if (!removed) return;
     setLastRemoved(null);
     setData((prev) => {
+      if (removed.kind === 'moved') return { ...prev, secciones: undoMoveIn(prev.secciones, removed) };
+      if (removed.kind === 'dishes') {
+        const present = new Set(prev.secciones.flatMap((section) => section.platillos.map((dish) => dish.id)));
+        return {
+          ...prev,
+          secciones: prev.secciones.map((section) => {
+            const back = removed.items.filter((item) => item.sectionId === section.id && !present.has(item.dish.id)).sort((a, b) => a.index - b.index);
+            if (!back.length) return section;
+            const platillos = [...section.platillos];
+            back.forEach((item) => platillos.splice(Math.min(item.index, platillos.length), 0, item.dish));
+            return { ...section, platillos };
+          }),
+        };
+      }
       if (removed.kind === 'section') {
         if (prev.secciones.some((section) => section.id === removed.section.id)) return prev;
-        const secciones = [...prev.secciones];
+        // El lugar vacío que dejó se va si nadie escribió ahí.
+        const secciones = prev.secciones.filter((section) => section.id !== removed.placeholderId || !isBlankSection(section));
         secciones.splice(Math.min(removed.index, secciones.length), 0, removed.section);
         return { ...prev, secciones };
       }
@@ -627,14 +786,22 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
   }, [setData]);
 
   const removeSection = useCallback((id: string) => {
-    const target = data.secciones.find((section) => section.id === id);
-    if (!target?.carta && data.secciones.filter((section) => !section.carta).length === 1) {
-      Alert.alert('Tu menú necesita una sección');
-      return;
-    }
     const index = data.secciones.findIndex((section) => section.id === id);
-    if (target && target.platillos.some((dish) => dish.nombre.trim()) ) setLastRemoved({ kind: 'section', section: target, index });
-    setData((prev) => ({ ...prev, secciones: prev.secciones.filter((section) => section.id !== id) }));
+    const target = data.secciones[index];
+    if (!target) return;
+    // La única sección de hoy deja su lugar vacío, listo para escribir (27 nov;
+    // antes salía «Tu menú necesita una sección» y no se borraba): arriba de la
+    // carta siempre hay dónde va lo de hoy, y la carta nunca pasa a ser el menú.
+    const placeholder = !target.carta && data.secciones.filter((section) => !section.carta).length === 1
+      ? blankSection('')
+      : null;
+    if (!isBlankSection(target)) {
+      setLastRemoved({ kind: 'section', section: target, index, ...(placeholder ? { placeholderId: placeholder.id } : {}) });
+    }
+    setData((prev) => ({
+      ...prev,
+      secciones: prev.secciones.flatMap((section) => section.id !== id ? [section] : placeholder ? [placeholder] : []),
+    }));
   }, [data.secciones, setData]);
 
   const addDish = useCallback((section: Seccion): string => {
@@ -792,20 +959,26 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
   // un platillo de hoy y tocar «Se acabó» lo marca en la calle al instante, sin
   // «Actualizar» y sin avisar a nadie. Solo cambia esa marca del menú
   // publicado: lo demás que estés cambiando sigue esperando «Actualizar».
-  const setSoldOut = useCallback(async (sectionId: string, dishId: string, agotado: boolean) => {
-    if (!live) return;
-    const mark = (value: boolean) => setDataQuietly((prev) => ({
+  // Varios a la vez (Parco, 28 nov: Seleccionar → «Se acabó»): una sola
+  // escritura; si falla, cada uno vuelve a como estaba.
+  const setSoldOut = useCallback(async (dishIds: string[], agotado: boolean) => {
+    if (!live || !dishIds.length) return;
+    const ids = new Set(dishIds);
+    const was = new Map(data.secciones.flatMap((section) => section.platillos
+      .filter((dish) => ids.has(dish.id))
+      .map((dish) => [dish.id, !!dish.agotado] as const)));
+    const withMark = (dish: Platillo, value: boolean): Platillo => {
+      const { agotado: _was, ...rest } = dish;
+      return value ? { ...rest, agotado: true } : rest;
+    };
+    const mark = (value: (dishId: string) => boolean) => setDataQuietly((prev) => ({
       ...prev,
-      secciones: prev.secciones.map((section) => section.id !== sectionId ? section : {
+      secciones: prev.secciones.map((section) => !section.platillos.some((dish) => ids.has(dish.id)) ? section : {
         ...section,
-        platillos: section.platillos.map((dish) => {
-          if (dish.id !== dishId) return dish;
-          const { agotado: _was, ...rest } = dish;
-          return value ? { ...rest, agotado: true } : rest;
-        }),
+        platillos: section.platillos.map((dish) => ids.has(dish.id) ? withMark(dish, value(dish.id)) : dish),
       }),
     }));
-    mark(agotado);
+    mark(() => agotado);
     Haptics.selectionAsync().catch(() => {});
     const fonditaId = getFonditaId();
     const fecha = initialData.localFecha ?? localMenuDate();
@@ -817,11 +990,7 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
         ...published,
         secciones: published.secciones.map((section) => ({
           ...section,
-          platillos: section.platillos.map((dish) => {
-            if (dish.id !== dishId) return dish;
-            const { agotado: _was, ...rest } = dish;
-            return agotado ? { ...rest, agotado: true } : rest;
-          }),
+          platillos: section.platillos.map((dish) => ids.has(dish.id) ? withMark(dish, agotado) : dish),
         })),
       };
       if (fonditaId) {
@@ -833,10 +1002,22 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
         await saveLocalMenu(next, local.nombre, { id: local.id, fecha: local.fecha, published: true, publishAt: local.publishAt });
       }
     } catch {
-      mark(!agotado);
+      mark((dishId) => was.get(dishId) ?? !agotado);
       Alert.alert(noWidow('No se pudo marcar'), noWidow('Revisa tu conexión e inténtalo otra vez.'));
     }
-  }, [live, setDataQuietly, initialData.localFecha, draftId]);
+  }, [live, data.secciones, setDataQuietly, initialData.localFecha, draftId]);
+
+  // Lo mismo a varios platillos (Seleccionar → «Vegetariano»).
+  const patchDishes = useCallback((dishIds: string[], patch: Partial<Platillo>) => {
+    const ids = new Set(dishIds);
+    setData((prev) => ({
+      ...prev,
+      secciones: prev.secciones.map((section) => !section.platillos.some((dish) => ids.has(dish.id)) ? section : {
+        ...section,
+        platillos: section.platillos.map((dish) => ids.has(dish.id) ? { ...dish, ...patch } : dish),
+      }),
+    }));
+  }, [setData]);
 
   return {
     addDish,
@@ -854,13 +1035,16 @@ export function useFonderoMenuDraftController(initialData: MenuData, source: 'fo
     linkSuggestion,
     live,
     moveDishTo,
+    moveDishes,
     moveSectionTo,
     nombre,
     patchDish,
+    patchDishes,
     patchSection,
     publish,
     publishing,
     removeDish,
+    removeDishes,
     removeSection,
     saveNombre,
     setDishPhoto,

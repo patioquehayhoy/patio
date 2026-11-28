@@ -60,8 +60,10 @@ export function useMenuPreviewController() {
   const { sections, carta, menuPrices, priceLabel, priceName } = posterFromMenu(menuData, savedCarta);
   const fecha = new Date().toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' }).toUpperCase();
 
+  // Desde Menús o desde tu ficha: vuelve a donde estabas.
   const handleBack = useCallback(() => {
-    router.replace('/historial');
+    if (router.canGoBack()) router.back();
+    else router.replace('/historial');
   }, []);
 
   const handleOpenProfile = useCallback(() => {

@@ -1,4 +1,48 @@
-# Pendientes y roadmap de lanzamiento — actualizado 2026-11-22
+# Pendientes y roadmap de lanzamiento — actualizado 2026-11-28
+
+## Corte 2026-11-28 (Claude)
+
+- [x] Lectura con sesión probada por Parco: 22.8 s y 13.7 s.
+- [x] Editor: cada precio leído en su sección (sin secciones vacías
+  repetidas); la única sección de hoy se puede eliminar.
+- [x] Lectura: tiempos por los grupos que se ven en cualquier giro, duda en
+  2 a 5 palabras, precio de la carta en la carta (`read-menu` desplegada).
+- [x] Seleccionar varios platillos: Se acabó / Ya hay, Vegetariano, Mover a
+  una sección o a una nueva (con «Deshacer») y Eliminar.
+- [x] Pulido del editor: una sugerencia a la vez, vegetariano de a uno,
+  «+ Platillo» en la retícula y en gris.
+- [ ] **QA de Parco:** Seleccionar → Se acabó, Vegetariano, Mover, Deshacer;
+  «+ Platillo» en gris todavía se ve tocable.
+
+## Corte 2026-11-27 (Claude)
+
+- [x] **Lectura con foto:** el servidor contesta siempre (antes se colgaba al
+  rechazar sin leer la subida) y sin cuenta la app pide entrar en vez de
+  esperar 2 minutos.
+- [x] **Parco:** entrar con su correo en la app de desarrollo y leer el
+  pizarrón (28 nov: funciona, 22.8 s y 13.7 s).
+
+- [ ] **Parco decide la Racha:** quedarse, contando solo los días que abre,
+  con pausa y con «Hoy te vieron N» al frente. Lo respaldan Apple, Microsoft,
+  GitHub y Google, y Jev la elige en 78 %; la actual, 3 %
+  ([decisión](RACHA_2026-11-27.md)).
+- [x] Encargo de Codex, ahora de Claude: al eliminar la cuenta se borran
+  también las fotos del local, de los platillos y de las reseñas
+  (`delete-account` desplegada, con prueba); textos de Ayuda, Ajustes,
+  eliminación y aviso de privacidad corregidos; borrador para App Review sobre
+  Cadenas (Consolas §8).
+- [x] **Parco, con el túnel abierto:** lecturas reales para medir la lectura
+  lenta (encargo §A). Dos pizarrones el 27 y 28 nov: 22.8 s y 13.7 s; la
+  lentitud era la sesión, no la IA.
+- [x] Comparar modelos de lectura: descartado por Parco (27 nov), no se gasta.
+- [ ] **Parco, QA:** Mi Patio → «Editar menú»; compartir → «Imagen del
+  menú» después de marcar «Se acabó». Si el póster sigue viejo, anotar los
+  pasos exactos.
+- [ ] Enlace y QR en el póster hacia una página web con el menú y los botones
+  de las tiendas: necesita `quehayhoy.mx` (comprarlo, encargo §B.3).
+- [x] VoiceOver deja de ser pendiente (Parco, 27 nov); se hace a la par.
+- [x] Lectura: reintento si la IA está saturada y devolución de la lectura si
+  no responde (producción, 27 nov).
 
 ## Corte 2026-11-24 (Claude)
 
@@ -11,8 +55,7 @@
 - [ ] **Parco decide:** quitar Racha y «Tus visitas»
   ([auditoría](AUDITORIA_JEV_APP_2026-11-24.md)).
 - [ ] Build nuevo y «Resubmit to App Review» cuando la app esté terminada.
-- [ ] Codex: actualizar su CLI (0.144 ya no acepta los modelos) y hacer el
-  punto 5 del encargo.
+- [x] Punto 5 del encargo: lo hizo Claude (27 nov).
 
 ## Corte 2026-11-23 (Claude)
 
@@ -21,8 +64,9 @@
 - [x] Manijas retiradas (Parco con Codex). Ya no es pendiente.
 - [x] Lectura: el teléfono espera 120 s, más que los 110 s del servidor;
   `read-menu` registra tiempos y tokens (desplegada el 23 nov).
-- [ ] **Codex con Parco:** medir lecturas reales y comparar modelos con el sí
-  de Parco al costo ([encargo](CODEX_ENCARGO_2026-11-23.md) §A).
+- [x] **Codex con Parco:** medir lecturas reales (hecho por Claude, 28 nov:
+  22.8 s y 13.7 s) y comparar modelos (descartado por Parco, 27 nov)
+  ([encargo](CODEX_ENCARGO_2026-11-23.md) §A).
 - [ ] **Codex:** tiendas y trámites (encargo §B).
 - [ ] **App Store: la versión 1.0.0 está «Rejected»** por la regla 2.1.0
   (Performance: App Completeness), visto en App Store Connect el 24 nov.
@@ -75,8 +119,6 @@
   a Jev pendiente); no marcar por inferencia ni confundir con vegano.
 - [ ] Likes: agrupar por identidad del platillo sin duplicar personas por
   variantes/otros nombres. Conteos visibles no cierran ese trabajo.
-- [ ] VoiceOver: probar Subir/Bajar; mover platillos entre secciones con
-  VoiceOver aún es una ampliación pendiente.
 - [ ] Visitante sin cuenta: concretar qué acciones requieren una identidad
   anónima en servidor; no confundir el demo con una sesión real.
 - [ ] Funciones de producto aún pendientes: flyers Pro, mostrar en caja,
@@ -177,8 +219,6 @@
   ni stashes viejos (respaldo en `~/Patio-respaldo-versiones-viejas-2026-11-21.bundle`).
 - [ ] **Parco, QA:** arrastrar secciones y platillos unas 10 veces; reseña
   completa; hojita en la barra del teclado.
-- [ ] VoiceOver: «Subir» y «Bajar» en el panel del editor (antes solo en
-  «Ordenar», que se quitó).
 
 ## Corte 2026-11-16 (Claude)
 

@@ -5,7 +5,14 @@ import { Platform, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions
 import { useTheme } from '@/lib/theme';
 import { noWidow } from '@/lib/typography';
 
-export type SelectionAction = { label: string; icon: keyof typeof Ionicons.glyphMap | 'pin-off-outline'; onPress: () => void; disabled?: boolean };
+export type SelectionAction = {
+  label: string;
+  icon: keyof typeof Ionicons.glyphMap | 'pin-off-outline';
+  onPress: () => void;
+  disabled?: boolean;
+  /** Una marca que se pone y se quita (el ícono lleno dice que ya la tienen todos; VoiceOver dice «seleccionado»). */
+  selected?: boolean;
+};
 
 export function SelectionActions({ actions, busy = false }: { actions: SelectionAction[]; busy?: boolean }) {
   const { theme } = useTheme();
@@ -14,7 +21,8 @@ export function SelectionActions({ actions, busy = false }: { actions: Selection
   return <View style={[s.bar, expanded && s.expandedBar, { backgroundColor: theme.glass, borderColor: theme.border }]}>
     <BlurView pointerEvents="none" intensity={theme.isDark ? 16 : 20} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
     {actions.map((action) => <TouchableOpacity key={action.label} onPress={action.onPress} disabled={busy || action.disabled}
-      accessibilityRole="button" accessibilityLabel={action.label} accessibilityState={{ disabled: busy || !!action.disabled, busy }}
+      accessibilityRole="button" accessibilityLabel={action.label}
+      accessibilityState={{ disabled: busy || !!action.disabled, busy, ...(action.selected !== undefined ? { selected: action.selected } : {}) }}
       style={[s.action, expanded && s.expandedAction]}>
       <View style={s.iconSlot}>
       {action.icon === 'pin-outline' || action.icon === 'pin-off-outline'

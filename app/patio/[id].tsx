@@ -23,7 +23,8 @@ import { SaveToListSheet } from '@/components/save-to-list-sheet';
 import { patioCardPrice } from '@/lib/patio-card-info';
 import { usePatioDetailController } from '@/lib/controllers/usePatioDetailController';
 import { getLikedDishNames, toggleDishLike } from '@/lib/dish-likes';
-import { canonicalDishName } from '@/lib/menu-store';
+import { canonicalDishName, setMenuData } from '@/lib/menu-store';
+import { editorSeed, loadMenuHistory, menuPublicationState } from '@/lib/controllers/useMenuHistoryController';
 import { dishKey, dishKeysOf } from '@/lib/dish-identity';
 import { getLikedReviewIds, getReviewLikeCounts, toggleReviewLike } from '@/lib/review-likes';
 import { CommentSignInRequiredError, commentTimeLabel, deleteReviewComment, getReviewComments, isRealReviewId, postReviewComment, setCommentLike } from '@/lib/review-comments';
@@ -1179,6 +1180,19 @@ export function PatioDetailView({ id, own = false, focusDish }: { id?: string; o
     ]);
   };
 
+  // Tu Patio (Parco, 27 nov): como el perfil propio de Instagram, «Editar» y
+  // «Compartir» viven en la ficha. Compartir ofrece la imagen del menú de hoy
+  // (la misma de Menús, ya con lo que se acabó) o el enlace, sin publicar otra vez.
+  const shareAnchor = useRef<View>(null);
+  const [ownShareMenu, setOwnShareMenu] = useState(false);
+  const openOwnMenu = async (target: 'edit' | 'image') => {
+    const menus = await loadMenuHistory().catch(() => []);
+    const live = menus.find((menu) => menuPublicationState(menu) === 'live');
+    if (!live) { router.push('/crear'); return; }
+    setMenuData(editorSeed(live));
+    router.push(target === 'edit' ? { pathname: '/menu-editar', params: { reuse: '1' } } : '/preview');
+  };
+
   const GlassIcon = ({ name, size = 17, onPress, color, label, selected }: { name: keyof typeof Ionicons.glyphMap; size?: number; onPress: () => void; color?: string; label: string; selected?: boolean }) => (
     <TouchableOpacity
       style={s.glassIcon}
@@ -1389,6 +1403,19 @@ export function PatioDetailView({ id, own = false, focusDish }: { id?: string; o
                   {!metaStacked && heroFacts ? renderFacts(businessStats ? ' · ' : '') : null}
                 </Text>
               </View>
+              {own && (
+                <TouchableOpacity
+                  style={[s.followPill, s.followPillGlass]}
+                  activeOpacity={0.7}
+                  hitSlop={{ top: 6, bottom: 6 }}
+                  onPress={() => { void openOwnMenu('edit'); }}
+                  accessibilityRole="button"
+                  accessibilityLabel={patio.hasTodayMenu ? 'Editar el menú de hoy' : 'Crear el menú de hoy'}>
+                  <BlurView intensity={theme.isDark ? 24 : 40} tint={theme.isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
+                  <View style={[StyleSheet.absoluteFillObject, { backgroundColor: theme.glass }]} />
+                  <Text style={[s.followPillText, { color: theme.text }]} numberOfLines={1} adjustsFontSizeToFit allowFontScaling={true}>{patio.hasTodayMenu ? 'Editar menú' : 'Crear menú'}</Text>
+                </TouchableOpacity>
+              )}
               {!own && (
                 <View ref={followAnchor} collapsable={false} style={{ opacity: savedKnown ? 1 : 0 }} pointerEvents={savedKnown ? 'auto' : 'none'}>
                   <TouchableOpacity
@@ -1413,7 +1440,9 @@ export function PatioDetailView({ id, own = false, focusDish }: { id?: string; o
             {own ? <View /> : <GlassIcon name="chevron-back" size={21} onPress={handleBack} label="Volver" />}
             <View style={{ flexDirection: 'row', gap: 8 }}>
               {!own && patioId && <ContentSafetyMenu targetType="patio" targetId={patioId} />}
-              <GlassIcon name="share-outline" size={17} onPress={handleShare} label="Compartir" />
+              <View ref={shareAnchor} collapsable={false}>
+                <GlassIcon name="share-outline" size={17} onPress={own && patio.hasTodayMenu ? () => setOwnShareMenu(true) : handleShare} label="Compartir" />
+              </View>
             </View>
           </View>
         </View>
@@ -2195,6 +2224,14 @@ export function PatioDetailView({ id, own = false, focusDish }: { id?: string; o
           </BlurView>
         </View>
       )}
+      <ActionSheet
+        visible={ownShareMenu}
+        anchorRef={shareAnchor}
+        onDismiss={() => setOwnShareMenu(false)}
+        options={[
+          { label: 'Imagen del menú', icon: 'image-outline', afterDismiss: true, onPress: () => { void openOwnMenu('image'); } },
+          { label: 'Enlace a tu ficha', icon: 'link-outline', afterDismiss: true, onPress: handleShare },
+        ]} />
       <ActionSheet
         visible={followMenu}
         anchorRef={followAnchor}

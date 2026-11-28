@@ -6,8 +6,10 @@
 ## Desde la app
 
 1. Abre Patio y entra con tu correo.
-2. Ve a **Perfil**.
-3. Al final, toca **Eliminar cuenta** y confirma.
+2. Si usas Patio para comer: abre **Perfil**, toca el engrane de **Ajustes**
+   y elige **Eliminar cuenta**. Si tienes un negocio: entra en **Ajustes** y
+   elige **Eliminar cuenta**.
+3. Confirma.
 
 ## Sin la app
 
@@ -17,7 +19,8 @@ te confirmamos por correo.
 
 ## Qué se borra
 
-Tu cuenta, tu perfil y foto, tus listas y lugares guardados, tus reseñas, «me
-gusta», cuentas seguidas y bloqueadas, preferencias de notificaciones y, si
-tienes un negocio, su ficha y sus menús. No conservamos copias, salvo lo que la
+Tu cuenta, tu perfil y foto, tus listas y lugares guardados, tus reseñas y
+sus fotos, «me gusta», cuentas seguidas y bloqueadas, preferencias de notificaciones y, si
+tienes un negocio, su ficha, su logo, la foto del local, sus menús y las
+fotos de sus platillos. No conservamos copias, salvo lo que la
 ley nos obligue a guardar por un tiempo determinado.

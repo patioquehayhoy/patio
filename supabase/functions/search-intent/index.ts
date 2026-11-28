@@ -70,8 +70,9 @@ Deno.serve(async (request) => {
   }
 
   try {
-    const auth = await requireUser(request);
+    // Primero lo que subió el teléfono, luego la sesión (ver readJson).
     const body = await readJson(request, 8_192);
+    const auth = await requireUser(request);
     const query = text(body.query);
     if (!query || query.length > 500) {
       return Response.json({ error: 'Escribe una búsqueda de hasta 500 caracteres' }, { status: 400, headers: corsHeaders });

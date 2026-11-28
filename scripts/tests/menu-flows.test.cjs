@@ -313,13 +313,49 @@ test('DEV sold-out survives reopening without publishing other pending edits', a
   const initial = { ...menu('Mole'), localDraftId: id, localLive: true };
   const render = () => runtime.render(() => useFonderoMenuDraftController(initial));
   render().patchDish('section', 'dish', { precio: '95' });
-  await render().setSoldOut('section', 'dish', true);
+  await render().setSoldOut(['dish'], true);
   const saved = (await history.getLocalMenus())[0];
   assert.equal(saved.published, true);
   assert.equal(saved.secciones.secciones[0].platillos[0].agotado, true);
   assert.equal(visible.secciones[0].platillos[0].agotado, true);
   assert.equal(visible.secciones[0].platillos[0].precio, '');
   assert.equal(render().data.secciones[0].platillos[0].precio, '95');
+  runtime.unmount();
+});
+
+test('«Se acabó» for several dishes saves once, and a failure puts each one back as it was', async () => {
+  const runtime = hookRuntime();
+  let saves = 0;
+  let fail = false;
+  let visible;
+  const f = fixture({ dev: true, overrides: {
+    react: runtime.react,
+    'expo-haptics': { selectionAsync: async () => {} },
+    '@/lib/user-store': { getFonditaId: () => null },
+    '@/lib/db': {},
+    '@/lib/demo': { saveDevPublishedMenu: async (data) => { saves++; if (fail) throw new Error('offline'); visible = data; } },
+  } });
+  const history = f.load('lib/menu-history.ts');
+  const { useFonderoMenuDraftController } = f.load('lib/controllers/useFonderoMenuDraftController.ts');
+  const id = 'draft:dev-soldout-many';
+  const dish = (dishId, nombre, extra = {}) => ({ id: dishId, nombre, descripcion: '', precio: '', ...extra });
+  const published = { secciones: [{ id: 'hoy', nombre: 'GUISADOS', precio: '85', platillos: [dish('a', 'Mole'), dish('b', 'Tinga', { agotado: true }), dish('c', 'Rajas')] }] };
+  await history.saveMenuPublication(published, 'Comida', id, async () => {});
+  const render = () => runtime.render(() => useFonderoMenuDraftController({ ...published, localDraftId: id, localLive: true }));
+  const marks = () => render().data.secciones[0].platillos.map((item) => !!item.agotado);
+  await render().setSoldOut(['a', 'c'], true);
+  assert.equal(saves, 1);
+  assert.deepEqual(marks(), [true, true, true]);
+  assert.deepEqual(visible.secciones[0].platillos.map((item) => !!item.agotado), [true, true, true]);
+  assert.equal(render().hasUnsavedChanges(), false);
+  // Sin conexión: «Ya hay» de los tres se regresa y cada uno queda como estaba.
+  fail = true;
+  await render().setSoldOut(['a', 'b', 'c'], false);
+  assert.deepEqual(marks(), [true, true, true]);
+  // Vegetariano a varios: una marca que sí espera «Actualizar».
+  render().patchDishes(['a', 'c'], { vegetariano: true });
+  assert.deepEqual(render().data.secciones[0].platillos.map((item) => item.vegetariano === true), [true, false, true]);
+  assert.equal(render().hasUnsavedChanges(), true);
   runtime.unmount();
 });
 
@@ -620,6 +656,67 @@ test('editor with cards: next opens a line right below, a new section starts wit
   runtime.unmount();
 });
 
+test('selecting several dishes moves them together, to a section or a new one, and deletes them with one undo', () => {
+  const runtime = hookRuntime();
+  const f = fixture({ overrides: { react: runtime.react, '@/lib/db': {} } });
+  const { useFonderoMenuDraftController } = f.load('lib/controllers/useFonderoMenuDraftController.ts');
+  const dish = (id, nombre) => ({ id, nombre, descripcion: '', precio: '' });
+  // El caso de Parco: diez renglones juntos (cinco sopas, dos bebidas, dos postres y uno que no sabe).
+  const initial = { secciones: [
+    { id: 'hoy', nombre: 'MENÚ DEL DÍA', precio: '100', platillos: [
+      dish('s1', 'Fideo'), dish('b1', 'Agua de jamaica'), dish('s2', 'Consomé'), dish('p1', 'Flan'), dish('s3', 'Lentejas'),
+      dish('b2', 'Horchata'), dish('s4', 'Crema de elote'), dish('p2', 'Gelatina'), dish('s5', 'Caldo tlalpeño'), dish('x', 'Tortitas'),
+    ] },
+    { id: 'post', nombre: 'POSTRES', precio: '', platillos: [] },
+    { id: 'carta', nombre: 'CARTA', precio: '110', carta: true, platillos: [dish('c1', 'Milanesa')] },
+  ] };
+  const render = () => runtime.render(() => useFonderoMenuDraftController(initial));
+  const names = (id) => render().data.secciones.find((section) => section.id === id).platillos.map((item) => item.id);
+  // A una sección que ya existe: al final, en el orden en que estaban.
+  render().moveDishes(['p2', 'p1'], 'post');
+  assert.deepEqual(names('post'), ['p1', 'p2']);
+  // A una nueva: entra antes de la carta, sin título (el cursor lo espera), y el precio del menú se queda.
+  const nueva = render().moveDishes(['b2', 'b1']);
+  assert.deepEqual(render().data.secciones.map((section) => section.id), ['hoy', 'post', nueva, 'carta']);
+  assert.deepEqual(names(nueva), ['b1', 'b2']);
+  assert.ok(!render().data.secciones.find((section) => section.id === nueva).carta);
+  assert.deepEqual(names('hoy'), ['s1', 's2', 's3', 's4', 's5', 'x']);
+  assert.equal(render().data.secciones[0].precio, '100');
+  // Una sección sin título que se queda vacía se va; una con título se queda.
+  render().moveDishes(['b1', 'b2'], 'hoy');
+  assert.equal(render().data.secciones.some((section) => section.id === nueva), false);
+  render().moveDishes(['p1', 'p2'], 'hoy');
+  assert.deepEqual(names('post'), []);
+  // Lo que sale solo de la carta se queda en la carta.
+  const deCarta = render().moveDishes(['c1']);
+  assert.equal(render().data.secciones.at(-1).id, deCarta);
+  assert.equal(render().data.secciones.at(-1).carta, true);
+  // Mover también se deshace: cada uno vuelve a su lugar, con lo que se le escribió
+  // después, y la sección nueva (ya con título) se va porque se quedó sin platillos.
+  const antes = render().data.secciones.map((section) => [section.id, section.platillos.map((item) => item.id)]);
+  const otra = render().moveDishes(['s1', 's3']);
+  render().patchSection(otra, { nombre: 'SOPAS' });
+  render().patchDish(otra, 's3', { precio: '30' });
+  assert.equal(render().lastRemoved.kind, 'moved');
+  render().undoRemove();
+  assert.deepEqual(render().data.secciones.map((section) => [section.id, section.platillos.map((item) => item.id)]), antes);
+  assert.equal(render().data.secciones[0].platillos.find((item) => item.id === 's3').precio, '30');
+  // Y regresa la sección sin título que se había ido por quedar vacía.
+  const sola = render().moveDishes(['s5']);
+  render().moveDishes(['s5'], 'hoy');
+  assert.equal(render().data.secciones.some((section) => section.id === sola), false);
+  render().undoRemove();
+  assert.deepEqual(render().data.secciones.find((section) => section.id === sola).platillos.map((item) => item.id), ['s5']);
+  render().moveDishes(['s5'], 'hoy');
+  // Eliminar varios: un solo «Deshacer» los regresa a su lugar.
+  render().removeDishes(['s2', 's4', 'x']);
+  assert.deepEqual(names('hoy'), ['s1', 's3', 'b1', 'b2', 'p1', 'p2', 's5']);
+  assert.equal(render().lastRemoved.kind, 'dishes');
+  render().undoRemove();
+  assert.deepEqual(names('hoy'), ['s1', 's2', 's3', 's4', 'x', 'b1', 'b2', 'p1', 'p2', 's5']);
+  runtime.unmount();
+});
+
 test('drafts save themselves: opening without touching saves nothing, typing saves, and an emptied draft goes away on leaving', async () => {
   const runtime = hookRuntime();
   const f = fixture({ overrides: { react: runtime.react, '@/lib/db': {} } });
@@ -815,6 +912,59 @@ test('editor board: menu prices become headings, «Incluye» goes away and a pri
   assert.deepEqual(clean.precios, []);
 });
 
+test('reading a pizarrón: «MENÚ $100» and «CARTA $110» land on their own sections, never as empty copies that push the day into the carta', async () => {
+  // 27 nov, el pizarrón de Parco: salía «MENÚ» vacío, el menú del día abajo
+  // dentro de la carta, y borrar «MENÚ» decía «Tu menú necesita una sección».
+  const dish = (nombre) => ({ nombre, descripcion: '', precio: '', confianza: 0.9, requiereRevision: false, motivoRevision: '' });
+  const photo = photoFixture({ vision: async () => ({
+    precio: '', advertencias: [],
+    precios: [{ nombre: 'MENÚ', precio: '$100' }, { nombre: 'CARTA', precio: '$110' }],
+    secciones: [
+      { nombre: 'MENÚ DEL DÍA', precioSeccion: '', platillos: [dish('Consomé de pollo'), dish('Mixiote de pollo')] },
+      { nombre: 'CARTA', precioSeccion: '$110', platillos: [dish('Pechuga de pollo'), dish('Arrachera')] },
+    ],
+  }) });
+  await photo.render().analyzePhoto('pizarron.jpg', 1200, 1600);
+  const { boardFromMenu } = publicationFixture().load('lib/controllers/useFonderoMenuDraftController.ts');
+  const board = (data) => boardFromMenu(data).secciones.map((x) => [x.nombre, x.precio, x.platillos.length, !!x.carta]);
+  assert.deepEqual(board(photo.render().menu), [['MENÚ DEL DÍA', '100', 2, false], ['CARTA', '110', 2, true]]);
+  photo.runtime.unmount();
+
+  const day = (nombre, precio = '') => ({ id: nombre, nombre, precio, platillos: [{ id: `${nombre}-d`, nombre: 'Mole', descripcion: '', precio: '' }] });
+  const carta = { ...day('CARTA', '110'), carta: true };
+  // El precio general es el de la sección del menú del día que ya existe.
+  assert.deepEqual(board({ precios: [{ id: 'p', nombre: '', precio: '100' }], secciones: [day('MENÚ DEL DÍA'), carta] }),
+    [['MENÚ DEL DÍA', '100', 1, false], ['CARTA', '110', 1, true]]);
+  // Ya traía el mismo precio: no se repite.
+  assert.deepEqual(board({ precios: [{ id: 'p', nombre: '', precio: '100' }], secciones: [day('MENÚ', '100')] }), [['MENÚ', '100', 1, false]]);
+  // «GUISADOS $85» con su sección GUISADOS: es su precio.
+  assert.deepEqual(board({ precios: [{ id: 'p', nombre: 'Guisados', precio: '85' }], secciones: [day('GUISADOS')] }), [['GUISADOS', '85', 1, false]]);
+  // Con tiempos, el precio del menú sí es su encabezado arriba.
+  assert.deepEqual(board({ precios: [{ id: 'p', nombre: '', precio: '100' }], secciones: [day('1ER TIEMPO'), day('2DO TIEMPO'), carta] }),
+    [['MENÚ DEL DÍA', '100', 0, false], ['1ER TIEMPO', '', 1, false], ['2DO TIEMPO', '', 1, false], ['CARTA', '110', 1, true]]);
+});
+
+test('deleting the only section of today leaves an empty one in its place, the carta stays carta, and «Deshacer» brings it back', async () => {
+  const runtime = hookRuntime();
+  const f = fixture({ overrides: { react: runtime.react, '@/lib/db': {} } });
+  const { useFonderoMenuDraftController } = f.load('lib/controllers/useFonderoMenuDraftController.ts');
+  const initial = { secciones: [
+    { id: 'hoy', nombre: 'MENÚ DEL DÍA', precio: '100', platillos: [{ id: 'd1', nombre: 'Mole', descripcion: '', precio: '' }] },
+    { id: 'carta', nombre: 'CARTA', precio: '110', carta: true, platillos: [{ id: 'd2', nombre: 'Arrachera', descripcion: '', precio: '150' }] },
+  ] };
+  const render = () => runtime.render(() => useFonderoMenuDraftController(initial));
+  render().removeSection('hoy');
+  const [placeholder, saved] = render().data.secciones;
+  assert.equal(placeholder.nombre, '');
+  assert.equal(placeholder.carta, undefined, 'there is always a place for today above the carta');
+  assert.equal(saved.id, 'carta');
+  assert.equal(saved.carta, true, 'the carta never becomes the day menu');
+  assert.equal(render().lastRemoved.kind, 'section');
+  render().undoRemove();
+  assert.deepEqual(render().data.secciones.map((x) => x.id), ['hoy', 'carta'], 'the empty place goes away when nothing was written there');
+  runtime.unmount();
+});
+
 test('a menu left ready for another day reopens in place; copies drop «Se acabó»; the reminder never opens tomorrow\'s menu', () => {
   const f = fixture({ overrides: { '@/lib/supabase': { supabase: {} } } });
   const { editorSeed, latestMenuSeed, withoutSoldOut } = f.load('lib/controllers/useMenuHistoryController.ts');
@@ -860,7 +1010,7 @@ test('vision deadline aborts transport and returns an actionable error', async (
   let signal;
   const f = fixture({ overrides: {
     'expo-file-system/legacy': { EncodingType: { Base64: 'base64' }, readAsStringAsync: async () => 'image' },
-    '@/lib/supabase': { supabase: { functions: { invoke: (_name, options) => {
+    '@/lib/supabase': { supabase: { auth: { getSession: async () => ({ data: { session: { user: { is_anonymous: false } } } }) }, functions: { invoke: (_name, options) => {
       signal = options.signal;
       return new Promise(() => {});
     } } } },
@@ -875,4 +1025,28 @@ test('vision deadline aborts transport and returns an actionable error', async (
   t.mock.timers.tick(10_000);
   await rejected;
   assert.equal(signal.aborted, true);
+});
+
+test('without a business session the photo is never uploaded and the error asks to sign in', async () => {
+  let invoked = 0;
+  const f = fixture({ overrides: {
+    'expo-file-system/legacy': { EncodingType: { Base64: 'base64' }, readAsStringAsync: async () => 'image' },
+    '@/lib/supabase': { supabase: { auth: { getSession: async () => ({ data: { session: null } }) }, functions: { invoke: async () => { invoked++; return { data: null, error: null }; } } } },
+  } });
+  await assert.rejects(f.load('lib/vision.ts').leerMenuDeFoto('photo.jpg'), (error) => error.status === 401 && /entra con el correo de tu negocio/.test(error.message));
+  assert.equal(invoked, 0);
+});
+
+test('without a business session the reading offers to sign in instead of another photo', async () => {
+  const f = photoFixture({ vision: async () => {
+    const error = new Error('Para leer tu menú con foto, entra con el correo de tu negocio.');
+    error.name = 'AIServiceError';
+    error.status = 401;
+    throw error;
+  } });
+  await f.render().choosePhoto();
+  const [title, message, buttons] = f.alerts.at(-1);
+  assert.match(title, /^Entra a tu.negocio$/);
+  assert.match(message, /correo de tu.negocio/);
+  assert.deepEqual(buttons.map((button) => button.text), ['Entrar', 'Escribirlo a mano', 'Ahora no']);
 });

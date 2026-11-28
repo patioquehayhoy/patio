@@ -20,8 +20,8 @@ function loadEdge(name, admin, fetchImpl = async () => { throw new Error('Unexpe
       module, exports: module.exports,
       require: (id) => id.startsWith('npm:') ? { createClient: () => admin } : load(path.resolve(path.dirname(filename), id)),
       Deno: { env: { get: () => 'test-secret' }, serve: (fn) => { handler = fn; } },
-      Response, Request, TextDecoder, Uint8Array, AbortSignal,
-      fetch: fetchImpl, console: { error() {} },
+      Response, Request, TextDecoder, TextDecoderStream, Uint8Array, AbortSignal, AbortController, setTimeout, clearTimeout,
+      fetch: fetchImpl, console: { error() {}, info() {} },
     }, { filename });
     return module.exports;
   }
@@ -32,7 +32,7 @@ function loadEdge(name, admin, fetchImpl = async () => { throw new Error('Unexpe
 const userId = 'a992e8c0-290e-4e17-a65f-bfd89d6e849c';
 function makeAdmin({ authenticated = true, anonymous = false, failStorage = false, ready = true, failDelete = false, fileCount = 1 } = {}) {
   const calls = [];
-  const objects = { avatars: [...Array.from({ length: fileCount }, (_, index) => `${userId}/avatar-${index}.jpg`), `${userId}/old/photo.jpg`], 'business-logos': [`${userId}/logo.jpg`] };
+  const objects = { avatars: [...Array.from({ length: fileCount }, (_, index) => `${userId}/avatar-${index}.jpg`), `${userId}/old/photo.jpg`], 'business-logos': [`${userId}/logo.jpg`], 'place-photos': [`${userId}/negocio-1.jpg`], 'dish-photos': [`${userId}/tacos-abc.jpg`], 'review-photos': [`${userId}/r1.jpg`, `${userId}/r2.jpg`] };
   const admin = {
     auth: {
       getUser: async (token) => {
@@ -103,14 +103,14 @@ test('delete-account: deletes only authenticated user storage before hard deleti
   assert.deepEqual(await response.json(), { deleted: true });
   assert.deepEqual(calls.at(-1), ['deleteUser', userId, false]);
   assert.ok(calls.filter(([operation]) => operation === 'list').every(([, , prefix]) => prefix.startsWith(userId)));
-  assert.deepEqual(Object.values(objects), [[], []]);
+  assert.deepEqual(Object.values(objects), [[], [], [], [], []]);
 });
 
 test('delete-account: pagination removes every file without skipping shifted offsets', async () => {
   const { admin, calls, objects } = makeAdmin({ fileCount: 205 });
   const response = await loadEdge('delete-account', admin)(request());
   assert.equal(response.status, 200);
-  assert.deepEqual(Object.values(objects), [[], []]);
+  assert.deepEqual(Object.values(objects), [[], [], [], [], []]);
   assert.ok(calls.filter(([operation, bucket]) => operation === 'remove' && bucket === 'avatars').length >= 3);
 });
 
@@ -300,3 +300,86 @@ for (const [feature, body] of [['read-menu', { imageBase64: 'A'.repeat(120), med
     assert.equal((await loadEdge(feature, admin)(request(body))).status, 503);
   });
 }
+
+const MENU_PAGE = { imageBase64: 'A'.repeat(120), mediaType: 'image/jpeg' };
+const MENU_REPLY = { secciones: [{ nombre: 'COMIDA', platillos: [{ nombre: 'Mole', descripcion: '', precio: 85 }] }] };
+const busy = () => new Response('{"type":"error","error":{"type":"overloaded_error"}}', { status: 529, headers: { 'retry-after': '0.01' } });
+// Respuesta del servicio conforme escribe (streaming), como la manda Anthropic.
+const event = (type, data) => `event: ${type}\ndata: ${JSON.stringify({ type, ...data })}\n\n`;
+const streamed = (chunks, { stop = 'end_turn', error } = {}) => new Response([
+  event('message_start', { message: { usage: { input_tokens: 1500, output_tokens: 1 } } }),
+  ...chunks.map((text) => event('content_block_delta', { index: 0, delta: { type: 'text_delta', text } })),
+  ...(error ? [event('error', { error: { type: error } })] : [
+    event('message_delta', { delta: { stop_reason: stop }, usage: { output_tokens: 42 } }),
+    event('message_stop', {}),
+  ]),
+].join(''), { headers: { 'content-type': 'text/event-stream' } });
+
+test('read-menu: a busy reading service is retried and the menu still arrives', async () => {
+  const { admin, calls } = makeAdmin();
+  let attempts = 0;
+  const handler = loadEdge('read-menu', admin, async () => {
+    attempts++;
+    const json = JSON.stringify(MENU_REPLY);
+    return attempts < 3 ? busy() : streamed([json.slice(0, 20), json.slice(20)]);
+  });
+  const response = await handler(request(MENU_PAGE));
+  assert.equal(response.status, 200);
+  assert.equal(attempts, 3);
+  const body = await response.json();
+  assert.equal(body.secciones[0].platillos[0].nombre, 'Mole');
+  assert.equal(body.tiempos.hojas[0].intentos, 3);
+  assert.equal(body.tiempos.hojas[0].tokens_salida, 42);
+  assert.ok(!calls.some(([, name]) => name === 'return_ai_request'));
+});
+
+test('read-menu: when the reading service never answers, the reading is given back', async () => {
+  const { admin, calls } = makeAdmin();
+  let attempts = 0;
+  const handler = loadEdge('read-menu', admin, async () => { attempts++; return busy(); });
+  const response = await handler(request(MENU_PAGE));
+  assert.equal(response.status, 503);
+  assert.equal(attempts, 3);
+  const body = await response.json();
+  assert.match(body.error, /No se descontó/);
+  assert.equal(body.tiempos.hojas[0].motivo, 'ocupado (529)');
+  assert.deepEqual(calls.filter(([op]) => op === 'rpc').map(([, name]) => name), ['consume_ai_request', 'return_ai_request']);
+});
+
+test('read-menu: a bad request to the reading service is not retried nor given back', async () => {
+  const { admin, calls } = makeAdmin();
+  let attempts = 0;
+  const handler = loadEdge('read-menu', admin, async () => { attempts++; return new Response('bad', { status: 400 }); });
+  const response = await handler(request(MENU_PAGE));
+  assert.equal(response.status, 500);
+  assert.equal(attempts, 1);
+  assert.ok(!calls.some(([, name]) => name === 'return_ai_request'));
+});
+
+test('read-menu: a reading stuck writing blank space is cut and given back', async () => {
+  const { admin, calls } = makeAdmin();
+  const handler = loadEdge('read-menu', admin, async () => streamed(['{"secciones":[', ' '.repeat(200), ' '.repeat(200)]));
+  const response = await handler(request(MENU_PAGE));
+  assert.equal(response.status, 503);
+  assert.equal((await response.json()).tiempos.hojas[0].motivo, 'se trabó escribiendo espacios');
+  assert.ok(calls.some(([, name]) => name === 'return_ai_request'));
+});
+
+test('read-menu: an overloaded error in the middle of the reading is given back', async () => {
+  const { admin, calls } = makeAdmin();
+  const handler = loadEdge('read-menu', admin, async () => streamed(['{"secciones":['], { error: 'overloaded_error' }));
+  const response = await handler(request(MENU_PAGE));
+  assert.equal(response.status, 503);
+  const body = await response.json();
+  assert.equal(body.tiempos.hojas[0].motivo, 'error del servicio (overloaded_error)');
+  assert.ok(body.tiempos.hojas[0].ms_primer_texto >= 0);
+  assert.ok(calls.some(([, name]) => name === 'return_ai_request'));
+});
+
+test('read-menu: a reading cut by the token limit is reported and not given back', async () => {
+  const { admin, calls } = makeAdmin();
+  const handler = loadEdge('read-menu', admin, async () => streamed(['{"secciones":[{"nombre":"COMIDA"'], { stop: 'max_tokens' }));
+  const response = await handler(request(MENU_PAGE));
+  assert.equal(response.status, 500);
+  assert.ok(!calls.some(([, name]) => name === 'return_ai_request'));
+});

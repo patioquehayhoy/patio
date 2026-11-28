@@ -206,3 +206,29 @@ For a business: "Ajustes" → "Eliminar cuenta".
 - Para cambiar el código: editar `~/Patio-privado/revision-apple.env`, correr
   `supabase secrets set --env-file ~/Patio-privado/revision-apple.env` y actualizarlo en las
   dos consolas.
+
+## 8. Pregunta a App Review: plan Cadenas por contrato (borrador, 27 nov)
+
+Antes de la primera cadena. Se manda desde App Store Connect → Contact Us →
+App Review (o en la respuesta del próximo envío). Lo envía Parco.
+
+```
+Hello App Review team,
+
+Patio is a free iOS app where small food businesses in Mexico publish their
+daily menu. Individual businesses can buy Pro inside the app with In-App
+Purchase.
+
+We are also preparing a "Chains" plan for large restaurant chains (dozens or
+hundreds of locations). It is negotiated and signed with the company's
+corporate office, invoiced by us outside the app, and paid by bank transfer.
+Inside the app there is no price, purchase button, link or call to action
+for this plan; locations simply appear with the features enabled after the
+contract is signed.
+
+Under guideline 3.1.3(c) (Enterprise Services), can we sell this plan only
+through the signed contract outside the app, while keeping In-App Purchase
+for individual businesses?
+
+Thank you.
+```

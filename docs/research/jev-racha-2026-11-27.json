@@ -1,0 +1,678 @@
+{
+ "app": "Una app mexicana de celular donde fondas, cocinas económicas, puestos y restaurantes publican qué hay hoy: el menú del día, lo que se acabó y avisos para quienes los siguen. Quien busca dónde comer ve en el mapa cada lugar con su ficha. Al negocio le sirve que quienes lo siguen vean cada día su menú; si no publica, su ficha dice que no hay menú de hoy.",
+ "formas": {
+  "dias_seguidos": "Un contador de días seguidos publicando. Si un día no publicas, aunque ese día no abras, vuelve a cero.",
+  "dias_que_abres": "Un contador que solo cuenta los días que tu negocio abre según tu horario: el día que cierras no lo rompe. Si te vas de vacaciones o enfermas, lo pausas y no se pierde.",
+  "semanas": "Un contador de semanas en las que publicaste todos los días que abriste. Además tienes unos días al año que te cubren si un día se te olvida.",
+  "resultado": "Sin contador. Cada vez que publicas, la app te dice cuánta gente vio tu menú hoy y cuántos te siguen, comparado con la semana pasada.",
+  "nada": "Nada de eso: solo publicas tu menú y ya."
+ },
+ "negocios": {
+  "fonda": {
+   "forma": {
+    "type": "choice",
+    "choice": "dias_que_abres",
+    "confidence": 0.29,
+    "probabilities": {
+     "resultado": 0.36,
+     "semanas": 0.18,
+     "dias_que_abres": 0.43,
+     "nada": 0.01,
+     "dias_seguidos": 0.02
+    }
+   },
+   "escalas": {
+    "dias_seguidos": {
+     "type": "score",
+     "score": 2.36,
+     "confidence": 0.32,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.02,
+      "1": 0.22,
+      "2": 0.22,
+      "3": 0.45,
+      "4": 0.09
+     }
+    },
+    "dias_que_abres": {
+     "type": "score",
+     "score": 2.8,
+     "confidence": 0.49,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.02,
+      "1": 0.1,
+      "2": 0.14,
+      "3": 0.53,
+      "4": 0.21
+     }
+    },
+    "semanas": {
+     "type": "score",
+     "score": 2.68,
+     "confidence": 0.57,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.1,
+      "2": 0.19,
+      "3": 0.61,
+      "4": 0.09
+     }
+    },
+    "resultado": {
+     "type": "score",
+     "score": 2.79,
+     "confidence": 0.61,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.08,
+      "2": 0.15,
+      "3": 0.63,
+      "4": 0.13
+     }
+    },
+    "presion_dias_seguidos": {
+     "type": "score",
+     "score": 2.76,
+     "confidence": 0.67,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.06,
+      "2": 0.17,
+      "3": 0.68,
+      "4": 0.08
+     }
+    }
+   }
+  },
+  "economica": {
+   "forma": {
+    "type": "choice",
+    "choice": "resultado",
+    "confidence": 0.3,
+    "probabilities": {
+     "resultado": 0.44,
+     "dias_seguidos": 0.04,
+     "semanas": 0.14,
+     "dias_que_abres": 0.37,
+     "nada": 0.01
+    }
+   },
+   "escalas": {
+    "dias_seguidos": {
+     "type": "score",
+     "score": 2.3,
+     "confidence": 0.28,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.02,
+      "1": 0.25,
+      "2": 0.22,
+      "3": 0.42,
+      "4": 0.09
+     }
+    },
+    "dias_que_abres": {
+     "type": "score",
+     "score": 2.76,
+     "confidence": 0.49,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.02,
+      "1": 0.11,
+      "2": 0.15,
+      "3": 0.54,
+      "4": 0.18
+     }
+    },
+    "semanas": {
+     "type": "score",
+     "score": 2.5,
+     "confidence": 0.47,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.15,
+      "2": 0.23,
+      "3": 0.53,
+      "4": 0.08
+     }
+    },
+    "resultado": {
+     "type": "score",
+     "score": 2.77,
+     "confidence": 0.58,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.09,
+      "2": 0.16,
+      "3": 0.61,
+      "4": 0.13
+     }
+    },
+    "presion_dias_seguidos": {
+     "type": "score",
+     "score": 2.81,
+     "confidence": 0.72,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.05,
+      "2": 0.14,
+      "3": 0.73,
+      "4": 0.07
+     }
+    }
+   }
+  },
+  "taquero": {
+   "forma": {
+    "type": "choice",
+    "choice": "resultado",
+    "confidence": 0.39,
+    "probabilities": {
+     "semanas": 0.16,
+     "dias_seguidos": 0.02,
+     "nada": 0.03,
+     "dias_que_abres": 0.28,
+     "resultado": 0.51
+    }
+   },
+   "escalas": {
+    "dias_seguidos": {
+     "type": "score",
+     "score": 2.14,
+     "confidence": 0.2,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.29,
+      "2": 0.31,
+      "3": 0.35,
+      "4": 0.04
+     }
+    },
+    "dias_que_abres": {
+     "type": "score",
+     "score": 2.41,
+     "confidence": 0.37,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.03,
+      "1": 0.18,
+      "2": 0.22,
+      "3": 0.48,
+      "4": 0.09
+     }
+    },
+    "semanas": {
+     "type": "score",
+     "score": 2.53,
+     "confidence": 0.52,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.13,
+      "2": 0.24,
+      "3": 0.57,
+      "4": 0.05
+     }
+    },
+    "resultado": {
+     "type": "score",
+     "score": 2.66,
+     "confidence": 0.57,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.1,
+      "2": 0.19,
+      "3": 0.61,
+      "4": 0.09
+     }
+    },
+    "presion_dias_seguidos": {
+     "type": "score",
+     "score": 2.78,
+     "confidence": 0.74,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.05,
+      "2": 0.16,
+      "3": 0.74,
+      "4": 0.05
+     }
+    }
+   }
+  },
+  "tianguis": {
+   "forma": {
+    "type": "choice",
+    "choice": "resultado",
+    "confidence": 0.24,
+    "probabilities": {
+     "dias_que_abres": 0.38,
+     "semanas": 0.17,
+     "dias_seguidos": 0.02,
+     "nada": 0.04,
+     "resultado": 0.39
+    }
+   },
+   "escalas": {
+    "dias_seguidos": {
+     "type": "score",
+     "score": 2.32,
+     "confidence": 0.29,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.02,
+      "1": 0.23,
+      "2": 0.25,
+      "3": 0.42,
+      "4": 0.08
+     }
+    },
+    "dias_que_abres": {
+     "type": "score",
+     "score": 2.99,
+     "confidence": 0.6,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.05,
+      "2": 0.12,
+      "3": 0.59,
+      "4": 0.23
+     }
+    },
+    "semanas": {
+     "type": "score",
+     "score": 2.67,
+     "confidence": 0.61,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.09,
+      "2": 0.22,
+      "3": 0.62,
+      "4": 0.07
+     }
+    },
+    "resultado": {
+     "type": "score",
+     "score": 2.75,
+     "confidence": 0.64,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.08,
+      "2": 0.17,
+      "3": 0.65,
+      "4": 0.1
+     }
+    },
+    "presion_dias_seguidos": {
+     "type": "score",
+     "score": 2.83,
+     "confidence": 0.71,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.05,
+      "2": 0.13,
+      "3": 0.72,
+      "4": 0.09
+     }
+    }
+   }
+  },
+  "casa": {
+   "forma": {
+    "type": "choice",
+    "choice": "dias_que_abres",
+    "confidence": 0.35,
+    "probabilities": {
+     "semanas": 0.1,
+     "dias_que_abres": 0.48,
+     "dias_seguidos": 0.0,
+     "resultado": 0.41,
+     "nada": 0.01
+    }
+   },
+   "escalas": {
+    "dias_seguidos": {
+     "type": "score",
+     "score": 1.73,
+     "confidence": 0.33,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.04,
+      "1": 0.48,
+      "2": 0.23,
+      "3": 0.22,
+      "4": 0.03
+     }
+    },
+    "dias_que_abres": {
+     "type": "score",
+     "score": 2.52,
+     "confidence": 0.4,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.03,
+      "1": 0.16,
+      "2": 0.19,
+      "3": 0.5,
+      "4": 0.12
+     }
+    },
+    "semanas": {
+     "type": "score",
+     "score": 2.53,
+     "confidence": 0.51,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.12,
+      "2": 0.26,
+      "3": 0.55,
+      "4": 0.06
+     }
+    },
+    "resultado": {
+     "type": "score",
+     "score": 2.47,
+     "confidence": 0.45,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.02,
+      "1": 0.16,
+      "2": 0.22,
+      "3": 0.54,
+      "4": 0.06
+     }
+    },
+    "presion_dias_seguidos": {
+     "type": "score",
+     "score": 2.85,
+     "confidence": 0.76,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.04,
+      "2": 0.13,
+      "3": 0.75,
+      "4": 0.08
+     }
+    }
+   }
+  },
+  "restaurantera": {
+   "forma": {
+    "type": "choice",
+    "choice": "resultado",
+    "confidence": 0.31,
+    "probabilities": {
+     "resultado": 0.45,
+     "dias_seguidos": 0.06,
+     "dias_que_abres": 0.15,
+     "nada": 0.02,
+     "semanas": 0.32
+    }
+   },
+   "escalas": {
+    "dias_seguidos": {
+     "type": "score",
+     "score": 2.09,
+     "confidence": 0.14,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.02,
+      "1": 0.32,
+      "2": 0.27,
+      "3": 0.33,
+      "4": 0.06
+     }
+    },
+    "dias_que_abres": {
+     "type": "score",
+     "score": 2.36,
+     "confidence": 0.28,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.05,
+      "1": 0.2,
+      "2": 0.21,
+      "3": 0.43,
+      "4": 0.11
+     }
+    },
+    "semanas": {
+     "type": "score",
+     "score": 2.56,
+     "confidence": 0.49,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.14,
+      "2": 0.21,
+      "3": 0.55,
+      "4": 0.09
+     }
+    },
+    "resultado": {
+     "type": "score",
+     "score": 2.82,
+     "confidence": 0.52,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.02,
+      "1": 0.1,
+      "2": 0.13,
+      "3": 0.56,
+      "4": 0.19
+     }
+    },
+    "presion_dias_seguidos": {
+     "type": "score",
+     "score": 2.81,
+     "confidence": 0.73,
+     "legend": {
+      "0": "Nada.",
+      "1": "Poco.",
+      "2": "A medias.",
+      "3": "Bastante.",
+      "4": "Del todo."
+     },
+     "probabilities": {
+      "0": 0.0,
+      "1": 0.05,
+      "2": 0.15,
+      "3": 0.73,
+      "4": 0.07
+     }
+    }
+   }
+  }
+ }
+}
